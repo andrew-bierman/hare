@@ -1,6 +1,6 @@
 import { createId } from '@paralleldrive/cuid2'
 import { describe, expect, it } from 'vitest'
-import * as schema from '../schema'
+import * as schema from 'web-app/db/schema'
 
 describe('Database Schema', () => {
 	describe('Schema exports', () => {

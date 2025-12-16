@@ -1,7 +1,7 @@
 import { ArrowRight, Bot, Code, Zap } from 'lucide-react'
 import Link from 'next/link'
-import { Button } from '../../components/ui/button'
-import { Card, CardDescription, CardHeader, CardTitle } from '../../components/ui/card'
+import { Button } from 'web-app/components/ui/button'
+import { Card, CardDescription, CardHeader, CardTitle } from 'web-app/components/ui/card'
 
 export default function LandingPage() {
 	const features = [

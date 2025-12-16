@@ -1,5 +1,5 @@
 import { hc } from 'hono/client'
-import type { AppType } from './api/index'
+import type { AppType } from 'web-app/lib/api/index'
 
 /**
  * Type-safe Hono RPC client for making API calls

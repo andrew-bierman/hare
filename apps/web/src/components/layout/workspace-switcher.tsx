@@ -1,7 +1,7 @@
 'use client'
 
 import { ChevronsUpDown } from 'lucide-react'
-import { Button } from '../ui/button'
+import { Button } from 'web-app/components/ui/button'
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -9,7 +9,7 @@ import {
 	DropdownMenuLabel,
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
-} from '../ui/dropdown-menu'
+} from 'web-app/components/ui/dropdown-menu'
 
 export function WorkspaceSwitcher() {
 	return (

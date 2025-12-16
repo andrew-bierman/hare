@@ -1,7 +1,7 @@
 import { Bot, Plus, Search } from 'lucide-react'
 import Link from 'next/link'
-import { Badge } from '../../../components/ui/badge'
-import { Button } from '../../../components/ui/button'
+import { Badge } from 'web-app/components/ui/badge'
+import { Button } from 'web-app/components/ui/button'
 import {
 	Card,
 	CardContent,
@@ -9,8 +9,8 @@ import {
 	CardFooter,
 	CardHeader,
 	CardTitle,
-} from '../../../components/ui/card'
-import { Input } from '../../../components/ui/input'
+} from 'web-app/components/ui/card'
+import { Input } from 'web-app/components/ui/input'
 
 export default function AgentsPage() {
 	const agents = [

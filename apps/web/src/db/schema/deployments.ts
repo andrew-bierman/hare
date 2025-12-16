@@ -1,7 +1,7 @@
 import { createId } from '@paralleldrive/cuid2'
 import { integer, sqliteTable, text } from 'drizzle-orm/sqlite-core'
-import { agents } from './agents'
-import { users } from './auth'
+import { agents } from 'web-app/db/schema/agents'
+import { users } from 'web-app/db/schema/auth'
 
 export const deployments = sqliteTable('deployments', {
 	id: text('id')

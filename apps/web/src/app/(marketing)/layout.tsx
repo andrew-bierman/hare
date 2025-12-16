@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Button } from '../../components/ui/button'
+import { Button } from 'web-app/components/ui/button'
 
 export default function MarketingLayout({ children }: { children: React.ReactNode }) {
 	return (

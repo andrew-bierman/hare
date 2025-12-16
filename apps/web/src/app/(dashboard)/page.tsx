@@ -1,5 +1,11 @@
 import { Bot, MessageSquare, TrendingUp, Zap } from 'lucide-react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card'
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardHeader,
+	CardTitle,
+} from 'web-app/components/ui/card'
 
 export default function DashboardPage() {
 	const stats = [

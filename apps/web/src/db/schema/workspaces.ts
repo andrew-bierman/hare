@@ -1,6 +1,6 @@
 import { createId } from '@paralleldrive/cuid2'
 import { integer, sqliteTable, text } from 'drizzle-orm/sqlite-core'
-import { users } from './auth'
+import { users } from 'web-app/db/schema/auth'
 
 export const workspaces = sqliteTable('workspaces', {
 	id: text('id')

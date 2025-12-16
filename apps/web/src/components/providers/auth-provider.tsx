@@ -1,7 +1,7 @@
 'use client'
 
 import { createContext, type ReactNode, useContext } from 'react'
-import { useSession } from '../../lib/auth-client'
+import { useSession } from 'web-app/lib/auth-client'
 
 type Session = ReturnType<typeof useSession>
 

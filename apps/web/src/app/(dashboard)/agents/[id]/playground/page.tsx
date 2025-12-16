@@ -2,16 +2,16 @@
 
 import { Send } from 'lucide-react'
 import { use, useState } from 'react'
-import { Badge } from '../../../../../components/ui/badge'
-import { Button } from '../../../../../components/ui/button'
+import { Badge } from 'web-app/components/ui/badge'
+import { Button } from 'web-app/components/ui/button'
 import {
 	Card,
 	CardContent,
 	CardDescription,
 	CardHeader,
 	CardTitle,
-} from '../../../../../components/ui/card'
-import { Input } from '../../../../../components/ui/input'
+} from 'web-app/components/ui/card'
+import { Input } from 'web-app/components/ui/input'
 
 export default function PlaygroundPage({ params }: { params: Promise<{ id: string }> }) {
 	const { id: _id } = use(params)

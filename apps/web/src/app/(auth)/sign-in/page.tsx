@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { type FormEvent, useState } from 'react'
 import { toast } from 'sonner'
-import { Button } from '../../../components/ui/button'
+import { Button } from 'web-app/components/ui/button'
 import {
 	Card,
 	CardContent,
@@ -12,10 +12,10 @@ import {
 	CardFooter,
 	CardHeader,
 	CardTitle,
-} from '../../../components/ui/card'
-import { Input } from '../../../components/ui/input'
-import { Label } from '../../../components/ui/label'
-import { signIn } from '../../../lib/auth-client'
+} from 'web-app/components/ui/card'
+import { Input } from 'web-app/components/ui/input'
+import { Label } from 'web-app/components/ui/label'
+import { signIn } from 'web-app/lib/auth-client'
 
 export default function SignInPage() {
 	const router = useRouter()

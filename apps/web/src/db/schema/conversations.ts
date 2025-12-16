@@ -1,9 +1,9 @@
 import { createId } from '@paralleldrive/cuid2'
 import { integer, sqliteTable, text } from 'drizzle-orm/sqlite-core'
-import type { MessageMetadata } from '../types'
-import { agents } from './agents'
-import { users } from './auth'
-import { workspaces } from './workspaces'
+import { agents } from 'web-app/db/schema/agents'
+import { users } from 'web-app/db/schema/auth'
+import { workspaces } from 'web-app/db/schema/workspaces'
+import type { MessageMetadata } from 'web-app/db/types'
 
 export const conversations = sqliteTable('conversations', {
 	id: text('id')

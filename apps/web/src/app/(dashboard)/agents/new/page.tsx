@@ -1,21 +1,21 @@
-import { Button } from '../../../../components/ui/button'
+import { Button } from 'web-app/components/ui/button'
 import {
 	Card,
 	CardContent,
 	CardDescription,
 	CardHeader,
 	CardTitle,
-} from '../../../../components/ui/card'
-import { Input } from '../../../../components/ui/input'
-import { Label } from '../../../../components/ui/label'
+} from 'web-app/components/ui/card'
+import { Input } from 'web-app/components/ui/input'
+import { Label } from 'web-app/components/ui/label'
 import {
 	Select,
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
 	SelectValue,
-} from '../../../../components/ui/select'
-import { Textarea } from '../../../../components/ui/textarea'
+} from 'web-app/components/ui/select'
+import { Textarea } from 'web-app/components/ui/textarea'
 
 export default function NewAgentPage() {
 	return (

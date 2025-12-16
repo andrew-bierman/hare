@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { app } from '../index'
+import { app } from 'web-app/lib/api/index'
 
 describe('Health API', () => {
 	describe('GET /api/health', () => {

@@ -1,23 +1,23 @@
-import { Badge } from '../../../../components/ui/badge'
-import { Button } from '../../../../components/ui/button'
+import { Badge } from 'web-app/components/ui/badge'
+import { Button } from 'web-app/components/ui/button'
 import {
 	Card,
 	CardContent,
 	CardDescription,
 	CardHeader,
 	CardTitle,
-} from '../../../../components/ui/card'
-import { Input } from '../../../../components/ui/input'
-import { Label } from '../../../../components/ui/label'
+} from 'web-app/components/ui/card'
+import { Input } from 'web-app/components/ui/input'
+import { Label } from 'web-app/components/ui/label'
 import {
 	Select,
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
 	SelectValue,
-} from '../../../../components/ui/select'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../../../components/ui/tabs'
-import { Textarea } from '../../../../components/ui/textarea'
+} from 'web-app/components/ui/select'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from 'web-app/components/ui/tabs'
+import { Textarea } from 'web-app/components/ui/textarea'
 
 export default async function AgentBuilderPage({ params }: { params: Promise<{ id: string }> }) {
 	const { id: _id } = await params
