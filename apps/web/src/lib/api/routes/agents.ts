@@ -161,22 +161,18 @@ const deployAgentRoute = createRoute({
 // Create app and register routes
 const app = new OpenAPIHono()
 	.openapi(listAgentsRoute, async (c) => {
-		// TODO: Get from DB filtered by workspace (from header or query)
-		return c.json({
-			agents: [
-				{
-					id: 'agent_xxx',
-					workspaceId: 'ws_default',
-					name: 'Customer Support Agent',
-					description: 'Handles customer inquiries',
-					model: 'llama-3.3-70b-instruct',
-					instructions: 'You are a helpful customer support agent. Be polite and professional.',
-					status: 'deployed' as const,
-					createdAt: new Date().toISOString(),
-					updatedAt: new Date().toISOString(),
-				},
-			],
-		})
+		const db = getDb(c)
+		const results = await db.select().from(agents)
+
+		// Transform DB results to match API schema
+		const agentsData = results.map((agent) => ({
+			...agent,
+			createdAt: agent.createdAt.toISOString(),
+			updatedAt: agent.updatedAt.toISOString(),
+			toolIds: [], // TODO: Join with agent_tools table when implemented
+		}))
+
+		return c.json({ agents: agentsData })
 	})
 	.openapi(createAgentRoute, async (c) => {
 		const data = c.req.valid('json')
