@@ -21,24 +21,14 @@ export const SuccessSchema = z
 // Agent schemas
 export const AgentConfigSchema = z
 	.object({
-		temperature: z.number().min(0).max(2).default(0.7).openapi({ example: 0.7 }),
-		maxTokens: z.number().min(1).max(100000).default(4096).openapi({ example: 4096 }),
+		temperature: z.number().min(0).max(2).optional().openapi({ example: 0.7 }),
+		maxTokens: z.number().min(1).max(100000).optional().openapi({ example: 4096 }),
 		topP: z.number().min(0).max(1).optional().openapi({ example: 0.9 }),
+		topK: z.number().min(0).optional().openapi({ example: 40 }),
 		stopSequences: z
 			.array(z.string())
 			.optional()
 			.openapi({ example: ['END'] }),
-		memory: z
-			.object({
-				enabled: z.boolean().default(true).openapi({ example: true }),
-				maxMessages: z.number().min(1).max(100).default(20).openapi({ example: 20 }),
-				retentionDays: z.number().min(1).max(365).default(30).openapi({ example: 30 }),
-			})
-			.default({
-				enabled: true,
-				maxMessages: 20,
-				retentionDays: 30,
-			}),
 	})
 	.openapi('AgentConfig')
 
@@ -79,7 +69,11 @@ export const CreateAgentSchema = z
 	})
 	.openapi('CreateAgent')
 
-export const UpdateAgentSchema = CreateAgentSchema.partial().openapi('UpdateAgent')
+export const UpdateAgentSchema = CreateAgentSchema.partial()
+	.extend({
+		status: AgentStatusSchema.optional(),
+	})
+	.openapi('UpdateAgent')
 
 export const DeployAgentSchema = z
 	.object({

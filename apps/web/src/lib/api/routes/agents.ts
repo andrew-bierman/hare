@@ -172,10 +172,17 @@ const app = new OpenAPIHono()
 
 		// Transform DB results to match API schema
 		const agentsData = results.map((agent) => ({
-			...agent,
+			id: agent.id,
+			workspaceId: agent.workspaceId,
+			name: agent.name,
+			description: agent.description,
+			model: agent.model,
+			instructions: agent.instructions || '',
+			config: agent.config || undefined,
+			status: agent.status,
+			toolIds: [],
 			createdAt: agent.createdAt.toISOString(),
 			updatedAt: agent.updatedAt.toISOString(),
-			toolIds: [], // TODO: Join with agent_tools table when implemented
 		}))
 
 		return c.json({ agents: agentsData })
@@ -194,10 +201,9 @@ const app = new OpenAPIHono()
 					name: data.name,
 					description: data.description ?? null,
 					model: data.model,
-					instructions: data.instructions ?? null,
-					config: data.config ?? null,
+					instructions: data.instructions,
+					config: data.config,
 					status: 'draft' as const,
-					createdBy: 'user_default',
 					toolIds: data.toolIds || [],
 					createdAt: now,
 					updatedAt: now,
@@ -226,10 +232,17 @@ const app = new OpenAPIHono()
 
 		return c.json(
 			{
-				...agent,
+				id: agent.id,
+				workspaceId: agent.workspaceId,
+				name: agent.name,
+				description: agent.description,
+				model: agent.model,
+				instructions: agent.instructions || '',
+				config: agent.config || undefined,
+				status: agent.status,
+				toolIds: data.toolIds || [],
 				createdAt: agent.createdAt.toISOString(),
 				updatedAt: agent.updatedAt.toISOString(),
-				toolIds: data.toolIds || [],
 			},
 			201,
 		)
@@ -247,10 +260,8 @@ const app = new OpenAPIHono()
 				name: 'Mock Agent',
 				description: 'Mock agent for testing',
 				model: 'llama-3.3-70b-instruct',
-				instructions: null,
-				config: null,
+				instructions: 'You are a helpful assistant.',
 				status: 'draft' as const,
-				createdBy: 'user_default',
 				toolIds: [],
 				createdAt: now,
 				updatedAt: now,
@@ -265,10 +276,17 @@ const app = new OpenAPIHono()
 		}
 
 		return c.json({
-			...agent,
+			id: agent.id,
+			workspaceId: agent.workspaceId,
+			name: agent.name,
+			description: agent.description,
+			model: agent.model,
+			instructions: agent.instructions || '',
+			config: agent.config || undefined,
+			status: agent.status,
+			toolIds: [],
 			createdAt: agent.createdAt.toISOString(),
 			updatedAt: agent.updatedAt.toISOString(),
-			toolIds: [], // TODO: Join with agent_tools table when implemented
 		})
 	})
 	.openapi(updateAgentRoute, async (c) => {
@@ -285,10 +303,9 @@ const app = new OpenAPIHono()
 				name: data.name ?? 'Mock Agent',
 				description: data.description ?? null,
 				model: data.model ?? 'llama-3.3-70b-instruct',
-				instructions: data.instructions ?? null,
-				config: data.config ?? null,
+				instructions: data.instructions ?? 'You are a helpful assistant.',
+				config: data.config,
 				status: data.status ?? ('draft' as const),
-				createdBy: 'user_default',
 				toolIds: data.toolIds || [],
 				createdAt: now,
 				updatedAt: now,
@@ -318,10 +335,17 @@ const app = new OpenAPIHono()
 		}
 
 		return c.json({
-			...agent,
+			id: agent.id,
+			workspaceId: agent.workspaceId,
+			name: agent.name,
+			description: agent.description,
+			model: agent.model,
+			instructions: agent.instructions || '',
+			config: agent.config || undefined,
+			status: agent.status,
+			toolIds: data.toolIds || [],
 			createdAt: agent.createdAt.toISOString(),
 			updatedAt: agent.updatedAt.toISOString(),
-			toolIds: data.toolIds || [],
 		})
 	})
 	.openapi(deleteAgentRoute, async (c) => {

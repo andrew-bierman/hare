@@ -112,6 +112,11 @@ const app = new OpenAPIHono()
 		const db = getDb(c)
 		const ai = (c.env as { AI: Ai }).AI
 
+		// Return error if DB not available
+		if (!db) {
+			return c.json({ error: 'Database not available' }, 503)
+		}
+
 		// Load agent config from DB
 		const [agentConfig] = await db.select().from(agents).where(eq(agents.id, agentId))
 
@@ -191,6 +196,11 @@ const app = new OpenAPIHono()
 		const { id: agentId } = c.req.valid('param')
 		const db = getDb(c)
 
+		// Return mock data for development/testing when DB not available
+		if (!db) {
+			return c.json({ conversations: [] })
+		}
+
 		const results = await db.select().from(conversations).where(eq(conversations.agentId, agentId))
 
 		return c.json({ conversations: results })
@@ -198,6 +208,11 @@ const app = new OpenAPIHono()
 	.openapi(getConversationMessagesRoute, async (c) => {
 		const { id: conversationId } = c.req.valid('param')
 		const db = getDb(c)
+
+		// Return mock data for development/testing when DB not available
+		if (!db) {
+			return c.json({ messages: [] })
+		}
 
 		const results = await db.select().from(messages).where(eq(messages.conversationId, conversationId))
 
