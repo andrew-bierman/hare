@@ -196,15 +196,22 @@ cp .env.example .env
 wrangler d1 create hare-db
 # Add database_id to wrangler.jsonc
 
+# Navigate to web app directory
+cd apps/web
+
 # Generate migrations from schema
 bun run db:generate
 
-# Apply migrations locally
+# Apply migrations locally (for development)
 bun run db:migrate:local
 
-# Or apply to production
-bun run db:migrate
+# Or apply to remote D1 (for production)
+bun run db:migrate:remote
 ```
+
+**Note**: The migration commands use Wrangler to apply migrations to D1:
+- `db:migrate:local` - Applies migrations to a local D1 database for development
+- `db:migrate:remote` - Applies migrations to your production D1 database on Cloudflare
 
 ### Development
 
@@ -592,8 +599,9 @@ bun run preview          # Preview on Cloudflare runtime
 
 # Database
 bun run db:generate      # Generate migrations from schema
-bun run db:migrate:local # Apply migrations to local D1
-bun run db:migrate       # Apply migrations to remote D1
+bun run db:migrate:local # Apply migrations to local D1 (development)
+bun run db:migrate:remote # Apply migrations to remote D1 (production)
+bun run db:push          # Push schema changes to database (alternative)
 bun run db:studio        # Open Drizzle Studio
 
 # Build & Deploy
