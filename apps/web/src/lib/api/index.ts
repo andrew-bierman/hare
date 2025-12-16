@@ -54,7 +54,6 @@ app.doc('/openapi.json', {
 app.get(
 	'/docs',
 	apiReference({
-		spec: { url: '/api/openapi.json' },
 		theme: 'kepler',
 		layout: 'modern',
 		defaultHttpClient: {

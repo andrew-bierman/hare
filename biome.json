@@ -1,5 +1,5 @@
 {
-	"$schema": "https://biomejs.dev/schemas/2.3.9/schema.json",
+	"$schema": "https://biomejs.dev/schemas/2.0.0/schema.json",
 	"vcs": {
 		"enabled": true,
 		"clientKind": "git",
@@ -38,6 +38,6 @@
 	},
 	"files": {
 		"ignoreUnknown": true,
-		"includes": ["**/*.js", "**/*.jsx", "**/*.ts", "**/*.tsx", "**/*.json", "**/*.jsonc"]
+		"includes": ["apps/**/*.ts", "apps/**/*.tsx", "**/*.json"]
 	}
 }
