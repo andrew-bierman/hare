@@ -1,15 +1,27 @@
 {
-	"compilerOptions": {
-		"target": "ES2022",
-		"lib": ["ES2022"],
-		"module": "ESNext",
-		"moduleResolution": "bundler",
-		"strict": true,
-		"skipLibCheck": true,
-		"esModuleInterop": true,
-		"resolveJsonModule": true,
-		"isolatedModules": true,
-		"noEmit": true
-	},
-	"references": [{ "path": "./apps/web" }, { "path": "./packages/db" }]
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "preserve",
+    "incremental": true,
+    "baseUrl": ".",
+    "paths": {
+      "#db/*": ["apps/web/src/db/*"],
+      "#api/*": ["apps/web/src/lib/api/*"],
+      "#components/*": ["apps/web/src/components/*"],
+      "#lib/*": ["apps/web/src/lib/*"],
+      "#hooks/*": ["apps/web/src/hooks/*"]
+    }
+  },
+  "include": ["apps/**/*.ts", "apps/**/*.tsx"],
+  "exclude": ["node_modules", ".next", "dist"],
+  "references": [{ "path": "./apps/web" }, { "path": "./packages/db" }]
 }
