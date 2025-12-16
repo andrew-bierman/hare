@@ -176,78 +176,122 @@ const app = new OpenAPIHono()
 	})
 	.openapi(createAgentRoute, async (c) => {
 		const data = c.req.valid('json')
-		const now = new Date().toISOString()
-		// TODO: Insert to DB
-		return c.json(
-			{
-				id: `agent_${crypto.randomUUID().slice(0, 8)}`,
-				workspaceId: 'ws_default',
+		const db = getDb(c)
+
+		// TODO: Get actual user ID from authentication context
+		// TODO: Get actual workspace ID from context or request
+		const userId = 'user_default'
+		const workspaceId = 'ws_default'
+
+		const [agent] = await db
+			.insert(agents)
+			.values({
+				workspaceId,
 				name: data.name,
-				description: data.description ?? null,
+				description: data.description,
 				model: data.model,
 				instructions: data.instructions,
 				config: data.config,
-				status: 'draft' as const,
-				toolIds: data.toolIds,
-				createdAt: now,
-				updatedAt: now,
+				createdBy: userId,
+			})
+			.returning()
+
+		return c.json(
+			{
+				...agent,
+				createdAt: agent.createdAt.toISOString(),
+				updatedAt: agent.updatedAt.toISOString(),
+				toolIds: data.toolIds || [],
 			},
 			201,
 		)
 	})
 	.openapi(getAgentRoute, async (c) => {
 		const { id } = c.req.valid('param')
-		// TODO: Get from DB with authorization check
+		const db = getDb(c)
+
+		// TODO: Add authorization check
+		const [agent] = await db.select().from(agents).where(eq(agents.id, id))
+
+		if (!agent) {
+			return c.json({ error: 'Agent not found' }, 404)
+		}
+
 		return c.json({
-			id,
-			workspaceId: 'ws_default',
-			name: 'Customer Support Agent',
-			description: 'Handles customer inquiries',
-			model: 'llama-3.3-70b-instruct',
-			instructions: 'You are a helpful customer support agent. Be polite and professional.',
-			config: {
-				temperature: 0.7,
-				maxTokens: 4096,
-				memory: {
-					enabled: true,
-					maxMessages: 20,
-					retentionDays: 30,
-				},
-			},
-			status: 'deployed' as const,
-			toolIds: [],
-			createdAt: new Date().toISOString(),
-			updatedAt: new Date().toISOString(),
+			...agent,
+			createdAt: agent.createdAt.toISOString(),
+			updatedAt: agent.updatedAt.toISOString(),
+			toolIds: [], // TODO: Join with agent_tools table when implemented
 		})
 	})
 	.openapi(updateAgentRoute, async (c) => {
 		const { id } = c.req.valid('param')
 		const data = c.req.valid('json')
-		// TODO: Update in DB with authorization check
+		const db = getDb(c)
+
+		// TODO: Add authorization check
+		const updateData: Record<string, unknown> = {
+			updatedAt: new Date(),
+		}
+
+		if (data.name !== undefined) updateData.name = data.name
+		if (data.description !== undefined) updateData.description = data.description
+		if (data.model !== undefined) updateData.model = data.model
+		if (data.instructions !== undefined) updateData.instructions = data.instructions
+		if (data.config !== undefined) updateData.config = data.config
+		if (data.status !== undefined) updateData.status = data.status
+
+		const [agent] = await db
+			.update(agents)
+			.set(updateData)
+			.where(eq(agents.id, id))
+			.returning()
+
+		if (!agent) {
+			return c.json({ error: 'Agent not found' }, 404)
+		}
+
 		return c.json({
-			id,
-			workspaceId: 'ws_default',
-			name: data.name ?? 'Customer Support Agent',
-			description: data.description ?? null,
-			model: data.model ?? 'llama-3.3-70b-instruct',
-			instructions: data.instructions ?? 'You are a helpful assistant.',
-			config: data.config,
-			status: 'draft' as const,
-			toolIds: data.toolIds,
-			createdAt: new Date().toISOString(),
-			updatedAt: new Date().toISOString(),
+			...agent,
+			createdAt: agent.createdAt.toISOString(),
+			updatedAt: agent.updatedAt.toISOString(),
+			toolIds: data.toolIds || [],
 		})
 	})
 	.openapi(deleteAgentRoute, async (c) => {
-		const { id: _id } = c.req.valid('param')
-		// TODO: Delete from DB with authorization check
+		const { id } = c.req.valid('param')
+		const db = getDb(c)
+
+		// TODO: Add authorization check
+		const result = await db.delete(agents).where(eq(agents.id, id)).returning()
+
+		if (result.length === 0) {
+			return c.json({ error: 'Agent not found' }, 404)
+		}
+
 		return c.json({ success: true })
 	})
 	.openapi(deployAgentRoute, async (c) => {
 		const { id } = c.req.valid('param')
 		const data = c.req.valid('json')
-		// TODO: Update agent status to 'deployed' in DB
-		// TODO: Create deployment record
+		const db = getDb(c)
+
+		// TODO: Add authorization check
+		// Update agent status to 'deployed'
+		const [agent] = await db
+			.update(agents)
+			.set({
+				status: 'deployed',
+				updatedAt: new Date(),
+			})
+			.where(eq(agents.id, id))
+			.returning()
+
+		if (!agent) {
+			return c.json({ error: 'Agent not found' }, 404)
+		}
+
+		// TODO: Create deployment record in deployments table
 		return c.json({
 			id,
 			status: 'deployed' as const,
