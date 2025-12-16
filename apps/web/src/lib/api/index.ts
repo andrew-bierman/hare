@@ -11,20 +11,21 @@ import tools from './routes/tools'
 import usage from './routes/usage'
 import workspaces from './routes/workspaces'
 
-// Create app
+// Create base app
 const app = new OpenAPIHono().basePath('/api')
 
 // Middleware
 app.use('*', logger())
 app.use('*', cors())
 
-// Mount routes
-app.route('/agents', agents)
-app.route('/workspaces', workspaces)
-app.route('/tools', tools)
-app.route('/auth', auth)
-app.route('/chat', chat)
-app.route('/usage', usage)
+// Mount routes - chain for type inference
+const routes = app
+	.route('/agents', agents)
+	.route('/workspaces', workspaces)
+	.route('/tools', tools)
+	.route('/auth', auth)
+	.route('/chat', chat)
+	.route('/usage', usage)
 
 // OpenAPI documentation
 app.doc('/openapi.json', {
@@ -72,5 +73,6 @@ app.get('/health', (c) =>
 	}),
 )
 
-export type AppType = typeof app
+// Export the chained routes type for RPC client
+export type AppType = typeof routes
 export { app }

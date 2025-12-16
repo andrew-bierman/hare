@@ -1,4 +1,4 @@
-import { createDb } from '@hare/db'
+import { createDb } from 'web-app/db'
 import { betterAuth } from 'better-auth'
 import { drizzleAdapter } from 'better-auth/adapters/drizzle'
 

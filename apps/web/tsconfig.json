@@ -1,9 +1,25 @@
 {
-	"extends": "../../tsconfig.json",
-	"compilerOptions": {
-		"plugins": [{ "name": "next" }],
-		"types": ["node"]
-	},
-	"include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "cloudflare-env.d.ts"],
-	"exclude": ["node_modules"]
+  "extends": "../../tsconfig.json",
+  "strict": true,
+  "compilerOptions": {
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "types": [
+      "node"
+    ],
+    "allowJs": true
+  },
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    "cloudflare-env.d.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
 }
