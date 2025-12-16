@@ -2,15 +2,7 @@
 	"extends": "../../tsconfig.json",
 	"compilerOptions": {
 		"plugins": [{ "name": "next" }],
-		"baseUrl": "../..",
-		"paths": {
-			"#db/*": ["apps/web/src/db/*"],
-			"#api/*": ["apps/web/src/lib/api/*"],
-			"#components/*": ["apps/web/src/components/*"],
-			"#lib/*": ["apps/web/src/lib/*"],
-			"#hooks/*": ["apps/web/src/hooks/*"]
-		},
-		"types": ["./cloudflare-env.d.ts", "node"]
+		"types": ["node"]
 	},
 	"include": [
 		"next-env.d.ts",

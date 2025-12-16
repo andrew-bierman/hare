@@ -14,14 +14,9 @@
     "incremental": true,
     "baseUrl": ".",
     "paths": {
-      "#db/*": ["apps/web/src/db/*"],
-      "#api/*": ["apps/web/src/lib/api/*"],
-      "#components/*": ["apps/web/src/components/*"],
-      "#lib/*": ["apps/web/src/lib/*"],
-      "#hooks/*": ["apps/web/src/hooks/*"]
+      "web-app/*": ["apps/web/src/*"]
     }
   },
   "include": ["apps/**/*.ts", "apps/**/*.tsx"],
-  "exclude": ["node_modules", ".next", "dist"],
-  "references": [{ "path": "./apps/web" }, { "path": "./packages/db" }]
+  "exclude": ["node_modules", ".next", "dist"]
 }
