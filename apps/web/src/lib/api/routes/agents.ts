@@ -1,4 +1,6 @@
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
+import { eq } from 'drizzle-orm'
+import { getDb } from '../db'
 import {
 	AgentSchema,
 	CreateAgentSchema,
@@ -8,6 +10,7 @@ import {
 	SuccessSchema,
 	UpdateAgentSchema,
 } from '../schemas'
+import { agents } from 'web-app/db/schema'
 
 // Define routes
 const listAgentsRoute = createRoute({

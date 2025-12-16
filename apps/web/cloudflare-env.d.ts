@@ -7,6 +7,13 @@ declare namespace Cloudflare {
 		WORKER_SELF_REFERENCE: Fetcher /* web */
 		IMAGES: ImagesBinding
 		ASSETS: Fetcher
+		DB: D1Database
+		KV: KVNamespace
+		R2: R2Bucket
+		VECTORIZE: VectorizeIndex
+		AI: Ai
+		ENVIRONMENT: string
+		BETTER_AUTH_SECRET: string
 	}
 }
 interface CloudflareEnv extends Cloudflare.Env {}

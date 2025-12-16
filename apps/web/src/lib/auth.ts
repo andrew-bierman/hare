@@ -12,6 +12,7 @@ export function createAuth(d1: D1Database) {
 		}),
 		emailAndPassword: {
 			enabled: true,
+			autoSignIn: true,
 		},
 		session: {
 			expiresIn: 60 * 60 * 24 * 7, // 7 days
