@@ -1,5 +1,5 @@
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
+import Link from 'next/link'
+import { Button } from '../../components/ui/button'
 
 export default function MarketingLayout({ children }: { children: React.ReactNode }) {
 	return (
@@ -28,5 +28,5 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
 				</div>
 			</footer>
 		</div>
-	);
+	)
 }

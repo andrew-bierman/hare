@@ -1,31 +1,77 @@
-import { Hono } from 'hono'
+import { OpenAPIHono } from '@hono/zod-openapi'
+import { apiReference } from '@scalar/hono-api-reference'
 import { cors } from 'hono/cors'
 import { logger } from 'hono/logger'
 
-// Import routes
-import auth from './routes/auth'
-import workspaces from './routes/workspaces'
+// Import route modules
 import agents from './routes/agents'
+import workspaces from './routes/workspaces'
 import tools from './routes/tools'
+import auth from './routes/auth'
 import chat from './routes/chat'
 import usage from './routes/usage'
 
-const app = new Hono().basePath('/api')
+// Create app
+const app = new OpenAPIHono().basePath('/api')
 
 // Middleware
 app.use('*', logger())
 app.use('*', cors())
 
 // Mount routes
-app.route('/auth', auth)
-app.route('/workspaces', workspaces)
 app.route('/agents', agents)
+app.route('/workspaces', workspaces)
 app.route('/tools', tools)
+app.route('/auth', auth)
 app.route('/chat', chat)
 app.route('/usage', usage)
 
+// OpenAPI documentation
+app.doc('/openapi.json', {
+  openapi: '3.1.0',
+  info: {
+    title: 'Hare API',
+    version: '1.0.0',
+    description: 'Build and deploy AI agents to the edge',
+  },
+  servers: [
+    {
+      url: '/api',
+      description: 'API server',
+    },
+  ],
+  tags: [
+    { name: 'Authentication', description: 'User authentication and session management' },
+    { name: 'Workspaces', description: 'Workspace management' },
+    { name: 'Agents', description: 'AI agent creation and deployment' },
+    { name: 'Tools', description: 'Tool management for agents' },
+    { name: 'Chat', description: 'Chat with deployed agents' },
+    { name: 'Usage', description: 'Usage statistics and analytics' },
+  ],
+})
+
+// Scalar API reference UI
+app.get(
+  '/docs',
+  apiReference({
+    spec: { url: '/api/openapi.json' },
+    theme: 'kepler',
+    layout: 'modern',
+    defaultHttpClient: {
+      targetKey: 'javascript',
+      clientKey: 'fetch',
+    },
+  })
+)
+
 // Health check
-app.get('/health', (c) => c.json({ status: 'ok' }))
+app.get('/health', (c) =>
+  c.json({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    version: '1.0.0',
+  })
+)
 
 export type AppType = typeof app
 export { app }

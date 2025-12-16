@@ -1,134 +1,260 @@
-import { Hono } from 'hono'
-import { zValidator } from '@hono/zod-validator'
-import { z } from 'zod'
+import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
+import {
+	AgentSchema,
+	CreateAgentSchema,
+	DeployAgentSchema,
+	DeploymentSchema,
+	IdParamSchema,
+	SuccessSchema,
+	UpdateAgentSchema,
+} from '../schemas'
 
-const createAgentSchema = z.object({
-  name: z.string().min(1).max(100),
-  description: z.string().optional(),
-  model: z.string(),
-  instructions: z.string().min(1),
-  config: z.object({
-    temperature: z.number().min(0).max(2).default(0.7),
-    maxTokens: z.number().min(1).max(100000).default(4096),
-    topP: z.number().min(0).max(1).optional(),
-    stopSequences: z.array(z.string()).optional(),
-    memory: z.object({
-      enabled: z.boolean().default(true),
-      maxMessages: z.number().min(1).max(100).default(20),
-      retentionDays: z.number().min(1).max(365).default(30),
-    }).default({
-      enabled: true,
-      maxMessages: 20,
-      retentionDays: 30,
-    }),
-  }).optional().default({
-    temperature: 0.7,
-    maxTokens: 4096,
-    memory: {
-      enabled: true,
-      maxMessages: 20,
-      retentionDays: 30,
-    },
-  }),
-  toolIds: z.array(z.string()).optional(),
+// Define routes
+const listAgentsRoute = createRoute({
+	method: 'get',
+	path: '/',
+	tags: ['Agents'],
+	summary: 'List all agents',
+	description: 'Get a list of all agents in the workspace',
+	responses: {
+		200: {
+			description: 'List of agents',
+			content: {
+				'application/json': {
+					schema: z.object({
+						agents: z.array(AgentSchema),
+					}),
+				},
+			},
+		},
+	},
 })
 
-const updateAgentSchema = createAgentSchema.partial()
-
-const deployAgentSchema = z.object({
-  version: z.string().optional(),
+const createAgentRoute = createRoute({
+	method: 'post',
+	path: '/',
+	tags: ['Agents'],
+	summary: 'Create a new agent',
+	description: 'Create a new AI agent with the specified configuration',
+	request: {
+		body: {
+			content: {
+				'application/json': {
+					schema: CreateAgentSchema,
+				},
+			},
+		},
+	},
+	responses: {
+		201: {
+			description: 'Agent created successfully',
+			content: {
+				'application/json': {
+					schema: AgentSchema,
+				},
+			},
+		},
+	},
 })
 
-const app = new Hono()
-  // List agents
-  .get('/', async (c) => {
-    // TODO: Get from DB filtered by workspace (from header or query)
-    return c.json({
-      agents: [
-        {
-          id: 'agent_xxx',
-          name: 'Customer Support Agent',
-          description: 'Handles customer inquiries',
-          model: 'llama-3.1-70b-instruct',
-          status: 'deployed',
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        }
-      ]
-    })
-  })
+const getAgentRoute = createRoute({
+	method: 'get',
+	path: '/{id}',
+	tags: ['Agents'],
+	summary: 'Get agent by ID',
+	description: 'Retrieve a specific agent by its ID',
+	request: {
+		params: IdParamSchema,
+	},
+	responses: {
+		200: {
+			description: 'Agent details',
+			content: {
+				'application/json': {
+					schema: AgentSchema,
+				},
+			},
+		},
+	},
+})
 
-  // Create agent
-  .post('/', zValidator('json', createAgentSchema), async (c) => {
-    const data = c.req.valid('json')
-    // TODO: Insert to DB
-    const agent = {
-      id: 'agent_' + Math.random().toString(36).substr(2, 9),
-      ...data,
-      status: 'draft',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    }
-    return c.json(agent, 201)
-  })
+const updateAgentRoute = createRoute({
+	method: 'patch',
+	path: '/{id}',
+	tags: ['Agents'],
+	summary: 'Update agent',
+	description: 'Update an existing agent configuration',
+	request: {
+		params: IdParamSchema,
+		body: {
+			content: {
+				'application/json': {
+					schema: UpdateAgentSchema,
+				},
+			},
+		},
+	},
+	responses: {
+		200: {
+			description: 'Agent updated successfully',
+			content: {
+				'application/json': {
+					schema: AgentSchema,
+				},
+			},
+		},
+	},
+})
 
-  // Get agent
-  .get('/:id', async (c) => {
-    const id = c.req.param('id')
-    // TODO: Get from DB with authorization check
-    return c.json({
-      id,
-      name: 'Customer Support Agent',
-      description: 'Handles customer inquiries',
-      model: 'llama-3.1-70b-instruct',
-      instructions: 'You are a helpful customer support agent. Be polite and professional.',
-      config: {
-        temperature: 0.7,
-        maxTokens: 4096,
-        memory: {
-          enabled: true,
-          maxMessages: 20,
-          retentionDays: 30,
-        },
-      },
-      status: 'deployed',
-      tools: [],
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    })
-  })
+const deleteAgentRoute = createRoute({
+	method: 'delete',
+	path: '/{id}',
+	tags: ['Agents'],
+	summary: 'Delete agent',
+	description: 'Delete an agent permanently',
+	request: {
+		params: IdParamSchema,
+	},
+	responses: {
+		200: {
+			description: 'Agent deleted successfully',
+			content: {
+				'application/json': {
+					schema: SuccessSchema,
+				},
+			},
+		},
+	},
+})
 
-  // Update agent
-  .patch('/:id', zValidator('json', updateAgentSchema), async (c) => {
-    const id = c.req.param('id')
-    const data = c.req.valid('json')
-    // TODO: Update in DB with authorization check
-    return c.json({
-      id,
-      ...data,
-      updatedAt: new Date().toISOString(),
-    })
-  })
+const deployAgentRoute = createRoute({
+	method: 'post',
+	path: '/{id}/deploy',
+	tags: ['Agents'],
+	summary: 'Deploy agent',
+	description: 'Deploy an agent to production',
+	request: {
+		params: IdParamSchema,
+		body: {
+			content: {
+				'application/json': {
+					schema: DeployAgentSchema,
+				},
+			},
+		},
+	},
+	responses: {
+		200: {
+			description: 'Agent deployed successfully',
+			content: {
+				'application/json': {
+					schema: DeploymentSchema,
+				},
+			},
+		},
+	},
+})
 
-  // Delete agent
-  .delete('/:id', async (c) => {
-    const id = c.req.param('id')
-    // TODO: Delete from DB with authorization check
-    return c.json({ success: true })
-  })
-
-  // Deploy agent
-  .post('/:id/deploy', zValidator('json', deployAgentSchema), async (c) => {
-    const id = c.req.param('id')
-    const data = c.req.valid('json')
-    // TODO: Update agent status to 'deployed' in DB
-    // TODO: Create deployment record
-    return c.json({
-      id,
-      status: 'deployed',
-      deployedAt: new Date().toISOString(),
-      version: data.version || '1.0.0',
-    })
-  })
+// Create app and register routes
+const app = new OpenAPIHono()
+	.openapi(listAgentsRoute, async (c) => {
+		// TODO: Get from DB filtered by workspace (from header or query)
+		return c.json({
+			agents: [
+				{
+					id: 'agent_xxx',
+					workspaceId: 'ws_default',
+					name: 'Customer Support Agent',
+					description: 'Handles customer inquiries',
+					model: 'llama-3.3-70b-instruct',
+					instructions: 'You are a helpful customer support agent. Be polite and professional.',
+					status: 'deployed' as const,
+					createdAt: new Date().toISOString(),
+					updatedAt: new Date().toISOString(),
+				},
+			],
+		})
+	})
+	.openapi(createAgentRoute, async (c) => {
+		const data = c.req.valid('json')
+		const now = new Date().toISOString()
+		// TODO: Insert to DB
+		return c.json(
+			{
+				id: `agent_${crypto.randomUUID().slice(0, 8)}`,
+				workspaceId: 'ws_default',
+				name: data.name,
+				description: data.description ?? null,
+				model: data.model,
+				instructions: data.instructions,
+				config: data.config,
+				status: 'draft' as const,
+				toolIds: data.toolIds,
+				createdAt: now,
+				updatedAt: now,
+			},
+			201,
+		)
+	})
+	.openapi(getAgentRoute, async (c) => {
+		const { id } = c.req.valid('param')
+		// TODO: Get from DB with authorization check
+		return c.json({
+			id,
+			workspaceId: 'ws_default',
+			name: 'Customer Support Agent',
+			description: 'Handles customer inquiries',
+			model: 'llama-3.3-70b-instruct',
+			instructions: 'You are a helpful customer support agent. Be polite and professional.',
+			config: {
+				temperature: 0.7,
+				maxTokens: 4096,
+				memory: {
+					enabled: true,
+					maxMessages: 20,
+					retentionDays: 30,
+				},
+			},
+			status: 'deployed' as const,
+			toolIds: [],
+			createdAt: new Date().toISOString(),
+			updatedAt: new Date().toISOString(),
+		})
+	})
+	.openapi(updateAgentRoute, async (c) => {
+		const { id } = c.req.valid('param')
+		const data = c.req.valid('json')
+		// TODO: Update in DB with authorization check
+		return c.json({
+			id,
+			workspaceId: 'ws_default',
+			name: data.name ?? 'Customer Support Agent',
+			description: data.description ?? null,
+			model: data.model ?? 'llama-3.3-70b-instruct',
+			instructions: data.instructions ?? 'You are a helpful assistant.',
+			config: data.config,
+			status: 'draft' as const,
+			toolIds: data.toolIds,
+			createdAt: new Date().toISOString(),
+			updatedAt: new Date().toISOString(),
+		})
+	})
+	.openapi(deleteAgentRoute, async (c) => {
+		const { id } = c.req.valid('param')
+		// TODO: Delete from DB with authorization check
+		return c.json({ success: true })
+	})
+	.openapi(deployAgentRoute, async (c) => {
+		const { id } = c.req.valid('param')
+		const data = c.req.valid('json')
+		// TODO: Update agent status to 'deployed' in DB
+		// TODO: Create deployment record
+		return c.json({
+			id,
+			status: 'deployed' as const,
+			deployedAt: new Date().toISOString(),
+			version: data.version || '1.0.0',
+		})
+	})
 
 export default app

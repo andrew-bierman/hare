@@ -1,9 +1,15 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Button } from '../../../../components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../../../components/ui/card'
+import { Input } from '../../../../components/ui/input'
+import { Label } from '../../../../components/ui/label'
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from '../../../../components/ui/select'
+import { Textarea } from '../../../../components/ui/textarea'
 
 export default function NewAgentPage() {
 	return (
@@ -29,7 +35,11 @@ export default function NewAgentPage() {
 							</div>
 							<div className="space-y-2">
 								<Label htmlFor="description">Description</Label>
-								<Textarea id="description" placeholder="Describe what this agent does..." className="h-24" />
+								<Textarea
+									id="description"
+									placeholder="Describe what this agent does..."
+									className="h-24"
+								/>
 							</div>
 						</CardContent>
 					</Card>
@@ -70,7 +80,9 @@ export default function NewAgentPage() {
 							<CardDescription>Enable additional tools for your agent</CardDescription>
 						</CardHeader>
 						<CardContent>
-							<p className="text-sm text-muted-foreground">No tools configured yet. Add tools to extend your agent's capabilities.</p>
+							<p className="text-sm text-muted-foreground">
+								No tools configured yet. Add tools to extend your agent's capabilities.
+							</p>
 						</CardContent>
 					</Card>
 				</div>
@@ -101,5 +113,5 @@ export default function NewAgentPage() {
 				</div>
 			</div>
 		</div>
-	);
+	)
 }

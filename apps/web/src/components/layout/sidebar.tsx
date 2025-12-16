@@ -1,46 +1,46 @@
-"use client";
+'use client'
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { Bot, Home, Settings, TrendingUp, Wrench } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { WorkspaceSwitcher } from "./workspace-switcher";
+import { Bot, Home, Settings, TrendingUp, Wrench } from 'lucide-react'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+import { cn } from '../../lib/utils'
+import { WorkspaceSwitcher } from './workspace-switcher'
 
 const routes = [
 	{
-		label: "Dashboard",
+		label: 'Dashboard',
 		icon: Home,
-		href: "/dashboard",
-		color: "text-zinc-500",
+		href: '/dashboard',
+		color: 'text-zinc-500',
 	},
 	{
-		label: "Agents",
+		label: 'Agents',
 		icon: Bot,
-		href: "/dashboard/agents",
-		color: "text-violet-500",
+		href: '/dashboard/agents',
+		color: 'text-violet-500',
 	},
 	{
-		label: "Tools",
+		label: 'Tools',
 		icon: Wrench,
-		href: "/dashboard/tools",
-		color: "text-pink-700",
+		href: '/dashboard/tools',
+		color: 'text-pink-700',
 	},
 	{
-		label: "Usage",
+		label: 'Usage',
 		icon: TrendingUp,
-		href: "/dashboard/usage",
-		color: "text-emerald-500",
+		href: '/dashboard/usage',
+		color: 'text-emerald-500',
 	},
 	{
-		label: "Settings",
+		label: 'Settings',
 		icon: Settings,
-		href: "/dashboard/settings",
-		color: "text-zinc-500",
+		href: '/dashboard/settings',
+		color: 'text-zinc-500',
 	},
-];
+]
 
 export function Sidebar() {
-	const pathname = usePathname();
+	const pathname = usePathname()
 
 	return (
 		<div className="space-y-4 py-4 flex flex-col h-full bg-sidebar text-sidebar-foreground border-r border-sidebar-border">
@@ -57,14 +57,14 @@ export function Sidebar() {
 							key={route.href}
 							href={route.href}
 							className={cn(
-								"text-sm group flex p-3 w-full justify-start font-medium cursor-pointer hover:bg-sidebar-accent hover:text-sidebar-accent-foreground rounded-lg transition",
+								'text-sm group flex p-3 w-full justify-start font-medium cursor-pointer hover:bg-sidebar-accent hover:text-sidebar-accent-foreground rounded-lg transition',
 								pathname === route.href
-									? "bg-sidebar-accent text-sidebar-accent-foreground"
-									: "text-sidebar-foreground",
+									? 'bg-sidebar-accent text-sidebar-accent-foreground'
+									: 'text-sidebar-foreground',
 							)}
 						>
 							<div className="flex items-center flex-1">
-								<route.icon className={cn("h-5 w-5 mr-3", route.color)} />
+								<route.icon className={cn('h-5 w-5 mr-3', route.color)} />
 								{route.label}
 							</div>
 						</Link>
@@ -72,5 +72,5 @@ export function Sidebar() {
 				</div>
 			</div>
 		</div>
-	);
+	)
 }

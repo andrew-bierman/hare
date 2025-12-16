@@ -1,18 +1,94 @@
-import { Hono } from 'hono'
-import { zValidator } from '@hono/zod-validator'
-import { z } from 'zod'
+import { OpenAPIHono, createRoute, z } from '@hono/zod-openapi'
 import { streamSSE } from 'hono/streaming'
+import {
+  ChatRequestSchema,
+  ConversationSchema,
+  MessageSchema,
+  IdParamSchema,
+} from '../schemas'
 
-const chatSchema = z.object({
-  message: z.string().min(1),
-  sessionId: z.string().optional(),
-  metadata: z.record(z.string(), z.any()).optional(),
+// Define routes
+const chatWithAgentRoute = createRoute({
+  method: 'post',
+  path: '/agents/{id}/chat',
+  tags: ['Chat'],
+  summary: 'Chat with agent',
+  description: 'Send a message to an agent and receive a streaming response via Server-Sent Events',
+  request: {
+    params: IdParamSchema,
+    body: {
+      content: {
+        'application/json': {
+          schema: ChatRequestSchema,
+        },
+      },
+    },
+  },
+  responses: {
+    200: {
+      description: 'Streaming chat response',
+      content: {
+        'text/event-stream': {
+          schema: z.object({
+            event: z.string(),
+            data: z.string(),
+          }),
+        },
+      },
+    },
+  },
 })
 
-const app = new Hono()
-  // Chat with agent (SSE stream)
-  .post('/agents/:id/chat', zValidator('json', chatSchema), async (c) => {
-    const agentId = c.req.param('id')
+const listConversationsRoute = createRoute({
+  method: 'get',
+  path: '/agents/{id}/conversations',
+  tags: ['Chat'],
+  summary: 'List agent conversations',
+  description: 'Get a list of all conversations for a specific agent',
+  request: {
+    params: IdParamSchema,
+  },
+  responses: {
+    200: {
+      description: 'List of conversations',
+      content: {
+        'application/json': {
+          schema: z.object({
+            conversations: z.array(ConversationSchema),
+          }),
+        },
+      },
+    },
+  },
+})
+
+const getConversationMessagesRoute = createRoute({
+  method: 'get',
+  path: '/conversations/{id}/messages',
+  tags: ['Chat'],
+  summary: 'Get conversation messages',
+  description: 'Retrieve all messages in a conversation',
+  request: {
+    params: IdParamSchema,
+  },
+  responses: {
+    200: {
+      description: 'List of messages',
+      content: {
+        'application/json': {
+          schema: z.object({
+            messages: z.array(MessageSchema),
+          }),
+        },
+      },
+    },
+  },
+})
+
+// Create app and register routes
+const app = new OpenAPIHono()
+  .openapi(chatWithAgentRoute, async (c) => {
+    const { id: agentId } = c.req.valid('param')
     const { message, sessionId, metadata } = c.req.valid('json')
 
     // TODO: Validate agent exists and is deployed
@@ -30,14 +106,14 @@ const app = new Hono()
             content: token + ' ',
           }),
         })
-        await new Promise(resolve => setTimeout(resolve, 50))
+        await new Promise((resolve) => setTimeout(resolve, 50))
       }
 
       await stream.writeSSE({
         event: 'done',
         data: JSON.stringify({
           type: 'done',
-          sessionId: sessionId || 'session_xxx',
+          sessionId: sessionId || `session_${crypto.randomUUID().slice(0, 8)}`,
           usage: {
             tokensIn: 10,
             tokensOut: tokens.length,
@@ -47,10 +123,8 @@ const app = new Hono()
       })
     })
   })
-
-  // List agent conversations
-  .get('/agents/:id/conversations', async (c) => {
-    const agentId = c.req.param('id')
+  .openapi(listConversationsRoute, async (c) => {
+    const { id: agentId } = c.req.valid('param')
     // TODO: Get from DB
     return c.json({
       conversations: [
@@ -62,28 +136,26 @@ const app = new Hono()
           messageCount: 5,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
-        }
-      ]
+        },
+      ],
     })
   })
-
-  // Get conversation messages
-  .get('/conversations/:id/messages', async (c) => {
-    const conversationId = c.req.param('id')
+  .openapi(getConversationMessagesRoute, async (c) => {
+    const { id: conversationId } = c.req.valid('param')
     // TODO: Get from DB
     return c.json({
       messages: [
         {
           id: 'msg_1',
           conversationId,
-          role: 'user',
+          role: 'user' as const,
           content: 'Hello!',
           createdAt: new Date(Date.now() - 60000).toISOString(),
         },
         {
           id: 'msg_2',
           conversationId,
-          role: 'assistant',
+          role: 'assistant' as const,
           content: 'Hi! How can I help you today?',
           createdAt: new Date().toISOString(),
         },

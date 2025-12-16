@@ -1,61 +1,70 @@
-import Link from "next/link";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Bot, Plus, Search } from "lucide-react";
+import { Bot, Plus, Search } from 'lucide-react'
+import Link from 'next/link'
+import { Badge } from '../../../components/ui/badge'
+import { Button } from '../../../components/ui/button'
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardFooter,
+	CardHeader,
+	CardTitle,
+} from '../../../components/ui/card'
+import { Input } from '../../../components/ui/input'
 
 export default function AgentsPage() {
 	const agents = [
 		{
-			id: "1",
-			name: "Customer Support Agent",
-			description: "Handles customer inquiries and support tickets with natural language understanding",
-			status: "active",
-			model: "Claude Opus 4.5",
+			id: '1',
+			name: 'Customer Support Agent',
+			description:
+				'Handles customer inquiries and support tickets with natural language understanding',
+			status: 'active',
+			model: 'Claude Opus 4.5',
 			messages: 1234,
 		},
 		{
-			id: "2",
-			name: "Sales Assistant",
-			description: "Helps qualify leads and schedule demos with potential customers",
-			status: "active",
-			model: "Claude Sonnet 4.5",
+			id: '2',
+			name: 'Sales Assistant',
+			description: 'Helps qualify leads and schedule demos with potential customers',
+			status: 'active',
+			model: 'Claude Sonnet 4.5',
 			messages: 856,
 		},
 		{
-			id: "3",
-			name: "Content Writer",
-			description: "Generates blog posts, marketing copy, and social media content",
-			status: "idle",
-			model: "Claude Opus 4.5",
+			id: '3',
+			name: 'Content Writer',
+			description: 'Generates blog posts, marketing copy, and social media content',
+			status: 'idle',
+			model: 'Claude Opus 4.5',
 			messages: 432,
 		},
 		{
-			id: "4",
-			name: "Data Analyst",
-			description: "Analyzes data patterns and generates insights from various data sources",
-			status: "active",
-			model: "Claude Sonnet 4.5",
+			id: '4',
+			name: 'Data Analyst',
+			description: 'Analyzes data patterns and generates insights from various data sources',
+			status: 'active',
+			model: 'Claude Sonnet 4.5',
 			messages: 678,
 		},
 		{
-			id: "5",
-			name: "Code Reviewer",
-			description: "Reviews code for best practices, security issues, and optimization opportunities",
-			status: "idle",
-			model: "Claude Opus 4.5",
+			id: '5',
+			name: 'Code Reviewer',
+			description:
+				'Reviews code for best practices, security issues, and optimization opportunities',
+			status: 'idle',
+			model: 'Claude Opus 4.5',
 			messages: 291,
 		},
 		{
-			id: "6",
-			name: "Research Assistant",
-			description: "Conducts research and summarizes findings from multiple sources",
-			status: "active",
-			model: "Claude Sonnet 4.5",
+			id: '6',
+			name: 'Research Assistant',
+			description: 'Conducts research and summarizes findings from multiple sources',
+			status: 'active',
+			model: 'Claude Sonnet 4.5',
 			messages: 534,
 		},
-	];
+	]
 
 	return (
 		<div className="flex-1 space-y-4 p-8 pt-6">
@@ -83,11 +92,11 @@ export default function AgentsPage() {
 							<div className="flex items-start justify-between">
 								<Bot className="h-8 w-8 text-violet-500" />
 								<Badge
-									variant={agent.status === "active" ? "default" : "secondary"}
+									variant={agent.status === 'active' ? 'default' : 'secondary'}
 									className={
-										agent.status === "active"
-											? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300"
-											: ""
+										agent.status === 'active'
+											? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300'
+											: ''
 									}
 								>
 									{agent.status}
@@ -122,5 +131,5 @@ export default function AgentsPage() {
 				))}
 			</div>
 		</div>
-	);
+	)
 }

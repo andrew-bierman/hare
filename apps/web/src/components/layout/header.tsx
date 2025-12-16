@@ -1,6 +1,6 @@
-"use client";
+'use client'
 
-import { UserNav } from "./user-nav";
+import { UserNav } from './user-nav'
 
 export function Header() {
 	return (
@@ -11,5 +11,5 @@ export function Header() {
 				</div>
 			</div>
 		</div>
-	);
+	)
 }

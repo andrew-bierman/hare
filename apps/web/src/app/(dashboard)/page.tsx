@@ -1,61 +1,61 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Bot, MessageSquare, TrendingUp, Zap } from "lucide-react";
+import { Bot, MessageSquare, TrendingUp, Zap } from 'lucide-react'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card'
 
 export default function DashboardPage() {
 	const stats = [
 		{
-			title: "Total Agents",
-			value: "12",
-			description: "+2 from last month",
+			title: 'Total Agents',
+			value: '12',
+			description: '+2 from last month',
 			icon: Bot,
-			color: "text-violet-500",
+			color: 'text-violet-500',
 		},
 		{
-			title: "Messages Today",
-			value: "573",
-			description: "+201 since yesterday",
+			title: 'Messages Today',
+			value: '573',
+			description: '+201 since yesterday',
 			icon: MessageSquare,
-			color: "text-blue-500",
+			color: 'text-blue-500',
 		},
 		{
-			title: "Active Sessions",
-			value: "8",
-			description: "Currently running",
+			title: 'Active Sessions',
+			value: '8',
+			description: 'Currently running',
 			icon: Zap,
-			color: "text-yellow-500",
+			color: 'text-yellow-500',
 		},
 		{
-			title: "Success Rate",
-			value: "98.5%",
-			description: "+2.5% from last week",
+			title: 'Success Rate',
+			value: '98.5%',
+			description: '+2.5% from last week',
 			icon: TrendingUp,
-			color: "text-emerald-500",
+			color: 'text-emerald-500',
 		},
-	];
+	]
 
 	const recentAgents = [
 		{
-			id: "1",
-			name: "Customer Support Agent",
-			description: "Handles customer inquiries and support tickets",
-			status: "active",
-			lastUsed: "2 hours ago",
+			id: '1',
+			name: 'Customer Support Agent',
+			description: 'Handles customer inquiries and support tickets',
+			status: 'active',
+			lastUsed: '2 hours ago',
 		},
 		{
-			id: "2",
-			name: "Sales Assistant",
-			description: "Helps qualify leads and schedule demos",
-			status: "active",
-			lastUsed: "5 hours ago",
+			id: '2',
+			name: 'Sales Assistant',
+			description: 'Helps qualify leads and schedule demos',
+			status: 'active',
+			lastUsed: '5 hours ago',
 		},
 		{
-			id: "3",
-			name: "Content Writer",
-			description: "Generates blog posts and marketing copy",
-			status: "idle",
-			lastUsed: "1 day ago",
+			id: '3',
+			name: 'Content Writer',
+			description: 'Generates blog posts and marketing copy',
+			status: 'idle',
+			lastUsed: '1 day ago',
 		},
-	];
+	]
 
 	return (
 		<div className="flex-1 space-y-4 p-8 pt-6">
@@ -84,7 +84,10 @@ export default function DashboardPage() {
 				<CardContent>
 					<div className="space-y-4">
 						{recentAgents.map((agent) => (
-							<div key={agent.id} className="flex items-center justify-between p-4 border rounded-lg">
+							<div
+								key={agent.id}
+								className="flex items-center justify-between p-4 border rounded-lg"
+							>
 								<div className="space-y-1">
 									<p className="text-sm font-medium leading-none">{agent.name}</p>
 									<p className="text-sm text-muted-foreground">{agent.description}</p>
@@ -93,9 +96,9 @@ export default function DashboardPage() {
 									<div className="text-sm text-muted-foreground">{agent.lastUsed}</div>
 									<div
 										className={`px-2 py-1 rounded-full text-xs font-medium ${
-											agent.status === "active"
-												? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300"
-												: "bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
+											agent.status === 'active'
+												? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300'
+												: 'bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300'
 										}`}
 									>
 										{agent.status}
@@ -107,5 +110,5 @@ export default function DashboardPage() {
 				</CardContent>
 			</Card>
 		</div>
-	);
+	)
 }

@@ -1,26 +1,27 @@
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowRight, Bot, Code, Zap } from "lucide-react";
+import { ArrowRight, Bot, Code, Zap } from 'lucide-react'
+import Link from 'next/link'
+import { Button } from '../../components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card'
 
 export default function LandingPage() {
 	const features = [
 		{
-			title: "Build AI Agents",
-			description: "Create powerful AI agents with natural language understanding and custom behaviors",
+			title: 'Build AI Agents',
+			description:
+				'Create powerful AI agents with natural language understanding and custom behaviors',
 			icon: Bot,
 		},
 		{
-			title: "Lightning Fast",
-			description: "Deploy and scale your agents instantly with our optimized infrastructure",
+			title: 'Lightning Fast',
+			description: 'Deploy and scale your agents instantly with our optimized infrastructure',
 			icon: Zap,
 		},
 		{
-			title: "Developer First",
-			description: "Built for developers with a clean API, webhooks, and extensive documentation",
+			title: 'Developer First',
+			description: 'Built for developers with a clean API, webhooks, and extensive documentation',
 			icon: Code,
 		},
-	];
+	]
 
 	return (
 		<div className="flex flex-col">
@@ -30,8 +31,8 @@ export default function LandingPage() {
 						Build AI Agents in Minutes
 					</h1>
 					<p className="max-w-[42rem] leading-normal text-muted-foreground sm:text-xl sm:leading-8">
-						Hare is the fastest way to create, deploy, and manage AI agents. No infrastructure setup required.
-						Start building in seconds.
+						Hare is the fastest way to create, deploy, and manage AI agents. No infrastructure setup
+						required. Start building in seconds.
 					</p>
 					<div className="flex gap-4">
 						<Link href="/sign-up">
@@ -70,7 +71,9 @@ export default function LandingPage() {
 
 			<section className="container space-y-6 py-8 md:py-12 lg:py-24">
 				<div className="mx-auto flex max-w-[58rem] flex-col items-center justify-center gap-4 text-center">
-					<h2 className="font-bold text-3xl leading-[1.1] sm:text-3xl md:text-6xl">Ready to get started?</h2>
+					<h2 className="font-bold text-3xl leading-[1.1] sm:text-3xl md:text-6xl">
+						Ready to get started?
+					</h2>
 					<p className="max-w-[85%] leading-normal text-muted-foreground sm:text-lg sm:leading-7">
 						Join thousands of developers building the future with AI agents
 					</p>
@@ -82,5 +85,5 @@ export default function LandingPage() {
 				</div>
 			</section>
 		</div>
-	);
+	)
 }

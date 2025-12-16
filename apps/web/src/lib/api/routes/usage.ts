@@ -1,21 +1,64 @@
-import { Hono } from 'hono'
-import { zValidator } from '@hono/zod-validator'
-import { z } from 'zod'
+import { OpenAPIHono, createRoute, z } from '@hono/zod-openapi'
+import {
+  UsageQuerySchema,
+  UsageResponseSchema,
+  AgentUsageResponseSchema,
+  IdParamSchema,
+} from '../schemas'
 
-const usageQuerySchema = z.object({
-  startDate: z.string().optional(),
-  endDate: z.string().optional(),
-  agentId: z.string().optional(),
-  groupBy: z.enum(['day', 'week', 'month']).optional(),
+// Define routes
+const getWorkspaceUsageRoute = createRoute({
+  method: 'get',
+  path: '/',
+  tags: ['Usage'],
+  summary: 'Get workspace usage statistics',
+  description: 'Retrieve usage statistics for the workspace, optionally filtered by date range and agent',
+  request: {
+    query: UsageQuerySchema,
+  },
+  responses: {
+    200: {
+      description: 'Usage statistics',
+      content: {
+        'application/json': {
+          schema: UsageResponseSchema,
+        },
+      },
+    },
+  },
 })
 
-const app = new Hono()
-  // Get workspace usage stats
-  .get('/', zValidator('query', usageQuerySchema), async (c) => {
+const getAgentUsageRoute = createRoute({
+  method: 'get',
+  path: '/agents/{id}',
+  tags: ['Usage'],
+  summary: 'Get agent usage statistics',
+  description: 'Retrieve usage statistics for a specific agent',
+  request: {
+    params: IdParamSchema,
+  },
+  responses: {
+    200: {
+      description: 'Agent usage statistics',
+      content: {
+        'application/json': {
+          schema: AgentUsageResponseSchema,
+        },
+      },
+    },
+  },
+})
+
+// Create app and register routes
+const app = new OpenAPIHono()
+  .openapi(getWorkspaceUsageRoute, async (c) => {
     const { startDate, endDate, agentId, groupBy } = c.req.valid('query')
 
     // TODO: Query usage data from DB
     // TODO: Aggregate by groupBy parameter
+
+    const defaultStartDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
+    const defaultEndDate = new Date().toISOString()
 
     return c.json({
       usage: {
@@ -38,7 +81,7 @@ const app = new Hono()
             messages: 434,
             tokensIn: 20000,
             tokensOut: 30000,
-            cost: 0.50,
+            cost: 0.5,
           },
         ],
         byDay: [
@@ -47,7 +90,7 @@ const app = new Hono()
             messages: 100,
             tokensIn: 4000,
             tokensOut: 6000,
-            cost: 0.10,
+            cost: 0.1,
           },
           {
             date: '2024-12-02',
@@ -59,15 +102,13 @@ const app = new Hono()
         ],
       },
       period: {
-        startDate: startDate || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
-        endDate: endDate || new Date().toISOString(),
+        startDate: startDate || defaultStartDate,
+        endDate: endDate || defaultEndDate,
       },
     })
   })
-
-  // Get agent-specific usage
-  .get('/agents/:id', async (c) => {
-    const agentId = c.req.param('id')
+  .openapi(getAgentUsageRoute, async (c) => {
+    const { id: agentId } = c.req.valid('param')
 
     // TODO: Query usage data from DB for specific agent
 
@@ -81,7 +122,7 @@ const app = new Hono()
         averageLatencyMs: 250,
         byModel: [
           {
-            model: 'llama-3.1-70b-instruct',
+            model: 'llama-3.3-70b-instruct',
             messages: 800,
             tokensIn: 30000,
             tokensOut: 45000,

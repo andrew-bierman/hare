@@ -1,12 +1,16 @@
-"use client";
+'use client'
 
-import { Toaster } from "@/components/ui/sonner";
+import { Toaster } from '../ui/sonner'
+import { AuthProvider } from './auth-provider'
+import { QueryProvider } from './query-provider'
 
 export function Providers({ children }: { children: React.ReactNode }) {
 	return (
-		<>
-			{children}
-			<Toaster />
-		</>
-	);
+		<QueryProvider>
+			<AuthProvider>
+				{children}
+				<Toaster />
+			</AuthProvider>
+		</QueryProvider>
+	)
 }

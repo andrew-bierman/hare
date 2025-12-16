@@ -1,54 +1,164 @@
-import { Hono } from 'hono'
-import { zValidator } from '@hono/zod-validator'
-import { z } from 'zod'
+import { OpenAPIHono, createRoute, z } from '@hono/zod-openapi'
+import {
+  UserSchema,
+  SignUpSchema,
+  SignInSchema,
+  AuthResponseSchema,
+  SuccessSchema,
+} from '../schemas'
 
-const signUpSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(8),
-  name: z.string().min(1),
+// Define routes
+const signUpRoute = createRoute({
+  method: 'post',
+  path: '/sign-up',
+  tags: ['Authentication'],
+  summary: 'Sign up',
+  description: 'Create a new user account',
+  request: {
+    body: {
+      content: {
+        'application/json': {
+          schema: SignUpSchema,
+        },
+      },
+    },
+  },
+  responses: {
+    201: {
+      description: 'User created successfully',
+      content: {
+        'application/json': {
+          schema: UserSchema,
+        },
+      },
+    },
+  },
 })
 
-const signInSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(1),
+const signInRoute = createRoute({
+  method: 'post',
+  path: '/sign-in/email',
+  tags: ['Authentication'],
+  summary: 'Sign in with email',
+  description: 'Authenticate with email and password',
+  request: {
+    body: {
+      content: {
+        'application/json': {
+          schema: SignInSchema,
+        },
+      },
+    },
+  },
+  responses: {
+    200: {
+      description: 'Authentication successful',
+      content: {
+        'application/json': {
+          schema: AuthResponseSchema,
+        },
+      },
+    },
+  },
 })
 
-const app = new Hono()
-  // Sign up
-  .post('/sign-up', zValidator('json', signUpSchema), async (c) => {
+const signOutRoute = createRoute({
+  method: 'post',
+  path: '/sign-out',
+  tags: ['Authentication'],
+  summary: 'Sign out',
+  description: 'Invalidate the current session',
+  responses: {
+    200: {
+      description: 'Sign out successful',
+      content: {
+        'application/json': {
+          schema: SuccessSchema,
+        },
+      },
+    },
+  },
+})
+
+const getSessionRoute = createRoute({
+  method: 'get',
+  path: '/session',
+  tags: ['Authentication'],
+  summary: 'Get current session',
+  description: 'Retrieve the current authenticated user session',
+  responses: {
+    200: {
+      description: 'Current session',
+      content: {
+        'application/json': {
+          schema: z.object({
+            user: UserSchema,
+          }),
+        },
+      },
+    },
+  },
+})
+
+const oauthCallbackRoute = createRoute({
+  method: 'get',
+  path: '/callback/{provider}',
+  tags: ['Authentication'],
+  summary: 'OAuth callback',
+  description: 'Handle OAuth provider callback',
+  request: {
+    params: z.object({
+      provider: z.string().openapi({ param: { name: 'provider', in: 'path' }, example: 'github' }),
+    }),
+  },
+  responses: {
+    200: {
+      description: 'OAuth callback handled',
+      content: {
+        'application/json': {
+          schema: z.object({
+            provider: z.string(),
+          }),
+        },
+      },
+    },
+  },
+})
+
+// Create app and register routes
+const app = new OpenAPIHono()
+  .openapi(signUpRoute, async (c) => {
     const data = c.req.valid('json')
     // TODO: Create user with Better Auth
-    return c.json({
-      id: 'user_xxx',
-      email: data.email,
-      name: data.name,
-    }, 201)
+    return c.json(
+      {
+        id: `user_${crypto.randomUUID().slice(0, 8)}`,
+        email: data.email,
+        name: data.name,
+      },
+      201
+    )
   })
-
-  // Sign in with email
-  .post('/sign-in/email', zValidator('json', signInSchema), async (c) => {
+  .openapi(signInRoute, async (c) => {
     const data = c.req.valid('json')
     // TODO: Authenticate with Better Auth
     return c.json({
       user: {
-        id: 'user_xxx',
+        id: `user_${crypto.randomUUID().slice(0, 8)}`,
         email: data.email,
+        name: 'Demo User',
       },
       session: {
-        token: 'session_xxx',
+        token: `session_${crypto.randomUUID().slice(0, 8)}`,
         expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
       },
     })
   })
-
-  // Sign out
-  .post('/sign-out', async (c) => {
+  .openapi(signOutRoute, async (c) => {
     // TODO: Invalidate session with Better Auth
     return c.json({ success: true })
   })
-
-  // Get current session
-  .get('/session', async (c) => {
+  .openapi(getSessionRoute, async (c) => {
     // TODO: Get session from Better Auth
     return c.json({
       user: {
@@ -58,10 +168,8 @@ const app = new Hono()
       },
     })
   })
-
-  // OAuth callback
-  .get('/callback/:provider', async (c) => {
-    const provider = c.req.param('provider')
+  .openapi(oauthCallbackRoute, async (c) => {
+    const { provider } = c.req.valid('param')
     // TODO: Handle OAuth callback with Better Auth
     return c.json({ provider })
   })

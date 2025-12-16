@@ -1,27 +1,28 @@
-import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import { Providers } from "@/components/providers/providers";
-import "./globals.css";
+import type { Metadata } from 'next'
+import { Geist, Geist_Mono } from 'next/font/google'
+import { Providers } from '../components/providers/providers'
+import './globals.css'
 
 const geistSans = Geist({
-	variable: "--font-geist-sans",
-	subsets: ["latin"],
-});
+	variable: '--font-geist-sans',
+	subsets: ['latin'],
+})
 
 const geistMono = Geist_Mono({
-	variable: "--font-geist-mono",
-	subsets: ["latin"],
-});
+	variable: '--font-geist-mono',
+	subsets: ['latin'],
+})
 
 export const metadata: Metadata = {
-	title: "Hare - Build AI Agents in Minutes",
-	description: "The fastest way to create, deploy, and manage AI agents. No infrastructure setup required.",
-};
+	title: 'Hare - Build AI Agents in Minutes',
+	description:
+		'The fastest way to create, deploy, and manage AI agents. No infrastructure setup required.',
+}
 
 export default function RootLayout({
 	children,
 }: Readonly<{
-	children: React.ReactNode;
+	children: React.ReactNode
 }>) {
 	return (
 		<html lang="en">
@@ -32,5 +33,5 @@ export default function RootLayout({
 				<Providers>{children}</Providers>
 			</body>
 		</html>
-	);
+	)
 }
