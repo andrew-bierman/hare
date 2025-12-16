@@ -1,16 +1,25 @@
 {
   "name": "hare",
-  "module": "index.ts",
   "type": "module",
   "private": true,
   "workspaces": [
     "apps/*",
     "packages/*"
   ],
-  "devDependencies": {
-    "@types/bun": "latest"
+  "scripts": {
+    "dev": "bun run --cwd apps/web dev",
+    "build": "bun run --cwd apps/web build",
+    "start": "bun run --cwd apps/web start",
+    "lint": "bun run --cwd apps/web lint",
+    "typecheck": "tsc --noEmit",
+    "deploy": "bun run --cwd apps/web deploy",
+    "db:generate": "bun run --cwd packages/db generate",
+    "db:migrate": "wrangler d1 migrations apply hare-db --remote",
+    "db:migrate:local": "wrangler d1 migrations apply hare-db --local",
+    "db:studio": "bun run --cwd packages/db studio"
   },
-  "peerDependencies": {
+  "devDependencies": {
+    "@types/bun": "latest",
     "typescript": "^5"
   }
 }
