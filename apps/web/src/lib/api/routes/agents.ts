@@ -240,7 +240,7 @@ const app = new OpenAPIHono()
 		})
 	})
 	.openapi(deleteAgentRoute, async (c) => {
-		const { id } = c.req.valid('param')
+		const { id: _id } = c.req.valid('param')
 		// TODO: Delete from DB with authorization check
 		return c.json({ success: true })
 	})

@@ -1,6 +1,6 @@
 'use client'
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { client } from '../lib/client'
 
 // Query keys factory
@@ -18,8 +18,12 @@ export const queryKeys = {
 		detail: (id: string) => ['tools', id] as const,
 	},
 	usage: {
-		workspace: (params?: { startDate?: string; endDate?: string; agentId?: string; groupBy?: string }) =>
-			['usage', 'workspace', params] as const,
+		workspace: (params?: {
+			startDate?: string
+			endDate?: string
+			agentId?: string
+			groupBy?: string
+		}) => ['usage', 'workspace', params] as const,
 		agent: (id: string) => ['usage', 'agent', id] as const,
 	},
 }
@@ -51,7 +55,14 @@ export function useAgent(id: string) {
 export function useCreateAgent() {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: async (data: { name: string; model: string; instructions: string; description?: string; config?: Record<string, unknown>; toolIds?: string[] }) => {
+		mutationFn: async (data: {
+			name: string
+			model: string
+			instructions: string
+			description?: string
+			config?: Record<string, unknown>
+			toolIds?: string[]
+		}) => {
 			const res = await client.api.agents.$post({ json: data })
 			if (!res.ok) throw new Error('Failed to create agent')
 			return res.json()
@@ -65,7 +76,20 @@ export function useCreateAgent() {
 export function useUpdateAgent() {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: async ({ id, data }: { id: string; data: { name?: string; model?: string; instructions?: string; description?: string; config?: Record<string, unknown>; toolIds?: string[] } }) => {
+		mutationFn: async ({
+			id,
+			data,
+		}: {
+			id: string
+			data: {
+				name?: string
+				model?: string
+				instructions?: string
+				description?: string
+				config?: Record<string, unknown>
+				toolIds?: string[]
+			}
+		}) => {
 			const res = await client.api.agents[':id'].$patch({ param: { id }, json: data })
 			if (!res.ok) throw new Error('Failed to update agent')
 			return res.json()
@@ -147,7 +171,13 @@ export function useCreateWorkspace() {
 export function useUpdateWorkspace() {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: async ({ id, data }: { id: string; data: { name?: string; description?: string } }) => {
+		mutationFn: async ({
+			id,
+			data,
+		}: {
+			id: string
+			data: { name?: string; description?: string }
+		}) => {
 			const res = await client.api.workspaces[':id'].$patch({ param: { id }, json: data })
 			if (!res.ok) throw new Error('Failed to update workspace')
 			return res.json()
@@ -221,7 +251,10 @@ export function useCreateTool() {
 export function useUpdateTool() {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: async ({ id, data }: {
+		mutationFn: async ({
+			id,
+			data,
+		}: {
 			id: string
 			data: {
 				name?: string

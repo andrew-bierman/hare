@@ -1,4 +1,4 @@
-import { expect, test } from './fixtures/test-fixtures'
+import { test } from './fixtures/test-fixtures'
 
 test.describe('Dashboard', () => {
 	// Note: These tests assume user is not authenticated

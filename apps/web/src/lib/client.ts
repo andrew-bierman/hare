@@ -16,7 +16,7 @@ export const client = hc<AppType>(
 	typeof window !== 'undefined'
 		? '' // Relative URL in browser
 		: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
-) as ReturnType<typeof hc<AppType>>
+)
 
 /**
  * Helper function to get the API client instance

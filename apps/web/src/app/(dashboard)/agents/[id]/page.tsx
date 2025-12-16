@@ -1,6 +1,12 @@
 import { Badge } from '../../../../components/ui/badge'
 import { Button } from '../../../../components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../../../components/ui/card'
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardHeader,
+	CardTitle,
+} from '../../../../components/ui/card'
 import { Input } from '../../../../components/ui/input'
 import { Label } from '../../../../components/ui/label'
 import {
@@ -13,7 +19,8 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../../../components/ui/tabs'
 import { Textarea } from '../../../../components/ui/textarea'
 
-export default function AgentBuilderPage({ params }: { params: { id: string } }) {
+export default async function AgentBuilderPage({ params }: { params: Promise<{ id: string }> }) {
+	const { id: _id } = await params
 	return (
 		<div className="flex-1 space-y-4 p-8 pt-6">
 			<div className="flex items-center justify-between">

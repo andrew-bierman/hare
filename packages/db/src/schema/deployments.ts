@@ -17,7 +17,7 @@ export const deployments = sqliteTable('deployments', {
 	metadata: text('metadata', { mode: 'json' }).$type<{
 		buildTime?: number
 		commitHash?: string
-		config?: Record<string, any>
+		config?: Record<string, unknown>
 	}>(),
 	deployedBy: text('deployedBy')
 		.notNull()

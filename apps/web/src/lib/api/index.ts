@@ -5,11 +5,11 @@ import { logger } from 'hono/logger'
 
 // Import route modules
 import agents from './routes/agents'
-import workspaces from './routes/workspaces'
-import tools from './routes/tools'
 import auth from './routes/auth'
 import chat from './routes/chat'
+import tools from './routes/tools'
 import usage from './routes/usage'
+import workspaces from './routes/workspaces'
 
 // Create app
 const app = new OpenAPIHono().basePath('/api')
@@ -28,49 +28,49 @@ app.route('/usage', usage)
 
 // OpenAPI documentation
 app.doc('/openapi.json', {
-  openapi: '3.1.0',
-  info: {
-    title: 'Hare API',
-    version: '1.0.0',
-    description: 'Build and deploy AI agents to the edge',
-  },
-  servers: [
-    {
-      url: '/api',
-      description: 'API server',
-    },
-  ],
-  tags: [
-    { name: 'Authentication', description: 'User authentication and session management' },
-    { name: 'Workspaces', description: 'Workspace management' },
-    { name: 'Agents', description: 'AI agent creation and deployment' },
-    { name: 'Tools', description: 'Tool management for agents' },
-    { name: 'Chat', description: 'Chat with deployed agents' },
-    { name: 'Usage', description: 'Usage statistics and analytics' },
-  ],
+	openapi: '3.1.0',
+	info: {
+		title: 'Hare API',
+		version: '1.0.0',
+		description: 'Build and deploy AI agents to the edge',
+	},
+	servers: [
+		{
+			url: '/api',
+			description: 'API server',
+		},
+	],
+	tags: [
+		{ name: 'Authentication', description: 'User authentication and session management' },
+		{ name: 'Workspaces', description: 'Workspace management' },
+		{ name: 'Agents', description: 'AI agent creation and deployment' },
+		{ name: 'Tools', description: 'Tool management for agents' },
+		{ name: 'Chat', description: 'Chat with deployed agents' },
+		{ name: 'Usage', description: 'Usage statistics and analytics' },
+	],
 })
 
 // Scalar API reference UI
 app.get(
-  '/docs',
-  apiReference({
-    spec: { url: '/api/openapi.json' },
-    theme: 'kepler',
-    layout: 'modern',
-    defaultHttpClient: {
-      targetKey: 'javascript',
-      clientKey: 'fetch',
-    },
-  })
+	'/docs',
+	apiReference({
+		spec: { url: '/api/openapi.json' },
+		theme: 'kepler',
+		layout: 'modern',
+		defaultHttpClient: {
+			targetKey: 'js',
+			clientKey: 'fetch',
+		},
+	}),
 )
 
 // Health check
 app.get('/health', (c) =>
-  c.json({
-    status: 'ok',
-    timestamp: new Date().toISOString(),
-    version: '1.0.0',
-  })
+	c.json({
+		status: 'ok',
+		timestamp: new Date().toISOString(),
+		version: '1.0.0',
+	}),
 )
 
 export type AppType = typeof app

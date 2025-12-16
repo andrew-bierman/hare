@@ -234,7 +234,7 @@ const app = new OpenAPIHono()
 		})
 	})
 	.openapi(deleteToolRoute, async (c) => {
-		const { id } = c.req.valid('param')
+		const { id: _id } = c.req.valid('param')
 		// TODO: Delete from DB (only allow for non-system tools)
 		return c.json({ success: true })
 	})
