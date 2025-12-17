@@ -1,14 +1,9 @@
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
-import { eq } from 'drizzle-orm'
+import { eq, or } from 'drizzle-orm'
 import { getDb } from '../db'
-import {
-	CreateWorkspaceSchema,
-	IdParamSchema,
-	SuccessSchema,
-	UpdateWorkspaceSchema,
-	WorkspaceSchema,
-} from '../schemas'
-import { workspaces } from 'web-app/db/schema'
+import { CreateWorkspaceSchema, ErrorSchema, IdParamSchema, SuccessSchema, UpdateWorkspaceSchema, WorkspaceSchema } from '../schemas'
+import { workspaces, workspaceMembers } from 'web-app/db/schema'
+import { authMiddleware, type AuthVariables } from '../middleware'
 
 // Define routes
 const listWorkspacesRoute = createRoute({
@@ -27,6 +22,14 @@ const listWorkspacesRoute = createRoute({
 					}),
 				},
 			},
+		},
+		401: {
+			description: 'Unauthorized',
+			content: { 'application/json': { schema: ErrorSchema } },
+		},
+		503: {
+			description: 'Service unavailable',
+			content: { 'application/json': { schema: ErrorSchema } },
 		},
 	},
 })
@@ -55,6 +58,14 @@ const createWorkspaceRoute = createRoute({
 				},
 			},
 		},
+		401: {
+			description: 'Unauthorized',
+			content: { 'application/json': { schema: ErrorSchema } },
+		},
+		503: {
+			description: 'Service unavailable',
+			content: { 'application/json': { schema: ErrorSchema } },
+		},
 	},
 })
 
@@ -75,6 +86,22 @@ const getWorkspaceRoute = createRoute({
 					schema: WorkspaceSchema,
 				},
 			},
+		},
+		403: {
+			description: 'Access denied',
+			content: { 'application/json': { schema: ErrorSchema } },
+		},
+		404: {
+			description: 'Workspace not found',
+			content: {
+				'application/json': {
+					schema: ErrorSchema,
+				},
+			},
+		},
+		503: {
+			description: 'Service unavailable',
+			content: { 'application/json': { schema: ErrorSchema } },
 		},
 	},
 })
@@ -104,6 +131,22 @@ const updateWorkspaceRoute = createRoute({
 				},
 			},
 		},
+		403: {
+			description: 'Insufficient permissions',
+			content: { 'application/json': { schema: ErrorSchema } },
+		},
+		404: {
+			description: 'Workspace not found',
+			content: {
+				'application/json': {
+					schema: ErrorSchema,
+				},
+			},
+		},
+		503: {
+			description: 'Service unavailable',
+			content: { 'application/json': { schema: ErrorSchema } },
+		},
 	},
 })
 
@@ -125,185 +168,261 @@ const deleteWorkspaceRoute = createRoute({
 				},
 			},
 		},
+		403: {
+			description: 'Only owner can delete workspace',
+			content: { 'application/json': { schema: ErrorSchema } },
+		},
+		404: {
+			description: 'Workspace not found',
+			content: {
+				'application/json': {
+					schema: ErrorSchema,
+				},
+			},
+		},
+		503: {
+			description: 'Service unavailable',
+			content: { 'application/json': { schema: ErrorSchema } },
+		},
 	},
 })
 
-// Create app and register routes
-const app = new OpenAPIHono()
-	.openapi(listWorkspacesRoute, async (c) => {
-		const db = getDb(c)
+type WorkspaceRole = 'owner' | 'admin' | 'member' | 'viewer'
 
-		// Return mock data for development/testing when DB not available
-		if (!db) {
-			return c.json({
-				workspaces: [
-					{
-						id: 'ws_xxx',
-						name: 'My Workspace',
-						description: 'Default workspace',
-						role: 'owner' as const,
-						createdAt: new Date().toISOString(),
-						updatedAt: new Date().toISOString(),
-					},
-				],
-			})
-		}
+/**
+ * Get user's role in a workspace.
+ */
+async function getUserWorkspaceRole(
+	userId: string,
+	workspaceId: string,
+	db: NonNullable<ReturnType<typeof getDb>>
+): Promise<WorkspaceRole | null> {
+	// Check if user is owner
+	const [workspace] = await db.select().from(workspaces).where(eq(workspaces.id, workspaceId))
 
-		// TODO: Get from DB with user filter
-		const results = await db.select().from(workspaces)
+	if (!workspace) return null
+	if (workspace.ownerId === userId) return 'owner'
 
-		const workspacesData = results.map((workspace) => ({
+	// Check membership
+	const [membership] = await db
+		.select()
+		.from(workspaceMembers)
+		.where(eq(workspaceMembers.workspaceId, workspaceId))
+
+	if (!membership) return null
+	return membership.role as WorkspaceRole
+}
+
+// Create app with proper typing
+const app = new OpenAPIHono<{ Variables: AuthVariables }>()
+
+// Apply middleware
+app.use('*', authMiddleware)
+
+// Register routes
+app.openapi(listWorkspacesRoute, async (c) => {
+	const db = getDb(c)
+	const user = c.get('user')
+
+	if (!db) {
+		return c.json({ error: 'Service unavailable' }, 503)
+	}
+
+	// Get workspaces where user is owner
+	const ownedWorkspaces = await db.select().from(workspaces).where(eq(workspaces.ownerId, user.id))
+
+	// Get workspaces where user is a member
+	const memberships = await db.select().from(workspaceMembers).where(eq(workspaceMembers.userId, user.id))
+
+	const memberWorkspaceIds = memberships.map((m) => m.workspaceId)
+	const memberWorkspaces =
+		memberWorkspaceIds.length > 0
+			? await db
+					.select()
+					.from(workspaces)
+					.where(or(...memberWorkspaceIds.map((id) => eq(workspaces.id, id))))
+			: []
+
+	// Combine and dedupe
+	const allWorkspaces = [...ownedWorkspaces, ...memberWorkspaces.filter((mw) => !ownedWorkspaces.some((ow) => ow.id === mw.id))]
+
+	const workspacesData = allWorkspaces.map((workspace) => {
+		const membership = memberships.find((m) => m.workspaceId === workspace.id)
+		const role = workspace.ownerId === user.id ? 'owner' : (membership?.role as WorkspaceRole) || 'member'
+
+		return {
 			id: workspace.id,
 			name: workspace.name,
 			description: workspace.description,
-			role: 'owner' as const, // TODO: Get actual role from workspace_members join
+			role,
 			createdAt: workspace.createdAt.toISOString(),
 			updatedAt: workspace.updatedAt.toISOString(),
-		}))
-
-		return c.json({ workspaces: workspacesData })
+		}
 	})
-	.openapi(createWorkspaceRoute, async (c) => {
-		const data = c.req.valid('json')
-		const db = getDb(c)
 
-		// Return mock data for development/testing when DB not available
-		if (!db) {
-			const now = new Date().toISOString()
-			return c.json(
-				{
-					id: `ws_${crypto.randomUUID().slice(0, 8)}`,
-					name: data.name,
-					description: data.description ?? null,
-					role: 'owner' as const,
-					createdAt: now,
-					updatedAt: now,
-				},
-				201,
-			)
-		}
+	return c.json({ workspaces: workspacesData }, 200)
+})
 
-		// TODO: Get actual user ID from authentication context
-		const userId = 'user_default'
+app.openapi(createWorkspaceRoute, async (c) => {
+	const data = c.req.valid('json')
+	const db = getDb(c)
+	const user = c.get('user')
 
-		const [workspace] = await db
-			.insert(workspaces)
-			.values({
-				name: data.name,
-				slug: data.name.toLowerCase().replace(/\s+/g, '-'),
-				description: data.description,
-				ownerId: userId,
-			})
-			.returning()
+	if (!db) {
+		return c.json({ error: 'Service unavailable' }, 503)
+	}
 
-		return c.json(
-			{
-				id: workspace.id,
-				name: workspace.name,
-				description: workspace.description,
-				role: 'owner' as const,
-				createdAt: workspace.createdAt.toISOString(),
-				updatedAt: workspace.updatedAt.toISOString(),
-			},
-			201,
-		)
-	})
-	.openapi(getWorkspaceRoute, async (c) => {
-		const { id } = c.req.valid('param')
-		const db = getDb(c)
+	// Generate unique slug
+	const baseSlug = data.name
+		.toLowerCase()
+		.replace(/\s+/g, '-')
+		.replace(/[^a-z0-9-]/g, '')
+	let slug = baseSlug
+	let counter = 1
 
-		// Return mock data for development/testing when DB not available
-		if (!db) {
-			return c.json({
-				id,
-				name: 'My Workspace',
-				description: 'Default workspace',
-				role: 'owner' as const,
-				createdAt: new Date().toISOString(),
-				updatedAt: new Date().toISOString(),
-			})
-		}
+	// Check for slug conflicts
+	while (true) {
+		const [existing] = await db.select().from(workspaces).where(eq(workspaces.slug, slug))
+		if (!existing) break
+		slug = `${baseSlug}-${counter++}`
+	}
 
-		// TODO: Add authorization check
-		const [workspace] = await db.select().from(workspaces).where(eq(workspaces.id, id))
-
-		if (!workspace) {
-			return c.json({ error: 'Workspace not found' }, 404)
-		}
-
-		return c.json({
-			id: workspace.id,
-			name: workspace.name,
-			description: workspace.description,
-			role: 'owner' as const, // TODO: Get actual role from workspace_members join
-			createdAt: workspace.createdAt.toISOString(),
-			updatedAt: workspace.updatedAt.toISOString(),
+	const [workspace] = await db
+		.insert(workspaces)
+		.values({
+			name: data.name,
+			slug,
+			description: data.description,
+			ownerId: user.id,
 		})
-	})
-	.openapi(updateWorkspaceRoute, async (c) => {
-		const { id } = c.req.valid('param')
-		const data = c.req.valid('json')
-		const db = getDb(c)
+		.returning()
 
-		// Return mock data for development/testing when DB not available
-		if (!db) {
-			return c.json({
-				id,
-				name: data.name ?? 'My Workspace',
-				description: data.description ?? null,
-				role: 'owner' as const,
-				createdAt: new Date().toISOString(),
-				updatedAt: new Date().toISOString(),
-			})
-		}
-
-		// TODO: Add authorization check
-		const updateData: Record<string, unknown> = {
-			updatedAt: new Date(),
-		}
-
-		if (data.name !== undefined) {
-			updateData.name = data.name
-			updateData.slug = data.name.toLowerCase().replace(/\s+/g, '-')
-		}
-		if (data.description !== undefined) updateData.description = data.description
-
-		const [workspace] = await db
-			.update(workspaces)
-			.set(updateData)
-			.where(eq(workspaces.id, id))
-			.returning()
-
-		if (!workspace) {
-			return c.json({ error: 'Workspace not found' }, 404)
-		}
-
-		return c.json({
+	return c.json(
+		{
 			id: workspace.id,
 			name: workspace.name,
 			description: workspace.description,
-			role: 'owner' as const, // TODO: Get actual role from workspace_members join
+			role: 'owner' as const,
 			createdAt: workspace.createdAt.toISOString(),
 			updatedAt: workspace.updatedAt.toISOString(),
-		})
-	})
-	.openapi(deleteWorkspaceRoute, async (c) => {
-		const { id } = c.req.valid('param')
-		const db = getDb(c)
+		},
+		201
+	)
+})
 
-		// Return success for development/testing when DB not available
-		if (!db) {
-			return c.json({ success: true })
+app.openapi(getWorkspaceRoute, async (c) => {
+	const { id } = c.req.valid('param')
+	const db = getDb(c)
+	const user = c.get('user')
+
+	if (!db) {
+		return c.json({ error: 'Service unavailable' }, 503)
+	}
+
+	const [workspace] = await db.select().from(workspaces).where(eq(workspaces.id, id))
+
+	if (!workspace) {
+		return c.json({ error: 'Workspace not found' }, 404)
+	}
+
+	// Check access
+	const role = await getUserWorkspaceRole(user.id, id, db)
+	if (!role) {
+		return c.json({ error: 'Access denied' }, 403)
+	}
+
+	return c.json(
+		{
+			id: workspace.id,
+			name: workspace.name,
+			description: workspace.description,
+			role,
+			createdAt: workspace.createdAt.toISOString(),
+			updatedAt: workspace.updatedAt.toISOString(),
+		},
+		200
+	)
+})
+
+app.openapi(updateWorkspaceRoute, async (c) => {
+	const { id } = c.req.valid('param')
+	const data = c.req.valid('json')
+	const db = getDb(c)
+	const user = c.get('user')
+
+	if (!db) {
+		return c.json({ error: 'Service unavailable' }, 503)
+	}
+
+	// Check access - only owner and admin can update
+	const role = await getUserWorkspaceRole(user.id, id, db)
+	if (!role) {
+		return c.json({ error: 'Workspace not found' }, 404)
+	}
+	if (role !== 'owner' && role !== 'admin') {
+		return c.json({ error: 'Insufficient permissions' }, 403)
+	}
+
+	const updateData: Record<string, unknown> = {
+		updatedAt: new Date(),
+	}
+
+	if (data.name !== undefined) {
+		updateData.name = data.name
+		// Update slug if name changes
+		const baseSlug = data.name
+			.toLowerCase()
+			.replace(/\s+/g, '-')
+			.replace(/[^a-z0-9-]/g, '')
+		let slug = baseSlug
+		let counter = 1
+		while (true) {
+			const [existing] = await db.select().from(workspaces).where(eq(workspaces.slug, slug))
+			if (!existing || existing.id === id) break
+			slug = `${baseSlug}-${counter++}`
 		}
+		updateData.slug = slug
+	}
+	if (data.description !== undefined) updateData.description = data.description
 
-		// TODO: Add authorization check
-		const result = await db.delete(workspaces).where(eq(workspaces.id, id)).returning()
+	const [workspace] = await db.update(workspaces).set(updateData).where(eq(workspaces.id, id)).returning()
 
-		if (result.length === 0) {
-			return c.json({ error: 'Workspace not found' }, 404)
-		}
+	return c.json(
+		{
+			id: workspace.id,
+			name: workspace.name,
+			description: workspace.description,
+			role,
+			createdAt: workspace.createdAt.toISOString(),
+			updatedAt: workspace.updatedAt.toISOString(),
+		},
+		200
+	)
+})
 
-		return c.json({ success: true })
-	})
+app.openapi(deleteWorkspaceRoute, async (c) => {
+	const { id } = c.req.valid('param')
+	const db = getDb(c)
+	const user = c.get('user')
+
+	if (!db) {
+		return c.json({ error: 'Service unavailable' }, 503)
+	}
+
+	// Check ownership - only owner can delete
+	const [workspace] = await db.select().from(workspaces).where(eq(workspaces.id, id))
+
+	if (!workspace) {
+		return c.json({ error: 'Workspace not found' }, 404)
+	}
+
+	if (workspace.ownerId !== user.id) {
+		return c.json({ error: 'Only owner can delete workspace' }, 403)
+	}
+
+	await db.delete(workspaces).where(eq(workspaces.id, id))
+
+	return c.json({ success: true }, 200)
+})
 
 export default app

@@ -1,13 +1,9 @@
-import { createRoute, OpenAPIHono } from '@hono/zod-openapi'
+import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
 import { and, eq, gte, lte, sql } from 'drizzle-orm'
 import { getDb } from '../db'
-import {
-	AgentUsageResponseSchema,
-	IdParamSchema,
-	UsageQuerySchema,
-	UsageResponseSchema,
-} from '../schemas'
-import { usage } from 'web-app/db/schema'
+import { AgentUsageResponseSchema, ErrorSchema, IdParamSchema, UsageQuerySchema, UsageResponseSchema } from '../schemas'
+import { usage, agents } from 'web-app/db/schema'
+import { authMiddleware, workspaceMiddleware, type WorkspaceVariables } from '../middleware'
 
 // Define routes
 const getWorkspaceUsageRoute = createRoute({
@@ -15,10 +11,11 @@ const getWorkspaceUsageRoute = createRoute({
 	path: '/',
 	tags: ['Usage'],
 	summary: 'Get workspace usage statistics',
-	description:
-		'Retrieve usage statistics for the workspace, optionally filtered by date range and agent',
+	description: 'Retrieve usage statistics for the workspace, optionally filtered by date range and agent',
 	request: {
-		query: UsageQuerySchema,
+		query: UsageQuerySchema.extend({
+			workspaceId: z.string().describe('Workspace ID'),
+		}),
 	},
 	responses: {
 		200: {
@@ -28,6 +25,14 @@ const getWorkspaceUsageRoute = createRoute({
 					schema: UsageResponseSchema,
 				},
 			},
+		},
+		401: {
+			description: 'Unauthorized',
+			content: { 'application/json': { schema: ErrorSchema } },
+		},
+		503: {
+			description: 'Service unavailable',
+			content: { 'application/json': { schema: ErrorSchema } },
 		},
 	},
 })
@@ -40,6 +45,9 @@ const getAgentUsageRoute = createRoute({
 	description: 'Retrieve usage statistics for a specific agent',
 	request: {
 		params: IdParamSchema,
+		query: z.object({
+			workspaceId: z.string().describe('Workspace ID'),
+		}),
 	},
 	responses: {
 		200: {
@@ -50,126 +58,100 @@ const getAgentUsageRoute = createRoute({
 				},
 			},
 		},
+		401: {
+			description: 'Unauthorized',
+			content: { 'application/json': { schema: ErrorSchema } },
+		},
+		404: {
+			description: 'Agent not found',
+			content: { 'application/json': { schema: ErrorSchema } },
+		},
+		503: {
+			description: 'Service unavailable',
+			content: { 'application/json': { schema: ErrorSchema } },
+		},
 	},
 })
 
-// Create app and register routes
-const app = new OpenAPIHono()
-	.openapi(getWorkspaceUsageRoute, async (c) => {
-		const { startDate, endDate } = c.req.valid('query')
-		const db = getDb(c)
+// Create app with proper typing
+const app = new OpenAPIHono<{ Variables: WorkspaceVariables }>()
 
-		const defaultStartDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
-		const defaultEndDate = new Date().toISOString()
+// Apply middleware
+app.use('*', authMiddleware)
+app.use('*', workspaceMiddleware)
 
-		// Return mock data for development/testing when DB not available
-		if (!db) {
-			return c.json({
-				usage: {
-					totalMessages: 1234,
-					totalTokensIn: 50000,
-					totalTokensOut: 75000,
-					totalCost: 1.25,
-					byAgent: [
-						{
-							agentId: 'agent_xxx',
-							agentName: 'Customer Support Agent',
-							messages: 800,
-							tokensIn: 30000,
-							tokensOut: 45000,
-							cost: 0.75,
-						},
-						{
-							agentId: 'agent_yyy',
-							agentName: 'Sales Agent',
-							messages: 434,
-							tokensIn: 20000,
-							tokensOut: 30000,
-							cost: 0.5,
-						},
-					],
-					byDay: [
-						{
-							date: '2024-12-01',
-							messages: 100,
-							tokensIn: 4000,
-							tokensOut: 6000,
-							cost: 0.1,
-						},
-						{
-							date: '2024-12-02',
-							messages: 150,
-							tokensIn: 6000,
-							tokensOut: 9000,
-							cost: 0.15,
-						},
-					],
-				},
-				period: {
-					startDate: startDate || defaultStartDate,
-					endDate: endDate || defaultEndDate,
-				},
-			})
-		}
+// Register routes
+app.openapi(getWorkspaceUsageRoute, async (c) => {
+	const { startDate, endDate } = c.req.valid('query')
+	const db = getDb(c)
+	const workspace = c.get('workspace')
 
-		// TODO: Get actual workspace ID from context
-		const workspaceId = 'ws_default'
+	if (!db) {
+		return c.json({ error: 'Service unavailable' }, 503)
+	}
 
-		// Build query conditions
-		const conditions = [eq(usage.workspaceId, workspaceId)]
-		if (startDate) {
-			conditions.push(gte(usage.createdAt, new Date(startDate)))
-		}
-		if (endDate) {
-			conditions.push(lte(usage.createdAt, new Date(endDate)))
-		}
+	const defaultStartDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
+	const defaultEndDate = new Date().toISOString()
 
-		// Get aggregated usage data
-		const [totals] = await db
-			.select({
-				totalMessages: sql<number>`COUNT(*)`,
-				totalTokensIn: sql<number>`COALESCE(SUM(${usage.inputTokens}), 0)`,
-				totalTokensOut: sql<number>`COALESCE(SUM(${usage.outputTokens}), 0)`,
-				totalCost: sql<number>`COALESCE(SUM(${usage.cost}), 0)`,
-			})
-			.from(usage)
-			.where(and(...conditions))
+	// Build query conditions
+	const conditions = [eq(usage.workspaceId, workspace.id)]
+	if (startDate) {
+		conditions.push(gte(usage.createdAt, new Date(startDate)))
+	}
+	if (endDate) {
+		conditions.push(lte(usage.createdAt, new Date(endDate)))
+	}
 
-		// Get usage by agent
-		const byAgent = await db
-			.select({
-				agentId: usage.agentId,
-				messages: sql<number>`COUNT(*)`,
-				tokensIn: sql<number>`COALESCE(SUM(${usage.inputTokens}), 0)`,
-				tokensOut: sql<number>`COALESCE(SUM(${usage.outputTokens}), 0)`,
-				cost: sql<number>`COALESCE(SUM(${usage.cost}), 0)`,
-			})
-			.from(usage)
-			.where(and(...conditions))
-			.groupBy(usage.agentId)
+	// Get aggregated usage data
+	const [totals] = await db
+		.select({
+			totalMessages: sql<number>`COUNT(*)`,
+			totalTokensIn: sql<number>`COALESCE(SUM(${usage.inputTokens}), 0)`,
+			totalTokensOut: sql<number>`COALESCE(SUM(${usage.outputTokens}), 0)`,
+			totalCost: sql<number>`COALESCE(SUM(${usage.cost}), 0)`,
+		})
+		.from(usage)
+		.where(and(...conditions))
 
-		// Get usage by day
-		const byDay = await db
-			.select({
-				date: sql<string>`DATE(${usage.createdAt})`,
-				messages: sql<number>`COUNT(*)`,
-				tokensIn: sql<number>`COALESCE(SUM(${usage.inputTokens}), 0)`,
-				tokensOut: sql<number>`COALESCE(SUM(${usage.outputTokens}), 0)`,
-				cost: sql<number>`COALESCE(SUM(${usage.cost}), 0)`,
-			})
-			.from(usage)
-			.where(and(...conditions))
-			.groupBy(sql`DATE(${usage.createdAt})`)
+	// Get usage by agent with agent names
+	const byAgentRaw = await db
+		.select({
+			agentId: usage.agentId,
+			agentName: agents.name,
+			messages: sql<number>`COUNT(*)`,
+			tokensIn: sql<number>`COALESCE(SUM(${usage.inputTokens}), 0)`,
+			tokensOut: sql<number>`COALESCE(SUM(${usage.outputTokens}), 0)`,
+			cost: sql<number>`COALESCE(SUM(${usage.cost}), 0)`,
+		})
+		.from(usage)
+		.leftJoin(agents, eq(usage.agentId, agents.id))
+		.where(and(...conditions))
+		.groupBy(usage.agentId, agents.name)
 
-		return c.json({
+	// Get usage by day
+	const byDay = await db
+		.select({
+			date: sql<string>`DATE(${usage.createdAt})`,
+			messages: sql<number>`COUNT(*)`,
+			tokensIn: sql<number>`COALESCE(SUM(${usage.inputTokens}), 0)`,
+			tokensOut: sql<number>`COALESCE(SUM(${usage.outputTokens}), 0)`,
+			cost: sql<number>`COALESCE(SUM(${usage.cost}), 0)`,
+		})
+		.from(usage)
+		.where(and(...conditions))
+		.groupBy(sql`DATE(${usage.createdAt})`)
+		.orderBy(sql`DATE(${usage.createdAt})`)
+
+	return c.json(
+		{
 			usage: {
 				totalMessages: totals?.totalMessages || 0,
 				totalTokensIn: totals?.totalTokensIn || 0,
 				totalTokensOut: totals?.totalTokensOut || 0,
-				totalCost: (totals?.totalCost || 0) / 100, // Convert cents to dollars
-				byAgent: byAgent.map((a) => ({
+				totalCost: (totals?.totalCost || 0) / 100,
+				byAgent: byAgentRaw.map((a) => ({
 					agentId: a.agentId || 'unknown',
-					agentName: 'Agent', // TODO: Join with agents table to get name
+					agentName: a.agentName || 'Unknown Agent',
 					messages: a.messages,
 					tokensIn: a.tokensIn,
 					tokensOut: a.tokensOut,
@@ -187,83 +169,71 @@ const app = new OpenAPIHono()
 				startDate: startDate || defaultStartDate,
 				endDate: endDate || defaultEndDate,
 			},
+		},
+		200
+	)
+})
+
+app.openapi(getAgentUsageRoute, async (c) => {
+	const { id: agentId } = c.req.valid('param')
+	const db = getDb(c)
+	const workspace = c.get('workspace')
+
+	if (!db) {
+		return c.json({ error: 'Service unavailable' }, 503)
+	}
+
+	// Verify agent belongs to workspace
+	const [agent] = await db
+		.select()
+		.from(agents)
+		.where(and(eq(agents.id, agentId), eq(agents.workspaceId, workspace.id)))
+
+	if (!agent) {
+		return c.json({ error: 'Agent not found' }, 404)
+	}
+
+	// Get aggregated usage data for specific agent
+	const [totals] = await db
+		.select({
+			totalMessages: sql<number>`COUNT(*)`,
+			totalTokensIn: sql<number>`COALESCE(SUM(${usage.inputTokens}), 0)`,
+			totalTokensOut: sql<number>`COALESCE(SUM(${usage.outputTokens}), 0)`,
+			totalCost: sql<number>`COALESCE(SUM(${usage.cost}), 0)`,
+			averageLatency: sql<number>`COALESCE(AVG(json_extract(${usage.metadata}, '$.duration')), 0)`,
 		})
-	})
-	.openapi(getAgentUsageRoute, async (c) => {
-		const { id: agentId } = c.req.valid('param')
-		const db = getDb(c)
+		.from(usage)
+		.where(eq(usage.agentId, agentId))
 
-		// Return mock data for development/testing when DB not available
-		if (!db) {
-			return c.json({
-				agentId,
-				usage: {
-					totalMessages: 800,
-					totalTokensIn: 30000,
-					totalTokensOut: 45000,
-					totalCost: 0.75,
-					averageLatencyMs: 250,
-					byModel: [
-						{
-							model: 'llama-3.3-70b-instruct',
-							messages: 800,
-							tokensIn: 30000,
-							tokensOut: 45000,
-							cost: 0.75,
-						},
-					],
-					byDay: [
-						{
-							date: '2024-12-01',
-							messages: 50,
-							tokensIn: 2000,
-							tokensOut: 3000,
-							cost: 0.05,
-						},
-					],
-				},
-			})
-		}
+	// Get usage by model
+	const byModel = await db
+		.select({
+			model: sql<string>`json_extract(${usage.metadata}, '$.model')`,
+			messages: sql<number>`COUNT(*)`,
+			tokensIn: sql<number>`COALESCE(SUM(${usage.inputTokens}), 0)`,
+			tokensOut: sql<number>`COALESCE(SUM(${usage.outputTokens}), 0)`,
+			cost: sql<number>`COALESCE(SUM(${usage.cost}), 0)`,
+		})
+		.from(usage)
+		.where(eq(usage.agentId, agentId))
+		.groupBy(sql`json_extract(${usage.metadata}, '$.model')`)
 
-		// Get aggregated usage data for specific agent
-		const [totals] = await db
-			.select({
-				totalMessages: sql<number>`COUNT(*)`,
-				totalTokensIn: sql<number>`COALESCE(SUM(${usage.inputTokens}), 0)`,
-				totalTokensOut: sql<number>`COALESCE(SUM(${usage.outputTokens}), 0)`,
-				totalCost: sql<number>`COALESCE(SUM(${usage.cost}), 0)`,
-				averageLatency: sql<number>`COALESCE(AVG(json_extract(${usage.metadata}, '$.duration')), 0)`,
-			})
-			.from(usage)
-			.where(eq(usage.agentId, agentId))
+	// Get usage by day
+	const byDay = await db
+		.select({
+			date: sql<string>`DATE(${usage.createdAt})`,
+			messages: sql<number>`COUNT(*)`,
+			tokensIn: sql<number>`COALESCE(SUM(${usage.inputTokens}), 0)`,
+			tokensOut: sql<number>`COALESCE(SUM(${usage.outputTokens}), 0)`,
+			cost: sql<number>`COALESCE(SUM(${usage.cost}), 0)`,
+		})
+		.from(usage)
+		.where(eq(usage.agentId, agentId))
+		.groupBy(sql`DATE(${usage.createdAt})`)
+		.orderBy(sql`DATE(${usage.createdAt})`)
 
-		// Get usage by model
-		const byModel = await db
-			.select({
-				model: sql<string>`json_extract(${usage.metadata}, '$.model')`,
-				messages: sql<number>`COUNT(*)`,
-				tokensIn: sql<number>`COALESCE(SUM(${usage.inputTokens}), 0)`,
-				tokensOut: sql<number>`COALESCE(SUM(${usage.outputTokens}), 0)`,
-				cost: sql<number>`COALESCE(SUM(${usage.cost}), 0)`,
-			})
-			.from(usage)
-			.where(eq(usage.agentId, agentId))
-			.groupBy(sql`json_extract(${usage.metadata}, '$.model')`)
-
-		// Get usage by day
-		const byDay = await db
-			.select({
-				date: sql<string>`DATE(${usage.createdAt})`,
-				messages: sql<number>`COUNT(*)`,
-				tokensIn: sql<number>`COALESCE(SUM(${usage.inputTokens}), 0)`,
-				tokensOut: sql<number>`COALESCE(SUM(${usage.outputTokens}), 0)`,
-				cost: sql<number>`COALESCE(SUM(${usage.cost}), 0)`,
-			})
-			.from(usage)
-			.where(eq(usage.agentId, agentId))
-			.groupBy(sql`DATE(${usage.createdAt})`)
-
-		return c.json({
+	return c.json(
+		{
 			agentId,
 			usage: {
 				totalMessages: totals?.totalMessages || 0,
@@ -286,7 +256,9 @@ const app = new OpenAPIHono()
 					cost: d.cost / 100,
 				})),
 			},
-		})
-	})
+		},
+		200
+	)
+})
 
 export default app
