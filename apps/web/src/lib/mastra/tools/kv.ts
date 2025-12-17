@@ -1,118 +1,144 @@
-import { createTool } from '@mastra/core/tools'
 import { z } from 'zod'
-import type { KvToolConfig, ToolContext } from './types'
+import { createTool, success, failure, type ToolContext } from './types'
 
-const kvInputSchema = z.object({
-	operation: z.enum(['get', 'put', 'delete', 'list']).describe('The operation to perform'),
-	key: z.string().optional().describe('The key to operate on'),
-	value: z.string().optional().describe('The value to store (for put operation)'),
-	expirationTtl: z.number().optional().describe('TTL in seconds for the key (for put operation)'),
-	listPrefix: z.string().optional().describe('Prefix to filter keys when listing'),
-	limit: z.number().optional().default(100).describe('Maximum number of keys to return when listing'),
+/**
+ * KV Get Tool - Retrieve a value from Cloudflare KV.
+ */
+export const kvGetTool = createTool({
+	id: 'kv_get',
+	description: 'Retrieve a value from Cloudflare KV storage by key. Returns the stored value or null if not found.',
+	inputSchema: z.object({
+		key: z.string().describe('The key to retrieve from KV storage'),
+		type: z.enum(['text', 'json', 'arrayBuffer']).optional().default('text').describe('The type to return the value as'),
+	}),
+	execute: async (params, context) => {
+		const kv = context.env.KV
+		if (!kv) {
+			return failure('KV namespace not available')
+		}
+
+		try {
+			let value: unknown
+			switch (params.type) {
+				case 'json':
+					value = await kv.get(params.key, 'json')
+					break
+				case 'arrayBuffer':
+					value = await kv.get(params.key, 'arrayBuffer')
+					break
+				default:
+					value = await kv.get(params.key, 'text')
+			}
+
+			return success({ key: params.key, value, found: value !== null })
+		} catch (error) {
+			return failure(`Failed to get key "${params.key}": ${error instanceof Error ? error.message : 'Unknown error'}`)
+		}
+	},
 })
 
 /**
- * Create a KV namespace tool for agents.
- * Provides get, put, delete, and list operations on Cloudflare KV.
+ * KV Put Tool - Store a value in Cloudflare KV.
  */
-export function createKvTool(config: KvToolConfig, ctx: ToolContext) {
-	const { prefix = '', allowedOperations = ['get', 'put', 'delete', 'list'] } = config.config
+export const kvPutTool = createTool({
+	id: 'kv_put',
+	description: 'Store a value in Cloudflare KV storage. Supports optional expiration.',
+	inputSchema: z.object({
+		key: z.string().describe('The key to store the value under'),
+		value: z.string().describe('The value to store'),
+		expirationTtl: z.number().optional().describe('Time to live in seconds'),
+		metadata: z.record(z.string(), z.unknown()).optional().describe('Optional metadata to store with the key'),
+	}),
+	execute: async (params, context) => {
+		const kv = context.env.KV
+		if (!kv) {
+			return failure('KV namespace not available')
+		}
 
-	// Prefix keys with workspace ID for isolation
-	const keyPrefix = `${ctx.workspaceId}:${prefix}`
-
-	return createTool({
-		id: config.id,
-		description: config.description || 'Store and retrieve data from key-value storage',
-		inputSchema: kvInputSchema,
-		execute: async ({ context }) => {
-			const { operation, key, value, expirationTtl, listPrefix, limit = 100 } = context
-			const kv = ctx.env.KV
-
-			if (!kv) {
-				return { success: false, error: 'KV namespace not available' }
+		try {
+			const options: KVNamespacePutOptions = {}
+			if (params.expirationTtl) {
+				options.expirationTtl = params.expirationTtl
+			}
+			if (params.metadata) {
+				options.metadata = params.metadata
 			}
 
-			if (!allowedOperations.includes(operation)) {
-				return { success: false, error: `Operation '${operation}' not allowed` }
+			await kv.put(params.key, params.value, options)
+			return success({ key: params.key, stored: true })
+		} catch (error) {
+			return failure(`Failed to put key "${params.key}": ${error instanceof Error ? error.message : 'Unknown error'}`)
+		}
+	},
+})
+
+/**
+ * KV Delete Tool - Delete a value from Cloudflare KV.
+ */
+export const kvDeleteTool = createTool({
+	id: 'kv_delete',
+	description: 'Delete a key from Cloudflare KV storage.',
+	inputSchema: z.object({
+		key: z.string().describe('The key to delete from KV storage'),
+	}),
+	execute: async (params, context) => {
+		const kv = context.env.KV
+		if (!kv) {
+			return failure('KV namespace not available')
+		}
+
+		try {
+			await kv.delete(params.key)
+			return success({ key: params.key, deleted: true })
+		} catch (error) {
+			return failure(`Failed to delete key "${params.key}": ${error instanceof Error ? error.message : 'Unknown error'}`)
+		}
+	},
+})
+
+/**
+ * KV List Tool - List keys in Cloudflare KV.
+ */
+export const kvListTool = createTool({
+	id: 'kv_list',
+	description: 'List keys in Cloudflare KV storage with optional prefix filtering.',
+	inputSchema: z.object({
+		prefix: z.string().optional().describe('Filter keys by prefix'),
+		limit: z.number().optional().default(100).describe('Maximum number of keys to return'),
+		cursor: z.string().optional().describe('Cursor for pagination'),
+	}),
+	execute: async (params, context) => {
+		const kv = context.env.KV
+		if (!kv) {
+			return failure('KV namespace not available')
+		}
+
+		try {
+			const options: KVNamespaceListOptions = {
+				limit: params.limit,
+			}
+			if (params.prefix) {
+				options.prefix = params.prefix
+			}
+			if (params.cursor) {
+				options.cursor = params.cursor
 			}
 
-			try {
-				switch (operation) {
-					case 'get': {
-						if (!key) {
-							return { success: false, error: 'Key is required for get operation' }
-						}
-						const fullKey = `${keyPrefix}${key}`
-						const result = await kv.get(fullKey)
-						return {
-							success: true,
-							key,
-							value: result,
-							found: result !== null,
-						}
-					}
+			const result = await kv.list(options)
+			return success({
+				keys: result.keys.map((k) => ({ name: k.name, expiration: k.expiration, metadata: k.metadata })),
+				complete: result.list_complete,
+				cursor: result.list_complete ? undefined : (result as { cursor?: string }).cursor,
+			})
+		} catch (error) {
+			return failure(`Failed to list keys: ${error instanceof Error ? error.message : 'Unknown error'}`)
+		}
+	},
+})
 
-					case 'put': {
-						if (!key) {
-							return { success: false, error: 'Key is required for put operation' }
-						}
-						if (value === undefined) {
-							return { success: false, error: 'Value is required for put operation' }
-						}
-						const fullKey = `${keyPrefix}${key}`
-						const options: KVNamespacePutOptions = {}
-						if (expirationTtl) {
-							options.expirationTtl = expirationTtl
-						}
-						await kv.put(fullKey, value, options)
-						return {
-							success: true,
-							key,
-							stored: true,
-						}
-					}
-
-					case 'delete': {
-						if (!key) {
-							return { success: false, error: 'Key is required for delete operation' }
-						}
-						const fullKey = `${keyPrefix}${key}`
-						await kv.delete(fullKey)
-						return {
-							success: true,
-							key,
-							deleted: true,
-						}
-					}
-
-					case 'list': {
-						const listOptions: KVNamespaceListOptions = {
-							prefix: `${keyPrefix}${listPrefix || ''}`,
-							limit: Math.min(limit, 1000),
-						}
-						const result = await kv.list(listOptions)
-						// Strip the workspace prefix from returned keys
-						const keys = result.keys.map((k) => ({
-							name: k.name.replace(keyPrefix, ''),
-							expiration: k.expiration,
-						}))
-						return {
-							success: true,
-							keys,
-							complete: result.list_complete,
-						}
-					}
-
-					default:
-						return { success: false, error: `Unknown operation: ${operation}` }
-				}
-			} catch (error) {
-				return {
-					success: false,
-					error: error instanceof Error ? error.message : 'Unknown error occurred',
-				}
-			}
-		},
-	})
+/**
+ * Get all KV tools.
+ */
+export function getKVTools(context: ToolContext) {
+	return [kvGetTool, kvPutTool, kvDeleteTool, kvListTool]
 }

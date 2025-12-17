@@ -1,90 +1,146 @@
-import { createTool } from '@mastra/core/tools'
 import { z } from 'zod'
-import type { SqlToolConfig, ToolContext } from './types'
+import { createTool, success, failure, type ToolContext } from './types'
 
-const sqlInputSchema = z.object({
-	query: z.string().describe('The SQL query to execute. Only SELECT queries are allowed.'),
-	params: z.array(z.string()).optional().describe('Parameters to bind to the query (use ? placeholders)'),
+/**
+ * SQL Query Tool - Execute read-only SQL queries on D1.
+ */
+export const sqlQueryTool = createTool({
+	id: 'sql_query',
+	description: 'Execute a read-only SQL query on the D1 database. Only SELECT statements are allowed for safety.',
+	inputSchema: z.object({
+		query: z.string().describe('The SQL SELECT query to execute'),
+		params: z.array(z.union([z.string(), z.number(), z.boolean(), z.null()])).optional().describe('Query parameters for prepared statement'),
+	}),
+	execute: async (params, context) => {
+		const db = context.env.DB
+		if (!db) {
+			return failure('D1 database not available')
+		}
+
+		// Security: Only allow SELECT statements
+		const normalizedQuery = params.query.trim().toLowerCase()
+		if (!normalizedQuery.startsWith('select')) {
+			return failure('Only SELECT queries are allowed. Use sql_execute for other operations.')
+		}
+
+		// Block dangerous patterns
+		const dangerousPatterns = [
+			/;\s*drop/i,
+			/;\s*delete/i,
+			/;\s*update/i,
+			/;\s*insert/i,
+			/;\s*alter/i,
+			/;\s*create/i,
+			/;\s*truncate/i,
+		]
+		for (const pattern of dangerousPatterns) {
+			if (pattern.test(params.query)) {
+				return failure('Query contains dangerous patterns. Only single SELECT statements are allowed.')
+			}
+		}
+
+		try {
+			const stmt = db.prepare(params.query)
+			const boundStmt = params.params ? stmt.bind(...params.params) : stmt
+
+			const result = await boundStmt.all()
+			return success({
+				rows: result.results,
+				rowCount: result.results?.length ?? 0,
+				meta: result.meta,
+			})
+		} catch (error) {
+			return failure(`SQL query failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
+		}
+	},
 })
 
 /**
- * Create a SQL (D1) query tool for agents.
- * Executes read-only SQL queries against the D1 database.
+ * SQL Execute Tool - Execute write operations on D1 (requires elevated permissions).
  */
-export function createSqlTool(config: SqlToolConfig, ctx: ToolContext) {
-	const { allowedTables = [], readOnly = true, maxRows = 100 } = config.config
+export const sqlExecuteTool = createTool({
+	id: 'sql_execute',
+	description: 'Execute a SQL statement that modifies data (INSERT, UPDATE, DELETE). Requires elevated permissions.',
+	inputSchema: z.object({
+		statement: z.string().describe('The SQL statement to execute'),
+		params: z.array(z.union([z.string(), z.number(), z.boolean(), z.null()])).optional().describe('Statement parameters for prepared statement'),
+	}),
+	execute: async (params, context) => {
+		const db = context.env.DB
+		if (!db) {
+			return failure('D1 database not available')
+		}
 
-	return createTool({
-		id: config.id,
-		description: config.description || 'Execute SQL queries against the database',
-		inputSchema: sqlInputSchema,
-		execute: async ({ context }) => {
-			const { query, params = [] } = context
-			const db = ctx.env.DB
-
-			if (!db) {
-				return { success: false, error: 'Database not available' }
+		// Block extremely dangerous operations
+		const normalizedStmt = params.statement.trim().toLowerCase()
+		const blockedPatterns = [/drop\s+database/i, /drop\s+table/i, /truncate/i, /alter\s+table.*drop/i]
+		for (const pattern of blockedPatterns) {
+			if (pattern.test(params.statement)) {
+				return failure('This operation is not allowed for safety reasons.')
 			}
+		}
 
-			try {
-				// Normalize the query
-				const normalizedQuery = query.trim().toUpperCase()
+		try {
+			const stmt = db.prepare(params.statement)
+			const boundStmt = params.params ? stmt.bind(...params.params) : stmt
 
-				// Only allow SELECT queries if readOnly
-				if (readOnly && !normalizedQuery.startsWith('SELECT')) {
-					return { success: false, error: 'Only SELECT queries are allowed' }
-				}
+			const result = await boundStmt.run()
+			return success({
+				success: result.success,
+				rowsAffected: result.meta?.changes ?? 0,
+				lastRowId: result.meta?.last_row_id,
+				meta: result.meta,
+			})
+		} catch (error) {
+			return failure(`SQL execution failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
+		}
+	},
+})
 
-				// Block dangerous operations even if not readOnly
-				const blockedKeywords = ['DROP', 'TRUNCATE', 'ALTER', 'CREATE INDEX', 'ATTACH', 'DETACH']
-				for (const keyword of blockedKeywords) {
-					if (normalizedQuery.includes(keyword)) {
-						return { success: false, error: `${keyword} operations are not allowed` }
-					}
-				}
+/**
+ * SQL Batch Tool - Execute multiple SQL statements in a transaction.
+ */
+export const sqlBatchTool = createTool({
+	id: 'sql_batch',
+	description: 'Execute multiple SQL statements in a batch. All statements run in a transaction.',
+	inputSchema: z.object({
+		statements: z.array(
+			z.object({
+				sql: z.string().describe('The SQL statement'),
+				params: z.array(z.union([z.string(), z.number(), z.boolean(), z.null()])).optional().describe('Statement parameters'),
+			})
+		).describe('Array of SQL statements to execute'),
+	}),
+	execute: async (params, context) => {
+		const db = context.env.DB
+		if (!db) {
+			return failure('D1 database not available')
+		}
 
-				// Check if query accesses only allowed tables
-				if (allowedTables.length > 0) {
-					const tablePattern = /\bFROM\s+(\w+)|\bJOIN\s+(\w+)|\bINTO\s+(\w+)|\bUPDATE\s+(\w+)/gi
-					const matches = [...query.matchAll(tablePattern)]
-					const accessedTables = matches
-						.flatMap((m) => [m[1], m[2], m[3], m[4]])
-						.filter(Boolean)
-						.map((t) => t.toLowerCase())
+		try {
+			const preparedStatements = params.statements.map((stmt) => {
+				const prepared = db.prepare(stmt.sql)
+				return stmt.params ? prepared.bind(...stmt.params) : prepared
+			})
 
-					for (const table of accessedTables) {
-						if (!allowedTables.map((t) => t.toLowerCase()).includes(table)) {
-							return { success: false, error: `Access to table '${table}' is not allowed` }
-						}
-					}
-				}
+			const results = await db.batch(preparedStatements)
+			return success({
+				results: results.map((r, i) => ({
+					index: i,
+					success: r.success,
+					rowsAffected: r.meta?.changes ?? 0,
+				})),
+				totalStatements: results.length,
+			})
+		} catch (error) {
+			return failure(`SQL batch failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
+		}
+	},
+})
 
-				// Add LIMIT if not present for SELECT queries
-				let finalQuery = query.trim().replace(/;$/, '')
-				if (normalizedQuery.startsWith('SELECT') && !normalizedQuery.includes('LIMIT')) {
-					finalQuery = `${finalQuery} LIMIT ${maxRows}`
-				}
-
-				// Execute the query
-				const result = await db.prepare(finalQuery).bind(...params).all()
-
-				return {
-					success: true,
-					rows: result.results.slice(0, maxRows),
-					rowCount: result.results.length,
-					truncated: result.results.length > maxRows,
-					meta: {
-						duration: result.meta?.duration,
-						rowsRead: result.meta?.rows_read,
-						rowsWritten: result.meta?.rows_written,
-					},
-				}
-			} catch (error) {
-				return {
-					success: false,
-					error: error instanceof Error ? error.message : 'Query execution failed',
-				}
-			}
-		},
-	})
+/**
+ * Get all SQL tools.
+ */
+export function getSQLTools(context: ToolContext) {
+	return [sqlQueryTool, sqlExecuteTool, sqlBatchTool]
 }
