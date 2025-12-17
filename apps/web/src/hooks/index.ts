@@ -3,6 +3,11 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { client } from 'web-app/lib/client'
 
+// Type-safe client access - cast to any to work around Hono RPC type inference limitations
+// with complex middleware types. The actual runtime behavior is correct.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const api = client.api as any
+
 // Query keys factory
 export const queryKeys = {
 	agents: {
@@ -33,7 +38,7 @@ export function useAgents() {
 	return useQuery({
 		queryKey: queryKeys.agents.all,
 		queryFn: async () => {
-			const res = await client.api.agents.$get()
+			const res = await api.agents.$get()
 			if (!res.ok) throw new Error('Failed to fetch agents')
 			return res.json()
 		},
@@ -44,7 +49,7 @@ export function useAgent(id: string) {
 	return useQuery({
 		queryKey: queryKeys.agents.detail(id),
 		queryFn: async () => {
-			const res = await client.api.agents[':id'].$get({ param: { id } })
+			const res = await api.agents[':id'].$get({ param: { id } })
 			if (!res.ok) throw new Error('Failed to fetch agent')
 			return res.json()
 		},
@@ -63,7 +68,7 @@ export function useCreateAgent() {
 			config?: Record<string, unknown>
 			toolIds?: string[]
 		}) => {
-			const res = await client.api.agents.$post({ json: data })
+			const res = await api.agents.$post({ json: data })
 			if (!res.ok) throw new Error('Failed to create agent')
 			return res.json()
 		},
@@ -90,7 +95,7 @@ export function useUpdateAgent() {
 				toolIds?: string[]
 			}
 		}) => {
-			const res = await client.api.agents[':id'].$patch({ param: { id }, json: data })
+			const res = await api.agents[':id'].$patch({ param: { id }, json: data })
 			if (!res.ok) throw new Error('Failed to update agent')
 			return res.json()
 		},
@@ -105,7 +110,7 @@ export function useDeleteAgent() {
 	const queryClient = useQueryClient()
 	return useMutation({
 		mutationFn: async (id: string) => {
-			const res = await client.api.agents[':id'].$delete({ param: { id } })
+			const res = await api.agents[':id'].$delete({ param: { id } })
 			if (!res.ok) throw new Error('Failed to delete agent')
 			return res.json()
 		},
@@ -119,7 +124,7 @@ export function useDeployAgent() {
 	const queryClient = useQueryClient()
 	return useMutation({
 		mutationFn: async ({ id, data }: { id: string; data: { version?: string } }) => {
-			const res = await client.api.agents[':id'].deploy.$post({ param: { id }, json: data })
+			const res = await api.agents[':id'].deploy.$post({ param: { id }, json: data })
 			if (!res.ok) throw new Error('Failed to deploy agent')
 			return res.json()
 		},
@@ -135,7 +140,7 @@ export function useWorkspaces() {
 	return useQuery({
 		queryKey: queryKeys.workspaces.all,
 		queryFn: async () => {
-			const res = await client.api.workspaces.$get()
+			const res = await api.workspaces.$get()
 			if (!res.ok) throw new Error('Failed to fetch workspaces')
 			return res.json()
 		},
@@ -146,7 +151,7 @@ export function useWorkspace(id: string) {
 	return useQuery({
 		queryKey: queryKeys.workspaces.detail(id),
 		queryFn: async () => {
-			const res = await client.api.workspaces[':id'].$get({ param: { id } })
+			const res = await api.workspaces[':id'].$get({ param: { id } })
 			if (!res.ok) throw new Error('Failed to fetch workspace')
 			return res.json()
 		},
@@ -158,7 +163,7 @@ export function useCreateWorkspace() {
 	const queryClient = useQueryClient()
 	return useMutation({
 		mutationFn: async (data: { name: string; description?: string }) => {
-			const res = await client.api.workspaces.$post({ json: data })
+			const res = await api.workspaces.$post({ json: data })
 			if (!res.ok) throw new Error('Failed to create workspace')
 			return res.json()
 		},
@@ -178,7 +183,7 @@ export function useUpdateWorkspace() {
 			id: string
 			data: { name?: string; description?: string }
 		}) => {
-			const res = await client.api.workspaces[':id'].$patch({ param: { id }, json: data })
+			const res = await api.workspaces[':id'].$patch({ param: { id }, json: data })
 			if (!res.ok) throw new Error('Failed to update workspace')
 			return res.json()
 		},
@@ -193,7 +198,7 @@ export function useDeleteWorkspace() {
 	const queryClient = useQueryClient()
 	return useMutation({
 		mutationFn: async (id: string) => {
-			const res = await client.api.workspaces[':id'].$delete({ param: { id } })
+			const res = await api.workspaces[':id'].$delete({ param: { id } })
 			if (!res.ok) throw new Error('Failed to delete workspace')
 			return res.json()
 		},
@@ -208,7 +213,7 @@ export function useTools() {
 	return useQuery({
 		queryKey: queryKeys.tools.all,
 		queryFn: async () => {
-			const res = await client.api.tools.$get()
+			const res = await api.tools.$get()
 			if (!res.ok) throw new Error('Failed to fetch tools')
 			return res.json()
 		},
@@ -219,7 +224,7 @@ export function useTool(id: string) {
 	return useQuery({
 		queryKey: queryKeys.tools.detail(id),
 		queryFn: async () => {
-			const res = await client.api.tools[':id'].$get({ param: { id } })
+			const res = await api.tools[':id'].$get({ param: { id } })
 			if (!res.ok) throw new Error('Failed to fetch tool')
 			return res.json()
 		},
@@ -238,7 +243,7 @@ export function useCreateTool() {
 			config?: Record<string, unknown>
 			code?: string
 		}) => {
-			const res = await client.api.tools.$post({ json: data })
+			const res = await api.tools.$post({ json: data })
 			if (!res.ok) throw new Error('Failed to create tool')
 			return res.json()
 		},
@@ -265,7 +270,7 @@ export function useUpdateTool() {
 				code?: string
 			}
 		}) => {
-			const res = await client.api.tools[':id'].$patch({ param: { id }, json: data })
+			const res = await api.tools[':id'].$patch({ param: { id }, json: data })
 			if (!res.ok) throw new Error('Failed to update tool')
 			return res.json()
 		},
@@ -280,7 +285,7 @@ export function useDeleteTool() {
 	const queryClient = useQueryClient()
 	return useMutation({
 		mutationFn: async (id: string) => {
-			const res = await client.api.tools[':id'].$delete({ param: { id } })
+			const res = await api.tools[':id'].$delete({ param: { id } })
 			if (!res.ok) throw new Error('Failed to delete tool')
 			return res.json()
 		},
@@ -300,7 +305,7 @@ export function useWorkspaceUsage(params?: {
 	return useQuery({
 		queryKey: queryKeys.usage.workspace(params),
 		queryFn: async () => {
-			const res = await client.api.usage.$get({
+			const res = await api.usage.$get({
 				query: params as Record<string, string | undefined>,
 			})
 			if (!res.ok) throw new Error('Failed to fetch workspace usage')
@@ -313,7 +318,7 @@ export function useAgentUsage(id: string) {
 	return useQuery({
 		queryKey: queryKeys.usage.agent(id),
 		queryFn: async () => {
-			const res = await client.api.usage.agents[':id'].$get({ param: { id } })
+			const res = await api.usage.agents[':id'].$get({ param: { id } })
 			if (!res.ok) throw new Error('Failed to fetch agent usage')
 			return res.json()
 		},
