@@ -13,7 +13,7 @@ export const tools = sqliteTable('tools', {
 		.references(() => workspaces.id, { onDelete: 'cascade' }),
 	name: text('name').notNull(),
 	description: text('description'),
-	type: text('type', { enum: ['http', 'sql', 'search', 'custom'] }).notNull(),
+	type: text('type', { enum: ['http', 'sql', 'kv', 'r2', 'vectorize', 'custom'] }).notNull(),
 	config: text('config', { mode: 'json' }).$type<{
 		url?: string
 		method?: string

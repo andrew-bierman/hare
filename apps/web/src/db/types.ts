@@ -2,6 +2,9 @@
  * Database type definitions for tool interactions and message metadata
  */
 
+// Re-export Database type from client
+export type { Database } from './client'
+
 /**
  * Tool call structure for messages
  */
