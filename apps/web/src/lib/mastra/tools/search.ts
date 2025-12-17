@@ -1,126 +1,116 @@
-import { createTool } from '@mastra/core/tools'
 import { z } from 'zod'
+import { createTool, success, failure, type ToolContext } from './types'
+import { generateEmbedding } from '../providers/workers-ai'
 
-export interface SearchToolConfig {
-	apiKey?: string
-	maxResults?: number
-}
+/**
+ * Semantic Search Tool - Search using vector embeddings.
+ */
+export const semanticSearchTool = createTool({
+	id: 'semantic_search',
+	description: 'Perform semantic search using vector embeddings. Finds content similar in meaning to the query.',
+	inputSchema: z.object({
+		query: z.string().describe('The search query text'),
+		topK: z.number().optional().default(10).describe('Number of results to return'),
+		namespace: z.string().optional().describe('Namespace to search within'),
+		filter: z.record(z.string(), z.any()).optional().describe('Metadata filter for results'),
+		threshold: z.number().optional().default(0.7).describe('Minimum similarity score (0-1)'),
+	}),
+	execute: async (params, context) => {
+		const vectorize = context.env.VECTORIZE
+		const ai = context.env.AI
+		if (!vectorize) {
+			return failure('Vectorize index not available')
+		}
+		if (!ai) {
+			return failure('AI binding required for semantic search')
+		}
 
-const searchInputSchema = z.object({
-	query: z.string().describe('The search query'),
-	maxResults: z.number().optional().default(5).describe('Maximum number of results to return'),
+		try {
+			// Generate embedding for query
+			const queryVector = await generateEmbedding(ai, params.query)
+
+			// Search vectorize
+			const options: VectorizeQueryOptions = {
+				topK: params.topK,
+				returnMetadata: 'all',
+			}
+			if (params.namespace) options.namespace = params.namespace
+			if (params.filter) options.filter = params.filter
+
+			const results = await vectorize.query(queryVector, options)
+
+			// Filter by threshold
+			const filteredMatches = results.matches.filter((m) => m.score >= params.threshold)
+
+			return success({
+				query: params.query,
+				results: filteredMatches.map((match) => ({
+					id: match.id,
+					score: match.score,
+					metadata: match.metadata,
+				})),
+				totalFound: filteredMatches.length,
+			})
+		} catch (error) {
+			return failure(`Semantic search failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
+		}
+	},
 })
 
 /**
- * Create a search tool using Cloudflare AI.
- * This is a placeholder implementation that uses AI to generate search-like responses.
+ * Memory Search Tool - Search conversation history.
  */
-export function createSearchTool(env: CloudflareEnv) {
-	return createTool({
-		id: 'web-search',
-		description: 'Search the web for information using Cloudflare AI',
-		inputSchema: searchInputSchema,
-		execute: async ({ context }) => {
-			const { query, maxResults = 5 } = context
+export const memorySearchTool = createTool({
+	id: 'memory_search',
+	description: 'Search through conversation history and stored memories.',
+	inputSchema: z.object({
+		query: z.string().describe('What to search for in memory'),
+		conversationId: z.string().optional().describe('Limit search to a specific conversation'),
+		limit: z.number().optional().default(10).describe('Maximum results to return'),
+	}),
+	execute: async (params, context) => {
+		const vectorize = context.env.VECTORIZE
+		const ai = context.env.AI
+		if (!vectorize || !ai) {
+			return failure('Vectorize and AI bindings required for memory search')
+		}
 
-			try {
-				// Use Cloudflare AI for web search capabilities
-				const response = await env.AI.run('@cf/meta/llama-3.3-70b-instruct-fp8-fast', {
-					messages: [
-						{
-							role: 'system',
-							content: 'You are a helpful search assistant. Provide relevant information about the search query based on your knowledge.',
-						},
-						{
-							role: 'user',
-							content: `Search query: ${query}. Please provide relevant information.`,
-						},
-					],
-				})
+		try {
+			const queryVector = await generateEmbedding(ai, params.query)
 
-				// Handle the response which could be a string or an object with response property
-				const responseText = typeof response === 'string' ? response : (response as { response?: string }).response || 'No information available'
-
-				return {
-					success: true,
-					query,
-					results: [
-						{
-							title: `Information about: ${query}`,
-							snippet: responseText,
-							source: 'AI-generated',
-						},
-					],
-				}
-			} catch (error) {
-				return {
-					success: false,
-					error: error instanceof Error ? error.message : 'Search failed',
-				}
+			const filter: VectorizeVectorMetadataFilter = {}
+			if (params.conversationId) {
+				filter.conversationId = params.conversationId
 			}
-		},
-	})
-}
 
-const braveSearchInputSchema = z.object({
-	query: z.string().describe('The search query'),
-	maxResults: z.number().optional().default(5).describe('Maximum number of results to return'),
+			const results = await vectorize.query(queryVector, {
+				topK: params.limit,
+				returnMetadata: 'all',
+				namespace: context.workspaceId,
+				filter: Object.keys(filter).length > 0 ? filter : undefined,
+			})
+
+			return success({
+				query: params.query,
+				memories: results.matches.map((match) => ({
+					id: match.id,
+					score: match.score,
+					role: match.metadata?.role,
+					content: match.metadata?.content,
+					conversationId: match.metadata?.conversationId,
+					createdAt: match.metadata?.createdAt,
+				})),
+				count: results.count,
+			})
+		} catch (error) {
+			return failure(`Memory search failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
+		}
+	},
 })
 
-interface BraveSearchResult {
-	title: string
-	description: string
-	url: string
-}
-
-interface BraveSearchResponse {
-	web?: {
-		results?: BraveSearchResult[]
-	}
-}
-
 /**
- * Create a Brave Search tool for real web search.
+ * Get all search tools.
  */
-export function createBraveSearchTool(apiKey: string, config?: SearchToolConfig) {
-	return createTool({
-		id: 'brave-search',
-		description: 'Search the web using Brave Search API',
-		inputSchema: braveSearchInputSchema,
-		execute: async ({ context }) => {
-			const { query, maxResults = config?.maxResults || 5 } = context
-
-			try {
-				const response = await fetch(`https://api.search.brave.com/res/v1/web/search?q=${encodeURIComponent(query)}&count=${maxResults}`, {
-					headers: {
-						'X-Subscription-Token': apiKey,
-						Accept: 'application/json',
-					},
-				})
-
-				if (!response.ok) {
-					throw new Error(`Search failed: ${response.statusText}`)
-				}
-
-				const data = (await response.json()) as BraveSearchResponse
-
-				return {
-					success: true,
-					query,
-					results:
-						data.web?.results?.map((result) => ({
-							title: result.title,
-							snippet: result.description,
-							url: result.url,
-							source: 'Brave Search',
-						})) || [],
-				}
-			} catch (error) {
-				return {
-					success: false,
-					error: error instanceof Error ? error.message : 'Search failed',
-				}
-			}
-		},
-	})
+export function getSearchTools(context: ToolContext) {
+	return [semanticSearchTool, memorySearchTool]
 }

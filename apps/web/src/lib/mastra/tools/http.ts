@@ -1,81 +1,113 @@
-import { createTool } from '@mastra/core/tools'
 import { z } from 'zod'
+import { createTool, success, failure, type ToolContext } from './types'
 
-export interface HttpToolConfig {
-	url: string
-	method?: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH'
-	headers?: Record<string, string>
-	timeout?: number
-}
+/**
+ * HTTP Request Tool - Make HTTP requests to external APIs.
+ */
+export const httpRequestTool = createTool({
+	id: 'http_request',
+	description: 'Make an HTTP request to an external API. Supports GET, POST, PUT, PATCH, DELETE methods.',
+	inputSchema: z.object({
+		url: z.string().url().describe('The URL to send the request to'),
+		method: z.enum(['GET', 'POST', 'PUT', 'PATCH', 'DELETE']).optional().default('GET').describe('HTTP method'),
+		headers: z.record(z.string(), z.string()).optional().describe('Additional headers to include'),
+		body: z.string().optional().describe('Request body (for POST, PUT, PATCH)'),
+		timeout: z.number().optional().default(30000).describe('Request timeout in milliseconds'),
+	}),
+	execute: async (params, context) => {
+		try {
+			const controller = new AbortController()
+			const timeoutId = setTimeout(() => controller.abort(), params.timeout)
 
-const httpInputSchema = z.object({
-	url: z.string().describe('The URL to make the request to'),
-	method: z.enum(['GET', 'POST', 'PUT', 'DELETE', 'PATCH']).optional().default('GET').describe('The HTTP method to use'),
-	body: z.any().optional().describe('The request body (for POST, PUT, PATCH)'),
-	headers: z.record(z.string(), z.string()).optional().describe('Additional headers to include'),
-})
+			const requestInit: RequestInit = {
+				method: params.method,
+				headers: {
+					'User-Agent': 'Hare-Agent/1.0',
+					...params.headers,
+				},
+				signal: controller.signal,
+			}
 
-export function createHttpTool(config: HttpToolConfig) {
-	return createTool({
-		id: 'http-request',
-		description: 'Make HTTP requests to external APIs',
-		inputSchema: httpInputSchema,
-		execute: async ({ context }) => {
-			const { url, method = 'GET', body, headers } = context
-
-			try {
-				const requestHeaders: Record<string, string> = {
-					'Content-Type': 'application/json',
-					...config.headers,
-					...headers,
-				}
-
-				const requestInit: RequestInit = {
-					method,
-					headers: requestHeaders,
-				}
-
-				if (body && ['POST', 'PUT', 'PATCH'].includes(method)) {
-					requestInit.body = JSON.stringify(body)
-				}
-
-				const controller = new AbortController()
-				const timeout = config.timeout || 30000
-				const timeoutId = setTimeout(() => controller.abort(), timeout)
-
-				try {
-					const response = await fetch(url, {
-						...requestInit,
-						signal: controller.signal,
-					})
-
-					clearTimeout(timeoutId)
-
-					const data = await response.text()
-					let parsedData
-					try {
-						parsedData = JSON.parse(data)
-					} catch {
-						parsedData = data
-					}
-
-					return {
-						success: true,
-						status: response.status,
-						statusText: response.statusText,
-						headers: Object.fromEntries(response.headers.entries()),
-						data: parsedData,
-					}
-				} catch (error) {
-					clearTimeout(timeoutId)
-					throw error
-				}
-			} catch (error) {
-				return {
-					success: false,
-					error: error instanceof Error ? error.message : 'Unknown error occurred',
+			if (params.body && ['POST', 'PUT', 'PATCH'].includes(params.method || 'GET')) {
+				requestInit.body = params.body
+				// Auto-set content-type if not provided
+				if (!params.headers?.['Content-Type'] && !params.headers?.['content-type']) {
+					;(requestInit.headers as Record<string, string>)['Content-Type'] = 'application/json'
 				}
 			}
-		},
-	})
+
+			const response = await fetch(params.url, requestInit)
+			clearTimeout(timeoutId)
+
+			const contentType = response.headers.get('content-type') || ''
+			let data: unknown
+
+			if (contentType.includes('application/json')) {
+				data = await response.json()
+			} else {
+				data = await response.text()
+			}
+
+			return success({
+				status: response.status,
+				statusText: response.statusText,
+				headers: Object.fromEntries(response.headers.entries()),
+				data,
+				ok: response.ok,
+			})
+		} catch (error) {
+			if (error instanceof Error && error.name === 'AbortError') {
+				return failure(`Request timed out after ${params.timeout}ms`)
+			}
+			return failure(`HTTP request failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
+		}
+	},
+})
+
+/**
+ * HTTP GET convenience tool.
+ */
+export const httpGetTool = createTool({
+	id: 'http_get',
+	description: 'Make a simple HTTP GET request.',
+	inputSchema: z.object({
+		url: z.string().url().describe('The URL to fetch'),
+		headers: z.record(z.string(), z.string()).optional().describe('Additional headers'),
+	}),
+	execute: async (params, context) => {
+		return httpRequestTool.execute({ ...params, method: 'GET', timeout: 30000 }, context)
+	},
+})
+
+/**
+ * HTTP POST convenience tool.
+ */
+export const httpPostTool = createTool({
+	id: 'http_post',
+	description: 'Make an HTTP POST request with a JSON body.',
+	inputSchema: z.object({
+		url: z.string().url().describe('The URL to post to'),
+		body: z.unknown().describe('The JSON body to send'),
+		headers: z.record(z.string(), z.string()).optional().describe('Additional headers'),
+	}),
+	execute: async (params, context) => {
+		const body = typeof params.body === 'string' ? params.body : JSON.stringify(params.body)
+		return httpRequestTool.execute(
+			{
+				url: params.url,
+				method: 'POST',
+				body,
+				headers: params.headers,
+				timeout: 30000,
+			},
+			context
+		)
+	},
+})
+
+/**
+ * Get all HTTP tools.
+ */
+export function getHTTPTools(context: ToolContext) {
+	return [httpRequestTool, httpGetTool, httpPostTool]
 }
