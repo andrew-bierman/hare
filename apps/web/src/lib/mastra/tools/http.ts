@@ -1,95 +1,81 @@
-import { Tool } from '@mastra/core'
+import { createTool } from '@mastra/core/tools'
+import { z } from 'zod'
 
 export interface HttpToolConfig {
-  url: string
-  method?: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH'
-  headers?: Record<string, string>
-  timeout?: number
+	url: string
+	method?: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH'
+	headers?: Record<string, string>
+	timeout?: number
 }
 
-export function createHttpTool(config: HttpToolConfig): Tool {
-  return {
-    id: 'http-request',
-    name: 'HTTP Request',
-    description: 'Make HTTP requests to external APIs',
-    parameters: {
-      type: 'object',
-      properties: {
-        url: {
-          type: 'string',
-          description: 'The URL to make the request to',
-        },
-        method: {
-          type: 'string',
-          enum: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-          description: 'The HTTP method to use',
-          default: 'GET',
-        },
-        body: {
-          type: 'object',
-          description: 'The request body (for POST, PUT, PATCH)',
-        },
-        headers: {
-          type: 'object',
-          description: 'Additional headers to include',
-        },
-      },
-      required: ['url'],
-    },
-    execute: async ({ url, method = 'GET', body, headers }) => {
-      try {
-        const requestHeaders = {
-          'Content-Type': 'application/json',
-          ...config.headers,
-          ...headers,
-        }
+const httpInputSchema = z.object({
+	url: z.string().describe('The URL to make the request to'),
+	method: z.enum(['GET', 'POST', 'PUT', 'DELETE', 'PATCH']).optional().default('GET').describe('The HTTP method to use'),
+	body: z.any().optional().describe('The request body (for POST, PUT, PATCH)'),
+	headers: z.record(z.string(), z.string()).optional().describe('Additional headers to include'),
+})
 
-        const requestInit: RequestInit = {
-          method,
-          headers: requestHeaders,
-        }
+export function createHttpTool(config: HttpToolConfig) {
+	return createTool({
+		id: 'http-request',
+		description: 'Make HTTP requests to external APIs',
+		inputSchema: httpInputSchema,
+		execute: async ({ context }) => {
+			const { url, method = 'GET', body, headers } = context
 
-        if (body && ['POST', 'PUT', 'PATCH'].includes(method)) {
-          requestInit.body = JSON.stringify(body)
-        }
+			try {
+				const requestHeaders: Record<string, string> = {
+					'Content-Type': 'application/json',
+					...config.headers,
+					...headers,
+				}
 
-        const controller = new AbortController()
-        const timeout = config.timeout || 30000
-        const timeoutId = setTimeout(() => controller.abort(), timeout)
+				const requestInit: RequestInit = {
+					method,
+					headers: requestHeaders,
+				}
 
-        try {
-          const response = await fetch(url, {
-            ...requestInit,
-            signal: controller.signal,
-          })
+				if (body && ['POST', 'PUT', 'PATCH'].includes(method)) {
+					requestInit.body = JSON.stringify(body)
+				}
 
-          clearTimeout(timeoutId)
+				const controller = new AbortController()
+				const timeout = config.timeout || 30000
+				const timeoutId = setTimeout(() => controller.abort(), timeout)
 
-          const data = await response.text()
-          let parsedData
-          try {
-            parsedData = JSON.parse(data)
-          } catch {
-            parsedData = data
-          }
+				try {
+					const response = await fetch(url, {
+						...requestInit,
+						signal: controller.signal,
+					})
 
-          return {
-            success: true,
-            status: response.status,
-            statusText: response.statusText,
-            headers: Object.fromEntries(response.headers.entries()),
-            data: parsedData,
-          }
-        } catch (error) {
-          clearTimeout(timeoutId)
-          throw error
-        }
-      } catch (error) {
-        return {
-          success: false,
-          error: error instanceof Error ? error.message : 'Unknown error occurred',
-        }
-      }
-    },
-  }
+					clearTimeout(timeoutId)
+
+					const data = await response.text()
+					let parsedData
+					try {
+						parsedData = JSON.parse(data)
+					} catch {
+						parsedData = data
+					}
+
+					return {
+						success: true,
+						status: response.status,
+						statusText: response.statusText,
+						headers: Object.fromEntries(response.headers.entries()),
+						data: parsedData,
+					}
+				} catch (error) {
+					clearTimeout(timeoutId)
+					throw error
+				}
+			} catch (error) {
+				return {
+					success: false,
+					error: error instanceof Error ? error.message : 'Unknown error occurred',
+				}
+			}
+		},
+	})
 }
