@@ -1,12 +1,7 @@
-import type { Tool } from '@mastra/core'
+import { z, type ZodSchema } from 'zod'
 
 /**
- * Tool types supported by the platform.
- */
-export type ToolType = 'http' | 'sql' | 'kv' | 'r2' | 'vectorize' | 'custom'
-
-/**
- * Context passed to tool execution.
+ * Tool execution context providing access to Cloudflare bindings.
  */
 export interface ToolContext {
 	env: CloudflareEnv
@@ -15,97 +10,77 @@ export interface ToolContext {
 }
 
 /**
- * Base configuration for all tools.
+ * Result of a tool execution.
  */
-export interface BaseToolConfig {
+export interface ToolResult<T = unknown> {
+	success: boolean
+	data?: T
+	error?: string
+}
+
+/**
+ * Native tool definition for Cloudflare Workers.
+ *
+ * This replaces Mastra's createTool with a simpler, Edge-native interface.
+ */
+export interface Tool<TInput extends ZodSchema = ZodSchema, TOutput = unknown> {
+	/** Unique tool identifier */
+	id: string
+
+	/** Human-readable description of what the tool does */
+	description: string
+
+	/** Zod schema for validating input parameters */
+	inputSchema: TInput
+
+	/** Execute the tool with validated input */
+	execute: (params: z.infer<TInput>, context: ToolContext) => Promise<ToolResult<TOutput>>
+}
+
+/**
+ * Create a type-safe tool definition.
+ *
+ * @example
+ * ```ts
+ * const myTool = createTool({
+ *   id: 'my-tool',
+ *   description: 'Does something useful',
+ *   inputSchema: z.object({ query: z.string() }),
+ *   execute: async (params, ctx) => {
+ *     return { success: true, data: 'result' }
+ *   }
+ * })
+ * ```
+ */
+export function createTool<TInput extends ZodSchema, TOutput = unknown>(
+	config: Tool<TInput, TOutput>
+): Tool<TInput, TOutput> {
+	return config
+}
+
+/**
+ * Tool configuration stored in the database.
+ */
+export interface ToolConfig {
 	id: string
 	name: string
-	description: string
-	type: ToolType
+	description: string | null
+	type: 'http' | 'sql' | 'kv' | 'r2' | 'vectorize' | 'search' | 'custom'
+	inputSchema?: Record<string, unknown> | null
+	config?: Record<string, unknown> | null
+	code?: string | null
 }
 
 /**
- * HTTP tool configuration.
+ * Helper to create a successful tool result.
  */
-export interface HttpToolConfig extends BaseToolConfig {
-	type: 'http'
-	config: {
-		baseUrl?: string
-		headers?: Record<string, string>
-		timeout?: number
-		allowedMethods?: ('GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH')[]
-	}
+export function success<T>(data: T): ToolResult<T> {
+	return { success: true, data }
 }
 
 /**
- * SQL (D1) tool configuration.
+ * Helper to create a failed tool result.
  */
-export interface SqlToolConfig extends BaseToolConfig {
-	type: 'sql'
-	config: {
-		allowedTables?: string[]
-		readOnly?: boolean
-		maxRows?: number
-	}
+export function failure(error: string): ToolResult<never> {
+	return { success: false, error }
 }
-
-/**
- * KV tool configuration.
- */
-export interface KvToolConfig extends BaseToolConfig {
-	type: 'kv'
-	config: {
-		prefix?: string
-		allowedOperations?: ('get' | 'put' | 'delete' | 'list')[]
-	}
-}
-
-/**
- * R2 tool configuration.
- */
-export interface R2ToolConfig extends BaseToolConfig {
-	type: 'r2'
-	config: {
-		prefix?: string
-		allowedOperations?: ('get' | 'put' | 'delete' | 'list')[]
-		maxSizeBytes?: number
-	}
-}
-
-/**
- * Vectorize tool configuration.
- */
-export interface VectorizeToolConfig extends BaseToolConfig {
-	type: 'vectorize'
-	config: {
-		namespace?: string
-		topK?: number
-	}
-}
-
-/**
- * Custom JavaScript tool configuration.
- */
-export interface CustomToolConfig extends BaseToolConfig {
-	type: 'custom'
-	config: {
-		parameters: Record<string, unknown>
-		code?: string
-	}
-}
-
-/**
- * Union of all tool configurations.
- */
-export type AnyToolConfig =
-	| HttpToolConfig
-	| SqlToolConfig
-	| KvToolConfig
-	| R2ToolConfig
-	| VectorizeToolConfig
-	| CustomToolConfig
-
-/**
- * Tool factory function signature.
- */
-export type ToolFactory<T extends BaseToolConfig = BaseToolConfig> = (config: T, ctx: ToolContext) => Tool
