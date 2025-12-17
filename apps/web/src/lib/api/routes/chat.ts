@@ -3,8 +3,11 @@ import { streamSSE } from 'hono/streaming'
 import { eq } from 'drizzle-orm'
 import { ChatRequestSchema, ConversationSchema, IdParamSchema, MessageSchema } from '../schemas'
 import { getDb } from '../db'
-import { getWorkersAIModel } from '../models'
-import { agents, conversations, messages } from 'web-app/db/schema'
+import { agents, conversations, messages, usage } from 'web-app/db/schema'
+import { createAgentFromConfig, type AgentConfig } from 'web-app/lib/mastra'
+import { createMemoryStore, toAgentMessages } from 'web-app/lib/mastra/memory'
+import type { CoreMessage } from 'ai'
+import { optionalAuthMiddleware, type AuthVariables } from '../middleware'
 
 // Define routes
 const chatWithAgentRoute = createRoute({
@@ -55,6 +58,16 @@ const chatWithAgentRoute = createRoute({
 				},
 			},
 		},
+		503: {
+			description: 'Service unavailable',
+			content: {
+				'application/json': {
+					schema: z.object({
+						error: z.string(),
+					}),
+				},
+			},
+		},
 	},
 })
 
@@ -74,6 +87,16 @@ const listConversationsRoute = createRoute({
 				'application/json': {
 					schema: z.object({
 						conversations: z.array(ConversationSchema),
+					}),
+				},
+			},
+		},
+		503: {
+			description: 'Service unavailable',
+			content: {
+				'application/json': {
+					schema: z.object({
+						error: z.string(),
 					}),
 				},
 			},
@@ -101,122 +124,209 @@ const getConversationMessagesRoute = createRoute({
 				},
 			},
 		},
+		503: {
+			description: 'Service unavailable',
+			content: {
+				'application/json': {
+					schema: z.object({
+						error: z.string(),
+					}),
+				},
+			},
+		},
 	},
 })
 
-// Create app and register routes
-const app = new OpenAPIHono()
-	.openapi(chatWithAgentRoute, async (c) => {
-		const { id: agentId } = c.req.valid('param')
-		const { message, sessionId, metadata } = c.req.valid('json')
-		const db = getDb(c)
-		const ai = (c.env as { AI: Ai }).AI
+// Create app
+const app = new OpenAPIHono<{ Variables: Partial<AuthVariables> }>()
 
-		// Return error if DB not available
-		if (!db) {
-			return c.json({ error: 'Database not available' }, 503)
-		}
+// Apply optional auth middleware - chat can work with or without auth
+app.use('*', optionalAuthMiddleware)
 
-		// Load agent config from DB
-		const [agentConfig] = await db.select().from(agents).where(eq(agents.id, agentId))
+// Chat with agent
+app.openapi(chatWithAgentRoute, async (c) => {
+	const { id: agentId } = c.req.valid('param')
+	const { message, sessionId, metadata } = c.req.valid('json')
+	const db = getDb(c)
+	const env = c.env as CloudflareEnv
 
-		if (!agentConfig) {
-			return c.json({ error: 'Agent not found' }, 404)
-		}
+	// Get user from auth context (may be undefined for API key auth)
+	const user = c.get('user')
+	const userId = user?.id || 'anonymous'
 
-		if (agentConfig.status !== 'deployed') {
-			return c.json({ error: 'Agent not deployed' }, 400)
-		}
+	// Validate environment
+	if (!db) {
+		return c.json({ error: 'Database not available' }, 503)
+	}
 
-		// Get or create conversation
-		const conversationId = sessionId || crypto.randomUUID()
+	if (!env.AI) {
+		return c.json({ error: 'AI service not available' }, 503)
+	}
 
-		// Stream the response
-		return streamSSE(c, async (stream) => {
-			const startTime = Date.now()
-			let fullResponse = ''
-			let tokensOut = 0
+	// Load agent config from DB
+	const [agentConfig] = await db.select().from(agents).where(eq(agents.id, agentId))
 
-			try {
-				// Call Workers AI
-				const modelName = getWorkersAIModel(agentConfig.model)
+	if (!agentConfig) {
+		return c.json({ error: 'Agent not found' }, 404)
+	}
 
-				const aiStream = await ai.run(modelName, {
-					messages: [
-						{ role: 'system', content: agentConfig.instructions || 'You are a helpful assistant.' },
-						{ role: 'user', content: message },
-					],
-					stream: true,
-				})
+	if (agentConfig.status !== 'deployed') {
+		return c.json({ error: 'Agent not deployed' }, 400)
+	}
 
-				// Stream tokens
-				for await (const chunk of aiStream) {
-					if (chunk.response) {
-						fullResponse += chunk.response
-						tokensOut++
-						await stream.writeSSE({
-							event: 'message',
-							data: JSON.stringify({ type: 'text', content: chunk.response }),
-						})
-					}
-				}
+	// Set up memory store
+	const memory = createMemoryStore(db, env.AI, env.VECTORIZE, agentConfig.workspaceId)
 
-				// Save message to DB
-				await db.insert(messages).values({
-					conversationId,
-					role: 'assistant',
-					content: fullResponse,
-					metadata: metadata ? (metadata as any) : undefined,
-				})
+	// Get or create conversation
+	const conversationId = sessionId || (await memory.getOrCreateConversation(agentId, userId, `Chat with ${agentConfig.name}`))
 
-				// Send done event
+	// Create the Mastra agent
+	const agent = await createAgentFromConfig(agentConfig as AgentConfig, db, env, {
+		userId,
+		includeSystemTools: true,
+	})
+
+	// Load conversation history
+	const historyMessages = await memory.getMessages(conversationId, 20)
+	const agentMessages: CoreMessage[] = toAgentMessages(historyMessages)
+
+	// Add the new user message
+	agentMessages.push({ role: 'user' as const, content: message })
+
+	// Save user message to memory
+	await memory.saveMessage(conversationId, 'user', message, metadata as Record<string, unknown>)
+
+	// Stream the response
+	return streamSSE(c, async (stream) => {
+		const startTime = Date.now()
+		let fullResponse = ''
+		let tokensIn = 0
+		let tokensOut = 0
+
+		try {
+			// Use Edge agent to generate response
+			const response = await agent.stream(agentMessages)
+
+			// Stream text chunks
+			for await (const chunk of response.textStream) {
+				fullResponse += chunk
+				tokensOut++ // Approximate token count
+
 				await stream.writeSSE({
-					event: 'done',
-					data: JSON.stringify({
-						type: 'done',
-						sessionId: conversationId,
-						usage: {
-							tokensOut,
-							latencyMs: Date.now() - startTime,
-						},
-					}),
-				})
-			} catch (error) {
-				await stream.writeSSE({
-					event: 'error',
-					data: JSON.stringify({
-						type: 'error',
-						message: error instanceof Error ? error.message : 'Unknown error',
-					}),
+					event: 'message',
+					data: JSON.stringify({ type: 'text', content: chunk }),
 				})
 			}
+
+			// Save assistant message to memory
+			await memory.saveMessage(conversationId, 'assistant', fullResponse, {
+				model: agentConfig.model,
+				agentId,
+			})
+
+			// Track usage
+			const latencyMs = Date.now() - startTime
+			tokensIn = agentMessages.reduce((acc, m) => acc + Math.ceil(m.content.length / 4), 0) // Rough estimate
+
+			await db.insert(usage).values({
+				workspaceId: agentConfig.workspaceId,
+				agentId,
+				userId,
+				type: 'chat',
+				inputTokens: tokensIn,
+				outputTokens: tokensOut,
+				totalTokens: tokensIn + tokensOut,
+				metadata: {
+					model: agentConfig.model,
+					duration: latencyMs,
+				},
+			})
+
+			// Send done event
+			await stream.writeSSE({
+				event: 'done',
+				data: JSON.stringify({
+					type: 'done',
+					sessionId: conversationId,
+					usage: {
+						tokensIn,
+						tokensOut,
+						latencyMs,
+					},
+				}),
+			})
+		} catch (error) {
+			console.error('Chat error:', error)
+
+			await stream.writeSSE({
+				event: 'error',
+				data: JSON.stringify({
+					type: 'error',
+					message: error instanceof Error ? error.message : 'Unknown error',
+				}),
+			})
+		}
+	})
+})
+
+// List conversations
+app.openapi(listConversationsRoute, async (c) => {
+	const { id: agentId } = c.req.valid('param')
+	const db = getDb(c)
+
+	if (!db) {
+		return c.json({ error: 'Service unavailable' }, 503)
+	}
+
+	const results = await db.select().from(conversations).where(eq(conversations.agentId, agentId))
+
+	// Get message counts for each conversation
+	const conversationsData = await Promise.all(
+		results.map(async (conv) => {
+			const messageCount = await db
+				.select()
+				.from(messages)
+				.where(eq(messages.conversationId, conv.id))
+				.then((rows) => rows.length)
+
+			return {
+				id: conv.id,
+				agentId: conv.agentId,
+				userId: conv.userId,
+				title: conv.title || 'Untitled Conversation',
+				messageCount,
+				createdAt: conv.createdAt.toISOString(),
+				updatedAt: conv.updatedAt.toISOString(),
+			}
 		})
-	})
-	.openapi(listConversationsRoute, async (c) => {
-		const { id: agentId } = c.req.valid('param')
-		const db = getDb(c)
+	)
 
-		// Return mock data for development/testing when DB not available
-		if (!db) {
-			return c.json({ conversations: [] })
-		}
+	return c.json({ conversations: conversationsData }, 200)
+})
 
-		const results = await db.select().from(conversations).where(eq(conversations.agentId, agentId))
+// Get conversation messages
+app.openapi(getConversationMessagesRoute, async (c) => {
+	const { id: conversationId } = c.req.valid('param')
+	const db = getDb(c)
 
-		return c.json({ conversations: results })
-	})
-	.openapi(getConversationMessagesRoute, async (c) => {
-		const { id: conversationId } = c.req.valid('param')
-		const db = getDb(c)
+	if (!db) {
+		return c.json({ error: 'Service unavailable' }, 503)
+	}
 
-		// Return mock data for development/testing when DB not available
-		if (!db) {
-			return c.json({ messages: [] })
-		}
+	const results = await db.select().from(messages).where(eq(messages.conversationId, conversationId))
 
-		const results = await db.select().from(messages).where(eq(messages.conversationId, conversationId))
+	// Transform DB results to match API schema (filter out 'tool' role for API response)
+	const messagesData = results
+		.filter((msg) => msg.role !== 'tool')
+		.map((msg) => ({
+			id: msg.id,
+			conversationId: msg.conversationId,
+			role: msg.role as 'user' | 'assistant' | 'system',
+			content: msg.content,
+			createdAt: msg.createdAt.toISOString(),
+		}))
 
-		return c.json({ messages: results })
-	})
+	return c.json({ messages: messagesData }, 200)
+})
 
 export default app
