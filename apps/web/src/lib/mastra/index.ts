@@ -1,6 +1,13 @@
+/**
+ * Hare AI Agent System
+ *
+ * Native Cloudflare Workers implementation for AI agents.
+ * No external framework dependencies - fully Edge-compatible.
+ */
+
 import type { Database } from 'web-app/db/types'
 import { EdgeAgent, createEdgeAgent, type AgentTool } from './agent'
-import { loadAgentTools, getSystemTools, type ToolContext } from './tools'
+import { loadAgentTools, getSystemTools, type ToolContext, type Tool } from './tools'
 
 /**
  * Agent configuration from database.
@@ -26,7 +33,7 @@ export interface AgentConfig {
  * Options for creating an agent.
  */
 export interface CreateAgentOptions {
-	/** Include system tools (KV, R2, Vectorize) */
+	/** Include system tools (KV, R2, Vectorize, etc.) */
 	includeSystemTools?: boolean
 	/** User ID for tool context */
 	userId: string
@@ -34,12 +41,6 @@ export interface CreateAgentOptions {
 
 /**
  * Create an Edge-compatible Agent from a database configuration.
- *
- * @param agentConfig - Agent configuration from database
- * @param db - Drizzle database instance
- * @param env - Cloudflare environment bindings
- * @param options - Additional options
- * @returns Configured Edge Agent
  */
 export async function createAgentFromConfig(
 	agentConfig: AgentConfig,
@@ -60,35 +61,21 @@ export async function createAgentFromConfig(
 	const dbTools = await loadAgentTools(agentConfig.id, db, toolContext)
 
 	// Get system tools if requested
-	const systemToolsMap = includeSystemTools ? getSystemTools(toolContext) : []
+	const systemTools = includeSystemTools ? getSystemTools(toolContext) : []
 
-	// Convert Mastra tools to AgentTool format
-	const agentTools: AgentTool[] = []
-
-	// Convert database tools
-	for (const tool of dbTools) {
-		agentTools.push({
-			id: tool.id,
-			description: tool.description || '',
-			inputSchema: {},
-			execute: async (params) => {
-				// Tools use Mastra's execute pattern
-				return (tool as unknown as { execute: (params: unknown) => Promise<unknown> }).execute(params)
-			},
-		})
-	}
-
-	// Convert system tools
-	for (const tool of systemToolsMap) {
-		agentTools.push({
-			id: tool.id,
-			description: tool.description || '',
-			inputSchema: {},
-			execute: async (params) => {
-				return (tool as unknown as { execute: (params: unknown) => Promise<unknown> }).execute(params)
-			},
-		})
-	}
+	// Convert to AgentTool format
+	const agentTools: AgentTool[] = [...dbTools, ...systemTools].map((tool) => ({
+		id: tool.id,
+		description: tool.description,
+		inputSchema: {},
+		execute: async (params) => {
+			const result = await tool.execute(params, toolContext)
+			if (result.success) {
+				return result.data
+			}
+			throw new Error(result.error || 'Tool execution failed')
+		},
+	}))
 
 	// Build instructions
 	const instructions = buildInstructions(agentConfig, agentTools)
@@ -133,7 +120,6 @@ function buildInstructions(config: AgentConfig, tools: AgentTool[]): string {
 
 /**
  * Create a simple agent without database tools.
- * Useful for quick testing or system agents.
  */
 export function createSimpleAgent(
 	name: string,
@@ -152,7 +138,7 @@ export function createSimpleAgent(
 }
 
 // Re-export types and utilities
-export type { ToolContext } from './tools'
+export type { ToolContext, Tool, ToolConfig, ToolResult } from './tools'
 export type { EdgeAgent, AgentTool } from './agent'
 export { createEdgeAgent } from './agent'
 export { createWorkersAIModel, getWorkersAIModelId, getAvailableModels, generateEmbedding, generateEmbeddings } from './providers/workers-ai'
