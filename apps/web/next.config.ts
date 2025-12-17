@@ -5,7 +5,6 @@ const nextConfig: NextConfig = {
 	webpack: (config, { isServer }) => {
 		if (isServer) {
 			// Provide polyfills/fallbacks for Node.js built-in modules
-			// These are needed for @mastra/core which has Node.js dependencies
 			config.resolve.fallback = {
 				...config.resolve.fallback,
 				path: false,
@@ -29,8 +28,6 @@ const nextConfig: NextConfig = {
 		}
 		return config
 	},
-	// Transpile packages that need it
-	transpilePackages: ['@mastra/core'],
 }
 
 export default nextConfig
@@ -38,7 +35,18 @@ export default nextConfig
 // Enable calling `getCloudflareContext()` in `next dev`.
 // Only run in development mode, not during build.
 if (process.env.NODE_ENV === 'development') {
-	import('@opennextjs/cloudflare').then(({ initOpenNextCloudflareForDev }) => {
-		initOpenNextCloudflareForDev()
-	})
+	import('@opennextjs/cloudflare')
+		.then(({ initOpenNextCloudflareForDev }) => {
+			// Try to initialize with local persistence
+			// This requires `wrangler login` for AI/Vectorize bindings
+			return initOpenNextCloudflareForDev({
+				persist: { path: '.wrangler/state/v3' },
+			})
+		})
+		.catch((err) => {
+			console.warn('⚠️  Cloudflare dev context failed to initialize.')
+			console.warn('   Run `npx wrangler login` to enable AI and Vectorize bindings.')
+			console.warn('   D1, KV, and R2 will work locally without login.')
+			console.warn('   Error:', err.message)
+		})
 }
