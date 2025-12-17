@@ -22,7 +22,6 @@
 		"@ai-sdk/provider-utils": "^3.0.19",
 		"@hono/zod-openapi": "^1.1.5",
 		"@hono/zod-validator": "^0.7.5",
-
 		"@opennextjs/cloudflare": "^1.14.4",
 		"@paralleldrive/cuid2": "^2.2.2",
 		"@radix-ui/react-avatar": "^1.1.11",
@@ -54,6 +53,7 @@
 		"zod": "^4.2.1"
 	},
 	"devDependencies": {
+		"@cloudflare/workers-types": "^4.20251217.0",
 		"@tailwindcss/postcss": "^4",
 		"@types/node": "^25.0.2",
 		"@types/react": "^19",
