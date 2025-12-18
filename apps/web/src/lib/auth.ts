@@ -1,6 +1,7 @@
 import { createDb } from 'web-app/db'
 import { betterAuth } from 'better-auth'
 import { drizzleAdapter } from 'better-auth/adapters/drizzle'
+import * as schema from 'web-app/db/schema'
 
 // Auth instance - will be initialized with D1 binding at runtime
 export function createAuth(d1: D1Database) {
@@ -9,6 +10,12 @@ export function createAuth(d1: D1Database) {
 	return betterAuth({
 		database: drizzleAdapter(db, {
 			provider: 'sqlite',
+			schema: {
+				user: schema.users,
+				session: schema.sessions,
+				account: schema.accounts,
+				verification: schema.verifications,
+			},
 		}),
 		emailAndPassword: {
 			enabled: true,

@@ -1,8 +1,7 @@
-import { test as base, expect } from '@playwright/test'
+import { test as base, expect, type Page, type APIRequestContext } from '@playwright/test'
 
 /**
  * Test user credentials for E2E tests.
- * In a real scenario, you'd set these up in a test database seeding step.
  */
 export const TEST_USER = {
 	email: 'test@example.com',
@@ -14,7 +13,7 @@ export const TEST_USER = {
  * Extended test with authentication helpers.
  */
 export const test = base.extend<{
-	authenticatedPage: ReturnType<typeof base['page']>
+	authenticatedPage: Page
 }>({
 	authenticatedPage: async ({ page }, use) => {
 		// For now, we'll use the page without auth
@@ -31,7 +30,7 @@ export { expect }
 /**
  * Helper to create a test user via API.
  */
-export async function createTestUser(request: ReturnType<typeof base['request']>) {
+export async function createTestUser(request: APIRequestContext) {
 	const response = await request.post('/api/auth/sign-up/email', {
 		data: {
 			email: TEST_USER.email,
@@ -45,7 +44,7 @@ export async function createTestUser(request: ReturnType<typeof base['request']>
 /**
  * Helper to sign in a test user via API.
  */
-export async function signInTestUser(request: ReturnType<typeof base['request']>) {
+export async function signInTestUser(request: APIRequestContext) {
 	const response = await request.post('/api/auth/sign-in/email', {
 		data: {
 			email: TEST_USER.email,
