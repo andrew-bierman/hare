@@ -15,7 +15,10 @@
 		"db:migrate:local": "wrangler d1 migrations apply hare-db --local",
 		"db:migrate:remote": "wrangler d1 migrations apply hare-db --remote",
 		"db:push": "drizzle-kit push",
-		"db:studio": "drizzle-kit studio"
+		"db:studio": "drizzle-kit studio",
+		"test": "playwright test",
+		"test:ui": "playwright test --ui",
+		"test:headed": "playwright test --headed"
 	},
 	"dependencies": {
 		"@ai-sdk/provider": "^2.0.0",
@@ -54,6 +57,7 @@
 	},
 	"devDependencies": {
 		"@cloudflare/workers-types": "^4.20251217.0",
+		"@playwright/test": "^1.57.0",
 		"@tailwindcss/postcss": "^4",
 		"@types/node": "^25.0.2",
 		"@types/react": "^19",
