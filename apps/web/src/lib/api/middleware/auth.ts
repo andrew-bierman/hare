@@ -1,6 +1,6 @@
-import type { Context, MiddlewareHandler } from 'hono'
+import type { MiddlewareHandler } from 'hono'
+import { getCloudflareContext } from '@opennextjs/cloudflare'
 import { createAuth } from 'web-app/lib/auth'
-import { createDb } from 'web-app/db'
 
 export interface AuthUser {
 	id: string
@@ -18,11 +18,44 @@ export interface AuthVariables {
 }
 
 /**
+ * Get D1 database binding from context.
+ */
+async function getD1(c: { env: unknown }): Promise<D1Database | null> {
+	// First try Hono context
+	const honoD1 = (c.env as { DB?: D1Database })?.DB
+	if (honoD1) {
+		return honoD1
+	}
+
+	// Try sync mode (edge runtime)
+	try {
+		const { env } = getCloudflareContext()
+		if (env.DB) {
+			return env.DB
+		}
+	} catch {
+		// Sync mode failed
+	}
+
+	// Try async mode (Node.js runtime)
+	try {
+		const { env } = await getCloudflareContext({ async: true })
+		if (env.DB) {
+			return env.DB
+		}
+	} catch {
+		// Async mode failed
+	}
+
+	return null
+}
+
+/**
  * Authentication middleware that validates the session and attaches user to context.
  * Use this for routes that require authentication.
  */
 export const authMiddleware: MiddlewareHandler<{ Variables: AuthVariables }> = async (c, next) => {
-	const d1 = (c.env as { DB?: D1Database })?.DB
+	const d1 = await getD1(c)
 
 	if (!d1) {
 		return c.json({ error: 'Service unavailable' }, 503)
@@ -60,7 +93,7 @@ export const authMiddleware: MiddlewareHandler<{ Variables: AuthVariables }> = a
  * Use for routes that work with or without authentication.
  */
 export const optionalAuthMiddleware: MiddlewareHandler<{ Variables: Partial<AuthVariables> }> = async (c, next) => {
-	const d1 = (c.env as { DB?: D1Database })?.DB
+	const d1 = await getD1(c)
 
 	if (!d1) {
 		await next()

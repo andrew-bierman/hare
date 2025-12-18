@@ -289,7 +289,7 @@ app.use('*', workspaceMiddleware)
 // Register routes
 app.openapi(listToolsRoute, async (c) => {
 	const { includeSystem } = c.req.valid('query')
-	const db = getDb(c)
+	const db = await getDb(c)
 	const workspace = c.get('workspace')
 
 	if (!db) {
@@ -327,7 +327,7 @@ app.openapi(listToolsRoute, async (c) => {
 
 app.openapi(createToolRoute, async (c) => {
 	const data = c.req.valid('json')
-	const db = getDb(c)
+	const db = await getDb(c)
 	const user = c.get('user')
 	const workspace = c.get('workspace')
 	const role = c.get('workspaceRole')
@@ -372,7 +372,7 @@ app.openapi(createToolRoute, async (c) => {
 
 app.openapi(getToolRoute, async (c) => {
 	const { id } = c.req.valid('param')
-	const db = getDb(c)
+	const db = await getDb(c)
 	const workspace = c.get('workspace')
 
 	// Check for system tool first
@@ -423,7 +423,7 @@ app.openapi(getToolRoute, async (c) => {
 app.openapi(updateToolRoute, async (c) => {
 	const { id } = c.req.valid('param')
 	const data = c.req.valid('json')
-	const db = getDb(c)
+	const db = await getDb(c)
 	const workspace = c.get('workspace')
 	const role = c.get('workspaceRole')
 
@@ -481,7 +481,7 @@ app.openapi(updateToolRoute, async (c) => {
 
 app.openapi(deleteToolRoute, async (c) => {
 	const { id } = c.req.valid('param')
-	const db = getDb(c)
+	const db = await getDb(c)
 	const workspace = c.get('workspace')
 	const role = c.get('workspaceRole')
 

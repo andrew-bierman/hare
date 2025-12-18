@@ -195,7 +195,7 @@ type WorkspaceRole = 'owner' | 'admin' | 'member' | 'viewer'
 async function getUserWorkspaceRole(
 	userId: string,
 	workspaceId: string,
-	db: NonNullable<ReturnType<typeof getDb>>
+	db: NonNullable<Awaited<ReturnType<typeof getDb>>>
 ): Promise<WorkspaceRole | null> {
 	// Check if user is owner
 	const [workspace] = await db.select().from(workspaces).where(eq(workspaces.id, workspaceId))
@@ -221,7 +221,7 @@ app.use('*', authMiddleware)
 
 // Register routes
 app.openapi(listWorkspacesRoute, async (c) => {
-	const db = getDb(c)
+	const db = await getDb(c)
 	const user = c.get('user')
 
 	if (!db) {
@@ -265,7 +265,7 @@ app.openapi(listWorkspacesRoute, async (c) => {
 
 app.openapi(createWorkspaceRoute, async (c) => {
 	const data = c.req.valid('json')
-	const db = getDb(c)
+	const db = await getDb(c)
 	const user = c.get('user')
 
 	if (!db) {
@@ -312,7 +312,7 @@ app.openapi(createWorkspaceRoute, async (c) => {
 
 app.openapi(getWorkspaceRoute, async (c) => {
 	const { id } = c.req.valid('param')
-	const db = getDb(c)
+	const db = await getDb(c)
 	const user = c.get('user')
 
 	if (!db) {
@@ -347,7 +347,7 @@ app.openapi(getWorkspaceRoute, async (c) => {
 app.openapi(updateWorkspaceRoute, async (c) => {
 	const { id } = c.req.valid('param')
 	const data = c.req.valid('json')
-	const db = getDb(c)
+	const db = await getDb(c)
 	const user = c.get('user')
 
 	if (!db) {
@@ -402,7 +402,7 @@ app.openapi(updateWorkspaceRoute, async (c) => {
 
 app.openapi(deleteWorkspaceRoute, async (c) => {
 	const { id } = c.req.valid('param')
-	const db = getDb(c)
+	const db = await getDb(c)
 	const user = c.get('user')
 
 	if (!db) {

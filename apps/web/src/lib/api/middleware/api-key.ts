@@ -47,7 +47,7 @@ export const apiKeyMiddleware: MiddlewareHandler<{ Variables: ApiKeyVariables }>
 		return c.json({ error: 'API key required' }, 401)
 	}
 
-	const db = getDb(c)
+	const db = await getDb(c)
 	if (!db) {
 		return c.json({ error: 'Service unavailable' }, 503)
 	}

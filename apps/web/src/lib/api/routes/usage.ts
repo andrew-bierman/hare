@@ -83,7 +83,7 @@ app.use('*', workspaceMiddleware)
 // Register routes
 app.openapi(getWorkspaceUsageRoute, async (c) => {
 	const { startDate, endDate } = c.req.valid('query')
-	const db = getDb(c)
+	const db = await getDb(c)
 	const workspace = c.get('workspace')
 
 	if (!db) {
@@ -176,7 +176,7 @@ app.openapi(getWorkspaceUsageRoute, async (c) => {
 
 app.openapi(getAgentUsageRoute, async (c) => {
 	const { id: agentId } = c.req.valid('param')
-	const db = getDb(c)
+	const db = await getDb(c)
 	const workspace = c.get('workspace')
 
 	if (!db) {

@@ -2,7 +2,7 @@ import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
 import { streamSSE } from 'hono/streaming'
 import { eq } from 'drizzle-orm'
 import { ChatRequestSchema, ConversationSchema, IdParamSchema, MessageSchema } from '../schemas'
-import { getDb } from '../db'
+import { getDb, getCloudflareEnv } from '../db'
 import { agents, conversations, messages, usage } from 'web-app/db/schema'
 import { createAgentFromConfig, type AgentConfig } from 'web-app/lib/mastra'
 import { createMemoryStore, toAgentMessages } from 'web-app/lib/mastra/memory'
@@ -147,8 +147,8 @@ app.use('*', optionalAuthMiddleware)
 app.openapi(chatWithAgentRoute, async (c) => {
 	const { id: agentId } = c.req.valid('param')
 	const { message, sessionId, metadata } = c.req.valid('json')
-	const db = getDb(c)
-	const env = c.env as CloudflareEnv
+	const db = await getDb(c)
+	const env = await getCloudflareEnv(c)
 
 	// Get user from auth context (may be undefined for API key auth)
 	const user = c.get('user')
@@ -157,6 +157,10 @@ app.openapi(chatWithAgentRoute, async (c) => {
 	// Validate environment
 	if (!db) {
 		return c.json({ error: 'Database not available' }, 503)
+	}
+
+	if (!env) {
+		return c.json({ error: 'Cloudflare environment not available' }, 503)
 	}
 
 	if (!env.AI) {
@@ -272,7 +276,7 @@ app.openapi(chatWithAgentRoute, async (c) => {
 // List conversations
 app.openapi(listConversationsRoute, async (c) => {
 	const { id: agentId } = c.req.valid('param')
-	const db = getDb(c)
+	const db = await getDb(c)
 
 	if (!db) {
 		return c.json({ error: 'Service unavailable' }, 503)
@@ -307,7 +311,7 @@ app.openapi(listConversationsRoute, async (c) => {
 // Get conversation messages
 app.openapi(getConversationMessagesRoute, async (c) => {
 	const { id: conversationId } = c.req.valid('param')
-	const db = getDb(c)
+	const db = await getDb(c)
 
 	if (!db) {
 		return c.json({ error: 'Service unavailable' }, 503)

@@ -267,7 +267,7 @@ const deployAgentRoute = createRoute({
 /**
  * Get tool IDs attached to an agent.
  */
-async function getAgentToolIds(agentId: string, db: NonNullable<ReturnType<typeof getDb>>): Promise<string[]> {
+async function getAgentToolIds(agentId: string, db: NonNullable<Awaited<ReturnType<typeof getDb>>>): Promise<string[]> {
 	const rows = await db.select({ toolId: agentTools.toolId }).from(agentTools).where(eq(agentTools.agentId, agentId))
 	return rows.map((r) => r.toolId)
 }
@@ -281,7 +281,7 @@ app.use('*', workspaceMiddleware)
 
 // Register routes
 app.openapi(listAgentsRoute, async (c) => {
-	const db = getDb(c)
+	const db = await getDb(c)
 	const workspace = c.get('workspace')
 
 	if (!db) {
@@ -312,7 +312,7 @@ app.openapi(listAgentsRoute, async (c) => {
 
 app.openapi(createAgentRoute, async (c) => {
 	const data = c.req.valid('json')
-	const db = getDb(c)
+	const db = await getDb(c)
 	const user = c.get('user')
 	const workspace = c.get('workspace')
 	const role = c.get('workspaceRole')
@@ -369,7 +369,7 @@ app.openapi(createAgentRoute, async (c) => {
 
 app.openapi(getAgentRoute, async (c) => {
 	const { id } = c.req.valid('param')
-	const db = getDb(c)
+	const db = await getDb(c)
 	const workspace = c.get('workspace')
 
 	if (!db) {
@@ -409,7 +409,7 @@ app.openapi(getAgentRoute, async (c) => {
 app.openapi(updateAgentRoute, async (c) => {
 	const { id } = c.req.valid('param')
 	const data = c.req.valid('json')
-	const db = getDb(c)
+	const db = await getDb(c)
 	const workspace = c.get('workspace')
 	const role = c.get('workspaceRole')
 
@@ -483,7 +483,7 @@ app.openapi(updateAgentRoute, async (c) => {
 
 app.openapi(deleteAgentRoute, async (c) => {
 	const { id } = c.req.valid('param')
-	const db = getDb(c)
+	const db = await getDb(c)
 	const workspace = c.get('workspace')
 	const role = c.get('workspaceRole')
 
@@ -512,7 +512,7 @@ app.openapi(deleteAgentRoute, async (c) => {
 app.openapi(deployAgentRoute, async (c) => {
 	const { id } = c.req.valid('param')
 	const data = c.req.valid('json')
-	const db = getDb(c)
+	const db = await getDb(c)
 	const user = c.get('user')
 	const workspace = c.get('workspace')
 	const role = c.get('workspaceRole')

@@ -1,5 +1,15 @@
 import type { NextConfig } from 'next'
 
+// Enable calling `getCloudflareContext()` in `next dev`.
+// Must be called before config export per opennextjs-cloudflare docs.
+if (process.env.NODE_ENV === 'development') {
+	import('@opennextjs/cloudflare').then(({ initOpenNextCloudflareForDev }) => {
+		initOpenNextCloudflareForDev({
+			persist: { path: '.wrangler/state/v3' },
+		})
+	})
+}
+
 const nextConfig: NextConfig = {
 	// Webpack configuration for Edge runtime compatibility
 	webpack: (config, { isServer }) => {
@@ -31,22 +41,3 @@ const nextConfig: NextConfig = {
 }
 
 export default nextConfig
-
-// Enable calling `getCloudflareContext()` in `next dev`.
-// Only run in development mode, not during build.
-if (process.env.NODE_ENV === 'development') {
-	import('@opennextjs/cloudflare')
-		.then(({ initOpenNextCloudflareForDev }) => {
-			// Try to initialize with local persistence
-			// This requires `wrangler login` for AI/Vectorize bindings
-			return initOpenNextCloudflareForDev({
-				persist: { path: '.wrangler/state/v3' },
-			})
-		})
-		.catch((err) => {
-			console.warn('⚠️  Cloudflare dev context failed to initialize.')
-			console.warn('   Run `npx wrangler login` to enable AI and Vectorize bindings.')
-			console.warn('   D1, KV, and R2 will work locally without login.')
-			console.warn('   Error:', err.message)
-		})
-}
