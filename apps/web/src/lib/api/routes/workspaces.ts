@@ -3,8 +3,8 @@ import { eq, or } from 'drizzle-orm'
 import { getDb } from '../db'
 import { CreateWorkspaceSchema, ErrorSchema, IdParamSchema, SuccessSchema, UpdateWorkspaceSchema, WorkspaceSchema } from '../schemas'
 import { workspaces, workspaceMembers } from 'web-app/db/schema'
-import { authMiddleware, type AuthVariables } from '../middleware'
-import { type WorkspaceRole, isWorkspaceRole } from '../types'
+import { authMiddleware } from '../middleware'
+import { type WorkspaceRole, isWorkspaceRole, type AuthEnv } from '../types'
 
 // Define routes
 const listWorkspacesRoute = createRoute({
@@ -218,8 +218,8 @@ async function getUserWorkspaceRole(
 	return membership.role
 }
 
-// Create app with proper typing
-const app = new OpenAPIHono<{ Variables: AuthVariables }>()
+// Create app with proper typing (includes Bindings and Variables)
+const app = new OpenAPIHono<AuthEnv>()
 
 // Apply middleware
 app.use('*', authMiddleware)

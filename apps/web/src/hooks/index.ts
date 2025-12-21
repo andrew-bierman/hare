@@ -1,53 +1,26 @@
 'use client'
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import type { InferResponseType, InferRequestType } from 'hono/client'
 import { client } from 'web-app/lib/client'
-import type {
-	Agent,
-	AgentsResponse,
-	Workspace,
-	WorkspacesResponse,
-	Tool,
-	ToolsResponse,
-	UsageResponse,
-	AgentUsageResponse,
-	Deployment,
-	SuccessResponse,
-} from 'web-app/lib/api/types'
 
 /**
- * Hono RPC client type workaround.
+ * Type-safe API hooks using Hono RPC.
  *
- * OpenAPIHono with complex middleware Variables types causes Hono's RPC
- * type inference to fail. The runtime behavior is correct - only the
- * compile-time types are affected. We cast to a simple interface here
- * and rely on explicit return types in each hook for type safety.
+ * Types are automatically inferred from the API routes via hc<AppType>().
+ * See: https://hono.dev/docs/guides/rpc
  */
-interface ApiClient {
-	agents: {
-		$get: (opts?: { query?: Record<string, string> }) => Promise<Response>
-		$post: (opts: { json: Record<string, unknown>; query?: Record<string, string> }) => Promise<Response>
-		[key: string]: unknown
-	}
-	workspaces: {
-		$get: () => Promise<Response>
-		$post: (opts: { json: Record<string, unknown> }) => Promise<Response>
-		[key: string]: unknown
-	}
-	tools: {
-		$get: (opts?: { query?: Record<string, string> }) => Promise<Response>
-		$post: (opts: { json: Record<string, unknown>; query?: Record<string, string> }) => Promise<Response>
-		[key: string]: unknown
-	}
-	usage: {
-		$get: (opts?: { query?: Record<string, string | undefined> }) => Promise<Response>
-		agents: { [key: string]: unknown }
-		[key: string]: unknown
-	}
-	[key: string]: unknown
-}
 
-const api = client.api as unknown as ApiClient
+// Infer types from client routes
+type AgentsRoute = typeof client.api.agents
+type AgentRoute = (typeof client.api.agents)[':id']
+type AgentDeployRoute = (typeof client.api.agents)[':id']['deploy']
+type WorkspacesRoute = typeof client.api.workspaces
+type WorkspaceRoute = (typeof client.api.workspaces)[':id']
+type ToolsRoute = typeof client.api.tools
+type ToolRoute = (typeof client.api.tools)[':id']
+type UsageRoute = typeof client.api.usage
+type AgentUsageRoute = (typeof client.api.usage)['agents'][':id']
 
 // Query keys factory
 export const queryKeys = {
@@ -76,24 +49,23 @@ export const queryKeys = {
 
 // Agent hooks
 export function useAgents() {
-	return useQuery<AgentsResponse>({
+	return useQuery({
 		queryKey: queryKeys.agents.all,
-		queryFn: async (): Promise<AgentsResponse> => {
-			const res = await api.agents.$get()
+		queryFn: async () => {
+			const res = await client.api.agents.$get()
 			if (!res.ok) throw new Error('Failed to fetch agents')
-			return res.json() as Promise<AgentsResponse>
+			return res.json()
 		},
 	})
 }
 
 export function useAgent(id: string) {
-	return useQuery<Agent>({
+	return useQuery({
 		queryKey: queryKeys.agents.detail(id),
-		queryFn: async (): Promise<Agent> => {
-			const endpoint = api.agents[':id'] as { $get: (opts: { param: { id: string } }) => Promise<Response> }
-			const res = await endpoint.$get({ param: { id } })
+		queryFn: async () => {
+			const res = await client.api.agents[':id'].$get({ param: { id } })
 			if (!res.ok) throw new Error('Failed to fetch agent')
-			return res.json() as Promise<Agent>
+			return res.json()
 		},
 		enabled: !!id,
 	})
@@ -101,18 +73,13 @@ export function useAgent(id: string) {
 
 export function useCreateAgent() {
 	const queryClient = useQueryClient()
-	return useMutation<Agent, Error, {
-		name: string
-		model: string
-		instructions: string
-		description?: string
-		config?: Record<string, unknown>
-		toolIds?: string[]
-	}>({
-		mutationFn: async (data): Promise<Agent> => {
-			const res = await api.agents.$post({ json: data })
+	type CreateAgentRequest = InferRequestType<AgentsRoute['$post']>['json']
+
+	return useMutation({
+		mutationFn: async (data: CreateAgentRequest) => {
+			const res = await client.api.agents.$post({ json: data })
 			if (!res.ok) throw new Error('Failed to create agent')
-			return res.json() as Promise<Agent>
+			return res.json()
 		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: queryKeys.agents.all })
@@ -122,22 +89,13 @@ export function useCreateAgent() {
 
 export function useUpdateAgent() {
 	const queryClient = useQueryClient()
-	return useMutation<Agent, Error, {
-		id: string
-		data: {
-			name?: string
-			model?: string
-			instructions?: string
-			description?: string
-			config?: Record<string, unknown>
-			toolIds?: string[]
-		}
-	}>({
-		mutationFn: async ({ id, data }): Promise<Agent> => {
-			const endpoint = api.agents[':id'] as { $patch: (opts: { param: { id: string }; json: Record<string, unknown> }) => Promise<Response> }
-			const res = await endpoint.$patch({ param: { id }, json: data })
+	type UpdateAgentRequest = InferRequestType<AgentRoute['$patch']>['json']
+
+	return useMutation({
+		mutationFn: async ({ id, data }: { id: string; data: UpdateAgentRequest }) => {
+			const res = await client.api.agents[':id'].$patch({ param: { id }, json: data })
 			if (!res.ok) throw new Error('Failed to update agent')
-			return res.json() as Promise<Agent>
+			return res.json()
 		},
 		onSuccess: (_, { id }) => {
 			queryClient.invalidateQueries({ queryKey: queryKeys.agents.all })
@@ -148,12 +106,12 @@ export function useUpdateAgent() {
 
 export function useDeleteAgent() {
 	const queryClient = useQueryClient()
-	return useMutation<SuccessResponse, Error, string>({
-		mutationFn: async (id): Promise<SuccessResponse> => {
-			const endpoint = api.agents[':id'] as { $delete: (opts: { param: { id: string } }) => Promise<Response> }
-			const res = await endpoint.$delete({ param: { id } })
+
+	return useMutation({
+		mutationFn: async (id: string) => {
+			const res = await client.api.agents[':id'].$delete({ param: { id } })
 			if (!res.ok) throw new Error('Failed to delete agent')
-			return res.json() as Promise<SuccessResponse>
+			return res.json()
 		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: queryKeys.agents.all })
@@ -163,12 +121,13 @@ export function useDeleteAgent() {
 
 export function useDeployAgent() {
 	const queryClient = useQueryClient()
-	return useMutation<Deployment, Error, { id: string; data: { version?: string } }>({
-		mutationFn: async ({ id, data }): Promise<Deployment> => {
-			const agentEndpoint = api.agents[':id'] as { deploy: { $post: (opts: { param: { id: string }; json: Record<string, unknown> }) => Promise<Response> } }
-			const res = await agentEndpoint.deploy.$post({ param: { id }, json: data })
+	type DeployAgentRequest = InferRequestType<AgentDeployRoute['$post']>['json']
+
+	return useMutation({
+		mutationFn: async ({ id, data }: { id: string; data: DeployAgentRequest }) => {
+			const res = await client.api.agents[':id'].deploy.$post({ param: { id }, json: data })
 			if (!res.ok) throw new Error('Failed to deploy agent')
-			return res.json() as Promise<Deployment>
+			return res.json()
 		},
 		onSuccess: (_, { id }) => {
 			queryClient.invalidateQueries({ queryKey: queryKeys.agents.all })
@@ -179,24 +138,23 @@ export function useDeployAgent() {
 
 // Workspace hooks
 export function useWorkspaces() {
-	return useQuery<WorkspacesResponse>({
+	return useQuery({
 		queryKey: queryKeys.workspaces.all,
-		queryFn: async (): Promise<WorkspacesResponse> => {
-			const res = await api.workspaces.$get()
+		queryFn: async () => {
+			const res = await client.api.workspaces.$get()
 			if (!res.ok) throw new Error('Failed to fetch workspaces')
-			return res.json() as Promise<WorkspacesResponse>
+			return res.json()
 		},
 	})
 }
 
 export function useWorkspace(id: string) {
-	return useQuery<Workspace>({
+	return useQuery({
 		queryKey: queryKeys.workspaces.detail(id),
-		queryFn: async (): Promise<Workspace> => {
-			const endpoint = api.workspaces[':id'] as { $get: (opts: { param: { id: string } }) => Promise<Response> }
-			const res = await endpoint.$get({ param: { id } })
+		queryFn: async () => {
+			const res = await client.api.workspaces[':id'].$get({ param: { id } })
 			if (!res.ok) throw new Error('Failed to fetch workspace')
-			return res.json() as Promise<Workspace>
+			return res.json()
 		},
 		enabled: !!id,
 	})
@@ -204,11 +162,13 @@ export function useWorkspace(id: string) {
 
 export function useCreateWorkspace() {
 	const queryClient = useQueryClient()
-	return useMutation<Workspace, Error, { name: string; description?: string }>({
-		mutationFn: async (data): Promise<Workspace> => {
-			const res = await api.workspaces.$post({ json: data })
+	type CreateWorkspaceRequest = InferRequestType<WorkspacesRoute['$post']>['json']
+
+	return useMutation({
+		mutationFn: async (data: CreateWorkspaceRequest) => {
+			const res = await client.api.workspaces.$post({ json: data })
 			if (!res.ok) throw new Error('Failed to create workspace')
-			return res.json() as Promise<Workspace>
+			return res.json()
 		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: queryKeys.workspaces.all })
@@ -218,15 +178,13 @@ export function useCreateWorkspace() {
 
 export function useUpdateWorkspace() {
 	const queryClient = useQueryClient()
-	return useMutation<Workspace, Error, {
-		id: string
-		data: { name?: string; description?: string }
-	}>({
-		mutationFn: async ({ id, data }): Promise<Workspace> => {
-			const endpoint = api.workspaces[':id'] as { $patch: (opts: { param: { id: string }; json: Record<string, unknown> }) => Promise<Response> }
-			const res = await endpoint.$patch({ param: { id }, json: data })
+	type UpdateWorkspaceRequest = InferRequestType<WorkspaceRoute['$patch']>['json']
+
+	return useMutation({
+		mutationFn: async ({ id, data }: { id: string; data: UpdateWorkspaceRequest }) => {
+			const res = await client.api.workspaces[':id'].$patch({ param: { id }, json: data })
 			if (!res.ok) throw new Error('Failed to update workspace')
-			return res.json() as Promise<Workspace>
+			return res.json()
 		},
 		onSuccess: (_, { id }) => {
 			queryClient.invalidateQueries({ queryKey: queryKeys.workspaces.all })
@@ -237,12 +195,12 @@ export function useUpdateWorkspace() {
 
 export function useDeleteWorkspace() {
 	const queryClient = useQueryClient()
-	return useMutation<SuccessResponse, Error, string>({
-		mutationFn: async (id): Promise<SuccessResponse> => {
-			const endpoint = api.workspaces[':id'] as { $delete: (opts: { param: { id: string } }) => Promise<Response> }
-			const res = await endpoint.$delete({ param: { id } })
+
+	return useMutation({
+		mutationFn: async (id: string) => {
+			const res = await client.api.workspaces[':id'].$delete({ param: { id } })
 			if (!res.ok) throw new Error('Failed to delete workspace')
-			return res.json() as Promise<SuccessResponse>
+			return res.json()
 		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: queryKeys.workspaces.all })
@@ -252,24 +210,23 @@ export function useDeleteWorkspace() {
 
 // Tool hooks
 export function useTools() {
-	return useQuery<ToolsResponse>({
+	return useQuery({
 		queryKey: queryKeys.tools.all,
-		queryFn: async (): Promise<ToolsResponse> => {
-			const res = await api.tools.$get()
+		queryFn: async () => {
+			const res = await client.api.tools.$get()
 			if (!res.ok) throw new Error('Failed to fetch tools')
-			return res.json() as Promise<ToolsResponse>
+			return res.json()
 		},
 	})
 }
 
 export function useTool(id: string) {
-	return useQuery<Tool>({
+	return useQuery({
 		queryKey: queryKeys.tools.detail(id),
-		queryFn: async (): Promise<Tool> => {
-			const endpoint = api.tools[':id'] as { $get: (opts: { param: { id: string } }) => Promise<Response> }
-			const res = await endpoint.$get({ param: { id } })
+		queryFn: async () => {
+			const res = await client.api.tools[':id'].$get({ param: { id } })
 			if (!res.ok) throw new Error('Failed to fetch tool')
-			return res.json() as Promise<Tool>
+			return res.json()
 		},
 		enabled: !!id,
 	})
@@ -277,18 +234,13 @@ export function useTool(id: string) {
 
 export function useCreateTool() {
 	const queryClient = useQueryClient()
-	return useMutation<Tool, Error, {
-		name: string
-		description: string
-		type: 'http' | 'sql' | 'kv' | 'r2' | 'vectorize' | 'custom'
-		inputSchema: Record<string, unknown>
-		config?: Record<string, unknown>
-		code?: string
-	}>({
-		mutationFn: async (data): Promise<Tool> => {
-			const res = await api.tools.$post({ json: data })
+	type CreateToolRequest = InferRequestType<ToolsRoute['$post']>['json']
+
+	return useMutation({
+		mutationFn: async (data: CreateToolRequest) => {
+			const res = await client.api.tools.$post({ json: data })
 			if (!res.ok) throw new Error('Failed to create tool')
-			return res.json() as Promise<Tool>
+			return res.json()
 		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: queryKeys.tools.all })
@@ -298,22 +250,13 @@ export function useCreateTool() {
 
 export function useUpdateTool() {
 	const queryClient = useQueryClient()
-	return useMutation<Tool, Error, {
-		id: string
-		data: {
-			name?: string
-			description?: string
-			type?: 'http' | 'sql' | 'kv' | 'r2' | 'vectorize' | 'custom'
-			inputSchema?: Record<string, unknown>
-			config?: Record<string, unknown>
-			code?: string
-		}
-	}>({
-		mutationFn: async ({ id, data }): Promise<Tool> => {
-			const endpoint = api.tools[':id'] as { $patch: (opts: { param: { id: string }; json: Record<string, unknown> }) => Promise<Response> }
-			const res = await endpoint.$patch({ param: { id }, json: data })
+	type UpdateToolRequest = InferRequestType<ToolRoute['$patch']>['json']
+
+	return useMutation({
+		mutationFn: async ({ id, data }: { id: string; data: UpdateToolRequest }) => {
+			const res = await client.api.tools[':id'].$patch({ param: { id }, json: data })
 			if (!res.ok) throw new Error('Failed to update tool')
-			return res.json() as Promise<Tool>
+			return res.json()
 		},
 		onSuccess: (_, { id }) => {
 			queryClient.invalidateQueries({ queryKey: queryKeys.tools.all })
@@ -324,12 +267,12 @@ export function useUpdateTool() {
 
 export function useDeleteTool() {
 	const queryClient = useQueryClient()
-	return useMutation<SuccessResponse, Error, string>({
-		mutationFn: async (id): Promise<SuccessResponse> => {
-			const endpoint = api.tools[':id'] as { $delete: (opts: { param: { id: string } }) => Promise<Response> }
-			const res = await endpoint.$delete({ param: { id } })
+
+	return useMutation({
+		mutationFn: async (id: string) => {
+			const res = await client.api.tools[':id'].$delete({ param: { id } })
 			if (!res.ok) throw new Error('Failed to delete tool')
-			return res.json() as Promise<SuccessResponse>
+			return res.json()
 		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: queryKeys.tools.all })
@@ -344,26 +287,25 @@ export function useWorkspaceUsage(params?: {
 	agentId?: string
 	groupBy?: string
 }) {
-	return useQuery<UsageResponse>({
+	return useQuery({
 		queryKey: queryKeys.usage.workspace(params),
-		queryFn: async (): Promise<UsageResponse> => {
-			const res = await api.usage.$get({
-				query: params as Record<string, string | undefined>,
+		queryFn: async () => {
+			const res = await client.api.usage.$get({
+				query: params,
 			})
 			if (!res.ok) throw new Error('Failed to fetch workspace usage')
-			return res.json() as Promise<UsageResponse>
+			return res.json()
 		},
 	})
 }
 
 export function useAgentUsage(id: string) {
-	return useQuery<AgentUsageResponse>({
+	return useQuery({
 		queryKey: queryKeys.usage.agent(id),
-		queryFn: async (): Promise<AgentUsageResponse> => {
-			const endpoint = api.usage.agents[':id'] as { $get: (opts: { param: { id: string } }) => Promise<Response> }
-			const res = await endpoint.$get({ param: { id } })
+		queryFn: async () => {
+			const res = await client.api.usage.agents[':id'].$get({ param: { id } })
 			if (!res.ok) throw new Error('Failed to fetch agent usage')
-			return res.json() as Promise<AgentUsageResponse>
+			return res.json()
 		},
 		enabled: !!id,
 	})

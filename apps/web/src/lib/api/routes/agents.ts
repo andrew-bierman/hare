@@ -12,7 +12,8 @@ import {
 	UpdateAgentSchema,
 } from '../schemas'
 import { agents, agentTools, deployments } from 'web-app/db/schema'
-import { authMiddleware, workspaceMiddleware, type WorkspaceVariables } from '../middleware'
+import { authMiddleware, workspaceMiddleware } from '../middleware'
+import type { WorkspaceEnv } from '../types'
 
 // Define routes
 const listAgentsRoute = createRoute({
@@ -272,8 +273,8 @@ async function getAgentToolIds(agentId: string, db: NonNullable<Awaited<ReturnTy
 	return rows.map((r) => r.toolId)
 }
 
-// Create app with proper typing
-const app = new OpenAPIHono<{ Variables: WorkspaceVariables }>()
+// Create app with proper typing (includes Bindings and Variables)
+const app = new OpenAPIHono<WorkspaceEnv>()
 
 // Apply middleware
 app.use('*', authMiddleware)

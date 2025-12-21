@@ -2,6 +2,7 @@ import { OpenAPIHono } from '@hono/zod-openapi'
 import { apiReference } from '@scalar/hono-api-reference'
 import { cors } from 'hono/cors'
 import { logger } from 'hono/logger'
+import type { HonoEnv } from './types'
 
 // Import route modules
 import agents from './routes/agents'
@@ -11,8 +12,8 @@ import tools from './routes/tools'
 import usage from './routes/usage'
 import workspaces from './routes/workspaces'
 
-// Create base app
-const app = new OpenAPIHono().basePath('/api')
+// Create base app with proper Cloudflare bindings type
+const app = new OpenAPIHono<HonoEnv>().basePath('/api')
 
 // Middleware
 app.use('*', logger())

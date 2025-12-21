@@ -3,7 +3,8 @@ import { eq, and } from 'drizzle-orm'
 import { getDb } from '../db'
 import { CreateToolSchema, ErrorSchema, IdParamSchema, SuccessSchema, ToolSchema, UpdateToolSchema } from '../schemas'
 import { tools } from 'web-app/db/schema'
-import { authMiddleware, workspaceMiddleware, type WorkspaceVariables } from '../middleware'
+import { authMiddleware, workspaceMiddleware } from '../middleware'
+import type { WorkspaceEnv } from '../types'
 
 // System tools that are always available
 const SYSTEM_TOOLS = [
@@ -279,8 +280,8 @@ function mapToolType(dbType: string): ToolType {
 	return 'custom'
 }
 
-// Create app with proper typing
-const app = new OpenAPIHono<{ Variables: WorkspaceVariables }>()
+// Create app with proper typing (includes Bindings and Variables)
+const app = new OpenAPIHono<WorkspaceEnv>()
 
 // Apply middleware
 app.use('*', authMiddleware)

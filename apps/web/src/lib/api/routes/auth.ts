@@ -1,8 +1,9 @@
 import { Hono } from 'hono'
 import { createAuth } from 'web-app/lib/auth'
 import { getD1, CloudflareEnvError } from '../db'
+import type { HonoEnv } from '../types'
 
-const app = new Hono().all('/*', async (c) => {
+const app = new Hono<HonoEnv>().all('/*', async (c) => {
 	let d1: D1Database
 	try {
 		d1 = await getD1(c)

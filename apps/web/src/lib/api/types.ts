@@ -1,56 +1,112 @@
-import type { z } from '@hono/zod-openapi'
-import type {
-	AgentSchema,
-	WorkspaceSchema,
-	ToolSchema,
-	UsageResponseSchema,
-	AgentUsageResponseSchema,
-	DeploymentSchema,
-} from './schemas'
+// =============================================================================
+// HONO ENVIRONMENT TYPES
+// =============================================================================
 
 /**
- * API Response Types
- *
- * These types match the Zod schemas used in API responses.
- * They provide type safety for the RPC client without relying on Hono's
- * complex type inference which struggles with OpenAPIHono middleware.
+ * Auth user information stored in context.
  */
-
-// Agent types
-export type Agent = z.infer<typeof AgentSchema>
-export type Deployment = z.infer<typeof DeploymentSchema>
-
-export interface AgentsResponse {
-	agents: Agent[]
+export interface AuthUser {
+	id: string
+	email: string
+	name: string | null
+	image: string | null
 }
 
-// Workspace types
-export type Workspace = z.infer<typeof WorkspaceSchema>
-
-export interface WorkspacesResponse {
-	workspaces: Workspace[]
+/**
+ * Session information stored in context.
+ */
+export interface AuthSession {
+	id: string
+	expiresAt: Date
 }
 
-// Tool types
-export type Tool = z.infer<typeof ToolSchema>
-
-export interface ToolsResponse {
-	tools: Tool[]
+/**
+ * Workspace information stored in context.
+ */
+export interface WorkspaceInfo {
+	id: string
+	name: string
+	slug: string
+	ownerId: string
 }
 
-// Usage types
-export type UsageResponse = z.infer<typeof UsageResponseSchema>
-export type AgentUsageResponse = z.infer<typeof AgentUsageResponseSchema>
-
-// Common types
-export interface SuccessResponse {
-	success: boolean
+/**
+ * Auth variables set by authMiddleware.
+ */
+export interface AuthVariables {
+	user: AuthUser
+	session: AuthSession
 }
 
-export interface ErrorResponse {
-	error: string
-	code?: string
+/**
+ * Workspace variables set by workspaceMiddleware.
+ * Extends AuthVariables since workspace routes require auth.
+ */
+export interface WorkspaceVariables extends AuthVariables {
+	workspace: WorkspaceInfo
+	workspaceRole: WorkspaceRole
 }
+
+/**
+ * API key information stored in context.
+ */
+export interface ApiKeyInfo {
+	id: string
+	workspaceId: string
+	name: string
+	permissions: {
+		scopes?: string[]
+		agentIds?: string[]
+	} | null
+}
+
+/**
+ * API key variables set by apiKeyMiddleware.
+ */
+export interface ApiKeyVariables {
+	apiKey: ApiKeyInfo
+	workspace: WorkspaceInfo
+}
+
+/**
+ * Base Hono environment with Cloudflare bindings.
+ * Use this as the base for all route handlers.
+ */
+export interface HonoEnv {
+	Bindings: CloudflareEnv
+}
+
+/**
+ * Hono environment for auth-protected routes.
+ */
+export interface AuthEnv extends HonoEnv {
+	Variables: AuthVariables
+}
+
+/**
+ * Hono environment for workspace-scoped routes.
+ */
+export interface WorkspaceEnv extends HonoEnv {
+	Variables: WorkspaceVariables
+}
+
+/**
+ * Hono environment for API key-authenticated routes.
+ */
+export interface ApiKeyEnv extends HonoEnv {
+	Variables: ApiKeyVariables
+}
+
+/**
+ * Hono environment for optional auth routes.
+ */
+export interface OptionalAuthEnv extends HonoEnv {
+	Variables: Partial<AuthVariables>
+}
+
+// =============================================================================
+// DATABASE ENUM TYPES WITH RUNTIME VALIDATION
+// =============================================================================
 
 /**
  * Workspace role type.

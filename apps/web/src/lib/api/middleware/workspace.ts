@@ -2,29 +2,14 @@ import type { MiddlewareHandler } from 'hono'
 import { eq, and } from 'drizzle-orm'
 import { getDb } from '../db'
 import { workspaces, workspaceMembers } from 'web-app/db/schema'
-import type { AuthVariables } from './auth'
-import { type WorkspaceRole, isWorkspaceRole } from '../types'
-
-export type { WorkspaceRole }
-
-export interface WorkspaceInfo {
-	id: string
-	name: string
-	slug: string
-	ownerId: string
-}
-
-export interface WorkspaceVariables extends AuthVariables {
-	workspace: WorkspaceInfo
-	workspaceRole: WorkspaceRole
-}
+import { type WorkspaceRole, type WorkspaceEnv, isWorkspaceRole } from '../types'
 
 /**
  * Workspace middleware that validates workspace access.
  * Expects workspaceId in query params or route params.
  * Must be used after authMiddleware.
  */
-export const workspaceMiddleware: MiddlewareHandler<{ Variables: WorkspaceVariables }> = async (c, next) => {
+export const workspaceMiddleware: MiddlewareHandler<WorkspaceEnv> = async (c, next) => {
 	const user = c.get('user')
 	if (!user) {
 		return c.json({ error: 'Unauthorized' }, 401)
@@ -106,9 +91,7 @@ export function hasPermission(role: WorkspaceRole, action: 'read' | 'write' | 'a
 /**
  * Middleware factory for permission-based access control.
  */
-export function requirePermission(
-	action: 'read' | 'write' | 'admin' | 'owner'
-): MiddlewareHandler<{ Variables: WorkspaceVariables }> {
+export function requirePermission(action: 'read' | 'write' | 'admin' | 'owner'): MiddlewareHandler<WorkspaceEnv> {
 	return async (c, next) => {
 		const role = c.get('workspaceRole')
 
