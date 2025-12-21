@@ -15,8 +15,8 @@
     "baseUrl": ".",
     "paths": {
       "web-app/*": ["apps/web/src/*"],
-      "@repo/ui/*": ["packages/ui/src/*"],
-      "@repo/ui": ["packages/ui/src/index.ts"],
+      "@workspace/ui/*": ["packages/ui/src/*"],
+      "@workspace/ui": ["packages/ui/src/index.ts"]
     },
   },
   "include": [
