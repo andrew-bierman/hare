@@ -499,15 +499,11 @@ X-Workspace-ID: ws_abc123
 {
   "name": "Customer Support",
   "description": "Handles customer inquiries",
-  "model": "llama-3.1-70b-instruct",
+  "model": "llama-3.3-70b",
   "instructions": "You are a helpful customer support agent for Acme Corp...",
   "config": {
     "temperature": 0.7,
-    "maxTokens": 4096,
-    "memory": {
-      "enabled": true,
-      "maxMessages": 100
-    }
+    "maxTokens": 4096
   },
   "toolIds": ["tool_abc123", "tool_def456"]
 }
@@ -546,36 +542,36 @@ data: {"type": "done", "usage": {"tokensIn": 150, "tokensOut": 89}}
 
 ## Pages
 
-### Marketing
+### 🏠 Marketing
 
 | Path | Description |
 |------|-------------|
-| `/` | Landing page |
-| `/pricing` | Pricing tiers |
-| `/docs` | Documentation |
+| `/` | Landing page with hero and features |
+| `/pricing` | Pricing tiers and plans |
+| `/docs` | Documentation and guides |
 
-### Auth
+### 🔐 Auth
 
 | Path | Description |
 |------|-------------|
-| `/sign-in` | Sign in form |
-| `/sign-up` | Sign up form |
+| `/sign-in` | Sign in form (email + OAuth) |
+| `/sign-up` | Sign up form (email + OAuth) |
 
-### Dashboard
+### 📊 Dashboard
 
 | Path | Description |
 |------|-------------|
 | `/dashboard` | Overview / home |
-| `/dashboard/agents` | Agent list |
+| `/dashboard/agents` | Agent list and management |
 | `/dashboard/agents/new` | Create new agent |
-| `/dashboard/agents/[id]` | Agent builder |
-| `/dashboard/agents/[id]/playground` | Test agent |
+| `/dashboard/agents/[id]` | Agent builder / configuration |
+| `/dashboard/agents/[id]/playground` | Test agent with chat interface |
 | `/dashboard/agents/[id]/settings` | Agent settings |
-| `/dashboard/tools` | Tool library |
+| `/dashboard/tools` | Tool library and management |
 | `/dashboard/settings` | Workspace settings |
-| `/dashboard/settings/team` | Team members |
-| `/dashboard/settings/billing` | Subscription |
-| `/dashboard/usage` | Usage analytics |
+| `/dashboard/settings/team` | Team members management |
+| `/dashboard/settings/billing` | Subscription and billing |
+| `/dashboard/usage` | Usage analytics and insights |
 
 ---
 
@@ -584,28 +580,34 @@ data: {"type": "done", "usage": {"tokensIn": 150, "tokensOut": 89}}
 Create a `.env` file based on `.env.example`:
 
 ```bash
-# Cloudflare (for Drizzle migrations)
+# ☁️ Cloudflare (for Drizzle migrations)
 CLOUDFLARE_ACCOUNT_ID=your_account_id
 CLOUDFLARE_API_TOKEN=your_api_token
 CLOUDFLARE_D1_DATABASE_ID=your_database_id
 
-# Better Auth
-BETTER_AUTH_SECRET=your_secret_here  # openssl rand -base64 32
+# 🔐 Better Auth
+BETTER_AUTH_SECRET=your_secret_here  # Generate with: openssl rand -base64 32
 BETTER_AUTH_URL=http://localhost:3000
 
-# OAuth (optional)
-GOOGLE_CLIENT_ID=
-GOOGLE_CLIENT_SECRET=
-GITHUB_CLIENT_ID=
-GITHUB_CLIENT_SECRET=
+# 🔑 OAuth Providers (optional - for social login)
+GOOGLE_CLIENT_ID=your_google_client_id
+GOOGLE_CLIENT_SECRET=your_google_client_secret
+GITHUB_CLIENT_ID=your_github_client_id
+GITHUB_CLIENT_SECRET=your_github_client_secret
 
-# Stripe (optional)
-STRIPE_SECRET_KEY=
-STRIPE_WEBHOOK_SECRET=
+# 💳 Stripe (optional - for payments)
+STRIPE_SECRET_KEY=sk_test_...
+STRIPE_WEBHOOK_SECRET=whsec_...
 
-# App
+# 🌐 App Configuration
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
+
+**💡 Tips:**
+- Copy `.env.example` to `.env` to get started: `cp .env.example .env`
+- Generate a secure auth secret: `openssl rand -base64 32`
+- Get your Cloudflare credentials from the [Cloudflare Dashboard](https://dash.cloudflare.com/)
+- OAuth credentials can be obtained from [Google Cloud Console](https://console.cloud.google.com/) and [GitHub Settings](https://github.com/settings/developers)
 
 ---
 
@@ -860,12 +862,16 @@ After creating these resources, copy their IDs to your `wrangler.jsonc` configur
 
 ## Pricing
 
+Hare pricing is designed to be simple and predictable (no surprise bills! 💰):
+
 | Tier | Price | Agents | Messages/mo | Features |
 |------|-------|--------|-------------|----------|
-| **Free** | $0 | 3 | 1,000 | Playground, Community support |
-| **Pro** | $29/mo | 20 | 50,000 | Custom domains, Priority support |
-| **Team** | $99/mo | Unlimited | 500,000 | Team seats, API priority, Analytics |
-| **Enterprise** | Custom | Unlimited | Custom | SSO, Audit logs, SLA, Dedicated support |
+| **🆓 Free** | $0/mo | 3 | 1,000 | Playground, Community support, Core features |
+| **⚡ Pro** | $29/mo | 20 | 50,000 | Custom domains, Priority support, Advanced analytics |
+| **👥 Team** | $99/mo | Unlimited | 500,000 | Team seats, API priority, Usage analytics, SSO |
+| **🏢 Enterprise** | Custom | Unlimited | Custom | Everything + Audit logs, SLA, Dedicated support |
+
+> **Note**: These pricing tiers are planned for the future. Currently, Hare is in development and free to use! 🎉
 
 ---
 
