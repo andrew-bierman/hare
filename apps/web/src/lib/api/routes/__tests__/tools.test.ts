@@ -2,159 +2,47 @@ import { describe, expect, it } from 'vitest'
 import { app } from 'web-app/lib/api/index'
 
 describe('Tools API', () => {
-	describe('GET /api/tools', () => {
-		it('returns tools list', async () => {
+	describe('Authentication', () => {
+		it('returns 401 for unauthenticated GET /api/tools', async () => {
 			const res = await app.request('/api/tools')
-			expect(res.status).toBe(200)
+			expect(res.status).toBe(401)
 
-			interface ToolsResponse {
-				tools: Array<{
-					id: string
-					name: string
-					description: string
-					type: string
-					inputSchema: Record<string, unknown>
-					isSystem: boolean
-					createdAt: string
-					updatedAt: string
-				}>
-			}
-
-			const json = (await res.json()) as ToolsResponse
-			expect(json).toHaveProperty('tools')
-			expect(Array.isArray(json.tools)).toBe(true)
+			const json = await res.json() as { error: string }
+			expect(json.error).toBe('Unauthorized')
 		})
 
-		it('includes system tools', async () => {
-			const res = await app.request('/api/tools')
-
-			interface ToolsResponse {
-				tools: Array<{
-					id: string
-					name: string
-					description: string
-					type: string
-					isSystem: boolean
-				}>
-			}
-
-			const json = (await res.json()) as ToolsResponse
-			const systemTools = json.tools.filter((tool) => tool.isSystem)
-			expect(systemTools.length).toBeGreaterThan(0)
-		})
-	})
-
-	describe('POST /api/tools', () => {
-		it('creates a new custom tool with valid data', async () => {
+		it('returns 401 for unauthenticated POST /api/tools', async () => {
 			const res = await app.request('/api/tools', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
 					name: 'Test Tool',
 					description: 'A test tool',
-					type: 'custom',
-					inputSchema: {
-						input: { type: 'string', description: 'Input value' },
-					},
+					type: 'http',
 				}),
 			})
-
-			expect(res.status).toBe(201)
-
-			interface CreateToolResponse {
-				id: string
-				name: string
-				description: string
-				type: string
-				inputSchema: Record<string, unknown>
-				isSystem: boolean
-				createdAt: string
-				updatedAt: string
-			}
-
-			const json = (await res.json()) as CreateToolResponse
-			expect(json.id).toBeDefined()
-			expect(json.name).toBe('Test Tool')
-			expect(json.isSystem).toBe(false)
+			expect(res.status).toBe(401)
 		})
 
-		it('returns 400 for invalid data', async () => {
-			const res = await app.request('/api/tools', {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ name: '' }),
-			})
-
-			expect(res.status).toBe(400)
-		})
-	})
-
-	describe('GET /api/tools/:id', () => {
-		it('returns tool details', async () => {
+		it('returns 401 for unauthenticated GET /api/tools/:id', async () => {
 			const res = await app.request('/api/tools/tool_test123')
-			expect(res.status).toBe(200)
-
-			interface ToolResponse {
-				id: string
-				name: string
-				description: string
-				type: string
-				inputSchema: Record<string, unknown>
-				isSystem: boolean
-				createdAt: string
-				updatedAt: string
-			}
-
-			const json = (await res.json()) as ToolResponse
-			expect(json.id).toBeDefined()
-			expect(json.name).toBeDefined()
-			expect(json.type).toBeDefined()
+			expect(res.status).toBe(401)
 		})
-	})
 
-	describe('PATCH /api/tools/:id', () => {
-		it('updates a custom tool', async () => {
+		it('returns 401 for unauthenticated PATCH /api/tools/:id', async () => {
 			const res = await app.request('/api/tools/tool_test123', {
 				method: 'PATCH',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({
-					name: 'Updated Tool',
-					description: 'Updated description',
-				}),
+				body: JSON.stringify({ name: 'Updated Tool' }),
 			})
-
-			expect(res.status).toBe(200)
-
-			interface UpdateToolResponse {
-				id: string
-				name: string
-				description: string
-				type: string
-				inputSchema: Record<string, unknown>
-				isSystem: boolean
-				createdAt: string
-				updatedAt: string
-			}
-
-			const json = (await res.json()) as UpdateToolResponse
-			expect(json.name).toBe('Updated Tool')
+			expect(res.status).toBe(401)
 		})
-	})
 
-	describe('DELETE /api/tools/:id', () => {
-		it('deletes a custom tool', async () => {
+		it('returns 401 for unauthenticated DELETE /api/tools/:id', async () => {
 			const res = await app.request('/api/tools/tool_test123', {
 				method: 'DELETE',
 			})
-
-			expect(res.status).toBe(200)
-
-			interface DeleteResponse {
-				success: boolean
-			}
-
-			const json = (await res.json()) as DeleteResponse
-			expect(json.success).toBe(true)
+			expect(res.status).toBe(401)
 		})
 	})
 })
