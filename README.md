@@ -5,9 +5,9 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![Next.js](https://img.shields.io/badge/Next.js-15-black)](https://nextjs.org/)
 [![Cloudflare](https://img.shields.io/badge/Cloudflare-Workers-orange)](https://workers.cloudflare.com/)
-[![Mastra](https://img.shields.io/badge/Mastra-Powered-purple)](https://mastra.ai)
+[![Workers AI](https://img.shields.io/badge/Workers_AI-Native-F38020)](https://developers.cloudflare.com/workers-ai/)
 
-Hare is a SaaS platform for creating, deploying, and managing AI agents on Cloudflare's global edge network. Built on [Mastra](https://mastra.ai) and powered by Cloudflare Workers, Hare delivers sub-50ms latency from 300+ cities worldwide.
+Hare is a SaaS platform for creating, deploying, and managing AI agents on Cloudflare's global edge network. Built as a **Cloudflare-native** platform using Workers AI, D1, KV, R2, and Vectorize, Hare delivers sub-50ms latency from 300+ cities worldwide.
 
 ---
 
@@ -91,7 +91,7 @@ Hare provides a visual builder for AI agents that deploy instantly to Cloudflare
 
 | Layer | Technology | Why |
 |-------|------------|-----|
-| **Framework** | [Mastra](https://mastra.ai) | Production-grade agent framework |
+| **AI SDK** | [Vercel AI SDK](https://sdk.vercel.ai/) | Streaming, tool calling, edge-compatible |
 | **Runtime** | Cloudflare Workers | Sub-50ms cold starts, global edge |
 | **Database** | Cloudflare D1 | Edge SQL, co-located with Workers |
 | **ORM** | Drizzle ORM | Type-safe, SQLite-compatible |
@@ -319,7 +319,7 @@ Hono API Route
     ├──▶ Better Auth (session validation)
     ├──▶ Drizzle ORM (D1 queries)
     ├──▶ Cloudflare KV (caching)
-    └──▶ Mastra Agent (AI execution)
+    └──▶ Workers AI (AI execution)
     │
     ▼
 Streaming Response (SSE)
@@ -871,7 +871,8 @@ MIT License - see [LICENSE](LICENSE) for details.
 
 - [Next.js](https://nextjs.org/) - React framework
 - [Cloudflare Workers](https://workers.cloudflare.com/) - Edge compute
-- [Mastra](https://mastra.ai) - Agent framework
+- [Workers AI](https://developers.cloudflare.com/workers-ai/) - LLM inference
+- [Vercel AI SDK](https://sdk.vercel.ai/) - Streaming & tool calling
 - [Drizzle](https://orm.drizzle.team/) - TypeScript ORM
 - [Better Auth](https://www.better-auth.com/) - Authentication
 - [shadcn/ui](https://ui.shadcn.com/) - UI components

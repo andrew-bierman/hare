@@ -21,7 +21,7 @@ export interface ToolResult<T = unknown> {
 /**
  * Native tool definition for Cloudflare Workers.
  *
- * This replaces Mastra's createTool with a simpler, Edge-native interface.
+ * A simple, Edge-native interface for defining AI agent tools.
  */
 export interface Tool<TInput extends ZodSchema = ZodSchema, TOutput = unknown> {
 	/** Unique tool identifier */

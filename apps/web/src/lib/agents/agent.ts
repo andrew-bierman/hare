@@ -1,8 +1,8 @@
 /**
  * Edge-compatible AI Agent implementation.
  *
- * This is a lightweight agent that works with Workers AI and the AI SDK
- * without depending on @mastra/core's Node.js dependencies.
+ * This is a lightweight agent that works with Workers AI and the Vercel AI SDK.
+ * Designed to run on Cloudflare Workers without Node.js dependencies.
  */
 
 import { streamText, type CoreMessage } from 'ai'
