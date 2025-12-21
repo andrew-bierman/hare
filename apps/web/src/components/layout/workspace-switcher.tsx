@@ -1,7 +1,17 @@
 'use client'
 
-import { ChevronsUpDown } from 'lucide-react'
+import { Check, ChevronsUpDown, Plus } from 'lucide-react'
+import { useState } from 'react'
+import { toast } from 'sonner'
 import { Button } from 'web-app/components/ui/button'
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+} from 'web-app/components/ui/dialog'
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -10,28 +20,110 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from 'web-app/components/ui/dropdown-menu'
+import { Input } from 'web-app/components/ui/input'
+import { Label } from 'web-app/components/ui/label'
+import { useWorkspace } from 'web-app/components/providers/workspace-provider'
+import { useCreateWorkspace } from 'web-app/lib/api/hooks'
+import { Skeleton } from 'web-app/components/ui/skeleton'
 
 export function WorkspaceSwitcher() {
+	const { workspaces, activeWorkspace, setActiveWorkspace, isLoading } = useWorkspace()
+	const createWorkspace = useCreateWorkspace()
+	const [isCreateOpen, setIsCreateOpen] = useState(false)
+	const [newWorkspaceName, setNewWorkspaceName] = useState('')
+
+	const handleCreateWorkspace = async () => {
+		if (!newWorkspaceName.trim()) return
+
+		try {
+			const workspace = await createWorkspace.mutateAsync({
+				name: newWorkspaceName.trim(),
+			})
+			setActiveWorkspace(workspace)
+			setIsCreateOpen(false)
+			setNewWorkspaceName('')
+			toast.success('Workspace created')
+		} catch (error) {
+			toast.error(error instanceof Error ? error.message : 'Failed to create workspace')
+		}
+	}
+
+	if (isLoading) {
+		return <Skeleton className="h-10 w-full" />
+	}
+
 	return (
-		<DropdownMenu>
-			<DropdownMenuTrigger asChild>
-				<Button variant="outline" className="w-full justify-between">
-					<span className="truncate">My Workspace</span>
-					<ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-				</Button>
-			</DropdownMenuTrigger>
-			<DropdownMenuContent className="w-64" align="start">
-				<DropdownMenuLabel>Workspaces</DropdownMenuLabel>
-				<DropdownMenuSeparator />
-				<DropdownMenuItem>
-					<div className="flex flex-col gap-1">
-						<div className="font-medium">My Workspace</div>
-						<div className="text-xs text-muted-foreground">Personal workspace</div>
+		<>
+			<DropdownMenu>
+				<DropdownMenuTrigger asChild>
+					<Button variant="outline" className="w-full justify-between">
+						<span className="truncate">{activeWorkspace?.name || 'Select workspace'}</span>
+						<ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+					</Button>
+				</DropdownMenuTrigger>
+				<DropdownMenuContent className="w-64" align="start">
+					<DropdownMenuLabel>Workspaces</DropdownMenuLabel>
+					<DropdownMenuSeparator />
+					{workspaces.map((workspace) => (
+						<DropdownMenuItem
+							key={workspace.id}
+							onClick={() => setActiveWorkspace(workspace)}
+							className="flex items-center justify-between"
+						>
+							<div className="flex flex-col gap-1">
+								<div className="font-medium">{workspace.name}</div>
+								<div className="text-xs text-muted-foreground">{workspace.slug}</div>
+							</div>
+							{activeWorkspace?.id === workspace.id && (
+								<Check className="h-4 w-4 text-primary" />
+							)}
+						</DropdownMenuItem>
+					))}
+					<DropdownMenuSeparator />
+					<DropdownMenuItem onClick={() => setIsCreateOpen(true)}>
+						<Plus className="mr-2 h-4 w-4" />
+						Create workspace...
+					</DropdownMenuItem>
+				</DropdownMenuContent>
+			</DropdownMenu>
+
+			<Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+				<DialogContent>
+					<DialogHeader>
+						<DialogTitle>Create Workspace</DialogTitle>
+						<DialogDescription>
+							Create a new workspace to organize your agents and tools.
+						</DialogDescription>
+					</DialogHeader>
+					<div className="space-y-4 py-4">
+						<div className="space-y-2">
+							<Label htmlFor="workspace-name">Workspace Name</Label>
+							<Input
+								id="workspace-name"
+								placeholder="My Workspace"
+								value={newWorkspaceName}
+								onChange={(e) => setNewWorkspaceName(e.target.value)}
+								onKeyDown={(e) => {
+									if (e.key === 'Enter') {
+										handleCreateWorkspace()
+									}
+								}}
+							/>
+						</div>
 					</div>
-				</DropdownMenuItem>
-				<DropdownMenuSeparator />
-				<DropdownMenuItem>Create workspace...</DropdownMenuItem>
-			</DropdownMenuContent>
-		</DropdownMenu>
+					<DialogFooter>
+						<Button variant="outline" onClick={() => setIsCreateOpen(false)}>
+							Cancel
+						</Button>
+						<Button
+							onClick={handleCreateWorkspace}
+							disabled={!newWorkspaceName.trim() || createWorkspace.isPending}
+						>
+							{createWorkspace.isPending ? 'Creating...' : 'Create'}
+						</Button>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
+		</>
 	)
 }
