@@ -1,6 +1,6 @@
 'use client'
 
-import { Toaster } from 'web-app/components/ui/sonner'
+import { Toaster } from '@repo/ui/components/sonner'
 import { AuthProvider } from './auth-provider'
 import { QueryProvider } from './query-provider'
 import { WorkspaceProvider } from './workspace-provider'

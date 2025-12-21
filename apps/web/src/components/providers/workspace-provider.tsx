@@ -29,7 +29,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
 	const createWorkspace = useCreateWorkspace()
 	const [activeWorkspace, setActiveWorkspaceState] = useState<Workspace | null>(null)
 
-	const workspaces = data?.workspaces ?? []
+	const workspaces: Workspace[] = data?.workspaces ?? []
 
 	// Set active workspace with persistence
 	const setActiveWorkspace = useCallback((workspace: Workspace) => {
