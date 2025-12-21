@@ -3,6 +3,15 @@
 import { useCallback, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 
+// Helper to extract error message from API response
+function getErrorMessage(error: unknown, fallback: string): string {
+	if (error && typeof error === 'object' && 'error' in error && typeof error.error === 'string') {
+		return error.error
+	}
+	return fallback
+}
+
+// Explicit types matching the API schema
 export interface Message {
 	id: string
 	conversationId: string
@@ -38,7 +47,8 @@ export interface ChatStreamEvent {
 async function fetchConversations(agentId: string): Promise<{ conversations: Conversation[] }> {
 	const response = await fetch(`/api/chat/agents/${agentId}/conversations`)
 	if (!response.ok) {
-		throw new Error('Failed to fetch conversations')
+		const error = await response.json().catch(() => ({}))
+		throw new Error(getErrorMessage(error, 'Failed to fetch conversations'))
 	}
 	return response.json()
 }
@@ -46,7 +56,8 @@ async function fetchConversations(agentId: string): Promise<{ conversations: Con
 async function fetchMessages(conversationId: string): Promise<{ messages: Message[] }> {
 	const response = await fetch(`/api/chat/conversations/${conversationId}/messages`)
 	if (!response.ok) {
-		throw new Error('Failed to fetch messages')
+		const error = await response.json().catch(() => ({}))
+		throw new Error(getErrorMessage(error, 'Failed to fetch messages'))
 	}
 	return response.json()
 }
@@ -111,8 +122,8 @@ export function useChat(agentId: string | undefined) {
 				})
 
 				if (!response.ok) {
-					const errorData = await response.json()
-					throw new Error(errorData.error || 'Failed to send message')
+					const errorData = await response.json().catch(() => ({}))
+					throw new Error(getErrorMessage(errorData, 'Failed to send message'))
 				}
 
 				const reader = response.body?.getReader()

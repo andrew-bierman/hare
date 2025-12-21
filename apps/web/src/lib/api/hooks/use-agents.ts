@@ -2,6 +2,15 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
+// Helper to extract error message from API response
+function getErrorMessage(error: unknown, fallback: string): string {
+	if (error && typeof error === 'object' && 'error' in error && typeof error.error === 'string') {
+		return error.error
+	}
+	return fallback
+}
+
+// Explicit types matching the API schema
 export interface AgentConfig {
 	temperature?: number
 	maxTokens?: number
@@ -53,7 +62,8 @@ export interface DeploymentResult {
 async function fetchAgents(workspaceId: string): Promise<{ agents: Agent[] }> {
 	const response = await fetch(`/api/agents?workspaceId=${workspaceId}`)
 	if (!response.ok) {
-		throw new Error('Failed to fetch agents')
+		const error = await response.json().catch(() => ({}))
+		throw new Error(getErrorMessage(error, 'Failed to fetch agents'))
 	}
 	return response.json()
 }
@@ -61,7 +71,8 @@ async function fetchAgents(workspaceId: string): Promise<{ agents: Agent[] }> {
 async function fetchAgent(id: string, workspaceId: string): Promise<Agent> {
 	const response = await fetch(`/api/agents/${id}?workspaceId=${workspaceId}`)
 	if (!response.ok) {
-		throw new Error('Failed to fetch agent')
+		const error = await response.json().catch(() => ({}))
+		throw new Error(getErrorMessage(error, 'Failed to fetch agent'))
 	}
 	return response.json()
 }
@@ -73,8 +84,8 @@ async function createAgent(workspaceId: string, data: CreateAgentInput): Promise
 		body: JSON.stringify(data),
 	})
 	if (!response.ok) {
-		const error = await response.json()
-		throw new Error(error.error || 'Failed to create agent')
+		const error = await response.json().catch(() => ({}))
+		throw new Error(getErrorMessage(error, 'Failed to create agent'))
 	}
 	return response.json()
 }
@@ -86,8 +97,8 @@ async function updateAgent(id: string, workspaceId: string, data: UpdateAgentInp
 		body: JSON.stringify(data),
 	})
 	if (!response.ok) {
-		const error = await response.json()
-		throw new Error(error.error || 'Failed to update agent')
+		const error = await response.json().catch(() => ({}))
+		throw new Error(getErrorMessage(error, 'Failed to update agent'))
 	}
 	return response.json()
 }
@@ -97,8 +108,8 @@ async function deleteAgent(id: string, workspaceId: string): Promise<void> {
 		method: 'DELETE',
 	})
 	if (!response.ok) {
-		const error = await response.json()
-		throw new Error(error.error || 'Failed to delete agent')
+		const error = await response.json().catch(() => ({}))
+		throw new Error(getErrorMessage(error, 'Failed to delete agent'))
 	}
 }
 
@@ -109,8 +120,8 @@ async function deployAgent(id: string, workspaceId: string, version?: string): P
 		body: JSON.stringify({ version }),
 	})
 	if (!response.ok) {
-		const error = await response.json()
-		throw new Error(error.error || 'Failed to deploy agent')
+		const error = await response.json().catch(() => ({}))
+		throw new Error(getErrorMessage(error, 'Failed to deploy agent'))
 	}
 	return response.json()
 }

@@ -2,6 +2,15 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
+// Helper to extract error message from API response
+function getErrorMessage(error: unknown, fallback: string): string {
+	if (error && typeof error === 'object' && 'error' in error && typeof error.error === 'string') {
+		return error.error
+	}
+	return fallback
+}
+
+// Explicit types matching the API schema
 export type ToolType = 'http' | 'sql' | 'kv' | 'r2' | 'vectorize' | 'custom'
 
 export interface Tool {
@@ -11,6 +20,7 @@ export interface Tool {
 	type: ToolType
 	inputSchema: Record<string, unknown>
 	config?: Record<string, unknown>
+	code?: string
 	isSystem: boolean
 	createdAt: string
 	updatedAt: string
@@ -22,6 +32,7 @@ export interface CreateToolInput {
 	type: ToolType
 	inputSchema?: Record<string, unknown>
 	config?: Record<string, unknown>
+	code?: string
 }
 
 export interface UpdateToolInput {
@@ -30,6 +41,7 @@ export interface UpdateToolInput {
 	type?: ToolType
 	inputSchema?: Record<string, unknown>
 	config?: Record<string, unknown>
+	code?: string
 }
 
 async function fetchTools(workspaceId: string, includeSystem = true): Promise<{ tools: Tool[] }> {
@@ -37,7 +49,8 @@ async function fetchTools(workspaceId: string, includeSystem = true): Promise<{ 
 		`/api/tools?workspaceId=${workspaceId}&includeSystem=${includeSystem}`
 	)
 	if (!response.ok) {
-		throw new Error('Failed to fetch tools')
+		const error = await response.json().catch(() => ({}))
+		throw new Error(getErrorMessage(error, 'Failed to fetch tools'))
 	}
 	return response.json()
 }
@@ -45,7 +58,8 @@ async function fetchTools(workspaceId: string, includeSystem = true): Promise<{ 
 async function fetchTool(id: string, workspaceId: string): Promise<Tool> {
 	const response = await fetch(`/api/tools/${id}?workspaceId=${workspaceId}`)
 	if (!response.ok) {
-		throw new Error('Failed to fetch tool')
+		const error = await response.json().catch(() => ({}))
+		throw new Error(getErrorMessage(error, 'Failed to fetch tool'))
 	}
 	return response.json()
 }
@@ -57,8 +71,8 @@ async function createTool(workspaceId: string, data: CreateToolInput): Promise<T
 		body: JSON.stringify(data),
 	})
 	if (!response.ok) {
-		const error = await response.json()
-		throw new Error(error.error || 'Failed to create tool')
+		const error = await response.json().catch(() => ({}))
+		throw new Error(getErrorMessage(error, 'Failed to create tool'))
 	}
 	return response.json()
 }
@@ -70,8 +84,8 @@ async function updateTool(id: string, workspaceId: string, data: UpdateToolInput
 		body: JSON.stringify(data),
 	})
 	if (!response.ok) {
-		const error = await response.json()
-		throw new Error(error.error || 'Failed to update tool')
+		const error = await response.json().catch(() => ({}))
+		throw new Error(getErrorMessage(error, 'Failed to update tool'))
 	}
 	return response.json()
 }
@@ -81,8 +95,8 @@ async function deleteTool(id: string, workspaceId: string): Promise<void> {
 		method: 'DELETE',
 	})
 	if (!response.ok) {
-		const error = await response.json()
-		throw new Error(error.error || 'Failed to delete tool')
+		const error = await response.json().catch(() => ({}))
+		throw new Error(getErrorMessage(error, 'Failed to delete tool'))
 	}
 }
 
