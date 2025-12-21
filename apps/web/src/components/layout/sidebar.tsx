@@ -1,9 +1,10 @@
 'use client'
 
-import { Bot, Home, Settings, TrendingUp, Wrench } from 'lucide-react'
+import { Activity, Bot, Home, Settings, Sparkles, Wrench } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@workspace/ui/lib/utils'
+import { Badge } from '@workspace/ui/components/badge'
 import { WorkspaceSwitcher } from './workspace-switcher'
 
 const routes = [
@@ -11,64 +12,106 @@ const routes = [
 		label: 'Dashboard',
 		icon: Home,
 		href: '/dashboard',
-		color: 'text-zinc-500',
 	},
 	{
 		label: 'Agents',
 		icon: Bot,
 		href: '/dashboard/agents',
-		color: 'text-violet-500',
 	},
 	{
 		label: 'Tools',
 		icon: Wrench,
 		href: '/dashboard/tools',
-		color: 'text-pink-700',
 	},
 	{
 		label: 'Usage',
-		icon: TrendingUp,
+		icon: Activity,
 		href: '/dashboard/usage',
-		color: 'text-emerald-500',
 	},
 	{
 		label: 'Settings',
 		icon: Settings,
 		href: '/dashboard/settings',
-		color: 'text-zinc-500',
 	},
 ]
 
 export function Sidebar() {
 	const pathname = usePathname()
 
+	const isActive = (href: string) => {
+		if (href === '/dashboard') {
+			return pathname === href
+		}
+		return pathname.startsWith(href)
+	}
+
 	return (
-		<div className="space-y-4 py-4 flex flex-col h-full bg-sidebar text-sidebar-foreground border-r border-sidebar-border">
-			<div className="px-3 py-2 flex-1">
-				<Link href="/dashboard" className="flex items-center pl-3 mb-6">
-					<h1 className="text-2xl font-bold">Hare</h1>
+		<div className="flex flex-col h-full bg-sidebar text-sidebar-foreground border-r border-sidebar-border">
+			{/* Logo */}
+			<div className="p-6">
+				<Link href="/dashboard" className="flex items-center gap-2">
+					<div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
+						<Sparkles className="h-4 w-4 text-primary-foreground" />
+					</div>
+					<span className="font-bold text-xl">Hare</span>
+					<Badge variant="secondary" className="ml-1 text-[10px] px-1.5 py-0">
+						Beta
+					</Badge>
 				</Link>
-				<div className="mb-4 px-3">
-					<WorkspaceSwitcher />
-				</div>
+			</div>
+
+			{/* Workspace Switcher */}
+			<div className="px-4 mb-2">
+				<WorkspaceSwitcher />
+			</div>
+
+			{/* Navigation */}
+			<nav className="flex-1 px-4 py-4">
 				<div className="space-y-1">
-					{routes.map((route) => (
-						<Link
-							key={route.href}
-							href={route.href}
-							className={cn(
-								'text-sm group flex p-3 w-full justify-start font-medium cursor-pointer hover:bg-sidebar-accent hover:text-sidebar-accent-foreground rounded-lg transition',
-								pathname === route.href
-									? 'bg-sidebar-accent text-sidebar-accent-foreground'
-									: 'text-sidebar-foreground',
-							)}
-						>
-							<div className="flex items-center flex-1">
-								<route.icon className={cn('h-5 w-5 mr-3', route.color)} />
+					{routes.map((route) => {
+						const active = isActive(route.href)
+						return (
+							<Link
+								key={route.href}
+								href={route.href}
+								className={cn(
+									'group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all',
+									active
+										? 'bg-primary text-primary-foreground shadow-sm'
+										: 'text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
+								)}
+							>
+								<route.icon
+									className={cn(
+										'h-4 w-4 transition-colors',
+										active
+											? 'text-primary-foreground'
+											: 'text-muted-foreground group-hover:text-sidebar-accent-foreground'
+									)}
+								/>
 								{route.label}
-							</div>
-						</Link>
-					))}
+							</Link>
+						)
+					})}
+				</div>
+			</nav>
+
+			{/* Footer */}
+			<div className="p-4 border-t border-sidebar-border">
+				<div className="rounded-lg bg-sidebar-accent/50 p-4">
+					<div className="flex items-center gap-2 mb-2">
+						<Sparkles className="h-4 w-4 text-primary" />
+						<span className="text-sm font-medium">Need help?</span>
+					</div>
+					<p className="text-xs text-muted-foreground mb-3">
+						Check out the documentation or join our community.
+					</p>
+					<Link
+						href="/docs"
+						className="text-xs font-medium text-primary hover:underline"
+					>
+						View Docs →
+					</Link>
 				</div>
 			</div>
 		</div>
