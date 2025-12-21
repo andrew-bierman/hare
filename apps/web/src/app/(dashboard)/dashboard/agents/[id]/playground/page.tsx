@@ -3,17 +3,17 @@
 import { Bot, RotateCcw, Send, User } from 'lucide-react'
 import { useParams, useRouter } from 'next/navigation'
 import { useEffect, useRef } from 'react'
-import { Badge } from 'web-app/components/ui/badge'
-import { Button } from 'web-app/components/ui/button'
+import { Badge } from '@repo/ui/components/badge'
+import { Button } from '@repo/ui/components/button'
 import {
 	Card,
 	CardContent,
 	CardDescription,
 	CardHeader,
 	CardTitle,
-} from 'web-app/components/ui/card'
-import { Input } from 'web-app/components/ui/input'
-import { Skeleton } from 'web-app/components/ui/skeleton'
+} from '@repo/ui/components/card'
+import { Input } from '@repo/ui/components/input'
+import { Skeleton } from '@repo/ui/components/skeleton'
 import { useWorkspace } from 'web-app/components/providers/workspace-provider'
 import { useAgent, useChat, AVAILABLE_MODELS } from 'web-app/lib/api/hooks'
 

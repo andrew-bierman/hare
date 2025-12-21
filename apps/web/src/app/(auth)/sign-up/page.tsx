@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { type FormEvent, useState } from 'react'
 import { toast } from 'sonner'
-import { Button } from 'web-app/components/ui/button'
+import { Button } from '@repo/ui/components/button'
 import {
 	Card,
 	CardContent,
@@ -12,9 +12,9 @@ import {
 	CardFooter,
 	CardHeader,
 	CardTitle,
-} from 'web-app/components/ui/card'
-import { Input } from 'web-app/components/ui/input'
-import { Label } from 'web-app/components/ui/label'
+} from '@repo/ui/components/card'
+import { Input } from '@repo/ui/components/input'
+import { Label } from '@repo/ui/components/label'
 import { signUp } from 'web-app/lib/auth-client'
 
 export default function SignUpPage() {

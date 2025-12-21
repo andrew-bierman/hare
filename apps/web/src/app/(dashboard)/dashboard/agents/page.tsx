@@ -3,8 +3,8 @@
 import { Bot, Plus, Search } from 'lucide-react'
 import Link from 'next/link'
 import { useState } from 'react'
-import { Badge } from 'web-app/components/ui/badge'
-import { Button } from 'web-app/components/ui/button'
+import { Badge } from '@repo/ui/components/badge'
+import { Button } from '@repo/ui/components/button'
 import {
 	Card,
 	CardContent,
@@ -12,11 +12,11 @@ import {
 	CardFooter,
 	CardHeader,
 	CardTitle,
-} from 'web-app/components/ui/card'
-import { Input } from 'web-app/components/ui/input'
-import { Skeleton } from 'web-app/components/ui/skeleton'
+} from '@repo/ui/components/card'
+import { Input } from '@repo/ui/components/input'
+import { Skeleton } from '@repo/ui/components/skeleton'
 import { useWorkspace } from 'web-app/components/providers/workspace-provider'
-import { useAgents, AVAILABLE_MODELS } from 'web-app/lib/api/hooks'
+import { useAgents, AVAILABLE_MODELS, type Agent } from 'web-app/lib/api/hooks'
 
 function AgentCardSkeleton() {
 	return (
@@ -66,7 +66,7 @@ export default function AgentsPage() {
 	const { data, isLoading, error } = useAgents(activeWorkspace?.id)
 	const [search, setSearch] = useState('')
 
-	const agents = data?.agents ?? []
+	const agents: Agent[] = data?.agents ?? []
 	const filteredAgents = agents.filter(
 		(agent) =>
 			agent.name.toLowerCase().includes(search.toLowerCase()) ||

@@ -4,15 +4,15 @@ import { useParams, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { Rocket, Trash2 } from 'lucide-react'
-import { Badge } from 'web-app/components/ui/badge'
-import { Button } from 'web-app/components/ui/button'
+import { Badge } from '@repo/ui/components/badge'
+import { Button } from '@repo/ui/components/button'
 import {
 	Card,
 	CardContent,
 	CardDescription,
 	CardHeader,
 	CardTitle,
-} from 'web-app/components/ui/card'
+} from '@repo/ui/components/card'
 import {
 	Dialog,
 	DialogContent,
@@ -20,20 +20,20 @@ import {
 	DialogFooter,
 	DialogHeader,
 	DialogTitle,
-} from 'web-app/components/ui/dialog'
-import { Input } from 'web-app/components/ui/input'
-import { Label } from 'web-app/components/ui/label'
+} from '@repo/ui/components/dialog'
+import { Input } from '@repo/ui/components/input'
+import { Label } from '@repo/ui/components/label'
 import {
 	Select,
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
 	SelectValue,
-} from 'web-app/components/ui/select'
-import { Skeleton } from 'web-app/components/ui/skeleton'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from 'web-app/components/ui/tabs'
-import { Textarea } from 'web-app/components/ui/textarea'
-import { Checkbox } from 'web-app/components/ui/checkbox'
+} from '@repo/ui/components/select'
+import { Skeleton } from '@repo/ui/components/skeleton'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@repo/ui/components/tabs'
+import { Textarea } from '@repo/ui/components/textarea'
+import { Checkbox } from '@repo/ui/components/checkbox'
 import { useWorkspace } from 'web-app/components/providers/workspace-provider'
 import {
 	useAgent,

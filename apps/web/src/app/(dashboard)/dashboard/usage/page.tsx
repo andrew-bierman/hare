@@ -7,10 +7,10 @@ import {
 	CardDescription,
 	CardHeader,
 	CardTitle,
-} from 'web-app/components/ui/card'
-import { Skeleton } from 'web-app/components/ui/skeleton'
+} from '@repo/ui/components/card'
+import { Skeleton } from '@repo/ui/components/skeleton'
 import { useWorkspace } from 'web-app/components/providers/workspace-provider'
-import { useUsage, useAgents } from 'web-app/lib/api/hooks'
+import { useUsage, useAgents, type Agent } from 'web-app/lib/api/hooks'
 
 function StatCardSkeleton() {
 	return (
@@ -34,7 +34,7 @@ export default function UsagePage() {
 
 	const isLoading = workspaceLoading || usageLoading || agentsLoading
 
-	const agents = agentsData?.agents ?? []
+	const agents: Agent[] = agentsData?.agents ?? []
 	const deployedAgents = agents.filter((a) => a.status === 'deployed')
 
 	const formatNumber = (num: number) => {

@@ -2,17 +2,17 @@
 
 import { Bot, MessageSquare, Plus, TrendingUp, Wrench } from 'lucide-react'
 import Link from 'next/link'
-import { Button } from 'web-app/components/ui/button'
+import { Button } from '@repo/ui/components/button'
 import {
 	Card,
 	CardContent,
 	CardDescription,
 	CardHeader,
 	CardTitle,
-} from 'web-app/components/ui/card'
-import { Skeleton } from 'web-app/components/ui/skeleton'
+} from '@repo/ui/components/card'
+import { Skeleton } from '@repo/ui/components/skeleton'
 import { useWorkspace } from 'web-app/components/providers/workspace-provider'
-import { useAgents, useUsage, AVAILABLE_MODELS } from 'web-app/lib/api/hooks'
+import { useAgents, useUsage, AVAILABLE_MODELS, type Agent } from 'web-app/lib/api/hooks'
 
 function StatCardSkeleton() {
 	return (
@@ -34,7 +34,7 @@ export default function DashboardPage() {
 	const { data: agentsData, isLoading: agentsLoading } = useAgents(activeWorkspace?.id)
 	const { data: usageData, isLoading: usageLoading } = useUsage(activeWorkspace?.id)
 
-	const agents = agentsData?.agents ?? []
+	const agents: Agent[] = agentsData?.agents ?? []
 	const deployedAgents = agents.filter((a) => a.status === 'deployed')
 	const recentAgents = agents.slice(0, 5)
 

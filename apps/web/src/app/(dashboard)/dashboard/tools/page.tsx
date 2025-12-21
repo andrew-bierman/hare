@@ -3,8 +3,8 @@
 import { Code, Database, Globe, HardDrive, Plus, Search, Trash2, Wrench } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
-import { Badge } from 'web-app/components/ui/badge'
-import { Button } from 'web-app/components/ui/button'
+import { Badge } from '@repo/ui/components/badge'
+import { Button } from '@repo/ui/components/button'
 import {
 	Card,
 	CardContent,
@@ -12,7 +12,7 @@ import {
 	CardFooter,
 	CardHeader,
 	CardTitle,
-} from 'web-app/components/ui/card'
+} from '@repo/ui/components/card'
 import {
 	Dialog,
 	DialogContent,
@@ -20,18 +20,18 @@ import {
 	DialogFooter,
 	DialogHeader,
 	DialogTitle,
-} from 'web-app/components/ui/dialog'
-import { Input } from 'web-app/components/ui/input'
-import { Label } from 'web-app/components/ui/label'
+} from '@repo/ui/components/dialog'
+import { Input } from '@repo/ui/components/input'
+import { Label } from '@repo/ui/components/label'
 import {
 	Select,
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
 	SelectValue,
-} from 'web-app/components/ui/select'
-import { Skeleton } from 'web-app/components/ui/skeleton'
-import { Textarea } from 'web-app/components/ui/textarea'
+} from '@repo/ui/components/select'
+import { Skeleton } from '@repo/ui/components/skeleton'
+import { Textarea } from '@repo/ui/components/textarea'
 import { useWorkspace } from 'web-app/components/providers/workspace-provider'
 import {
 	useTools,
@@ -105,7 +105,7 @@ export default function ToolsPage() {
 	const [newType, setNewType] = useState<ToolType>('http')
 	const [newConfig, setNewConfig] = useState('')
 
-	const tools = data?.tools ?? []
+	const tools: Tool[] = data?.tools ?? []
 	const filteredTools = tools.filter(
 		(tool) =>
 			tool.name.toLowerCase().includes(search.toLowerCase()) ||
