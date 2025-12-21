@@ -21,6 +21,7 @@
 		"test:headed": "playwright test --headed"
 	},
 	"dependencies": {
+		"@repo/ui": "workspace:*",
 		"@ai-sdk/provider": "^2.0.0",
 		"@ai-sdk/provider-utils": "^3.0.19",
 		"@hono/zod-openapi": "^1.1.5",
