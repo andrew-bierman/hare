@@ -1,13 +1,11 @@
-import type { Database } from 'web-app/db/types'
+import type { Database, MessageMetadata } from 'web-app/db/types'
 import type { CoreMessage } from 'ai'
 import { eq, desc, and, like } from 'drizzle-orm'
 import { messages, conversations } from 'web-app/db/schema'
 import { generateEmbedding } from './providers/workers-ai'
+import { type MessageRole, isMessageRole } from 'web-app/lib/api/types'
 
-/**
- * Message role type matching our schema.
- */
-export type MessageRole = 'user' | 'assistant' | 'system' | 'tool'
+export type { MessageRole }
 
 /**
  * Conversation message structure.
@@ -18,14 +16,14 @@ export interface ConversationMessage {
 	role: MessageRole
 	content: string
 	createdAt: Date
-	metadata?: Record<string, unknown>
+	metadata?: MessageMetadata
 }
 
 /**
  * Memory store interface for conversation history.
  */
 export interface MemoryStore {
-	saveMessage(conversationId: string, role: MessageRole, content: string, metadata?: Record<string, unknown>): Promise<string>
+	saveMessage(conversationId: string, role: MessageRole, content: string, metadata?: MessageMetadata): Promise<string>
 	getMessages(conversationId: string, limit?: number): Promise<ConversationMessage[]>
 	getOrCreateConversation(agentId: string, userId: string, title?: string): Promise<string>
 	searchMessages(conversationId: string, query: string, limit?: number): Promise<ConversationMessage[]>
@@ -79,7 +77,7 @@ export class D1MemoryStore implements MemoryStore {
 	/**
 	 * Save a message to the conversation.
 	 */
-	async saveMessage(conversationId: string, role: MessageRole, content: string, metadata?: Record<string, unknown>): Promise<string> {
+	async saveMessage(conversationId: string, role: MessageRole, content: string, metadata?: MessageMetadata): Promise<string> {
 		// Save to D1 using Drizzle
 		const inserted = await this.db
 			.insert(messages)
@@ -87,7 +85,7 @@ export class D1MemoryStore implements MemoryStore {
 				conversationId,
 				role,
 				content,
-				metadata: metadata as Record<string, unknown>,
+				metadata,
 			})
 			.returning({ id: messages.id })
 
@@ -133,21 +131,41 @@ export class D1MemoryStore implements MemoryStore {
 			.orderBy(desc(messages.createdAt))
 			.limit(limit)
 
-		// Reverse to get chronological order
-		return results.reverse().map((row) => ({
-			id: row.id,
-			conversationId: row.conversationId,
-			role: row.role as MessageRole,
-			content: row.content,
-			createdAt: row.createdAt,
-			metadata: row.metadata as Record<string, unknown> | undefined,
-		}))
+		// Reverse to get chronological order and validate roles
+		return results.reverse().map((row) => {
+			if (!isMessageRole(row.role)) {
+				throw new Error(`Invalid message role in database: ${row.role}`)
+			}
+			return {
+				id: row.id,
+				conversationId: row.conversationId,
+				role: row.role,
+				content: row.content,
+				createdAt: row.createdAt,
+				metadata: row.metadata ?? undefined,
+			}
+		})
 	}
 
 	/**
 	 * Search messages using semantic search or text fallback.
 	 */
 	async searchMessages(conversationId: string, query: string, limit = 10): Promise<ConversationMessage[]> {
+		// Helper to convert DB row to ConversationMessage with validation
+		const toConversationMessage = (row: typeof messages.$inferSelect): ConversationMessage => {
+			if (!isMessageRole(row.role)) {
+				throw new Error(`Invalid message role in database: ${row.role}`)
+			}
+			return {
+				id: row.id,
+				conversationId: row.conversationId,
+				role: row.role,
+				content: row.content,
+				createdAt: row.createdAt,
+				metadata: row.metadata ?? undefined,
+			}
+		}
+
 		// Try semantic search with Vectorize
 		if (this.vectorize && this.ai) {
 			try {
@@ -168,14 +186,7 @@ export class D1MemoryStore implements MemoryStore {
 					// Filter to matching IDs and sort by score
 					const matchedMessages = messagesResult.filter((m) => messageIds.includes(m.id))
 
-					return matchedMessages.map((row) => ({
-						id: row.id,
-						conversationId: row.conversationId,
-						role: row.role as MessageRole,
-						content: row.content,
-						createdAt: row.createdAt,
-						metadata: row.metadata as Record<string, unknown> | undefined,
-					}))
+					return matchedMessages.map(toConversationMessage)
 				}
 			} catch (error) {
 				console.error('Vectorize search failed, falling back to text search:', error)
@@ -190,14 +201,7 @@ export class D1MemoryStore implements MemoryStore {
 			.orderBy(desc(messages.createdAt))
 			.limit(limit)
 
-		return results.map((row) => ({
-			id: row.id,
-			conversationId: row.conversationId,
-			role: row.role as MessageRole,
-			content: row.content,
-			createdAt: row.createdAt,
-			metadata: row.metadata as Record<string, unknown> | undefined,
-		}))
+		return results.map(toConversationMessage)
 	}
 
 	/**

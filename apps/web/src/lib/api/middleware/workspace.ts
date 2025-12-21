@@ -3,8 +3,9 @@ import { eq, and } from 'drizzle-orm'
 import { getDb } from '../db'
 import { workspaces, workspaceMembers } from 'web-app/db/schema'
 import type { AuthVariables } from './auth'
+import { type WorkspaceRole, isWorkspaceRole } from '../types'
 
-export type WorkspaceRole = 'owner' | 'admin' | 'member' | 'viewer'
+export type { WorkspaceRole }
 
 export interface WorkspaceInfo {
 	id: string
@@ -71,13 +72,19 @@ export const workspaceMiddleware: MiddlewareHandler<{ Variables: WorkspaceVariab
 		return c.json({ error: 'Access denied to workspace' }, 403)
 	}
 
+	// Validate role from database
+	if (!isWorkspaceRole(membership.role)) {
+		console.error(`Invalid workspace role in database: ${membership.role}`)
+		return c.json({ error: 'Invalid workspace configuration' }, 500)
+	}
+
 	c.set('workspace', {
 		id: workspace.id,
 		name: workspace.name,
 		slug: workspace.slug,
 		ownerId: workspace.ownerId,
 	})
-	c.set('workspaceRole', membership.role as WorkspaceRole)
+	c.set('workspaceRole', membership.role)
 
 	await next()
 }
