@@ -5,7 +5,7 @@ export default defineConfig({
   resolve: {
     alias: {
       "web-app": path.resolve(__dirname, "./apps/web/src"),
-      "@repo/ui": path.resolve(__dirname, "./packages/ui/src"),
+      "@workspace/ui": path.resolve(__dirname, "./packages/ui/src"),
     },
   },
   test: {
