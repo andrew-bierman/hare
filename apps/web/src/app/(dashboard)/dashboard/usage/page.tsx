@@ -1,4 +1,6 @@
-import { Activity, Calendar, CreditCard, TrendingUp } from 'lucide-react'
+'use client'
+
+import { Activity, Bot, Calendar, TrendingUp } from 'lucide-react'
 import {
 	Card,
 	CardContent,
@@ -6,45 +8,75 @@ import {
 	CardHeader,
 	CardTitle,
 } from 'web-app/components/ui/card'
+import { Skeleton } from 'web-app/components/ui/skeleton'
+import { useWorkspace } from 'web-app/components/providers/workspace-provider'
+import { useUsage, useAgents } from 'web-app/lib/api/hooks'
+
+function StatCardSkeleton() {
+	return (
+		<Card>
+			<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+				<Skeleton className="h-4 w-32" />
+				<Skeleton className="h-4 w-4" />
+			</CardHeader>
+			<CardContent>
+				<Skeleton className="h-8 w-20 mb-1" />
+				<Skeleton className="h-3 w-28" />
+			</CardContent>
+		</Card>
+	)
+}
 
 export default function UsagePage() {
+	const { activeWorkspace, isLoading: workspaceLoading } = useWorkspace()
+	const { data: usageData, isLoading: usageLoading } = useUsage(activeWorkspace?.id)
+	const { data: agentsData, isLoading: agentsLoading } = useAgents(activeWorkspace?.id)
+
+	const isLoading = workspaceLoading || usageLoading || agentsLoading
+
+	const agents = agentsData?.agents ?? []
+	const deployedAgents = agents.filter((a) => a.status === 'deployed')
+
+	const formatNumber = (num: number) => {
+		if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`
+		if (num >= 1000) return `${(num / 1000).toFixed(1)}K`
+		return num.toString()
+	}
+
+	const formatDate = (dateStr: string) => {
+		const date = new Date(dateStr)
+		return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+	}
+
 	const stats = [
 		{
-			title: 'API Calls This Month',
-			value: '24,521',
-			description: '+12% from last month',
+			title: 'Total API Calls',
+			value: formatNumber(usageData?.totalCalls ?? 0),
+			description: 'This billing period',
 			icon: Activity,
 			color: 'text-blue-500',
 		},
 		{
-			title: 'Tokens Used',
-			value: '1.2M',
-			description: '800K remaining',
+			title: 'Total Tokens',
+			value: formatNumber(usageData?.totalTokens ?? 0),
+			description: `${formatNumber(usageData?.inputTokens ?? 0)} input / ${formatNumber(usageData?.outputTokens ?? 0)} output`,
 			icon: TrendingUp,
 			color: 'text-emerald-500',
 		},
 		{
-			title: 'Current Plan',
-			value: 'Pro',
-			description: '$49/month',
-			icon: CreditCard,
+			title: 'Active Agents',
+			value: deployedAgents.length.toString(),
+			description: `${agents.length} total agents`,
+			icon: Bot,
 			color: 'text-violet-500',
 		},
 		{
-			title: 'Billing Cycle',
-			value: 'Dec 20',
-			description: 'Next renewal',
+			title: 'Period',
+			value: usageData?.periodStart ? formatDate(usageData.periodStart) : 'N/A',
+			description: usageData?.periodEnd ? `to ${formatDate(usageData.periodEnd)}` : '',
 			icon: Calendar,
 			color: 'text-orange-500',
 		},
-	]
-
-	const usageHistory = [
-		{ date: 'Dec 19', calls: 892, tokens: 45000 },
-		{ date: 'Dec 18', calls: 1045, tokens: 52000 },
-		{ date: 'Dec 17', calls: 756, tokens: 38000 },
-		{ date: 'Dec 16', calls: 934, tokens: 47000 },
-		{ date: 'Dec 15', calls: 1123, tokens: 56000 },
 	]
 
 	return (
@@ -54,46 +86,113 @@ export default function UsagePage() {
 			</div>
 
 			<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-				{stats.map((stat) => (
-					<Card key={stat.title}>
-						<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-							<CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
-							<stat.icon className={`h-4 w-4 ${stat.color}`} />
-						</CardHeader>
-						<CardContent>
-							<div className="text-2xl font-bold">{stat.value}</div>
-							<p className="text-xs text-muted-foreground">{stat.description}</p>
-						</CardContent>
-					</Card>
-				))}
+				{isLoading
+					? [...Array(4)].map((_, i) => <StatCardSkeleton key={i} />)
+					: stats.map((stat) => (
+							<Card key={stat.title}>
+								<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+									<CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
+									<stat.icon className={`h-4 w-4 ${stat.color}`} />
+								</CardHeader>
+								<CardContent>
+									<div className="text-2xl font-bold">{stat.value}</div>
+									<p className="text-xs text-muted-foreground">{stat.description}</p>
+								</CardContent>
+							</Card>
+						))}
+			</div>
+
+			<div className="grid gap-4 md:grid-cols-2">
+				<Card>
+					<CardHeader>
+						<CardTitle>Token Breakdown</CardTitle>
+						<CardDescription>Input vs output tokens this period</CardDescription>
+					</CardHeader>
+					<CardContent>
+						{isLoading ? (
+							<div className="space-y-4">
+								<Skeleton className="h-12 w-full" />
+								<Skeleton className="h-12 w-full" />
+							</div>
+						) : (
+							<div className="space-y-4">
+								<div className="flex items-center justify-between p-4 border rounded-lg">
+									<div>
+										<div className="font-medium">Input Tokens</div>
+										<div className="text-sm text-muted-foreground">Tokens sent to the model</div>
+									</div>
+									<div className="text-2xl font-bold">
+										{formatNumber(usageData?.inputTokens ?? 0)}
+									</div>
+								</div>
+								<div className="flex items-center justify-between p-4 border rounded-lg">
+									<div>
+										<div className="font-medium">Output Tokens</div>
+										<div className="text-sm text-muted-foreground">Tokens generated by the model</div>
+									</div>
+									<div className="text-2xl font-bold">
+										{formatNumber(usageData?.outputTokens ?? 0)}
+									</div>
+								</div>
+							</div>
+						)}
+					</CardContent>
+				</Card>
+
+				<Card>
+					<CardHeader>
+						<CardTitle>Usage by Agent</CardTitle>
+						<CardDescription>Token usage per deployed agent</CardDescription>
+					</CardHeader>
+					<CardContent>
+						{isLoading ? (
+							<div className="space-y-4">
+								{[...Array(3)].map((_, i) => (
+									<Skeleton key={i} className="h-12 w-full" />
+								))}
+							</div>
+						) : deployedAgents.length === 0 ? (
+							<div className="text-center py-8 text-muted-foreground">
+								<Bot className="h-8 w-8 mx-auto mb-2 opacity-50" />
+								<p>No deployed agents yet</p>
+							</div>
+						) : (
+							<div className="space-y-4">
+								{deployedAgents.slice(0, 5).map((agent) => (
+									<div
+										key={agent.id}
+										className="flex items-center justify-between p-4 border rounded-lg"
+									>
+										<div>
+											<div className="font-medium">{agent.name}</div>
+											<div className="text-sm text-muted-foreground">
+												{agent.toolIds.length} tools
+											</div>
+										</div>
+										<div className="text-right">
+											<div className="font-medium text-emerald-600">Active</div>
+										</div>
+									</div>
+								))}
+							</div>
+						)}
+					</CardContent>
+				</Card>
 			</div>
 
 			<Card>
 				<CardHeader>
-					<CardTitle>Usage History</CardTitle>
-					<CardDescription>Daily API usage for the past 5 days</CardDescription>
+					<CardTitle>About Usage Tracking</CardTitle>
 				</CardHeader>
-				<CardContent>
-					<div className="space-y-4">
-						{usageHistory.map((day) => (
-							<div
-								key={day.date}
-								className="flex items-center justify-between p-4 border rounded-lg"
-							>
-								<div className="font-medium">{day.date}</div>
-								<div className="flex items-center gap-8">
-									<div className="text-sm">
-										<span className="text-muted-foreground">Calls: </span>
-										<span className="font-medium">{day.calls.toLocaleString()}</span>
-									</div>
-									<div className="text-sm">
-										<span className="text-muted-foreground">Tokens: </span>
-										<span className="font-medium">{day.tokens.toLocaleString()}</span>
-									</div>
-								</div>
-							</div>
-						))}
-					</div>
+				<CardContent className="text-sm text-muted-foreground space-y-2">
+					<p>
+						Usage is tracked automatically for all API calls made through your agents.
+						Token counts include both input (your messages and context) and output (AI responses).
+					</p>
+					<p>
+						All usage is billed according to your Cloudflare Workers AI pricing.
+						Vectorize operations and storage usage are billed separately.
+					</p>
 				</CardContent>
 			</Card>
 		</div>
