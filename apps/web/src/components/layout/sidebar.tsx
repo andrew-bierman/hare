@@ -3,7 +3,7 @@
 import { Bot, Home, Settings, TrendingUp, Wrench } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { cn } from 'web-app/lib/utils'
+import { cn } from '@repo/ui/lib/utils'
 import { WorkspaceSwitcher } from './workspace-switcher'
 
 const routes = [

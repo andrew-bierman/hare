@@ -1,8 +1,8 @@
 'use client'
 
 import { LogOut, Settings, User } from 'lucide-react'
-import { Avatar, AvatarFallback, AvatarImage } from 'web-app/components/ui/avatar'
-import { Button } from 'web-app/components/ui/button'
+import { Avatar, AvatarFallback, AvatarImage } from '@repo/ui/components/avatar'
+import { Button } from '@repo/ui/components/button'
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -10,7 +10,7 @@ import {
 	DropdownMenuLabel,
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
-} from 'web-app/components/ui/dropdown-menu'
+} from '@repo/ui/components/dropdown-menu'
 
 export function UserNav() {
 	return (

@@ -3,7 +3,7 @@
 import { Check, ChevronsUpDown, Plus } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
-import { Button } from 'web-app/components/ui/button'
+import { Button } from '@repo/ui/components/button'
 import {
 	Dialog,
 	DialogContent,
@@ -11,7 +11,7 @@ import {
 	DialogFooter,
 	DialogHeader,
 	DialogTitle,
-} from 'web-app/components/ui/dialog'
+} from '@repo/ui/components/dialog'
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -19,12 +19,12 @@ import {
 	DropdownMenuLabel,
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
-} from 'web-app/components/ui/dropdown-menu'
-import { Input } from 'web-app/components/ui/input'
-import { Label } from 'web-app/components/ui/label'
+} from '@repo/ui/components/dropdown-menu'
+import { Input } from '@repo/ui/components/input'
+import { Label } from '@repo/ui/components/label'
+import { Skeleton } from '@repo/ui/components/skeleton'
 import { useWorkspace } from 'web-app/components/providers/workspace-provider'
 import { useCreateWorkspace } from 'web-app/lib/api/hooks'
-import { Skeleton } from 'web-app/components/ui/skeleton'
 
 export function WorkspaceSwitcher() {
 	const { workspaces, activeWorkspace, setActiveWorkspace, isLoading } = useWorkspace()
