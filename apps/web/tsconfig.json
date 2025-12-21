@@ -1,26 +1,20 @@
 {
-  "extends": "../../tsconfig.json",
-  "strict": true,
-  "compilerOptions": {
-    "plugins": [
-      {
-        "name": "next"
-      }
-    ],
-    "types": [
-      "node",
-      "@cloudflare/workers-types"
-    ],
-    "allowJs": true
-  },
-  "include": [
-    "next-env.d.ts",
-    "**/*.ts",
-    "**/*.tsx",
-    ".next/types/**/*.ts",
-    "cloudflare-env.d.ts"
-  ],
-  "exclude": [
-    "node_modules"
-  ]
+	"extends": "@workspace/typescript-config/nextjs.json",
+	"compilerOptions": {
+		"baseUrl": ".",
+		"paths": {
+			"@/*": ["./src/*"],
+			"@workspace/ui/*": ["../../packages/ui/src/*"]
+		},
+		"types": ["node", "@cloudflare/workers-types"],
+		"plugins": [{ "name": "next" }]
+	},
+	"include": [
+		"next-env.d.ts",
+		"**/*.ts",
+		"**/*.tsx",
+		".next/types/**/*.ts",
+		"cloudflare-env.d.ts"
+	],
+	"exclude": ["node_modules"]
 }
