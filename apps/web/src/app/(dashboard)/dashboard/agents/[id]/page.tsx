@@ -1,3 +1,9 @@
+'use client'
+
+import { useParams, useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
+import { toast } from 'sonner'
+import { Rocket, Trash2 } from 'lucide-react'
 import { Badge } from 'web-app/components/ui/badge'
 import { Button } from 'web-app/components/ui/button'
 import {
@@ -7,6 +13,14 @@ import {
 	CardHeader,
 	CardTitle,
 } from 'web-app/components/ui/card'
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+} from 'web-app/components/ui/dialog'
 import { Input } from 'web-app/components/ui/input'
 import { Label } from 'web-app/components/ui/label'
 import {
@@ -16,26 +30,208 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from 'web-app/components/ui/select'
+import { Skeleton } from 'web-app/components/ui/skeleton'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from 'web-app/components/ui/tabs'
 import { Textarea } from 'web-app/components/ui/textarea'
+import { Checkbox } from 'web-app/components/ui/checkbox'
+import { useWorkspace } from 'web-app/components/providers/workspace-provider'
+import {
+	useAgent,
+	useUpdateAgent,
+	useDeleteAgent,
+	useDeployAgent,
+	useTools,
+	useAgentUsage,
+	AVAILABLE_MODELS,
+	type Tool,
+} from 'web-app/lib/api/hooks'
 
-export default async function AgentBuilderPage({ params }: { params: Promise<{ id: string }> }) {
-	const { id: _id } = await params
+function LoadingSkeleton() {
+	return (
+		<div className="flex-1 space-y-4 p-8 pt-6">
+			<div className="flex items-center justify-between">
+				<div className="space-y-2">
+					<Skeleton className="h-9 w-64" />
+					<Skeleton className="h-5 w-96" />
+				</div>
+				<div className="flex gap-2">
+					<Skeleton className="h-10 w-24" />
+					<Skeleton className="h-10 w-32" />
+				</div>
+			</div>
+			<Skeleton className="h-10 w-80" />
+			<div className="grid gap-4 md:grid-cols-3">
+				<div className="md:col-span-2">
+					<Skeleton className="h-64 w-full" />
+				</div>
+				<Skeleton className="h-48 w-full" />
+			</div>
+		</div>
+	)
+}
+
+export default function AgentBuilderPage() {
+	const params = useParams()
+	const router = useRouter()
+	const agentId = params.id as string
+
+	const { activeWorkspace } = useWorkspace()
+	const { data: agent, isLoading, error } = useAgent(agentId, activeWorkspace?.id)
+	const { data: toolsData } = useTools(activeWorkspace?.id)
+	const { data: usageData } = useAgentUsage(agentId, activeWorkspace?.id)
+	const updateAgent = useUpdateAgent(activeWorkspace?.id)
+	const deleteAgent = useDeleteAgent(activeWorkspace?.id)
+	const deployAgent = useDeployAgent(activeWorkspace?.id)
+
+	const [name, setName] = useState('')
+	const [description, setDescription] = useState('')
+	const [model, setModel] = useState('')
+	const [instructions, setInstructions] = useState('')
+	const [selectedToolIds, setSelectedToolIds] = useState<string[]>([])
+	const [isDeleteOpen, setIsDeleteOpen] = useState(false)
+	const [hasChanges, setHasChanges] = useState(false)
+
+	const tools = toolsData?.tools ?? []
+
+	// Initialize form with agent data
+	useEffect(() => {
+		if (agent) {
+			setName(agent.name)
+			setDescription(agent.description || '')
+			setModel(agent.model)
+			setInstructions(agent.instructions || '')
+			setSelectedToolIds(agent.toolIds || [])
+		}
+	}, [agent])
+
+	// Track changes
+	useEffect(() => {
+		if (agent) {
+			const changed =
+				name !== agent.name ||
+				description !== (agent.description || '') ||
+				model !== agent.model ||
+				instructions !== (agent.instructions || '') ||
+				JSON.stringify(selectedToolIds.sort()) !== JSON.stringify((agent.toolIds || []).sort())
+			setHasChanges(changed)
+		}
+	}, [agent, name, description, model, instructions, selectedToolIds])
+
+	const handleToolToggle = (toolId: string) => {
+		setSelectedToolIds((prev) =>
+			prev.includes(toolId) ? prev.filter((id) => id !== toolId) : [...prev, toolId]
+		)
+	}
+
+	const handleSave = async () => {
+		try {
+			await updateAgent.mutateAsync({
+				id: agentId,
+				data: {
+					name: name.trim(),
+					description: description.trim() || undefined,
+					model,
+					instructions: instructions.trim() || undefined,
+					toolIds: selectedToolIds,
+				},
+			})
+			toast.success('Agent updated successfully')
+			setHasChanges(false)
+		} catch (error) {
+			toast.error(error instanceof Error ? error.message : 'Failed to update agent')
+		}
+	}
+
+	const handleDelete = async () => {
+		try {
+			await deleteAgent.mutateAsync(agentId)
+			toast.success('Agent deleted')
+			router.push('/dashboard/agents')
+		} catch (error) {
+			toast.error(error instanceof Error ? error.message : 'Failed to delete agent')
+		}
+	}
+
+	const handleDeploy = async () => {
+		if (!instructions.trim()) {
+			toast.error('Please add a system prompt before deploying')
+			return
+		}
+
+		try {
+			// Save any pending changes first
+			if (hasChanges) {
+				await handleSave()
+			}
+			await deployAgent.mutateAsync({ id: agentId })
+			toast.success('Agent deployed successfully')
+		} catch (error) {
+			toast.error(error instanceof Error ? error.message : 'Failed to deploy agent')
+		}
+	}
+
+	const getStatusDisplay = (status: string) => {
+		switch (status) {
+			case 'deployed':
+				return { label: 'Deployed', className: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300' }
+			case 'draft':
+				return { label: 'Draft', className: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300' }
+			case 'archived':
+				return { label: 'Archived', className: 'bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300' }
+			default:
+				return { label: status, className: '' }
+		}
+	}
+
+	if (isLoading) {
+		return <LoadingSkeleton />
+	}
+
+	if (error || !agent) {
+		return (
+			<div className="flex-1 p-8 pt-6">
+				<Card className="p-6 text-center">
+					<p className="text-destructive">
+						{error?.message || 'Agent not found'}
+					</p>
+					<Button className="mt-4" onClick={() => router.push('/dashboard/agents')}>
+						Back to Agents
+					</Button>
+				</Card>
+			</div>
+		)
+	}
+
+	const statusDisplay = getStatusDisplay(agent.status)
+
 	return (
 		<div className="flex-1 space-y-4 p-8 pt-6">
 			<div className="flex items-center justify-between">
 				<div>
 					<div className="flex items-center gap-3">
-						<h2 className="text-3xl font-bold tracking-tight">Customer Support Agent</h2>
-						<Badge className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300">
-							Active
-						</Badge>
+						<h2 className="text-3xl font-bold tracking-tight">{agent.name}</h2>
+						<Badge className={statusDisplay.className}>{statusDisplay.label}</Badge>
 					</div>
 					<p className="text-muted-foreground mt-2">Configure your agent's settings and behavior</p>
 				</div>
 				<div className="flex gap-2">
-					<Button variant="outline">Delete</Button>
-					<Button>Save Changes</Button>
+					{agent.status !== 'deployed' && (
+						<Button
+							variant="outline"
+							onClick={handleDeploy}
+							disabled={deployAgent.isPending || !instructions.trim()}
+						>
+							<Rocket className="mr-2 h-4 w-4" />
+							{deployAgent.isPending ? 'Deploying...' : 'Deploy'}
+						</Button>
+					)}
+					<Button variant="outline" onClick={() => setIsDeleteOpen(true)}>
+						<Trash2 className="mr-2 h-4 w-4" />
+						Delete
+					</Button>
+					<Button onClick={handleSave} disabled={updateAgent.isPending || !hasChanges}>
+						{updateAgent.isPending ? 'Saving...' : 'Save Changes'}
+					</Button>
 				</div>
 			</div>
 
@@ -58,26 +254,36 @@ export default async function AgentBuilderPage({ params }: { params: Promise<{ i
 								<CardContent className="space-y-4">
 									<div className="space-y-2">
 										<Label htmlFor="name">Agent Name</Label>
-										<Input id="name" defaultValue="Customer Support Agent" />
+										<Input
+											id="name"
+											value={name}
+											onChange={(e) => setName(e.target.value)}
+										/>
 									</div>
 									<div className="space-y-2">
 										<Label htmlFor="description">Description</Label>
 										<Textarea
 											id="description"
-											defaultValue="Handles customer inquiries and support tickets with natural language understanding"
+											value={description}
+											onChange={(e) => setDescription(e.target.value)}
 											className="h-24"
 										/>
 									</div>
 									<div className="space-y-2">
 										<Label htmlFor="model">Model</Label>
-										<Select defaultValue="opus-4.5">
+										<Select value={model} onValueChange={setModel}>
 											<SelectTrigger id="model">
 												<SelectValue />
 											</SelectTrigger>
 											<SelectContent>
-												<SelectItem value="opus-4.5">Claude Opus 4.5</SelectItem>
-												<SelectItem value="sonnet-4.5">Claude Sonnet 4.5</SelectItem>
-												<SelectItem value="haiku-4">Claude Haiku 4</SelectItem>
+												{AVAILABLE_MODELS.map((m) => (
+													<SelectItem key={m.id} value={m.id}>
+														<div className="flex flex-col">
+															<span>{m.name}</span>
+															<span className="text-xs text-muted-foreground">{m.description}</span>
+														</div>
+													</SelectItem>
+												))}
 											</SelectContent>
 										</Select>
 									</div>
@@ -92,17 +298,37 @@ export default async function AgentBuilderPage({ params }: { params: Promise<{ i
 								</CardHeader>
 								<CardContent className="space-y-4">
 									<div>
-										<div className="text-2xl font-bold">1,234</div>
+										<div className="text-2xl font-bold">
+											{usageData?.totalCalls?.toLocaleString() ?? 0}
+										</div>
 										<p className="text-xs text-muted-foreground">Total messages</p>
 									</div>
 									<div>
-										<div className="text-2xl font-bold">98.5%</div>
-										<p className="text-xs text-muted-foreground">Success rate</p>
+										<div className="text-2xl font-bold">
+											{usageData?.totalTokens?.toLocaleString() ?? 0}
+										</div>
+										<p className="text-xs text-muted-foreground">Tokens used</p>
 									</div>
 									<div>
-										<div className="text-2xl font-bold">2.3s</div>
-										<p className="text-xs text-muted-foreground">Avg response time</p>
+										<div className="text-2xl font-bold">{selectedToolIds.length}</div>
+										<p className="text-xs text-muted-foreground">Tools enabled</p>
 									</div>
+								</CardContent>
+							</Card>
+
+							<Card>
+								<CardHeader>
+									<CardTitle>Quick Actions</CardTitle>
+								</CardHeader>
+								<CardContent className="space-y-2">
+									<Button
+										variant="outline"
+										className="w-full"
+										onClick={() => router.push(`/dashboard/agents/${agentId}/playground`)}
+										disabled={agent.status !== 'deployed'}
+									>
+										Test in Playground
+									</Button>
 								</CardContent>
 							</Card>
 						</div>
@@ -120,9 +346,15 @@ export default async function AgentBuilderPage({ params }: { params: Promise<{ i
 								<Label htmlFor="system-prompt">System Prompt</Label>
 								<Textarea
 									id="system-prompt"
-									defaultValue="You are a helpful customer support agent. Your goal is to assist customers with their questions and issues in a friendly, professional manner. Always be empathetic and try to resolve issues on the first contact."
+									value={instructions}
+									onChange={(e) => setInstructions(e.target.value)}
 									className="h-64 font-mono text-sm"
+									placeholder="You are a helpful assistant that..."
 								/>
+								<p className="text-xs text-muted-foreground">
+									This prompt will be sent with every conversation to guide the agent's behavior.
+									Required for deployment.
+								</p>
 							</div>
 						</CardContent>
 					</Card>
@@ -135,7 +367,33 @@ export default async function AgentBuilderPage({ params }: { params: Promise<{ i
 							<CardDescription>Enable tools to extend your agent's capabilities</CardDescription>
 						</CardHeader>
 						<CardContent>
-							<p className="text-sm text-muted-foreground">No tools configured yet.</p>
+							{tools.length === 0 ? (
+								<p className="text-sm text-muted-foreground">No tools available.</p>
+							) : (
+								<div className="space-y-3">
+									{tools.map((tool: Tool) => (
+										<div key={tool.id} className="flex items-start space-x-3">
+											<Checkbox
+												id={tool.id}
+												checked={selectedToolIds.includes(tool.id)}
+												onCheckedChange={() => handleToolToggle(tool.id)}
+											/>
+											<div className="space-y-1">
+												<label
+													htmlFor={tool.id}
+													className="text-sm font-medium leading-none cursor-pointer"
+												>
+													{tool.name}
+													{tool.isSystem && (
+														<span className="ml-2 text-xs text-muted-foreground">(System)</span>
+													)}
+												</label>
+												<p className="text-xs text-muted-foreground">{tool.description}</p>
+											</div>
+										</div>
+									))}
+								</div>
+							)}
 						</CardContent>
 					</Card>
 				</TabsContent>
@@ -147,11 +405,53 @@ export default async function AgentBuilderPage({ params }: { params: Promise<{ i
 							<CardDescription>Monitor your agent's performance over time</CardDescription>
 						</CardHeader>
 						<CardContent>
-							<p className="text-sm text-muted-foreground">Analytics coming soon...</p>
+							<div className="grid gap-4 md:grid-cols-3">
+								<div className="p-4 border rounded-lg">
+									<div className="text-2xl font-bold">
+										{usageData?.totalCalls?.toLocaleString() ?? 0}
+									</div>
+									<p className="text-sm text-muted-foreground">Total API Calls</p>
+								</div>
+								<div className="p-4 border rounded-lg">
+									<div className="text-2xl font-bold">
+										{usageData?.inputTokens?.toLocaleString() ?? 0}
+									</div>
+									<p className="text-sm text-muted-foreground">Input Tokens</p>
+								</div>
+								<div className="p-4 border rounded-lg">
+									<div className="text-2xl font-bold">
+										{usageData?.outputTokens?.toLocaleString() ?? 0}
+									</div>
+									<p className="text-sm text-muted-foreground">Output Tokens</p>
+								</div>
+							</div>
 						</CardContent>
 					</Card>
 				</TabsContent>
 			</Tabs>
+
+			<Dialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
+				<DialogContent>
+					<DialogHeader>
+						<DialogTitle>Delete Agent</DialogTitle>
+						<DialogDescription>
+							Are you sure you want to delete "{agent.name}"? This action cannot be undone.
+						</DialogDescription>
+					</DialogHeader>
+					<DialogFooter>
+						<Button variant="outline" onClick={() => setIsDeleteOpen(false)}>
+							Cancel
+						</Button>
+						<Button
+							variant="destructive"
+							onClick={handleDelete}
+							disabled={deleteAgent.isPending}
+						>
+							{deleteAgent.isPending ? 'Deleting...' : 'Delete'}
+						</Button>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
 		</div>
 	)
 }
