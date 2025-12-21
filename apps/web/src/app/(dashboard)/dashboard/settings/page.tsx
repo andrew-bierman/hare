@@ -4,18 +4,18 @@ import { Bell, Key, LogOut, Shield, User } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { toast } from 'sonner'
-import { Button } from '@repo/ui/components/button'
+import { Button } from '@workspace/ui/components/button'
 import {
 	Card,
 	CardContent,
 	CardDescription,
 	CardHeader,
 	CardTitle,
-} from '@repo/ui/components/card'
-import { Input } from '@repo/ui/components/input'
-import { Label } from '@repo/ui/components/label'
-import { Separator } from '@repo/ui/components/separator'
-import { Skeleton } from '@repo/ui/components/skeleton'
+} from '@workspace/ui/components/card'
+import { Input } from '@workspace/ui/components/input'
+import { Label } from '@workspace/ui/components/label'
+import { Separator } from '@workspace/ui/components/separator'
+import { Skeleton } from '@workspace/ui/components/skeleton'
 import { useAuth } from 'web-app/components/providers/auth-provider'
 import { useWorkspace } from 'web-app/components/providers/workspace-provider'
 import { signOut } from 'web-app/lib/auth-client'

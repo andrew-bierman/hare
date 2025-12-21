@@ -3,7 +3,7 @@
 import { Check, ChevronsUpDown, Plus } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
-import { Button } from '@repo/ui/components/button'
+import { Button } from '@workspace/ui/components/button'
 import {
 	Dialog,
 	DialogContent,
@@ -11,7 +11,7 @@ import {
 	DialogFooter,
 	DialogHeader,
 	DialogTitle,
-} from '@repo/ui/components/dialog'
+} from '@workspace/ui/components/dialog'
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -19,10 +19,10 @@ import {
 	DropdownMenuLabel,
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
-} from '@repo/ui/components/dropdown-menu'
-import { Input } from '@repo/ui/components/input'
-import { Label } from '@repo/ui/components/label'
-import { Skeleton } from '@repo/ui/components/skeleton'
+} from '@workspace/ui/components/dropdown-menu'
+import { Input } from '@workspace/ui/components/input'
+import { Label } from '@workspace/ui/components/label'
+import { Skeleton } from '@workspace/ui/components/skeleton'
 import { useWorkspace } from 'web-app/components/providers/workspace-provider'
 import { useCreateWorkspace } from 'web-app/lib/api/hooks'
 

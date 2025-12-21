@@ -3,8 +3,8 @@
 import { Bot, Plus, Search } from 'lucide-react'
 import Link from 'next/link'
 import { useState } from 'react'
-import { Badge } from '@repo/ui/components/badge'
-import { Button } from '@repo/ui/components/button'
+import { Badge } from '@workspace/ui/components/badge'
+import { Button } from '@workspace/ui/components/button'
 import {
 	Card,
 	CardContent,
@@ -12,9 +12,9 @@ import {
 	CardFooter,
 	CardHeader,
 	CardTitle,
-} from '@repo/ui/components/card'
-import { Input } from '@repo/ui/components/input'
-import { Skeleton } from '@repo/ui/components/skeleton'
+} from '@workspace/ui/components/card'
+import { Input } from '@workspace/ui/components/input'
+import { Skeleton } from '@workspace/ui/components/skeleton'
 import { useWorkspace } from 'web-app/components/providers/workspace-provider'
 import { useAgents, AVAILABLE_MODELS, type Agent } from 'web-app/lib/api/hooks'
 

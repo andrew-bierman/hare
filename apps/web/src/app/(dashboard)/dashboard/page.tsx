@@ -2,15 +2,15 @@
 
 import { Bot, MessageSquare, Plus, TrendingUp, Wrench } from 'lucide-react'
 import Link from 'next/link'
-import { Button } from '@repo/ui/components/button'
+import { Button } from '@workspace/ui/components/button'
 import {
 	Card,
 	CardContent,
 	CardDescription,
 	CardHeader,
 	CardTitle,
-} from '@repo/ui/components/card'
-import { Skeleton } from '@repo/ui/components/skeleton'
+} from '@workspace/ui/components/card'
+import { Skeleton } from '@workspace/ui/components/skeleton'
 import { useWorkspace } from 'web-app/components/providers/workspace-provider'
 import { useAgents, useUsage, AVAILABLE_MODELS, type Agent } from 'web-app/lib/api/hooks'
 

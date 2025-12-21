@@ -3,8 +3,8 @@
 import { Code, Database, Globe, HardDrive, Plus, Search, Trash2, Wrench } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
-import { Badge } from '@repo/ui/components/badge'
-import { Button } from '@repo/ui/components/button'
+import { Badge } from '@workspace/ui/components/badge'
+import { Button } from '@workspace/ui/components/button'
 import {
 	Card,
 	CardContent,
@@ -12,7 +12,7 @@ import {
 	CardFooter,
 	CardHeader,
 	CardTitle,
-} from '@repo/ui/components/card'
+} from '@workspace/ui/components/card'
 import {
 	Dialog,
 	DialogContent,
@@ -20,18 +20,18 @@ import {
 	DialogFooter,
 	DialogHeader,
 	DialogTitle,
-} from '@repo/ui/components/dialog'
-import { Input } from '@repo/ui/components/input'
-import { Label } from '@repo/ui/components/label'
+} from '@workspace/ui/components/dialog'
+import { Input } from '@workspace/ui/components/input'
+import { Label } from '@workspace/ui/components/label'
 import {
 	Select,
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
 	SelectValue,
-} from '@repo/ui/components/select'
-import { Skeleton } from '@repo/ui/components/skeleton'
-import { Textarea } from '@repo/ui/components/textarea'
+} from '@workspace/ui/components/select'
+import { Skeleton } from '@workspace/ui/components/skeleton'
+import { Textarea } from '@workspace/ui/components/textarea'
 import { useWorkspace } from 'web-app/components/providers/workspace-provider'
 import {
 	useTools,

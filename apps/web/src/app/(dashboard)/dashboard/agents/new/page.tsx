@@ -3,25 +3,25 @@
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { toast } from 'sonner'
-import { Button } from '@repo/ui/components/button'
+import { Button } from '@workspace/ui/components/button'
 import {
 	Card,
 	CardContent,
 	CardDescription,
 	CardHeader,
 	CardTitle,
-} from '@repo/ui/components/card'
-import { Input } from '@repo/ui/components/input'
-import { Label } from '@repo/ui/components/label'
+} from '@workspace/ui/components/card'
+import { Input } from '@workspace/ui/components/input'
+import { Label } from '@workspace/ui/components/label'
 import {
 	Select,
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
 	SelectValue,
-} from '@repo/ui/components/select'
-import { Textarea } from '@repo/ui/components/textarea'
-import { Checkbox } from '@repo/ui/components/checkbox'
+} from '@workspace/ui/components/select'
+import { Textarea } from '@workspace/ui/components/textarea'
+import { Checkbox } from '@workspace/ui/components/checkbox'
 import { useWorkspace } from 'web-app/components/providers/workspace-provider'
 import { useCreateAgent, useTools, AVAILABLE_MODELS, type Tool } from 'web-app/lib/api/hooks'
 
