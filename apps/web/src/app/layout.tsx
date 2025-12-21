@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import { Providers } from 'web-app/components/providers/providers'
+import { DevTools } from 'web-app/components/dev/dev-tools'
+import { APP_CONFIG } from 'web-app/config'
 import '@workspace/ui/globals.css'
 
 const geistSans = Geist({
@@ -14,9 +16,8 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-	title: 'Hare - Build AI Agents in Minutes',
-	description:
-		'The fastest way to create, deploy, and manage AI agents. No infrastructure setup required.',
+	title: `${APP_CONFIG.name} - ${APP_CONFIG.tagline}`,
+	description: APP_CONFIG.description,
 }
 
 export default function RootLayout({
@@ -30,7 +31,10 @@ export default function RootLayout({
 				<link rel="icon" href="/favicon.svg" type="image/svg+xml"></link>
 			</head>
 			<body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-				<Providers>{children}</Providers>
+				<Providers>
+					{children}
+					<DevTools />
+				</Providers>
 			</body>
 		</html>
 	)
