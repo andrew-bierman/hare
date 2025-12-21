@@ -62,25 +62,23 @@ test.describe('Authentication', () => {
 })
 
 test.describe('API Auth Endpoints', () => {
-	// Note: In local dev without D1, these may return 503 instead of 401
-	// We accept either as valid - 401 (unauthorized) or 503 (service unavailable)
-	test('should return 401 or 503 for unauthenticated workspace requests', async ({ request }) => {
+	test('should return 401 for unauthenticated workspace requests', async ({ request }) => {
 		const response = await request.get('/api/workspaces')
-		expect([401, 503]).toContain(response.status())
+		expect(response.status()).toBe(401)
 	})
 
-	test('should return 401 or 503 for unauthenticated agent requests', async ({ request }) => {
+	test('should return 401 for unauthenticated agent requests', async ({ request }) => {
 		const response = await request.get('/api/agents?workspaceId=test')
-		expect([401, 503]).toContain(response.status())
+		expect(response.status()).toBe(401)
 	})
 
-	test('should return 401 or 503 for unauthenticated tool requests', async ({ request }) => {
+	test('should return 401 for unauthenticated tool requests', async ({ request }) => {
 		const response = await request.get('/api/tools?workspaceId=test')
-		expect([401, 503]).toContain(response.status())
+		expect(response.status()).toBe(401)
 	})
 
-	test('should return 401 or 503 for unauthenticated usage requests', async ({ request }) => {
+	test('should return 401 for unauthenticated usage requests', async ({ request }) => {
 		const response = await request.get('/api/usage?workspaceId=test')
-		expect([401, 503]).toContain(response.status())
+		expect(response.status()).toBe(401)
 	})
 })

@@ -58,7 +58,8 @@ export const authMiddleware: MiddlewareHandler<{ Variables: AuthVariables }> = a
 	const d1 = await getD1(c)
 
 	if (!d1) {
-		return c.json({ error: 'Service unavailable' }, 503)
+		// If database isn't available, we can't verify auth, so treat as unauthorized
+		return c.json({ error: 'Unauthorized' }, 401)
 	}
 
 	const auth = createAuth(d1)
