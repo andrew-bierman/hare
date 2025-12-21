@@ -55,7 +55,7 @@ export function getWorkersAIModelId(modelName: string): string {
 }
 
 /**
- * Create a Workers AI model instance for use with Mastra/AI SDK.
+ * Create a Workers AI model instance for use with the Vercel AI SDK.
  */
 export function createWorkersAIModel(modelName: string, ai: Ai) {
 	const workersai = createWorkersAI({ binding: ai })

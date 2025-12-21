@@ -13,7 +13,7 @@ export const agents = sqliteTable('agents', {
 	name: text('name').notNull(),
 	description: text('description'),
 	instructions: text('instructions'),
-	model: text('model').notNull().default('claude-3-5-sonnet-20241022'),
+	model: text('model').notNull().default('llama-3.3-70b'),
 	status: text('status', { enum: ['draft', 'deployed', 'archived'] })
 		.notNull()
 		.default('draft'),
