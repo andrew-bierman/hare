@@ -2,17 +2,23 @@ import { z } from 'zod'
 import { createTool, failure, success, type ToolContext } from './types'
 
 /**
- * Helper to run AI models with dynamic model names.
- * The Ai.run() method has strict typing for model names, but we need to use
- * model name strings dynamically. This helper provides a type-safe wrapper.
+ * AI model constants - using valid model names from @cloudflare/workers-types AiModels interface.
+ * These are the actual model identifiers that Cloudflare Workers AI accepts.
  */
-function runAiModel<T>(
-	ai: CloudflareEnv['AI'],
-	model: string,
-	input: Record<string, unknown>,
-): Promise<T> {
-	return ai.run(model as Parameters<typeof ai.run>[0], input as never) as Promise<T>
-}
+const AI_MODELS = {
+	// Text classification
+	SENTIMENT: '@cf/huggingface/distilbert-sst-2-int8',
+	// Text generation (using fp8 variant which is in the types)
+	TEXT_GENERATION: '@cf/meta/llama-3.1-8b-instruct-fp8',
+	// Translation
+	TRANSLATION: '@cf/meta/m2m100-1.2b',
+	// Image generation
+	IMAGE_GENERATION: '@cf/stabilityai/stable-diffusion-xl-base-1.0',
+	// Embeddings
+	EMBEDDING_BASE: '@cf/baai/bge-base-en-v1.5',
+	EMBEDDING_SMALL: '@cf/baai/bge-small-en-v1.5',
+	EMBEDDING_LARGE: '@cf/baai/bge-large-en-v1.5',
+} as const satisfies Record<string, keyof AiModels>
 
 /**
  * Sentiment Analysis Tool - Analyze the sentiment of text.
@@ -30,11 +36,7 @@ export const sentimentTool = createTool({
 			const { text, detailed } = params
 
 			// Use Workers AI for sentiment analysis
-			const response = await runAiModel<Array<{ label: string; score: number }>>(
-				context.env.AI,
-				'@cf/huggingface/distilbert-sst-2-int8',
-				{ text },
-			)
+			const response = await context.env.AI.run(AI_MODELS.SENTIMENT, { text })
 
 			if (!response || !Array.isArray(response)) {
 				return failure('Sentiment analysis failed: Invalid response')
@@ -101,17 +103,16 @@ export const summarizeTool = createTool({
 					prompt = `Provide a brief, concise summary of the following text (max ${maxLength} words):\n\n${text}`
 			}
 
-			const response = await runAiModel<{ response: string }>(
-				context.env.AI,
-				'@cf/meta/llama-3.1-8b-instruct',
-				{ prompt, max_tokens: Math.min(maxLength * 2, 1000) },
-			)
+			const response = await context.env.AI.run(AI_MODELS.TEXT_GENERATION, {
+				prompt,
+				max_tokens: Math.min(maxLength * 2, 1000),
+			})
 
 			if (!response || typeof response !== 'object' || !('response' in response)) {
 				return failure('Summarization failed: Invalid response')
 			}
 
-			const summary = response.response
+			const summary = (response as { response: string }).response
 
 			return success({
 				summary: summary.trim(),
@@ -151,17 +152,17 @@ export const translateTool = createTool({
 			const { text, targetLanguage, sourceLanguage } = params
 
 			// Use Workers AI translation model
-			const response = await runAiModel<{ translated_text: string }>(
-				context.env.AI,
-				'@cf/meta/m2m100-1.2b',
-				{ text, target_lang: targetLanguage, source_lang: sourceLanguage || 'en' },
-			)
+			const response = await context.env.AI.run(AI_MODELS.TRANSLATION, {
+				text,
+				target_lang: targetLanguage,
+				source_lang: sourceLanguage || 'en',
+			})
 
 			if (!response || typeof response !== 'object' || !('translated_text' in response)) {
 				return failure('Translation failed: Invalid response')
 			}
 
-			const translatedText = response.translated_text
+			const translatedText = (response as { translated_text: string }).translated_text
 
 			return success({
 				translatedText,
@@ -203,55 +204,41 @@ export const imageGenerateTool = createTool({
 			const validSteps = Math.min(Math.max(steps, 1), 50)
 			const validGuidance = Math.min(Math.max(guidance, 1), 20)
 
-			const response = await runAiModel<ReadableStream | ArrayBuffer | { image: string }>(
-				context.env.AI,
-				'@cf/stabilityai/stable-diffusion-xl-base-1.0',
-				{
-					prompt,
-					negative_prompt: negativePrompt,
-					width: validWidth,
-					height: validHeight,
-					num_steps: validSteps,
-					guidance: validGuidance,
-				},
-			)
+			const response = await context.env.AI.run(AI_MODELS.IMAGE_GENERATION, {
+				prompt,
+				negative_prompt: negativePrompt,
+				width: validWidth,
+				height: validHeight,
+				num_steps: validSteps,
+				guidance: validGuidance,
+			})
 
 			if (!response) {
 				return failure('Image generation failed: No response')
 			}
 
-			// The response is typically a ReadableStream or ArrayBuffer
-			let base64Image: string
+			// The response is a ReadableStream<Uint8Array>
+			const reader = response.getReader()
+			const chunks: Uint8Array[] = []
+			let done = false
 
-			if (response instanceof ReadableStream) {
-				const reader = response.getReader()
-				const chunks: Uint8Array[] = []
-				let done = false
-
-				while (!done) {
-					const result = await reader.read()
-					done = result.done
-					if (result.value) {
-						chunks.push(result.value)
-					}
+			while (!done) {
+				const result = await reader.read()
+				done = result.done
+				if (result.value) {
+					chunks.push(result.value)
 				}
-
-				const totalLength = chunks.reduce((acc, chunk) => acc + chunk.length, 0)
-				const combined = new Uint8Array(totalLength)
-				let offset = 0
-				for (const chunk of chunks) {
-					combined.set(chunk, offset)
-					offset += chunk.length
-				}
-
-				base64Image = btoa(String.fromCharCode(...combined))
-			} else if (response instanceof ArrayBuffer) {
-				base64Image = btoa(String.fromCharCode(...new Uint8Array(response)))
-			} else if (typeof response === 'object' && 'image' in response) {
-				base64Image = (response as { image: string }).image
-			} else {
-				return failure('Image generation failed: Unexpected response format')
 			}
+
+			const totalLength = chunks.reduce((acc, chunk) => acc + chunk.length, 0)
+			const combined = new Uint8Array(totalLength)
+			let offset = 0
+			for (const chunk of chunks) {
+				combined.set(chunk, offset)
+				offset += chunk.length
+			}
+
+			const base64Image = btoa(String.fromCharCode(...combined))
 
 			return success({
 				image: base64Image,
@@ -302,17 +289,16 @@ Text: "${text}"
 
 Return only the single most appropriate category name.`
 
-			const response = await runAiModel<{ response: string }>(
-				context.env.AI,
-				'@cf/meta/llama-3.1-8b-instruct',
-				{ prompt, max_tokens: 100 },
-			)
+			const response = await context.env.AI.run(AI_MODELS.TEXT_GENERATION, {
+				prompt,
+				max_tokens: 100,
+			})
 
 			if (!response || typeof response !== 'object' || !('response' in response)) {
 				return failure('Classification failed: Invalid response')
 			}
 
-			const result = response.response.trim().toLowerCase()
+			const result = (response as { response: string }).response.trim().toLowerCase()
 			const matchedCategories = categories.filter((cat) => result.includes(cat.toLowerCase()))
 
 			if (matchedCategories.length === 0) {
@@ -393,14 +379,13 @@ export const nerTool = createTool({
 Text: "${text.slice(0, 3000)}"`
 
 				try {
-					const response = await runAiModel<{ response: string }>(
-						context.env.AI,
-						'@cf/meta/llama-3.1-8b-instruct',
-						{ prompt, max_tokens: 500 },
-					)
+					const response = await context.env.AI.run(AI_MODELS.TEXT_GENERATION, {
+						prompt,
+						max_tokens: 500,
+					})
 
 					if (response && typeof response === 'object' && 'response' in response) {
-						const aiResult = response.response
+						const aiResult = (response as { response: string }).response
 						// Try to parse JSON from the response
 						const jsonMatch = aiResult.match(/\{[\s\S]*\}/)
 						if (jsonMatch) {
@@ -451,11 +436,16 @@ export const embeddingTool = createTool({
 			const { text, model } = params
 
 			const texts = Array.isArray(text) ? text : [text]
-			const modelId = `@cf/baai/${model}-v1.5`
 
-			const response = await runAiModel<{ data: number[][] }>(context.env.AI, modelId, {
-				text: texts,
-			})
+			// Map model name to constant
+			const embeddingModels = {
+				'bge-base-en': AI_MODELS.EMBEDDING_BASE,
+				'bge-small-en': AI_MODELS.EMBEDDING_SMALL,
+				'bge-large-en': AI_MODELS.EMBEDDING_LARGE,
+			} as const
+			const modelId = embeddingModels[model]
+
+			const response = await context.env.AI.run(modelId, { text: texts })
 
 			if (!response || typeof response !== 'object' || !('data' in response)) {
 				return failure('Embedding generation failed: Invalid response')
@@ -518,17 +508,16 @@ Question: ${question}
 
 Answer:`
 
-			const response = await runAiModel<{ response: string }>(
-				context.env.AI,
-				'@cf/meta/llama-3.1-8b-instruct',
-				{ prompt, max_tokens: maxLength * 2 },
-			)
+			const response = await context.env.AI.run(AI_MODELS.TEXT_GENERATION, {
+				prompt,
+				max_tokens: maxLength * 2,
+			})
 
 			if (!response || typeof response !== 'object' || !('response' in response)) {
 				return failure('Question answering failed: Invalid response')
 			}
 
-			const result = response.response.trim()
+			const result = (response as { response: string }).response.trim()
 
 			if (includeQuote) {
 				const answerMatch = result.match(/Answer:\s*([\s\S]*?)(?=Quote:|$)/i)
