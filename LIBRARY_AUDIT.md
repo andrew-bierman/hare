@@ -1,435 +1,390 @@
 # Library Audit: Opportunities to Reduce Custom Code
 
-This document identifies areas where external libraries could replace custom implementations, reducing maintenance burden and improving reliability.
+This document identifies areas where external libraries or **native JavaScript APIs** could replace custom implementations, reducing maintenance burden and improving reliability.
 
 ## Executive Summary
 
-The `apps/web/src/lib/agents/tools/` directory contains **~3,400 lines** of custom utility code that could be reduced to **~500 lines** by adopting well-maintained libraries. This would:
+The `apps/web/src/lib/agents/tools/` directory contains **~3,400 lines** of custom utility code that could be reduced to **~500 lines** by adopting:
 
-- Reduce maintenance burden
-- Improve edge case handling
-- Add international support (phone numbers, locales)
-- Fix known limitations (e.g., QR code is explicitly marked as "simplified placeholder")
-
-## High Priority Replacements
-
-### 1. Phone Number Validation & Formatting
-
-**File:** `validation.ts:97-186` (~90 lines)
-
-**Current Implementation:**
-- Only supports 3 countries (US, GB, CA)
-- Hardcoded regex patterns per country
-- Basic formatting options
-
-**Recommended Library:** `libphonenumber-js` (~80KB, tree-shakeable to ~15KB)
-
-```ts
-// Current (90 lines)
-const countryRules: Record<string, { pattern: RegExp; format: (digits: string) => string }> = {
-  US: { pattern: /^1?([2-9]\d{2})([2-9]\d{2})(\d{4})$/, ... },
-  GB: { pattern: /^(44)?([1-9]\d{9,10})$/, ... },
-  CA: { pattern: /^1?([2-9]\d{2})([2-9]\d{2})(\d{4})$/, ... },
-}
-
-// With library (10 lines)
-import { parsePhoneNumber, isValidPhoneNumber } from 'libphonenumber-js'
-const phone = parsePhoneNumber(input, country)
-return { valid: phone.isValid(), formatted: phone.format('E.164') }
-```
-
-**Benefits:**
-- Supports 200+ countries
-- Proper carrier detection
-- All standard formats (E.164, National, International)
+1. **Native JS APIs** (preferred) - Zero bundle cost, future-proof
+2. **Polyfills for Stage 3+ proposals** - Use now, remove when native
+3. **Modern TypeScript-first libraries** - When no native option exists
 
 ---
 
-### 2. Email & General Validation
+## Native JavaScript APIs (Prefer These First!)
 
-**File:** `validation.ts:7-92` (~85 lines for email), `validation.ts:285-394` (~110 lines for credit card), `validation.ts:399-516` (~115 lines for IP)
+### 1. Deep Cloning → `structuredClone()` (Native)
 
-**Current Implementation:**
-- Manual regex patterns
-- Hardcoded typo dictionary (only 12 common typos)
-- Custom Luhn algorithm
-- Manual IPv4/IPv6 parsing
+**File:** `utility.ts` - Multiple uses of `JSON.parse(JSON.stringify(obj))`
 
-**Recommended Library:** `validator.js` (~25KB)
-
+**Current:**
 ```ts
-// Current: 300+ lines of validation code
+const result = JSON.parse(JSON.stringify(obj))  // Loses functions, dates, etc.
+```
 
-// With library:
-import validator from 'validator'
-validator.isEmail(email)
-validator.isCreditCard(number)
-validator.isIP(ip, 4)  // or 6 for IPv6
-validator.isURL(url)
+**Native Solution (No Library!):**
+```ts
+const result = structuredClone(obj)  // Handles Date, Map, Set, ArrayBuffer, circular refs
 ```
 
 **Benefits:**
-- Battle-tested patterns
-- Comprehensive credit card type detection
-- Full IPv6 support including compressed notation
+- Zero bundle size
+- Handles Map, Set, Date, RegExp, ArrayBuffer, circular references
+- Available in all modern browsers + Node 17+ + Cloudflare Workers
+
+**Limitations:** Cannot clone functions, DOM nodes, or symbols (but neither can JSON.parse trick)
+
+Sources: [MDN structuredClone](https://developer.mozilla.org/en-US/docs/Web/API/structuredClone), [Builder.io Deep Cloning](https://www.builder.io/blog/structured-clone)
 
 ---
 
-### 3. DateTime Operations
+### 2. Text Segmentation → `Intl.Segmenter` (Native)
 
-**File:** `utility.ts:7-188` (~180 lines)
+**File:** `utility.ts:463-468` - Word counting
 
-**Current Implementation:**
-- Manual date parsing and formatting
-- Basic relative time calculation
-- Limited timezone support
-
-**Recommended Library:** `date-fns` (~10KB tree-shaken) or `Day.js` (~2KB)
-
+**Current:**
 ```ts
-// Current (180 lines)
-const formatDate = (d: Date, fmt?: string, tz?: string): string => {
-  switch (fmt) {
-    case 'relative': {
-      const diffMs = now.getTime() - d.getTime()
-      const diffDay = Math.floor(diffHour / 24)
-      if (diffDay < 30) return past ? `${diffDay} days ago` : `in ${diffDay} days`
-      // ...
-    }
-  }
-}
+const words = text.trim().split(/\s+/).filter((w) => w.length > 0)
+```
 
-// With date-fns (20 lines)
-import { format, formatRelative, add, differenceInDays } from 'date-fns'
-import { formatInTimeZone } from 'date-fns-tz'
+**Native Solution:**
+```ts
+const segmenter = new Intl.Segmenter('en', { granularity: 'word' })
+const words = [...segmenter.segment(text)].filter(s => s.isWordLike)
 ```
 
 **Benefits:**
-- Proper timezone handling
-- Locale support
-- Immutable operations
-- Full relative time formatting
+- Proper word segmentation for CJK languages (Chinese, Japanese, Korean)
+- Sentence segmentation built-in
+- Grapheme-aware character counting (handles emoji correctly)
+- Baseline available since April 2024
+
+Sources: [MDN Intl.Segmenter](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/Segmenter), [web.dev Baseline](https://web.dev/blog/intl-segmenter)
 
 ---
 
-### 4. JSON Path Operations
-
-**File:** `utility.ts:193-349` (~155 lines)
-
-**Current Implementation:**
-- Manual dot notation path traversal
-- `JSON.parse(JSON.stringify(obj))` for deep cloning
-- Basic set/delete operations
-
-**Recommended Library:** `lodash` (specific functions) or `lodash-es` (tree-shakeable)
-
-```ts
-// Current (70 lines for getByPath, setByPath, deleteByPath)
-const getByPath = (obj: unknown, pathStr: string): unknown => {
-  const parts = pathStr.replace(/\[(\d+)\]/g, '.$1').split('.')
-  let current: unknown = obj
-  for (const part of parts) { ... }
-}
-
-// With lodash (3 lines)
-import { get, set, unset } from 'lodash-es'
-const value = get(obj, path)
-const newObj = set(structuredClone(obj), path, value)
-```
-
-**Benefits:**
-- Handles edge cases (undefined paths, arrays, etc.)
-- Uses `structuredClone()` instead of JSON parse/stringify
-- Well-tested path parsing
-
----
-
-### 5. Markdown Parsing
-
-**File:** `transform.ts:7-177` (~170 lines)
-
-**Current Implementation:**
-- Regex-based parser
-- Missing GFM features (tables, task lists, footnotes)
-- Basic HTML sanitization
-
-**Recommended Library:** `markdown-it` (~30KB) or `marked` (~25KB)
-
-```ts
-// Current (regex-based, fragile)
-html = html.replace(/^###### (.+)$/gm, '<h6>$1</h6>')
-html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-// ... 50+ more regex replacements
-
-// With markdown-it
-import MarkdownIt from 'markdown-it'
-const md = new MarkdownIt({ html: true, linkify: true })
-const html = md.render(markdown)
-```
-
-**Benefits:**
-- Full CommonMark + GFM support
-- Tables, task lists, footnotes
-- Plugin ecosystem
-- Proper XSS protection
-
----
-
-### 6. Diff Algorithm
-
-**File:** `transform.ts:179-312` (~135 lines)
-
-**Current Implementation:**
-- Custom LCS (Longest Common Subsequence) algorithm
-- O(n*m) space complexity
-- Basic unified diff output
-
-**Recommended Library:** `diff` (~10KB) or `diff-match-patch` (~40KB)
-
-```ts
-// Current (custom LCS implementation)
-const lcs = (a: string[], b: string[]): number[][] => {
-  const dp: number[][] = Array(m + 1).fill(null).map(() => Array(n + 1).fill(0))
-  for (let i = 1; i <= m; i++) { ... }
-}
-
-// With diff library
-import { diffLines, createPatch } from 'diff'
-const changes = diffLines(original, modified)
-const patch = createPatch('file', original, modified)
-```
-
-**Benefits:**
-- Optimized algorithms
-- Semantic diff options
-- Patch generation/application
-- Three-way merge support
-
----
-
-### 7. QR Code Generation
-
-**File:** `transform.ts:314-484` (~170 lines)
-
-**Current Implementation:**
-- Comments explicitly state: "For production, use a proper QR code library"
-- Simplified placeholder that won't produce valid QR codes
-- Missing error correction implementation
-
-**Recommended Library:** `qrcode` (~35KB)
-
-```ts
-// Current (explicitly marked as placeholder)
-// "Simple QR code matrix generation (Reed-Solomon encoding simplified)"
-// "For production, use a proper QR code library"
-const generateMatrix = (data: string, ecLevel: string): boolean[][] => { ... }
-
-// With qrcode library
-import QRCode from 'qrcode'
-const svg = await QRCode.toString(data, { type: 'svg', errorCorrectionLevel: 'M' })
-const dataUrl = await QRCode.toDataURL(data)
-```
-
-**Benefits:**
-- Valid, scannable QR codes
-- Proper Reed-Solomon error correction
-- Multiple output formats (SVG, PNG, terminal)
-
----
-
-### 8. Color Operations
+### 3. Color Manipulation → CSS `color-mix()` + `oklch()` (Native CSS)
 
 **File:** `transform.ts:586-821` (~235 lines)
 
-**Current Implementation:**
-- Manual RGB/HSL/Hex conversion
-- Limited named colors (only 8)
-- Basic contrast calculation
+For **CSS output contexts**, use native CSS instead of JS:
 
-**Recommended Library:** `color` (~8KB) or `chroma-js` (~15KB)
+```css
+/* Lighten/darken with oklch */
+--lighter: oklch(from var(--base) calc(l + 0.15) c h);
+--darker: oklch(from var(--base) calc(l - 0.15) c h);
 
-```ts
-// Current (manual color space conversion)
-const rgbToHsl = (r: number, g: number, b: number): { h, s, l } => { ... }
-const hslToRgb = (h: number, s: number, l: number): { r, g, b } => { ... }
-
-// With color library
-import Color from 'color'
-const color = Color('#ff0000')
-const hsl = color.hsl()
-const lighter = color.lighten(0.2)
-const contrast = color.contrast(Color('white'))
+/* Blend two colors */
+--blended: color-mix(in oklch, var(--color1), var(--color2) 50%);
 ```
 
-**Benefits:**
-- All color spaces (RGB, HSL, HSV, HWB, LAB, LCH)
-- 140+ named colors
-- WCAG contrast checking
-- Color mixing and manipulation
+For **JS color manipulation**, see `culori` or `colorjs.io` below.
+
+Sources: [MDN color-mix()](https://developer.mozilla.org/en-US/docs/Web/CSS/color_value/color-mix), [Evil Martians OKLCH](https://evilmartians.com/chronicles/oklch-in-css-why-quit-rgb-hsl)
 
 ---
 
-### 9. RSS/Atom Feed Parsing
+## Polyfills for Future Native APIs
+
+### 4. DateTime → `@js-temporal/polyfill` (Stage 3 TC39)
+
+**File:** `utility.ts:7-188` (~180 lines)
+
+The **Temporal API** is Stage 3 and will replace `Date`. Use the polyfill now, remove later.
+
+**Current:**
+```ts
+const formatDate = (d: Date, fmt?: string, tz?: string): string => {
+  // 180 lines of manual date handling...
+}
+```
+
+**With Temporal Polyfill:**
+```ts
+import { Temporal } from '@js-temporal/polyfill'
+
+const now = Temporal.Now.zonedDateTimeISO('America/New_York')
+const relative = now.since(other).toString()  // "P3DT4H"
+const formatted = now.toLocaleString('en-US', { dateStyle: 'full' })
+```
+
+**Benefits:**
+- Immutable, timezone-aware, nanosecond precision
+- Will become native (remove polyfill later)
+- Solves DST edge cases properly
+- Firefox 139+ has experimental support
+
+**Alternative:** `date-fns` if you need something battle-tested now (~10KB tree-shaken)
+
+Sources: [MDN Temporal](https://developer.mozilla.org/en-US/blog/javascript-temporal-is-coming/), [Temporal Polyfill](https://github.com/js-temporal/temporal-polyfill)
+
+---
+
+## Modern TypeScript Libraries
+
+### 5. Phone Validation → `libphonenumber-js` ✓
+
+**File:** `validation.ts:97-186` (~90 lines)
+
+Still the best option. TypeScript-first, actively maintained (synced with Google's lib Sep 2025).
+
+```bash
+bun add libphonenumber-js
+```
+
+```ts
+import { parsePhoneNumber, isValidPhoneNumber } from 'libphonenumber-js'
+const phone = parsePhoneNumber(input, 'US')
+return { valid: phone.isValid(), formatted: phone.format('E.164') }
+```
+
+**Size:** ~15KB tree-shaken (vs Google's 550KB)
+**Edge Compatible:** Yes
+
+Sources: [libphonenumber-js](https://github.com/catamphetamine/libphonenumber-js), [npm-compare](https://npm-compare.com/libphonenumber-js,google-libphonenumber)
+
+---
+
+### 6. Validation → Already Using Zod! (Extend It)
+
+**File:** `validation.ts` - Email, credit card, IP, URL validation
+
+You're already using **Zod** extensively. Instead of adding `validator.js`, extend Zod with refinements:
+
+```ts
+import { z } from 'zod'
+
+// Email with better validation
+const emailSchema = z.string().email().refine(
+  (email) => !email.endsWith('.con'),  // typo check
+  { message: 'Did you mean .com?' }
+)
+
+// Credit card with Luhn
+const creditCardSchema = z.string().refine(luhnCheck, 'Invalid card number')
+
+// IP address (v4 or v6)
+const ipSchema = z.string().ip()  // Zod has built-in IP validation!
+```
+
+**Alternative:** If you need more validators, consider **Valibot** (< 1KB, modular, tree-shakeable) instead of validator.js
+
+Sources: [Zod vs Valibot](https://dev.to/sheraz4194/zod-vs-valibot-which-validation-library-is-right-for-your-typescript-project-303d), [Valibot](https://valibot.dev/)
+
+---
+
+### 7. Markdown → `marked` or `mdast-util-from-markdown`
+
+**File:** `transform.ts:7-177` (~170 lines)
+
+**Option A: `marked`** - Simple, fast, battle-tested
+```bash
+bun add marked
+```
+```ts
+import { marked } from 'marked'
+const html = marked.parse(markdown)
+```
+
+**Option B: `mdast-util-from-markdown`** - AST-based, part of unified ecosystem
+```bash
+bun add mdast-util-from-markdown mdast-util-to-hast hast-util-to-html
+```
+```ts
+import { fromMarkdown } from 'mdast-util-from-markdown'
+const ast = fromMarkdown(markdown)  // Full AST for manipulation
+```
+
+Both are TypeScript-first and edge-compatible.
+
+Sources: [marked](https://marked.js.org/), [mdast-util-from-markdown](https://github.com/syntax-tree/mdast-util-from-markdown)
+
+---
+
+### 8. QR Code → `@libs/qrcode` (JSR) - Edge Native!
+
+**File:** `transform.ts:314-484` (~170 lines) - **CRITICAL: Current impl is broken**
+
+**Best for Edge:** Use `@libs/qrcode` from JSR - zero dependencies, runtime agnostic:
+
+```bash
+bunx jsr add @libs/qrcode
+```
+```ts
+import { qrcode } from '@libs/qrcode'
+const svg = qrcode(data, { output: 'svg', ecl: 'M' })
+```
+
+**Alternative:** `qrcode-svg` (used in Cloudflare's official tutorial)
+```bash
+bun add qrcode-svg
+```
+
+Sources: [@libs/qrcode JSR](https://jsr.io/@libs/qrcode), [Cloudflare QR Tutorial](https://developers.cloudflare.com/workers/tutorials/build-a-qr-code-generator/)
+
+---
+
+### 9. Color Operations → `culori` or `colorjs.io`
+
+**File:** `transform.ts:586-821` (~235 lines)
+
+**Option A: `culori`** - Functional, tree-shakeable, all color spaces
+```bash
+bun add culori
+```
+```ts
+import { oklch, formatHex, wcagContrast } from 'culori'
+const color = oklch('#ff0000')
+const lighter = { ...color, l: color.l + 0.1 }
+const contrast = wcagContrast('#fff', '#000')
+```
+
+**Option B: `colorjs.io`** - CSS Color 4 compliant, created by Lea Verou
+```bash
+bun add colorjs.io
+```
+
+Both support OKLCH, P3, and modern color spaces.
+
+Sources: [Color.js](https://colorjs.io/), [better-color-tools](https://github.com/drwpow/better-color-tools)
+
+---
+
+### 10. Diff → `diff` (jsdiff) v8+
+
+**File:** `transform.ts:179-312` (~135 lines)
+
+The `diff` package ships TypeScript types since v8. Still the standard.
+
+```bash
+bun add diff
+```
+```ts
+import { diffLines, createPatch } from 'diff'
+const changes = diffLines(original, modified)
+```
+
+For **object/JSON diffing**, use `microdiff` (0.5KB gzipped):
+```bash
+bun add microdiff
+```
+
+Sources: [jsdiff](https://github.com/kpdecker/jsdiff), [microdiff](https://github.com/AsyncBanana/microdiff)
+
+---
+
+### 11. RSS/XML Parsing → `fast-xml-parser`
 
 **File:** `data.ts:7-158` (~150 lines)
 
-**Current Implementation:**
-- Regex-based XML parsing
-- Missing CDATA edge cases
-- Limited Atom support
-
-**Recommended Library:** `rss-parser` (~15KB)
-
-```ts
-// Current (regex-based, fragile)
-const getTagContent = (tag: string, content: string): string | null => {
-  const regex = new RegExp(`<${tag}[^>]*>([\\s\\S]*?)</${tag}>`, 'i')
-  return match ? match[1].trim() : null
-}
-
-// With rss-parser
-import Parser from 'rss-parser'
-const parser = new Parser()
-const feed = await parser.parseURL(url)
-// feed.title, feed.items, etc.
-```
-
-**Benefits:**
-- Proper XML parsing
-- Full RSS 2.0 and Atom support
-- Custom field extraction
-- Error handling for malformed feeds
-
----
-
-### 10. CSV Parsing
-
-**File:** `data.ts:727-864` (~140 lines)
-
-**Current Implementation:**
-- Manual CSV parsing with quote handling
-- Basic delimiter support
-- Limited error handling
-
-**Recommended Library:** `papaparse` (~20KB) - works in browser/Node
-
-```ts
-// Current
-const parseRow = (row: string): string[] => {
-  let inQuotes = false
-  for (let i = 0; i < row.length; i++) { ... }
-}
-
-// With papaparse
-import Papa from 'papaparse'
-const result = Papa.parse(csv, { header: true, dynamicTyping: true })
-const csv = Papa.unparse(data)
-```
-
-**Benefits:**
-- Streaming for large files
-- Auto-detect delimiters
-- Type coercion
-- Web Worker support
-
----
-
-## Medium Priority Replacements
-
-### 11. Template Rendering
-
-**File:** `data.ts:869-939` (~70 lines)
-
-**Recommended:** `mustache` (~10KB) or `handlebars` (~25KB)
-
-### 12. JSON Schema Validation
-
-**File:** `data.ts:597-722` (~125 lines)
-
-**Recommended:** `ajv` (~40KB) - full JSON Schema spec support
-
-### 13. UUID/ULID Generation
-
-**File:** `utility.ts:706-793` (~85 lines)
-
-**Recommended:** Keep `crypto.randomUUID()` for UUID v4, add `ulid` package for ULID
-
----
-
-## Low Priority / Keep As-Is
-
-These implementations are fine to keep:
-
-| Component | Reason |
-|-----------|--------|
-| **Hash (SHA-256/384/512)** | Uses Web Crypto API correctly |
-| **Base64 encode/decode** | Uses native `btoa`/`atob` |
-| **Compression (gzip/deflate)** | Uses native Compression Streams API |
-| **AES-GCM encryption** | Uses Web Crypto API correctly |
-| **URL parsing** | Uses native URL API |
-
----
-
-## Implementation Recommendations
-
-### Package Installation
+`rss-parser` has Node.js dependencies. Use `fast-xml-parser` for edge:
 
 ```bash
-bun add libphonenumber-js validator date-fns lodash-es markdown-it diff qrcode color rss-parser papaparse
+bun add fast-xml-parser
+```
+```ts
+import { XMLParser } from 'fast-xml-parser'
+const parser = new XMLParser()
+const feed = parser.parse(xmlString)
 ```
 
-### Estimated Bundle Impact
-
-| Package | Size (min+gzip) | Tree-shakeable |
-|---------|----------------|----------------|
-| libphonenumber-js | ~15KB | Yes |
-| validator | ~25KB | Partial |
-| date-fns | ~10KB | Yes |
-| lodash-es | ~5KB | Yes |
-| markdown-it | ~30KB | No |
-| diff | ~10KB | Yes |
-| qrcode | ~35KB | Partial |
-| color | ~8KB | Yes |
-| rss-parser | ~15KB | No |
-| papaparse | ~20KB | Yes |
-| **Total** | ~173KB | - |
-
-Note: With tree-shaking and only importing needed functions, actual impact is closer to **~80-100KB**.
-
-### Migration Strategy
-
-1. **Phase 1 (Critical):** Replace QR code tool (current implementation produces invalid QR codes)
-2. **Phase 2 (High Value):** Phone validation, DateTime, Markdown
-3. **Phase 3 (Maintenance):** Email/URL/IP validation, CSV, RSS
-4. **Phase 4 (Optional):** Color, Diff, JSON Schema
+Sources: [Cloudflare RSS Worker](https://www.raymondcamden.com/2023/10/31/building-a-generic-rss-parser-service-with-cloudflare-workers)
 
 ---
 
-## Code Reduction Summary
+### 12. JSON Path → Native + `structuredClone`
 
-| File | Current Lines | After Migration | Reduction |
-|------|--------------|-----------------|-----------|
-| validation.ts | 590 | 150 | -74% |
-| utility.ts | 1055 | 400 | -62% |
-| transform.ts | 830 | 200 | -76% |
-| data.ts | 950 | 350 | -63% |
-| **Total** | **3,425** | **1,100** | **-68%** |
+**File:** `utility.ts:193-349` (~155 lines)
+
+Instead of lodash, use native with `structuredClone`:
+
+```ts
+// Simple path getter (keep your current impl, it's fine)
+const getByPath = (obj: unknown, path: string) => { ... }
+
+// For setting, use structuredClone instead of JSON.parse(JSON.stringify())
+const setByPath = (obj: unknown, path: string, value: unknown) => {
+  const result = structuredClone(obj)
+  // ... set logic
+  return result
+}
+```
+
+If you need lodash-style deep operations, use `lodash-es` (tree-shakeable):
+```ts
+import { get, set } from 'lodash-es'
+```
 
 ---
 
-## Edge Runtime Compatibility Note
+## Updated Recommendations Summary
 
-Since this project runs on Cloudflare Workers (edge runtime), ensure all libraries are edge-compatible:
+| Category | Recommendation | Bundle Impact |
+|----------|---------------|---------------|
+| Deep Clone | `structuredClone()` native | 0 KB |
+| Text Segmentation | `Intl.Segmenter` native | 0 KB |
+| Color (CSS) | `color-mix()` + `oklch()` native | 0 KB |
+| DateTime | `@js-temporal/polyfill` (or `date-fns`) | ~15KB / ~10KB |
+| Phone | `libphonenumber-js` | ~15KB |
+| Validation | Extend Zod (already using) | 0 KB |
+| Markdown | `marked` | ~8KB |
+| QR Code | `@libs/qrcode` (JSR) | ~5KB |
+| Colors (JS) | `culori` | ~10KB |
+| Diff | `diff` | ~5KB |
+| XML/RSS | `fast-xml-parser` | ~15KB |
 
-- `libphonenumber-js` - Edge compatible
-- `validator` - Edge compatible
-- `date-fns` - Edge compatible
-- `lodash-es` - Edge compatible
-- `markdown-it` - Edge compatible
-- `diff` - Edge compatible
-- `qrcode` - Edge compatible (use `qrcode/lib/browser`)
-- `color` - Edge compatible
-- `rss-parser` - Needs polyfill for `xml2js` dependency
-- `papaparse` - Edge compatible
+**Total new dependencies:** ~70-85KB (vs previous estimate of ~170KB)
 
-For `rss-parser`, consider using `feed` package instead, which is lighter and more edge-friendly.
+---
+
+## Migration Priority
+
+### Phase 1: Critical Fixes
+1. **QR Code** - Current implementation is explicitly broken
+2. **Deep Clone** - Replace `JSON.parse(JSON.stringify())` with `structuredClone()`
+
+### Phase 2: Use Native APIs
+3. **Intl.Segmenter** - For word counting, text segmentation
+4. **Temporal polyfill** - For datetime operations
+
+### Phase 3: Add Minimal Libraries
+5. **libphonenumber-js** - Phone validation (200+ countries)
+6. **marked** or **mdast** - Markdown parsing
+7. **fast-xml-parser** - RSS/XML parsing
+
+### Phase 4: Cleanup
+8. Extend Zod for remaining validation
+9. Add `culori` if JS color manipulation needed
+10. Add `diff` if diff functionality used heavily
+
+---
+
+## Edge Runtime Compatibility Verified
+
+All recommendations work on Cloudflare Workers:
+
+| Library | Edge Compatible | Notes |
+|---------|----------------|-------|
+| `structuredClone` | ✅ Native | |
+| `Intl.Segmenter` | ✅ Native | |
+| `@js-temporal/polyfill` | ✅ | |
+| `libphonenumber-js` | ✅ | |
+| `marked` | ✅ | |
+| `@libs/qrcode` | ✅ | Designed for edge |
+| `culori` | ✅ | |
+| `diff` | ✅ | |
+| `fast-xml-parser` | ✅ | |
+| `microdiff` | ✅ | |
+
+---
+
+## References
+
+- [MDN structuredClone](https://developer.mozilla.org/en-US/docs/Web/API/structuredClone)
+- [MDN Intl.Segmenter](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/Segmenter)
+- [MDN Temporal API](https://developer.mozilla.org/en-US/blog/javascript-temporal-is-coming/)
+- [Cloudflare Workers TypeScript](https://developers.cloudflare.com/workers/languages/typescript/)
+- [JSR @libs/qrcode](https://jsr.io/@libs/qrcode)
+- [Color.js](https://colorjs.io/)
+- [Valibot](https://valibot.dev/)
