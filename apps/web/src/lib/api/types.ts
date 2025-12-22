@@ -1,42 +1,85 @@
+import { z } from 'zod'
+
 // =============================================================================
 // HONO ENVIRONMENT TYPES (Server-side)
+// Using Zod schemas for runtime validation with z.infer for type inference
 // =============================================================================
 
 /**
  * Auth user information stored in context.
  */
-export interface AuthUser {
-	id: string
-	email: string
-	name: string | null
-	image: string | null
-}
+export const AuthUserSchema = z.object({
+	id: z.string(),
+	email: z.string().email(),
+	name: z.string().nullable(),
+	image: z.string().nullable(),
+})
+
+export type AuthUser = z.infer<typeof AuthUserSchema>
 
 /**
  * Session information stored in context.
  */
-export interface AuthSession {
-	id: string
-	expiresAt: Date
-}
+export const AuthSessionSchema = z.object({
+	id: z.string(),
+	expiresAt: z.date(),
+})
+
+export type AuthSession = z.infer<typeof AuthSessionSchema>
 
 /**
  * Workspace information stored in context.
  */
-export interface WorkspaceInfo {
-	id: string
-	name: string
-	slug: string
-	ownerId: string
-}
+export const WorkspaceInfoSchema = z.object({
+	id: z.string(),
+	name: z.string(),
+	slug: z.string(),
+	ownerId: z.string(),
+})
+
+export type WorkspaceInfo = z.infer<typeof WorkspaceInfoSchema>
 
 /**
  * Auth variables set by authMiddleware.
  */
-export interface AuthVariables {
-	user: AuthUser
-	session: AuthSession
-}
+export const AuthVariablesSchema = z.object({
+	user: AuthUserSchema,
+	session: AuthSessionSchema,
+})
+
+export type AuthVariables = z.infer<typeof AuthVariablesSchema>
+
+/**
+ * API key permissions schema.
+ */
+export const ApiKeyPermissionsSchema = z
+	.object({
+		scopes: z.array(z.string()).optional(),
+		agentIds: z.array(z.string()).optional(),
+	})
+	.nullable()
+
+/**
+ * API key information stored in context.
+ */
+export const ApiKeyInfoSchema = z.object({
+	id: z.string(),
+	workspaceId: z.string(),
+	name: z.string(),
+	permissions: ApiKeyPermissionsSchema,
+})
+
+export type ApiKeyInfo = z.infer<typeof ApiKeyInfoSchema>
+
+/**
+ * API key variables set by apiKeyMiddleware.
+ */
+export const ApiKeyVariablesSchema = z.object({
+	apiKey: ApiKeyInfoSchema,
+	workspace: WorkspaceInfoSchema,
+})
+
+export type ApiKeyVariables = z.infer<typeof ApiKeyVariablesSchema>
 
 /**
  * Workspace variables set by workspaceMiddleware.
@@ -45,27 +88,6 @@ export interface AuthVariables {
 export interface WorkspaceVariables extends AuthVariables {
 	workspace: WorkspaceInfo
 	workspaceRole: WorkspaceRole
-}
-
-/**
- * API key information stored in context.
- */
-export interface ApiKeyInfo {
-	id: string
-	workspaceId: string
-	name: string
-	permissions: {
-		scopes?: string[]
-		agentIds?: string[]
-	} | null
-}
-
-/**
- * API key variables set by apiKeyMiddleware.
- */
-export interface ApiKeyVariables {
-	apiKey: ApiKeyInfo
-	workspace: WorkspaceInfo
 }
 
 /**
@@ -106,19 +128,22 @@ export interface OptionalAuthEnv extends HonoEnv {
 
 // =============================================================================
 // DATABASE ENUM TYPES WITH RUNTIME VALIDATION
+// Using Zod schemas for validation - no need for manual validator functions
 // =============================================================================
 
 /**
- * Workspace role type.
+ * Workspace role schema.
  * Matches the database enum.
  */
-export type WorkspaceRole = 'owner' | 'admin' | 'member' | 'viewer'
+export const WorkspaceRoleSchema = z.enum(['owner', 'admin', 'member', 'viewer'])
+
+export type WorkspaceRole = z.infer<typeof WorkspaceRoleSchema>
 
 /**
  * Validate that a value is a valid WorkspaceRole.
  */
 export function isWorkspaceRole(value: unknown): value is WorkspaceRole {
-	return value === 'owner' || value === 'admin' || value === 'member' || value === 'viewer'
+	return WorkspaceRoleSchema.safeParse(value).success
 }
 
 /**
@@ -126,22 +151,22 @@ export function isWorkspaceRole(value: unknown): value is WorkspaceRole {
  * Throws if invalid.
  */
 export function assertWorkspaceRole(value: unknown): asserts value is WorkspaceRole {
-	if (!isWorkspaceRole(value)) {
-		throw new Error(`Invalid workspace role: ${value}`)
-	}
+	WorkspaceRoleSchema.parse(value)
 }
 
 /**
- * Message role type.
+ * Message role schema.
  * Matches the database enum.
  */
-export type MessageRole = 'user' | 'assistant' | 'system' | 'tool'
+export const MessageRoleSchema = z.enum(['user', 'assistant', 'system', 'tool'])
+
+export type MessageRole = z.infer<typeof MessageRoleSchema>
 
 /**
  * Validate that a value is a valid MessageRole.
  */
 export function isMessageRole(value: unknown): value is MessageRole {
-	return value === 'user' || value === 'assistant' || value === 'system' || value === 'tool'
+	return MessageRoleSchema.safeParse(value).success
 }
 
 /**
@@ -149,163 +174,269 @@ export function isMessageRole(value: unknown): value is MessageRole {
  * Throws if invalid.
  */
 export function assertMessageRole(value: unknown): asserts value is MessageRole {
-	if (!isMessageRole(value)) {
-		throw new Error(`Invalid message role: ${value}`)
-	}
+	MessageRoleSchema.parse(value)
 }
 
 // =============================================================================
 // API TYPES (Client-side)
+// Using Zod schemas for runtime validation with z.infer for type inference
 // =============================================================================
 
 /**
- * Agent status type.
+ * Agent status schema.
  */
-export type AgentStatus = 'draft' | 'deployed' | 'archived'
+export const AgentStatusSchema = z.enum(['draft', 'deployed', 'archived'])
 
-export interface AgentConfig {
-	temperature?: number
-	maxTokens?: number
-	topP?: number
-	topK?: number
-	stopSequences?: string[]
-}
+export type AgentStatus = z.infer<typeof AgentStatusSchema>
 
-export interface Agent {
-	id: string
-	workspaceId: string
-	name: string
-	description: string | null
-	model: string
-	instructions: string
-	config: AgentConfig | null
-	status: AgentStatus
-	toolIds: string[]
-	createdAt: string
-	updatedAt: string
-}
+/**
+ * Agent configuration schema.
+ */
+export const AgentConfigSchema = z.object({
+	temperature: z.number().min(0).max(2).optional(),
+	maxTokens: z.number().min(1).max(100000).optional(),
+	topP: z.number().min(0).max(1).optional(),
+	topK: z.number().min(0).optional(),
+	stopSequences: z.array(z.string()).optional(),
+})
 
-export interface CreateAgentInput {
-	name: string
-	description?: string
-	model: string
-	instructions?: string
-	config?: AgentConfig
-	toolIds?: string[]
-}
+export type AgentConfig = z.infer<typeof AgentConfigSchema>
 
-export interface UpdateAgentInput {
-	name?: string
-	description?: string
-	model?: string
-	instructions?: string
-	config?: AgentConfig
-	toolIds?: string[]
-	status?: AgentStatus
-}
+/**
+ * Agent schema.
+ */
+export const AgentSchema = z.object({
+	id: z.string(),
+	workspaceId: z.string(),
+	name: z.string(),
+	description: z.string().nullable(),
+	model: z.string(),
+	instructions: z.string(),
+	config: AgentConfigSchema.nullable(),
+	status: AgentStatusSchema,
+	toolIds: z.array(z.string()),
+	createdAt: z.string(),
+	updatedAt: z.string(),
+})
+
+export type Agent = z.infer<typeof AgentSchema>
+
+/**
+ * Create agent input schema.
+ */
+export const CreateAgentInputSchema = z.object({
+	name: z.string().min(1).max(100),
+	description: z.string().optional(),
+	model: z.string(),
+	instructions: z.string().optional(),
+	config: AgentConfigSchema.optional(),
+	toolIds: z.array(z.string()).optional(),
+})
+
+export type CreateAgentInput = z.infer<typeof CreateAgentInputSchema>
+
+/**
+ * Update agent input schema.
+ */
+export const UpdateAgentInputSchema = z.object({
+	name: z.string().min(1).max(100).optional(),
+	description: z.string().optional(),
+	model: z.string().optional(),
+	instructions: z.string().optional(),
+	config: AgentConfigSchema.optional(),
+	toolIds: z.array(z.string()).optional(),
+	status: AgentStatusSchema.optional(),
+})
+
+export type UpdateAgentInput = z.infer<typeof UpdateAgentInputSchema>
 
 // =============================================================================
 // Tool Types
 // =============================================================================
 
-export type ToolType = 'http' | 'sql' | 'kv' | 'r2' | 'vectorize' | 'custom'
+/**
+ * Tool type schema (client-side subset).
+ */
+export const ToolTypeSchema = z.enum(['http', 'sql', 'kv', 'r2', 'vectorize', 'custom'])
 
-export interface Tool {
-	id: string
-	workspaceId: string
-	name: string
-	description: string
-	type: ToolType
-	isSystem: boolean
-	inputSchema: Record<string, unknown>
-	config: Record<string, unknown> | null
-	createdAt: string
-	updatedAt: string
-}
+export type ToolType = z.infer<typeof ToolTypeSchema>
 
-export interface CreateToolInput {
-	name: string
-	description?: string
-	type: ToolType
-	inputSchema?: Record<string, unknown>
-	config?: Record<string, unknown>
-	code?: string
-}
+/**
+ * Tool schema.
+ */
+export const ToolSchema = z.object({
+	id: z.string(),
+	workspaceId: z.string(),
+	name: z.string(),
+	description: z.string(),
+	type: ToolTypeSchema,
+	isSystem: z.boolean(),
+	inputSchema: z.record(z.string(), z.unknown()),
+	config: z.record(z.string(), z.unknown()).nullable(),
+	createdAt: z.string(),
+	updatedAt: z.string(),
+})
+
+export type Tool = z.infer<typeof ToolSchema>
+
+/**
+ * Create tool input schema.
+ */
+export const CreateToolInputSchema = z.object({
+	name: z.string().min(1).max(100),
+	description: z.string().optional(),
+	type: ToolTypeSchema,
+	inputSchema: z.record(z.string(), z.unknown()).optional(),
+	config: z.record(z.string(), z.unknown()).optional(),
+	code: z.string().optional(),
+})
+
+export type CreateToolInput = z.infer<typeof CreateToolInputSchema>
 
 // =============================================================================
 // Workspace Types
 // =============================================================================
 
-export interface Workspace {
-	id: string
-	name: string
-	slug: string
-	description: string | null
-	createdAt: string
-	updatedAt: string
-}
+/**
+ * Workspace schema.
+ */
+export const WorkspaceSchema = z.object({
+	id: z.string(),
+	name: z.string(),
+	slug: z.string(),
+	description: z.string().nullable(),
+	createdAt: z.string(),
+	updatedAt: z.string(),
+})
 
-export interface CreateWorkspaceInput {
-	name: string
-	slug?: string
-	description?: string
-}
+export type Workspace = z.infer<typeof WorkspaceSchema>
+
+/**
+ * Create workspace input schema.
+ */
+export const CreateWorkspaceInputSchema = z.object({
+	name: z.string().min(1).max(100),
+	slug: z.string().optional(),
+	description: z.string().optional(),
+})
+
+export type CreateWorkspaceInput = z.infer<typeof CreateWorkspaceInputSchema>
 
 // =============================================================================
 // Usage Types
 // =============================================================================
 
-export interface UsageSummary {
-	totalCalls: number
-	totalTokens: number
-	inputTokens: number
-	outputTokens: number
-	periodStart: string
-	periodEnd: string
-}
+/**
+ * Usage summary schema.
+ */
+export const UsageSummarySchema = z.object({
+	totalCalls: z.number(),
+	totalTokens: z.number(),
+	inputTokens: z.number(),
+	outputTokens: z.number(),
+	periodStart: z.string(),
+	periodEnd: z.string(),
+})
 
-export interface AgentUsage {
-	agentId: string
-	agentName: string
-	totalCalls: number
-	totalTokens: number
-}
+export type UsageSummary = z.infer<typeof UsageSummarySchema>
+
+/**
+ * Agent usage schema.
+ */
+export const AgentUsageSchema = z.object({
+	agentId: z.string(),
+	agentName: z.string(),
+	totalCalls: z.number(),
+	totalTokens: z.number(),
+})
+
+export type AgentUsage = z.infer<typeof AgentUsageSchema>
 
 // =============================================================================
 // Chat Types
 // =============================================================================
 
-export interface ChatMessage {
-	id: string
-	role: 'user' | 'assistant' | 'system'
-	content: string
-	createdAt: string
-}
+/**
+ * Chat message role schema (subset for chat).
+ */
+export const ChatMessageRoleSchema = z.enum(['user', 'assistant', 'system'])
 
-export interface ChatRequest {
-	message: string
-	conversationId?: string
-}
+/**
+ * Chat message schema.
+ */
+export const ChatMessageSchema = z.object({
+	id: z.string(),
+	role: ChatMessageRoleSchema,
+	content: z.string(),
+	createdAt: z.string(),
+})
 
-export interface ChatStreamEvent {
-	type: 'text' | 'tool_call' | 'tool_result' | 'done' | 'error'
-	content?: string
-	toolName?: string
-	toolArgs?: Record<string, unknown>
-	toolResult?: unknown
-	error?: string
-}
+export type ChatMessage = z.infer<typeof ChatMessageSchema>
+
+/**
+ * Chat request schema.
+ */
+export const ChatRequestSchema = z.object({
+	message: z.string().min(1),
+	conversationId: z.string().optional(),
+})
+
+export type ChatRequest = z.infer<typeof ChatRequestSchema>
+
+/**
+ * Chat stream event type schema.
+ */
+export const ChatStreamEventTypeSchema = z.enum(['text', 'tool_call', 'tool_result', 'done', 'error'])
+
+/**
+ * Chat stream event schema.
+ * Discriminated union for type-safe stream event handling.
+ */
+export const ChatStreamEventSchema = z.discriminatedUnion('type', [
+	z.object({
+		type: z.literal('text'),
+		content: z.string(),
+	}),
+	z.object({
+		type: z.literal('tool_call'),
+		toolName: z.string(),
+		toolArgs: z.record(z.string(), z.unknown()),
+	}),
+	z.object({
+		type: z.literal('tool_result'),
+		toolResult: z.unknown(),
+	}),
+	z.object({
+		type: z.literal('done'),
+	}),
+	z.object({
+		type: z.literal('error'),
+		error: z.string(),
+	}),
+])
+
+export type ChatStreamEvent = z.infer<typeof ChatStreamEventSchema>
 
 // =============================================================================
 // API Response Types
 // =============================================================================
 
-export interface ApiError {
-	error: string
-	code?: string
-	details?: Record<string, unknown>
-}
+/**
+ * API error schema.
+ */
+export const ApiErrorSchema = z.object({
+	error: z.string(),
+	code: z.string().optional(),
+	details: z.record(z.string(), z.unknown()).optional(),
+})
 
-export interface ApiSuccess {
-	success: true
-}
+export type ApiError = z.infer<typeof ApiErrorSchema>
+
+/**
+ * API success schema.
+ */
+export const ApiSuccessSchema = z.object({
+	success: z.literal(true),
+})
+
+export type ApiSuccess = z.infer<typeof ApiSuccessSchema>
