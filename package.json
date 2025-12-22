@@ -30,6 +30,7 @@
     "test:watch": "vitest",
     "test:ui": "vitest --ui",
     "test:unit": "vitest run --filter unit",
+    "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
     "cf:typegen": "bun run --cwd apps/web cf-typegen",
     "clean": "rm -rf node_modules apps/*/node_modules packages/*/node_modules apps/*/.next apps/*/.open-next",
