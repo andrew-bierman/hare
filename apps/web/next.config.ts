@@ -11,6 +11,8 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 const nextConfig: NextConfig = {
+	// Required for OpenNext/Cloudflare deployment
+	output: 'standalone',
 	// Webpack configuration for Edge runtime compatibility
 	webpack: (
 		config: Record<string, unknown> & { resolve: { fallback?: Record<string, boolean> } },
