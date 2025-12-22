@@ -34,7 +34,7 @@ export const datetimeTool = createTool({
 			const parseDate = (d?: string): Date => {
 				if (!d) return new Date()
 				const parsed = new Date(d)
-				if (Number.isNaN(parsed.getTime())) throw new Error(`Invalid date: ${d}`)
+				if (isNaN(parsed.getTime())) throw new Error(`Invalid date: ${d}`)
 				return parsed
 			}
 
