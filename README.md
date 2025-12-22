@@ -877,72 +877,266 @@ Hare pricing is designed to be simple and predictable (no surprise bills! 💰):
 
 ## Roadmap
 
-### ✅ Current Implementation Status
+> **Where we are**: Hare has a solid foundation with full backend infrastructure, AI agent execution engine, and streaming chat capabilities. We're now focused on polishing the frontend experience and adding production features.
 
-- [x] 🏗️ Project scaffolding with Bun monorepo
-- [x] ⚡ Next.js 15 app with Cloudflare Pages deployment
-- [x] 💾 Database schema design (Drizzle + D1)
-  - [x] Users & authentication tables
-  - [x] Workspaces & workspace members
-  - [x] Agents & agent configuration
-  - [x] Tools & agent-tool relationships
-  - [x] Conversations & messages
-  - [x] Deployments tracking
-  - [x] Usage analytics tables
-- [x] 🔌 Hono API with type-safe routes
-  - [x] Auth routes (Better Auth integration)
-  - [x] Workspace CRUD routes
-  - [x] Agent CRUD routes
-  - [x] Tools routes
-  - [x] Chat/conversation routes
-  - [x] Usage tracking routes
-- [x] 🎨 Dashboard layout structure (shadcn/ui)
-  - [x] Authentication pages (sign-in, sign-up)
-  - [x] Dashboard home
-  - [x] Agents management page
-  - [x] Settings page
-  - [x] Tools page
-  - [x] Usage page
-- [x] 📚 OpenAPI documentation with Scalar
-- [x] 🧪 Testing infrastructure (Vitest + Playwright)
-- [ ] 🔐 Better Auth full implementation
-- [ ] 🎮 Agent builder UI (in progress)
-- [ ] 💬 Chat playground (in progress)
-- [ ] 🚀 Agent deployment to edge
-- [ ] 🤖 Workers AI integration
-- [ ] 💳 Stripe billing integration
-- [ ] 👥 Team collaboration features
+### 🎯 Progress Overview
 
-### 🗓️ Planned Features
+```
+Foundation    ████████████████████ 100%  (Complete)
+Core Features █████████████░░░░░░░  65%  (In Progress)
+Production    ███░░░░░░░░░░░░░░░░░  15%  (Started)
+Advanced      ░░░░░░░░░░░░░░░░░░░░   0%  (Planned)
+Enterprise    ░░░░░░░░░░░░░░░░░░░░   0%  (Planned)
+```
 
-**Phase 1: Core Functionality (Current Focus)**
-- Complete Better Auth integration with OAuth providers
-- Agent builder UI with visual configuration
-- Model selector and instructions editor
-- Tool attachment and configuration
-- Chat playground with streaming responses
-- Agent deployment to Cloudflare Workers
+---
 
-**Phase 2: Production Features**
-- Vector memory with Cloudflare Vectorize
-- Real-time usage tracking and analytics
-- Team collaboration (workspace members, roles)
-- Agent versioning and rollback
-- Rate limiting and quotas
+### ✅ Phase 0: Foundation (Complete)
 
-**Phase 3: Advanced Features**
-- Custom tool builder (code + HTTP)
-- Scheduled agents (cron jobs)
-- Multi-agent workflows
-- Webhooks for agent events
-- Embed widget for websites
+**Infrastructure & Architecture** - *100% Complete*
 
-**Phase 4: Enterprise**
-- SSO/SAML integration
-- Audit logs
-- Custom domains (agents.yourcompany.com)
-- SLA guarantees
-- Dedicated support
+All core infrastructure is in place and production-ready:
+
+- [x] 🏗️ **Monorepo Setup** - Turborepo + Bun for blazing-fast builds
+- [x] ⚡ **Next.js 15 App** - Deployed to Cloudflare Pages with `@opennextjs/cloudflare`
+- [x] 💾 **Database Layer** - Complete D1 schema with Drizzle ORM
+  - [x] Multi-tenant workspaces with role-based access
+  - [x] Agent configurations with versioning support
+  - [x] Tool registry and agent-tool associations
+  - [x] Conversation history and message storage
+  - [x] Deployment tracking and usage metrics
+- [x] 🔌 **Type-Safe API** - Hono with OpenAPI + RPC client
+  - [x] 6 complete route modules: agents, workspaces, tools, chat, usage, auth
+  - [x] Zod validation on all endpoints
+  - [x] Middleware for auth and workspace context
+  - [x] OpenAPI docs with Scalar UI at `/api/docs`
+- [x] 🤖 **AI Agent Engine** - Production-ready execution layer
+  - [x] Vercel AI SDK integration for streaming
+  - [x] Workers AI provider with model abstraction
+  - [x] 40+ built-in tools (KV, R2, Vectorize, HTTP, SQL, AI)
+  - [x] Memory system with conversation persistence
+  - [x] Tool calling and result handling
+- [x] 🎨 **UI Foundation** - shadcn/ui component library integrated
+  - [x] Layout components (header, sidebar, navigation)
+  - [x] Workspace switcher and user menu
+  - [x] Form components and dialogs
+- [x] 🧪 **Testing Setup** - Vitest + Playwright configured
+- [x] 📚 **Documentation** - Comprehensive README with architecture details
+
+**Key Achievement**: The backend is feature-complete and ready to power AI agents at the edge. All Cloudflare services (D1, KV, R2, Vectorize, Workers AI) are integrated and working.
+
+---
+
+### 🚧 Phase 1: Core Features (65% Complete)
+
+**Goal**: Get agents running on the edge with a polished user experience.
+
+**Currently Available:**
+
+- [x] 🔐 **Auth System** - Better Auth with email/password (OAuth ready)
+- [x] 💬 **Streaming Chat** - SSE-based chat with real-time responses
+- [x] 🧠 **Memory & Context** - Conversation history and working memory
+- [x] 🛠️ **Tool Library** - 40+ pre-built tools for agents
+- [x] 📊 **Basic Dashboard** - Pages for agents, settings, usage
+- [x] ⚙️ **Agent Configuration** - Backend API for full agent CRUD
+
+**In Progress:**
+
+- [ ] 🎮 **Agent Builder UI** (60% complete)
+  - [x] Agent list view with status indicators
+  - [x] Agent detail page with configuration forms
+  - [x] Model selector dropdown
+  - [ ] Rich instructions editor (Monaco/CodeMirror)
+  - [ ] Visual tool picker with drag-and-drop
+  - [ ] Configuration validation and preview
+  - [ ] Agent testing interface
+- [ ] 🚀 **One-Click Deployment** (30% complete)
+  - [x] Deployment tracking in database
+  - [x] Agent serialization and config export
+  - [ ] Cloudflare Workers deployment via Wrangler API
+  - [ ] Edge endpoint provisioning (URL generation)
+  - [ ] Deployment rollback mechanism
+  - [ ] Health checks and monitoring
+- [ ] 💬 **Chat Playground** (70% complete)
+  - [x] Streaming message rendering
+  - [x] Message history persistence
+  - [x] SSE event handling
+  - [ ] Tool call visualization
+  - [ ] Export conversation history
+  - [ ] Share playground sessions
+
+**Next Steps** (Priority order):
+1. Complete visual tool picker in agent builder
+2. Implement rich text editor for instructions (Monaco)
+3. Build deployment pipeline to Workers
+4. Add tool call UI in playground
+5. Add OAuth providers (Google, GitHub)
+
+**Timeline**: 4-6 weeks
+
+---
+
+### 🏭 Phase 2: Production Ready (15% Complete)
+
+**Goal**: Make Hare production-ready with monitoring, billing, and team features.
+
+**Partially Complete:**
+
+- [x] 📊 **Usage Tracking** - Backend tracking for tokens and requests
+- [ ] 📈 **Analytics Dashboard** (20% complete)
+  - [x] Usage data collection
+  - [ ] Charts and visualizations
+  - [ ] Cost estimates
+  - [ ] Token usage by agent
+
+**Planned:**
+
+- [ ] 💳 **Stripe Integration**
+  - [ ] Subscription tiers (Free, Pro, Team, Enterprise)
+  - [ ] Usage-based billing for overages
+  - [ ] Checkout and customer portal
+  - [ ] Webhook handlers for events
+- [ ] 👥 **Team Collaboration**
+  - [ ] Invite team members
+  - [ ] Role-based access control (Owner, Admin, Member, Viewer)
+  - [ ] Activity logs per workspace
+  - [ ] Member management UI
+- [ ] 🔍 **Observability**
+  - [ ] Request logs with filtering
+  - [ ] Error tracking and alerting
+  - [ ] Latency monitoring
+  - [ ] Agent performance metrics
+- [ ] ⚡ **Performance**
+  - [ ] Rate limiting by plan tier
+  - [ ] Request quotas and throttling
+  - [ ] Caching layer (KV) for frequently accessed data
+  - [ ] Optimistic UI updates
+- [ ] 🎯 **Vector Memory**
+  - [ ] Semantic search over conversation history
+  - [ ] Long-term memory across sessions
+  - [ ] RAG (Retrieval Augmented Generation)
+  - [ ] Knowledge base integration
+
+**Timeline**: 8-10 weeks
+
+---
+
+### 🚀 Phase 3: Advanced Features (Planned)
+
+**Goal**: Differentiate Hare with unique capabilities and enterprise features.
+
+- [ ] 🔧 **Custom Tool Builder**
+  - [ ] Visual HTTP tool configuration (no code)
+  - [ ] TypeScript tool templates
+  - [ ] Tool testing sandbox
+  - [ ] Tool marketplace (share/discover)
+- [ ] ⏰ **Scheduled Agents**
+  - [ ] Cron-based execution
+  - [ ] Trigger configuration UI
+  - [ ] Execution history
+  - [ ] Failure notifications
+- [ ] 🔗 **Multi-Agent Workflows**
+  - [ ] Visual workflow designer
+  - [ ] Agent chaining and branching
+  - [ ] Conditional logic
+  - [ ] Parallel execution
+- [ ] 📣 **Webhooks & Integrations**
+  - [ ] Webhook configuration per agent
+  - [ ] Event types (message, error, tool call)
+  - [ ] Retry logic with exponential backoff
+  - [ ] Integration templates (Slack, Discord, etc.)
+- [ ] 💬 **Embed Widget**
+  - [ ] Customizable chat widget
+  - [ ] One-line installation (`<script>` tag)
+  - [ ] Theme customization
+  - [ ] Widget analytics
+- [ ] 🌐 **Custom Domains**
+  - [ ] Bring your own domain
+  - [ ] SSL certificate automation
+  - [ ] Agent subdomain routing
+  - [ ] DNS management
+
+**Timeline**: 12-16 weeks after Phase 2
+
+---
+
+### 🏢 Phase 4: Enterprise (Future)
+
+**Goal**: Support large organizations with compliance and advanced requirements.
+
+- [ ] 🔐 **SSO/SAML**
+  - [ ] Okta, Auth0, Azure AD integration
+  - [ ] Just-in-time provisioning
+  - [ ] Group-based access control
+- [ ] 📋 **Audit Logs**
+  - [ ] Comprehensive activity tracking
+  - [ ] Compliance exports (JSON, CSV)
+  - [ ] Retention policies
+- [ ] 🎯 **SLA & Support**
+  - [ ] 99.9% uptime guarantee
+  - [ ] Priority support queue
+  - [ ] Dedicated Slack channel
+  - [ ] Custom onboarding
+- [ ] 🏭 **Advanced Deployment**
+  - [ ] Private edge locations
+  - [ ] VPC integration
+  - [ ] Bring your own AI models
+  - [ ] On-premise deployment option
+- [ ] 📊 **Enterprise Analytics**
+  - [ ] Cross-workspace reporting
+  - [ ] Cost allocation
+  - [ ] Chargeback reports
+  - [ ] Custom dashboards
+
+**Timeline**: 20+ weeks after Phase 3
+
+---
+
+### 🤝 How to Contribute
+
+The roadmap above represents the planned direction, but we welcome community input!
+
+**High-Impact Areas for Contributors:**
+
+- 🎨 **UI/UX**: Agent builder, playground improvements, dashboard polish
+- 🧪 **Testing**: E2E tests, API tests, edge case coverage
+- 📚 **Documentation**: Tutorials, guides, API examples
+- 🛠️ **Tools**: New tool implementations (GitHub, Linear, Notion, etc.)
+- 🔌 **Integrations**: OAuth providers, webhook destinations
+- 🌍 **i18n**: Internationalization support
+
+**See [Contributing](#contributing) section for setup instructions.**
+
+---
+
+### 📊 Success Metrics
+
+We're tracking these metrics to measure progress:
+
+- **Time to First Agent**: < 5 minutes from signup to deployed agent
+- **Cold Start Latency**: < 50ms average globally
+- **API Uptime**: > 99.9% across all edge locations
+- **Test Coverage**: > 80% for core features
+- **Documentation**: 100% of API endpoints documented
+- **Community**: Growing contributor base and active discussions
+
+---
+
+### 💡 Future Ideas (Not Yet Prioritized)
+
+Ideas we're considering but haven't scheduled:
+
+- Voice agent support (Speech-to-Text + TTS)
+- Agent marketplace (discover and clone agents)
+- A/B testing for agent variations
+- Fine-tuning support for custom models
+- Agent analytics (user satisfaction, conversation quality)
+- Mobile app for agent management
+- Agent templates library (customer support, sales, etc.)
+- Integration with vector databases (Pinecone, Weaviate)
+- Multi-modal support (images, PDFs, videos)
+
+Have ideas? [Open an issue](https://github.com/andrew-bierman/hare/issues) to discuss! 💚
 
 ---
 
