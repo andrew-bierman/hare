@@ -220,7 +220,7 @@ export const jsonTool = createTool({
 			}
 
 			const setByPath = (obj: unknown, pathStr: string, val: unknown): unknown => {
-				const result = JSON.parse(JSON.stringify(obj))
+				const result = structuredClone(obj)
 				const parts = pathStr.replace(/\[(\d+)\]/g, '.$1').split('.')
 				let current: Record<string, unknown> = result
 
@@ -237,7 +237,7 @@ export const jsonTool = createTool({
 			}
 
 			const deleteByPath = (obj: unknown, pathStr: string): unknown => {
-				const result = JSON.parse(JSON.stringify(obj))
+				const result = structuredClone(obj)
 				const parts = pathStr.replace(/\[(\d+)\]/g, '.$1').split('.')
 				let current: Record<string, unknown> = result
 

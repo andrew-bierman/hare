@@ -293,28 +293,40 @@ Sources: [Cloudflare RSS Worker](https://www.raymondcamden.com/2023/10/31/buildi
 
 ---
 
-### 12. JSON Path → Native + `structuredClone`
+### 12. Utility Functions → `radashi` (Modern Lodash Alternative)
 
 **File:** `utility.ts:193-349` (~155 lines)
 
-Instead of lodash, use native with `structuredClone`:
+Use **Radashi** - a TypeScript-first, tree-shakeable utility library (4.8KB gzipped vs Lodash's 24KB):
 
-```ts
-// Simple path getter (keep your current impl, it's fine)
-const getByPath = (obj: unknown, path: string) => { ... }
-
-// For setting, use structuredClone instead of JSON.parse(JSON.stringify())
-const setByPath = (obj: unknown, path: string, value: unknown) => {
-  const result = structuredClone(obj)
-  // ... set logic
-  return result
-}
+```bash
+bun add radashi
 ```
 
-If you need lodash-style deep operations, use `lodash-es` (tree-shakeable):
 ```ts
-import { get, set } from 'lodash-es'
+import { get, set, clone, pick, omit, debounce, throttle } from 'radashi'
+
+// Deep clone with native API
+const cloned = structuredClone(obj)
+
+// Path operations
+const value = get(obj, 'user.address.city')
+const updated = set(obj, 'user.name', 'Alice')
+
+// Object utilities
+const subset = pick(obj, ['id', 'name'])
+const filtered = omit(obj, ['password', 'secret'])
 ```
+
+**Why Radashi over Lodash:**
+- TypeScript-first (not retrofitted types)
+- Zero dependencies
+- 4.8KB gzipped (vs Lodash 24KB)
+- Actively maintained (monthly releases)
+- No deprecated JS functions (map, reduce, etc. - use native)
+- Tree-shakeable by design
+
+Sources: [Radashi](https://radashi.js.org/), [radashi npm](https://www.npmjs.com/package/radashi)
 
 ---
 
@@ -333,8 +345,9 @@ import { get, set } from 'lodash-es'
 | Colors (JS) | `culori` | ~10KB |
 | Diff | `diff` | ~5KB |
 | XML/RSS | `fast-xml-parser` | ~15KB |
+| Utilities | `radashi` | ~5KB |
 
-**Total new dependencies:** ~70-85KB (vs previous estimate of ~170KB)
+**Total new dependencies:** ~75-90KB (vs previous estimate of ~170KB)
 
 ---
 
@@ -375,7 +388,7 @@ All recommendations work on Cloudflare Workers:
 | `culori` | ✅ | |
 | `diff` | ✅ | |
 | `fast-xml-parser` | ✅ | |
-| `microdiff` | ✅ | |
+| `radashi` | ✅ | Zero deps, TS-first |
 
 ---
 
@@ -388,3 +401,4 @@ All recommendations work on Cloudflare Workers:
 - [JSR @libs/qrcode](https://jsr.io/@libs/qrcode)
 - [Color.js](https://colorjs.io/)
 - [Valibot](https://valibot.dev/)
+- [Radashi](https://radashi.js.org/)

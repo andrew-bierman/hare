@@ -1,8 +1,9 @@
 import { z } from 'zod'
+import { XMLParser } from 'fast-xml-parser'
 import { createTool, success, failure, type ToolContext } from './types'
 
 /**
- * RSS Feed Tool - Fetch and parse RSS/Atom feeds.
+ * RSS Feed Tool - Fetch and parse RSS/Atom feeds using fast-xml-parser.
  */
 export const rssTool = createTool({
 	id: 'rss',
@@ -29,128 +30,92 @@ export const rssTool = createTool({
 
 			const xml = await response.text()
 
-			// Simple XML parser for RSS/Atom
-			const parseXml = (text: string) => {
-				const getTagContent = (tag: string, content: string): string | null => {
-					const regex = new RegExp(`<${tag}[^>]*>([\\s\\S]*?)</${tag}>`, 'i')
-					const match = content.match(regex)
-					return match ? match[1].trim() : null
+			// Parse XML using fast-xml-parser
+			const parser = new XMLParser({
+				ignoreAttributes: false,
+				attributeNamePrefix: '@_',
+				textNodeName: '#text',
+				cdataPropName: '__cdata',
+				parseAttributeValue: true,
+				trimValues: true,
+			})
+
+			const parsed = parser.parse(xml)
+
+			// Helper to extract text from parsed node (handles CDATA and nested text)
+			const getText = (node: unknown): string => {
+				if (typeof node === 'string') return node
+				if (typeof node === 'number') return String(node)
+				if (node && typeof node === 'object') {
+					const obj = node as Record<string, unknown>
+					if ('__cdata' in obj) return String(obj.__cdata)
+					if ('#text' in obj) return String(obj['#text'])
 				}
-
-				const getCdataContent = (text: string): string => {
-					const cdataMatch = text.match(/<!\[CDATA\[([\s\S]*?)\]\]>/)
-					return cdataMatch ? cdataMatch[1] : text.replace(/<[^>]+>/g, '').trim()
-				}
-
-				const getAttr = (tag: string, attr: string, content: string): string | null => {
-					const regex = new RegExp(`<${tag}[^>]*${attr}=["']([^"']+)["']`, 'i')
-					const match = content.match(regex)
-					return match ? match[1] : null
-				}
-
-				// Detect feed type
-				const isAtom = xml.includes('<feed') && xml.includes('xmlns="http://www.w3.org/2005/Atom"')
-
-				if (isAtom) {
-					// Parse Atom feed
-					const title = getTagContent('title', xml)
-					const link = getAttr('link', 'href', xml)
-					const updated = getTagContent('updated', xml)
-
-					const entryRegex = /<entry>([\s\S]*?)<\/entry>/gi
-					const entries: Array<{
-						title: string
-						link: string
-						published: string
-						summary: string
-						content?: string
-						author?: string
-					}> = []
-
-					let match
-					while ((match = entryRegex.exec(xml)) !== null && entries.length < limit) {
-						const entry = match[1]
-						entries.push({
-							title: getCdataContent(getTagContent('title', entry) || ''),
-							link: getAttr('link', 'href', entry) || getTagContent('id', entry) || '',
-							published: getTagContent('published', entry) || getTagContent('updated', entry) || '',
-							summary: getCdataContent(getTagContent('summary', entry) || ''),
-							...(includeContent && { content: getCdataContent(getTagContent('content', entry) || '') }),
-							author: getTagContent('name', getTagContent('author', entry) || '') || undefined,
-						})
-					}
-
-					return {
-						type: 'atom',
-						title: getCdataContent(title || ''),
-						link,
-						updated,
-						items: entries,
-					}
-				} else {
-					// Parse RSS 2.0 feed
-					const channel = getTagContent('channel', xml) || xml
-					const title = getTagContent('title', channel)
-					const link = getTagContent('link', channel)
-					const description = getTagContent('description', channel)
-					const lastBuildDate = getTagContent('lastBuildDate', channel)
-
-					const itemRegex = /<item>([\s\S]*?)<\/item>/gi
-					const items: Array<{
-						title: string
-						link: string
-						pubDate: string
-						description: string
-						content?: string
-						author?: string
-						categories?: string[]
-					}> = []
-
-					let match
-					while ((match = itemRegex.exec(xml)) !== null && items.length < limit) {
-						const item = match[1]
-
-						// Extract categories
-						const categories: string[] = []
-						const catRegex = /<category[^>]*>([^<]+)<\/category>/gi
-						let catMatch
-						while ((catMatch = catRegex.exec(item)) !== null) {
-							categories.push(getCdataContent(catMatch[1]))
-						}
-
-						items.push({
-							title: getCdataContent(getTagContent('title', item) || ''),
-							link: getTagContent('link', item) || getTagContent('guid', item) || '',
-							pubDate: getTagContent('pubDate', item) || '',
-							description: getCdataContent(getTagContent('description', item) || ''),
-							...(includeContent && {
-								content: getCdataContent(
-									getTagContent('content:encoded', item) || getTagContent('description', item) || ''
-								),
-							}),
-							author: getTagContent('author', item) || getTagContent('dc:creator', item) || undefined,
-							...(categories.length > 0 && { categories }),
-						})
-					}
-
-					return {
-						type: 'rss',
-						title: getCdataContent(title || ''),
-						link,
-						description: getCdataContent(description || ''),
-						lastBuildDate,
-						items,
-					}
-				}
+				return ''
 			}
 
-			const feed = parseXml(xml)
+			// Detect feed type and parse accordingly
+			if (parsed.feed) {
+				// Atom feed
+				const feed = parsed.feed
+				const entries = Array.isArray(feed.entry) ? feed.entry : feed.entry ? [feed.entry] : []
 
-			return success({
-				...feed,
-				itemCount: feed.items.length,
-				fetchedAt: new Date().toISOString(),
-			})
+				const items = entries.slice(0, limit).map((entry: Record<string, unknown>) => ({
+					title: getText(entry.title),
+					link: entry.link?.['@_href'] || getText(entry.id) || '',
+					published: getText(entry.published) || getText(entry.updated) || '',
+					summary: getText(entry.summary),
+					...(includeContent && { content: getText(entry.content) }),
+					author: entry.author ? getText((entry.author as Record<string, unknown>).name) : undefined,
+				}))
+
+				return success({
+					type: 'atom',
+					title: getText(feed.title),
+					link: feed.link?.['@_href'] || '',
+					updated: getText(feed.updated),
+					items,
+					itemCount: items.length,
+					fetchedAt: new Date().toISOString(),
+				})
+			} else if (parsed.rss?.channel) {
+				// RSS 2.0 feed
+				const channel = parsed.rss.channel
+				const rssItems = Array.isArray(channel.item) ? channel.item : channel.item ? [channel.item] : []
+
+				const items = rssItems.slice(0, limit).map((item: Record<string, unknown>) => {
+					const categories: string[] = []
+					if (item.category) {
+						const cats = Array.isArray(item.category) ? item.category : [item.category]
+						cats.forEach((cat) => categories.push(getText(cat)))
+					}
+
+					return {
+						title: getText(item.title),
+						link: getText(item.link) || getText(item.guid) || '',
+						pubDate: getText(item.pubDate) || '',
+						description: getText(item.description),
+						...(includeContent && {
+							content: getText(item['content:encoded']) || getText(item.description) || '',
+						}),
+						author: getText(item.author) || getText(item['dc:creator']) || undefined,
+						...(categories.length > 0 && { categories }),
+					}
+				})
+
+				return success({
+					type: 'rss',
+					title: getText(channel.title),
+					link: getText(channel.link),
+					description: getText(channel.description),
+					lastBuildDate: getText(channel.lastBuildDate),
+					items,
+					itemCount: items.length,
+					fetchedAt: new Date().toISOString(),
+				})
+			} else {
+				return failure('Unrecognized feed format. Expected RSS or Atom feed.')
+			}
 		} catch (error) {
 			return failure(`RSS error: ${error instanceof Error ? error.message : 'Unknown error'}`)
 		}
