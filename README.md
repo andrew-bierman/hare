@@ -35,6 +35,9 @@ Built as a **Cloudflare-native** platform using Workers AI, D1, KV, R2, and Vect
 - [Deployment](#deployment)
 - [Pricing](#pricing)
 - [Roadmap](#roadmap)
+  - [Current Focus](#-current-focus)
+  - [Milestones](#-milestones)
+  - [Technical Decisions](#️-technical-decisions)
 - [Contributing](#contributing)
 - [FAQ](#faq)
 - [License](#license)
@@ -879,6 +882,33 @@ Hare pricing is designed to be simple and predictable (no surprise bills! 💰):
 
 > **Where we are**: Hare has a solid foundation with full backend infrastructure, AI agent execution engine, and streaming chat capabilities. We're now focused on polishing the frontend experience and adding production features.
 
+### 🔥 Current Focus
+
+**What we're actively building right now:**
+
+| Priority | Item | Status | Difficulty |
+|----------|------|--------|------------|
+| 🥇 | Visual tool picker in agent builder | In Progress | `medium` |
+| 🥈 | Rich instructions editor (Monaco) | Up Next | `medium` |
+| 🥉 | Workers deployment pipeline | Up Next | `hard` |
+| 4️⃣ | Tool call visualization in playground | Planned | `easy` |
+| 5️⃣ | OAuth providers (Google, GitHub) | Planned | `medium` |
+
+**Want to help?** Items marked `easy` are great for first-time contributors! See [How to Contribute](#-how-to-contribute) below.
+
+---
+
+### 🏁 Milestones
+
+| Version | Codename | Target | Key Features |
+|---------|----------|--------|--------------|
+| `v0.1.0` | **Sprinter** | Phase 1 Complete | Agent builder, deployment, playground |
+| `v0.2.0` | **Dasher** | Phase 2 Complete | Billing, teams, analytics |
+| `v0.3.0` | **Racer** | Phase 3 Complete | Custom tools, workflows, webhooks |
+| `v1.0.0` | **Hare** | Production Ready | Enterprise features, SSO, SLA |
+
+---
+
 ### 🎯 Progress Overview
 
 ```
@@ -946,30 +976,32 @@ All core infrastructure is in place and production-ready:
   - [x] Agent list view with status indicators
   - [x] Agent detail page with configuration forms
   - [x] Model selector dropdown
-  - [ ] Rich instructions editor (Monaco/CodeMirror)
-  - [ ] Visual tool picker with drag-and-drop
-  - [ ] Configuration validation and preview
-  - [ ] Agent testing interface
+  - [ ] Rich instructions editor (Monaco/CodeMirror) `medium`
+  - [ ] Visual tool picker with drag-and-drop `medium` `help-wanted`
+  - [ ] Configuration validation and preview `easy` `good-first-issue`
+  - [ ] Agent testing interface `medium`
 - [ ] 🚀 **One-Click Deployment** (30% complete)
   - [x] Deployment tracking in database
   - [x] Agent serialization and config export
-  - [ ] Cloudflare Workers deployment via Wrangler API
-  - [ ] Edge endpoint provisioning (URL generation)
-  - [ ] Deployment rollback mechanism
-  - [ ] Health checks and monitoring
+  - [ ] Cloudflare Workers deployment via Wrangler API `hard`
+  - [ ] Edge endpoint provisioning (URL generation) `medium`
+  - [ ] Deployment rollback mechanism `medium`
+  - [ ] Health checks and monitoring `easy` `good-first-issue`
 - [ ] 💬 **Chat Playground** (70% complete)
   - [x] Streaming message rendering
   - [x] Message history persistence
   - [x] SSE event handling
-  - [ ] Tool call visualization
-  - [ ] Export conversation history
-  - [ ] Share playground sessions
+  - [ ] Tool call visualization `easy` `good-first-issue`
+  - [ ] Export conversation history `easy` `good-first-issue`
+  - [ ] Share playground sessions `medium`
+
+**Difficulty Legend:** `easy` = good for beginners | `medium` = some experience needed | `hard` = complex task
 
 **Next Steps** (Priority order):
-1. Complete visual tool picker in agent builder
+1. Complete visual tool picker in agent builder `help-wanted`
 2. Implement rich text editor for instructions (Monaco)
 3. Build deployment pipeline to Workers
-4. Add tool call UI in playground
+4. Add tool call UI in playground `good-first-issue`
 5. Add OAuth providers (Google, GitHub)
 
 ---
@@ -1084,20 +1116,63 @@ All core infrastructure is in place and production-ready:
 
 ---
 
+### 🏛️ Technical Decisions
+
+Key architecture choices and the reasoning behind them:
+
+| Decision | Choice | Rationale |
+|----------|--------|-----------|
+| **Runtime** | Cloudflare Workers | Sub-50ms cold starts, global edge network, native AI bindings |
+| **Database** | D1 (SQLite) | Co-located with Workers, zero network latency, familiar SQL |
+| **ORM** | Drizzle | Type-safe, SQLite-compatible, excellent DX |
+| **API Framework** | Hono | Ultrafast, Workers-native, OpenAPI support, RPC client |
+| **Auth** | Better Auth | Open source, self-hosted, TypeScript-first |
+| **AI SDK** | Vercel AI SDK | Streaming primitives, tool calling, provider-agnostic |
+| **Frontend** | Next.js 15 | RSC, App Router, excellent Cloudflare Pages support |
+| **Styling** | Tailwind + shadcn/ui | Accessible, customizable, consistent design |
+| **Monorepo** | Turborepo + Bun | Fast builds, workspace management, native TS |
+
+**Why not X?**
+
+- **Why not Express/Fastify?** Hono is 10x smaller and designed for edge runtimes
+- **Why not Prisma?** Drizzle has better SQLite/D1 support and smaller bundle size
+- **Why not Clerk/Auth0?** Better Auth is self-hosted (no vendor lock-in) and free
+- **Why not tRPC?** Hono RPC provides similar type-safety with OpenAPI compatibility
+- **Why not Postgres?** D1 offers zero-latency from Workers; Postgres would add network hops
+
+---
+
 ### 🤝 How to Contribute
 
 The roadmap above represents the planned direction, but we welcome community input!
 
+**Quick Start for Contributors:**
+
+1. 🔍 **Find an issue**: Look for `good-first-issue` or `help-wanted` labels
+2. 💬 **Comment**: Let us know you're working on it
+3. 🍴 **Fork & Clone**: Set up your local environment
+4. 🛠️ **Build**: Follow the [Quick Start](#quick-start) guide
+5. ✅ **Test**: Run `bun run test && bun run check`
+6. 🚀 **Submit PR**: We review PRs quickly!
+
 **High-Impact Areas for Contributors:**
 
-- 🎨 **UI/UX**: Agent builder, playground improvements, dashboard polish
-- 🧪 **Testing**: E2E tests, API tests, edge case coverage
-- 📚 **Documentation**: Tutorials, guides, API examples
-- 🛠️ **Tools**: New tool implementations (GitHub, Linear, Notion, etc.)
-- 🔌 **Integrations**: OAuth providers, webhook destinations
-- 🌍 **i18n**: Internationalization support
+| Area | Examples | Difficulty |
+|------|----------|------------|
+| 🎨 **UI/UX** | Agent builder, playground polish | `easy` to `medium` |
+| 🧪 **Testing** | E2E tests, API tests, edge cases | `easy` to `medium` |
+| 📚 **Docs** | Tutorials, guides, API examples | `easy` |
+| 🛠️ **Tools** | GitHub, Linear, Notion integrations | `medium` |
+| 🔌 **Integrations** | OAuth providers, webhooks | `medium` to `hard` |
+| 🌍 **i18n** | Internationalization support | `medium` |
 
-**See [Contributing](#contributing) section for setup instructions.**
+**Looking for `good-first-issue`?** Check these items in Phase 1:
+- Tool call visualization in playground
+- Export conversation history
+- Configuration validation and preview
+- Health checks and monitoring
+
+**See [Contributing](#contributing) section for full setup instructions.**
 
 ---
 
