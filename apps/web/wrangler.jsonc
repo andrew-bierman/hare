@@ -48,15 +48,6 @@
 		}
 	],
 
-	// Vectorize
-	// Create with: wrangler vectorize create hare-embeddings --dimensions=1536 --metric=cosine
-	"vectorize": [
-		{
-			"binding": "VECTORIZE",
-			"index_name": "hare-embeddings"
-		}
-	],
-
 	// Workers AI
 	"ai": {
 		"binding": "AI"
