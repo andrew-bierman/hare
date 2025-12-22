@@ -2,6 +2,9 @@ export { authMiddleware, optionalAuthMiddleware } from './auth'
 export { workspaceMiddleware, requirePermission, hasPermission } from './workspace'
 export { apiKeyMiddleware, hasAgentAccess, hasScope, generateApiKey } from './api-key'
 export { rateLimiter, strictRateLimiter, chatRateLimiter, apiRateLimiter } from './rate-limit'
+export { requestId } from './request-id'
+export { secureHeaders } from './secure-headers'
+export { timing, measureTiming } from './timing'
 
 // Pre-combined middleware chains for common patterns
 export {
