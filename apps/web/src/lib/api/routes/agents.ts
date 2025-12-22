@@ -1,6 +1,7 @@
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
 import { eq, and } from 'drizzle-orm'
 import { getDb } from '../db'
+import type { Database } from 'web-app/db/types'
 import {
 	AgentSchema,
 	CreateAgentSchema,
@@ -280,7 +281,7 @@ const deployAgentRoute = createRoute({
 /**
  * Get tool IDs attached to an agent.
  */
-async function getAgentToolIds(agentId: string, db: NonNullable<Awaited<ReturnType<typeof getDb>>>): Promise<string[]> {
+async function getAgentToolIds(agentId: string, db: Database): Promise<string[]> {
 	const rows = await db.select({ toolId: agentTools.toolId }).from(agentTools).where(eq(agentTools.agentId, agentId))
 	return rows.map((r) => r.toolId)
 }
@@ -297,9 +298,6 @@ app.openapi(listAgentsRoute, async (c) => {
 	const db = await getDb(c)
 	const workspace = c.get('workspace')
 
-	if (!db) {
-		return c.json({ error: 'Service unavailable' }, 503)
-	}
 
 	const results = await db.select().from(agents).where(eq(agents.workspaceId, workspace.id))
 
@@ -330,9 +328,6 @@ app.openapi(createAgentRoute, async (c) => {
 	const workspace = c.get('workspace')
 	const role = c.get('workspaceRole')
 
-	if (!db) {
-		return c.json({ error: 'Service unavailable' }, 503)
-	}
 
 	// Check write permission
 	if (role === 'viewer') {
@@ -389,9 +384,6 @@ app.openapi(getAgentRoute, async (c) => {
 	const db = await getDb(c)
 	const workspace = c.get('workspace')
 
-	if (!db) {
-		return c.json({ error: 'Service unavailable' }, 503)
-	}
 
 	// Verify agent belongs to workspace
 	const [agent] = await db
@@ -430,9 +422,6 @@ app.openapi(updateAgentRoute, async (c) => {
 	const workspace = c.get('workspace')
 	const role = c.get('workspaceRole')
 
-	if (!db) {
-		return c.json({ error: 'Service unavailable' }, 503)
-	}
 
 	// Check write permission
 	if (role === 'viewer') {
@@ -508,9 +497,6 @@ app.openapi(deleteAgentRoute, async (c) => {
 	const workspace = c.get('workspace')
 	const role = c.get('workspaceRole')
 
-	if (!db) {
-		return c.json({ error: 'Service unavailable' }, 503)
-	}
 
 	// Check admin permission for delete
 	if (role !== 'owner' && role !== 'admin') {
@@ -538,9 +524,6 @@ app.openapi(deployAgentRoute, async (c) => {
 	const workspace = c.get('workspace')
 	const role = c.get('workspaceRole')
 
-	if (!db) {
-		return c.json({ error: 'Service unavailable' }, 503)
-	}
 
 	// Check admin permission for deploy
 	if (role !== 'owner' && role !== 'admin') {

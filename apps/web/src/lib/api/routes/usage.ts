@@ -87,9 +87,6 @@ app.openapi(getWorkspaceUsageRoute, async (c) => {
 	const db = await getDb(c)
 	const workspace = c.get('workspace')
 
-	if (!db) {
-		return c.json({ error: 'Service unavailable' }, 503)
-	}
 
 	const defaultStartDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
 	const defaultEndDate = new Date().toISOString()
@@ -180,9 +177,6 @@ app.openapi(getAgentUsageRoute, async (c) => {
 	const db = await getDb(c)
 	const workspace = c.get('workspace')
 
-	if (!db) {
-		return c.json({ error: 'Service unavailable' }, 503)
-	}
 
 	// Verify agent belongs to workspace
 	const [agent] = await db

@@ -301,9 +301,6 @@ app.openapi(listToolsRoute, async (c) => {
 	const db = await getDb(c)
 	const workspace = c.get('workspace')
 
-	if (!db) {
-		return c.json({ error: 'Service unavailable' }, 503)
-	}
 
 	// Get custom tools from database
 	const customTools = await db.select().from(tools).where(eq(tools.workspaceId, workspace.id))
@@ -341,9 +338,6 @@ app.openapi(createToolRoute, async (c) => {
 	const workspace = c.get('workspace')
 	const role = c.get('workspaceRole')
 
-	if (!db) {
-		return c.json({ error: 'Service unavailable' }, 503)
-	}
 
 	// Check write permission
 	if (role === 'viewer') {
@@ -403,9 +397,6 @@ app.openapi(getToolRoute, async (c) => {
 		)
 	}
 
-	if (!db) {
-		return c.json({ error: 'Service unavailable' }, 503)
-	}
 
 	// Get custom tool from database
 	const [tool] = await db
@@ -445,9 +436,6 @@ app.openapi(updateToolRoute, async (c) => {
 		return c.json({ error: 'Cannot modify system tools' }, 400)
 	}
 
-	if (!db) {
-		return c.json({ error: 'Service unavailable' }, 503)
-	}
 
 	// Check write permission
 	if (role === 'viewer') {
@@ -507,9 +495,6 @@ app.openapi(deleteToolRoute, async (c) => {
 		return c.json({ error: 'Cannot delete system tools' }, 400)
 	}
 
-	if (!db) {
-		return c.json({ error: 'Service unavailable' }, 503)
-	}
 
 	// Check admin permission for delete
 	if (role !== 'owner' && role !== 'admin') {
