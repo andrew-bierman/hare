@@ -48,26 +48,9 @@ export async function getD1(c: { env: unknown }): Promise<D1Database> {
 
 /**
  * Get database instance from Cloudflare context.
- * Returns null only when database is genuinely unavailable (for optional DB access).
- * For required DB access, use requireDb() which throws on failure.
+ * Throws CloudflareEnvError if database is not available.
  */
-export async function getDb(c: Context): Promise<Database | null> {
-	try {
-		const d1 = await getD1(c)
-		return createDb(d1)
-	} catch (e) {
-		if (e instanceof CloudflareEnvError) {
-			return null
-		}
-		throw e
-	}
-}
-
-/**
- * Get database instance, throwing if not available.
- * Use this for routes that require database access.
- */
-export async function requireDb(c: Context): Promise<Database> {
+export async function getDb(c: Context): Promise<Database> {
 	const d1 = await getD1(c)
 	return createDb(d1)
 }

@@ -1,6 +1,7 @@
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
 import { eq, and } from 'drizzle-orm'
 import { getDb } from '../db'
+import type { Database } from 'web-app/db/types'
 import {
 	AgentSchema,
 	CreateAgentSchema,
@@ -280,7 +281,7 @@ const deployAgentRoute = createRoute({
 /**
  * Get tool IDs attached to an agent.
  */
-async function getAgentToolIds(agentId: string, db: NonNullable<Awaited<ReturnType<typeof getDb>>>): Promise<string[]> {
+async function getAgentToolIds(agentId: string, db: Database): Promise<string[]> {
 	const rows = await db.select({ toolId: agentTools.toolId }).from(agentTools).where(eq(agentTools.agentId, agentId))
 	return rows.map((r) => r.toolId)
 }

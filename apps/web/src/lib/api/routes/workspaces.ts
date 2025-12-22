@@ -1,6 +1,7 @@
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
 import { eq, or } from 'drizzle-orm'
 import { getDb } from '../db'
+import type { Database } from 'web-app/db/types'
 import { CreateWorkspaceSchema, ErrorSchema, IdParamSchema, SuccessSchema, UpdateWorkspaceSchema, WorkspaceSchema } from '../schemas'
 import { workspaces, workspaceMembers } from 'web-app/db/schema'
 import { authMiddleware } from '../middleware'
@@ -203,7 +204,7 @@ const deleteWorkspaceRoute = createRoute({
 async function getUserWorkspaceRole(
 	userId: string,
 	workspaceId: string,
-	db: NonNullable<Awaited<ReturnType<typeof getDb>>>
+	db: Database
 ): Promise<WorkspaceRole | null> {
 	// Check if user is owner
 	const [workspace] = await db.select().from(workspaces).where(eq(workspaces.id, workspaceId))
