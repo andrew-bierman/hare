@@ -1,4 +1,3 @@
-import type { D1Database } from '@cloudflare/workers-types'
 import { Hono } from 'hono'
 import { createAuth } from 'web-app/lib/auth'
 import { CloudflareEnvError, getD1 } from '../db'
