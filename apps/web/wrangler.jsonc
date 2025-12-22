@@ -19,24 +19,28 @@
 		}
 	],
 
-	// D1 Database - local dev uses .wrangler/state automatically
+	// D1 Database
+	// Create with: wrangler d1 create hare-db
+	// Get ID with: wrangler d1 info hare-db
 	"d1_databases": [
 		{
 			"binding": "DB",
 			"database_name": "hare-db",
-			"database_id": "local-dev-db"
+			"database_id": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
 		}
 	],
 
-	// KV Namespace - local dev uses .wrangler/state automatically
+	// KV Namespace
+	// Create with: wrangler kv namespace create KV
 	"kv_namespaces": [
 		{
 			"binding": "KV",
-			"id": "local-dev-kv"
+			"id": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 		}
 	],
 
-	// R2 Bucket - local dev uses .wrangler/state automatically
+	// R2 Bucket
+	// Create with: wrangler r2 bucket create hare-storage
 	"r2_buckets": [
 		{
 			"binding": "R2",
@@ -44,7 +48,8 @@
 		}
 	],
 
-	// Vectorize - requires remote, will be mocked locally
+	// Vectorize
+	// Create with: wrangler vectorize create hare-embeddings --dimensions=1536 --metric=cosine
 	"vectorize": [
 		{
 			"binding": "VECTORIZE",
@@ -55,12 +60,7 @@
 	// Workers AI
 	"ai": {
 		"binding": "AI"
-	},
-
-	// Environment variables
-	"vars": {
-		"ENVIRONMENT": "development",
-		"BETTER_AUTH_SECRET": "dev-secret-change-in-production-min-32-chars",
-		"BETTER_AUTH_URL": "http://localhost:3000"
 	}
+
+	// Environment variables: use .dev.vars for local, CF dashboard for production
 }
