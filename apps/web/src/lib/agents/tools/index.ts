@@ -29,18 +29,10 @@ export { getHTTPTools, httpGetTool, httpPostTool, httpRequestTool } from './http
 export { getKVTools, kvDeleteTool, kvGetTool, kvListTool, kvPutTool } from './kv'
 // R2 tools
 export { getR2Tools, r2DeleteTool, r2GetTool, r2HeadTool, r2ListTool, r2PutTool } from './r2'
-// Search tools
-export { getSearchTools, memorySearchTool, semanticSearchTool } from './search'
+// Search tools (AutoRAG/AI Search)
+export { aiSearchAnswerTool, aiSearchTool, getSearchTools } from './search'
 // SQL tools
 export { getSQLTools, sqlBatchTool, sqlExecuteTool, sqlQueryTool } from './sql'
-// Vectorize tools
-export {
-	getVectorizeTools,
-	vectorizeDeleteTool,
-	vectorizeGetTool,
-	vectorizeInsertTool,
-	vectorizeQueryTool,
-} from './vectorize'
 
 // ==========================================
 // UTILITY TOOLS
@@ -156,7 +148,6 @@ import { getTransformTools } from './transform'
 import type { Tool, ToolContext } from './types'
 import { getUtilityTools } from './utility'
 import { getValidationTools } from './validation'
-import { getVectorizeTools } from './vectorize'
 
 /**
  * Tool categories for organization and filtering.
@@ -185,7 +176,6 @@ export function getSystemTools(context: ToolContext): Tool[] {
 		...getKVTools(context),
 		...getR2Tools(context),
 		...getSQLTools(context),
-		...getVectorizeTools(context),
 		...getHTTPTools(context),
 		...getSearchTools(context),
 		// Utility tools
@@ -215,7 +205,7 @@ export function getToolsByCategory(category: ToolCategory, context: ToolContext)
 		case 'database':
 			return getSQLTools(context)
 		case 'search':
-			return [...getVectorizeTools(context), ...getSearchTools(context)]
+			return getSearchTools(context)
 		case 'http':
 			return getHTTPTools(context)
 		case 'utility':
@@ -262,15 +252,11 @@ export const SYSTEM_TOOL_IDS = [
 	'sql_query',
 	'sql_execute',
 	'sql_batch',
-	'vectorize_insert',
-	'vectorize_query',
-	'vectorize_delete',
-	'vectorize_get',
 	'http_request',
 	'http_get',
 	'http_post',
-	'semantic_search',
-	'memory_search',
+	'ai_search',
+	'ai_search_answer',
 	// Utility
 	'datetime',
 	'json',
@@ -333,7 +319,7 @@ export function isSystemTool(toolId: string): toolId is SystemToolId {
  * Tool count by category (for documentation)
  */
 export const TOOL_COUNTS = {
-	cloudflare: 21, // KV, R2, SQL, Vectorize, HTTP, Search
+	cloudflare: 17, // KV(4), R2(5), SQL(3), HTTP(3), Search(2)
 	utility: 9,
 	integrations: 2, // Zapier (all externals) + generic webhook
 	ai: 8,
@@ -341,5 +327,5 @@ export const TOOL_COUNTS = {
 	sandbox: 3,
 	validation: 6,
 	transform: 5,
-	total: 61,
+	total: 57,
 } as const
