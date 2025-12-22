@@ -1,6 +1,43 @@
 import { z } from 'zod'
 import { createTool, failure, success, type ToolContext } from './types'
 
+// Zod schemas for AI response validation
+const TextGenerationResponseSchema = z.object({
+	response: z.string(),
+})
+
+const TextClassificationResponseSchema = z.array(
+	z.object({
+		label: z.string(),
+		score: z.number(),
+	}),
+)
+
+const TranslationResponseSchema = z.object({
+	translated_text: z.string(),
+})
+
+const EmbeddingResponseSchema = z.object({
+	data: z.array(z.array(z.number())),
+})
+
+// Entity type literals for NER tool
+const EntityTypeSchema = z.enum([
+	'person',
+	'organization',
+	'location',
+	'date',
+	'money',
+	'email',
+	'phone',
+	'url',
+])
+type EntityType = z.infer<typeof EntityTypeSchema>
+
+function isEntityType(value: string): value is EntityType {
+	return EntityTypeSchema.safeParse(value).success
+}
+
 /**
  * AI model constants - using valid model names from @cloudflare/workers-types AiModels interface.
  * These are the actual model identifiers that Cloudflare Workers AI accepts.
@@ -36,14 +73,14 @@ export const sentimentTool = createTool({
 			const { text, detailed } = params
 
 			// Use Workers AI for sentiment analysis
-			const response = await context.env.AI.run(AI_MODELS.SENTIMENT, { text })
+			const rawResponse = await context.env.AI.run(AI_MODELS.SENTIMENT, { text })
 
-			if (!response || !Array.isArray(response)) {
-				return failure('Sentiment analysis failed: Invalid response')
+			const parseResult = TextClassificationResponseSchema.safeParse(rawResponse)
+			if (!parseResult.success) {
+				return failure('Sentiment analysis failed: Invalid response format')
 			}
 
-			// The model returns an array of label/score pairs
-			const results = response as Array<{ label: string; score: number }>
+			const results = parseResult.data
 			const sortedResults = results.sort((a, b) => b.score - a.score)
 			const topResult = sortedResults[0]
 
@@ -103,22 +140,23 @@ export const summarizeTool = createTool({
 					prompt = `Provide a brief, concise summary of the following text (max ${maxLength} words):\n\n${text}`
 			}
 
-			const response = await context.env.AI.run(AI_MODELS.TEXT_GENERATION, {
+			const rawResponse = await context.env.AI.run(AI_MODELS.TEXT_GENERATION, {
 				prompt,
 				max_tokens: Math.min(maxLength * 2, 1000),
 			})
 
-			if (!response || typeof response !== 'object' || !('response' in response)) {
-				return failure('Summarization failed: Invalid response')
+			const parseResult = TextGenerationResponseSchema.safeParse(rawResponse)
+			if (!parseResult.success) {
+				return failure('Summarization failed: Invalid response format')
 			}
 
-			const summary = (response as { response: string }).response
+			const summary = parseResult.data.response.trim()
 
 			return success({
-				summary: summary.trim(),
+				summary,
 				originalLength: text.length,
-				summaryLength: summary.trim().length,
-				compressionRatio: Math.round((1 - summary.trim().length / text.length) * 100),
+				summaryLength: summary.length,
+				compressionRatio: Math.round((1 - summary.length / text.length) * 100),
 				style,
 			})
 		} catch (error) {
@@ -152,17 +190,18 @@ export const translateTool = createTool({
 			const { text, targetLanguage, sourceLanguage } = params
 
 			// Use Workers AI translation model
-			const response = await context.env.AI.run(AI_MODELS.TRANSLATION, {
+			const rawResponse = await context.env.AI.run(AI_MODELS.TRANSLATION, {
 				text,
 				target_lang: targetLanguage,
 				source_lang: sourceLanguage || 'en',
 			})
 
-			if (!response || typeof response !== 'object' || !('translated_text' in response)) {
-				return failure('Translation failed: Invalid response')
+			const parseResult = TranslationResponseSchema.safeParse(rawResponse)
+			if (!parseResult.success) {
+				return failure('Translation failed: Invalid response format')
 			}
 
-			const translatedText = (response as { translated_text: string }).translated_text
+			const translatedText = parseResult.data.translated_text
 
 			return success({
 				translatedText,
@@ -289,16 +328,17 @@ Text: "${text}"
 
 Return only the single most appropriate category name.`
 
-			const response = await context.env.AI.run(AI_MODELS.TEXT_GENERATION, {
+			const rawResponse = await context.env.AI.run(AI_MODELS.TEXT_GENERATION, {
 				prompt,
 				max_tokens: 100,
 			})
 
-			if (!response || typeof response !== 'object' || !('response' in response)) {
-				return failure('Classification failed: Invalid response')
+			const parseResult = TextGenerationResponseSchema.safeParse(rawResponse)
+			if (!parseResult.success) {
+				return failure('Classification failed: Invalid response format')
 			}
 
-			const result = (response as { response: string }).response.trim().toLowerCase()
+			const result = parseResult.data.response.trim().toLowerCase()
 			const matchedCategories = categories.filter((cat) => result.includes(cat.toLowerCase()))
 
 			if (matchedCategories.length === 0) {
@@ -336,9 +376,7 @@ export const nerTool = createTool({
 	inputSchema: z.object({
 		text: z.string().min(1).max(10000).describe('Text to analyze for entities'),
 		entityTypes: z
-			.array(
-				z.enum(['person', 'organization', 'location', 'date', 'money', 'email', 'phone', 'url']),
-			)
+			.array(EntityTypeSchema)
 			.optional()
 			.describe('Specific entity types to extract (all if not specified)'),
 	}),
@@ -360,7 +398,7 @@ export const nerTool = createTool({
 
 			// Extract pattern-based entities
 			for (const [type, pattern] of Object.entries(patterns)) {
-				if (!entityTypes || entityTypes.includes(type as any)) {
+				if (isEntityType(type) && (!entityTypes || entityTypes.includes(type))) {
 					const matches = text.match(pattern) || []
 					if (matches.length > 0) {
 						entities[type] = [...new Set(matches)]
@@ -369,9 +407,8 @@ export const nerTool = createTool({
 			}
 
 			// Use AI for person, organization, location extraction
-			const aiTypes = ['person', 'organization', 'location'].filter(
-				(t) => !entityTypes || entityTypes.includes(t as any),
-			)
+			const aiEntityTypes: EntityType[] = ['person', 'organization', 'location']
+			const aiTypes = aiEntityTypes.filter((t) => !entityTypes || entityTypes.includes(t))
 
 			if (aiTypes.length > 0) {
 				const prompt = `Extract all ${aiTypes.join(', ')} names from the following text. Return them as JSON with keys: ${aiTypes.map((t) => `"${t}s"`).join(', ')} (arrays of strings). Only output valid JSON, nothing else.
@@ -379,21 +416,26 @@ export const nerTool = createTool({
 Text: "${text.slice(0, 3000)}"`
 
 				try {
-					const response = await context.env.AI.run(AI_MODELS.TEXT_GENERATION, {
+					const rawResponse = await context.env.AI.run(AI_MODELS.TEXT_GENERATION, {
 						prompt,
 						max_tokens: 500,
 					})
 
-					if (response && typeof response === 'object' && 'response' in response) {
-						const aiResult = (response as { response: string }).response
+					const parseResult = TextGenerationResponseSchema.safeParse(rawResponse)
+					if (parseResult.success) {
+						const aiResult = parseResult.data.response
 						// Try to parse JSON from the response
 						const jsonMatch = aiResult.match(/\{[\s\S]*\}/)
 						if (jsonMatch) {
-							const parsed = JSON.parse(jsonMatch[0])
-							for (const type of aiTypes) {
-								const key = `${type}s`
-								if (Array.isArray(parsed[key]) && parsed[key].length > 0) {
-									entities[type] = [...new Set(parsed[key] as string[])]
+							const NerResultSchema = z.record(z.string(), z.array(z.string()))
+							const parseJsonResult = NerResultSchema.safeParse(JSON.parse(jsonMatch[0]))
+							if (parseJsonResult.success) {
+								for (const type of aiTypes) {
+									const key = `${type}s`
+									const values = parseJsonResult.data[key]
+									if (values && values.length > 0) {
+										entities[type] = [...new Set(values)]
+									}
 								}
 							}
 						}
@@ -445,17 +487,18 @@ export const embeddingTool = createTool({
 			} as const
 			const modelId = embeddingModels[model]
 
-			const response = await context.env.AI.run(modelId, { text: texts })
+			const rawResponse = await context.env.AI.run(modelId, { text: texts })
 
-			if (!response || typeof response !== 'object' || !('data' in response)) {
-				return failure('Embedding generation failed: Invalid response')
+			const parseResult = EmbeddingResponseSchema.safeParse(rawResponse)
+			if (!parseResult.success) {
+				return failure('Embedding generation failed: Invalid response format')
 			}
 
-			const embeddings = (response as { data: number[][] }).data
+			const embeddings = parseResult.data.data
 
 			return success({
 				embeddings,
-				dimensions: embeddings[0]?.length || 0,
+				dimensions: embeddings[0]?.length ?? 0,
 				count: embeddings.length,
 				model,
 			})
@@ -508,16 +551,17 @@ Question: ${question}
 
 Answer:`
 
-			const response = await context.env.AI.run(AI_MODELS.TEXT_GENERATION, {
+			const rawResponse = await context.env.AI.run(AI_MODELS.TEXT_GENERATION, {
 				prompt,
 				max_tokens: maxLength * 2,
 			})
 
-			if (!response || typeof response !== 'object' || !('response' in response)) {
-				return failure('Question answering failed: Invalid response')
+			const parseResult = TextGenerationResponseSchema.safeParse(rawResponse)
+			if (!parseResult.success) {
+				return failure('Question answering failed: Invalid response format')
 			}
 
-			const result = (response as { response: string }).response.trim()
+			const result = parseResult.data.response.trim()
 
 			if (includeQuote) {
 				const answerMatch = result.match(/Answer:\s*([\s\S]*?)(?=Quote:|$)/i)
