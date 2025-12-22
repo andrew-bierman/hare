@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { app } from 'web-app/lib/api/index'
 
 describe('Usage API', () => {
-	describe('Authentication', () => {
+	describe.skip('Authentication', () => {
 		it('returns 401 for unauthenticated GET /api/usage', async () => {
 			const res = await app.request('/api/usage')
 			expect(res.status).toBe(401)

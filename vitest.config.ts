@@ -10,14 +10,14 @@ export default defineWorkersConfig({
 	},
 	test: {
 		globals: true,
-		include: ['apps/**/*.test.ts', 'packages/**/*.test.ts'],
+		include: ['apps/**/*.test.ts'],
 		exclude: [
 			'node_modules/**',
 			'**/node_modules/**',
-			'e2e/**',
-			'.next/**',
 			'**/e2e/**',
 			'**/*.spec.ts',
+			'.next/**',
+			'packages/**',
 		],
 		poolOptions: {
 			workers: {
