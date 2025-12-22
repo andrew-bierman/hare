@@ -48,9 +48,11 @@ export const aiSearchTool = createTool({
 					score_threshold: params.scoreThreshold,
 				},
 				// Filter by workspace for multi-tenant isolation
-				// Documents must be indexed with workspaceId in their path or metadata
+				// Documents must be indexed with workspaceId in their metadata
 				filters: {
-					workspaceId: context.workspaceId,
+					key: 'workspaceId',
+					type: 'eq',
+					value: context.workspaceId,
 				},
 			})
 
@@ -107,7 +109,9 @@ export const aiSearchAnswerTool = createTool({
 				rewrite_query: true,
 				// Filter by workspace for multi-tenant isolation
 				filters: {
-					workspaceId: context.workspaceId,
+					key: 'workspaceId',
+					type: 'eq',
+					value: context.workspaceId,
 				},
 				...(params.systemPrompt && { system_prompt: params.systemPrompt }),
 			})
