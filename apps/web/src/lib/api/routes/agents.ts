@@ -1,6 +1,8 @@
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
-import { eq, and } from 'drizzle-orm'
+import { and, eq } from 'drizzle-orm'
+import { agents, agentTools, deployments } from 'web-app/db/schema'
 import { getDb } from '../db'
+import { authMiddleware, workspaceMiddleware } from '../middleware'
 import {
 	AgentSchema,
 	CreateAgentSchema,
@@ -11,8 +13,6 @@ import {
 	SuccessSchema,
 	UpdateAgentSchema,
 } from '../schemas'
-import { agents, agentTools, deployments } from 'web-app/db/schema'
-import { authMiddleware, workspaceMiddleware } from '../middleware'
 import type { WorkspaceEnv } from '../types'
 
 // Define routes
@@ -280,8 +280,14 @@ const deployAgentRoute = createRoute({
 /**
  * Get tool IDs attached to an agent.
  */
-async function getAgentToolIds(agentId: string, db: NonNullable<Awaited<ReturnType<typeof getDb>>>): Promise<string[]> {
-	const rows = await db.select({ toolId: agentTools.toolId }).from(agentTools).where(eq(agentTools.agentId, agentId))
+async function getAgentToolIds(
+	agentId: string,
+	db: NonNullable<Awaited<ReturnType<typeof getDb>>>,
+): Promise<string[]> {
+	const rows = await db
+		.select({ toolId: agentTools.toolId })
+		.from(agentTools)
+		.where(eq(agentTools.agentId, agentId))
 	return rows.map((r) => r.toolId)
 }
 
@@ -317,7 +323,7 @@ app.openapi(listAgentsRoute, async (c) => {
 			toolIds: await getAgentToolIds(agent.id, db),
 			createdAt: agent.createdAt.toISOString(),
 			updatedAt: agent.updatedAt.toISOString(),
-		}))
+		})),
 	)
 
 	return c.json({ agents: agentsData }, 200)
@@ -362,7 +368,7 @@ app.openapi(createAgentRoute, async (c) => {
 			data.toolIds.map((toolId: string) => ({
 				agentId: agent.id,
 				toolId,
-			}))
+			})),
 		)
 	}
 
@@ -380,7 +386,7 @@ app.openapi(createAgentRoute, async (c) => {
 			createdAt: agent.createdAt.toISOString(),
 			updatedAt: agent.updatedAt.toISOString(),
 		},
-		201
+		201,
 	)
 })
 
@@ -419,7 +425,7 @@ app.openapi(getAgentRoute, async (c) => {
 			createdAt: agent.createdAt.toISOString(),
 			updatedAt: agent.updatedAt.toISOString(),
 		},
-		200
+		200,
 	)
 })
 
@@ -477,7 +483,7 @@ app.openapi(updateAgentRoute, async (c) => {
 				data.toolIds.map((toolId: string) => ({
 					agentId: id,
 					toolId,
-				}))
+				})),
 			)
 		}
 	}
@@ -498,7 +504,7 @@ app.openapi(updateAgentRoute, async (c) => {
 			createdAt: agent.createdAt.toISOString(),
 			updatedAt: agent.updatedAt.toISOString(),
 		},
-		200
+		200,
 	)
 })
 
@@ -595,7 +601,7 @@ app.openapi(deployAgentRoute, async (c) => {
 			deployedAt: deployment.deployedAt.toISOString(),
 			version,
 		},
-		200
+		200,
 	)
 })
 

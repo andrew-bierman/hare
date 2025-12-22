@@ -1,24 +1,36 @@
-import path from "node:path";
-import { defineConfig } from "vitest/config";
+import path from 'node:path'
+import { defineWorkersConfig } from '@cloudflare/vitest-pool-workers/config'
 
-export default defineConfig({
-  resolve: {
-    alias: {
-      "web-app": path.resolve(__dirname, "./apps/web/src"),
-      "@workspace/ui": path.resolve(__dirname, "./packages/ui/src"),
-    },
-  },
-  test: {
-    globals: true,
-    include: ["apps/**/*.test.ts", "packages/**/*.test.ts"],
-    exclude: [
-      "node_modules/**",
-      "**/node_modules/**",
-      "e2e/**",
-      ".next/**",
-      "**/e2e/**",
-      "**/*.spec.ts",
-    ],
-    environment: "node",
-  },
-});
+export default defineWorkersConfig({
+	resolve: {
+		alias: {
+			'web-app': path.resolve(__dirname, './apps/web/src'),
+			'@workspace/ui': path.resolve(__dirname, './packages/ui/src'),
+		},
+	},
+	test: {
+		globals: true,
+		include: ['apps/**/*.test.ts', 'packages/**/*.test.ts'],
+		exclude: [
+			'node_modules/**',
+			'**/node_modules/**',
+			'e2e/**',
+			'.next/**',
+			'**/e2e/**',
+			'**/*.spec.ts',
+		],
+		poolOptions: {
+			workers: {
+				miniflare: {
+					// Add test bindings for Cloudflare Workers
+					bindings: {
+						ENVIRONMENT: 'test',
+						BETTER_AUTH_SECRET: 'test-secret-for-tests-min-32-chars-long',
+						BETTER_AUTH_URL: 'http://localhost:3000',
+						NEXTJS_ENV: 'test',
+					},
+				},
+			},
+		},
+	},
+})

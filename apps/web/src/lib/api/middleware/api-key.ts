@@ -1,7 +1,7 @@
-import type { MiddlewareHandler } from 'hono'
 import { eq } from 'drizzle-orm'
-import { getDb } from '../db'
+import type { MiddlewareHandler } from 'hono'
 import { apiKeys, workspaces } from 'web-app/db/schema'
+import { getDb } from '../db'
 import type { ApiKeyEnv, ApiKeyInfo } from '../types'
 
 /**
@@ -49,7 +49,10 @@ export const apiKeyMiddleware: MiddlewareHandler<ApiKeyEnv> = async (c, next) =>
 	}
 
 	// Get workspace
-	const [workspace] = await db.select().from(workspaces).where(eq(workspaces.id, keyRecord.workspaceId))
+	const [workspace] = await db
+		.select()
+		.from(workspaces)
+		.where(eq(workspaces.id, keyRecord.workspaceId))
 
 	if (!workspace) {
 		return c.json({ error: 'Workspace not found' }, 404)
@@ -106,7 +109,11 @@ export function hasScope(apiKey: ApiKeyInfo, scope: string): boolean {
  * Generate a new API key.
  * Returns the raw key (show once to user) and the hashed key (store in DB).
  */
-export async function generateApiKey(): Promise<{ key: string; hashedKey: string; prefix: string }> {
+export async function generateApiKey(): Promise<{
+	key: string
+	hashedKey: string
+	prefix: string
+}> {
 	// Generate 32 random bytes
 	const randomBytes = new Uint8Array(32)
 	crypto.getRandomValues(randomBytes)

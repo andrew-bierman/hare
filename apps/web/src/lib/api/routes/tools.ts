@@ -1,9 +1,16 @@
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
-import { eq, and } from 'drizzle-orm'
-import { getDb } from '../db'
-import { CreateToolSchema, ErrorSchema, IdParamSchema, SuccessSchema, ToolSchema, UpdateToolSchema } from '../schemas'
+import { and, eq } from 'drizzle-orm'
 import { tools } from 'web-app/db/schema'
+import { getDb } from '../db'
 import { authMiddleware, workspaceMiddleware } from '../middleware'
+import {
+	CreateToolSchema,
+	ErrorSchema,
+	IdParamSchema,
+	SuccessSchema,
+	ToolSchema,
+	UpdateToolSchema,
+} from '../schemas'
 import type { WorkspaceEnv } from '../types'
 
 // System tools that are always available
@@ -379,7 +386,7 @@ app.openapi(createToolRoute, async (c) => {
 			createdAt: tool.createdAt.toISOString(),
 			updatedAt: tool.updatedAt.toISOString(),
 		},
-		201
+		201,
 	)
 })
 
@@ -399,7 +406,7 @@ app.openapi(getToolRoute, async (c) => {
 				createdAt: now,
 				updatedAt: now,
 			},
-			200
+			200,
 		)
 	}
 
@@ -429,7 +436,7 @@ app.openapi(getToolRoute, async (c) => {
 			createdAt: tool.createdAt.toISOString(),
 			updatedAt: tool.updatedAt.toISOString(),
 		},
-		200
+		200,
 	)
 })
 
@@ -492,7 +499,7 @@ app.openapi(updateToolRoute, async (c) => {
 			createdAt: tool.createdAt.toISOString(),
 			updatedAt: tool.updatedAt.toISOString(),
 		},
-		200
+		200,
 	)
 })
 

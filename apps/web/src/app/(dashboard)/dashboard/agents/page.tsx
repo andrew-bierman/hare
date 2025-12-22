@@ -1,23 +1,16 @@
 'use client'
 
-import { Bot, Clock, Filter, LayoutGrid, List, Play, Plus, Search, Settings, Wrench } from 'lucide-react'
-import Link from 'next/link'
-import { useState } from 'react'
 import { Badge } from '@workspace/ui/components/badge'
 import { Button } from '@workspace/ui/components/button'
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardFooter,
-	CardHeader,
-	CardTitle,
-} from '@workspace/ui/components/card'
+import { Card, CardContent } from '@workspace/ui/components/card'
 import { Input } from '@workspace/ui/components/input'
 import { Skeleton } from '@workspace/ui/components/skeleton'
 import { Tabs, TabsList, TabsTrigger } from '@workspace/ui/components/tabs'
+import { Bot, Clock, Play, Plus, Search, Settings, Wrench } from 'lucide-react'
+import Link from 'next/link'
+import { useState } from 'react'
 import { useWorkspace } from 'web-app/components/providers/workspace-provider'
-import { useAgents, AVAILABLE_MODELS, type Agent } from 'web-app/lib/api/hooks'
+import { type Agent, AVAILABLE_MODELS, useAgents } from 'web-app/lib/api/hooks'
 
 function AgentCardSkeleton() {
 	return (
@@ -53,8 +46,8 @@ function EmptyState() {
 				</div>
 				<h3 className="text-xl font-semibold mb-2">Create your first agent</h3>
 				<p className="text-muted-foreground text-center max-w-md mb-6">
-					AI agents can understand context, use tools, and complete complex tasks.
-					Get started in minutes.
+					AI agents can understand context, use tools, and complete complex tasks. Get started in
+					minutes.
 				</p>
 				<Link href="/dashboard/agents/new">
 					<Button size="lg" className="gap-2">
@@ -104,7 +97,10 @@ export default function AgentsPage() {
 				)
 			case 'draft':
 				return (
-					<Badge variant="secondary" className="bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 hover:bg-yellow-500/20 border-yellow-500/20">
+					<Badge
+						variant="secondary"
+						className="bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 hover:bg-yellow-500/20 border-yellow-500/20"
+					>
 						Draft
 					</Badge>
 				)
@@ -137,9 +133,7 @@ export default function AgentsPage() {
 			<div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
 				<div>
 					<h1 className="text-3xl font-bold tracking-tight">Agents</h1>
-					<p className="text-muted-foreground mt-1">
-						Manage and monitor your AI agents
-					</p>
+					<p className="text-muted-foreground mt-1">Manage and monitor your AI agents</p>
 				</div>
 				<Link href="/dashboard/agents/new">
 					<Button size="lg" className="gap-2">
@@ -198,9 +192,7 @@ export default function AgentsPage() {
 							<Search className="h-8 w-8 text-muted-foreground mb-4" />
 							<h3 className="font-semibold mb-1">No agents found</h3>
 							<p className="text-muted-foreground text-sm text-center">
-								{search
-									? `No agents match "${search}"`
-									: 'No agents in this category'}
+								{search ? `No agents match "${search}"` : 'No agents in this category'}
 							</p>
 							{(search || filter !== 'all') && (
 								<Button
@@ -236,9 +228,7 @@ export default function AgentsPage() {
 											<h3 className="font-semibold group-hover:text-primary transition-colors">
 												{agent.name}
 											</h3>
-											<p className="text-xs text-muted-foreground">
-												{getModelName(agent.model)}
-											</p>
+											<p className="text-xs text-muted-foreground">{getModelName(agent.model)}</p>
 										</div>
 									</div>
 									{getStatusBadge(agent.status)}
@@ -272,10 +262,7 @@ export default function AgentsPage() {
 										</Button>
 									</Link>
 									<Link href={`/dashboard/agents/${agent.id}/playground`} className="flex-1">
-										<Button
-											className="w-full gap-1.5"
-											disabled={agent.status !== 'deployed'}
-										>
+										<Button className="w-full gap-1.5" disabled={agent.status !== 'deployed'}>
 											<Play className="h-4 w-4" />
 											Test
 										</Button>
@@ -295,9 +282,7 @@ export default function AgentsPage() {
 								<span className="font-semibold text-muted-foreground group-hover:text-primary transition-colors">
 									Create New Agent
 								</span>
-								<span className="text-xs text-muted-foreground mt-1">
-									Build something amazing
-								</span>
+								<span className="text-xs text-muted-foreground mt-1">Build something amazing</span>
 							</CardContent>
 						</Card>
 					</Link>

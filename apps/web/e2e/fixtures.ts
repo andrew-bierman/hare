@@ -1,4 +1,4 @@
-import { test as base, expect, type Page, type APIRequestContext } from '@playwright/test'
+import { type APIRequestContext, test as base, expect, type Page } from '@playwright/test'
 
 /**
  * Test user credentials for E2E tests.

@@ -1,5 +1,9 @@
 'use client'
 
+import { Badge } from '@workspace/ui/components/badge'
+import { Button } from '@workspace/ui/components/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@workspace/ui/components/card'
+import { Skeleton } from '@workspace/ui/components/skeleton'
 import {
 	Activity,
 	ArrowRight,
@@ -11,21 +15,10 @@ import {
 	Sparkles,
 	TrendingUp,
 	Wrench,
-	Zap,
 } from 'lucide-react'
 import Link from 'next/link'
-import { Button } from '@workspace/ui/components/button'
-import { Badge } from '@workspace/ui/components/badge'
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from '@workspace/ui/components/card'
-import { Skeleton } from '@workspace/ui/components/skeleton'
 import { useWorkspace } from 'web-app/components/providers/workspace-provider'
-import { useAgents, useUsage, AVAILABLE_MODELS, type Agent } from 'web-app/lib/api/hooks'
+import { type Agent, AVAILABLE_MODELS, useAgents, useUsage } from 'web-app/lib/api/hooks'
 
 function StatCardSkeleton() {
 	return (
@@ -93,7 +86,7 @@ export default function DashboardPage() {
 			icon: Bot,
 			color: 'bg-violet-500/10 text-violet-600 dark:text-violet-400',
 			iconBg: 'bg-violet-500/10',
-			trend: deployedAgents.length > 0 ? '+' + deployedAgents.length : null,
+			trend: deployedAgents.length > 0 ? `+${deployedAgents.length}` : null,
 			trendUp: true,
 		},
 		{
@@ -296,11 +289,7 @@ export default function DashboardPage() {
 				) : (
 					<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
 						{recentAgents.map((agent) => (
-							<Link
-								key={agent.id}
-								href={`/dashboard/agents/${agent.id}`}
-								className="group block"
-							>
+							<Link key={agent.id} href={`/dashboard/agents/${agent.id}`} className="group block">
 								<Card className="h-full transition-all hover:shadow-md hover:border-primary/50">
 									<CardContent className="p-6">
 										<div className="flex items-start justify-between mb-4">

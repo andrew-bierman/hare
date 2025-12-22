@@ -1,3 +1,6 @@
+import { Badge } from '@workspace/ui/components/badge'
+import { Button } from '@workspace/ui/components/button'
+import { Card, CardDescription, CardHeader, CardTitle } from '@workspace/ui/components/card'
 import {
 	ArrowRight,
 	Bot,
@@ -15,15 +18,6 @@ import {
 	Zap,
 } from 'lucide-react'
 import Link from 'next/link'
-import { Button } from '@workspace/ui/components/button'
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from '@workspace/ui/components/card'
-import { Badge } from '@workspace/ui/components/badge'
 
 export default function LandingPage() {
 	const features = [
@@ -36,7 +30,7 @@ export default function LandingPage() {
 		{
 			title: 'Instant Deployment',
 			description:
-				'Deploy to Cloudflare\'s global edge network in seconds. Your agents run close to your users, everywhere.',
+				"Deploy to Cloudflare's global edge network in seconds. Your agents run close to your users, everywhere.",
 			icon: Cloud,
 		},
 		{
@@ -69,13 +63,14 @@ export default function LandingPage() {
 		{
 			step: '01',
 			title: 'Define Your Agent',
-			description: 'Configure your agent\'s personality, capabilities, and the tools it can access.',
+			description: "Configure your agent's personality, capabilities, and the tools it can access.",
 			icon: Bot,
 		},
 		{
 			step: '02',
 			title: 'Add Tools & Integrations',
-			description: 'Connect databases, APIs, and custom functions. Your agent becomes truly powerful.',
+			description:
+				'Connect databases, APIs, and custom functions. Your agent becomes truly powerful.',
 			icon: Terminal,
 		},
 		{

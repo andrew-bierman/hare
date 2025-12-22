@@ -1,8 +1,8 @@
+import { and, eq } from 'drizzle-orm'
 import type { MiddlewareHandler } from 'hono'
-import { eq, and } from 'drizzle-orm'
+import { workspaceMembers, workspaces } from 'web-app/db/schema'
 import { getDb } from '../db'
-import { workspaces, workspaceMembers } from 'web-app/db/schema'
-import { type WorkspaceRole, type WorkspaceEnv, isWorkspaceRole } from '../types'
+import { isWorkspaceRole, type WorkspaceEnv, type WorkspaceRole } from '../types'
 
 /**
  * Workspace middleware that validates workspace access.
@@ -77,7 +77,10 @@ export const workspaceMiddleware: MiddlewareHandler<WorkspaceEnv> = async (c, ne
 /**
  * Check if user has permission for an action based on role.
  */
-export function hasPermission(role: WorkspaceRole, action: 'read' | 'write' | 'admin' | 'owner'): boolean {
+export function hasPermission(
+	role: WorkspaceRole,
+	action: 'read' | 'write' | 'admin' | 'owner',
+): boolean {
 	const permissions: Record<WorkspaceRole, Set<string>> = {
 		owner: new Set(['read', 'write', 'admin', 'owner']),
 		admin: new Set(['read', 'write', 'admin']),
@@ -91,7 +94,9 @@ export function hasPermission(role: WorkspaceRole, action: 'read' | 'write' | 'a
 /**
  * Middleware factory for permission-based access control.
  */
-export function requirePermission(action: 'read' | 'write' | 'admin' | 'owner'): MiddlewareHandler<WorkspaceEnv> {
+export function requirePermission(
+	action: 'read' | 'write' | 'admin' | 'owner',
+): MiddlewareHandler<WorkspaceEnv> {
 	return async (c, next) => {
 		const role = c.get('workspaceRole')
 

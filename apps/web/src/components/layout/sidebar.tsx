@@ -1,10 +1,10 @@
 'use client'
 
+import { Badge } from '@workspace/ui/components/badge'
+import { cn } from '@workspace/ui/lib/utils'
 import { Activity, Bot, Home, Settings, Sparkles, Wrench } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { cn } from '@workspace/ui/lib/utils'
-import { Badge } from '@workspace/ui/components/badge'
 import { WorkspaceSwitcher } from './workspace-switcher'
 
 const routes = [
@@ -78,7 +78,7 @@ export function Sidebar() {
 									'group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all',
 									active
 										? 'bg-primary text-primary-foreground shadow-sm'
-										: 'text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
+										: 'text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
 								)}
 							>
 								<route.icon
@@ -86,7 +86,7 @@ export function Sidebar() {
 										'h-4 w-4 transition-colors',
 										active
 											? 'text-primary-foreground'
-											: 'text-muted-foreground group-hover:text-sidebar-accent-foreground'
+											: 'text-muted-foreground group-hover:text-sidebar-accent-foreground',
 									)}
 								/>
 								{route.label}
@@ -106,10 +106,7 @@ export function Sidebar() {
 					<p className="text-xs text-muted-foreground mb-3">
 						Check out the documentation or join our community.
 					</p>
-					<Link
-						href="/docs"
-						className="text-xs font-medium text-primary hover:underline"
-					>
+					<Link href="/docs" className="text-xs font-medium text-primary hover:underline">
 						View Docs →
 					</Link>
 				</div>

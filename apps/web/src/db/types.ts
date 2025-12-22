@@ -39,4 +39,5 @@ export interface MessageMetadata {
 	toolResults?: ToolResult[]
 	model?: string
 	usage?: TokenUsage
+	agentId?: string
 }

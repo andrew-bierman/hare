@@ -1,4 +1,4 @@
-import { z, type ZodSchema } from 'zod'
+import type { ZodSchema, z } from 'zod'
 
 /**
  * Tool execution context providing access to Cloudflare bindings.
@@ -53,7 +53,7 @@ export interface Tool<TInput extends ZodSchema = ZodSchema, TOutput = unknown> {
  * ```
  */
 export function createTool<TInput extends ZodSchema, TOutput = unknown>(
-	config: Tool<TInput, TOutput>
+	config: Tool<TInput, TOutput>,
 ): Tool<TInput, TOutput> {
 	return config
 }

@@ -1,8 +1,5 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
-import { useState } from 'react'
-import { toast } from 'sonner'
 import { Button } from '@workspace/ui/components/button'
 import {
 	Card,
@@ -11,6 +8,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from '@workspace/ui/components/card'
+import { Checkbox } from '@workspace/ui/components/checkbox'
 import { Input } from '@workspace/ui/components/input'
 import { Label } from '@workspace/ui/components/label'
 import {
@@ -21,9 +19,11 @@ import {
 	SelectValue,
 } from '@workspace/ui/components/select'
 import { Textarea } from '@workspace/ui/components/textarea'
-import { Checkbox } from '@workspace/ui/components/checkbox'
+import { useRouter } from 'next/navigation'
+import { useState } from 'react'
+import { toast } from 'sonner'
 import { useWorkspace } from 'web-app/components/providers/workspace-provider'
-import { useCreateAgent, useTools, AVAILABLE_MODELS, type Tool } from 'web-app/lib/api/hooks'
+import { AVAILABLE_MODELS, type Tool, useCreateAgent, useTools } from 'web-app/lib/api/hooks'
 
 export default function NewAgentPage() {
 	const router = useRouter()
@@ -41,7 +41,7 @@ export default function NewAgentPage() {
 
 	const handleToolToggle = (toolId: string) => {
 		setSelectedToolIds((prev) =>
-			prev.includes(toolId) ? prev.filter((id) => id !== toolId) : [...prev, toolId]
+			prev.includes(toolId) ? prev.filter((id) => id !== toolId) : [...prev, toolId],
 		)
 	}
 
@@ -148,7 +148,8 @@ export default function NewAgentPage() {
 									onChange={(e) => setInstructions(e.target.value)}
 								/>
 								<p className="text-xs text-muted-foreground">
-									Define how your agent should behave. This prompt will be sent with every conversation.
+									Define how your agent should behave. This prompt will be sent with every
+									conversation.
 								</p>
 							</div>
 						</CardContent>
@@ -219,7 +220,10 @@ export default function NewAgentPage() {
 						<CardContent className="space-y-2 text-sm text-muted-foreground">
 							<p>Give your agent a clear, descriptive name that reflects its purpose.</p>
 							<p>Write a detailed system prompt to guide the agent's behavior and responses.</p>
-							<p>Start with Llama 3.3 70B for the best quality, or use a smaller model for faster responses.</p>
+							<p>
+								Start with Llama 3.3 70B for the best quality, or use a smaller model for faster
+								responses.
+							</p>
 							<p>After creation, you'll need to deploy the agent before testing it.</p>
 						</CardContent>
 					</Card>
