@@ -1,3 +1,4 @@
+import type { VectorizeQueryOptions, VectorizeVectorMetadataFilter } from '@cloudflare/workers-types'
 import { z } from 'zod'
 import { generateEmbedding } from '../providers/workers-ai'
 import { createTool, failure, success, type ToolContext } from './types'

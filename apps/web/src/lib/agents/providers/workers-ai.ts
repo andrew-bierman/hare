@@ -1,3 +1,4 @@
+import type { Ai } from '@cloudflare/workers-types'
 import { createWorkersAI } from 'workers-ai-provider'
 
 /**
