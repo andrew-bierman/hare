@@ -29,13 +29,13 @@ import { useAgents, useUsage, AVAILABLE_MODELS, type Agent } from 'web-app/lib/a
 
 function StatCardSkeleton() {
 	return (
-		<Card>
-			<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-				<Skeleton className="h-4 w-24" />
-				<Skeleton className="h-8 w-8 rounded-lg" />
-			</CardHeader>
-			<CardContent>
-				<Skeleton className="h-8 w-20 mb-2" />
+		<Card className="border-border/50">
+			<CardContent className="p-6">
+				<div className="flex items-center justify-between mb-4">
+					<Skeleton className="h-4 w-24" />
+					<Skeleton className="h-10 w-10 rounded-xl" />
+				</div>
+				<Skeleton className="h-9 w-20 mb-2" />
 				<Skeleton className="h-3 w-32" />
 			</CardContent>
 		</Card>
@@ -44,22 +44,22 @@ function StatCardSkeleton() {
 
 function AgentCardSkeleton() {
 	return (
-		<div className="group relative overflow-hidden rounded-xl border bg-card p-6">
-			<div className="flex items-start justify-between">
-				<div className="flex items-center gap-3">
-					<Skeleton className="h-10 w-10 rounded-lg" />
-					<div className="space-y-2">
-						<Skeleton className="h-5 w-32" />
-						<Skeleton className="h-3 w-48" />
+		<Card className="border-border/50">
+			<CardContent className="p-6">
+				<div className="flex items-start justify-between mb-4">
+					<div className="flex items-center gap-3">
+						<Skeleton className="h-12 w-12 rounded-xl" />
+						<div className="space-y-2">
+							<Skeleton className="h-5 w-32" />
+							<Skeleton className="h-3 w-24" />
+						</div>
 					</div>
+					<Skeleton className="h-6 w-16 rounded-full" />
 				</div>
-				<Skeleton className="h-5 w-16 rounded-full" />
-			</div>
-			<div className="mt-4 flex items-center gap-4">
-				<Skeleton className="h-4 w-24" />
-				<Skeleton className="h-4 w-20" />
-			</div>
-		</div>
+				<Skeleton className="h-4 w-full mb-2" />
+				<Skeleton className="h-4 w-2/3" />
+			</CardContent>
+		</Card>
 	)
 }
 
@@ -91,40 +91,36 @@ export default function DashboardPage() {
 			value: agents.length.toString(),
 			description: `${deployedAgents.length} currently deployed`,
 			icon: Bot,
-			color: 'bg-violet-500/10 text-violet-600 dark:text-violet-400',
-			iconBg: 'bg-violet-500/10',
+			gradient: 'from-violet-500 to-purple-600',
+			bgGradient: 'from-violet-500/10 to-purple-600/10',
 			trend: deployedAgents.length > 0 ? '+' + deployedAgents.length : null,
-			trendUp: true,
 		},
 		{
 			title: 'API Calls',
 			value: formatNumber(usageData?.totalCalls ?? 0),
 			description: 'This billing period',
 			icon: MessageSquare,
-			color: 'bg-blue-500/10 text-blue-600 dark:text-blue-400',
-			iconBg: 'bg-blue-500/10',
+			gradient: 'from-blue-500 to-cyan-500',
+			bgGradient: 'from-blue-500/10 to-cyan-500/10',
 			trend: null,
-			trendUp: true,
 		},
 		{
 			title: 'Tokens Used',
 			value: formatNumber(usageData?.totalTokens ?? 0),
 			description: `${formatNumber(usageData?.inputTokens ?? 0)} in / ${formatNumber(usageData?.outputTokens ?? 0)} out`,
 			icon: TrendingUp,
-			color: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
-			iconBg: 'bg-emerald-500/10',
+			gradient: 'from-emerald-500 to-teal-500',
+			bgGradient: 'from-emerald-500/10 to-teal-500/10',
 			trend: null,
-			trendUp: true,
 		},
 		{
 			title: 'Active Tools',
 			value: '6',
 			description: 'System tools available',
 			icon: Wrench,
-			color: 'bg-orange-500/10 text-orange-600 dark:text-orange-400',
-			iconBg: 'bg-orange-500/10',
+			gradient: 'from-orange-500 to-amber-500',
+			bgGradient: 'from-orange-500/10 to-amber-500/10',
 			trend: null,
-			trendUp: true,
 		},
 	]
 
@@ -132,8 +128,11 @@ export default function DashboardPage() {
 		switch (status) {
 			case 'deployed':
 				return (
-					<Badge className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20 border-emerald-500/20">
-						<span className="mr-1.5 h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+					<Badge className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20 border-emerald-500/20 gap-1.5">
+						<span className="relative flex h-2 w-2">
+							<span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75" />
+							<span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+						</span>
 						Live
 					</Badge>
 				)
@@ -141,7 +140,7 @@ export default function DashboardPage() {
 				return (
 					<Badge
 						variant="secondary"
-						className="bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 hover:bg-yellow-500/20 border-yellow-500/20"
+						className="bg-amber-500/10 text-amber-600 dark:text-amber-400 hover:bg-amber-500/20 border-amber-500/20"
 					>
 						Draft
 					</Badge>
@@ -155,8 +154,32 @@ export default function DashboardPage() {
 		}
 	}
 
+	const quickActions = [
+		{
+			title: 'Create Agent',
+			description: 'Build a new AI agent',
+			icon: Sparkles,
+			href: '/dashboard/agents/new',
+			gradient: 'from-violet-500 to-purple-600',
+		},
+		{
+			title: 'Manage Tools',
+			description: 'Configure agent capabilities',
+			icon: Wrench,
+			href: '/dashboard/tools',
+			gradient: 'from-orange-500 to-amber-500',
+		},
+		{
+			title: 'View Analytics',
+			description: 'Monitor usage & performance',
+			icon: Activity,
+			href: '/dashboard/usage',
+			gradient: 'from-blue-500 to-cyan-500',
+		},
+	]
+
 	return (
-		<div className="flex-1 space-y-8 p-8 pt-6">
+		<div className="flex-1 p-8 pt-6 space-y-8">
 			{/* Header */}
 			<div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
 				<div>
@@ -166,7 +189,7 @@ export default function DashboardPage() {
 					</p>
 				</div>
 				<Link href="/dashboard/agents/new">
-					<Button size="lg" className="gap-2">
+					<Button size="lg" className="gap-2 shadow-lg shadow-primary/25">
 						<Plus className="h-4 w-4" />
 						New Agent
 					</Button>
@@ -174,94 +197,81 @@ export default function DashboardPage() {
 			</div>
 
 			{/* Stats Grid */}
-			<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+			<div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
 				{isLoading
 					? [...Array(4)].map((_, i) => <StatCardSkeleton key={i} />)
 					: stats.map((stat) => (
 							<Card
 								key={stat.title}
-								className="relative overflow-hidden transition-all hover:shadow-md"
+								className="group relative overflow-hidden border-border/50 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300"
 							>
-								<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-									<CardTitle className="text-sm font-medium text-muted-foreground">
-										{stat.title}
-									</CardTitle>
-									<div className={`rounded-lg p-2 ${stat.iconBg}`}>
-										<stat.icon className={`h-4 w-4 ${stat.color.split(' ')[1]}`} />
+								{/* Background gradient on hover */}
+								<div
+									className={`absolute inset-0 bg-gradient-to-br ${stat.bgGradient} opacity-0 group-hover:opacity-100 transition-opacity duration-300`}
+								/>
+
+								<CardContent className="relative p-6">
+									<div className="flex items-center justify-between mb-4">
+										<span className="text-sm font-medium text-muted-foreground">
+											{stat.title}
+										</span>
+										<div
+											className={`flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br ${stat.gradient} shadow-lg`}
+										>
+											<stat.icon className="h-5 w-5 text-white" />
+										</div>
 									</div>
-								</CardHeader>
-								<CardContent>
 									<div className="flex items-baseline gap-2">
 										<span className="text-3xl font-bold">{stat.value}</span>
 										{stat.trend && (
-											<span className="flex items-center text-xs font-medium text-emerald-600">
+											<span className="flex items-center text-xs font-medium text-emerald-600 bg-emerald-500/10 px-1.5 py-0.5 rounded-full">
 												<ArrowUpRight className="h-3 w-3" />
 												{stat.trend}
 											</span>
 										)}
 									</div>
-									<p className="mt-1 text-xs text-muted-foreground">{stat.description}</p>
+									<p className="mt-1 text-sm text-muted-foreground">{stat.description}</p>
 								</CardContent>
 							</Card>
 						))}
 			</div>
 
 			{/* Quick Actions */}
-			<div className="grid gap-4 md:grid-cols-3">
-				<Card className="group cursor-pointer transition-all hover:shadow-md hover:border-primary/50">
-					<Link href="/dashboard/agents/new" className="block p-6">
-						<div className="flex items-center gap-4">
-							<div className="rounded-xl bg-primary/10 p-3 transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
-								<Sparkles className="h-6 w-6" />
-							</div>
-							<div className="flex-1">
-								<h3 className="font-semibold">Create Agent</h3>
-								<p className="text-sm text-muted-foreground">Build a new AI agent</p>
-							</div>
-							<ArrowRight className="h-5 w-5 text-muted-foreground transition-transform group-hover:translate-x-1" />
-						</div>
+			<div className="grid gap-6 md:grid-cols-3">
+				{quickActions.map((action) => (
+					<Link key={action.href} href={action.href} className="group block">
+						<Card className="h-full border-border/50 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300 hover:-translate-y-1">
+							<CardContent className="p-6">
+								<div className="flex items-center gap-4">
+									<div
+										className={`flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br ${action.gradient} shadow-lg transition-transform duration-300 group-hover:scale-110`}
+									>
+										<action.icon className="h-7 w-7 text-white" />
+									</div>
+									<div className="flex-1">
+										<h3 className="font-semibold text-lg group-hover:text-primary transition-colors">
+											{action.title}
+										</h3>
+										<p className="text-sm text-muted-foreground">{action.description}</p>
+									</div>
+									<ArrowRight className="h-5 w-5 text-muted-foreground transition-all duration-300 group-hover:text-primary group-hover:translate-x-1" />
+								</div>
+							</CardContent>
+						</Card>
 					</Link>
-				</Card>
-				<Card className="group cursor-pointer transition-all hover:shadow-md hover:border-primary/50">
-					<Link href="/dashboard/tools" className="block p-6">
-						<div className="flex items-center gap-4">
-							<div className="rounded-xl bg-orange-500/10 p-3 transition-colors group-hover:bg-orange-500 group-hover:text-white">
-								<Wrench className="h-6 w-6" />
-							</div>
-							<div className="flex-1">
-								<h3 className="font-semibold">Manage Tools</h3>
-								<p className="text-sm text-muted-foreground">Configure agent capabilities</p>
-							</div>
-							<ArrowRight className="h-5 w-5 text-muted-foreground transition-transform group-hover:translate-x-1" />
-						</div>
-					</Link>
-				</Card>
-				<Card className="group cursor-pointer transition-all hover:shadow-md hover:border-primary/50">
-					<Link href="/dashboard/usage" className="block p-6">
-						<div className="flex items-center gap-4">
-							<div className="rounded-xl bg-blue-500/10 p-3 transition-colors group-hover:bg-blue-500 group-hover:text-white">
-								<Activity className="h-6 w-6" />
-							</div>
-							<div className="flex-1">
-								<h3 className="font-semibold">View Analytics</h3>
-								<p className="text-sm text-muted-foreground">Monitor usage & performance</p>
-							</div>
-							<ArrowRight className="h-5 w-5 text-muted-foreground transition-transform group-hover:translate-x-1" />
-						</div>
-					</Link>
-				</Card>
+				))}
 			</div>
 
 			{/* Recent Agents */}
 			<div>
-				<div className="flex items-center justify-between mb-4">
+				<div className="flex items-center justify-between mb-6">
 					<div>
 						<h2 className="text-xl font-semibold">Recent Agents</h2>
-						<p className="text-sm text-muted-foreground">Your agents ordered by last update</p>
+						<p className="text-sm text-muted-foreground mt-0.5">Your agents ordered by last update</p>
 					</div>
 					{agents.length > 0 && (
 						<Link href="/dashboard/agents">
-							<Button variant="ghost" size="sm" className="gap-1">
+							<Button variant="ghost" size="sm" className="gap-1.5 hover:bg-primary/10 hover:text-primary">
 								View all
 								<ArrowRight className="h-4 w-4" />
 							</Button>
@@ -270,23 +280,23 @@ export default function DashboardPage() {
 				</div>
 
 				{isLoading ? (
-					<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+					<div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
 						{[...Array(3)].map((_, i) => (
 							<AgentCardSkeleton key={i} />
 						))}
 					</div>
 				) : recentAgents.length === 0 ? (
-					<Card className="border-dashed">
+					<Card className="border-dashed border-2 border-border/50">
 						<CardContent className="flex flex-col items-center justify-center py-16">
-							<div className="rounded-full bg-muted p-4 mb-4">
-								<Bot className="h-8 w-8 text-muted-foreground" />
+							<div className="flex h-20 w-20 items-center justify-center rounded-3xl bg-gradient-to-br from-primary/10 to-primary/5 mb-6">
+								<Bot className="h-10 w-10 text-primary" />
 							</div>
-							<h3 className="text-lg font-semibold mb-1">No agents yet</h3>
+							<h3 className="text-xl font-semibold mb-2">No agents yet</h3>
 							<p className="text-muted-foreground text-center max-w-sm mb-6">
 								Create your first AI agent to get started. It only takes a few minutes.
 							</p>
 							<Link href="/dashboard/agents/new">
-								<Button className="gap-2">
+								<Button size="lg" className="gap-2 shadow-lg shadow-primary/25">
 									<Plus className="h-4 w-4" />
 									Create Your First Agent
 								</Button>
@@ -294,19 +304,19 @@ export default function DashboardPage() {
 						</CardContent>
 					</Card>
 				) : (
-					<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+					<div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
 						{recentAgents.map((agent) => (
 							<Link
 								key={agent.id}
 								href={`/dashboard/agents/${agent.id}`}
 								className="group block"
 							>
-								<Card className="h-full transition-all hover:shadow-md hover:border-primary/50">
+								<Card className="h-full border-border/50 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300 hover:-translate-y-1">
 									<CardContent className="p-6">
 										<div className="flex items-start justify-between mb-4">
 											<div className="flex items-center gap-3">
-												<div className="rounded-lg bg-primary/10 p-2.5 transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
-													<Bot className="h-5 w-5" />
+												<div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/80 shadow-lg transition-transform duration-300 group-hover:scale-105">
+													<Bot className="h-6 w-6 text-primary-foreground" />
 												</div>
 												<div>
 													<h3 className="font-semibold group-hover:text-primary transition-colors">
@@ -323,14 +333,13 @@ export default function DashboardPage() {
 											{agent.description || 'No description provided'}
 										</p>
 										<div className="flex items-center gap-4 text-xs text-muted-foreground">
-											<div className="flex items-center gap-1">
+											<div className="flex items-center gap-1.5 bg-muted/50 px-2 py-1 rounded-full">
 												<Wrench className="h-3.5 w-3.5" />
 												<span>{agent.toolIds?.length || 0} tools</span>
 											</div>
-											<div className="flex items-center gap-1">
+											<div className="flex items-center gap-1.5 bg-muted/50 px-2 py-1 rounded-full">
 												<Clock className="h-3.5 w-3.5" />
 												<span>
-													Updated{' '}
 													{new Date(agent.updatedAt).toLocaleDateString('en-US', {
 														month: 'short',
 														day: 'numeric',
@@ -345,12 +354,12 @@ export default function DashboardPage() {
 
 						{/* Create New Card */}
 						<Link href="/dashboard/agents/new" className="group block">
-							<Card className="h-full border-dashed transition-all hover:shadow-md hover:border-primary">
+							<Card className="h-full border-dashed border-2 border-border/50 hover:border-primary/50 transition-all duration-300 hover:-translate-y-1">
 								<CardContent className="flex flex-col items-center justify-center h-full min-h-[200px] p-6">
-									<div className="rounded-full bg-muted p-3 mb-3 transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
-										<Plus className="h-6 w-6" />
+									<div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-muted mb-4 transition-all duration-300 group-hover:bg-primary group-hover:shadow-lg group-hover:shadow-primary/25">
+										<Plus className="h-8 w-8 text-muted-foreground group-hover:text-primary-foreground transition-colors" />
 									</div>
-									<span className="font-medium text-muted-foreground group-hover:text-primary transition-colors">
+									<span className="font-semibold text-muted-foreground group-hover:text-primary transition-colors">
 										Create New Agent
 									</span>
 								</CardContent>
