@@ -116,7 +116,7 @@ export const webhookTool = createTool({
 			.optional(),
 		timeout: z.number().optional().default(30000),
 	}),
-	execute: async (params, context) => {
+	execute: async (params, _context) => {
 		try {
 			const { url, method, data, headers: customHeaders, auth, timeout } = params
 
@@ -128,9 +128,9 @@ export const webhookTool = createTool({
 
 			if (auth) {
 				if (auth.type === 'bearer' && auth.token) {
-					headers['Authorization'] = `Bearer ${auth.token}`
+					headers.Authorization = `Bearer ${auth.token}`
 				} else if (auth.type === 'basic' && auth.username && auth.password) {
-					headers['Authorization'] = `Basic ${btoa(`${auth.username}:${auth.password}`)}`
+					headers.Authorization = `Basic ${btoa(`${auth.username}:${auth.password}`)}`
 				} else if (auth.type === 'apikey' && auth.token) {
 					headers[auth.headerName || 'X-API-Key'] = auth.token
 				}
@@ -169,7 +169,7 @@ export const webhookTool = createTool({
  *
  * Just Zapier (for external services) + generic webhook (for custom integrations)
  */
-export function getIntegrationTools(context: ToolContext) {
+export function getIntegrationTools(_context: ToolContext) {
 	return [
 		zapierTool,
 		webhookTool,

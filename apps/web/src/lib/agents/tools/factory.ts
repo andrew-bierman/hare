@@ -60,7 +60,7 @@ function createToolFromConfig(config: ToolConfig, context: ToolContext): Tool | 
 /**
  * Create an HTTP tool from configuration.
  */
-function createHTTPToolFromConfig(config: ToolConfig, context: ToolContext): Tool {
+function createHTTPToolFromConfig(config: ToolConfig, _context: ToolContext): Tool {
 	const toolConfig = config.config as {
 		url?: string
 		method?: string
@@ -92,7 +92,7 @@ function createHTTPToolFromConfig(config: ToolConfig, context: ToolContext): Too
  * Currently, custom tools will return an error indicating they need to be
  * executed in a Cloudflare Worker or similar isolated environment.
  */
-function createCustomToolFromConfig(config: ToolConfig, context: ToolContext): Tool {
+function createCustomToolFromConfig(config: ToolConfig, _context: ToolContext): Tool {
 	// Use the tool's own input schema, not a misleading HTTP fallback
 	const inputSchema = buildInputSchema(config.inputSchema)
 
@@ -100,7 +100,7 @@ function createCustomToolFromConfig(config: ToolConfig, context: ToolContext): T
 		id: config.id,
 		description: config.description || '',
 		inputSchema,
-		execute: async (params, ctx) => {
+		execute: async (_params, _ctx) => {
 			if (!config.code) {
 				return failure('No code provided for custom tool')
 			}

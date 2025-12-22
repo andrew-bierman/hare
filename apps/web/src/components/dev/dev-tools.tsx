@@ -37,7 +37,7 @@ export function DevTools() {
 				queryClient.invalidateQueries()
 			}
 		} catch (error) {
-			toast.error('Sign in failed: ' + (error instanceof Error ? error.message : 'Unknown error'))
+			toast.error(`Sign in failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
 		}
 	}
 
@@ -46,7 +46,7 @@ export function DevTools() {
 			await authClient.signOut()
 			toast.success('Signed out')
 			queryClient.invalidateQueries()
-		} catch (error) {
+		} catch (_error) {
 			toast.error('Sign out failed')
 		}
 	}

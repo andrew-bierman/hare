@@ -111,6 +111,6 @@ export const memorySearchTool = createTool({
 /**
  * Get all search tools.
  */
-export function getSearchTools(context: ToolContext) {
+export function getSearchTools(_context: ToolContext) {
 	return [semanticSearchTool, memorySearchTool]
 }

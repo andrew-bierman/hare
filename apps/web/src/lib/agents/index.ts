@@ -6,8 +6,8 @@
  */
 
 import type { Database } from 'web-app/db/types'
-import { EdgeAgent, createEdgeAgent, type AgentTool } from './agent'
-import { loadAgentTools, getSystemTools, type ToolContext, type Tool } from './tools'
+import { type EdgeAgent, createEdgeAgent, type AgentTool } from './agent'
+import { loadAgentTools, getSystemTools, type ToolContext, } from './tools'
 
 /**
  * Agent configuration from database.

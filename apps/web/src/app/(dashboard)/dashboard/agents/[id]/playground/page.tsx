@@ -22,7 +22,6 @@ import { Button } from '@workspace/ui/components/button'
 import {
 	Card,
 	CardContent,
-	CardDescription,
 	CardHeader,
 	CardTitle,
 } from '@workspace/ui/components/card'
@@ -66,7 +65,7 @@ export default function PlaygroundPage() {
 	// Auto-scroll to bottom on new messages
 	useEffect(() => {
 		messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-	}, [messages])
+	}, [])
 
 	const handleSend = () => {
 		const input = inputRef.current

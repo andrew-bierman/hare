@@ -17,7 +17,7 @@ export const markdownTool = createTool({
 			})
 			.optional(),
 	}),
-	execute: async (params, context) => {
+	execute: async (params, _context) => {
 		const { operation, markdown, options } = params
 		const { sanitize = true, gfm = true } = options || {}
 
@@ -82,7 +82,7 @@ export const markdownTool = createTool({
 			// Paragraphs (basic)
 			html = html.replace(/\n\n/g, '</p><p>')
 			if (!html.startsWith('<')) {
-				html = '<p>' + html + '</p>'
+				html = `<p>${html}</p>`
 			}
 
 			// Clean up empty paragraphs
@@ -134,9 +134,9 @@ export const markdownTool = createTool({
 			case 'toHtml':
 				return success({ html: parseMarkdown(markdown) })
 
-			case 'toText':
+			case 'toText': {
 				// Strip all markdown syntax
-				let text = markdown
+				const text = markdown
 					.replace(/```[\s\S]*?```/g, '') // Remove code blocks
 					.replace(/`[^`]+`/g, '') // Remove inline code
 					.replace(/!\[[^\]]*\]\([^)]+\)/g, '') // Remove images
@@ -153,6 +153,7 @@ export const markdownTool = createTool({
 					.replace(/^(-{3,}|\*{3,}|_{3,})$/gm, '') // HR
 					.trim()
 				return success({ text })
+			}
 
 			case 'extractHeadings':
 				return success({ headings: extractHeadings(markdown) })
@@ -188,7 +189,7 @@ export const diffTool = createTool({
 		mode: z.enum(['lines', 'words', 'chars']).optional().default('lines').describe('Comparison mode'),
 		context: z.number().optional().default(3).describe('Lines of context around changes'),
 	}),
-	execute: async (params, context) => {
+	execute: async (params, _context) => {
 		const { original, modified, mode, context: contextLines } = params
 
 		type Change = {
@@ -343,7 +344,7 @@ export const qrcodeTool = createTool({
 			})
 			.optional(),
 	}),
-	execute: async (params, context) => {
+	execute: async (params, _context) => {
 		const { data, type, size, errorCorrection, wifiOptions, vcardOptions } = params
 
 		// Format data based on type
@@ -376,7 +377,7 @@ export const qrcodeTool = createTool({
 						'BEGIN:VCARD',
 						'VERSION:3.0',
 						`N:${lastName || ''};${firstName};;;`,
-						`FN:${firstName}${lastName ? ' ' + lastName : ''}`,
+						`FN:${firstName}${lastName ? ` ${lastName}` : ''}`,
 						phone ? `TEL:${phone}` : '',
 						email ? `EMAIL:${email}` : '',
 						company ? `ORG:${company}` : '',
@@ -392,7 +393,7 @@ export const qrcodeTool = createTool({
 
 		// Simple QR code matrix generation (Reed-Solomon encoding simplified)
 		// For production, use a proper QR code library
-		const generateMatrix = (data: string, ecLevel: string): boolean[][] => {
+		const generateMatrix = (data: string, _ecLevel: string): boolean[][] => {
 			// This is a simplified placeholder - in production use a real QR library
 			const dataLength = data.length
 			const size = Math.max(21, Math.ceil(Math.sqrt(dataLength * 8)) + 8)
@@ -495,7 +496,7 @@ export const compressionTool = createTool({
 		algorithm: z.enum(['gzip', 'deflate']).optional().default('gzip').describe('Compression algorithm'),
 		encoding: z.enum(['text', 'base64']).optional().default('text').describe('Input/output encoding'),
 	}),
-	execute: async (params, context) => {
+	execute: async (params, _context) => {
 		const { operation, data, algorithm, encoding } = params
 
 		try {
@@ -597,7 +598,7 @@ export const colorTool = createTool({
 		color2: z.string().optional().describe('Second color for blend operation'),
 		blendRatio: z.number().optional().default(0.5).describe('Blend ratio (0-1)'),
 	}),
-	execute: async (params, context) => {
+	execute: async (params, _context) => {
 		const { operation, color, format, amount, color2, blendRatio } = params
 
 		// Parse color to RGB
@@ -790,7 +791,7 @@ export const colorTool = createTool({
 				const luminance = (r: number, g: number, b: number): number => {
 					const [rs, gs, bs] = [r, g, b].map((c) => {
 						c /= 255
-						return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4)
+						return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4
 					})
 					return 0.2126 * rs + 0.7152 * gs + 0.0722 * bs
 				}
@@ -823,6 +824,6 @@ export const colorTool = createTool({
 /**
  * Get all transform tools
  */
-export function getTransformTools(context: ToolContext) {
+export function getTransformTools(_context: ToolContext) {
 	return [markdownTool, diffTool, qrcodeTool, compressionTool, colorTool]
 }

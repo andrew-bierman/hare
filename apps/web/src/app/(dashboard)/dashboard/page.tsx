@@ -87,7 +87,7 @@ export default function DashboardPage() {
 			description: `${deployedAgents.length} deployed`,
 			icon: Bot,
 			color: 'bg-violet-500',
-			trend: deployedAgents.length > 0 ? '+' + deployedAgents.length : null,
+			trend: deployedAgents.length > 0 ? `+${deployedAgents.length}` : null,
 		},
 		{
 			title: 'API Calls',

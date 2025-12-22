@@ -14,7 +14,7 @@ export const httpRequestTool = createTool({
 		body: z.string().optional().describe('Request body (for POST, PUT, PATCH)'),
 		timeout: z.number().optional().default(30000).describe('Request timeout in milliseconds'),
 	}),
-	execute: async (params, context) => {
+	execute: async (params, _context) => {
 		try {
 			const controller = new AbortController()
 			const timeoutId = setTimeout(() => controller.abort(), params.timeout)
@@ -108,6 +108,6 @@ export const httpPostTool = createTool({
 /**
  * Get all HTTP tools.
  */
-export function getHTTPTools(context: ToolContext) {
+export function getHTTPTools(_context: ToolContext) {
 	return [httpRequestTool, httpGetTool, httpPostTool]
 }

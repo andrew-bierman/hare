@@ -171,7 +171,7 @@ async function executeInWorker<T>(code: string, config: SandboxConfig): Promise<
 		const argNames = Object.keys(safeContext)
 		const argValues = Object.values(safeContext)
 
-		const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor
+		const AsyncFunction = Object.getPrototypeOf(async () => {}).constructor
 		const fn = new AsyncFunction(...argNames, wrappedCode)
 
 		const controller = new AbortController()
@@ -244,7 +244,7 @@ export const codeValidateTool = createTool({
 		code: z.string().min(1).max(100_000).describe('Code to validate'),
 		language: z.enum(['javascript', 'python', 'bash']).default('javascript'),
 	}),
-	execute: async (input, context) => {
+	execute: async (input, _context) => {
 		const { code, language } = input
 
 		const issues: string[] = []
@@ -322,6 +322,6 @@ export const sandboxFileTool = createTool({
 	},
 })
 
-export function getSandboxTools(context: ToolContext) {
+export function getSandboxTools(_context: ToolContext) {
 	return [codeExecuteTool, codeValidateTool, sandboxFileTool]
 }

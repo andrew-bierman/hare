@@ -139,6 +139,6 @@ export const kvListTool = createTool({
 /**
  * Get all KV tools.
  */
-export function getKVTools(context: ToolContext) {
+export function getKVTools(_context: ToolContext) {
 	return [kvGetTool, kvPutTool, kvDeleteTool, kvListTool]
 }

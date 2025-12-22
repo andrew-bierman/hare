@@ -134,7 +134,7 @@ export {
 // TOOL AGGREGATION
 // ==========================================
 
-import { type Tool, type ToolContext } from './types'
+import type { Tool, ToolContext } from './types'
 import { getKVTools } from './kv'
 import { getR2Tools } from './r2'
 import { getSQLTools } from './sql'
@@ -223,7 +223,6 @@ export function getToolsByCategory(category: ToolCategory, context: ToolContext)
 			return getValidationTools(context)
 		case 'transform':
 			return getTransformTools(context)
-		case 'all':
 		default:
 			return getSystemTools(context)
 	}
