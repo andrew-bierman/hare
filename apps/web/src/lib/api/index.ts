@@ -1,14 +1,10 @@
 import { OpenAPIHono } from '@hono/zod-openapi'
 import { apiReference } from '@scalar/hono-api-reference'
 import { cors } from 'hono/cors'
-import { showRoutes, getRouterName } from 'hono/dev'
+import { getRouterName, showRoutes } from 'hono/dev'
 import { logger } from 'hono/logger'
-import { requestId } from 'hono/request-id'
-import { secureHeaders } from 'hono/secure-headers'
-import { timing } from 'hono/timing'
 import { CloudflareEnvError } from './db'
-import type { HonoEnv } from './types'
-
+import { requestId, secureHeaders, timing } from './middleware'
 // Import route modules
 import agents from './routes/agents'
 import auth from './routes/auth'
@@ -16,6 +12,7 @@ import chat from './routes/chat'
 import tools from './routes/tools'
 import usage from './routes/usage'
 import workspaces from './routes/workspaces'
+import type { HonoEnv } from './types'
 
 // Create base app with proper Cloudflare bindings type
 const app = new OpenAPIHono<HonoEnv>().basePath('/api')
