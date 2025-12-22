@@ -7,33 +7,41 @@ import { UserNav } from './user-nav'
 
 export function Header() {
 	return (
-		<header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-			<div className="flex h-16 items-center gap-4 px-6">
+		<header className="sticky top-0 z-40 border-b bg-background">
+			<div className="flex h-14 items-center gap-4 px-4">
 				{/* Mobile menu button */}
-				<Button variant="ghost" size="icon" className="md:hidden">
+				<Button variant="ghost" size="icon" className="md:hidden min-h-[44px] min-w-[44px]">
 					<Menu className="h-5 w-5" />
 				</Button>
 
-				{/* Search */}
+				{/* Search - hidden on mobile */}
 				<div className="hidden md:flex flex-1 max-w-md">
 					<div className="relative w-full">
 						<Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
 						<Input
-							placeholder="Search agents, tools..."
-							className="pl-10 bg-muted/50 border-transparent focus:border-border focus:bg-background"
+							placeholder="Search..."
+							className="pl-9 h-10"
 						/>
 					</div>
 				</div>
 
-				{/* Spacer */}
+				{/* Spacer on mobile */}
 				<div className="flex-1 md:hidden" />
 
 				{/* Right side */}
 				<div className="flex items-center gap-2">
-					<Button variant="ghost" size="icon" className="relative">
-						<Bell className="h-5 w-5" />
-						<span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-primary" />
+					{/* Mobile search */}
+					<Button variant="ghost" size="icon" className="md:hidden min-h-[44px] min-w-[44px]">
+						<Search className="h-5 w-5" />
 					</Button>
+
+					{/* Notifications */}
+					<Button variant="ghost" size="icon" className="relative min-h-[44px] min-w-[44px]">
+						<Bell className="h-5 w-5" />
+						<span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-primary" />
+					</Button>
+
+					{/* User */}
 					<UserNav />
 				</div>
 			</div>
