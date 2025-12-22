@@ -105,25 +105,20 @@ export class D1MemoryStore implements MemoryStore {
 
 		// Save to Vectorize for semantic search (if available)
 		if (this.vectorize && this.ai && role !== 'system' && role !== 'tool') {
-			try {
-				const embedding = await generateEmbedding(this.ai, content)
+			const embedding = await generateEmbedding(this.ai, content)
 
-				await this.vectorize.insert([
-					{
-						id: messageId,
-						values: embedding,
-						namespace: this.workspaceId || 'default',
-						metadata: {
-							conversationId,
-							role,
-							createdAt: new Date().toISOString(),
-						},
+			await this.vectorize.insert([
+				{
+					id: messageId,
+					values: embedding,
+					namespace: this.workspaceId || 'default',
+					metadata: {
+						conversationId,
+						role,
+						createdAt: new Date().toISOString(),
 					},
-				])
-			} catch (error) {
-				console.error('Failed to save message embedding to Vectorize:', error)
-				// Continue even if vectorize fails - D1 is the source of truth
-			}
+				},
+			])
 		}
 
 		return messageId
@@ -177,28 +172,24 @@ export class D1MemoryStore implements MemoryStore {
 
 		// Try semantic search with Vectorize
 		if (this.vectorize && this.ai) {
-			try {
-				const queryEmbedding = await generateEmbedding(this.ai, query)
+			const queryEmbedding = await generateEmbedding(this.ai, query)
 
-				const results = await this.vectorize.query(queryEmbedding, {
-					topK: limit,
-					namespace: this.workspaceId || 'default',
-					filter: { conversationId },
-					returnMetadata: 'all',
-				})
+			const results = await this.vectorize.query(queryEmbedding, {
+				topK: limit,
+				namespace: this.workspaceId || 'default',
+				filter: { conversationId },
+				returnMetadata: 'all',
+			})
 
-				if (results.matches.length > 0) {
-					// Fetch full messages from D1 using the IDs
-					const messageIds = results.matches.map((match) => match.id)
-					const messagesResult = await this.db.select().from(messages).where(eq(messages.conversationId, conversationId))
+			if (results.matches.length > 0) {
+				// Fetch full messages from D1 using the IDs
+				const messageIds = results.matches.map((match) => match.id)
+				const messagesResult = await this.db.select().from(messages).where(eq(messages.conversationId, conversationId))
 
-					// Filter to matching IDs and sort by score
-					const matchedMessages = messagesResult.filter((m) => messageIds.includes(m.id))
+				// Filter to matching IDs and sort by score
+				const matchedMessages = messagesResult.filter((m) => messageIds.includes(m.id))
 
-					return matchedMessages.map(toConversationMessage)
-				}
-			} catch (error) {
-				console.error('Vectorize search failed, falling back to text search:', error)
+				return matchedMessages.map(toConversationMessage)
 			}
 		}
 
@@ -225,12 +216,8 @@ export class D1MemoryStore implements MemoryStore {
 
 		// Delete from Vectorize
 		if (this.vectorize && messageRows.length > 0) {
-			try {
-				const ids = messageRows.map((m) => m.id)
-				await this.vectorize.deleteByIds(ids)
-			} catch (error) {
-				console.error('Failed to delete messages from Vectorize:', error)
-			}
+			const ids = messageRows.map((m) => m.id)
+			await this.vectorize.deleteByIds(ids)
 		}
 	}
 }

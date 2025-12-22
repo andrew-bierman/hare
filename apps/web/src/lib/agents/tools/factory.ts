@@ -2,7 +2,7 @@ import { z } from 'zod'
 import type { Database } from 'web-app/db/types'
 import { eq } from 'drizzle-orm'
 import { tools as toolsTable, agentTools } from 'web-app/db/schema'
-import { type Tool, type ToolContext, type ToolConfig, createTool, success, failure } from './types'
+import { type Tool, type ToolContext, type ToolConfig, createTool, failure } from './types'
 import { httpRequestTool } from './http'
 
 /**
@@ -52,7 +52,7 @@ function createToolFromConfig(config: ToolConfig, context: ToolContext): Tool | 
 		case 'custom':
 			return createCustomToolFromConfig(config, context)
 		default:
-			console.warn(`Unknown tool type: ${config.type}`)
+			console.warn(`Unknown tool type "${config.type}" for tool ${config.id}`)
 			return null
 	}
 }

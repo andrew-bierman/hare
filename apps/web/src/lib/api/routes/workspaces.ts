@@ -1,6 +1,7 @@
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
 import { eq, or } from 'drizzle-orm'
 import { getDb } from '../db'
+import type { Database } from 'web-app/db/types'
 import { CreateWorkspaceSchema, ErrorSchema, IdParamSchema, SuccessSchema, UpdateWorkspaceSchema, WorkspaceSchema } from '../schemas'
 import { workspaces, workspaceMembers } from 'web-app/db/schema'
 import { authMiddleware } from '../middleware'
@@ -203,7 +204,7 @@ const deleteWorkspaceRoute = createRoute({
 async function getUserWorkspaceRole(
 	userId: string,
 	workspaceId: string,
-	db: NonNullable<Awaited<ReturnType<typeof getDb>>>
+	db: Database
 ): Promise<WorkspaceRole | null> {
 	// Check if user is owner
 	const [workspace] = await db.select().from(workspaces).where(eq(workspaces.id, workspaceId))
@@ -237,9 +238,6 @@ app.openapi(listWorkspacesRoute, async (c) => {
 	const db = await getDb(c)
 	const user = c.get('user')
 
-	if (!db) {
-		return c.json({ error: 'Service unavailable' }, 503)
-	}
 
 	// Get workspaces where user is owner
 	const ownedWorkspaces = await db.select().from(workspaces).where(eq(workspaces.ownerId, user.id))
@@ -286,9 +284,6 @@ app.openapi(createWorkspaceRoute, async (c) => {
 	const db = await getDb(c)
 	const user = c.get('user')
 
-	if (!db) {
-		return c.json({ error: 'Service unavailable' }, 503)
-	}
 
 	// Generate unique slug
 	const baseSlug = data.name
@@ -337,9 +332,6 @@ app.openapi(getWorkspaceRoute, async (c) => {
 	const db = await getDb(c)
 	const user = c.get('user')
 
-	if (!db) {
-		return c.json({ error: 'Service unavailable' }, 503)
-	}
 
 	const [workspace] = await db.select().from(workspaces).where(eq(workspaces.id, id))
 
@@ -372,9 +364,6 @@ app.openapi(updateWorkspaceRoute, async (c) => {
 	const db = await getDb(c)
 	const user = c.get('user')
 
-	if (!db) {
-		return c.json({ error: 'Service unavailable' }, 503)
-	}
 
 	// Check access - only owner and admin can update
 	const role = await getUserWorkspaceRole(user.id, id, db)
@@ -432,9 +421,6 @@ app.openapi(deleteWorkspaceRoute, async (c) => {
 	const db = await getDb(c)
 	const user = c.get('user')
 
-	if (!db) {
-		return c.json({ error: 'Service unavailable' }, 503)
-	}
 
 	// Check ownership - only owner can delete
 	const [workspace] = await db.select().from(workspaces).where(eq(workspaces.id, id))
