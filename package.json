@@ -13,6 +13,7 @@
     "start": "bun run --cwd apps/web start",
     "preview": "bun run --cwd apps/web preview",
     "deploy": "bun run --cwd apps/web deploy",
+    "upload": "bun run --cwd apps/web upload",
     "lint": "biome lint .",
     "lint:fix": "biome lint --write .",
     "format": "biome format --write .",
