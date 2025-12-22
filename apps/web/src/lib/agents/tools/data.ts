@@ -12,7 +12,7 @@ export const rssTool = createTool({
 		limit: z.number().optional().default(10).describe('Maximum number of items to return'),
 		includeContent: z.boolean().optional().default(false).describe('Include full content of items'),
 	}),
-	execute: async (params, context) => {
+	execute: async (params, _context) => {
 		try {
 			const { url, limit, includeContent } = params
 
@@ -30,7 +30,7 @@ export const rssTool = createTool({
 			const xml = await response.text()
 
 			// Simple XML parser for RSS/Atom
-			const parseXml = (text: string) => {
+			const parseXml = (_text: string) => {
 				const getTagContent = (tag: string, content: string): string | null => {
 					const regex = new RegExp(`<${tag}[^>]*>([\\s\\S]*?)</${tag}>`, 'i')
 					const match = content.match(regex)
@@ -175,7 +175,7 @@ export const scrapeTool = createTool({
 		maxLength: z.number().optional().default(10000).describe('Maximum content length to return'),
 		timeout: z.number().optional().default(10000).describe('Request timeout in milliseconds'),
 	}),
-	execute: async (params, context) => {
+	execute: async (params, _context) => {
 		try {
 			const { url, extract, selector, maxLength, timeout } = params
 
@@ -202,7 +202,7 @@ export const scrapeTool = createTool({
 			// Helper functions for HTML parsing
 			const extractText = (html: string): string => {
 				// Remove scripts, styles, and comments
-				let text = html
+				const text = html
 					.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
 					.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
 					.replace(/<!--[\s\S]*?-->/g, '')
@@ -375,7 +375,7 @@ export const regexTool = createTool({
 		replacement: z.string().optional().describe('Replacement string for replace operation'),
 		groupNames: z.array(z.string()).optional().describe('Names for captured groups in extract'),
 	}),
-	execute: async (params, context) => {
+	execute: async (params, _context) => {
 		try {
 			const { operation, text, pattern, flags, replacement, groupNames } = params
 
@@ -415,7 +415,7 @@ export const regexTool = createTool({
 					}> = []
 
 					// Ensure global flag for matchAll
-					const globalRegex = new RegExp(pattern, flags.includes('g') ? flags : flags + 'g')
+					const globalRegex = new RegExp(pattern, flags.includes('g') ? flags : `${flags}g`)
 
 					for (const match of text.matchAll(globalRegex)) {
 						matches.push({
@@ -454,7 +454,7 @@ export const regexTool = createTool({
 
 				case 'extract': {
 					// Extract all captured groups
-					const globalRegex = new RegExp(pattern, flags.includes('g') ? flags : flags + 'g')
+					const globalRegex = new RegExp(pattern, flags.includes('g') ? flags : `${flags}g`)
 					const extracted: Array<Record<string, string>> = []
 
 					for (const match of text.matchAll(globalRegex)) {
@@ -499,7 +499,7 @@ export const cryptoTool = createTool({
 		iv: z.string().optional().describe('Base64-encoded initialization vector (for decrypt)'),
 		bytes: z.number().optional().default(32).describe('Number of random bytes to generate'),
 	}),
-	execute: async (params, context) => {
+	execute: async (params, _context) => {
 		try {
 			const { operation, data, key, iv, bytes } = params
 
@@ -615,7 +615,7 @@ export const jsonSchemaTool = createTool({
 			.passthrough()
 			.describe('JSON Schema to validate against'),
 	}),
-	execute: async (params, context) => {
+	execute: async (params, _context) => {
 		try {
 			const { data, schema } = params
 
@@ -741,7 +741,7 @@ export const csvTool = createTool({
 			})
 			.optional(),
 	}),
-	execute: async (params, context) => {
+	execute: async (params, _context) => {
 		try {
 			const { operation, data, options } = params
 			const { delimiter = ',', headers = true, customHeaders, skipEmptyLines = true } = options || {}
@@ -879,7 +879,7 @@ export const templateTool = createTool({
 			})
 			.optional(),
 	}),
-	execute: async (params, context) => {
+	execute: async (params, _context) => {
 		try {
 			const { template, variables, options } = params
 			const { missingBehavior = 'empty', escapeHtml = false } = options || {}
@@ -941,6 +941,6 @@ export const templateTool = createTool({
 /**
  * Get all data tools.
  */
-export function getDataTools(context: ToolContext) {
+export function getDataTools(_context: ToolContext) {
 	return [rssTool, scrapeTool, regexTool, cryptoTool, jsonSchemaTool, csvTool, templateTool]
 }

@@ -186,6 +186,6 @@ export const vectorizeGetTool = createTool({
 /**
  * Get all Vectorize tools.
  */
-export function getVectorizeTools(context: ToolContext) {
+export function getVectorizeTools(_context: ToolContext) {
 	return [vectorizeInsertTool, vectorizeQueryTool, vectorizeDeleteTool, vectorizeGetTool]
 }

@@ -72,7 +72,7 @@ export const sqlExecuteTool = createTool({
 		}
 
 		// Block extremely dangerous operations
-		const normalizedStmt = params.statement.trim().toLowerCase()
+		const _normalizedStmt = params.statement.trim().toLowerCase()
 		const blockedPatterns = [/drop\s+database/i, /drop\s+table/i, /truncate/i, /alter\s+table.*drop/i]
 		for (const pattern of blockedPatterns) {
 			if (pattern.test(params.statement)) {
@@ -141,6 +141,6 @@ export const sqlBatchTool = createTool({
 /**
  * Get all SQL tools.
  */
-export function getSQLTools(context: ToolContext) {
+export function getSQLTools(_context: ToolContext) {
 	return [sqlQueryTool, sqlExecuteTool, sqlBatchTool]
 }

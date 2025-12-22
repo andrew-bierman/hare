@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { createTool, success, failure, type ToolContext } from './types'
+import { createTool, success, type ToolContext } from './types'
 
 /**
  * Email Validation Tool
@@ -12,7 +12,7 @@ export const validateEmailTool = createTool({
 		checkMx: z.boolean().optional().default(false).describe('Check if domain has valid MX records'),
 		suggestCorrection: z.boolean().optional().default(true).describe('Suggest corrections for common typos'),
 	}),
-	execute: async (params, context) => {
+	execute: async (params, _context) => {
 		const { email, checkMx, suggestCorrection } = params
 
 		const result: {
@@ -102,7 +102,7 @@ export const validatePhoneTool = createTool({
 		country: z.string().optional().default('US').describe('Expected country code (ISO 3166-1 alpha-2)'),
 		format: z.enum(['e164', 'national', 'international']).optional().default('e164').describe('Output format'),
 	}),
-	execute: async (params, context) => {
+	execute: async (params, _context) => {
 		const { phone, country, format } = params
 
 		// Remove all non-digit characters except leading +
@@ -197,7 +197,7 @@ export const validateUrlTool = createTool({
 		checkReachable: z.boolean().optional().default(false).describe('Check if URL is reachable (HEAD request)'),
 		timeout: z.number().optional().default(5000).describe('Timeout for reachability check'),
 	}),
-	execute: async (params, context) => {
+	execute: async (params, _context) => {
 		const { url, allowedProtocols, checkReachable, timeout } = params
 
 		const result: {
@@ -270,7 +270,7 @@ export const validateUrlTool = createTool({
 					}
 				}
 			}
-		} catch (error) {
+		} catch (_error) {
 			result.valid = false
 			result.errors.push('Invalid URL format')
 		}
@@ -291,7 +291,7 @@ export const validateCreditCardTool = createTool({
 		expiryMonth: z.number().optional().describe('Expiry month (1-12)'),
 		expiryYear: z.number().optional().describe('Expiry year (2-digit or 4-digit)'),
 	}),
-	execute: async (params, context) => {
+	execute: async (params, _context) => {
 		const { number, validateExpiry, expiryMonth, expiryYear } = params
 
 		// Remove spaces and dashes
@@ -403,7 +403,7 @@ export const validateIpTool = createTool({
 		ip: z.string().describe('IP address to validate'),
 		checkType: z.boolean().optional().default(true).describe('Detect IP type and range'),
 	}),
-	execute: async (params, context) => {
+	execute: async (params, _context) => {
 		const { ip, checkType } = params
 
 		const result: {
@@ -525,7 +525,7 @@ export const validateJsonTool = createTool({
 		json: z.string().describe('JSON string to validate'),
 		strict: z.boolean().optional().default(false).describe('Strict mode (no trailing commas, no comments)'),
 	}),
-	execute: async (params, context) => {
+	execute: async (params, _context) => {
 		const { json, strict } = params
 
 		const result: {
@@ -577,7 +577,7 @@ export const validateJsonTool = createTool({
 /**
  * Get all validation tools
  */
-export function getValidationTools(context: ToolContext) {
+export function getValidationTools(_context: ToolContext) {
 	return [
 		validateEmailTool,
 		validatePhoneTool,

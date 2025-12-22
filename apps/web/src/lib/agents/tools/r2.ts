@@ -184,6 +184,6 @@ export const r2HeadTool = createTool({
 /**
  * Get all R2 tools.
  */
-export function getR2Tools(context: ToolContext) {
+export function getR2Tools(_context: ToolContext) {
 	return [r2GetTool, r2PutTool, r2DeleteTool, r2ListTool, r2HeadTool]
 }
