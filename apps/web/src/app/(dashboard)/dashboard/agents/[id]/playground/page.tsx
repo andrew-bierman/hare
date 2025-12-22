@@ -31,6 +31,7 @@ import { Separator } from '@workspace/ui/components/separator'
 import { Skeleton } from '@workspace/ui/components/skeleton'
 import { useWorkspace } from 'web-app/components/providers/workspace-provider'
 import { useAgent, useChat, AVAILABLE_MODELS } from 'web-app/lib/api/hooks'
+import { ToolCallList } from 'web-app/components/chat/tool-call-list'
 
 function LoadingSkeleton() {
 	return (
@@ -233,16 +234,23 @@ export default function PlaygroundPage() {
 													<Bot className="h-4 w-4 text-primary" />
 												)}
 											</div>
-											<div
-												className={`max-w-[75%] rounded-2xl px-4 py-3 ${
-													message.role === 'user'
-														? 'bg-primary text-primary-foreground rounded-tr-sm'
-														: 'bg-muted rounded-tl-sm'
-												}`}
-											>
-												<p className="whitespace-pre-wrap text-sm leading-relaxed">
-													{message.content}
-												</p>
+											<div className="max-w-[75%] flex flex-col gap-2">
+												{message.role === 'assistant' && message.toolCalls && (
+													<ToolCallList toolCalls={message.toolCalls} />
+												)}
+												{message.content && (
+													<div
+														className={`rounded-2xl px-4 py-3 ${
+															message.role === 'user'
+																? 'bg-primary text-primary-foreground rounded-tr-sm'
+																: 'bg-muted rounded-tl-sm'
+														}`}
+													>
+														<p className="whitespace-pre-wrap text-sm leading-relaxed">
+															{message.content}
+														</p>
+													</div>
+												)}
 											</div>
 										</div>
 									))}

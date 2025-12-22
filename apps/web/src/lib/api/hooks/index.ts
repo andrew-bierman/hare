@@ -36,6 +36,9 @@ export {
 // Usage hooks
 export { useUsage, useUsageByAgent, useAgentUsage } from './use-usage'
 
+// Analytics hooks
+export { useAnalytics } from './use-analytics'
+
 // Chat hooks
 export { useChat } from './use-chat'
 
@@ -59,6 +62,16 @@ export type {
 	ChatStreamEvent,
 	ApiError,
 } from '../types'
+
+// Re-export analytics types
+export type {
+	AnalyticsParams,
+	AnalyticsData,
+	TimeSeriesData,
+	AgentBreakdown,
+	ModelBreakdown,
+	AnalyticsSummary,
+} from '../client'
 
 // Re-export AI models from config for convenience
 export { AI_MODELS, getModelById, getModelName } from 'web-app/config'

@@ -192,11 +192,78 @@ export const usage = {
 }
 
 // =============================================================================
+// Analytics API
+// =============================================================================
+
+export interface AnalyticsParams {
+	startDate?: string
+	endDate?: string
+	agentId?: string
+	groupBy?: 'day' | 'week' | 'month'
+}
+
+export interface TimeSeriesData {
+	date: string
+	inputTokens: number
+	outputTokens: number
+	totalTokens: number
+	requests: number
+	cost: number
+	avgLatency: number
+}
+
+export interface AgentBreakdown {
+	agentId: string
+	agentName: string
+	requests: number
+	inputTokens: number
+	outputTokens: number
+	totalTokens: number
+	cost: number
+}
+
+export interface ModelBreakdown {
+	model: string
+	modelName: string
+	requests: number
+	inputTokens: number
+	outputTokens: number
+	totalTokens: number
+	cost: number
+}
+
+export interface AnalyticsSummary {
+	totalRequests: number
+	totalInputTokens: number
+	totalOutputTokens: number
+	totalTokens: number
+	totalCost: number
+	avgLatencyMs: number
+}
+
+export interface AnalyticsData {
+	summary: AnalyticsSummary
+	timeSeries: TimeSeriesData[]
+	byAgent: AgentBreakdown[]
+	byModel: ModelBreakdown[]
+	period: {
+		startDate: string
+		endDate: string
+	}
+}
+
+export const analytics = {
+	get: (workspaceId: string, params?: AnalyticsParams) =>
+		get<AnalyticsData>('/api/analytics', { workspaceId, ...params }),
+}
+
+// =============================================================================
 // Export unified client
 // =============================================================================
 
 export const apiClient = {
 	agents,
+	analytics,
 	tools,
 	workspaces,
 	usage,

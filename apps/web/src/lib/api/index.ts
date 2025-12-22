@@ -7,6 +7,7 @@ import type { HonoEnv } from './types'
 
 // Import route modules
 import agents from './routes/agents'
+import analytics from './routes/analytics'
 import auth from './routes/auth'
 import chat from './routes/chat'
 import tools from './routes/tools'
@@ -34,6 +35,7 @@ app.use('*', cors())
 // Mount routes - chain for type inference
 const routes = app
 	.route('/agents', agents)
+	.route('/analytics', analytics)
 	.route('/workspaces', workspaces)
 	.route('/tools', tools)
 	.route('/auth', auth)
@@ -61,6 +63,7 @@ app.doc('/openapi.json', {
 		{ name: 'Tools', description: 'Tool management for agents' },
 		{ name: 'Chat', description: 'Chat with deployed agents' },
 		{ name: 'Usage', description: 'Usage statistics and analytics' },
+		{ name: 'Analytics', description: 'Detailed analytics and visualizations' },
 	],
 })
 

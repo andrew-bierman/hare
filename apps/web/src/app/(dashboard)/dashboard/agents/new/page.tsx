@@ -23,6 +23,7 @@ import {
 import { Textarea } from '@workspace/ui/components/textarea'
 import { Checkbox } from '@workspace/ui/components/checkbox'
 import { useWorkspace } from 'web-app/components/providers/workspace-provider'
+import { AgentInstructionsEditor } from 'web-app/components/agent/agent-instructions-editor'
 import { useCreateAgent, useTools, AVAILABLE_MODELS, type Tool } from 'web-app/lib/api/hooks'
 
 export default function NewAgentPage() {
@@ -140,15 +141,16 @@ export default function NewAgentPage() {
 							</div>
 							<div className="space-y-2">
 								<Label htmlFor="system-prompt">System Prompt</Label>
-								<Textarea
-									id="system-prompt"
-									placeholder="You are a helpful assistant that..."
-									className="h-32 font-mono text-sm"
+								<AgentInstructionsEditor
 									value={instructions}
-									onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setInstructions(e.target.value)}
+									onChange={setInstructions}
+									disabled={createAgent.isPending}
+									placeholder="You are a helpful assistant that..."
+									minHeight="200px"
+									maxHeight="400px"
 								/>
 								<p className="text-xs text-muted-foreground">
-									Define how your agent should behave. This prompt will be sent with every conversation.
+									Define how your agent should behave. Use Markdown formatting and template variables like {'{'}{'{'} user_name {'}'}{'}'}. This prompt will be sent with every conversation.
 								</p>
 							</div>
 						</CardContent>

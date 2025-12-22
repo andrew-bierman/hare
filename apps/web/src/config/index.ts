@@ -341,6 +341,7 @@ export const NAV_ITEMS = {
 		{ label: 'Dashboard', href: '/dashboard', icon: 'Home' },
 		{ label: 'Agents', href: '/dashboard/agents', icon: 'Bot' },
 		{ label: 'Tools', href: '/dashboard/tools', icon: 'Wrench' },
+		{ label: 'Analytics', href: '/dashboard/analytics', icon: 'BarChart3' },
 		{ label: 'Usage', href: '/dashboard/usage', icon: 'Activity' },
 		{ label: 'Settings', href: '/dashboard/settings', icon: 'Settings' },
 	],

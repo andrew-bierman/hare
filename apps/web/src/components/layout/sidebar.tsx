@@ -1,6 +1,6 @@
 'use client'
 
-import { Activity, Bot, Home, Settings, Sparkles, Wrench } from 'lucide-react'
+import { Activity, BarChart3, Bot, Home, Settings, Sparkles, Wrench } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@workspace/ui/lib/utils'
@@ -11,6 +11,7 @@ const routes = [
 	{ label: 'Dashboard', icon: Home, href: '/dashboard' },
 	{ label: 'Agents', icon: Bot, href: '/dashboard/agents' },
 	{ label: 'Tools', icon: Wrench, href: '/dashboard/tools' },
+	{ label: 'Analytics', icon: BarChart3, href: '/dashboard/analytics' },
 	{ label: 'Usage', icon: Activity, href: '/dashboard/usage' },
 	{ label: 'Settings', icon: Settings, href: '/dashboard/settings' },
 ]
