@@ -30,9 +30,6 @@ export const workspaceMiddleware: MiddlewareHandler<{ Variables: WorkspaceVariab
 	}
 
 	const db = await getDb(c)
-	if (!db) {
-		return c.json({ error: 'Service unavailable' }, 503)
-	}
 
 	// Get workspaceId from query or params
 	const workspaceId = c.req.query('workspaceId') || c.req.param('workspaceId')

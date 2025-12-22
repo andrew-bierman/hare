@@ -232,9 +232,6 @@ app.openapi(listWorkspacesRoute, async (c) => {
 	const db = await getDb(c)
 	const user = c.get('user')
 
-	if (!db) {
-		return c.json({ error: 'Service unavailable' }, 503)
-	}
 
 	// Get workspaces where user is owner
 	const ownedWorkspaces = await db.select().from(workspaces).where(eq(workspaces.ownerId, user.id))
@@ -276,9 +273,6 @@ app.openapi(createWorkspaceRoute, async (c) => {
 	const db = await getDb(c)
 	const user = c.get('user')
 
-	if (!db) {
-		return c.json({ error: 'Service unavailable' }, 503)
-	}
 
 	// Generate unique slug
 	const baseSlug = data.name
@@ -327,9 +321,6 @@ app.openapi(getWorkspaceRoute, async (c) => {
 	const db = await getDb(c)
 	const user = c.get('user')
 
-	if (!db) {
-		return c.json({ error: 'Service unavailable' }, 503)
-	}
 
 	const [workspace] = await db.select().from(workspaces).where(eq(workspaces.id, id))
 
@@ -362,9 +353,6 @@ app.openapi(updateWorkspaceRoute, async (c) => {
 	const db = await getDb(c)
 	const user = c.get('user')
 
-	if (!db) {
-		return c.json({ error: 'Service unavailable' }, 503)
-	}
 
 	// Check access - only owner and admin can update
 	const role = await getUserWorkspaceRole(user.id, id, db)
@@ -421,9 +409,6 @@ app.openapi(deleteWorkspaceRoute, async (c) => {
 	const db = await getDb(c)
 	const user = c.get('user')
 
-	if (!db) {
-		return c.json({ error: 'Service unavailable' }, 503)
-	}
 
 	// Check ownership - only owner can delete
 	const [workspace] = await db.select().from(workspaces).where(eq(workspaces.id, id))

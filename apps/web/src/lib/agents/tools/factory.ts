@@ -3,7 +3,6 @@ import { eq } from 'drizzle-orm'
 import { tools as toolsTable, agentTools } from 'web-app/db/schema'
 import { type Tool, type ToolContext, type ToolConfig, createTool } from './types'
 import { httpRequestTool } from './http'
-import { logger } from 'web-app/lib/logger'
 
 /**
  * Load tools attached to an agent from the database.
@@ -36,13 +35,10 @@ function createToolFromConfig(config: ToolConfig, context: ToolContext): Tool | 
 			return createHTTPToolFromConfig(config, context)
 		case 'custom':
 			// Custom code execution is disabled for security reasons
-			logger.warn('Custom tool type is not supported - arbitrary code execution is disabled', {
-				toolId: config.id,
-				toolName: config.name,
-			})
+			console.warn(`Custom tool "${config.name}" (${config.id}) is not supported - arbitrary code execution is disabled`)
 			return null
 		default:
-			logger.warn('Unknown tool type encountered', { toolId: config.id, type: config.type })
+			console.warn(`Unknown tool type "${config.type}" for tool ${config.id}`)
 			return null
 	}
 }

@@ -154,15 +154,6 @@ app.openapi(chatWithAgentRoute, async (c) => {
 	const user = c.get('user')
 	const userId = user?.id || 'anonymous'
 
-	// Validate environment
-	if (!db) {
-		return c.json({ error: 'Database not available' }, 503)
-	}
-
-	if (!env) {
-		return c.json({ error: 'Cloudflare environment not available' }, 503)
-	}
-
 	if (!env.AI) {
 		return c.json({ error: 'AI service not available' }, 503)
 	}
@@ -282,10 +273,6 @@ app.openapi(listConversationsRoute, async (c) => {
 	const { id: agentId } = c.req.valid('param')
 	const db = await getDb(c)
 
-	if (!db) {
-		return c.json({ error: 'Service unavailable' }, 503)
-	}
-
 	const results = await db.select().from(conversations).where(eq(conversations.agentId, agentId))
 
 	// Get message counts for each conversation
@@ -316,10 +303,6 @@ app.openapi(listConversationsRoute, async (c) => {
 app.openapi(getConversationMessagesRoute, async (c) => {
 	const { id: conversationId } = c.req.valid('param')
 	const db = await getDb(c)
-
-	if (!db) {
-		return c.json({ error: 'Service unavailable' }, 503)
-	}
 
 	const results = await db.select().from(messages).where(eq(messages.conversationId, conversationId))
 
