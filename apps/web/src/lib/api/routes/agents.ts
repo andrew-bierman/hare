@@ -13,7 +13,7 @@ import {
 	UpdateAgentSchema,
 } from '../schemas'
 import { agents, agentTools, deployments } from 'web-app/db/schema'
-import { authMiddleware, workspaceMiddleware } from '../middleware'
+import { authMiddleware, workspaceMiddleware, requirePermission, strictRateLimiter } from '../middleware'
 import type { WorkspaceEnv } from '../types'
 
 // Define routes
@@ -289,9 +289,38 @@ async function getAgentToolIds(agentId: string, db: Database): Promise<string[]>
 // Create app with proper typing (includes Bindings and Variables)
 const app = new OpenAPIHono<WorkspaceEnv>()
 
-// Apply middleware
+// Apply base middleware to all routes
 app.use('*', authMiddleware)
 app.use('*', workspaceMiddleware)
+
+// Apply permission-based middleware to specific operations
+// POST (create) requires 'write' permission
+app.use('/', async (c, next) => {
+	if (c.req.method === 'POST') {
+		return requirePermission('write')(c, next)
+	}
+	await next()
+})
+
+// PATCH (update) requires 'write' permission
+app.use('/:id', async (c, next) => {
+	if (c.req.method === 'PATCH') {
+		return requirePermission('write')(c, next)
+	}
+	await next()
+})
+
+// DELETE requires 'admin' permission
+app.use('/:id', async (c, next) => {
+	if (c.req.method === 'DELETE') {
+		return requirePermission('admin')(c, next)
+	}
+	await next()
+})
+
+// Deploy requires 'admin' permission + rate limiting
+app.use('/:id/deploy', strictRateLimiter)
+app.use('/:id/deploy', requirePermission('admin'))
 
 // Register routes
 app.openapi(listAgentsRoute, async (c) => {
@@ -326,13 +355,8 @@ app.openapi(createAgentRoute, async (c) => {
 	const db = await getDb(c)
 	const user = c.get('user')
 	const workspace = c.get('workspace')
-	const role = c.get('workspaceRole')
 
-
-	// Check write permission
-	if (role === 'viewer') {
-		return c.json({ error: 'Insufficient permissions' }, 403)
-	}
+	// Permission check handled by middleware (requirePermission('write'))
 
 	const [agent] = await db
 		.insert(agents)
@@ -420,13 +444,8 @@ app.openapi(updateAgentRoute, async (c) => {
 	const data = c.req.valid('json')
 	const db = await getDb(c)
 	const workspace = c.get('workspace')
-	const role = c.get('workspaceRole')
 
-
-	// Check write permission
-	if (role === 'viewer') {
-		return c.json({ error: 'Insufficient permissions' }, 403)
-	}
+	// Permission check handled by middleware (requirePermission('write'))
 
 	// Verify agent belongs to workspace
 	const [existing] = await db
@@ -495,13 +514,8 @@ app.openapi(deleteAgentRoute, async (c) => {
 	const { id } = c.req.valid('param')
 	const db = await getDb(c)
 	const workspace = c.get('workspace')
-	const role = c.get('workspaceRole')
 
-
-	// Check admin permission for delete
-	if (role !== 'owner' && role !== 'admin') {
-		return c.json({ error: 'Insufficient permissions' }, 403)
-	}
+	// Permission check handled by middleware (requirePermission('admin'))
 
 	// Verify agent belongs to workspace
 	const result = await db
@@ -522,13 +536,8 @@ app.openapi(deployAgentRoute, async (c) => {
 	const db = await getDb(c)
 	const user = c.get('user')
 	const workspace = c.get('workspace')
-	const role = c.get('workspaceRole')
 
-
-	// Check admin permission for deploy
-	if (role !== 'owner' && role !== 'admin') {
-		return c.json({ error: 'Insufficient permissions' }, 403)
-	}
+	// Permission check handled by middleware (requirePermission('admin') + strictRateLimiter)
 
 	// Verify agent belongs to workspace
 	const [existing] = await db

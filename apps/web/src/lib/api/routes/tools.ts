@@ -3,7 +3,7 @@ import { eq, and } from 'drizzle-orm'
 import { getDb } from '../db'
 import { CreateToolSchema, ErrorSchema, IdParamSchema, SuccessSchema, ToolSchema, UpdateToolSchema } from '../schemas'
 import { tools } from 'web-app/db/schema'
-import { authMiddleware, workspaceMiddleware } from '../middleware'
+import { authMiddleware, workspaceMiddleware, requirePermission } from '../middleware'
 import type { WorkspaceEnv } from '../types'
 
 // System tools that are always available
@@ -291,9 +291,34 @@ function mapToolType(dbType: string): ToolType {
 // Create app with proper typing (includes Bindings and Variables)
 const app = new OpenAPIHono<WorkspaceEnv>()
 
-// Apply middleware
+// Apply base middleware to all routes
 app.use('*', authMiddleware)
 app.use('*', workspaceMiddleware)
+
+// Apply permission-based middleware to specific operations
+// POST (create) requires 'write' permission
+app.use('/', async (c, next) => {
+	if (c.req.method === 'POST') {
+		return requirePermission('write')(c, next)
+	}
+	await next()
+})
+
+// PATCH (update) requires 'write' permission
+app.use('/:id', async (c, next) => {
+	if (c.req.method === 'PATCH') {
+		return requirePermission('write')(c, next)
+	}
+	await next()
+})
+
+// DELETE requires 'admin' permission
+app.use('/:id', async (c, next) => {
+	if (c.req.method === 'DELETE') {
+		return requirePermission('admin')(c, next)
+	}
+	await next()
+})
 
 // Register routes
 app.openapi(listToolsRoute, async (c) => {
@@ -336,13 +361,8 @@ app.openapi(createToolRoute, async (c) => {
 	const db = await getDb(c)
 	const user = c.get('user')
 	const workspace = c.get('workspace')
-	const role = c.get('workspaceRole')
 
-
-	// Check write permission
-	if (role === 'viewer') {
-		return c.json({ error: 'Insufficient permissions' }, 403)
-	}
+	// Permission check handled by middleware (requirePermission('write'))
 
 	const [tool] = await db
 		.insert(tools)
@@ -429,18 +449,13 @@ app.openapi(updateToolRoute, async (c) => {
 	const data = c.req.valid('json')
 	const db = await getDb(c)
 	const workspace = c.get('workspace')
-	const role = c.get('workspaceRole')
 
 	// Check if trying to modify system tool
 	if (SYSTEM_TOOLS.some((t) => t.id === id)) {
 		return c.json({ error: 'Cannot modify system tools' }, 400)
 	}
 
-
-	// Check write permission
-	if (role === 'viewer') {
-		return c.json({ error: 'Insufficient permissions' }, 403)
-	}
+	// Permission check handled by middleware (requirePermission('write'))
 
 	// Verify tool belongs to workspace
 	const [existing] = await db
@@ -488,18 +503,13 @@ app.openapi(deleteToolRoute, async (c) => {
 	const { id } = c.req.valid('param')
 	const db = await getDb(c)
 	const workspace = c.get('workspace')
-	const role = c.get('workspaceRole')
 
 	// Check if trying to delete system tool
 	if (SYSTEM_TOOLS.some((t) => t.id === id)) {
 		return c.json({ error: 'Cannot delete system tools' }, 400)
 	}
 
-
-	// Check admin permission for delete
-	if (role !== 'owner' && role !== 'admin') {
-		return c.json({ error: 'Insufficient permissions' }, 403)
-	}
+	// Permission check handled by middleware (requirePermission('admin'))
 
 	// Verify tool belongs to workspace and delete
 	const result = await db

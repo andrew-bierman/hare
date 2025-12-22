@@ -2,6 +2,9 @@ import { OpenAPIHono } from '@hono/zod-openapi'
 import { apiReference } from '@scalar/hono-api-reference'
 import { cors } from 'hono/cors'
 import { logger } from 'hono/logger'
+import { requestId } from 'hono/request-id'
+import { secureHeaders } from 'hono/secure-headers'
+import { timing } from 'hono/timing'
 import { CloudflareEnvError } from './db'
 import type { HonoEnv } from './types'
 
@@ -28,7 +31,10 @@ app.onError((error, c) => {
 })
 
 // Middleware
-app.use('*', logger())
+app.use('*', requestId()) // Adds X-Request-Id header for tracing
+app.use('*', logger()) // Request logging (uses requestId)
+app.use('*', timing()) // Adds Server-Timing headers for performance monitoring
+app.use('*', secureHeaders()) // Security headers (X-Content-Type-Options, X-Frame-Options, etc.)
 app.use('*', cors())
 
 // Mount routes - chain for type inference

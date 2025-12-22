@@ -1,6 +1,20 @@
 export { authMiddleware, optionalAuthMiddleware } from './auth'
 export { workspaceMiddleware, requirePermission, hasPermission } from './workspace'
 export { apiKeyMiddleware, hasAgentAccess, hasScope, generateApiKey } from './api-key'
+export { rateLimiter, strictRateLimiter, chatRateLimiter, apiRateLimiter } from './rate-limit'
+
+// Pre-combined middleware chains for common patterns
+export {
+	authenticated,
+	protectedRoute,
+	readRoute,
+	writeRoute,
+	adminRoute,
+	ownerRoute,
+	rateLimitedRoute,
+	strictAdminRoute,
+	chatRoute,
+} from './combined'
 
 // Re-export types from the central types module
 export type {
