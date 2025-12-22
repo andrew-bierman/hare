@@ -51,17 +51,12 @@ export {
 } from './utility'
 
 // ==========================================
-// INTEGRATION TOOLS (Webhook-based, no API keys)
+// INTEGRATION TOOLS (Zapier = single hub for all externals)
 // ==========================================
 
 export {
 	zapierTool,
 	webhookTool,
-	slackTool,
-	discordTool,
-	teamsTool,
-	makeTool,
-	n8nTool,
 	getIntegrationTools,
 } from './integrations'
 
@@ -255,13 +250,13 @@ export const SYSTEM_TOOL_IDS = [
 	'semantic_search', 'memory_search',
 	// Utility
 	'datetime', 'json', 'text', 'math', 'uuid', 'hash', 'base64', 'url', 'delay',
-	// Integrations (webhook-based)
-	'zapier', 'webhook', 'slack', 'discord', 'teams', 'make', 'n8n',
-	// AI
+	// Integrations (Zapier = single hub for externals)
+	'zapier', 'webhook',
+	// AI (Workers AI - no external APIs)
 	'sentiment', 'summarize', 'translate', 'image_generate', 'classify', 'ner', 'embedding', 'question_answer',
 	// Data
 	'rss', 'scrape', 'regex', 'crypto', 'json_schema', 'csv', 'template',
-	// Sandbox
+	// Sandbox (Cloudflare Sandbox SDK)
 	'code_execute', 'code_validate', 'sandbox_file',
 	// Validation
 	'validate_email', 'validate_phone', 'validate_url', 'validate_credit_card', 'validate_ip', 'validate_json',
@@ -284,11 +279,11 @@ export function isSystemTool(toolId: string): toolId is SystemToolId {
 export const TOOL_COUNTS = {
 	cloudflare: 21, // KV, R2, SQL, Vectorize, HTTP, Search
 	utility: 9,
-	integrations: 7, // Zapier-centric, webhook-based
+	integrations: 2, // Zapier (all externals) + generic webhook
 	ai: 8,
 	data: 7,
 	sandbox: 3,
 	validation: 6,
 	transform: 5,
-	total: 66,
+	total: 61,
 } as const

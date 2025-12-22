@@ -140,17 +140,10 @@ export const ToolTypeSchema = z
 		'base64',
 		'url',
 		'delay',
-		// Integrations
+		// Integrations (Zapier = single hub for externals)
 		'zapier',
 		'webhook',
-		'slack',
-		'discord',
-		'email',
-		'teams',
-		'twilio_sms',
-		'make',
-		'n8n',
-		// AI
+		// AI (Workers AI)
 		'sentiment',
 		'summarize',
 		'translate',
@@ -167,6 +160,23 @@ export const ToolTypeSchema = z
 		'json_schema',
 		'csv',
 		'template',
+		// Sandbox
+		'code_execute',
+		'code_validate',
+		'sandbox_file',
+		// Validation
+		'validate_email',
+		'validate_phone',
+		'validate_url',
+		'validate_credit_card',
+		'validate_ip',
+		'validate_json',
+		// Transform
+		'markdown',
+		'diff',
+		'qrcode',
+		'compression',
+		'color',
 		// Custom
 		'custom',
 	])

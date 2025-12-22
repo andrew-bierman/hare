@@ -22,16 +22,9 @@ export const tools = sqliteTable('tools', {
 			'r2',
 			'vectorize',
 			'search',
-			// Integrations (user-configurable)
+			// Integrations
 			'zapier',
 			'webhook',
-			'slack',
-			'discord',
-			'email',
-			'teams',
-			'twilio_sms',
-			'make',
-			'n8n',
 			// Custom code
 			'custom',
 		],
