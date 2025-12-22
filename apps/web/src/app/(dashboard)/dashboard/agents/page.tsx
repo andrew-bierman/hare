@@ -1,19 +1,16 @@
 'use client'
 
-import { Bot, Clock, Play, Plus, Search, Settings, Wrench } from 'lucide-react'
-import Link from 'next/link'
-import { type ChangeEvent, useState } from 'react'
 import { Badge } from '@workspace/ui/components/badge'
 import { Button } from '@workspace/ui/components/button'
-import {
-	Card,
-	CardContent,
-} from '@workspace/ui/components/card'
+import { Card, CardContent } from '@workspace/ui/components/card'
 import { Input } from '@workspace/ui/components/input'
 import { Skeleton } from '@workspace/ui/components/skeleton'
 import { Tabs, TabsList, TabsTrigger } from '@workspace/ui/components/tabs'
+import { Bot, Clock, Play, Plus, Search, Settings, Wrench } from 'lucide-react'
+import Link from 'next/link'
+import { type ChangeEvent, useState } from 'react'
 import { useWorkspace } from 'web-app/components/providers/workspace-provider'
-import { useAgents, AVAILABLE_MODELS, type Agent } from 'web-app/lib/api/hooks'
+import { type Agent, AVAILABLE_MODELS, useAgents } from 'web-app/lib/api/hooks'
 
 function AgentCardSkeleton() {
 	return (
@@ -99,7 +96,10 @@ export default function AgentsPage() {
 				)
 			case 'draft':
 				return (
-					<Badge variant="secondary" className="bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20">
+					<Badge
+						variant="secondary"
+						className="bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20"
+					>
 						Draft
 					</Badge>
 				)
@@ -223,12 +223,8 @@ export default function AgentsPage() {
 											<Bot className="h-5 w-5 text-primary-foreground" />
 										</div>
 										<div className="min-w-0">
-											<h3 className="font-semibold text-sm sm:text-base truncate">
-												{agent.name}
-											</h3>
-											<p className="text-xs text-muted-foreground">
-												{getModelName(agent.model)}
-											</p>
+											<h3 className="font-semibold text-sm sm:text-base truncate">{agent.name}</h3>
+											<p className="text-xs text-muted-foreground">{getModelName(agent.model)}</p>
 										</div>
 									</div>
 									{getStatusBadge(agent.status)}
@@ -263,10 +259,7 @@ export default function AgentsPage() {
 										</Button>
 									</Link>
 									<Link href={`/dashboard/agents/${agent.id}/playground`} className="flex-1">
-										<Button
-											className="w-full gap-2 h-10"
-											disabled={agent.status !== 'deployed'}
-										>
+										<Button className="w-full gap-2 h-10" disabled={agent.status !== 'deployed'}>
 											<Play className="h-4 w-4" />
 											Test
 										</Button>
@@ -283,9 +276,7 @@ export default function AgentsPage() {
 								<div className="flex h-12 w-12 items-center justify-center rounded-lg bg-muted mb-3">
 									<Plus className="h-6 w-6 text-muted-foreground" />
 								</div>
-								<span className="font-medium text-sm text-muted-foreground">
-									Create New Agent
-								</span>
+								<span className="font-medium text-sm text-muted-foreground">Create New Agent</span>
 							</CardContent>
 						</Card>
 					</Link>

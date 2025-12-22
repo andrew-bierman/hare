@@ -1,8 +1,8 @@
 'use client'
 
-import { Bell, Menu, Search } from 'lucide-react'
 import { Button } from '@workspace/ui/components/button'
 import { Input } from '@workspace/ui/components/input'
+import { Bell, Menu, Search } from 'lucide-react'
 import { UserNav } from './user-nav'
 
 export function Header() {
@@ -18,10 +18,7 @@ export function Header() {
 				<div className="hidden md:flex flex-1 max-w-md">
 					<div className="relative w-full">
 						<Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-						<Input
-							placeholder="Search..."
-							className="pl-9 h-10"
-						/>
+						<Input placeholder="Search..." className="pl-9 h-10" />
 					</div>
 				</div>
 

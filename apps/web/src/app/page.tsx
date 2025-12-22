@@ -1,3 +1,12 @@
+import { Badge } from '@workspace/ui/components/badge'
+import { Button } from '@workspace/ui/components/button'
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardHeader,
+	CardTitle,
+} from '@workspace/ui/components/card'
 import {
 	ArrowRight,
 	Bot,
@@ -15,15 +24,6 @@ import {
 	Zap,
 } from 'lucide-react'
 import Link from 'next/link'
-import { Button } from '@workspace/ui/components/button'
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from '@workspace/ui/components/card'
-import { Badge } from '@workspace/ui/components/badge'
 
 export default function LandingPage() {
 	const features = [
@@ -82,7 +82,10 @@ export default function LandingPage() {
 						<Link href="#features" className="text-sm text-muted-foreground hover:text-foreground">
 							Features
 						</Link>
-						<Link href="#how-it-works" className="text-sm text-muted-foreground hover:text-foreground">
+						<Link
+							href="#how-it-works"
+							className="text-sm text-muted-foreground hover:text-foreground"
+						>
 							How it Works
 						</Link>
 						<Link href="/docs" className="text-sm text-muted-foreground hover:text-foreground">
@@ -92,7 +95,9 @@ export default function LandingPage() {
 
 					<div className="flex items-center gap-2">
 						<Link href="/sign-in" className="hidden sm:block">
-							<Button variant="ghost" size="sm">Sign In</Button>
+							<Button variant="ghost" size="sm">
+								Sign In
+							</Button>
 						</Link>
 						<Link href="/sign-up">
 							<Button size="sm">Get Started</Button>
@@ -110,8 +115,7 @@ export default function LandingPage() {
 					</Badge>
 
 					<h1 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl lg:text-6xl">
-						Build & Deploy{' '}
-						<span className="text-primary">AI Agents</span> at the Edge
+						Build & Deploy <span className="text-primary">AI Agents</span> at the Edge
 					</h1>
 
 					<p className="mt-4 text-base text-muted-foreground sm:text-lg md:text-xl max-w-2xl mx-auto">
@@ -164,7 +168,7 @@ export default function LandingPage() {
 						</div>
 						<pre className="p-4 overflow-x-auto text-xs sm:text-sm">
 							<code className="text-muted-foreground">
-{`import { Agent } from '@hare/sdk'
+								{`import { Agent } from '@hare/sdk'
 
 const agent = new Agent({
   name: 'Support Bot',
@@ -183,13 +187,11 @@ await agent.deploy()`}
 			<section id="features" className="px-4 py-12 sm:py-16 md:py-24 bg-muted/50">
 				<div className="container max-w-6xl mx-auto">
 					<div className="text-center mb-8 sm:mb-12">
-						<Badge variant="outline" className="mb-3">Features</Badge>
-						<h2 className="text-2xl font-bold sm:text-3xl md:text-4xl">
-							Everything you need
-						</h2>
-						<p className="mt-2 text-muted-foreground">
-							From prototype to production in minutes.
-						</p>
+						<Badge variant="outline" className="mb-3">
+							Features
+						</Badge>
+						<h2 className="text-2xl font-bold sm:text-3xl md:text-4xl">Everything you need</h2>
+						<p className="mt-2 text-muted-foreground">From prototype to production in minutes.</p>
 					</div>
 
 					<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -214,13 +216,11 @@ await agent.deploy()`}
 			<section id="how-it-works" className="px-4 py-12 sm:py-16 md:py-24">
 				<div className="container max-w-4xl mx-auto">
 					<div className="text-center mb-8 sm:mb-12">
-						<Badge variant="outline" className="mb-3">How it Works</Badge>
-						<h2 className="text-2xl font-bold sm:text-3xl md:text-4xl">
-							4 simple steps
-						</h2>
-						<p className="mt-2 text-muted-foreground">
-							Build your first agent in under 5 minutes.
-						</p>
+						<Badge variant="outline" className="mb-3">
+							How it Works
+						</Badge>
+						<h2 className="text-2xl font-bold sm:text-3xl md:text-4xl">4 simple steps</h2>
+						<p className="mt-2 text-muted-foreground">Build your first agent in under 5 minutes.</p>
 					</div>
 
 					<div className="grid gap-6 sm:grid-cols-2 md:grid-cols-4">
@@ -230,7 +230,9 @@ await agent.deploy()`}
 									<step.icon className="h-5 w-5 text-primary" />
 								</div>
 								<div>
-									<span className="text-xs font-medium text-muted-foreground">Step {index + 1}</span>
+									<span className="text-xs font-medium text-muted-foreground">
+										Step {index + 1}
+									</span>
 									<h3 className="font-semibold">{step.title}</h3>
 									<p className="text-sm text-muted-foreground">{step.description}</p>
 								</div>
@@ -302,10 +304,18 @@ await agent.deploy()`}
 							<span className="font-semibold">Hare</span>
 						</div>
 						<nav className="flex flex-wrap justify-center gap-4 text-sm text-muted-foreground">
-							<Link href="/docs" className="hover:text-foreground">Docs</Link>
-							<Link href="https://github.com" className="hover:text-foreground">GitHub</Link>
-							<Link href="/privacy" className="hover:text-foreground">Privacy</Link>
-							<Link href="/terms" className="hover:text-foreground">Terms</Link>
+							<Link href="/docs" className="hover:text-foreground">
+								Docs
+							</Link>
+							<Link href="https://github.com" className="hover:text-foreground">
+								GitHub
+							</Link>
+							<Link href="/privacy" className="hover:text-foreground">
+								Privacy
+							</Link>
+							<Link href="/terms" className="hover:text-foreground">
+								Terms
+							</Link>
 						</nav>
 					</div>
 				</div>

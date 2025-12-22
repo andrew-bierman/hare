@@ -1,6 +1,5 @@
 'use client'
 
-import { LogOut, Settings, User } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@workspace/ui/components/avatar'
 import { Button } from '@workspace/ui/components/button'
 import {
@@ -11,6 +10,7 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from '@workspace/ui/components/dropdown-menu'
+import { LogOut, Settings, User } from 'lucide-react'
 
 export function UserNav() {
 	return (

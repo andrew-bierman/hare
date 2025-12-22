@@ -1,5 +1,5 @@
-import type { Context } from 'hono'
 import { getCloudflareContext } from '@opennextjs/cloudflare'
+import type { Context } from 'hono'
 import { createDb, type Database } from 'web-app/db/client'
 
 /**
@@ -43,7 +43,9 @@ export async function getD1(c: { env: unknown }): Promise<D1Database> {
 		// Async mode not available either
 	}
 
-	throw new CloudflareEnvError('D1 database binding not available. Ensure DB is configured in wrangler.toml.')
+	throw new CloudflareEnvError(
+		'D1 database binding not available. Ensure DB is configured in wrangler.toml.',
+	)
 }
 
 /**
@@ -86,5 +88,7 @@ export async function getCloudflareEnv(c: Context): Promise<CloudflareEnv> {
 		// Async mode not available
 	}
 
-	throw new CloudflareEnvError('Cloudflare environment not available. Ensure bindings are configured.')
+	throw new CloudflareEnvError(
+		'Cloudflare environment not available. Ensure bindings are configured.',
+	)
 }

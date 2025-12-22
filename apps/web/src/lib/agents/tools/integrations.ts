@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { createTool, success, failure, type ToolContext } from './types'
+import { createTool, failure, success, type ToolContext } from './types'
 
 /**
  * Integration Philosophy:
@@ -49,7 +49,11 @@ All service credentials are managed in your Zapier account, not here.`,
 	inputSchema: z.object({
 		webhookUrl: z.string().url().describe('Zapier webhook URL (https://hooks.zapier.com/...)'),
 		data: z.record(z.string(), z.unknown()).describe('Data to send (available in your Zap)'),
-		waitForResponse: z.boolean().optional().default(false).describe('Wait for Zap response (requires Webhooks by Zapier premium)'),
+		waitForResponse: z
+			.boolean()
+			.optional()
+			.default(false)
+			.describe('Wait for Zap response (requires Webhooks by Zapier premium)'),
 	}),
 	execute: async (params, context) => {
 		try {
@@ -116,7 +120,7 @@ export const webhookTool = createTool({
 			.optional(),
 		timeout: z.number().optional().default(30000),
 	}),
-	execute: async (params, context) => {
+	execute: async (params, _context) => {
 		try {
 			const { url, method, data, headers: customHeaders, auth, timeout } = params
 
@@ -128,9 +132,9 @@ export const webhookTool = createTool({
 
 			if (auth) {
 				if (auth.type === 'bearer' && auth.token) {
-					headers['Authorization'] = `Bearer ${auth.token}`
+					headers.Authorization = `Bearer ${auth.token}`
 				} else if (auth.type === 'basic' && auth.username && auth.password) {
-					headers['Authorization'] = `Basic ${btoa(`${auth.username}:${auth.password}`)}`
+					headers.Authorization = `Basic ${btoa(`${auth.username}:${auth.password}`)}`
 				} else if (auth.type === 'apikey' && auth.token) {
 					headers[auth.headerName || 'X-API-Key'] = auth.token
 				}
@@ -169,9 +173,6 @@ export const webhookTool = createTool({
  *
  * Just Zapier (for external services) + generic webhook (for custom integrations)
  */
-export function getIntegrationTools(context: ToolContext) {
-	return [
-		zapierTool,
-		webhookTool,
-	]
+export function getIntegrationTools(_context: ToolContext) {
+	return [zapierTool, webhookTool]
 }

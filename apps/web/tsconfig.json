@@ -9,12 +9,6 @@
 		"types": ["node", "@cloudflare/workers-types"],
 		"plugins": [{ "name": "next" }]
 	},
-	"include": [
-		"next-env.d.ts",
-		"**/*.ts",
-		"**/*.tsx",
-		".next/types/**/*.ts",
-		"cloudflare-env.d.ts"
-	],
+	"include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "cloudflare-env.d.ts"],
 	"exclude": ["node_modules"]
 }

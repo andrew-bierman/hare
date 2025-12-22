@@ -1,9 +1,9 @@
-import type { Database, MessageMetadata } from 'web-app/db/types'
 import type { CoreMessage } from 'ai'
-import { eq, desc, and, like } from 'drizzle-orm'
-import { messages, conversations } from 'web-app/db/schema'
+import { and, desc, eq, like } from 'drizzle-orm'
+import { conversations, messages } from 'web-app/db/schema'
+import type { Database, MessageMetadata } from 'web-app/db/types'
+import { isMessageRole, type MessageRole } from 'web-app/lib/api/types'
 import { generateEmbedding } from './providers/workers-ai'
-import { type MessageRole, isMessageRole } from 'web-app/lib/api/types'
 
 export type { MessageRole }
 
@@ -23,10 +23,19 @@ export interface ConversationMessage {
  * Memory store interface for conversation history.
  */
 export interface MemoryStore {
-	saveMessage(conversationId: string, role: MessageRole, content: string, metadata?: MessageMetadata): Promise<string>
+	saveMessage(
+		conversationId: string,
+		role: MessageRole,
+		content: string,
+		metadata?: MessageMetadata,
+	): Promise<string>
 	getMessages(conversationId: string, limit?: number): Promise<ConversationMessage[]>
 	getOrCreateConversation(agentId: string, userId: string, title?: string): Promise<string>
-	searchMessages(conversationId: string, query: string, limit?: number): Promise<ConversationMessage[]>
+	searchMessages(
+		conversationId: string,
+		query: string,
+		limit?: number,
+	): Promise<ConversationMessage[]>
 	deleteConversation(conversationId: string): Promise<void>
 }
 
@@ -39,7 +48,7 @@ export class D1MemoryStore implements MemoryStore {
 		private db: Database,
 		private ai?: Ai,
 		private vectorize?: VectorizeIndex,
-		private workspaceId?: string
+		private workspaceId?: string,
 	) {}
 
 	/**
@@ -57,7 +66,10 @@ export class D1MemoryStore implements MemoryStore {
 		const existingConversation = existing[0]
 		if (existingConversation) {
 			// Update the timestamp
-			await this.db.update(conversations).set({ updatedAt: new Date() }).where(eq(conversations.id, existingConversation.id))
+			await this.db
+				.update(conversations)
+				.set({ updatedAt: new Date() })
+				.where(eq(conversations.id, existingConversation.id))
 			return existingConversation.id
 		}
 
@@ -82,7 +94,12 @@ export class D1MemoryStore implements MemoryStore {
 	/**
 	 * Save a message to the conversation.
 	 */
-	async saveMessage(conversationId: string, role: MessageRole, content: string, metadata?: MessageMetadata): Promise<string> {
+	async saveMessage(
+		conversationId: string,
+		role: MessageRole,
+		content: string,
+		metadata?: MessageMetadata,
+	): Promise<string> {
 		// Save to D1 using Drizzle
 		const inserted = await this.db
 			.insert(messages)
@@ -101,7 +118,10 @@ export class D1MemoryStore implements MemoryStore {
 		const messageId = insertedMessage.id
 
 		// Update conversation timestamp
-		await this.db.update(conversations).set({ updatedAt: new Date() }).where(eq(conversations.id, conversationId))
+		await this.db
+			.update(conversations)
+			.set({ updatedAt: new Date() })
+			.where(eq(conversations.id, conversationId))
 
 		// Save to Vectorize for semantic search (if available)
 		if (this.vectorize && this.ai && role !== 'system' && role !== 'tool') {
@@ -154,7 +174,11 @@ export class D1MemoryStore implements MemoryStore {
 	/**
 	 * Search messages using semantic search or text fallback.
 	 */
-	async searchMessages(conversationId: string, query: string, limit = 10): Promise<ConversationMessage[]> {
+	async searchMessages(
+		conversationId: string,
+		query: string,
+		limit = 10,
+	): Promise<ConversationMessage[]> {
 		// Helper to convert DB row to ConversationMessage with validation
 		const toConversationMessage = (row: typeof messages.$inferSelect): ConversationMessage => {
 			if (!isMessageRole(row.role)) {
@@ -184,7 +208,10 @@ export class D1MemoryStore implements MemoryStore {
 			if (results.matches.length > 0) {
 				// Fetch full messages from D1 using the IDs
 				const messageIds = results.matches.map((match) => match.id)
-				const messagesResult = await this.db.select().from(messages).where(eq(messages.conversationId, conversationId))
+				const messagesResult = await this.db
+					.select()
+					.from(messages)
+					.where(eq(messages.conversationId, conversationId))
 
 				// Filter to matching IDs and sort by score
 				const matchedMessages = messagesResult.filter((m) => messageIds.includes(m.id))
@@ -209,7 +236,10 @@ export class D1MemoryStore implements MemoryStore {
 	 */
 	async deleteConversation(conversationId: string): Promise<void> {
 		// Get message IDs for Vectorize cleanup
-		const messageRows = await this.db.select({ id: messages.id }).from(messages).where(eq(messages.conversationId, conversationId))
+		const messageRows = await this.db
+			.select({ id: messages.id })
+			.from(messages)
+			.where(eq(messages.conversationId, conversationId))
 
 		// Delete from D1 (cascade will delete messages)
 		await this.db.delete(conversations).where(eq(conversations.id, conversationId))
@@ -225,7 +255,12 @@ export class D1MemoryStore implements MemoryStore {
 /**
  * Create a memory store instance.
  */
-export function createMemoryStore(db: Database, ai?: Ai, vectorize?: VectorizeIndex, workspaceId?: string): MemoryStore {
+export function createMemoryStore(
+	db: Database,
+	ai?: Ai,
+	vectorize?: VectorizeIndex,
+	workspaceId?: string,
+): MemoryStore {
 	return new D1MemoryStore(db, ai, vectorize, workspaceId)
 }
 

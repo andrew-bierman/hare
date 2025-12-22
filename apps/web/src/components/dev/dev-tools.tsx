@@ -1,14 +1,14 @@
 'use client'
 
-import { useState } from 'react'
-import { Bug, ChevronDown, ChevronUp, Copy, LogIn, RefreshCw, Trash2, X } from 'lucide-react'
+import { useQueryClient } from '@tanstack/react-query'
+import { Badge } from '@workspace/ui/components/badge'
 import { Button } from '@workspace/ui/components/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@workspace/ui/components/card'
-import { Badge } from '@workspace/ui/components/badge'
-import { FEATURES, DEV_CONFIG } from 'web-app/config'
-import { authClient } from 'web-app/lib/auth-client'
-import { useQueryClient } from '@tanstack/react-query'
+import { Bug, ChevronDown, ChevronUp, Copy, LogIn, RefreshCw, Trash2, X } from 'lucide-react'
+import { useState } from 'react'
 import { toast } from 'sonner'
+import { DEV_CONFIG, FEATURES } from 'web-app/config'
+import { authClient } from 'web-app/lib/auth-client'
 
 /**
  * Developer tools panel - only shown in development mode
@@ -37,7 +37,7 @@ export function DevTools() {
 				queryClient.invalidateQueries()
 			}
 		} catch (error) {
-			toast.error('Sign in failed: ' + (error instanceof Error ? error.message : 'Unknown error'))
+			toast.error(`Sign in failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
 		}
 	}
 
@@ -46,7 +46,7 @@ export function DevTools() {
 			await authClient.signOut()
 			toast.success('Signed out')
 			queryClient.invalidateQueries()
-		} catch (error) {
+		} catch (_error) {
 			toast.error('Sign out failed')
 		}
 	}
@@ -90,7 +90,10 @@ export function DevTools() {
 				<div className="flex items-center gap-2">
 					<Bug className="h-4 w-4 text-yellow-500" />
 					<CardTitle className="text-sm font-medium">Dev Tools</CardTitle>
-					<Badge variant="outline" className="text-[10px] px-1.5 py-0 text-yellow-600 border-yellow-500/50">
+					<Badge
+						variant="outline"
+						className="text-[10px] px-1.5 py-0 text-yellow-600 border-yellow-500/50"
+					>
 						DEV
 					</Badge>
 				</div>
@@ -103,12 +106,7 @@ export function DevTools() {
 					>
 						{isMinimized ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
 					</Button>
-					<Button
-						variant="ghost"
-						size="icon"
-						className="h-6 w-6"
-						onClick={() => setIsOpen(false)}
-					>
+					<Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setIsOpen(false)}>
 						<X className="h-3 w-3" />
 					</Button>
 				</div>

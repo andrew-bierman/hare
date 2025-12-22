@@ -1,5 +1,9 @@
 'use client'
 
+import { Badge } from '@workspace/ui/components/badge'
+import { Button } from '@workspace/ui/components/button'
+import { Card, CardContent } from '@workspace/ui/components/card'
+import { Skeleton } from '@workspace/ui/components/skeleton'
 import {
 	Activity,
 	ArrowRight,
@@ -12,15 +16,8 @@ import {
 	Wrench,
 } from 'lucide-react'
 import Link from 'next/link'
-import { Button } from '@workspace/ui/components/button'
-import { Badge } from '@workspace/ui/components/badge'
-import {
-	Card,
-	CardContent,
-} from '@workspace/ui/components/card'
-import { Skeleton } from '@workspace/ui/components/skeleton'
 import { useWorkspace } from 'web-app/components/providers/workspace-provider'
-import { useAgents, useUsage, AVAILABLE_MODELS, type Agent } from 'web-app/lib/api/hooks'
+import { type Agent, AVAILABLE_MODELS, useAgents, useUsage } from 'web-app/lib/api/hooks'
 
 function StatCardSkeleton() {
 	return (
@@ -87,7 +84,7 @@ export default function DashboardPage() {
 			description: `${deployedAgents.length} deployed`,
 			icon: Bot,
 			color: 'bg-violet-500',
-			trend: deployedAgents.length > 0 ? '+' + deployedAgents.length : null,
+			trend: deployedAgents.length > 0 ? `+${deployedAgents.length}` : null,
 		},
 		{
 			title: 'API Calls',
@@ -126,7 +123,10 @@ export default function DashboardPage() {
 				)
 			case 'draft':
 				return (
-					<Badge variant="secondary" className="bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20">
+					<Badge
+						variant="secondary"
+						className="bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20"
+					>
 						Draft
 					</Badge>
 				)
@@ -185,7 +185,9 @@ export default function DashboardPage() {
 										<span className="text-xs sm:text-sm font-medium text-muted-foreground">
 											{stat.title}
 										</span>
-										<div className={`flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-lg ${stat.color}`}>
+										<div
+											className={`flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-lg ${stat.color}`}
+										>
 											<stat.icon className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
 										</div>
 									</div>
@@ -198,7 +200,9 @@ export default function DashboardPage() {
 											</span>
 										)}
 									</div>
-									<p className="mt-1 text-xs sm:text-sm text-muted-foreground">{stat.description}</p>
+									<p className="mt-1 text-xs sm:text-sm text-muted-foreground">
+										{stat.description}
+									</p>
 								</CardContent>
 							</Card>
 						))}
@@ -216,7 +220,9 @@ export default function DashboardPage() {
 									</div>
 									<div className="flex-1 min-w-0">
 										<h3 className="font-semibold text-sm sm:text-base">{action.title}</h3>
-										<p className="text-xs sm:text-sm text-muted-foreground truncate">{action.description}</p>
+										<p className="text-xs sm:text-sm text-muted-foreground truncate">
+											{action.description}
+										</p>
 									</div>
 									<ArrowRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
 								</div>
