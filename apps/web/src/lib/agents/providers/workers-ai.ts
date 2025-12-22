@@ -55,9 +55,10 @@ export function getWorkersAIModelId(modelName: string): string {
 }
 
 /**
- * Create a Workers AI model instance for use with Mastra/AI SDK.
+ * Create a Workers AI model instance for use with the Vercel AI SDK.
+ * Returns a LanguageModelV1 compatible model.
  */
-export function createWorkersAIModel(modelName: string, ai: Ai) {
+export function createWorkersAIModel(modelName: string, ai: Ai): ReturnType<ReturnType<typeof createWorkersAI>> {
 	const workersai = createWorkersAI({ binding: ai })
 	const modelId = getWorkersAIModelId(modelName)
 	// Cast to the expected type - the model ID is validated by getWorkersAIModelId
@@ -83,6 +84,9 @@ export async function generateEmbeddings(ai: Ai, texts: string[], model: Embeddi
  */
 export async function generateEmbedding(ai: Ai, text: string, model: EmbeddingModelId = 'bge-base-en'): Promise<number[]> {
 	const embeddings = await generateEmbeddings(ai, [text], model)
+	if (!embeddings[0]) {
+		throw new Error('Failed to generate embedding')
+	}
 	return embeddings[0]
 }
 

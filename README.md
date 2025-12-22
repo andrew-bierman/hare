@@ -1,19 +1,25 @@
-# Hare
+# 🐇 Hare
 
-> Build and deploy AI agents to Cloudflare's edge in minutes
+> **Fast as a hare**—Build and deploy AI agents to Cloudflare's edge in minutes
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![Next.js](https://img.shields.io/badge/Next.js-15-black)](https://nextjs.org/)
 [![Cloudflare](https://img.shields.io/badge/Cloudflare-Workers-orange)](https://workers.cloudflare.com/)
-[![Mastra](https://img.shields.io/badge/Mastra-Powered-purple)](https://mastra.ai)
+[![Workers AI](https://img.shields.io/badge/Workers_AI-Native-F38020)](https://developers.cloudflare.com/workers-ai/)
 
-Hare is a SaaS platform for creating, deploying, and managing AI agents on Cloudflare's global edge network. Built on [Mastra](https://mastra.ai) and powered by Cloudflare Workers, Hare delivers sub-50ms latency from 300+ cities worldwide.
+Hare is a SaaS platform for creating, deploying, and managing AI agents on Cloudflare's global edge network. Just like its namesake, Hare is built for **speed** ⚡—delivering lightning-fast agent responses with sub-50ms cold starts from 300+ cities worldwide.
+
+Built as a **Cloudflare-native** platform using Workers AI, D1, KV, R2, and Vectorize, Hare eliminates the infrastructure complexity of traditional AI agent platforms. No more waiting for slow cold starts or dealing with complex deployment pipelines—your agents hop from development to production in seconds.
 
 ---
 
 ## Table of Contents
 
 - [Overview](#overview)
+  - [Why "Hare"?](#-why-hare)
+  - [The Problem](#the-problem)
+  - [The Solution](#the-solution)
+  - [Why Cloudflare-Native?](#why-cloudflare-native)
 - [Features](#features)
 - [Tech Stack](#tech-stack)
 - [Project Structure](#project-structure)
@@ -30,60 +36,67 @@ Hare is a SaaS platform for creating, deploying, and managing AI agents on Cloud
 - [Pricing](#pricing)
 - [Roadmap](#roadmap)
 - [Contributing](#contributing)
+- [FAQ](#faq)
 - [License](#license)
 
 ---
 
 ## Overview
 
+### 🐰 Why "Hare"?
+
+In Aesop's fable, the hare was famous for its speed (if not its patience). We built Hare to be the **fastest** way to build and deploy AI agents—no slow cold starts, no infrastructure headaches, just pure speed powered by Cloudflare's global edge network.
+
+Like a hare bounding across the landscape, your AI agents hop instantly across 300+ edge locations worldwide, responding to users in under 50ms. Fast development, fast deployment, fast execution. That's the Hare way. 🚀
+
 ### The Problem
 
-- Building AI agents requires deep infrastructure knowledge
-- Traditional serverless has slow cold starts (500ms+ on Lambda)
-- Managing agent state, memory, and tools is complex
-- Most solutions are either too enterprise-heavy or require self-hosting
+- 🐌 **Slow Cold Starts**: Building AI agents on traditional serverless (Lambda, etc.) means 500ms+ cold starts
+- 🛠️ **Complex Infrastructure**: Deep infrastructure knowledge required to manage agent state, memory, and tools
+- 💰 **Unpredictable Costs**: Most solutions have complex pricing that's hard to predict
+- 🏢 **Wrong Fit**: Solutions are either too enterprise-heavy or require self-hosting
 
 ### The Solution
 
-Hare provides a visual builder for AI agents that deploy instantly to Cloudflare Workers, with built-in memory (D1/Vectorize), tool libraries, and observability—all without touching infrastructure.
+Hare provides a **visual builder** for AI agents that deploy instantly to Cloudflare Workers, with built-in memory (D1/Vectorize), tool libraries, and observability—all without touching infrastructure. Build once, deploy everywhere, run fast. 🐇💨
 
 ### Why Cloudflare-Native?
 
 | Benefit | Traditional Cloud | Hare (Cloudflare) |
 |---------|-------------------|-------------------|
-| **Cold Start** | 500ms+ (Lambda) | <50ms |
-| **Global Latency** | Single region | 300+ cities |
-| **Database** | External (Postgres) | D1 (co-located) |
-| **Vector Store** | Pinecone, Weaviate | Vectorize (native) |
-| **File Storage** | S3 | R2 (zero egress) |
-| **Cache** | Redis/ElastiCache | KV (global) |
-| **Pricing** | Unpredictable | Predictable |
+| **Cold Start** | 🐌 500ms+ (Lambda) | ⚡ <50ms |
+| **Global Latency** | 🌍 Single region | 🌐 300+ cities |
+| **Database** | 🔌 External (Postgres) | 💾 D1 (co-located) |
+| **Vector Store** | 📊 Pinecone, Weaviate | 🎯 Vectorize (native) |
+| **File Storage** | 💸 S3 (egress fees) | 📦 R2 (zero egress) |
+| **Cache** | 🔴 Redis/ElastiCache | ⚡ KV (global) |
+| **Pricing** | ❓ Unpredictable | ✅ Predictable |
 
 ---
 
 ## Features
 
-### Core Features
+### ✨ Core Features
 
-- **Visual Agent Builder** - Configure agents via UI, no code required
-- **One-Click Deploy** - Agents run on 300+ edge locations worldwide
-- **Sub-50ms Latency** - Cloudflare Workers cold starts are instant
-- **Built-in Memory** - Conversation history, semantic recall, working memory
-- **Tool Library** - HTTP, SQL, KV, R2, Vectorize tools out of the box
-- **Version Control** - Track changes, rollback to previous versions
-- **API Access** - REST API with streaming support
-- **Team Collaboration** - Invite teammates, role-based access
-- **Real-time Playground** - Test agents in-browser with streaming
-- **Usage Analytics** - Token tracking, latency monitoring, cost insights
+- **🎨 Visual Agent Builder** - Configure agents via UI, no code required
+- **⚡ One-Click Deploy** - Agents run on 300+ edge locations worldwide (as fast as a hare!)
+- **🚀 Sub-50ms Latency** - Cloudflare Workers cold starts are nearly instant
+- **🧠 Built-in Memory** - Conversation history, semantic recall, working memory
+- **🛠️ Tool Library** - HTTP, SQL, KV, R2, Vectorize tools out of the box
+- **📜 Version Control** - Track changes, rollback to previous versions
+- **🔌 API Access** - REST API with streaming support
+- **👥 Team Collaboration** - Invite teammates, role-based access
+- **🎮 Real-time Playground** - Test agents in-browser with streaming responses
+- **📊 Usage Analytics** - Token tracking, latency monitoring, cost insights
 
-### Coming Soon
+### 🔮 Coming Soon
 
-- **Embed Widget** - Drop-in chat widget for websites
-- **Custom Tools** - Build tools with code or HTTP config
-- **Scheduled Agents** - Run agents on a cron schedule
-- **Multi-Agent Workflows** - Chain agents together
-- **Custom Domains** - agents.yourcompany.com
-- **Webhooks** - Event notifications for agent activity
+- **💬 Embed Widget** - Drop-in chat widget for websites
+- **🔧 Custom Tools** - Build tools with code or HTTP config
+- **⏰ Scheduled Agents** - Run agents on a cron schedule
+- **🔗 Multi-Agent Workflows** - Chain agents together for complex tasks
+- **🌐 Custom Domains** - agents.yourcompany.com
+- **📣 Webhooks** - Event notifications for agent activity
 
 ---
 
@@ -91,27 +104,27 @@ Hare provides a visual builder for AI agents that deploy instantly to Cloudflare
 
 | Layer | Technology | Why |
 |-------|------------|-----|
-| **Framework** | [Mastra](https://mastra.ai) | Production-grade agent framework |
-| **Runtime** | Cloudflare Workers | Sub-50ms cold starts, global edge |
-| **Database** | Cloudflare D1 | Edge SQL, co-located with Workers |
-| **ORM** | Drizzle ORM | Type-safe, SQLite-compatible |
-| **Cache** | Cloudflare KV | Global key-value store |
-| **Storage** | Cloudflare R2 | S3-compatible, zero egress |
-| **Vectors** | Cloudflare Vectorize | Native embeddings storage |
-| **AI Models** | Workers AI | Llama, Mistral, embeddings |
-| **Auth** | Better Auth | Open source, self-hosted |
-| **Payments** | Stripe | Subscriptions, usage billing |
-| **Frontend** | Next.js 15 | React 19, App Router, RSC |
-| **UI** | shadcn/ui + Tailwind | Accessible, customizable |
-| **API** | Hono | Lightweight, Workers-native |
-| **API Docs** | Scalar | OpenAPI documentation |
-| **Monorepo** | Bun Workspaces | Fast, native TypeScript |
+| **🤖 AI SDK** | [Vercel AI SDK](https://sdk.vercel.ai/) | Streaming, tool calling, edge-compatible |
+| **⚡ Runtime** | Cloudflare Workers | Sub-50ms cold starts, global edge |
+| **💾 Database** | Cloudflare D1 | Edge SQL, co-located with Workers |
+| **🔍 ORM** | Drizzle ORM | Type-safe, SQLite-compatible |
+| **⚡ Cache** | Cloudflare KV | Global key-value store |
+| **📦 Storage** | Cloudflare R2 | S3-compatible, zero egress fees |
+| **🎯 Vectors** | Cloudflare Vectorize | Native embeddings storage |
+| **🧠 AI Models** | Workers AI | Llama 3.3, Mistral, embeddings |
+| **🔐 Auth** | Better Auth | Open source, self-hosted |
+| **💳 Payments** | Stripe | Subscriptions, usage billing |
+| **⚛️ Frontend** | Next.js 15 | React 19, App Router, RSC |
+| **🎨 UI** | shadcn/ui + Tailwind | Accessible, customizable components |
+| **🔌 API** | Hono | Lightweight, Workers-native framework |
+| **📚 API Docs** | Scalar | Beautiful OpenAPI documentation |
+| **🏃 Runtime** | Bun | Fast, native TypeScript runtime |
 
 ---
 
 ## Project Structure
 
-### Monorepo Overview
+### 📁 Monorepo Overview
 
 ```
 hare/
@@ -132,56 +145,61 @@ hare/
 │       │   │   ├── ui/               # shadcn/ui primitives
 │       │   │   ├── agent/            # Agent-specific components
 │       │   │   ├── chat/             # Chat components
-│       │   │   └── layout/           # Layout components
+│       │   │   ├── layout/           # Layout components
+│       │   │   └── providers/        # React context providers
 │       │   ├── lib/
 │       │   │   ├── api/              # Hono app + routes
+│       │   │   │   ├── routes/       # API route handlers
+│       │   │   │   ├── middleware/   # Auth, workspace middleware
+│       │   │   │   └── hooks/        # React Query hooks
 │       │   │   ├── auth/             # Better Auth config
-│       │   │   ├── db/               # Drizzle client
 │       │   │   └── client.ts         # Hono RPC client
-│       │   └── hooks/                # React hooks
-│       ├── db/                       # Database (temporarily inside web)
-│       │   ├── schema/               # Drizzle table definitions
-│       │   ├── migrations/           # SQL migrations
-│       │   └── drizzle.config.ts
-│       ├── next.config.ts
+│       │   ├── db/                   # Database layer
+│       │   │   ├── schema/           # Drizzle table definitions
+│       │   │   ├── client.ts         # Database client
+│       │   │   └── types.ts          # TypeScript types
+│       │   └── hooks/                # Custom React hooks
+│       ├── migrations/               # SQL migrations (D1)
+│       ├── drizzle.config.ts         # Drizzle configuration
+│       ├── next.config.ts            # Next.js configuration
 │       ├── wrangler.jsonc            # Cloudflare Pages config
 │       └── package.json
 │
-├── packages/                   # (Planned for future modularization)
-│   ├── db/                     # Shared database package
-│   ├── core/                   # Shared types & utils
+├── packages/                   # Shared packages
 │   ├── ui/                     # Shared UI components
-│   └── auth/                   # Auth configuration
+│   ├── e2e/                    # End-to-end tests (Playwright)
+│   └── typescript-config/      # Shared TypeScript configs
 │
 ├── .env.example                # Environment template
 ├── package.json                # Root workspace config
 ├── bun.lockb                   # Bun lockfile
-├── CLAUDE.md                   # AI coding guidelines (keep separate)
+├── turbo.json                  # Turborepo configuration
+├── CLAUDE.md                   # AI coding guidelines
 └── README.md                   # This file
 ```
 
-### Current Architecture
+### 🏗️ Current Architecture
 
-Currently, the entire application is built as a single Next.js application deployed to Cloudflare Pages. The database schema lives inside `apps/web/db/` and will be extracted to `packages/db/` as the project grows.
+The application is built as a **single Next.js application** deployed to Cloudflare Pages using `@opennextjs/cloudflare`. The database schema lives inside `apps/web/src/db/` and is designed to work with Cloudflare D1 (SQLite-compatible).
 
 ---
 
 ## Quick Start
 
-### Prerequisites
+### 📋 Prerequisites
 
-- [Bun](https://bun.sh) >= 1.0
-- [Wrangler](https://developers.cloudflare.com/workers/wrangler/) >= 3.0
-- Cloudflare account
+- **[Bun](https://bun.sh)** >= 1.0 (recommended) or Node.js >= 20
+- **[Wrangler](https://developers.cloudflare.com/workers/wrangler/)** >= 3.0 (Cloudflare CLI)
+- Cloudflare account (free tier works!)
 
-### Installation
+### ⚡ Installation
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/hare.git
+git clone https://github.com/andrew-bierman/hare.git
 cd hare
 
-# Install dependencies
+# Install dependencies (fast with Bun! 🐇)
 bun install
 
 # Copy environment variables
@@ -189,7 +207,7 @@ cp .env.example .env
 # Edit .env with your credentials
 ```
 
-### Database Setup
+### 🗄️ Database Setup
 
 ```bash
 # Create D1 database (if using Cloudflare)
@@ -209,23 +227,23 @@ bun run db:migrate:local
 bun run db:migrate:remote
 ```
 
-**Note**: The migration commands use Wrangler to apply migrations to D1:
+**💡 Note**: The migration commands use Wrangler to apply migrations to D1:
 - `db:migrate:local` - Applies migrations to a local D1 database for development
 - `db:migrate:remote` - Applies migrations to your production D1 database on Cloudflare
 
-### Development
+### 🚀 Development
 
 ```bash
-# Start development server
+# Start development server (with Turbopack ⚡)
 bun run dev
 
 # Open http://localhost:3000
 ```
 
-### Preview on Cloudflare Runtime
+### 👀 Preview on Cloudflare Runtime
 
 ```bash
-# Preview with Cloudflare Pages locally
+# Preview with Cloudflare Pages locally (tests the actual deployment environment)
 bun run preview
 ```
 
@@ -233,25 +251,26 @@ bun run preview
 
 ## Architecture
 
-### System Overview
+### 🏗️ System Overview
 
-The entire app runs as a single Next.js application deployed to Cloudflare Pages:
+The entire app runs as a single Next.js application deployed to Cloudflare Pages with `@opennextjs/cloudflare`:
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                      apps/web (Next.js 15)                      │
+│                  🐇 apps/web (Next.js 15)                       │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                 │
 │  ┌─────────────────────────────────────────────────────────┐   │
-│  │                    React Frontend                        │   │
+│  │                 ⚛️ React Frontend                        │   │
 │  │  • Dashboard pages (RSC + Client Components)             │   │
 │  │  • shadcn/ui components                                  │   │
 │  │  • Hono RPC client for type-safe API calls               │   │
+│  │  • TanStack Query for data fetching                      │   │
 │  └─────────────────────────────────────────────────────────┘   │
 │                              │                                  │
 │                              ▼                                  │
 │  ┌─────────────────────────────────────────────────────────┐   │
-│  │              /api/[[...route]] (Hono)                    │   │
+│  │           🔌 /api/[[...route]] (Hono)                    │   │
 │  │  • REST endpoints with OpenAPI/Scalar docs               │   │
 │  │  • Better Auth handlers                                  │   │
 │  │  • Zod validation                                        │   │
@@ -260,7 +279,7 @@ The entire app runs as a single Next.js application deployed to Cloudflare Pages
 │                              │                                  │
 │                              ▼                                  │
 │  ┌─────────────────────────────────────────────────────────┐   │
-│  │                   Cloudflare Services                    │   │
+│  │              ☁️ Cloudflare Services                      │   │
 │  │  • D1 (SQLite) via Drizzle ORM                          │   │
 │  │  • KV for sessions/cache                                 │   │
 │  │  • R2 for file storage                                   │   │
@@ -271,9 +290,9 @@ The entire app runs as a single Next.js application deployed to Cloudflare Pages
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-### Hono in Next.js
+### 🔌 Hono in Next.js
 
-The API is built with Hono and mounted in a Next.js catch-all route:
+The API is built with Hono and mounted in a Next.js catch-all route for maximum flexibility:
 
 ```typescript
 // apps/web/src/app/api/[[...route]]/route.ts
@@ -286,9 +305,9 @@ export const PUT = handle(app)
 export const DELETE = handle(app)
 ```
 
-### Hono RPC Client
+### 🎯 Hono RPC Client
 
-Type-safe API calls from React components:
+Type-safe API calls from React components (no manual fetch calls needed!):
 
 ```typescript
 // apps/web/src/lib/client.ts
@@ -297,35 +316,35 @@ import type { AppType } from '@/lib/api'
 
 export const client = hc<AppType>('/api')
 
-// Usage in components
+// Usage in components - fully typed! ✨
 const agents = await client.agents.$get()
 const agent = await client.agents[':id'].$get({ param: { id: 'xxx' } })
 ```
 
-### Data Flow
+### 🔄 Data Flow
 
 ```
-User Request
+User Request (Browser)
     │
     ▼
-Next.js Page (RSC)
+⚛️ Next.js Page (RSC)
     │
     ▼
-Hono RPC Client
+🔌 Hono RPC Client (Type-safe)
     │
     ▼
-Hono API Route
+🛣️ Hono API Route
     │
-    ├──▶ Better Auth (session validation)
-    ├──▶ Drizzle ORM (D1 queries)
-    ├──▶ Cloudflare KV (caching)
-    └──▶ Mastra Agent (AI execution)
-    │
-    ▼
-Streaming Response (SSE)
+    ├──▶ 🔐 Better Auth (session validation)
+    ├──▶ 💾 Drizzle ORM (D1 queries)
+    ├──▶ ⚡ Cloudflare KV (caching)
+    └──▶ 🤖 Workers AI (AI execution)
     │
     ▼
-React Component (updates in real-time)
+📡 Streaming Response (SSE)
+    │
+    ▼
+✨ React Component (updates in real-time)
 ```
 
 ---
@@ -480,15 +499,11 @@ X-Workspace-ID: ws_abc123
 {
   "name": "Customer Support",
   "description": "Handles customer inquiries",
-  "model": "llama-3.1-70b-instruct",
+  "model": "llama-3.3-70b",
   "instructions": "You are a helpful customer support agent for Acme Corp...",
   "config": {
     "temperature": 0.7,
-    "maxTokens": 4096,
-    "memory": {
-      "enabled": true,
-      "maxMessages": 100
-    }
+    "maxTokens": 4096
   },
   "toolIds": ["tool_abc123", "tool_def456"]
 }
@@ -527,36 +542,36 @@ data: {"type": "done", "usage": {"tokensIn": 150, "tokensOut": 89}}
 
 ## Pages
 
-### Marketing
+### 🏠 Marketing
 
 | Path | Description |
 |------|-------------|
-| `/` | Landing page |
-| `/pricing` | Pricing tiers |
-| `/docs` | Documentation |
+| `/` | Landing page with hero and features |
+| `/pricing` | Pricing tiers and plans |
+| `/docs` | Documentation and guides |
 
-### Auth
+### 🔐 Auth
 
 | Path | Description |
 |------|-------------|
-| `/sign-in` | Sign in form |
-| `/sign-up` | Sign up form |
+| `/sign-in` | Sign in form (email + OAuth) |
+| `/sign-up` | Sign up form (email + OAuth) |
 
-### Dashboard
+### 📊 Dashboard
 
 | Path | Description |
 |------|-------------|
 | `/dashboard` | Overview / home |
-| `/dashboard/agents` | Agent list |
+| `/dashboard/agents` | Agent list and management |
 | `/dashboard/agents/new` | Create new agent |
-| `/dashboard/agents/[id]` | Agent builder |
-| `/dashboard/agents/[id]/playground` | Test agent |
+| `/dashboard/agents/[id]` | Agent builder / configuration |
+| `/dashboard/agents/[id]/playground` | Test agent with chat interface |
 | `/dashboard/agents/[id]/settings` | Agent settings |
-| `/dashboard/tools` | Tool library |
+| `/dashboard/tools` | Tool library and management |
 | `/dashboard/settings` | Workspace settings |
-| `/dashboard/settings/team` | Team members |
-| `/dashboard/settings/billing` | Subscription |
-| `/dashboard/usage` | Usage analytics |
+| `/dashboard/settings/team` | Team members management |
+| `/dashboard/settings/billing` | Subscription and billing |
+| `/dashboard/usage` | Usage analytics and insights |
 
 ---
 
@@ -565,53 +580,85 @@ data: {"type": "done", "usage": {"tokensIn": 150, "tokensOut": 89}}
 Create a `.env` file based on `.env.example`:
 
 ```bash
-# Cloudflare (for Drizzle migrations)
+# ☁️ Cloudflare (for Drizzle migrations)
 CLOUDFLARE_ACCOUNT_ID=your_account_id
 CLOUDFLARE_API_TOKEN=your_api_token
 CLOUDFLARE_D1_DATABASE_ID=your_database_id
 
-# Better Auth
-BETTER_AUTH_SECRET=your_secret_here  # openssl rand -base64 32
+# 🔐 Better Auth
+BETTER_AUTH_SECRET=your_secret_here  # Generate with: openssl rand -base64 32
 BETTER_AUTH_URL=http://localhost:3000
 
-# OAuth (optional)
-GOOGLE_CLIENT_ID=
-GOOGLE_CLIENT_SECRET=
-GITHUB_CLIENT_ID=
-GITHUB_CLIENT_SECRET=
+# 🔑 OAuth Providers (optional - for social login)
+GOOGLE_CLIENT_ID=your_google_client_id
+GOOGLE_CLIENT_SECRET=your_google_client_secret
+GITHUB_CLIENT_ID=your_github_client_id
+GITHUB_CLIENT_SECRET=your_github_client_secret
 
-# Stripe (optional)
-STRIPE_SECRET_KEY=
-STRIPE_WEBHOOK_SECRET=
+# 💳 Stripe (optional - for payments)
+STRIPE_SECRET_KEY=sk_test_...
+STRIPE_WEBHOOK_SECRET=whsec_...
 
-# App
+# 🌐 App Configuration
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
+
+**💡 Tips:**
+- Copy `.env.example` to `.env` to get started: `cp .env.example .env`
+- Generate a secure auth secret: `openssl rand -base64 32`
+- Get your Cloudflare credentials from the [Cloudflare Dashboard](https://dash.cloudflare.com/)
+- OAuth credentials can be obtained from [Google Cloud Console](https://console.cloud.google.com/) and [GitHub Settings](https://github.com/settings/developers)
 
 ---
 
 ## Scripts
 
-```bash
-# Development
-bun run dev              # Start Next.js dev server
-bun run preview          # Preview on Cloudflare runtime
+All scripts can be run from the root directory using Bun:
 
-# Database
-bun run db:generate      # Generate migrations from schema
+### 🚀 Development
+
+```bash
+bun run dev              # Start Next.js dev server with Turbopack
+bun run preview          # Preview on Cloudflare runtime (tests actual deployment)
+```
+
+### 🗄️ Database
+
+```bash
+bun run db:generate      # Generate migrations from schema changes
 bun run db:migrate:local # Apply migrations to local D1 (development)
 bun run db:migrate:remote # Apply migrations to remote D1 (production)
-bun run db:push          # Push schema changes to database (alternative)
-bun run db:studio        # Open Drizzle Studio
+bun run db:push          # Push schema changes directly (skip migrations)
+bun run db:studio        # Open Drizzle Studio (visual database browser)
+```
 
-# Build & Deploy
+### 🏗️ Build & Deploy
+
+```bash
 bun run build            # Build for production
 bun run deploy           # Deploy to Cloudflare Pages
+bun run upload           # Build and upload to Cloudflare (without deploy)
+```
 
-# Quality
-bun run lint             # Run ESLint
-bun run typecheck        # Run TypeScript type check
-bun run format           # Format code with Prettier
+### ✅ Quality & Testing
+
+```bash
+bun run lint             # Run Biome linter
+bun run lint:fix         # Auto-fix lint issues
+bun run format           # Format code with Biome
+bun run check            # Run all checks (lint + format)
+bun run check:fix        # Auto-fix all issues
+bun run typecheck        # Run TypeScript type checking
+bun run test             # Run tests with Vitest
+bun run test:watch       # Run tests in watch mode
+bun run test:ui          # Open Vitest UI
+```
+
+### 🧹 Cleanup
+
+```bash
+bun run clean            # Remove all node_modules and build artifacts
+bun run clean:cache      # Remove build caches (.next, .turbo)
 ```
 
 ---
@@ -696,25 +743,55 @@ bun run db:migrate:local
 
 ## Testing
 
-```bash
-# Run tests
-bun test
+### 🧪 Running Tests
 
-# Run tests in watch mode
-bun test --watch
+```bash
+# Run all tests
+bun run test
+
+# Run tests in watch mode (auto-rerun on changes)
+bun run test:watch
+
+# Run tests with UI (visual test runner)
+bun run test:ui
+
+# Run unit tests only
+bun run test:unit
+
+# Run E2E tests (Playwright)
+bun run test:e2e
 
 # Run tests with coverage
 bun test --coverage
 ```
 
+### ✍️ Writing Tests
+
+Hare uses **Vitest** for unit tests and **Playwright** for end-to-end tests.
+
 Example test file:
 
 ```typescript
-// index.test.ts
-import { test, expect } from "bun:test"
+// apps/web/src/db/__tests__/schema.test.ts
+import { describe, expect, test } from "vitest"
+import { agents } from "../schema/agents"
 
-test("hello world", () => {
-  expect(1).toBe(1)
+describe("Agent Schema", () => {
+  test("should have correct default model", () => {
+    expect(agents.model.default).toBe("llama-3.3-70b")
+  })
+})
+```
+
+For Playwright E2E tests:
+
+```typescript
+// packages/e2e/tests/home.spec.ts
+import { test, expect } from '@playwright/test'
+
+test('homepage loads', async ({ page }) => {
+  await page.goto('/')
+  await expect(page).toHaveTitle(/Hare/)
 })
 ```
 
@@ -722,26 +799,32 @@ test("hello world", () => {
 
 ## Deployment
 
-### Cloudflare Pages
+### ☁️ Cloudflare Pages
 
-The app deploys to Cloudflare Pages:
+Hare deploys to Cloudflare Pages using `@opennextjs/cloudflare` for Next.js compatibility:
 
 ```bash
-# Build and deploy
+# Build and deploy to Cloudflare Pages
 bun run deploy
+
+# Build without deploying (for CI/CD)
+bun run build
+
+# Upload to Cloudflare without deploying
+bun run upload
 ```
 
-### Required Bindings
+### 🔧 Required Cloudflare Bindings
 
 Configure these in `apps/web/wrangler.jsonc`:
 
 ```jsonc
 {
   "d1_databases": [
-    { "binding": "DB", "database_name": "hare-db", "database_id": "xxx" }
+    { "binding": "DB", "database_name": "hare-db", "database_id": "your-db-id" }
   ],
   "kv_namespaces": [
-    { "binding": "KV", "id": "xxx" }
+    { "binding": "KV", "id": "your-kv-id" }
   ],
   "r2_buckets": [
     { "binding": "R2", "bucket_name": "hare-storage" }
@@ -753,111 +836,212 @@ Configure these in `apps/web/wrangler.jsonc`:
 }
 ```
 
-### Setting Up Cloudflare Resources
+### 🚀 Setting Up Cloudflare Resources
+
+Create the required Cloudflare resources using Wrangler:
 
 ```bash
-# Create D1 database
+# Create D1 database (SQLite on the edge)
 wrangler d1 create hare-db
 
-# Create KV namespace
+# Create KV namespace (global key-value store)
 wrangler kv:namespace create "KV"
 
-# Create R2 bucket
+# Create R2 bucket (object storage with zero egress fees)
 wrangler r2 bucket create hare-storage
 
-# Create Vectorize index
+# Create Vectorize index (vector database for embeddings)
 wrangler vectorize create hare-embeddings --dimensions 1536 --metric cosine
+
+# Workers AI is automatically available (no setup needed!)
 ```
+
+After creating these resources, copy their IDs to your `wrangler.jsonc` configuration file.
 
 ---
 
 ## Pricing
 
+Hare pricing is designed to be simple and predictable (no surprise bills! 💰):
+
 | Tier | Price | Agents | Messages/mo | Features |
 |------|-------|--------|-------------|----------|
-| **Free** | $0 | 3 | 1,000 | Playground, Community support |
-| **Pro** | $29/mo | 20 | 50,000 | Custom domains, Priority support |
-| **Team** | $99/mo | Unlimited | 500,000 | Team seats, API priority, Analytics |
-| **Enterprise** | Custom | Unlimited | Custom | SSO, Audit logs, SLA, Dedicated support |
+| **🆓 Free** | $0/mo | 3 | 1,000 | Playground, Community support, Core features |
+| **⚡ Pro** | $29/mo | 20 | 50,000 | Custom domains, Priority support, Advanced analytics |
+| **👥 Team** | $99/mo | Unlimited | 500,000 | Team seats, API priority, Usage analytics, SSO |
+| **🏢 Enterprise** | Custom | Unlimited | Custom | Everything + Audit logs, SLA, Dedicated support |
+
+> **Note**: These pricing tiers are planned for the future. Currently, Hare is in development and free to use! 🎉
 
 ---
 
 ## Roadmap
 
-### Current Status
+### ✅ Current Implementation Status
 
-- [x] Project scaffolding
-- [x] Bun monorepo setup
-- [x] Next.js 15 app with Cloudflare Pages
-- [x] Database schema design (Drizzle + D1)
-- [ ] Better Auth integration
-- [ ] Hono API with OpenAPI
-- [ ] Dashboard layout (shadcn/ui)
-- [ ] Agent CRUD
-- [ ] Agent builder UI
-- [ ] Chat playground
-- [ ] Agent deployment
-- [ ] Usage tracking
-- [ ] Stripe billing
-- [ ] Team collaboration
+- [x] 🏗️ Project scaffolding with Bun monorepo
+- [x] ⚡ Next.js 15 app with Cloudflare Pages deployment
+- [x] 💾 Database schema design (Drizzle + D1)
+  - [x] Users & authentication tables
+  - [x] Workspaces & workspace members
+  - [x] Agents & agent configuration
+  - [x] Tools & agent-tool relationships
+  - [x] Conversations & messages
+  - [x] Deployments tracking
+  - [x] Usage analytics tables
+- [x] 🔌 Hono API with type-safe routes
+  - [x] Auth routes (Better Auth integration)
+  - [x] Workspace CRUD routes
+  - [x] Agent CRUD routes
+  - [x] Tools routes
+  - [x] Chat/conversation routes
+  - [x] Usage tracking routes
+- [x] 🎨 Dashboard layout structure (shadcn/ui)
+  - [x] Authentication pages (sign-in, sign-up)
+  - [x] Dashboard home
+  - [x] Agents management page
+  - [x] Settings page
+  - [x] Tools page
+  - [x] Usage page
+- [x] 📚 OpenAPI documentation with Scalar
+- [x] 🧪 Testing infrastructure (Vitest + Playwright)
+- [ ] 🔐 Better Auth full implementation
+- [ ] 🎮 Agent builder UI (in progress)
+- [ ] 💬 Chat playground (in progress)
+- [ ] 🚀 Agent deployment to edge
+- [ ] 🤖 Workers AI integration
+- [ ] 💳 Stripe billing integration
+- [ ] 👥 Team collaboration features
 
-### Planned Features
+### 🗓️ Planned Features
 
-**Phase 1: Foundation (Weeks 1-2)**
-- Database setup and migrations
-- Auth implementation (Better Auth)
-- Basic API structure (Hono)
-- Dashboard layout
+**Phase 1: Core Functionality (Current Focus)**
+- Complete Better Auth integration with OAuth providers
+- Agent builder UI with visual configuration
+- Model selector and instructions editor
+- Tool attachment and configuration
+- Chat playground with streaming responses
+- Agent deployment to Cloudflare Workers
 
-**Phase 2: Core Features (Weeks 3-5)**
-- Agent builder UI
-- Model selector
-- Instructions editor
-- Tool library
-- Chat playground
-- Agent deployment
+**Phase 2: Production Features**
+- Vector memory with Cloudflare Vectorize
+- Real-time usage tracking and analytics
+- Team collaboration (workspace members, roles)
+- Agent versioning and rollback
+- Rate limiting and quotas
 
-**Phase 3: Advanced Features (Weeks 6-8)**
-- Vector memory (Vectorize)
-- Custom tools
-- Team collaboration
-- Usage analytics
-- Billing integration
-
-**Phase 4: Enterprise (Weeks 9-12)**
-- SSO/SAML
-- Audit logs
-- Custom domains
-- Webhooks
+**Phase 3: Advanced Features**
+- Custom tool builder (code + HTTP)
+- Scheduled agents (cron jobs)
 - Multi-agent workflows
+- Webhooks for agent events
+- Embed widget for websites
+
+**Phase 4: Enterprise**
+- SSO/SAML integration
+- Audit logs
+- Custom domains (agents.yourcompany.com)
+- SLA guarantees
+- Dedicated support
 
 ---
 
 ## Contributing
 
-We welcome contributions! Please see our contributing guidelines (coming soon).
+We welcome contributions! Whether you're fixing a bug, adding a feature, or improving documentation, we'd love your help making Hare even faster! 🐇💨
 
-### Development Setup
+### 🛠️ Development Setup
 
-1. Fork the repository
-2. Clone your fork: `git clone https://github.com/yourusername/hare.git`
-3. Install dependencies: `bun install`
-4. Create a branch: `git checkout -b feature/your-feature`
-5. Make your changes
-6. Run tests: `bun test`
-7. Commit with gitmoji: `git commit -m "✨ Add new feature"`
-8. Push and create a pull request
+1. **Fork the repository** on GitHub
+2. **Clone your fork**: 
+   ```bash
+   git clone https://github.com/yourusername/hare.git
+   cd hare
+   ```
+3. **Install dependencies**: 
+   ```bash
+   bun install
+   ```
+4. **Create a feature branch**: 
+   ```bash
+   git checkout -b feature/your-amazing-feature
+   ```
+5. **Make your changes** (write tests if applicable!)
+6. **Run tests and checks**: 
+   ```bash
+   bun run test
+   bun run check
+   bun run typecheck
+   ```
+7. **Commit with gitmoji**: 
+   ```bash
+   git commit -m "✨ Add your amazing feature"
+   ```
+8. **Push and create a pull request**:
+   ```bash
+   git push origin feature/your-amazing-feature
+   ```
 
-### Commit Convention
+### 📝 Commit Convention
 
-We use [gitmoji](https://gitmoji.dev/) for commit messages:
+We use [gitmoji](https://gitmoji.dev/) for commit messages to make the git history more fun and readable:
 
 - ✨ `:sparkles:` - New feature
 - 🐛 `:bug:` - Bug fix
 - 📝 `:memo:` - Documentation
 - ♻️ `:recycle:` - Refactoring
+- ⚡ `:zap:` - Performance improvements
 - ✅ `:white_check_mark:` - Tests
 - 🎨 `:art:` - UI/UX improvements
+- 🔧 `:wrench:` - Configuration changes
+- 🚀 `:rocket:` - Deployment related
+
+### 🎯 Pull Request Guidelines
+
+- Keep PRs focused on a single feature/fix
+- Write clear PR descriptions
+- Add tests for new features
+- Update documentation if needed
+- Ensure all CI checks pass
+- Be patient and kind in code reviews! 💚
+
+---
+
+## FAQ
+
+### 🤔 Why "Hare" and not "Rabbit"?
+
+Because hares are **faster** than rabbits! They can reach speeds of 45 mph (72 km/h), making them one of the fastest land animals. Just like how Hare makes AI agents run faster than traditional platforms. Also, "hare" sounds cooler. 😎
+
+### 🚀 Is Hare actually faster than other platforms?
+
+Yes! Thanks to Cloudflare Workers' sub-50ms cold starts (vs 500ms+ on AWS Lambda) and global edge distribution, your agents respond in milliseconds, not seconds. Plus, all data is co-located on the edge—no cross-region database calls.
+
+### 💰 How much does Cloudflare cost?
+
+Cloudflare's free tier is **very generous**:
+- Workers: 100,000 requests/day free
+- D1: 5GB storage, 5 million reads/day free
+- R2: 10GB storage, 1 million requests/month free
+- Workers AI: Pay-as-you-go pricing
+
+For most development and small production workloads, you'll stay within the free tier!
+
+### 🛠️ Can I self-host Hare?
+
+Yes! Hare is open source (MIT License). You can deploy it to your own Cloudflare account or even adapt it to run on other platforms (though you'll lose some Cloudflare-specific features).
+
+### 🤝 How can I contribute?
+
+We'd love your help! Check out the [Contributing](#contributing) section above for guidelines. Whether it's code, documentation, or bug reports—all contributions are welcome! 💚
+
+### 🐛 Found a bug?
+
+Please [open an issue](https://github.com/andrew-bierman/hare/issues) on GitHub with:
+- A clear description of the bug
+- Steps to reproduce
+- Expected vs actual behavior
+- Your environment (OS, Bun version, etc.)
 
 ---
 
@@ -865,19 +1049,26 @@ We use [gitmoji](https://gitmoji.dev/) for commit messages:
 
 MIT License - see [LICENSE](LICENSE) for details.
 
----
-
-**Built with**
-
-- [Next.js](https://nextjs.org/) - React framework
-- [Cloudflare Workers](https://workers.cloudflare.com/) - Edge compute
-- [Mastra](https://mastra.ai) - Agent framework
-- [Drizzle](https://orm.drizzle.team/) - TypeScript ORM
-- [Better Auth](https://www.better-auth.com/) - Authentication
-- [shadcn/ui](https://ui.shadcn.com/) - UI components
-- [Hono](https://hono.dev/) - Web framework
-- [Bun](https://bun.sh/) - JavaScript runtime
+**Built with 💚 by [Andrew Bierman](https://github.com/andrew-bierman) and contributors**
 
 ---
+
+## Acknowledgments
+
+**Powered by amazing open source projects:**
+
+- 🚀 [Next.js](https://nextjs.org/) - The React framework for production
+- ☁️ [Cloudflare Workers](https://workers.cloudflare.com/) - Lightning-fast edge compute
+- 🤖 [Workers AI](https://developers.cloudflare.com/workers-ai/) - AI inference at the edge
+- ⚡ [Vercel AI SDK](https://sdk.vercel.ai/) - Unified AI streaming interface
+- 💾 [Drizzle ORM](https://orm.drizzle.team/) - TypeScript ORM for SQL databases
+- 🔐 [Better Auth](https://www.better-auth.com/) - Modern authentication for TypeScript
+- 🎨 [shadcn/ui](https://ui.shadcn.com/) - Beautifully designed components
+- 🔌 [Hono](https://hono.dev/) - Ultrafast web framework for the edge
+- 🐇 [Bun](https://bun.sh/) - Fast all-in-one JavaScript runtime
+
+---
+
+**🐇 Fast. Simple. Powerful. That's Hare.**
 
 For AI coding guidelines, see [CLAUDE.md](CLAUDE.md).

@@ -1,6 +1,20 @@
 'use client'
 
-import { Bot, RotateCcw, Send, User } from 'lucide-react'
+import {
+	ArrowLeft,
+	Bot,
+	Clock,
+	Info,
+	Lightbulb,
+	RotateCcw,
+	Send,
+	Settings,
+	Sparkles,
+	User,
+	Wrench,
+	Zap,
+} from 'lucide-react'
+import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
 import { useEffect, useRef } from 'react'
 import { Badge } from '@workspace/ui/components/badge'
@@ -13,6 +27,7 @@ import {
 	CardTitle,
 } from '@workspace/ui/components/card'
 import { Input } from '@workspace/ui/components/input'
+import { Separator } from '@workspace/ui/components/separator'
 import { Skeleton } from '@workspace/ui/components/skeleton'
 import { useWorkspace } from 'web-app/components/providers/workspace-provider'
 import { useAgent, useChat, AVAILABLE_MODELS } from 'web-app/lib/api/hooks'
@@ -38,7 +53,11 @@ export default function PlaygroundPage() {
 	const agentId = params.id as string
 
 	const { activeWorkspace } = useWorkspace()
-	const { data: agent, isLoading: agentLoading, error: agentError } = useAgent(agentId, activeWorkspace?.id)
+	const {
+		data: agent,
+		isLoading: agentLoading,
+		error: agentError,
+	} = useAgent(agentId, activeWorkspace?.id)
 	const { messages, isStreaming, error: chatError, sendMessage, clearMessages } = useChat(agentId)
 
 	const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -69,13 +88,17 @@ export default function PlaygroundPage() {
 	if (agentError || !agent) {
 		return (
 			<div className="flex-1 p-8 pt-6">
-				<Card className="p-6 text-center">
-					<p className="text-destructive">
-						{agentError?.message || 'Agent not found'}
-					</p>
-					<Button className="mt-4" onClick={() => router.push('/dashboard/agents')}>
-						Back to Agents
-					</Button>
+				<Card className="max-w-md mx-auto border-destructive/50 bg-destructive/5">
+					<CardContent className="pt-6 text-center">
+						<div className="rounded-full bg-destructive/10 p-3 w-fit mx-auto mb-4">
+							<Info className="h-6 w-6 text-destructive" />
+						</div>
+						<h3 className="font-semibold mb-2">Agent not found</h3>
+						<p className="text-sm text-muted-foreground mb-4">
+							{agentError?.message || 'The agent you are looking for does not exist.'}
+						</p>
+						<Button onClick={() => router.push('/dashboard/agents')}>Back to Agents</Button>
+					</CardContent>
 				</Card>
 			</div>
 		)
@@ -84,162 +107,277 @@ export default function PlaygroundPage() {
 	if (agent.status !== 'deployed') {
 		return (
 			<div className="flex-1 p-8 pt-6">
-				<Card className="p-6 text-center">
-					<Bot className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-					<h3 className="text-lg font-semibold">Agent Not Deployed</h3>
-					<p className="text-muted-foreground mt-2 mb-4">
-						You need to deploy this agent before you can test it in the playground.
-					</p>
-					<Button onClick={() => router.push(`/dashboard/agents/${agentId}`)}>
-						Go to Agent Settings
-					</Button>
+				<Card className="max-w-md mx-auto border-yellow-500/50 bg-yellow-500/5">
+					<CardContent className="pt-6 text-center">
+						<div className="rounded-full bg-yellow-500/10 p-3 w-fit mx-auto mb-4">
+							<Bot className="h-6 w-6 text-yellow-600" />
+						</div>
+						<h3 className="font-semibold mb-2">Agent Not Deployed</h3>
+						<p className="text-sm text-muted-foreground mb-4">
+							Deploy this agent before testing it in the playground.
+						</p>
+						<Button onClick={() => router.push(`/dashboard/agents/${agentId}`)}>
+							<Settings className="mr-2 h-4 w-4" />
+							Configure Agent
+						</Button>
+					</CardContent>
 				</Card>
 			</div>
 		)
 	}
 
+	const suggestedPrompts = [
+		'What can you help me with?',
+		'Tell me about your capabilities',
+		'How do you work?',
+	]
+
 	return (
-		<div className="flex-1 space-y-4 p-8 pt-6 h-full">
-			<div className="flex items-center justify-between">
-				<div>
+		<div className="flex-1 flex flex-col p-8 pt-6 h-full">
+			{/* Header */}
+			<div className="flex items-center justify-between mb-6">
+				<div className="flex items-center gap-4">
+					<Link href={`/dashboard/agents/${agentId}`}>
+						<Button variant="ghost" size="icon" className="rounded-full">
+							<ArrowLeft className="h-4 w-4" />
+						</Button>
+					</Link>
 					<div className="flex items-center gap-3">
-						<h2 className="text-3xl font-bold tracking-tight">{agent.name}</h2>
-						<Badge className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300">
-							Live
-						</Badge>
+						<div className="rounded-xl bg-primary/10 p-2.5">
+							<Bot className="h-6 w-6 text-primary" />
+						</div>
+						<div>
+							<div className="flex items-center gap-2">
+								<h1 className="text-xl font-semibold">{agent.name}</h1>
+								<Badge className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20">
+									<span className="mr-1.5 h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+									Live
+								</Badge>
+							</div>
+							<p className="text-sm text-muted-foreground">{getModelName(agent.model)}</p>
+						</div>
 					</div>
-					<p className="text-muted-foreground mt-2">
-						Test and interact with your agent in real-time
-					</p>
 				</div>
-				<Button variant="outline" onClick={clearMessages} disabled={messages.length === 0}>
-					<RotateCcw className="mr-2 h-4 w-4" />
-					New Conversation
-				</Button>
+				<div className="flex items-center gap-2">
+					<Link href={`/dashboard/agents/${agentId}`}>
+						<Button variant="outline" size="sm" className="gap-1.5">
+							<Settings className="h-4 w-4" />
+							Settings
+						</Button>
+					</Link>
+					<Button
+						variant="outline"
+						size="sm"
+						onClick={clearMessages}
+						disabled={messages.length === 0}
+						className="gap-1.5"
+					>
+						<RotateCcw className="h-4 w-4" />
+						Clear
+					</Button>
+				</div>
 			</div>
 
-			<div className="grid gap-4 md:grid-cols-4 h-[calc(100vh-220px)]">
-				<Card className="md:col-span-3 flex flex-col">
-					<CardHeader className="pb-3">
-						<CardTitle>Chat</CardTitle>
-						<CardDescription>Test your agent's responses</CardDescription>
-					</CardHeader>
-					<CardContent className="flex-1 flex flex-col min-h-0">
-						<div className="flex-1 overflow-y-auto space-y-4 mb-4 pr-2">
-							{messages.length === 0 && (
-								<div className="flex-1 flex items-center justify-center h-full">
-									<div className="text-center text-muted-foreground">
-										<Bot className="h-12 w-12 mx-auto mb-4 opacity-50" />
-										<p>Start a conversation with your agent</p>
+			{/* Main Content */}
+			<div className="flex-1 grid gap-6 md:grid-cols-4 min-h-0">
+				{/* Chat Area */}
+				<Card className="md:col-span-3 flex flex-col overflow-hidden">
+					<CardContent className="flex-1 flex flex-col p-0 min-h-0">
+						{/* Messages */}
+						<div className="flex-1 overflow-y-auto p-6 space-y-6">
+							{messages.length === 0 ? (
+								<div className="h-full flex flex-col items-center justify-center text-center">
+									<div className="rounded-full bg-primary/10 p-4 mb-4">
+										<Sparkles className="h-8 w-8 text-primary" />
+									</div>
+									<h3 className="text-lg font-semibold mb-2">Start a conversation</h3>
+									<p className="text-muted-foreground mb-6 max-w-sm">
+										Test how your agent responds to different prompts and questions.
+									</p>
+									<div className="flex flex-wrap gap-2 justify-center">
+										{suggestedPrompts.map((prompt) => (
+											<Button
+												key={prompt}
+												variant="outline"
+												size="sm"
+												className="text-xs"
+												onClick={() => {
+													if (inputRef.current) {
+														inputRef.current.value = prompt
+														inputRef.current.focus()
+													}
+												}}
+											>
+												{prompt}
+											</Button>
+										))}
 									</div>
 								</div>
-							)}
-							{messages.map((message) => (
-								<div
-									key={message.id}
-									className={`flex gap-3 ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
-								>
-									{message.role === 'assistant' && (
-										<div className="flex-shrink-0 w-8 h-8 rounded-full bg-violet-100 dark:bg-violet-900 flex items-center justify-center">
-											<Bot className="h-4 w-4 text-violet-600 dark:text-violet-300" />
+							) : (
+								<>
+									{messages.map((message) => (
+										<div
+											key={message.id}
+											className={`flex gap-3 ${message.role === 'user' ? 'flex-row-reverse' : ''}`}
+										>
+											<div
+												className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
+													message.role === 'user'
+														? 'bg-primary'
+														: 'bg-primary/10'
+												}`}
+											>
+												{message.role === 'user' ? (
+													<User className="h-4 w-4 text-primary-foreground" />
+												) : (
+													<Bot className="h-4 w-4 text-primary" />
+												)}
+											</div>
+											<div
+												className={`max-w-[75%] rounded-2xl px-4 py-3 ${
+													message.role === 'user'
+														? 'bg-primary text-primary-foreground rounded-tr-sm'
+														: 'bg-muted rounded-tl-sm'
+												}`}
+											>
+												<p className="whitespace-pre-wrap text-sm leading-relaxed">
+													{message.content}
+												</p>
+											</div>
 										</div>
-									)}
-									<div
-										className={`max-w-[80%] rounded-lg px-4 py-2 ${
-											message.role === 'user'
-												? 'bg-primary text-primary-foreground'
-												: 'bg-muted'
-										}`}
-									>
-										<p className="whitespace-pre-wrap">{message.content}</p>
-									</div>
-									{message.role === 'user' && (
-										<div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary flex items-center justify-center">
-											<User className="h-4 w-4 text-primary-foreground" />
-										</div>
-									)}
-								</div>
-							))}
-							{isStreaming && messages[messages.length - 1]?.role === 'assistant' && messages[messages.length - 1]?.content === '' && (
-								<div className="flex gap-3 justify-start">
-									<div className="flex-shrink-0 w-8 h-8 rounded-full bg-violet-100 dark:bg-violet-900 flex items-center justify-center">
-										<Bot className="h-4 w-4 text-violet-600 dark:text-violet-300" />
-									</div>
-									<div className="bg-muted rounded-lg px-4 py-2">
-										<div className="flex gap-1">
-											<span className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-											<span className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-											<span className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
-										</div>
-									</div>
-								</div>
+									))}
+									{isStreaming &&
+										messages[messages.length - 1]?.role === 'assistant' &&
+										messages[messages.length - 1]?.content === '' && (
+											<div className="flex gap-3">
+												<div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+													<Bot className="h-4 w-4 text-primary" />
+												</div>
+												<div className="bg-muted rounded-2xl rounded-tl-sm px-4 py-3">
+													<div className="flex gap-1.5">
+														<span
+															className="w-2 h-2 bg-primary/50 rounded-full animate-bounce"
+															style={{ animationDelay: '0ms' }}
+														/>
+														<span
+															className="w-2 h-2 bg-primary/50 rounded-full animate-bounce"
+															style={{ animationDelay: '150ms' }}
+														/>
+														<span
+															className="w-2 h-2 bg-primary/50 rounded-full animate-bounce"
+															style={{ animationDelay: '300ms' }}
+														/>
+													</div>
+												</div>
+											</div>
+										)}
+								</>
 							)}
 							<div ref={messagesEndRef} />
 						</div>
 
+						{/* Error */}
 						{chatError && (
-							<div className="mb-4 p-3 bg-destructive/10 text-destructive rounded-lg text-sm">
+							<div className="mx-6 mb-4 p-3 bg-destructive/10 text-destructive rounded-lg text-sm flex items-center gap-2">
+								<Info className="h-4 w-4 flex-shrink-0" />
 								{chatError}
 							</div>
 						)}
 
-						<div className="flex gap-2">
-							<Input
-								ref={inputRef}
-								placeholder="Type a message..."
-								disabled={isStreaming}
-								onKeyDown={(e) => {
-									if (e.key === 'Enter' && !e.shiftKey) {
-										e.preventDefault()
-										handleSend()
-									}
-								}}
-							/>
-							<Button onClick={handleSend} size="icon" disabled={isStreaming}>
-								<Send className="h-4 w-4" />
-							</Button>
+						{/* Input */}
+						<div className="border-t p-4">
+							<div className="flex gap-3">
+								<Input
+									ref={inputRef}
+									placeholder="Type your message..."
+									disabled={isStreaming}
+									className="rounded-full px-4"
+									onKeyDown={(e) => {
+										if (e.key === 'Enter' && !e.shiftKey) {
+											e.preventDefault()
+											handleSend()
+										}
+									}}
+								/>
+								<Button
+									onClick={handleSend}
+									size="icon"
+									disabled={isStreaming}
+									className="rounded-full flex-shrink-0"
+								>
+									<Send className="h-4 w-4" />
+								</Button>
+							</div>
+							<p className="text-xs text-muted-foreground text-center mt-2">
+								Press Enter to send, Shift+Enter for new line
+							</p>
 						</div>
 					</CardContent>
 				</Card>
 
+				{/* Sidebar */}
 				<div className="space-y-4">
+					{/* Agent Config */}
 					<Card>
-						<CardHeader>
-							<CardTitle>Agent Info</CardTitle>
+						<CardHeader className="pb-3">
+							<CardTitle className="text-sm font-medium flex items-center gap-2">
+								<Settings className="h-4 w-4" />
+								Configuration
+							</CardTitle>
 						</CardHeader>
 						<CardContent className="space-y-4">
-							<div>
-								<div className="text-sm font-medium mb-1">Model</div>
-								<div className="text-sm text-muted-foreground">{getModelName(agent.model)}</div>
+							<div className="flex items-center justify-between">
+								<span className="text-sm text-muted-foreground">Model</span>
+								<Badge variant="secondary" className="font-mono text-xs">
+									{getModelName(agent.model).split(' ')[0]}
+								</Badge>
 							</div>
 							{agent.config?.temperature !== undefined && (
-								<div>
-									<div className="text-sm font-medium mb-1">Temperature</div>
-									<div className="text-sm text-muted-foreground">{agent.config.temperature}</div>
+								<div className="flex items-center justify-between">
+									<span className="text-sm text-muted-foreground">Temperature</span>
+									<span className="text-sm font-medium">{agent.config.temperature}</span>
 								</div>
 							)}
 							{agent.config?.maxTokens !== undefined && (
-								<div>
-									<div className="text-sm font-medium mb-1">Max Tokens</div>
-									<div className="text-sm text-muted-foreground">{agent.config.maxTokens}</div>
+								<div className="flex items-center justify-between">
+									<span className="text-sm text-muted-foreground">Max Tokens</span>
+									<span className="text-sm font-medium">
+										{agent.config.maxTokens.toLocaleString()}
+									</span>
 								</div>
 							)}
-							<div>
-								<div className="text-sm font-medium mb-1">Tools</div>
-								<div className="text-sm text-muted-foreground">
-									{agent.toolIds.length} enabled
+							<Separator />
+							<div className="flex items-center justify-between">
+								<div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+									<Wrench className="h-3.5 w-3.5" />
+									Tools
 								</div>
+								<span className="text-sm font-medium">{agent.toolIds.length} enabled</span>
 							</div>
 						</CardContent>
 					</Card>
 
-					<Card>
-						<CardHeader>
-							<CardTitle>Tips</CardTitle>
+					{/* Tips */}
+					<Card className="bg-muted/50">
+						<CardHeader className="pb-3">
+							<CardTitle className="text-sm font-medium flex items-center gap-2">
+								<Lightbulb className="h-4 w-4" />
+								Tips
+							</CardTitle>
 						</CardHeader>
-						<CardContent className="text-sm text-muted-foreground space-y-2">
-							<p>Test your agent with various prompts to ensure it behaves as expected.</p>
-							<p>If responses aren't what you expect, adjust the system prompt in agent settings.</p>
+						<CardContent className="space-y-3 text-sm text-muted-foreground">
+							<div className="flex gap-2">
+								<Zap className="h-4 w-4 flex-shrink-0 mt-0.5" />
+								<p>Test edge cases to find unexpected behaviors.</p>
+							</div>
+							<div className="flex gap-2">
+								<Clock className="h-4 w-4 flex-shrink-0 mt-0.5" />
+								<p>Note response times for optimization.</p>
+							</div>
+							<div className="flex gap-2">
+								<Settings className="h-4 w-4 flex-shrink-0 mt-0.5" />
+								<p>Adjust system prompt if responses aren't right.</p>
+							</div>
 						</CardContent>
 					</Card>
 				</div>

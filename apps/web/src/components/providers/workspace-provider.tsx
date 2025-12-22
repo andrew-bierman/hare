@@ -59,7 +59,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
 
 			if (savedWorkspace) {
 				setActiveWorkspaceState(savedWorkspace)
-			} else {
+			} else if (workspaces[0]) {
 				// Default to first workspace
 				setActiveWorkspaceState(workspaces[0])
 			}

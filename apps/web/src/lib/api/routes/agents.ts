@@ -84,6 +84,10 @@ const createAgentRoute = createRoute({
 			description: 'Forbidden',
 			content: { 'application/json': { schema: ErrorSchema } },
 		},
+		500: {
+			description: 'Internal server error',
+			content: { 'application/json': { schema: ErrorSchema } },
+		},
 		503: {
 			description: 'Service unavailable',
 			content: { 'application/json': { schema: ErrorSchema } },
@@ -166,6 +170,10 @@ const updateAgentRoute = createRoute({
 					schema: ErrorSchema,
 				},
 			},
+		},
+		500: {
+			description: 'Internal server error',
+			content: { 'application/json': { schema: ErrorSchema } },
 		},
 		503: {
 			description: 'Service unavailable',
@@ -258,6 +266,10 @@ const deployAgentRoute = createRoute({
 				},
 			},
 		},
+		500: {
+			description: 'Internal server error',
+			content: { 'application/json': { schema: ErrorSchema } },
+		},
 		503: {
 			description: 'Service unavailable',
 			content: { 'application/json': { schema: ErrorSchema } },
@@ -339,6 +351,10 @@ app.openapi(createAgentRoute, async (c) => {
 			createdBy: user.id,
 		})
 		.returning()
+
+	if (!agent) {
+		return c.json({ error: 'Failed to create agent' }, 500)
+	}
 
 	// Attach tools if provided
 	if (data.toolIds && data.toolIds.length > 0) {
@@ -445,6 +461,10 @@ app.openapi(updateAgentRoute, async (c) => {
 	}
 
 	const [agent] = await db.update(agents).set(updateData).where(eq(agents.id, id)).returning()
+
+	if (!agent) {
+		return c.json({ error: 'Failed to update agent' }, 500)
+	}
 
 	// Update tool attachments if provided
 	if (data.toolIds !== undefined) {
@@ -563,6 +583,10 @@ app.openapi(deployAgentRoute, async (c) => {
 			metadata: existing.config ? { config: existing.config } : undefined,
 		})
 		.returning()
+
+	if (!deployment) {
+		return c.json({ error: 'Failed to create deployment' }, 500)
+	}
 
 	return c.json(
 		{

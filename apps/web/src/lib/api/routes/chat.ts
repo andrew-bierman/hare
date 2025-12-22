@@ -4,8 +4,8 @@ import { eq } from 'drizzle-orm'
 import { ChatRequestSchema, ConversationSchema, IdParamSchema, MessageSchema } from '../schemas'
 import { getDb, getCloudflareEnv } from '../db'
 import { agents, conversations, messages, usage } from 'web-app/db/schema'
-import { createAgentFromConfig, type AgentConfig } from 'web-app/lib/mastra'
-import { createMemoryStore, toAgentMessages } from 'web-app/lib/mastra/memory'
+import { createAgentFromConfig, type AgentConfig } from 'web-app/lib/agents'
+import { createMemoryStore, toAgentMessages } from 'web-app/lib/agents/memory'
 import type { CoreMessage } from 'ai'
 import { optionalAuthMiddleware } from '../middleware'
 import type { OptionalAuthEnv } from '../types'
@@ -185,7 +185,7 @@ app.openapi(chatWithAgentRoute, async (c) => {
 	// Get or create conversation
 	const conversationId = sessionId || (await memory.getOrCreateConversation(agentId, userId, `Chat with ${agentConfig.name}`))
 
-	// Create the Mastra agent
+	// Create the edge agent
 	const agent = await createAgentFromConfig(agentConfig as AgentConfig, db, env, {
 		userId,
 		includeSystemTools: true,
