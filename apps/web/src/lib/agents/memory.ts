@@ -3,7 +3,6 @@ import { and, desc, eq, like } from 'drizzle-orm'
 import { conversations, messages } from 'web-app/db/schema'
 import type { Database, MessageMetadata } from 'web-app/db/types'
 import { isMessageRole, type MessageRole } from 'web-app/lib/api/types'
-import { generateEmbedding } from './providers/workers-ai'
 
 export type { MessageRole }
 
@@ -40,14 +39,12 @@ export interface MemoryStore {
 }
 
 /**
- * D1 + Vectorize memory store implementation.
+ * D1 memory store implementation.
  * Uses Drizzle ORM for type-safe database operations.
  */
 export class D1MemoryStore implements MemoryStore {
 	constructor(
 		private db: Database,
-		private ai?: Ai,
-		private vectorize?: VectorizeIndex,
 		private workspaceId?: string,
 	) {}
 
@@ -123,24 +120,6 @@ export class D1MemoryStore implements MemoryStore {
 			.set({ updatedAt: new Date() })
 			.where(eq(conversations.id, conversationId))
 
-		// Save to Vectorize for semantic search (if available)
-		if (this.vectorize && this.ai && role !== 'system' && role !== 'tool') {
-			const embedding = await generateEmbedding(this.ai, content)
-
-			await this.vectorize.insert([
-				{
-					id: messageId,
-					values: embedding,
-					namespace: this.workspaceId || 'default',
-					metadata: {
-						conversationId,
-						role,
-						createdAt: new Date().toISOString(),
-					},
-				},
-			])
-		}
-
 		return messageId
 	}
 
@@ -172,7 +151,7 @@ export class D1MemoryStore implements MemoryStore {
 	}
 
 	/**
-	 * Search messages using semantic search or text fallback.
+	 * Search messages using text search.
 	 */
 	async searchMessages(
 		conversationId: string,
@@ -194,33 +173,7 @@ export class D1MemoryStore implements MemoryStore {
 			}
 		}
 
-		// Try semantic search with Vectorize
-		if (this.vectorize && this.ai) {
-			const queryEmbedding = await generateEmbedding(this.ai, query)
-
-			const results = await this.vectorize.query(queryEmbedding, {
-				topK: limit,
-				namespace: this.workspaceId || 'default',
-				filter: { conversationId },
-				returnMetadata: 'all',
-			})
-
-			if (results.matches.length > 0) {
-				// Fetch full messages from D1 using the IDs
-				const messageIds = results.matches.map((match) => match.id)
-				const messagesResult = await this.db
-					.select()
-					.from(messages)
-					.where(eq(messages.conversationId, conversationId))
-
-				// Filter to matching IDs and sort by score
-				const matchedMessages = messagesResult.filter((m) => messageIds.includes(m.id))
-
-				return matchedMessages.map(toConversationMessage)
-			}
-		}
-
-		// Fallback to basic text search in D1
+		// Text search in D1
 		const results = await this.db
 			.select()
 			.from(messages)
@@ -235,33 +188,16 @@ export class D1MemoryStore implements MemoryStore {
 	 * Delete a conversation and all its messages.
 	 */
 	async deleteConversation(conversationId: string): Promise<void> {
-		// Get message IDs for Vectorize cleanup
-		const messageRows = await this.db
-			.select({ id: messages.id })
-			.from(messages)
-			.where(eq(messages.conversationId, conversationId))
-
 		// Delete from D1 (cascade will delete messages)
 		await this.db.delete(conversations).where(eq(conversations.id, conversationId))
-
-		// Delete from Vectorize
-		if (this.vectorize && messageRows.length > 0) {
-			const ids = messageRows.map((m) => m.id)
-			await this.vectorize.deleteByIds(ids)
-		}
 	}
 }
 
 /**
  * Create a memory store instance.
  */
-export function createMemoryStore(
-	db: Database,
-	ai?: Ai,
-	vectorize?: VectorizeIndex,
-	workspaceId?: string,
-): MemoryStore {
-	return new D1MemoryStore(db, ai, vectorize, workspaceId)
+export function createMemoryStore(db: Database, workspaceId?: string): MemoryStore {
+	return new D1MemoryStore(db, workspaceId)
 }
 
 /**
