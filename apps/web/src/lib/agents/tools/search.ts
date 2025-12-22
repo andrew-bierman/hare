@@ -1,113 +1,130 @@
 import { z } from 'zod'
-import { generateEmbedding } from '../providers/workers-ai'
 import { createTool, failure, success, type ToolContext } from './types'
 
 /**
- * Semantic Search Tool - Search using vector embeddings.
+ * AI Search Tool - Search using Cloudflare AutoRAG/AI Search.
+ * Retrieves relevant results from indexed data sources.
+ * Results are automatically scoped to the current workspace.
  */
-export const semanticSearchTool = createTool({
-	id: 'semantic_search',
+export const aiSearchTool = createTool({
+	id: 'ai_search',
 	description:
-		'Perform semantic search using vector embeddings. Finds content similar in meaning to the query.',
+		'Search through indexed documents and data using AI-powered semantic search. Returns relevant results from your workspace knowledge base.',
 	inputSchema: z.object({
-		query: z.string().describe('The search query text'),
-		topK: z.number().optional().default(10).describe('Number of results to return'),
-		namespace: z.string().optional().describe('Namespace to search within'),
-		filter: z.record(z.string(), z.any()).optional().describe('Metadata filter for results'),
-		threshold: z.number().optional().default(0.7).describe('Minimum similarity score (0-1)'),
+		query: z.string().describe('The search query'),
+		maxResults: z.number().optional().default(10).describe('Maximum number of results (1-50)'),
+		rewriteQuery: z
+			.boolean()
+			.optional()
+			.default(true)
+			.describe('Optimize query for better retrieval'),
+		scoreThreshold: z
+			.number()
+			.optional()
+			.default(0.5)
+			.describe('Minimum relevance score (0-1)'),
 	}),
 	execute: async (params, context) => {
-		const vectorize = context.env.VECTORIZE
 		const ai = context.env.AI
-		if (!vectorize) {
-			return failure('Vectorize index not available')
-		}
 		if (!ai) {
-			return failure('AI binding required for semantic search')
+			return failure('AI binding not available')
+		}
+
+		// Check if autorag method exists
+		if (!('autorag' in ai)) {
+			return failure('AI Search (AutoRAG) not configured. Set up AI Search in Cloudflare dashboard first.')
 		}
 
 		try {
-			// Generate embedding for query
-			const queryVector = await generateEmbedding(ai, params.query)
+			// Get the AutoRAG instance - uses the configured instance name
+			// The instance name should match what's set up in Cloudflare dashboard
+			const autorag = (ai as Ai & { autorag: (name: string) => AutoRAG }).autorag('hare-search')
 
-			// Search vectorize
-			const options: VectorizeQueryOptions = {
-				topK: params.topK,
-				returnMetadata: 'all',
-			}
-			if (params.namespace) options.namespace = params.namespace
-			if (params.filter) options.filter = params.filter
-
-			const results = await vectorize.query(queryVector, options)
-
-			// Filter by threshold
-			const filteredMatches = results.matches.filter((m) => m.score >= params.threshold)
+			const results = await autorag.search({
+				query: params.query,
+				max_num_results: params.maxResults,
+				rewrite_query: params.rewriteQuery,
+				ranking_options: {
+					score_threshold: params.scoreThreshold,
+				},
+				// Filter by workspace for multi-tenant isolation
+				// Documents must be indexed with workspaceId in their path or metadata
+				filters: {
+					workspaceId: context.workspaceId,
+				},
+			})
 
 			return success({
 				query: params.query,
-				results: filteredMatches.map((match) => ({
-					id: match.id,
-					score: match.score,
-					metadata: match.metadata,
+				results: results.data.map((result) => ({
+					content: result.content.map((c) => c.text).join('\n'),
+					filename: result.filename,
+					score: result.score,
 				})),
-				totalFound: filteredMatches.length,
+				count: results.data.length,
 			})
 		} catch (error) {
 			return failure(
-				`Semantic search failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+				`AI Search failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
 			)
 		}
 	},
 })
 
 /**
- * Memory Search Tool - Search conversation history.
+ * AI Search with Answer Tool - Search and generate an answer using AutoRAG.
+ * Combines retrieval with AI-generated response.
+ * Results are automatically scoped to the current workspace.
  */
-export const memorySearchTool = createTool({
-	id: 'memory_search',
-	description: 'Search through conversation history and stored memories.',
+export const aiSearchAnswerTool = createTool({
+	id: 'ai_search_answer',
+	description:
+		'Search through indexed documents and generate an AI answer based on the retrieved context. Best for question-answering. Only searches your workspace data.',
 	inputSchema: z.object({
-		query: z.string().describe('What to search for in memory'),
-		conversationId: z.string().optional().describe('Limit search to a specific conversation'),
-		limit: z.number().optional().default(10).describe('Maximum results to return'),
+		query: z.string().describe('The question or search query'),
+		maxResults: z.number().optional().default(10).describe('Maximum context results (1-50)'),
+		systemPrompt: z
+			.string()
+			.optional()
+			.describe('Custom system prompt for the AI response'),
 	}),
 	execute: async (params, context) => {
-		const vectorize = context.env.VECTORIZE
 		const ai = context.env.AI
-		if (!vectorize || !ai) {
-			return failure('Vectorize and AI bindings required for memory search')
+		if (!ai) {
+			return failure('AI binding not available')
+		}
+
+		if (!('autorag' in ai)) {
+			return failure('AI Search (AutoRAG) not configured. Set up AI Search in Cloudflare dashboard first.')
 		}
 
 		try {
-			const queryVector = await generateEmbedding(ai, params.query)
+			const autorag = (ai as Ai & { autorag: (name: string) => AutoRAG }).autorag('hare-search')
 
-			const filter: VectorizeVectorMetadataFilter = {}
-			if (params.conversationId) {
-				filter.conversationId = params.conversationId
-			}
-
-			const results = await vectorize.query(queryVector, {
-				topK: params.limit,
-				returnMetadata: 'all',
-				namespace: context.workspaceId,
-				filter: Object.keys(filter).length > 0 ? filter : undefined,
+			const response = await autorag.aiSearch({
+				query: params.query,
+				max_num_results: params.maxResults,
+				rewrite_query: true,
+				// Filter by workspace for multi-tenant isolation
+				filters: {
+					workspaceId: context.workspaceId,
+				},
+				...(params.systemPrompt && { system_prompt: params.systemPrompt }),
 			})
 
 			return success({
 				query: params.query,
-				memories: results.matches.map((match) => ({
-					id: match.id,
-					score: match.score,
-					role: match.metadata?.role,
-					content: match.metadata?.content,
-					conversationId: match.metadata?.conversationId,
-					createdAt: match.metadata?.createdAt,
+				answer: response.response,
+				sources: response.data.map((result) => ({
+					content: result.content.map((c) => c.text).join('\n'),
+					filename: result.filename,
+					score: result.score,
 				})),
-				count: results.count,
+				sourceCount: response.data.length,
 			})
 		} catch (error) {
 			return failure(
-				`Memory search failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+				`AI Search Answer failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
 			)
 		}
 	},
@@ -117,5 +134,5 @@ export const memorySearchTool = createTool({
  * Get all search tools.
  */
 export function getSearchTools(_context: ToolContext) {
-	return [semanticSearchTool, memorySearchTool]
+	return [aiSearchTool, aiSearchAnswerTool]
 }
