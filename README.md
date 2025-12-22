@@ -972,7 +972,7 @@ All core infrastructure is in place and production-ready:
 4. Add tool call UI in playground
 5. Add OAuth providers (Google, GitHub)
 
-**Timeline**: 4-6 weeks
+**Estimated Timeline**: 4-6 weeks from Phase 1 completion
 
 ---
 
@@ -1017,7 +1017,7 @@ All core infrastructure is in place and production-ready:
   - [ ] RAG (Retrieval Augmented Generation)
   - [ ] Knowledge base integration
 
-**Timeline**: 8-10 weeks
+**Estimated Timeline**: 8-10 weeks after Phase 1 completion
 
 ---
 
@@ -1056,7 +1056,7 @@ All core infrastructure is in place and production-ready:
   - [ ] Agent subdomain routing
   - [ ] DNS management
 
-**Timeline**: 12-16 weeks after Phase 2
+**Estimated Timeline**: 12-16 weeks after Phase 2 completion
 
 ---
 
@@ -1088,7 +1088,7 @@ All core infrastructure is in place and production-ready:
   - [ ] Chargeback reports
   - [ ] Custom dashboards
 
-**Timeline**: 20+ weeks after Phase 3
+**Estimated Timeline**: 20+ weeks after Phase 3 completion
 
 ---
 
