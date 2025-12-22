@@ -70,9 +70,12 @@ export interface Tool<TInput extends ZodSchema = ZodSchema, TOutput = unknown> {
  * })
  * ```
  */
-export function createTool<TInput extends ZodSchema, TOutput = unknown>(
-	config: Tool<TInput, TOutput>,
-): Tool<TInput, TOutput> {
+export function createTool<TInput extends ZodSchema>(config: {
+	id: string
+	description: string
+	inputSchema: TInput
+	execute: (params: z.infer<TInput>, context: ToolContext) => Promise<ToolResult<unknown>>
+}): Tool<TInput, unknown> {
 	return config
 }
 
@@ -124,6 +127,23 @@ export const ToolTypeSchema = z.enum([
 	'json_schema',
 	'csv',
 	'template',
+	// Sandbox
+	'code_execute',
+	'code_validate',
+	'sandbox_file',
+	// Validation
+	'validate_email',
+	'validate_phone',
+	'validate_url',
+	'validate_credit_card',
+	'validate_ip',
+	'validate_json',
+	// Transform
+	'markdown',
+	'diff',
+	'qrcode',
+	'compression',
+	'color',
 	// Custom
 	'custom',
 ])
