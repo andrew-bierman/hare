@@ -2,37 +2,62 @@ import { z } from 'zod'
 import { createTool, success, failure, type ToolContext } from './types'
 
 /**
- * Zapier Webhook Tool - Trigger Zapier automations via webhooks.
+ * Integration Philosophy:
  *
- * Zapier webhooks allow you to connect AI agents to 6,000+ apps including:
- * - Google Sheets, Docs, Drive
- * - Slack, Discord, Microsoft Teams
- * - Salesforce, HubSpot, Pipedrive
- * - Gmail, Outlook, Mailchimp
- * - Notion, Airtable, Trello
+ * Instead of managing individual API keys for every service (Twilio, SendGrid, etc.),
+ * we use Zapier/Make/n8n as the integration layer. This approach:
+ *
+ * 1. Reduces API key management complexity
+ * 2. Leverages Zapier's 6,000+ app connections
+ * 3. Lets users configure integrations visually in Zapier
+ * 4. Keeps sensitive credentials in Zapier, not in Hare
+ *
+ * For webhook-only services (Slack, Discord, Teams), we support direct webhooks
+ * since they only require a URL, not API keys.
+ */
+
+/**
+ * Zapier Webhook Tool - The primary integration hub
+ *
+ * Connect to 6,000+ apps through Zapier including:
+ * - Email: Gmail, Outlook, SendGrid, Mailchimp
+ * - SMS: Twilio, MessageBird
+ * - CRM: Salesforce, HubSpot, Pipedrive
+ * - Databases: Airtable, Google Sheets, Notion
+ * - Project Management: Asana, Trello, Monday
  * - And thousands more...
  */
 export const zapierTool = createTool({
 	id: 'zapier',
-	description: `Trigger Zapier automations via webhooks. Connect to 6,000+ apps including Google Sheets, Slack, Salesforce, Gmail, Notion, and more.
+	description: `Trigger Zapier automations to connect with 6,000+ apps.
 
-To use: Create a Zap in Zapier with "Webhooks by Zapier" as the trigger (choose "Catch Hook"). Copy the webhook URL and use it here. The data you send will be available in subsequent Zapier steps.`,
+**Setup:**
+1. Go to zapier.com and create a new Zap
+2. Choose "Webhooks by Zapier" as the trigger
+3. Select "Catch Hook"
+4. Copy the webhook URL
+5. Use that URL here
+
+**Common Use Cases:**
+- Send emails (Gmail, SendGrid, Mailchimp)
+- Send SMS (Twilio, MessageBird)
+- Update CRM (Salesforce, HubSpot)
+- Create records (Airtable, Notion, Google Sheets)
+- Post to social media
+- Create tickets (Zendesk, Intercom)
+
+The data you send will be available in subsequent Zap steps.`,
 	inputSchema: z.object({
-		webhookUrl: z.string().url().describe('Zapier webhook URL (starts with https://hooks.zapier.com/)'),
-		data: z.record(z.string(), z.unknown()).describe('Data to send to Zapier (will be available in your Zap)'),
-		waitForResponse: z
-			.boolean()
-			.optional()
-			.default(false)
-			.describe('Wait for Zapier to respond (requires "Webhooks" premium action in Zap)'),
+		webhookUrl: z.string().url().describe('Zapier webhook URL (https://hooks.zapier.com/...)'),
+		data: z.record(z.string(), z.unknown()).describe('Data to send (available in your Zap)'),
+		waitForResponse: z.boolean().optional().default(false).describe('Wait for Zap response (requires Webhooks by Zapier premium)'),
 	}),
 	execute: async (params, context) => {
 		try {
 			const { webhookUrl, data, waitForResponse } = params
 
-			// Validate it's a Zapier webhook URL
 			if (!webhookUrl.includes('hooks.zapier.com')) {
-				return failure('Invalid Zapier webhook URL. Must be a hooks.zapier.com URL.')
+				return failure('Invalid URL. Zapier webhooks start with https://hooks.zapier.com/')
 			}
 
 			const controller = new AbortController()
@@ -40,17 +65,10 @@ To use: Create a Zap in Zapier with "Webhooks by Zapier" as the trigger (choose 
 
 			const response = await fetch(webhookUrl, {
 				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-					'User-Agent': 'Hare-Agent/1.0',
-				},
+				headers: { 'Content-Type': 'application/json', 'User-Agent': 'Hare-Agent/1.0' },
 				body: JSON.stringify({
 					...data,
-					_meta: {
-						source: 'hare-agent',
-						workspaceId: context.workspaceId,
-						timestamp: new Date().toISOString(),
-					},
+					_hare: { workspaceId: context.workspaceId, timestamp: new Date().toISOString() },
 				}),
 				signal: controller.signal,
 			})
@@ -58,230 +76,126 @@ To use: Create a Zap in Zapier with "Webhooks by Zapier" as the trigger (choose 
 			clearTimeout(timeoutId)
 
 			if (!response.ok) {
-				return failure(`Zapier webhook failed with status ${response.status}: ${response.statusText}`)
+				return failure(`Zapier error: ${response.status} ${response.statusText}`)
 			}
 
-			let responseData: unknown = null
-			const contentType = response.headers.get('content-type')
-			if (contentType?.includes('application/json')) {
-				responseData = await response.json()
-			} else {
-				responseData = await response.text()
-			}
+			const responseData = await response.json().catch(() => response.text())
 
 			return success({
 				triggered: true,
 				status: response.status,
-				response: waitForResponse ? responseData : 'Webhook triggered (not waiting for response)',
-				zapierRequestId: response.headers.get('x-request-id'),
+				response: waitForResponse ? responseData : 'Triggered successfully',
 			})
 		} catch (error) {
 			if (error instanceof Error && error.name === 'AbortError') {
-				return failure('Zapier webhook request timed out')
+				return failure('Request timed out')
 			}
-			return failure(`Zapier error: ${error instanceof Error ? error.message : 'Unknown error'}`)
+			return failure(`Error: ${error instanceof Error ? error.message : 'Unknown'}`)
 		}
 	},
 })
 
 /**
- * Generic Webhook Tool - Send data to any webhook endpoint.
+ * Generic Webhook Tool
  */
 export const webhookTool = createTool({
 	id: 'webhook',
-	description:
-		'Send data to any webhook endpoint. Supports various HTTP methods, custom headers, and authentication.',
+	description: 'Send data to any webhook endpoint with authentication support.',
 	inputSchema: z.object({
 		url: z.string().url().describe('Webhook URL'),
-		method: z.enum(['POST', 'PUT', 'PATCH']).optional().default('POST').describe('HTTP method'),
-		data: z.unknown().describe('Data to send in the webhook body'),
+		method: z.enum(['POST', 'PUT', 'PATCH']).optional().default('POST'),
+		data: z.unknown().describe('Request body'),
 		headers: z.record(z.string(), z.string()).optional().describe('Custom headers'),
-		contentType: z
-			.enum(['application/json', 'application/x-www-form-urlencoded', 'text/plain'])
-			.optional()
-			.default('application/json')
-			.describe('Content type'),
 		auth: z
 			.object({
 				type: z.enum(['bearer', 'basic', 'apikey']),
 				token: z.string().optional(),
 				username: z.string().optional(),
 				password: z.string().optional(),
-				headerName: z.string().optional(),
+				headerName: z.string().optional().default('X-API-Key'),
 			})
-			.optional()
-			.describe('Authentication configuration'),
-		timeout: z.number().optional().default(30000).describe('Request timeout in milliseconds'),
-		retries: z.number().optional().default(0).describe('Number of retries on failure'),
+			.optional(),
+		timeout: z.number().optional().default(30000),
 	}),
 	execute: async (params, context) => {
 		try {
-			const { url, method, data, headers: customHeaders, contentType, auth, timeout, retries } = params
+			const { url, method, data, headers: customHeaders, auth, timeout } = params
 
-			const buildHeaders = (): Record<string, string> => {
-				const headers: Record<string, string> = {
-					'Content-Type': contentType,
-					'User-Agent': 'Hare-Agent/1.0',
-					...customHeaders,
-				}
-
-				if (auth) {
-					switch (auth.type) {
-						case 'bearer':
-							if (auth.token) headers['Authorization'] = `Bearer ${auth.token}`
-							break
-						case 'basic':
-							if (auth.username && auth.password) {
-								headers['Authorization'] = `Basic ${btoa(`${auth.username}:${auth.password}`)}`
-							}
-							break
-						case 'apikey':
-							if (auth.token) {
-								headers[auth.headerName || 'X-API-Key'] = auth.token
-							}
-							break
-					}
-				}
-
-				return headers
+			const headers: Record<string, string> = {
+				'Content-Type': 'application/json',
+				'User-Agent': 'Hare-Agent/1.0',
+				...customHeaders,
 			}
 
-			const formatBody = (): string => {
-				if (contentType === 'application/x-www-form-urlencoded' && typeof data === 'object' && data !== null) {
-					return new URLSearchParams(data as Record<string, string>).toString()
-				}
-				if (contentType === 'text/plain' && typeof data === 'string') {
-					return data
-				}
-				return JSON.stringify(data)
-			}
-
-			let lastError: Error | null = null
-			const maxAttempts = retries + 1
-
-			for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-				try {
-					const controller = new AbortController()
-					const timeoutId = setTimeout(() => controller.abort(), timeout)
-
-					const response = await fetch(url, {
-						method,
-						headers: buildHeaders(),
-						body: formatBody(),
-						signal: controller.signal,
-					})
-
-					clearTimeout(timeoutId)
-
-					let responseData: unknown
-					const responseContentType = response.headers.get('content-type')
-					if (responseContentType?.includes('application/json')) {
-						responseData = await response.json()
-					} else {
-						responseData = await response.text()
-					}
-
-					return success({
-						status: response.status,
-						statusText: response.statusText,
-						ok: response.ok,
-						data: responseData,
-						headers: Object.fromEntries(response.headers.entries()),
-						attempt,
-					})
-				} catch (error) {
-					lastError = error instanceof Error ? error : new Error('Unknown error')
-					if (attempt < maxAttempts) {
-						await new Promise((resolve) => setTimeout(resolve, 1000 * attempt))
-					}
+			if (auth) {
+				if (auth.type === 'bearer' && auth.token) {
+					headers['Authorization'] = `Bearer ${auth.token}`
+				} else if (auth.type === 'basic' && auth.username && auth.password) {
+					headers['Authorization'] = `Basic ${btoa(`${auth.username}:${auth.password}`)}`
+				} else if (auth.type === 'apikey' && auth.token) {
+					headers[auth.headerName || 'X-API-Key'] = auth.token
 				}
 			}
 
-			return failure(`Webhook failed after ${maxAttempts} attempts: ${lastError?.message}`)
+			const controller = new AbortController()
+			const timeoutId = setTimeout(() => controller.abort(), timeout)
+
+			const response = await fetch(url, {
+				method,
+				headers,
+				body: JSON.stringify(data),
+				signal: controller.signal,
+			})
+
+			clearTimeout(timeoutId)
+
+			const responseData = await response.json().catch(() => response.text())
+
+			return success({
+				status: response.status,
+				ok: response.ok,
+				data: responseData,
+			})
 		} catch (error) {
-			return failure(`Webhook error: ${error instanceof Error ? error.message : 'Unknown error'}`)
+			if (error instanceof Error && error.name === 'AbortError') {
+				return failure('Request timed out')
+			}
+			return failure(`Error: ${error instanceof Error ? error.message : 'Unknown'}`)
 		}
 	},
 })
 
 /**
- * Slack Webhook Tool - Send messages to Slack channels.
+ * Slack Webhook Tool - No API key needed, just webhook URL
  */
 export const slackTool = createTool({
 	id: 'slack',
-	description: `Send messages to Slack channels using incoming webhooks.
+	description: `Send messages to Slack using incoming webhooks.
 
-To set up: In Slack, go to Apps > Incoming Webhooks > Add to Slack, select a channel, and copy the webhook URL.
+**Setup:** Slack > Apps > Incoming Webhooks > Add to Slack > Select channel > Copy URL
 
-Supports rich formatting with blocks, attachments, and markdown.`,
+Supports Block Kit for rich formatting.`,
 	inputSchema: z.object({
-		webhookUrl: z.string().url().describe('Slack incoming webhook URL'),
-		text: z.string().optional().describe('Plain text message (fallback)'),
-		blocks: z.array(z.record(z.string(), z.unknown())).optional().describe('Slack Block Kit blocks for rich formatting'),
-		attachments: z
-			.array(
-				z.object({
-					color: z.string().optional(),
-					title: z.string().optional(),
-					text: z.string().optional(),
-					fields: z
-						.array(
-							z.object({
-								title: z.string(),
-								value: z.string(),
-								short: z.boolean().optional(),
-							})
-						)
-						.optional(),
-					footer: z.string().optional(),
-					ts: z.number().optional(),
-				})
-			)
-			.optional()
-			.describe('Legacy attachments'),
-		channel: z.string().optional().describe('Override channel (requires additional permissions)'),
-		username: z.string().optional().describe('Custom bot username'),
-		iconEmoji: z.string().optional().describe('Custom bot emoji (e.g., ":robot:")'),
-		iconUrl: z.string().optional().describe('Custom bot icon URL'),
-		unfurlLinks: z.boolean().optional().default(true).describe('Unfurl links in the message'),
-		unfurlMedia: z.boolean().optional().default(true).describe('Unfurl media in the message'),
+		webhookUrl: z.string().url().describe('Slack webhook URL'),
+		text: z.string().optional().describe('Message text'),
+		blocks: z.array(z.record(z.string(), z.unknown())).optional().describe('Block Kit blocks'),
+		username: z.string().optional().describe('Bot username'),
+		iconEmoji: z.string().optional().describe('Bot emoji (e.g., ":robot:")'),
 	}),
 	execute: async (params, context) => {
 		try {
-			const {
-				webhookUrl,
-				text,
-				blocks,
-				attachments,
-				channel,
-				username,
-				iconEmoji,
-				iconUrl,
-				unfurlLinks,
-				unfurlMedia,
-			} = params
+			const { webhookUrl, text, blocks, username, iconEmoji } = params
 
-			if (!text && !blocks) {
-				return failure('Either text or blocks is required')
-			}
-
-			// Validate Slack webhook URL
+			if (!text && !blocks) return failure('Either text or blocks required')
 			if (!webhookUrl.includes('hooks.slack.com')) {
-				return failure('Invalid Slack webhook URL. Must be a hooks.slack.com URL.')
+				return failure('Invalid Slack webhook URL')
 			}
 
-			const payload: Record<string, unknown> = {
-				unfurl_links: unfurlLinks,
-				unfurl_media: unfurlMedia,
-			}
-
+			const payload: Record<string, unknown> = {}
 			if (text) payload.text = text
 			if (blocks) payload.blocks = blocks
-			if (attachments) payload.attachments = attachments
-			if (channel) payload.channel = channel
 			if (username) payload.username = username
 			if (iconEmoji) payload.icon_emoji = iconEmoji
-			if (iconUrl) payload.icon_url = iconUrl
 
 			const response = await fetch(webhookUrl, {
 				method: 'POST',
@@ -290,86 +204,50 @@ Supports rich formatting with blocks, attachments, and markdown.`,
 			})
 
 			const responseText = await response.text()
-
 			if (!response.ok || responseText !== 'ok') {
-				return failure(`Slack API error: ${responseText}`)
+				return failure(`Slack error: ${responseText}`)
 			}
 
-			return success({
-				sent: true,
-				channel: channel || 'default',
-			})
+			return success({ sent: true })
 		} catch (error) {
-			return failure(`Slack error: ${error instanceof Error ? error.message : 'Unknown error'}`)
+			return failure(`Error: ${error instanceof Error ? error.message : 'Unknown'}`)
 		}
 	},
 })
 
 /**
- * Discord Webhook Tool - Send messages to Discord channels.
+ * Discord Webhook Tool - No API key needed, just webhook URL
  */
 export const discordTool = createTool({
 	id: 'discord',
-	description: `Send messages to Discord channels using webhooks.
+	description: `Send messages to Discord using webhooks.
 
-To set up: In Discord, go to Server Settings > Integrations > Webhooks > New Webhook, configure it, and copy the webhook URL.
+**Setup:** Server Settings > Integrations > Webhooks > New Webhook > Copy URL
 
-Supports embeds, username/avatar customization, and mentions.`,
+Supports embeds for rich formatting.`,
 	inputSchema: z.object({
 		webhookUrl: z.string().url().describe('Discord webhook URL'),
-		content: z.string().optional().describe('Plain text message content (max 2000 chars)'),
-		username: z.string().optional().describe('Override webhook username'),
-		avatarUrl: z.string().optional().describe('Override webhook avatar URL'),
-		tts: z.boolean().optional().default(false).describe('Text-to-speech message'),
+		content: z.string().optional().describe('Message text (max 2000)'),
+		username: z.string().optional().describe('Override username'),
+		avatarUrl: z.string().optional().describe('Override avatar'),
 		embeds: z
 			.array(
 				z.object({
 					title: z.string().optional(),
 					description: z.string().optional(),
+					color: z.number().optional(),
 					url: z.string().optional(),
-					color: z.number().optional().describe('Embed color (decimal, e.g., 5814783 for blue)'),
-					timestamp: z.string().optional().describe('ISO 8601 timestamp'),
-					footer: z.object({ text: z.string(), icon_url: z.string().optional() }).optional(),
-					thumbnail: z.object({ url: z.string() }).optional(),
-					image: z.object({ url: z.string() }).optional(),
-					author: z
-						.object({
-							name: z.string(),
-							url: z.string().optional(),
-							icon_url: z.string().optional(),
-						})
-						.optional(),
-					fields: z
-						.array(
-							z.object({
-								name: z.string(),
-								value: z.string(),
-								inline: z.boolean().optional(),
-							})
-						)
-						.optional(),
+					fields: z.array(z.object({ name: z.string(), value: z.string(), inline: z.boolean().optional() })).optional(),
 				})
 			)
 			.optional()
-			.describe('Rich embed objects (max 10)'),
-		allowedMentions: z
-			.object({
-				parse: z.array(z.enum(['roles', 'users', 'everyone'])).optional(),
-				roles: z.array(z.string()).optional(),
-				users: z.array(z.string()).optional(),
-			})
-			.optional()
-			.describe('Allowed mentions configuration'),
+			.describe('Rich embeds (max 10)'),
 	}),
 	execute: async (params, context) => {
 		try {
-			const { webhookUrl, content, username, avatarUrl, tts, embeds, allowedMentions } = params
+			const { webhookUrl, content, username, avatarUrl, embeds } = params
 
-			if (!content && (!embeds || embeds.length === 0)) {
-				return failure('Either content or embeds is required')
-			}
-
-			// Validate Discord webhook URL
+			if (!content && !embeds?.length) return failure('Either content or embeds required')
 			if (!webhookUrl.includes('discord.com/api/webhooks') && !webhookUrl.includes('discordapp.com/api/webhooks')) {
 				return failure('Invalid Discord webhook URL')
 			}
@@ -378,9 +256,7 @@ Supports embeds, username/avatar customization, and mentions.`,
 			if (content) payload.content = content.slice(0, 2000)
 			if (username) payload.username = username
 			if (avatarUrl) payload.avatar_url = avatarUrl
-			if (tts) payload.tts = tts
 			if (embeds) payload.embeds = embeds.slice(0, 10)
-			if (allowedMentions) payload.allowed_mentions = allowedMentions
 
 			const response = await fetch(webhookUrl, {
 				method: 'POST',
@@ -388,247 +264,57 @@ Supports embeds, username/avatar customization, and mentions.`,
 				body: JSON.stringify(payload),
 			})
 
-			// Discord returns 204 No Content on success
-			if (response.status === 204) {
-				return success({ sent: true })
-			}
-
+			if (response.status === 204) return success({ sent: true })
 			if (!response.ok) {
-				const errorData = await response.json().catch(() => ({ message: 'Unknown error' }))
-				return failure(`Discord API error: ${JSON.stringify(errorData)}`)
+				const error = await response.json().catch(() => ({}))
+				return failure(`Discord error: ${JSON.stringify(error)}`)
 			}
 
-			const data = await response.json().catch(() => null)
-			return success({ sent: true, messageId: data?.id })
+			return success({ sent: true })
 		} catch (error) {
-			return failure(`Discord error: ${error instanceof Error ? error.message : 'Unknown error'}`)
+			return failure(`Error: ${error instanceof Error ? error.message : 'Unknown'}`)
 		}
 	},
 })
 
 /**
- * Email Tool - Send emails via various providers (Resend, SendGrid, Mailgun).
- */
-export const emailTool = createTool({
-	id: 'email',
-	description: `Send emails using popular email service providers (Resend, SendGrid, Mailgun, or any SMTP-compatible API).
-
-Requires an API key from your email provider. Supports HTML/text content, attachments metadata, and multiple recipients.`,
-	inputSchema: z.object({
-		provider: z
-			.enum(['resend', 'sendgrid', 'mailgun', 'custom'])
-			.describe('Email service provider'),
-		apiKey: z.string().describe('API key for the email provider'),
-		apiEndpoint: z.string().optional().describe('Custom API endpoint (for custom provider or Mailgun domain)'),
-		from: z.string().describe('Sender email address'),
-		to: z.union([z.string(), z.array(z.string())]).describe('Recipient email address(es)'),
-		cc: z.union([z.string(), z.array(z.string())]).optional().describe('CC recipients'),
-		bcc: z.union([z.string(), z.array(z.string())]).optional().describe('BCC recipients'),
-		replyTo: z.string().optional().describe('Reply-to address'),
-		subject: z.string().describe('Email subject'),
-		text: z.string().optional().describe('Plain text body'),
-		html: z.string().optional().describe('HTML body'),
-		tags: z.array(z.string()).optional().describe('Email tags for tracking'),
-	}),
-	execute: async (params, context) => {
-		try {
-			const { provider, apiKey, apiEndpoint, from, to, cc, bcc, replyTo, subject, text, html, tags } = params
-
-			if (!text && !html) {
-				return failure('Either text or html body is required')
-			}
-
-			const toArray = Array.isArray(to) ? to : [to]
-			const ccArray = cc ? (Array.isArray(cc) ? cc : [cc]) : undefined
-			const bccArray = bcc ? (Array.isArray(bcc) ? bcc : [bcc]) : undefined
-
-			let response: Response
-
-			switch (provider) {
-				case 'resend': {
-					response = await fetch('https://api.resend.com/emails', {
-						method: 'POST',
-						headers: {
-							Authorization: `Bearer ${apiKey}`,
-							'Content-Type': 'application/json',
-						},
-						body: JSON.stringify({
-							from,
-							to: toArray,
-							cc: ccArray,
-							bcc: bccArray,
-							reply_to: replyTo,
-							subject,
-							text,
-							html,
-							tags: tags?.map((t) => ({ name: t, value: 'true' })),
-						}),
-					})
-					break
-				}
-
-				case 'sendgrid': {
-					response = await fetch('https://api.sendgrid.com/v3/mail/send', {
-						method: 'POST',
-						headers: {
-							Authorization: `Bearer ${apiKey}`,
-							'Content-Type': 'application/json',
-						},
-						body: JSON.stringify({
-							personalizations: [
-								{
-									to: toArray.map((email) => ({ email })),
-									cc: ccArray?.map((email) => ({ email })),
-									bcc: bccArray?.map((email) => ({ email })),
-								},
-							],
-							from: { email: from },
-							reply_to: replyTo ? { email: replyTo } : undefined,
-							subject,
-							content: [
-								...(text ? [{ type: 'text/plain', value: text }] : []),
-								...(html ? [{ type: 'text/html', value: html }] : []),
-							],
-							categories: tags,
-						}),
-					})
-					break
-				}
-
-				case 'mailgun': {
-					if (!apiEndpoint) {
-						return failure('Mailgun requires apiEndpoint (your Mailgun domain)')
-					}
-					const formData = new FormData()
-					formData.append('from', from)
-					toArray.forEach((email) => formData.append('to', email))
-					ccArray?.forEach((email) => formData.append('cc', email))
-					bccArray?.forEach((email) => formData.append('bcc', email))
-					if (replyTo) formData.append('h:Reply-To', replyTo)
-					formData.append('subject', subject)
-					if (text) formData.append('text', text)
-					if (html) formData.append('html', html)
-					tags?.forEach((tag) => formData.append('o:tag', tag))
-
-					response = await fetch(`https://api.mailgun.net/v3/${apiEndpoint}/messages`, {
-						method: 'POST',
-						headers: {
-							Authorization: `Basic ${btoa(`api:${apiKey}`)}`,
-						},
-						body: formData,
-					})
-					break
-				}
-
-				case 'custom': {
-					if (!apiEndpoint) {
-						return failure('Custom provider requires apiEndpoint')
-					}
-					response = await fetch(apiEndpoint, {
-						method: 'POST',
-						headers: {
-							Authorization: `Bearer ${apiKey}`,
-							'Content-Type': 'application/json',
-						},
-						body: JSON.stringify({
-							from,
-							to: toArray,
-							cc: ccArray,
-							bcc: bccArray,
-							replyTo,
-							subject,
-							text,
-							html,
-							tags,
-						}),
-					})
-					break
-				}
-
-				default:
-					return failure(`Unknown provider: ${provider}`)
-			}
-
-			if (!response.ok) {
-				const errorText = await response.text()
-				return failure(`Email API error (${response.status}): ${errorText}`)
-			}
-
-			// SendGrid returns 202 with no body
-			if (response.status === 202) {
-				return success({ sent: true, provider })
-			}
-
-			const data = await response.json().catch(() => ({}))
-			return success({
-				sent: true,
-				provider,
-				messageId: data.id,
-				...data,
-			})
-		} catch (error) {
-			return failure(`Email error: ${error instanceof Error ? error.message : 'Unknown error'}`)
-		}
-	},
-})
-
-/**
- * Microsoft Teams Webhook Tool - Send messages to Teams channels.
+ * Microsoft Teams Webhook Tool - No API key needed
  */
 export const teamsTool = createTool({
 	id: 'teams',
-	description: `Send messages to Microsoft Teams channels using incoming webhooks.
+	description: `Send messages to Microsoft Teams using incoming webhooks.
 
-To set up: In Teams, go to channel > Connectors > Incoming Webhook > Configure, name it, and copy the webhook URL.
-
-Supports Adaptive Cards for rich formatting.`,
+**Setup:** Channel > Connectors > Incoming Webhook > Configure > Copy URL`,
 	inputSchema: z.object({
-		webhookUrl: z.string().url().describe('Teams incoming webhook URL'),
-		text: z.string().optional().describe('Simple text message'),
-		title: z.string().optional().describe('Message title'),
-		themeColor: z.string().optional().describe('Accent color (hex without #, e.g., "0076D7")'),
+		webhookUrl: z.string().url().describe('Teams webhook URL'),
+		text: z.string().optional().describe('Message text'),
+		title: z.string().optional(),
+		themeColor: z.string().optional().describe('Hex color (e.g., "0076D7")'),
 		sections: z
 			.array(
 				z.object({
 					activityTitle: z.string().optional(),
 					activitySubtitle: z.string().optional(),
-					activityImage: z.string().optional(),
 					facts: z.array(z.object({ name: z.string(), value: z.string() })).optional(),
 					text: z.string().optional(),
-					markdown: z.boolean().optional().default(true),
 				})
 			)
-			.optional()
-			.describe('Message sections with rich content'),
-		potentialAction: z
-			.array(
-				z.object({
-					'@type': z.literal('OpenUri').or(z.literal('ActionCard')),
-					name: z.string(),
-					targets: z.array(z.object({ os: z.string(), uri: z.string() })).optional(),
-				})
-			)
-			.optional()
-			.describe('Action buttons'),
+			.optional(),
 	}),
 	execute: async (params, context) => {
 		try {
-			const { webhookUrl, text, title, themeColor, sections, potentialAction } = params
+			const { webhookUrl, text, title, themeColor, sections } = params
 
-			if (!text && !sections) {
-				return failure('Either text or sections is required')
-			}
+			if (!text && !sections) return failure('Either text or sections required')
 
 			const payload: Record<string, unknown> = {
 				'@type': 'MessageCard',
 				'@context': 'http://schema.org/extensions',
 			}
-
 			if (text) payload.text = text
 			if (title) payload.title = title
 			if (themeColor) payload.themeColor = themeColor
 			if (sections) payload.sections = sections
-			if (potentialAction) payload.potentialAction = potentialAction
 
 			const response = await fetch(webhookUrl, {
 				method: 'POST',
@@ -636,85 +322,28 @@ Supports Adaptive Cards for rich formatting.`,
 				body: JSON.stringify(payload),
 			})
 
-			// Teams returns "1" on success
-			const responseText = await response.text()
-
 			if (!response.ok) {
-				return failure(`Teams API error: ${responseText}`)
+				return failure(`Teams error: ${await response.text()}`)
 			}
 
 			return success({ sent: true })
 		} catch (error) {
-			return failure(`Teams error: ${error instanceof Error ? error.message : 'Unknown error'}`)
+			return failure(`Error: ${error instanceof Error ? error.message : 'Unknown'}`)
 		}
 	},
 })
 
 /**
- * Twilio SMS Tool - Send SMS messages.
- */
-export const twilioSmsTool = createTool({
-	id: 'twilio_sms',
-	description: `Send SMS messages using Twilio.
-
-Requires your Twilio Account SID, Auth Token, and a Twilio phone number.`,
-	inputSchema: z.object({
-		accountSid: z.string().describe('Twilio Account SID'),
-		authToken: z.string().describe('Twilio Auth Token'),
-		from: z.string().describe('Twilio phone number to send from (E.164 format, e.g., +1234567890)'),
-		to: z.string().describe('Recipient phone number (E.164 format)'),
-		body: z.string().max(1600).describe('Message body (max 1600 characters)'),
-		statusCallback: z.string().optional().describe('Webhook URL for delivery status updates'),
-	}),
-	execute: async (params, context) => {
-		try {
-			const { accountSid, authToken, from, to, body, statusCallback } = params
-
-			const formData = new URLSearchParams()
-			formData.append('From', from)
-			formData.append('To', to)
-			formData.append('Body', body)
-			if (statusCallback) formData.append('StatusCallback', statusCallback)
-
-			const response = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`, {
-				method: 'POST',
-				headers: {
-					Authorization: `Basic ${btoa(`${accountSid}:${authToken}`)}`,
-					'Content-Type': 'application/x-www-form-urlencoded',
-				},
-				body: formData.toString(),
-			})
-
-			const data = await response.json()
-
-			if (!response.ok) {
-				return failure(`Twilio error: ${data.message || JSON.stringify(data)}`)
-			}
-
-			return success({
-				sent: true,
-				sid: data.sid,
-				status: data.status,
-				to: data.to,
-				from: data.from,
-			})
-		} catch (error) {
-			return failure(`Twilio error: ${error instanceof Error ? error.message : 'Unknown error'}`)
-		}
-	},
-})
-
-/**
- * Make (Integromat) Webhook Tool - Trigger Make scenarios.
+ * Make (Integromat) Webhook Tool
  */
 export const makeTool = createTool({
 	id: 'make',
-	description: `Trigger Make (formerly Integromat) scenarios via webhooks. Similar to Zapier, connects to 1000+ apps.
+	description: `Trigger Make (Integromat) scenarios via webhooks. Alternative to Zapier with 1000+ apps.
 
-To use: Create a scenario in Make with a Webhooks trigger, copy the webhook URL.`,
+**Setup:** Create scenario > Add Webhooks trigger > Copy URL`,
 	inputSchema: z.object({
 		webhookUrl: z.string().url().describe('Make webhook URL'),
-		data: z.record(z.string(), z.unknown()).describe('Data to send to Make'),
+		data: z.record(z.string(), z.unknown()).describe('Data to send'),
 	}),
 	execute: async (params, context) => {
 		try {
@@ -722,115 +351,73 @@ To use: Create a scenario in Make with a Webhooks trigger, copy the webhook URL.
 
 			const response = await fetch(webhookUrl, {
 				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-					'User-Agent': 'Hare-Agent/1.0',
-				},
+				headers: { 'Content-Type': 'application/json', 'User-Agent': 'Hare-Agent/1.0' },
 				body: JSON.stringify({
 					...data,
-					_meta: {
-						source: 'hare-agent',
-						workspaceId: context.workspaceId,
-						timestamp: new Date().toISOString(),
-					},
+					_hare: { workspaceId: context.workspaceId, timestamp: new Date().toISOString() },
 				}),
 			})
 
 			if (!response.ok) {
-				return failure(`Make webhook failed: ${response.status} ${response.statusText}`)
+				return failure(`Make error: ${response.status}`)
 			}
 
-			let responseData: unknown
-			try {
-				responseData = await response.json()
-			} catch {
-				responseData = await response.text()
-			}
-
-			return success({
-				triggered: true,
-				status: response.status,
-				response: responseData,
-			})
+			const responseData = await response.json().catch(() => response.text())
+			return success({ triggered: true, response: responseData })
 		} catch (error) {
-			return failure(`Make error: ${error instanceof Error ? error.message : 'Unknown error'}`)
+			return failure(`Error: ${error instanceof Error ? error.message : 'Unknown'}`)
 		}
 	},
 })
 
 /**
- * n8n Webhook Tool - Trigger n8n workflows.
+ * n8n Webhook Tool
  */
 export const n8nTool = createTool({
 	id: 'n8n',
-	description: `Trigger n8n workflow automations via webhooks. n8n is an open-source workflow automation tool.
+	description: `Trigger n8n workflow automations. Open-source alternative to Zapier.
 
-To use: Add a Webhook node to your n8n workflow, set it as the trigger, and copy the webhook URL.`,
+**Setup:** Add Webhook node as trigger > Copy URL`,
 	inputSchema: z.object({
 		webhookUrl: z.string().url().describe('n8n webhook URL'),
-		data: z.record(z.string(), z.unknown()).describe('Data to send to n8n'),
-		method: z.enum(['GET', 'POST']).optional().default('POST').describe('HTTP method'),
+		data: z.record(z.string(), z.unknown()).describe('Data to send'),
 	}),
 	execute: async (params, context) => {
 		try {
-			const { webhookUrl, data, method } = params
+			const { webhookUrl, data } = params
 
-			const requestInit: RequestInit = {
-				method,
-				headers: {
-					'Content-Type': 'application/json',
-					'User-Agent': 'Hare-Agent/1.0',
-				},
-			}
-
-			if (method === 'POST') {
-				requestInit.body = JSON.stringify({
+			const response = await fetch(webhookUrl, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json', 'User-Agent': 'Hare-Agent/1.0' },
+				body: JSON.stringify({
 					...data,
-					_meta: {
-						source: 'hare-agent',
-						workspaceId: context.workspaceId,
-						timestamp: new Date().toISOString(),
-					},
-				})
-			}
-
-			const response = await fetch(webhookUrl, requestInit)
+					_hare: { workspaceId: context.workspaceId, timestamp: new Date().toISOString() },
+				}),
+			})
 
 			if (!response.ok) {
-				return failure(`n8n webhook failed: ${response.status} ${response.statusText}`)
+				return failure(`n8n error: ${response.status}`)
 			}
 
-			let responseData: unknown
-			try {
-				responseData = await response.json()
-			} catch {
-				responseData = await response.text()
-			}
-
-			return success({
-				triggered: true,
-				status: response.status,
-				response: responseData,
-			})
+			const responseData = await response.json().catch(() => response.text())
+			return success({ triggered: true, response: responseData })
 		} catch (error) {
-			return failure(`n8n error: ${error instanceof Error ? error.message : 'Unknown error'}`)
+			return failure(`Error: ${error instanceof Error ? error.message : 'Unknown'}`)
 		}
 	},
 })
 
 /**
- * Get all integration tools.
+ * Get all integration tools (webhook-based only, no API keys required)
  */
 export function getIntegrationTools(context: ToolContext) {
 	return [
-		zapierTool,
-		webhookTool,
-		slackTool,
-		discordTool,
-		emailTool,
-		teamsTool,
-		twilioSmsTool,
-		makeTool,
-		n8nTool,
+		zapierTool, // Primary hub for 6000+ apps
+		webhookTool, // Generic webhooks
+		slackTool, // Direct Slack webhooks
+		discordTool, // Direct Discord webhooks
+		teamsTool, // Direct Teams webhooks
+		makeTool, // Alternative to Zapier
+		n8nTool, // Open-source automation
 	]
 }

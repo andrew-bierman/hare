@@ -51,7 +51,7 @@ export {
 } from './utility'
 
 // ==========================================
-// INTEGRATION TOOLS
+// INTEGRATION TOOLS (Webhook-based, no API keys)
 // ==========================================
 
 export {
@@ -59,9 +59,7 @@ export {
 	webhookTool,
 	slackTool,
 	discordTool,
-	emailTool,
 	teamsTool,
-	twilioSmsTool,
 	makeTool,
 	n8nTool,
 	getIntegrationTools,
@@ -99,6 +97,45 @@ export {
 } from './data'
 
 // ==========================================
+// SANDBOX TOOLS (Cloudflare Sandbox SDK)
+// ==========================================
+
+export {
+	codeExecuteTool,
+	codeValidateTool,
+	sandboxFileTool,
+	getSandboxTools,
+	executeSandboxed,
+} from './sandbox'
+
+// ==========================================
+// VALIDATION TOOLS
+// ==========================================
+
+export {
+	validateEmailTool,
+	validatePhoneTool,
+	validateUrlTool,
+	validateCreditCardTool,
+	validateIpTool,
+	validateJsonTool,
+	getValidationTools,
+} from './validation'
+
+// ==========================================
+// TRANSFORM TOOLS
+// ==========================================
+
+export {
+	markdownTool,
+	diffTool,
+	qrcodeTool,
+	compressionTool,
+	colorTool,
+	getTransformTools,
+} from './transform'
+
+// ==========================================
 // TOOL AGGREGATION
 // ==========================================
 
@@ -113,6 +150,9 @@ import { getUtilityTools } from './utility'
 import { getIntegrationTools } from './integrations'
 import { getAITools } from './ai'
 import { getDataTools } from './data'
+import { getSandboxTools } from './sandbox'
+import { getValidationTools } from './validation'
+import { getTransformTools } from './transform'
 
 /**
  * Tool categories for organization and filtering.
@@ -126,6 +166,9 @@ export type ToolCategory =
 	| 'integrations'
 	| 'ai'
 	| 'data'
+	| 'sandbox'
+	| 'validation'
+	| 'transform'
 	| 'all'
 
 /**
@@ -149,6 +192,12 @@ export function getSystemTools(context: ToolContext): Tool[] {
 		...getAITools(context),
 		// Data tools
 		...getDataTools(context),
+		// Sandbox tools
+		...getSandboxTools(context),
+		// Validation tools
+		...getValidationTools(context),
+		// Transform tools
+		...getTransformTools(context),
 	]
 }
 
@@ -173,6 +222,12 @@ export function getToolsByCategory(category: ToolCategory, context: ToolContext)
 			return getAITools(context)
 		case 'data':
 			return getDataTools(context)
+		case 'sandbox':
+			return getSandboxTools(context)
+		case 'validation':
+			return getValidationTools(context)
+		case 'transform':
+			return getTransformTools(context)
 		case 'all':
 		default:
 			return getSystemTools(context)
@@ -189,68 +244,29 @@ export function getSystemToolsMap(context: ToolContext): Map<string, Tool> {
 
 /**
  * List of all system tool IDs.
- * Useful for API routes and validation.
  */
 export const SYSTEM_TOOL_IDS = [
 	// Cloudflare native
-	'kv_get',
-	'kv_put',
-	'kv_delete',
-	'kv_list',
-	'r2_get',
-	'r2_put',
-	'r2_delete',
-	'r2_list',
-	'r2_head',
-	'sql_query',
-	'sql_execute',
-	'sql_batch',
-	'vectorize_insert',
-	'vectorize_query',
-	'vectorize_delete',
-	'vectorize_get',
-	'http_request',
-	'http_get',
-	'http_post',
-	'semantic_search',
-	'memory_search',
+	'kv_get', 'kv_put', 'kv_delete', 'kv_list',
+	'r2_get', 'r2_put', 'r2_delete', 'r2_list', 'r2_head',
+	'sql_query', 'sql_execute', 'sql_batch',
+	'vectorize_insert', 'vectorize_query', 'vectorize_delete', 'vectorize_get',
+	'http_request', 'http_get', 'http_post',
+	'semantic_search', 'memory_search',
 	// Utility
-	'datetime',
-	'json',
-	'text',
-	'math',
-	'uuid',
-	'hash',
-	'base64',
-	'url',
-	'delay',
-	// Integrations
-	'zapier',
-	'webhook',
-	'slack',
-	'discord',
-	'email',
-	'teams',
-	'twilio_sms',
-	'make',
-	'n8n',
+	'datetime', 'json', 'text', 'math', 'uuid', 'hash', 'base64', 'url', 'delay',
+	// Integrations (webhook-based)
+	'zapier', 'webhook', 'slack', 'discord', 'teams', 'make', 'n8n',
 	// AI
-	'sentiment',
-	'summarize',
-	'translate',
-	'image_generate',
-	'classify',
-	'ner',
-	'embedding',
-	'question_answer',
+	'sentiment', 'summarize', 'translate', 'image_generate', 'classify', 'ner', 'embedding', 'question_answer',
 	// Data
-	'rss',
-	'scrape',
-	'regex',
-	'crypto',
-	'json_schema',
-	'csv',
-	'template',
+	'rss', 'scrape', 'regex', 'crypto', 'json_schema', 'csv', 'template',
+	// Sandbox
+	'code_execute', 'code_validate', 'sandbox_file',
+	// Validation
+	'validate_email', 'validate_phone', 'validate_url', 'validate_credit_card', 'validate_ip', 'validate_json',
+	// Transform
+	'markdown', 'diff', 'qrcode', 'compression', 'color',
 ] as const
 
 export type SystemToolId = (typeof SYSTEM_TOOL_IDS)[number]
@@ -261,3 +277,18 @@ export type SystemToolId = (typeof SYSTEM_TOOL_IDS)[number]
 export function isSystemTool(toolId: string): toolId is SystemToolId {
 	return SYSTEM_TOOL_IDS.includes(toolId as SystemToolId)
 }
+
+/**
+ * Tool count by category (for documentation)
+ */
+export const TOOL_COUNTS = {
+	cloudflare: 21, // KV, R2, SQL, Vectorize, HTTP, Search
+	utility: 9,
+	integrations: 7, // Zapier-centric, webhook-based
+	ai: 8,
+	data: 7,
+	sandbox: 3,
+	validation: 6,
+	transform: 5,
+	total: 66,
+} as const
