@@ -1,18 +1,29 @@
+import type { VectorizeQueryOptions, VectorizeVector } from '@cloudflare/workers-types'
 import { z } from 'zod'
-import { createTool, success, failure, type ToolContext } from './types'
 import { generateEmbedding } from '../providers/workers-ai'
+import { createTool, failure, success, type ToolContext } from './types'
 
 /**
  * Vectorize Insert Tool - Insert vectors into a Vectorize index.
  */
 export const vectorizeInsertTool = createTool({
 	id: 'vectorize_insert',
-	description: 'Insert a vector with metadata into the Vectorize index. Can generate embeddings from text automatically.',
+	description:
+		'Insert a vector with metadata into the Vectorize index. Can generate embeddings from text automatically.',
 	inputSchema: z.object({
 		id: z.string().describe('Unique identifier for the vector'),
-		text: z.string().optional().describe('Text to generate embedding from (alternative to providing vector directly)'),
-		vector: z.array(z.number()).optional().describe('The vector values (if not generating from text)'),
-		metadata: z.record(z.string(), z.any()).optional().describe('Additional metadata to store with the vector'),
+		text: z
+			.string()
+			.optional()
+			.describe('Text to generate embedding from (alternative to providing vector directly)'),
+		vector: z
+			.array(z.number())
+			.optional()
+			.describe('The vector values (if not generating from text)'),
+		metadata: z
+			.record(z.string(), z.any())
+			.optional()
+			.describe('Additional metadata to store with the vector'),
 		namespace: z.string().optional().describe('Optional namespace for organizing vectors'),
 	}),
 	execute: async (params, context) => {
@@ -53,7 +64,9 @@ export const vectorizeInsertTool = createTool({
 				dimensions: values.length,
 			})
 		} catch (error) {
-			return failure(`Failed to insert vector: ${error instanceof Error ? error.message : 'Unknown error'}`)
+			return failure(
+				`Failed to insert vector: ${error instanceof Error ? error.message : 'Unknown error'}`,
+			)
 		}
 	},
 })
@@ -70,7 +83,11 @@ export const vectorizeQueryTool = createTool({
 		topK: z.number().optional().default(10).describe('Number of results to return'),
 		namespace: z.string().optional().describe('Namespace to search within'),
 		filter: z.record(z.string(), z.any()).optional().describe('Metadata filter for search results'),
-		returnMetadata: z.enum(['none', 'indexed', 'all']).optional().default('all').describe('What metadata to return'),
+		returnMetadata: z
+			.enum(['none', 'indexed', 'all'])
+			.optional()
+			.default('all')
+			.describe('What metadata to return'),
 		returnValues: z.boolean().optional().default(false).describe('Whether to return vector values'),
 	}),
 	execute: async (params, context) => {
@@ -118,7 +135,9 @@ export const vectorizeQueryTool = createTool({
 				count: results.count,
 			})
 		} catch (error) {
-			return failure(`Vector query failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
+			return failure(
+				`Vector query failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+			)
 		}
 	},
 })
@@ -146,7 +165,9 @@ export const vectorizeDeleteTool = createTool({
 				ids: params.ids,
 			})
 		} catch (error) {
-			return failure(`Failed to delete vectors: ${error instanceof Error ? error.message : 'Unknown error'}`)
+			return failure(
+				`Failed to delete vectors: ${error instanceof Error ? error.message : 'Unknown error'}`,
+			)
 		}
 	},
 })
@@ -178,7 +199,9 @@ export const vectorizeGetTool = createTool({
 				count: results.length,
 			})
 		} catch (error) {
-			return failure(`Failed to get vectors: ${error instanceof Error ? error.message : 'Unknown error'}`)
+			return failure(
+				`Failed to get vectors: ${error instanceof Error ? error.message : 'Unknown error'}`,
+			)
 		}
 	},
 })
@@ -186,6 +209,6 @@ export const vectorizeGetTool = createTool({
 /**
  * Get all Vectorize tools.
  */
-export function getVectorizeTools(context: ToolContext) {
+export function getVectorizeTools(_context: ToolContext) {
 	return [vectorizeInsertTool, vectorizeQueryTool, vectorizeDeleteTool, vectorizeGetTool]
 }

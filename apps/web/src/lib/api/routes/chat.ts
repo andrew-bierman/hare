@@ -1,13 +1,13 @@
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
-import { streamSSE } from 'hono/streaming'
-import { eq } from 'drizzle-orm'
-import { ChatRequestSchema, ConversationSchema, IdParamSchema, MessageSchema } from '../schemas'
-import { getDb, getCloudflareEnv } from '../db'
-import { agents, conversations, messages, usage } from 'web-app/db/schema'
-import { createAgentFromConfig, type AgentConfig } from 'web-app/lib/agents'
-import { createMemoryStore, toAgentMessages } from 'web-app/lib/agents/memory'
 import type { CoreMessage } from 'ai'
+import { eq } from 'drizzle-orm'
+import { streamSSE } from 'hono/streaming'
+import { agents, conversations, messages, usage } from 'web-app/db/schema'
+import { type AgentConfig, createAgentFromConfig } from 'web-app/lib/agents'
+import { createMemoryStore, toAgentMessages } from 'web-app/lib/agents/memory'
+import { getCloudflareEnv, getDb } from '../db'
 import { optionalAuthMiddleware } from '../middleware'
+import { ChatRequestSchema, ConversationSchema, IdParamSchema, MessageSchema } from '../schemas'
 import type { OptionalAuthEnv } from '../types'
 
 // Define routes
@@ -174,7 +174,9 @@ app.openapi(chatWithAgentRoute, async (c) => {
 	const memory = createMemoryStore(db, env.AI, env.VECTORIZE, agentConfig.workspaceId)
 
 	// Get or create conversation
-	const conversationId = sessionId || (await memory.getOrCreateConversation(agentId, userId, `Chat with ${agentConfig.name}`))
+	const conversationId =
+		sessionId ||
+		(await memory.getOrCreateConversation(agentId, userId, `Chat with ${agentConfig.name}`))
 
 	// Create the edge agent
 	const agent = await createAgentFromConfig(agentConfig as AgentConfig, db, env, {
@@ -294,7 +296,7 @@ app.openapi(listConversationsRoute, async (c) => {
 				createdAt: conv.createdAt.toISOString(),
 				updatedAt: conv.updatedAt.toISOString(),
 			}
-		})
+		}),
 	)
 
 	return c.json({ conversations: conversationsData }, 200)

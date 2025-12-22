@@ -5,7 +5,8 @@
  * Designed to run on Cloudflare Workers without Node.js dependencies.
  */
 
-import { streamText, type CoreMessage } from 'ai'
+import type { Ai } from '@cloudflare/workers-types'
+import { type CoreMessage, streamText } from 'ai'
 import { createWorkersAIModel } from './providers/workers-ai'
 
 /**
@@ -121,9 +122,7 @@ export class EdgeAgent {
 	/**
 	 * Create an async iterable from the stream result.
 	 */
-	private async *createTextStream(
-		result: ReturnType<typeof streamText>
-	): AsyncIterable<string> {
+	private async *createTextStream(result: ReturnType<typeof streamText>): AsyncIterable<string> {
 		const stream = (await result).textStream
 		for await (const chunk of stream) {
 			yield chunk

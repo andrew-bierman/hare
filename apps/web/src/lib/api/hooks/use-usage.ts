@@ -2,10 +2,9 @@
 
 import { useQuery } from '@tanstack/react-query'
 import { apiClient } from '../client'
-import type { UsageSummary, AgentUsage } from '../types'
 
 // Re-export types for convenience
-export type { UsageSummary, AgentUsage } from '../types'
+export type { AgentUsage, UsageSummary } from '../types'
 
 export interface UsageParams {
 	startDate?: string

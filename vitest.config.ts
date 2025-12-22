@@ -1,52 +1,45 @@
-import path from "node:path";
-import { defineConfig } from "vitest/config";
+import path from 'node:path'
+import { defineWorkersConfig } from '@cloudflare/vitest-pool-workers/config'
 
-export default defineConfig({
-  resolve: {
-    alias: {
-      "web-app": path.resolve(__dirname, "./apps/web/src"),
-      "@workspace/ui": path.resolve(__dirname, "./packages/ui/src"),
-    },
-  },
-  test: {
-    globals: true,
-    include: ["apps/**/*.test.ts", "packages/**/*.test.ts"],
-    exclude: [
-      "node_modules/**",
-      "**/node_modules/**",
-      "e2e/**",
-      ".next/**",
-      "**/e2e/**",
-      "**/*.spec.ts",
-    ],
-    environment: "node",
-    coverage: {
-      provider: "v8",
-      reporter: ["text", "json", "html", "lcov"],
-      reportsDirectory: "./coverage",
-      exclude: [
-        "node_modules/**",
-        "**/node_modules/**",
-        "**/*.test.ts",
-        "**/*.spec.ts",
-        "**/e2e/**",
-        "**/__tests__/**",
-        "**/dist/**",
-        "**/.next/**",
-        "**/coverage/**",
-        "**/*.config.ts",
-        "**/*.config.js",
-        "**/types.ts",
-        "**/cloudflare-env.d.ts",
-        "**/db/schema/**",
-        "**/db/client.ts",
-        "**/db/index.ts",
-      ],
-      all: true,
-      lines: 90,
-      functions: 90,
-      branches: 90,
-      statements: 90,
-    },
-  },
-});
+export default defineWorkersConfig({
+	resolve: {
+		alias: {
+			'web-app': path.resolve(__dirname, './apps/web/src'),
+			'@workspace/ui': path.resolve(__dirname, './packages/ui/src'),
+		},
+	},
+	test: {
+		globals: true,
+		include: ['apps/**/*.test.ts'],
+		exclude: [
+			'node_modules/**',
+			'**/node_modules/**',
+			'**/e2e/**',
+			'**/*.spec.ts',
+			'.next/**',
+			'packages/**',
+		],
+		pool: '@cloudflare/vitest-pool-workers',
+		poolOptions: {
+			workers: {
+				miniflare: {
+					// Add test bindings for Cloudflare Workers
+					bindings: {
+						ENVIRONMENT: 'test',
+						BETTER_AUTH_SECRET: 'test-secret-for-tests-min-32-chars-long',
+						BETTER_AUTH_URL: 'http://localhost:3000',
+						NEXTJS_ENV: 'test',
+					},
+					// Configure D1 databases for tests
+					d1Databases: {
+						DB: 'test-db',
+					},
+					// Configure KV namespaces for tests
+					kvNamespaces: {
+						KV: 'test-kv',
+					},
+				},
+			},
+		},
+	},
+})

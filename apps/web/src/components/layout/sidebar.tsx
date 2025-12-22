@@ -1,10 +1,10 @@
 'use client'
 
+import { Badge } from '@workspace/ui/components/badge'
+import { cn } from '@workspace/ui/lib/utils'
 import { Activity, Bot, Home, Settings, Sparkles, Wrench } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { cn } from '@workspace/ui/lib/utils'
-import { Badge } from '@workspace/ui/components/badge'
 import { WorkspaceSwitcher } from './workspace-switcher'
 
 const routes = [

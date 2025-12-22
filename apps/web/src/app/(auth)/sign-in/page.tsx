@@ -1,10 +1,6 @@
 'use client'
 
 import { ArrowRight, Loader2, Sparkles } from 'lucide-react'
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { type ChangeEvent, type FormEvent, useState } from 'react'
-import { toast } from 'sonner'
 import { Button } from '@workspace/ui/components/button'
 import {
 	Card,
@@ -16,6 +12,10 @@ import {
 } from '@workspace/ui/components/card'
 import { Input } from '@workspace/ui/components/input'
 import { Label } from '@workspace/ui/components/label'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { type ChangeEvent, type FormEvent, useState } from 'react'
+import { toast } from 'sonner'
 import { signIn } from 'web-app/lib/auth-client'
 
 export default function SignInPage() {

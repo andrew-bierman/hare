@@ -1,3 +1,6 @@
+import { Badge } from '@workspace/ui/components/badge'
+import { Button } from '@workspace/ui/components/button'
+import { Card, CardDescription, CardHeader, CardTitle } from '@workspace/ui/components/card'
 import {
 	ArrowRight,
 	Bot,
@@ -15,15 +18,6 @@ import {
 	Zap,
 } from 'lucide-react'
 import Link from 'next/link'
-import { Button } from '@workspace/ui/components/button'
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from '@workspace/ui/components/card'
-import { Badge } from '@workspace/ui/components/badge'
 
 export default function LandingPage() {
 	const features = [

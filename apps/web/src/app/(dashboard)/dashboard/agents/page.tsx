@@ -1,19 +1,16 @@
 'use client'
 
-import { Bot, Clock, Play, Plus, Search, Settings, Wrench } from 'lucide-react'
-import Link from 'next/link'
-import { type ChangeEvent, useState } from 'react'
 import { Badge } from '@workspace/ui/components/badge'
 import { Button } from '@workspace/ui/components/button'
-import {
-	Card,
-	CardContent,
-} from '@workspace/ui/components/card'
+import { Card, CardContent } from '@workspace/ui/components/card'
 import { Input } from '@workspace/ui/components/input'
 import { Skeleton } from '@workspace/ui/components/skeleton'
 import { Tabs, TabsList, TabsTrigger } from '@workspace/ui/components/tabs'
+import { Bot, Clock, Play, Plus, Search, Settings, Wrench } from 'lucide-react'
+import Link from 'next/link'
+import { type ChangeEvent, useState } from 'react'
 import { useWorkspace } from 'web-app/components/providers/workspace-provider'
-import { useAgents, AVAILABLE_MODELS, type Agent } from 'web-app/lib/api/hooks'
+import { type Agent, AVAILABLE_MODELS, useAgents } from 'web-app/lib/api/hooks'
 
 function AgentCardSkeleton() {
 	return (
@@ -226,9 +223,7 @@ export default function AgentsPage() {
 											<h3 className="font-semibold text-sm sm:text-base truncate">
 												{agent.name}
 											</h3>
-											<p className="text-xs text-muted-foreground">
-												{getModelName(agent.model)}
-											</p>
+											<p className="text-xs text-muted-foreground">{getModelName(agent.model)}</p>
 										</div>
 									</div>
 									{getStatusBadge(agent.status)}

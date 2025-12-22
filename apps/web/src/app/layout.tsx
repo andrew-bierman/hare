@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
-import { Providers } from 'web-app/components/providers/providers'
 import { DevTools } from 'web-app/components/dev/dev-tools'
+import { Providers } from 'web-app/components/providers/providers'
 import { APP_CONFIG } from 'web-app/config'
 import '@workspace/ui/globals.css'
 

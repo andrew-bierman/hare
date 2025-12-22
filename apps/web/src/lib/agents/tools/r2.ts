@@ -1,12 +1,14 @@
+import type { R2ListOptions, R2PutOptions } from '@cloudflare/workers-types'
 import { z } from 'zod'
-import { createTool, success, failure, type ToolContext } from './types'
+import { createTool, failure, success, type ToolContext } from './types'
 
 /**
  * R2 Get Tool - Retrieve an object from Cloudflare R2.
  */
 export const r2GetTool = createTool({
 	id: 'r2_get',
-	description: 'Retrieve an object from Cloudflare R2 storage by key. Returns the object content and metadata.',
+	description:
+		'Retrieve an object from Cloudflare R2 storage by key. Returns the object content and metadata.',
 	inputSchema: z.object({
 		key: z.string().describe('The key (path) of the object to retrieve'),
 	}),
@@ -34,7 +36,9 @@ export const r2GetTool = createTool({
 				metadata: object.customMetadata,
 			})
 		} catch (error) {
-			return failure(`Failed to get object "${params.key}": ${error instanceof Error ? error.message : 'Unknown error'}`)
+			return failure(
+				`Failed to get object "${params.key}": ${error instanceof Error ? error.message : 'Unknown error'}`,
+			)
 		}
 	},
 })
@@ -49,7 +53,10 @@ export const r2PutTool = createTool({
 		key: z.string().describe('The key (path) to store the object under'),
 		content: z.string().describe('The content to store'),
 		contentType: z.string().optional().describe('The MIME type of the content'),
-		metadata: z.record(z.string(), z.string()).optional().describe('Custom metadata to store with the object'),
+		metadata: z
+			.record(z.string(), z.string())
+			.optional()
+			.describe('Custom metadata to store with the object'),
 	}),
 	execute: async (params, context) => {
 		const r2 = context.env.R2
@@ -72,7 +79,9 @@ export const r2PutTool = createTool({
 				size: result.size,
 			})
 		} catch (error) {
-			return failure(`Failed to put object "${params.key}": ${error instanceof Error ? error.message : 'Unknown error'}`)
+			return failure(
+				`Failed to put object "${params.key}": ${error instanceof Error ? error.message : 'Unknown error'}`,
+			)
 		}
 	},
 })
@@ -96,7 +105,9 @@ export const r2DeleteTool = createTool({
 			await r2.delete(params.key)
 			return success({ key: params.key, deleted: true })
 		} catch (error) {
-			return failure(`Failed to delete object "${params.key}": ${error instanceof Error ? error.message : 'Unknown error'}`)
+			return failure(
+				`Failed to delete object "${params.key}": ${error instanceof Error ? error.message : 'Unknown error'}`,
+			)
 		}
 	},
 })
@@ -111,7 +122,10 @@ export const r2ListTool = createTool({
 		prefix: z.string().optional().describe('Filter objects by prefix (folder path)'),
 		limit: z.number().optional().default(100).describe('Maximum number of objects to return'),
 		cursor: z.string().optional().describe('Cursor for pagination'),
-		delimiter: z.string().optional().describe('Delimiter for grouping (e.g., "/" for folder-like listing)'),
+		delimiter: z
+			.string()
+			.optional()
+			.describe('Delimiter for grouping (e.g., "/" for folder-like listing)'),
 	}),
 	execute: async (params, context) => {
 		const r2 = context.env.R2
@@ -140,7 +154,9 @@ export const r2ListTool = createTool({
 				delimitedPrefixes: result.delimitedPrefixes,
 			})
 		} catch (error) {
-			return failure(`Failed to list objects: ${error instanceof Error ? error.message : 'Unknown error'}`)
+			return failure(
+				`Failed to list objects: ${error instanceof Error ? error.message : 'Unknown error'}`,
+			)
 		}
 	},
 })
@@ -176,7 +192,9 @@ export const r2HeadTool = createTool({
 				metadata: head.customMetadata,
 			})
 		} catch (error) {
-			return failure(`Failed to head object "${params.key}": ${error instanceof Error ? error.message : 'Unknown error'}`)
+			return failure(
+				`Failed to head object "${params.key}": ${error instanceof Error ? error.message : 'Unknown error'}`,
+			)
 		}
 	},
 })
@@ -184,6 +202,6 @@ export const r2HeadTool = createTool({
 /**
  * Get all R2 tools.
  */
-export function getR2Tools(context: ToolContext) {
+export function getR2Tools(_context: ToolContext) {
 	return [r2GetTool, r2PutTool, r2DeleteTool, r2ListTool, r2HeadTool]
 }

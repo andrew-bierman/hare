@@ -1,9 +1,5 @@
 'use client'
 
-import { Bell, Key, LogOut, Shield, User } from 'lucide-react'
-import { useRouter } from 'next/navigation'
-import { type ChangeEvent, useState } from 'react'
-import { toast } from 'sonner'
 import { Button } from '@workspace/ui/components/button'
 import {
 	Card,
@@ -16,6 +12,10 @@ import { Input } from '@workspace/ui/components/input'
 import { Label } from '@workspace/ui/components/label'
 import { Separator } from '@workspace/ui/components/separator'
 import { Skeleton } from '@workspace/ui/components/skeleton'
+import { Bell, Key, LogOut, Shield, User } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { type ChangeEvent, useState } from 'react'
+import { toast } from 'sonner'
 import { useAuth } from 'web-app/components/providers/auth-provider'
 import { useWorkspace } from 'web-app/components/providers/workspace-provider'
 import { signOut } from 'web-app/lib/auth-client'
@@ -41,7 +41,7 @@ export default function SettingsPage() {
 			await signOut()
 			toast.success('Signed out successfully')
 			router.push('/sign-in')
-		} catch (error) {
+		} catch (_error) {
 			toast.error('Failed to sign out')
 		} finally {
 			setIsSigningOut(false)
@@ -100,9 +100,7 @@ export default function SettingsPage() {
 							</p>
 						</div>
 						<Button disabled>Save Changes</Button>
-						<p className="text-xs text-muted-foreground">
-							Profile updates coming soon.
-						</p>
+						<p className="text-xs text-muted-foreground">Profile updates coming soon.</p>
 					</CardContent>
 				</Card>
 
@@ -119,13 +117,9 @@ export default function SettingsPage() {
 							<div className="flex items-center justify-between p-4 border rounded-lg">
 								<div>
 									<p className="font-medium">{activeWorkspace.name}</p>
-									<p className="text-sm text-muted-foreground">
-										ID: {activeWorkspace.id}
-									</p>
+									<p className="text-sm text-muted-foreground">ID: {activeWorkspace.id}</p>
 								</div>
-								<div className="text-sm text-muted-foreground">
-									Active
-								</div>
+								<div className="text-sm text-muted-foreground">Active</div>
 							</div>
 						) : (
 							<p className="text-muted-foreground">No workspace selected</p>
@@ -159,7 +153,9 @@ export default function SettingsPage() {
 							<div className="flex items-center justify-between">
 								<div>
 									<p className="font-medium">Usage Alerts</p>
-									<p className="text-sm text-muted-foreground">Get notified when approaching limits</p>
+									<p className="text-sm text-muted-foreground">
+										Get notified when approaching limits
+									</p>
 								</div>
 								<Button variant="outline" size="sm" disabled>
 									Coming Soon
@@ -203,12 +199,7 @@ export default function SettingsPage() {
 								<p className="font-medium">Sign Out</p>
 								<p className="text-sm text-muted-foreground">Sign out of your account</p>
 							</div>
-							<Button
-								variant="outline"
-								size="sm"
-								onClick={handleSignOut}
-								disabled={isSigningOut}
-							>
+							<Button variant="outline" size="sm" onClick={handleSignOut} disabled={isSigningOut}>
 								<LogOut className="mr-2 h-4 w-4" />
 								{isSigningOut ? 'Signing out...' : 'Sign Out'}
 							</Button>

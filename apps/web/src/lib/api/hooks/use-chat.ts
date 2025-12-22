@@ -1,7 +1,7 @@
 'use client'
 
-import { useCallback, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
+import { useCallback, useState } from 'react'
 
 // Helper to extract error message from API response
 function getErrorMessage(error: unknown, fallback: string): string {
@@ -196,7 +196,7 @@ export function useChat(agentId: string | undefined) {
 				setIsStreaming(false)
 			}
 		},
-		[agentId, isStreaming, sessionId]
+		[agentId, isStreaming, sessionId],
 	)
 
 	const clearMessages = useCallback(() => {

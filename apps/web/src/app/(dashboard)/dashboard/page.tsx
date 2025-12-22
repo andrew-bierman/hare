@@ -1,5 +1,9 @@
 'use client'
 
+import { Badge } from '@workspace/ui/components/badge'
+import { Button } from '@workspace/ui/components/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@workspace/ui/components/card'
+import { Skeleton } from '@workspace/ui/components/skeleton'
 import {
 	Activity,
 	ArrowRight,
@@ -12,15 +16,8 @@ import {
 	Wrench,
 } from 'lucide-react'
 import Link from 'next/link'
-import { Button } from '@workspace/ui/components/button'
-import { Badge } from '@workspace/ui/components/badge'
-import {
-	Card,
-	CardContent,
-} from '@workspace/ui/components/card'
-import { Skeleton } from '@workspace/ui/components/skeleton'
 import { useWorkspace } from 'web-app/components/providers/workspace-provider'
-import { useAgents, useUsage, AVAILABLE_MODELS, type Agent } from 'web-app/lib/api/hooks'
+import { type Agent, AVAILABLE_MODELS, useAgents, useUsage } from 'web-app/lib/api/hooks'
 
 function StatCardSkeleton() {
 	return (

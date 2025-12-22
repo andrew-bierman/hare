@@ -1,6 +1,7 @@
+import type { D1Database } from '@cloudflare/workers-types'
 import { Hono } from 'hono'
 import { createAuth } from 'web-app/lib/auth'
-import { getD1, CloudflareEnvError } from '../db'
+import { CloudflareEnvError, getD1 } from '../db'
 import type { HonoEnv } from '../types'
 
 const app = new Hono<HonoEnv>().all('/*', async (c) => {
