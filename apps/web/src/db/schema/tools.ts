@@ -13,15 +13,40 @@ export const tools = sqliteTable('tools', {
 		.references(() => workspaces.id, { onDelete: 'cascade' }),
 	name: text('name').notNull(),
 	description: text('description'),
-	type: text('type', { enum: ['http', 'sql', 'kv', 'r2', 'vectorize', 'custom'] }).notNull(),
+	type: text('type', {
+		enum: [
+			// Cloudflare native
+			'http',
+			'sql',
+			'kv',
+			'r2',
+			'vectorize',
+			'search',
+			// Integrations
+			'zapier',
+			'webhook',
+			// Custom code
+			'custom',
+		],
+	}).notNull(),
 	config: text('config', { mode: 'json' }).$type<{
+		// HTTP/Webhook config
 		url?: string
 		method?: string
 		headers?: Record<string, string>
 		body?: string
+		// SQL config
 		query?: string
 		database?: string
+		// Search config
 		searchEngine?: string
+		// Integration configs
+		webhookUrl?: string
+		apiKey?: string
+		apiEndpoint?: string
+		channel?: string
+		from?: string
+		// Custom code
 		customCode?: string
 	}>(),
 	createdBy: text('createdBy')
