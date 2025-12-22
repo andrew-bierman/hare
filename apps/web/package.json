@@ -16,6 +16,8 @@
 		"db:migrate:remote": "wrangler d1 migrations apply hare-db --remote",
 		"db:push": "drizzle-kit push",
 		"db:studio": "drizzle-kit studio",
+		"typecheck": "tsc --noEmit",
+		"lint": "biome lint .",
 		"test": "playwright test",
 		"test:ui": "playwright test --ui",
 		"test:headed": "playwright test --headed"

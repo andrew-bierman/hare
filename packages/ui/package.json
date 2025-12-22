@@ -12,7 +12,8 @@
 		"./styles/*": "./src/styles/*.css"
 	},
 	"scripts": {
-		"typecheck": "tsc --noEmit"
+		"typecheck": "tsc --noEmit",
+		"lint": "biome lint ."
 	},
 	"peerDependencies": {
 		"react": "^19.0.0",
