@@ -3,7 +3,8 @@ import { eq, or } from 'drizzle-orm'
 import { getDb } from '../db'
 import { CreateWorkspaceSchema, ErrorSchema, IdParamSchema, SuccessSchema, UpdateWorkspaceSchema, WorkspaceSchema } from '../schemas'
 import { workspaces, workspaceMembers } from 'web-app/db/schema'
-import { authMiddleware, type AuthVariables } from '../middleware'
+import { authMiddleware } from '../middleware'
+import { type WorkspaceRole, isWorkspaceRole, type AuthEnv } from '../types'
 
 // Define routes
 const listWorkspacesRoute = createRoute({
@@ -195,10 +196,9 @@ const deleteWorkspaceRoute = createRoute({
 	},
 })
 
-type WorkspaceRole = 'owner' | 'admin' | 'member' | 'viewer'
-
 /**
  * Get user's role in a workspace.
+ * Returns null if user has no access, throws on invalid role.
  */
 async function getUserWorkspaceRole(
 	userId: string,
@@ -218,11 +218,16 @@ async function getUserWorkspaceRole(
 		.where(eq(workspaceMembers.workspaceId, workspaceId))
 
 	if (!membership) return null
-	return membership.role as WorkspaceRole
+
+	// Validate role from database
+	if (!isWorkspaceRole(membership.role)) {
+		throw new Error(`Invalid workspace role in database: ${membership.role}`)
+	}
+	return membership.role
 }
 
-// Create app with proper typing
-const app = new OpenAPIHono<{ Variables: AuthVariables }>()
+// Create app with proper typing (includes Bindings and Variables)
+const app = new OpenAPIHono<AuthEnv>()
 
 // Apply middleware
 app.use('*', authMiddleware)
@@ -256,7 +261,12 @@ app.openapi(listWorkspacesRoute, async (c) => {
 
 	const workspacesData = allWorkspaces.map((workspace) => {
 		const membership = memberships.find((m) => m.workspaceId === workspace.id)
-		const role = workspace.ownerId === user.id ? 'owner' : (membership?.role as WorkspaceRole) || 'member'
+		let role: WorkspaceRole = 'member'
+		if (workspace.ownerId === user.id) {
+			role = 'owner'
+		} else if (membership?.role && isWorkspaceRole(membership.role)) {
+			role = membership.role
+		}
 
 		return {
 			id: workspace.id,
@@ -375,7 +385,8 @@ app.openapi(updateWorkspaceRoute, async (c) => {
 		return c.json({ error: 'Insufficient permissions' }, 403)
 	}
 
-	const updateData: Record<string, unknown> = {
+	// Build typed update object using Drizzle's inferred type
+	const updateData: Partial<typeof workspaces.$inferInsert> = {
 		updatedAt: new Date(),
 	}
 
