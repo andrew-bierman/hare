@@ -1,3 +1,4 @@
+import type { Ai, VectorizeIndex } from '@cloudflare/workers-types'
 import type { CoreMessage } from 'ai'
 import { and, desc, eq, like } from 'drizzle-orm'
 import { conversations, messages } from 'web-app/db/schema'

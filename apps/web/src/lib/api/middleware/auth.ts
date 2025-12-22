@@ -1,3 +1,4 @@
+import type { D1Database } from '@cloudflare/workers-types'
 import type { MiddlewareHandler } from 'hono'
 import { createAuth } from 'web-app/lib/auth'
 import { CloudflareEnvError, getD1 } from '../db'

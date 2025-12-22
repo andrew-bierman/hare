@@ -1,3 +1,4 @@
+import type { D1Database } from '@cloudflare/workers-types'
 import { getCloudflareContext } from '@opennextjs/cloudflare'
 import type { Context } from 'hono'
 import { createDb, type Database } from 'web-app/db/client'

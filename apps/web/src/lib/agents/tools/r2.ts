@@ -1,3 +1,4 @@
+import type { R2ListOptions, R2PutOptions } from '@cloudflare/workers-types'
 import { z } from 'zod'
 import { createTool, failure, success, type ToolContext } from './types'
 

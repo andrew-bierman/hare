@@ -1,3 +1,4 @@
+import type { KVNamespaceListOptions, KVNamespacePutOptions } from '@cloudflare/workers-types'
 import { z } from 'zod'
 import { createTool, failure, success, type ToolContext } from './types'
 
