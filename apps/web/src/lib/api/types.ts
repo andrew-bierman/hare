@@ -73,9 +73,9 @@ export interface Tool {
 
 export interface CreateToolInput {
 	name: string
-	description: string
+	description?: string
 	type: ToolType
-	inputSchema: Record<string, unknown>
+	inputSchema?: Record<string, unknown>
 	config?: Record<string, unknown>
 	code?: string
 }

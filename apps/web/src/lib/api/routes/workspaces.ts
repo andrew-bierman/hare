@@ -62,6 +62,10 @@ const createWorkspaceRoute = createRoute({
 			description: 'Unauthorized',
 			content: { 'application/json': { schema: ErrorSchema } },
 		},
+		500: {
+			description: 'Internal server error',
+			content: { 'application/json': { schema: ErrorSchema } },
+		},
 		503: {
 			description: 'Service unavailable',
 			content: { 'application/json': { schema: ErrorSchema } },
@@ -142,6 +146,10 @@ const updateWorkspaceRoute = createRoute({
 					schema: ErrorSchema,
 				},
 			},
+		},
+		500: {
+			description: 'Internal server error',
+			content: { 'application/json': { schema: ErrorSchema } },
 		},
 		503: {
 			description: 'Service unavailable',
@@ -297,6 +305,10 @@ app.openapi(createWorkspaceRoute, async (c) => {
 		})
 		.returning()
 
+	if (!workspace) {
+		return c.json({ error: 'Failed to create workspace' }, 500)
+	}
+
 	return c.json(
 		{
 			id: workspace.id,
@@ -386,6 +398,10 @@ app.openapi(updateWorkspaceRoute, async (c) => {
 	if (data.description !== undefined) updateData.description = data.description
 
 	const [workspace] = await db.update(workspaces).set(updateData).where(eq(workspaces.id, id)).returning()
+
+	if (!workspace) {
+		return c.json({ error: 'Failed to update workspace' }, 500)
+	}
 
 	return c.json(
 		{

@@ -56,10 +56,11 @@ export class D1MemoryStore implements MemoryStore {
 			.orderBy(desc(conversations.updatedAt))
 			.limit(1)
 
-		if (existing.length > 0) {
+		const existingConversation = existing[0]
+		if (existingConversation) {
 			// Update the timestamp
-			await this.db.update(conversations).set({ updatedAt: new Date() }).where(eq(conversations.id, existing[0].id))
-			return existing[0].id
+			await this.db.update(conversations).set({ updatedAt: new Date() }).where(eq(conversations.id, existingConversation.id))
+			return existingConversation.id
 		}
 
 		// Create new conversation
@@ -73,7 +74,11 @@ export class D1MemoryStore implements MemoryStore {
 			})
 			.returning({ id: conversations.id })
 
-		return newConversation[0].id
+		const created = newConversation[0]
+		if (!created) {
+			throw new Error('Failed to create conversation')
+		}
+		return created.id
 	}
 
 	/**
@@ -91,7 +96,11 @@ export class D1MemoryStore implements MemoryStore {
 			})
 			.returning({ id: messages.id })
 
-		const messageId = inserted[0].id
+		const insertedMessage = inserted[0]
+		if (!insertedMessage) {
+			throw new Error('Failed to save message')
+		}
+		const messageId = insertedMessage.id
 
 		// Update conversation timestamp
 		await this.db.update(conversations).set({ updatedAt: new Date() }).where(eq(conversations.id, conversationId))

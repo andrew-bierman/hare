@@ -131,6 +131,10 @@ const createToolRoute = createRoute({
 			description: 'Forbidden',
 			content: { 'application/json': { schema: ErrorSchema } },
 		},
+		500: {
+			description: 'Internal server error',
+			content: { 'application/json': { schema: ErrorSchema } },
+		},
 		503: {
 			description: 'Service unavailable',
 			content: { 'application/json': { schema: ErrorSchema } },
@@ -217,6 +221,10 @@ const updateToolRoute = createRoute({
 					schema: ErrorSchema,
 				},
 			},
+		},
+		500: {
+			description: 'Internal server error',
+			content: { 'application/json': { schema: ErrorSchema } },
 		},
 		503: {
 			description: 'Service unavailable',
@@ -353,6 +361,10 @@ app.openapi(createToolRoute, async (c) => {
 		})
 		.returning()
 
+	if (!tool) {
+		return c.json({ error: 'Failed to create tool' }, 500)
+	}
+
 	return c.json(
 		{
 			id: tool.id,
@@ -461,6 +473,10 @@ app.openapi(updateToolRoute, async (c) => {
 	if (data.config !== undefined) updateData.config = data.config
 
 	const [tool] = await db.update(tools).set(updateData).where(eq(tools.id, id)).returning()
+
+	if (!tool) {
+		return c.json({ error: 'Failed to update tool' }, 500)
+	}
 
 	return c.json(
 		{
