@@ -1,13 +1,14 @@
 import { z } from 'zod'
-import { createTool, success, failure, type ToolContext } from './types'
 import { generateEmbedding } from '../providers/workers-ai'
+import { createTool, failure, success, type ToolContext } from './types'
 
 /**
  * Semantic Search Tool - Search using vector embeddings.
  */
 export const semanticSearchTool = createTool({
 	id: 'semantic_search',
-	description: 'Perform semantic search using vector embeddings. Finds content similar in meaning to the query.',
+	description:
+		'Perform semantic search using vector embeddings. Finds content similar in meaning to the query.',
 	inputSchema: z.object({
 		query: z.string().describe('The search query text'),
 		topK: z.number().optional().default(10).describe('Number of results to return'),
@@ -52,7 +53,9 @@ export const semanticSearchTool = createTool({
 				totalFound: filteredMatches.length,
 			})
 		} catch (error) {
-			return failure(`Semantic search failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
+			return failure(
+				`Semantic search failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+			)
 		}
 	},
 })
@@ -103,7 +106,9 @@ export const memorySearchTool = createTool({
 				count: results.count,
 			})
 		} catch (error) {
-			return failure(`Memory search failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
+			return failure(
+				`Memory search failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+			)
 		}
 	},
 })
@@ -111,6 +116,6 @@ export const memorySearchTool = createTool({
 /**
  * Get all search tools.
  */
-export function getSearchTools(context: ToolContext) {
+export function getSearchTools(_context: ToolContext) {
 	return [semanticSearchTool, memorySearchTool]
 }

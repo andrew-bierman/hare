@@ -7,7 +7,7 @@ describe('Workspaces API', () => {
 			const res = await app.request('/api/workspaces')
 			expect(res.status).toBe(401)
 
-			const json = await res.json() as { error: string }
+			const json = (await res.json()) as { error: string }
 			expect(json.error).toBe('Unauthorized')
 		})
 

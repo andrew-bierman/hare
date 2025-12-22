@@ -1,9 +1,15 @@
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
 import { and, eq, gte, lte, sql } from 'drizzle-orm'
+import { agents, usage } from 'web-app/db/schema'
 import { getDb } from '../db'
-import { AgentUsageResponseSchema, ErrorSchema, IdParamSchema, UsageQuerySchema, UsageResponseSchema } from '../schemas'
-import { usage, agents } from 'web-app/db/schema'
 import { authMiddleware, workspaceMiddleware } from '../middleware'
+import {
+	AgentUsageResponseSchema,
+	ErrorSchema,
+	IdParamSchema,
+	UsageQuerySchema,
+	UsageResponseSchema,
+} from '../schemas'
 import type { WorkspaceEnv } from '../types'
 
 // Define routes
@@ -12,7 +18,8 @@ const getWorkspaceUsageRoute = createRoute({
 	path: '/',
 	tags: ['Usage'],
 	summary: 'Get workspace usage statistics',
-	description: 'Retrieve usage statistics for the workspace, optionally filtered by date range and agent',
+	description:
+		'Retrieve usage statistics for the workspace, optionally filtered by date range and agent',
 	request: {
 		query: UsageQuerySchema.extend({
 			workspaceId: z.string().describe('Workspace ID'),
@@ -86,7 +93,6 @@ app.openapi(getWorkspaceUsageRoute, async (c) => {
 	const { startDate, endDate } = c.req.valid('query')
 	const db = await getDb(c)
 	const workspace = c.get('workspace')
-
 
 	const defaultStartDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
 	const defaultEndDate = new Date().toISOString()
@@ -168,7 +174,7 @@ app.openapi(getWorkspaceUsageRoute, async (c) => {
 				endDate: endDate || defaultEndDate,
 			},
 		},
-		200
+		200,
 	)
 })
 
@@ -176,7 +182,6 @@ app.openapi(getAgentUsageRoute, async (c) => {
 	const { id: agentId } = c.req.valid('param')
 	const db = await getDb(c)
 	const workspace = c.get('workspace')
-
 
 	// Verify agent belongs to workspace
 	const [agent] = await db
@@ -252,7 +257,7 @@ app.openapi(getAgentUsageRoute, async (c) => {
 				})),
 			},
 		},
-		200
+		200,
 	)
 })
 

@@ -1,10 +1,10 @@
 'use client'
 
+import { Badge } from '@workspace/ui/components/badge'
+import { cn } from '@workspace/ui/lib/utils'
 import { Activity, Bot, Home, Settings, Sparkles, Wrench } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { cn } from '@workspace/ui/lib/utils'
-import { Badge } from '@workspace/ui/components/badge'
 import { WorkspaceSwitcher } from './workspace-switcher'
 
 const routes = [
@@ -56,7 +56,7 @@ export function Sidebar() {
 									'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium min-h-[44px]',
 									active
 										? 'bg-primary text-primary-foreground'
-										: 'text-muted-foreground hover:bg-muted hover:text-foreground'
+										: 'text-muted-foreground hover:bg-muted hover:text-foreground',
 								)}
 							>
 								<route.icon className="h-5 w-5 flex-shrink-0" />

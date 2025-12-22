@@ -1,14 +1,24 @@
 import { z } from 'zod'
-import { createTool, success, failure, type ToolContext } from './types'
+import { createTool, failure, success, type ToolContext } from './types'
 
 /**
  * Markdown Tool - Parse and render Markdown
  */
 export const markdownTool = createTool({
 	id: 'markdown',
-	description: 'Parse Markdown to HTML or extract structure (headings, links, images, code blocks).',
+	description:
+		'Parse Markdown to HTML or extract structure (headings, links, images, code blocks).',
 	inputSchema: z.object({
-		operation: z.enum(['toHtml', 'toText', 'extractHeadings', 'extractLinks', 'extractCodeBlocks', 'extractAll']).describe('Operation to perform'),
+		operation: z
+			.enum([
+				'toHtml',
+				'toText',
+				'extractHeadings',
+				'extractLinks',
+				'extractCodeBlocks',
+				'extractAll',
+			])
+			.describe('Operation to perform'),
 		markdown: z.string().describe('Markdown content to process'),
 		options: z
 			.object({
@@ -17,9 +27,9 @@ export const markdownTool = createTool({
 			})
 			.optional(),
 	}),
-	execute: async (params, context) => {
+	execute: async (params, _context) => {
 		const { operation, markdown, options } = params
-		const { sanitize = true, gfm = true } = options || {}
+		const { sanitize: _sanitize = true, gfm = true } = options || {}
 
 		// Simple markdown parser
 		const escapeHtml = (text: string): string => {
@@ -82,7 +92,7 @@ export const markdownTool = createTool({
 			// Paragraphs (basic)
 			html = html.replace(/\n\n/g, '</p><p>')
 			if (!html.startsWith('<')) {
-				html = '<p>' + html + '</p>'
+				html = `<p>${html}</p>`
 			}
 
 			// Clean up empty paragraphs
@@ -94,8 +104,7 @@ export const markdownTool = createTool({
 		const extractHeadings = (md: string): Array<{ level: number; text: string }> => {
 			const headings: Array<{ level: number; text: string }> = []
 			const regex = /^(#{1,6}) (.+)$/gm
-			let match
-			while ((match = regex.exec(md)) !== null) {
+			for (const match of md.matchAll(regex)) {
 				headings.push({ level: match[1].length, text: match[2] })
 			}
 			return headings
@@ -106,14 +115,13 @@ export const markdownTool = createTool({
 
 			// Images
 			const imgRegex = /!\[([^\]]*)\]\(([^)]+)\)/g
-			let match
-			while ((match = imgRegex.exec(md)) !== null) {
+			for (const match of md.matchAll(imgRegex)) {
 				links.push({ text: match[1], url: match[2], isImage: true })
 			}
 
 			// Links
 			const linkRegex = /(?<!!)\[([^\]]+)\]\(([^)]+)\)/g
-			while ((match = linkRegex.exec(md)) !== null) {
+			for (const match of md.matchAll(linkRegex)) {
 				links.push({ text: match[1], url: match[2], isImage: false })
 			}
 
@@ -123,8 +131,7 @@ export const markdownTool = createTool({
 		const extractCodeBlocks = (md: string): Array<{ language: string; code: string }> => {
 			const blocks: Array<{ language: string; code: string }> = []
 			const regex = /```(\w+)?\n([\s\S]*?)```/g
-			let match
-			while ((match = regex.exec(md)) !== null) {
+			for (const match of md.matchAll(regex)) {
 				blocks.push({ language: match[1] || 'text', code: match[2].trim() })
 			}
 			return blocks
@@ -134,9 +141,9 @@ export const markdownTool = createTool({
 			case 'toHtml':
 				return success({ html: parseMarkdown(markdown) })
 
-			case 'toText':
+			case 'toText': {
 				// Strip all markdown syntax
-				let text = markdown
+				const text = markdown
 					.replace(/```[\s\S]*?```/g, '') // Remove code blocks
 					.replace(/`[^`]+`/g, '') // Remove inline code
 					.replace(/!\[[^\]]*\]\([^)]+\)/g, '') // Remove images
@@ -153,6 +160,7 @@ export const markdownTool = createTool({
 					.replace(/^(-{3,}|\*{3,}|_{3,})$/gm, '') // HR
 					.trim()
 				return success({ text })
+			}
 
 			case 'extractHeadings':
 				return success({ headings: extractHeadings(markdown) })
@@ -185,11 +193,15 @@ export const diffTool = createTool({
 	inputSchema: z.object({
 		original: z.string().describe('Original text'),
 		modified: z.string().describe('Modified text'),
-		mode: z.enum(['lines', 'words', 'chars']).optional().default('lines').describe('Comparison mode'),
+		mode: z
+			.enum(['lines', 'words', 'chars'])
+			.optional()
+			.default('lines')
+			.describe('Comparison mode'),
 		context: z.number().optional().default(3).describe('Lines of context around changes'),
 	}),
-	execute: async (params, context) => {
-		const { original, modified, mode, context: contextLines } = params
+	execute: async (params, _context) => {
+		const { original, modified, mode, context: _contextLines } = params
 
 		type Change = {
 			type: 'equal' | 'add' | 'delete'
@@ -316,12 +328,21 @@ export const diffTool = createTool({
  */
 export const qrcodeTool = createTool({
 	id: 'qrcode',
-	description: 'Generate QR codes as SVG. Can encode URLs, text, vCards, WiFi credentials, and more.',
+	description:
+		'Generate QR codes as SVG. Can encode URLs, text, vCards, WiFi credentials, and more.',
 	inputSchema: z.object({
 		data: z.string().min(1).max(2000).describe('Data to encode in the QR code'),
-		type: z.enum(['text', 'url', 'email', 'phone', 'sms', 'wifi', 'vcard']).optional().default('text').describe('Data type'),
+		type: z
+			.enum(['text', 'url', 'email', 'phone', 'sms', 'wifi', 'vcard'])
+			.optional()
+			.default('text')
+			.describe('Data type'),
 		size: z.number().optional().default(200).describe('QR code size in pixels'),
-		errorCorrection: z.enum(['L', 'M', 'Q', 'H']).optional().default('M').describe('Error correction level'),
+		errorCorrection: z
+			.enum(['L', 'M', 'Q', 'H'])
+			.optional()
+			.default('M')
+			.describe('Error correction level'),
 		// Type-specific options
 		wifiOptions: z
 			.object({
@@ -343,7 +364,7 @@ export const qrcodeTool = createTool({
 			})
 			.optional(),
 	}),
-	execute: async (params, context) => {
+	execute: async (params, _context) => {
 		const { data, type, size, errorCorrection, wifiOptions, vcardOptions } = params
 
 		// Format data based on type
@@ -376,7 +397,7 @@ export const qrcodeTool = createTool({
 						'BEGIN:VCARD',
 						'VERSION:3.0',
 						`N:${lastName || ''};${firstName};;;`,
-						`FN:${firstName}${lastName ? ' ' + lastName : ''}`,
+						`FN:${firstName}${lastName ? ` ${lastName}` : ''}`,
 						phone ? `TEL:${phone}` : '',
 						email ? `EMAIL:${email}` : '',
 						company ? `ORG:${company}` : '',
@@ -392,7 +413,7 @@ export const qrcodeTool = createTool({
 
 		// Simple QR code matrix generation (Reed-Solomon encoding simplified)
 		// For production, use a proper QR code library
-		const generateMatrix = (data: string, ecLevel: string): boolean[][] => {
+		const generateMatrix = (data: string, _ecLevel: string): boolean[][] => {
 			// This is a simplified placeholder - in production use a real QR library
 			const dataLength = data.length
 			const size = Math.max(21, Math.ceil(Math.sqrt(dataLength * 8)) + 8)
@@ -432,7 +453,11 @@ export const qrcodeTool = createTool({
 
 			for (let col = size - 1; col >= 0; col -= 2) {
 				if (col === 6) col--
-				for (let row = col % 4 < 2 ? size - 1 : 0; col % 4 < 2 ? row >= 0 : row < size; col % 4 < 2 ? row-- : row++) {
+				for (
+					let row = col % 4 < 2 ? size - 1 : 0;
+					col % 4 < 2 ? row >= 0 : row < size;
+					col % 4 < 2 ? row-- : row++
+				) {
 					for (let c = 0; c < 2; c++) {
 						const x = col - c
 						if (matrix[row]?.[x] === undefined) continue
@@ -488,14 +513,23 @@ export const qrcodeTool = createTool({
  */
 export const compressionTool = createTool({
 	id: 'compression',
-	description: 'Compress or decompress data using gzip or deflate. Works with text or base64 binary data.',
+	description:
+		'Compress or decompress data using gzip or deflate. Works with text or base64 binary data.',
 	inputSchema: z.object({
 		operation: z.enum(['compress', 'decompress']).describe('Operation to perform'),
 		data: z.string().describe('Data to compress/decompress'),
-		algorithm: z.enum(['gzip', 'deflate']).optional().default('gzip').describe('Compression algorithm'),
-		encoding: z.enum(['text', 'base64']).optional().default('text').describe('Input/output encoding'),
+		algorithm: z
+			.enum(['gzip', 'deflate'])
+			.optional()
+			.default('gzip')
+			.describe('Compression algorithm'),
+		encoding: z
+			.enum(['text', 'base64'])
+			.optional()
+			.default('text')
+			.describe('Input/output encoding'),
 	}),
-	execute: async (params, context) => {
+	execute: async (params, _context) => {
 		const { operation, data, algorithm, encoding } = params
 
 		try {
@@ -568,7 +602,10 @@ export const compressionTool = createTool({
 					offset += chunk.length
 				}
 
-				const output = encoding === 'base64' ? btoa(String.fromCharCode(...decompressed)) : new TextDecoder().decode(decompressed)
+				const output =
+					encoding === 'base64'
+						? btoa(String.fromCharCode(...decompressed))
+						: new TextDecoder().decode(decompressed)
 
 				return success({
 					decompressed: output,
@@ -578,7 +615,9 @@ export const compressionTool = createTool({
 				})
 			}
 		} catch (error) {
-			return failure(`Compression error: ${error instanceof Error ? error.message : 'Unknown error'}`)
+			return failure(
+				`Compression error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+			)
 		}
 	},
 })
@@ -588,16 +627,23 @@ export const compressionTool = createTool({
  */
 export const colorTool = createTool({
 	id: 'color',
-	description: 'Convert between color formats (hex, rgb, hsl) and perform color operations (lighten, darken, blend).',
+	description:
+		'Convert between color formats (hex, rgb, hsl) and perform color operations (lighten, darken, blend).',
 	inputSchema: z.object({
-		operation: z.enum(['convert', 'lighten', 'darken', 'blend', 'complement', 'palette', 'contrast']).describe('Operation'),
+		operation: z
+			.enum(['convert', 'lighten', 'darken', 'blend', 'complement', 'palette', 'contrast'])
+			.describe('Operation'),
 		color: z.string().describe('Color value (hex, rgb, hsl, or named color)'),
-		format: z.enum(['hex', 'rgb', 'hsl', 'all']).optional().default('hex').describe('Output format'),
+		format: z
+			.enum(['hex', 'rgb', 'hsl', 'all'])
+			.optional()
+			.default('hex')
+			.describe('Output format'),
 		amount: z.number().optional().default(0.2).describe('Amount for lighten/darken (0-1)'),
 		color2: z.string().optional().describe('Second color for blend operation'),
 		blendRatio: z.number().optional().default(0.5).describe('Blend ratio (0-1)'),
 	}),
-	execute: async (params, context) => {
+	execute: async (params, _context) => {
 		const { operation, color, format, amount, color2, blendRatio } = params
 
 		// Parse color to RGB
@@ -683,7 +729,9 @@ export const colorTool = createTool({
 			s /= 100
 			l /= 100
 
-			let r, g, b
+			let r: number
+			let g: number
+			let b: number
 
 			if (s === 0) {
 				r = g = b = l
@@ -771,7 +819,12 @@ export const colorTool = createTool({
 					g: Math.round(rgb.g * (1 - blendRatio) + rgb2.g * blendRatio),
 					b: Math.round(rgb.b * (1 - blendRatio) + rgb2.b * blendRatio),
 				}
-				return success({ color1: color, color2, ratio: blendRatio, blended: formatOutput(blended, format) })
+				return success({
+					color1: color,
+					color2,
+					ratio: blendRatio,
+					blended: formatOutput(blended, format),
+				})
 			}
 
 			case 'palette': {
@@ -790,7 +843,7 @@ export const colorTool = createTool({
 				const luminance = (r: number, g: number, b: number): number => {
 					const [rs, gs, bs] = [r, g, b].map((c) => {
 						c /= 255
-						return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4)
+						return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4
 					})
 					return 0.2126 * rs + 0.7152 * gs + 0.0722 * bs
 				}
@@ -823,6 +876,6 @@ export const colorTool = createTool({
 /**
  * Get all transform tools
  */
-export function getTransformTools(context: ToolContext) {
+export function getTransformTools(_context: ToolContext) {
 	return [markdownTool, diffTool, qrcodeTool, compressionTool, colorTool]
 }

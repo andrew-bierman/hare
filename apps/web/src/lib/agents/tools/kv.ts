@@ -1,15 +1,20 @@
 import { z } from 'zod'
-import { createTool, success, failure, type ToolContext } from './types'
+import { createTool, failure, success, type ToolContext } from './types'
 
 /**
  * KV Get Tool - Retrieve a value from Cloudflare KV.
  */
 export const kvGetTool = createTool({
 	id: 'kv_get',
-	description: 'Retrieve a value from Cloudflare KV storage by key. Returns the stored value or null if not found.',
+	description:
+		'Retrieve a value from Cloudflare KV storage by key. Returns the stored value or null if not found.',
 	inputSchema: z.object({
 		key: z.string().describe('The key to retrieve from KV storage'),
-		type: z.enum(['text', 'json', 'arrayBuffer']).optional().default('text').describe('The type to return the value as'),
+		type: z
+			.enum(['text', 'json', 'arrayBuffer'])
+			.optional()
+			.default('text')
+			.describe('The type to return the value as'),
 	}),
 	execute: async (params, context) => {
 		const kv = context.env.KV
@@ -32,7 +37,9 @@ export const kvGetTool = createTool({
 
 			return success({ key: params.key, value, found: value !== null })
 		} catch (error) {
-			return failure(`Failed to get key "${params.key}": ${error instanceof Error ? error.message : 'Unknown error'}`)
+			return failure(
+				`Failed to get key "${params.key}": ${error instanceof Error ? error.message : 'Unknown error'}`,
+			)
 		}
 	},
 })
@@ -47,7 +54,10 @@ export const kvPutTool = createTool({
 		key: z.string().describe('The key to store the value under'),
 		value: z.string().describe('The value to store'),
 		expirationTtl: z.number().optional().describe('Time to live in seconds'),
-		metadata: z.record(z.string(), z.unknown()).optional().describe('Optional metadata to store with the key'),
+		metadata: z
+			.record(z.string(), z.unknown())
+			.optional()
+			.describe('Optional metadata to store with the key'),
 	}),
 	execute: async (params, context) => {
 		const kv = context.env.KV
@@ -67,7 +77,9 @@ export const kvPutTool = createTool({
 			await kv.put(params.key, params.value, options)
 			return success({ key: params.key, stored: true })
 		} catch (error) {
-			return failure(`Failed to put key "${params.key}": ${error instanceof Error ? error.message : 'Unknown error'}`)
+			return failure(
+				`Failed to put key "${params.key}": ${error instanceof Error ? error.message : 'Unknown error'}`,
+			)
 		}
 	},
 })
@@ -91,7 +103,9 @@ export const kvDeleteTool = createTool({
 			await kv.delete(params.key)
 			return success({ key: params.key, deleted: true })
 		} catch (error) {
-			return failure(`Failed to delete key "${params.key}": ${error instanceof Error ? error.message : 'Unknown error'}`)
+			return failure(
+				`Failed to delete key "${params.key}": ${error instanceof Error ? error.message : 'Unknown error'}`,
+			)
 		}
 	},
 })
@@ -126,12 +140,18 @@ export const kvListTool = createTool({
 
 			const result = await kv.list(options)
 			return success({
-				keys: result.keys.map((k) => ({ name: k.name, expiration: k.expiration, metadata: k.metadata })),
+				keys: result.keys.map((k) => ({
+					name: k.name,
+					expiration: k.expiration,
+					metadata: k.metadata,
+				})),
 				complete: result.list_complete,
 				cursor: result.list_complete ? undefined : (result as { cursor?: string }).cursor,
 			})
 		} catch (error) {
-			return failure(`Failed to list keys: ${error instanceof Error ? error.message : 'Unknown error'}`)
+			return failure(
+				`Failed to list keys: ${error instanceof Error ? error.message : 'Unknown error'}`,
+			)
 		}
 	},
 })
@@ -139,6 +159,6 @@ export const kvListTool = createTool({
 /**
  * Get all KV tools.
  */
-export function getKVTools(context: ToolContext) {
+export function getKVTools(_context: ToolContext) {
 	return [kvGetTool, kvPutTool, kvDeleteTool, kvListTool]
 }

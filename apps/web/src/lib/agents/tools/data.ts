@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { createTool, success, failure, type ToolContext } from './types'
+import { createTool, failure, success, type ToolContext } from './types'
 
 /**
  * RSS Feed Tool - Fetch and parse RSS/Atom feeds.
@@ -12,7 +12,7 @@ export const rssTool = createTool({
 		limit: z.number().optional().default(10).describe('Maximum number of items to return'),
 		includeContent: z.boolean().optional().default(false).describe('Include full content of items'),
 	}),
-	execute: async (params, context) => {
+	execute: async (params, _context) => {
 		try {
 			const { url, limit, includeContent } = params
 
@@ -30,7 +30,7 @@ export const rssTool = createTool({
 			const xml = await response.text()
 
 			// Simple XML parser for RSS/Atom
-			const parseXml = (text: string) => {
+			const parseXml = (_text: string) => {
 				const getTagContent = (tag: string, content: string): string | null => {
 					const regex = new RegExp(`<${tag}[^>]*>([\\s\\S]*?)</${tag}>`, 'i')
 					const match = content.match(regex)
@@ -67,7 +67,7 @@ export const rssTool = createTool({
 						author?: string
 					}> = []
 
-					let match
+					let match: RegExpExecArray | null
 					while ((match = entryRegex.exec(xml)) !== null && entries.length < limit) {
 						const entry = match[1]
 						entries.push({
@@ -75,7 +75,9 @@ export const rssTool = createTool({
 							link: getAttr('link', 'href', entry) || getTagContent('id', entry) || '',
 							published: getTagContent('published', entry) || getTagContent('updated', entry) || '',
 							summary: getCdataContent(getTagContent('summary', entry) || ''),
-							...(includeContent && { content: getCdataContent(getTagContent('content', entry) || '') }),
+							...(includeContent && {
+								content: getCdataContent(getTagContent('content', entry) || ''),
+							}),
 							author: getTagContent('name', getTagContent('author', entry) || '') || undefined,
 						})
 					}
@@ -106,15 +108,14 @@ export const rssTool = createTool({
 						categories?: string[]
 					}> = []
 
-					let match
+					let match: RegExpExecArray | null
 					while ((match = itemRegex.exec(xml)) !== null && items.length < limit) {
 						const item = match[1]
 
 						// Extract categories
 						const categories: string[] = []
 						const catRegex = /<category[^>]*>([^<]+)<\/category>/gi
-						let catMatch
-						while ((catMatch = catRegex.exec(item)) !== null) {
+						for (const catMatch of item.matchAll(catRegex)) {
 							categories.push(getCdataContent(catMatch[1]))
 						}
 
@@ -125,10 +126,13 @@ export const rssTool = createTool({
 							description: getCdataContent(getTagContent('description', item) || ''),
 							...(includeContent && {
 								content: getCdataContent(
-									getTagContent('content:encoded', item) || getTagContent('description', item) || ''
+									getTagContent('content:encoded', item) ||
+										getTagContent('description', item) ||
+										'',
 								),
 							}),
-							author: getTagContent('author', item) || getTagContent('dc:creator', item) || undefined,
+							author:
+								getTagContent('author', item) || getTagContent('dc:creator', item) || undefined,
 							...(categories.length > 0 && { categories }),
 						})
 					}
@@ -171,11 +175,14 @@ export const scrapeTool = createTool({
 			.optional()
 			.default('text')
 			.describe('What to extract from the page'),
-		selector: z.string().optional().describe('CSS-like selector pattern to extract specific content'),
+		selector: z
+			.string()
+			.optional()
+			.describe('CSS-like selector pattern to extract specific content'),
 		maxLength: z.number().optional().default(10000).describe('Maximum content length to return'),
 		timeout: z.number().optional().default(10000).describe('Request timeout in milliseconds'),
 	}),
-	execute: async (params, context) => {
+	execute: async (params, _context) => {
 		try {
 			const { url, extract, selector, maxLength, timeout } = params
 
@@ -184,8 +191,7 @@ export const scrapeTool = createTool({
 
 			const response = await fetch(url, {
 				headers: {
-					'User-Agent':
-						'Mozilla/5.0 (compatible; Hare-Agent/1.0; +https://hare.dev)',
+					'User-Agent': 'Mozilla/5.0 (compatible; Hare-Agent/1.0; +https://hare.dev)',
 					Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
 				},
 				signal: controller.signal,
@@ -202,7 +208,7 @@ export const scrapeTool = createTool({
 			// Helper functions for HTML parsing
 			const extractText = (html: string): string => {
 				// Remove scripts, styles, and comments
-				let text = html
+				const text = html
 					.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
 					.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
 					.replace(/<!--[\s\S]*?-->/g, '')
@@ -222,8 +228,7 @@ export const scrapeTool = createTool({
 			const extractLinks = (html: string): Array<{ text: string; href: string }> => {
 				const links: Array<{ text: string; href: string }> = []
 				const regex = /<a[^>]+href=["']([^"']+)["'][^>]*>([^<]*)<\/a>/gi
-				let match
-				while ((match = regex.exec(html)) !== null) {
+				for (const match of html.matchAll(regex)) {
 					const href = match[1]
 					const text = match[2].trim()
 					if (href && text) {
@@ -236,8 +241,7 @@ export const scrapeTool = createTool({
 			const extractImages = (html: string): Array<{ src: string; alt: string }> => {
 				const images: Array<{ src: string; alt: string }> = []
 				const regex = /<img[^>]+src=["']([^"']+)["'][^>]*(?:alt=["']([^"']*)["'])?/gi
-				let match
-				while ((match = regex.exec(html)) !== null) {
+				for (const match of html.matchAll(regex)) {
 					images.push({
 						src: match[1],
 						alt: match[2] || '',
@@ -249,8 +253,7 @@ export const scrapeTool = createTool({
 			const extractHeadings = (html: string): Array<{ level: number; text: string }> => {
 				const headings: Array<{ level: number; text: string }> = []
 				const regex = /<h([1-6])[^>]*>([^<]*)<\/h[1-6]>/gi
-				let match
-				while ((match = regex.exec(html)) !== null) {
+				for (const match of html.matchAll(regex)) {
 					headings.push({
 						level: parseInt(match[1], 10),
 						text: match[2].trim(),
@@ -260,7 +263,7 @@ export const scrapeTool = createTool({
 			}
 
 			const extractMeta = (
-				html: string
+				html: string,
 			): {
 				title: string
 				description: string
@@ -270,7 +273,10 @@ export const scrapeTool = createTool({
 				ogImage: string
 			} => {
 				const getMetaContent = (name: string): string => {
-					const regex = new RegExp(`<meta[^>]+(?:name|property)=["']${name}["'][^>]+content=["']([^"']+)["']`, 'i')
+					const regex = new RegExp(
+						`<meta[^>]+(?:name|property)=["']${name}["'][^>]+content=["']([^"']+)["']`,
+						'i',
+					)
 					const match = html.match(regex)
 					return match ? match[1] : ''
 				}
@@ -299,14 +305,16 @@ export const scrapeTool = createTool({
 				} else if (sel.startsWith('.')) {
 					// Class selector
 					const className = sel.slice(1)
-					regex = new RegExp(`<[^>]+class=["'][^"']*${className}[^"']*["'][^>]*>([\\s\\S]*?)</[^>]+>`, 'gi')
+					regex = new RegExp(
+						`<[^>]+class=["'][^"']*${className}[^"']*["'][^>]*>([\\s\\S]*?)</[^>]+>`,
+						'gi',
+					)
 				} else {
 					// Tag selector
 					regex = new RegExp(`<${sel}[^>]*>([\\s\\S]*?)</${sel}>`, 'gi')
 				}
 
-				let match
-				while ((match = regex.exec(html)) !== null) {
+				for (const match of html.matchAll(regex)) {
 					results.push(extractText(match[1]))
 				}
 
@@ -368,14 +376,16 @@ export const regexTool = createTool({
 	description:
 		'Work with regular expressions: test patterns, find matches, extract groups, or replace text.',
 	inputSchema: z.object({
-		operation: z.enum(['test', 'match', 'matchAll', 'replace', 'split', 'extract']).describe('Regex operation'),
+		operation: z
+			.enum(['test', 'match', 'matchAll', 'replace', 'split', 'extract'])
+			.describe('Regex operation'),
 		text: z.string().describe('Text to operate on'),
 		pattern: z.string().describe('Regular expression pattern'),
 		flags: z.string().optional().default('g').describe('Regex flags (g, i, m, s, u)'),
 		replacement: z.string().optional().describe('Replacement string for replace operation'),
 		groupNames: z.array(z.string()).optional().describe('Names for captured groups in extract'),
 	}),
-	execute: async (params, context) => {
+	execute: async (params, _context) => {
 		try {
 			const { operation, text, pattern, flags, replacement, groupNames } = params
 
@@ -415,7 +425,7 @@ export const regexTool = createTool({
 					}> = []
 
 					// Ensure global flag for matchAll
-					const globalRegex = new RegExp(pattern, flags.includes('g') ? flags : flags + 'g')
+					const globalRegex = new RegExp(pattern, flags.includes('g') ? flags : `${flags}g`)
 
 					for (const match of text.matchAll(globalRegex)) {
 						matches.push({
@@ -454,7 +464,7 @@ export const regexTool = createTool({
 
 				case 'extract': {
 					// Extract all captured groups
-					const globalRegex = new RegExp(pattern, flags.includes('g') ? flags : flags + 'g')
+					const globalRegex = new RegExp(pattern, flags.includes('g') ? flags : `${flags}g`)
 					const extracted: Array<Record<string, string>> = []
 
 					for (const match of text.matchAll(globalRegex)) {
@@ -493,13 +503,15 @@ export const cryptoTool = createTool({
 	id: 'crypto',
 	description: 'Encrypt or decrypt data using AES-GCM. Generate secure random values.',
 	inputSchema: z.object({
-		operation: z.enum(['encrypt', 'decrypt', 'generateKey', 'randomBytes']).describe('Crypto operation'),
+		operation: z
+			.enum(['encrypt', 'decrypt', 'generateKey', 'randomBytes'])
+			.describe('Crypto operation'),
 		data: z.string().optional().describe('Data to encrypt/decrypt'),
 		key: z.string().optional().describe('Base64-encoded encryption key (256-bit)'),
 		iv: z.string().optional().describe('Base64-encoded initialization vector (for decrypt)'),
 		bytes: z.number().optional().default(32).describe('Number of random bytes to generate'),
 	}),
-	execute: async (params, context) => {
+	execute: async (params, _context) => {
 		try {
 			const { operation, data, key, iv, bytes } = params
 
@@ -508,7 +520,7 @@ export const cryptoTool = createTool({
 					const cryptoKey = await crypto.subtle.generateKey(
 						{ name: 'AES-GCM', length: 256 },
 						true,
-						['encrypt', 'decrypt']
+						['encrypt', 'decrypt'],
 					)
 					const exported = await crypto.subtle.exportKey('raw', cryptoKey)
 					const keyBase64 = btoa(String.fromCharCode(...new Uint8Array(exported)))
@@ -540,7 +552,9 @@ export const cryptoTool = createTool({
 					if (!key) return failure('Key required for encryption')
 
 					const keyBytes = Uint8Array.from(atob(key), (c) => c.charCodeAt(0))
-					const cryptoKey = await crypto.subtle.importKey('raw', keyBytes, 'AES-GCM', false, ['encrypt'])
+					const cryptoKey = await crypto.subtle.importKey('raw', keyBytes, 'AES-GCM', false, [
+						'encrypt',
+					])
 
 					const ivBytes = new Uint8Array(12)
 					crypto.getRandomValues(ivBytes)
@@ -548,7 +562,11 @@ export const cryptoTool = createTool({
 					const encoder = new TextEncoder()
 					const dataBytes = encoder.encode(data)
 
-					const encrypted = await crypto.subtle.encrypt({ name: 'AES-GCM', iv: ivBytes }, cryptoKey, dataBytes)
+					const encrypted = await crypto.subtle.encrypt(
+						{ name: 'AES-GCM', iv: ivBytes },
+						cryptoKey,
+						dataBytes,
+					)
 
 					const encryptedBase64 = btoa(String.fromCharCode(...new Uint8Array(encrypted)))
 					const ivBase64 = btoa(String.fromCharCode(...ivBytes))
@@ -566,12 +584,18 @@ export const cryptoTool = createTool({
 					if (!iv) return failure('IV required for decryption')
 
 					const keyBytes = Uint8Array.from(atob(key), (c) => c.charCodeAt(0))
-					const cryptoKey = await crypto.subtle.importKey('raw', keyBytes, 'AES-GCM', false, ['decrypt'])
+					const cryptoKey = await crypto.subtle.importKey('raw', keyBytes, 'AES-GCM', false, [
+						'decrypt',
+					])
 
 					const ivBytes = Uint8Array.from(atob(iv), (c) => c.charCodeAt(0))
 					const encryptedBytes = Uint8Array.from(atob(data), (c) => c.charCodeAt(0))
 
-					const decrypted = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: ivBytes }, cryptoKey, encryptedBytes)
+					const decrypted = await crypto.subtle.decrypt(
+						{ name: 'AES-GCM', iv: ivBytes },
+						cryptoKey,
+						encryptedBytes,
+					)
 
 					const decoder = new TextDecoder()
 					const decryptedText = decoder.decode(decrypted)
@@ -615,20 +639,27 @@ export const jsonSchemaTool = createTool({
 			.passthrough()
 			.describe('JSON Schema to validate against'),
 	}),
-	execute: async (params, context) => {
+	execute: async (params, _context) => {
 		try {
 			const { data, schema } = params
 
 			const errors: Array<{ path: string; message: string }> = []
 
-			const validate = (value: unknown, schemaNode: Record<string, unknown>, path: string = ''): boolean => {
+			const validate = (
+				value: unknown,
+				schemaNode: Record<string, unknown>,
+				path: string = '',
+			): boolean => {
 				// Type validation
 				if (schemaNode.type) {
 					const expectedType = schemaNode.type as string
 					const actualType = Array.isArray(value) ? 'array' : value === null ? 'null' : typeof value
 
 					if (expectedType !== actualType) {
-						errors.push({ path: path || 'root', message: `Expected ${expectedType}, got ${actualType}` })
+						errors.push({
+							path: path || 'root',
+							message: `Expected ${expectedType}, got ${actualType}`,
+						})
 						return false
 					}
 				}
@@ -647,10 +678,16 @@ export const jsonSchemaTool = createTool({
 
 				// String validations
 				if (typeof value === 'string') {
-					if (schemaNode.minLength !== undefined && value.length < (schemaNode.minLength as number)) {
+					if (
+						schemaNode.minLength !== undefined &&
+						value.length < (schemaNode.minLength as number)
+					) {
 						errors.push({ path, message: `String too short (min: ${schemaNode.minLength})` })
 					}
-					if (schemaNode.maxLength !== undefined && value.length > (schemaNode.maxLength as number)) {
+					if (
+						schemaNode.maxLength !== undefined &&
+						value.length > (schemaNode.maxLength as number)
+					) {
 						errors.push({ path, message: `String too long (max: ${schemaNode.maxLength})` })
 					}
 					if (schemaNode.pattern) {
@@ -679,7 +716,10 @@ export const jsonSchemaTool = createTool({
 					if (schemaNode.required) {
 						for (const req of schemaNode.required as string[]) {
 							if (!(req in obj)) {
-								errors.push({ path: path ? `${path}.${req}` : req, message: 'Required property missing' })
+								errors.push({
+									path: path ? `${path}.${req}` : req,
+									message: 'Required property missing',
+								})
 							}
 						}
 					}
@@ -689,7 +729,11 @@ export const jsonSchemaTool = createTool({
 						const props = schemaNode.properties as Record<string, unknown>
 						for (const [key, propSchema] of Object.entries(props)) {
 							if (key in obj) {
-								validate(obj[key], propSchema as Record<string, unknown>, path ? `${path}.${key}` : key)
+								validate(
+									obj[key],
+									propSchema as Record<string, unknown>,
+									path ? `${path}.${key}` : key,
+								)
 							}
 						}
 					}
@@ -716,7 +760,9 @@ export const jsonSchemaTool = createTool({
 				errorCount: errors.length,
 			})
 		} catch (error) {
-			return failure(`Schema validation error: ${error instanceof Error ? error.message : 'Unknown error'}`)
+			return failure(
+				`Schema validation error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+			)
 		}
 	},
 })
@@ -729,9 +775,9 @@ export const csvTool = createTool({
 	description: 'Parse CSV text to JSON or convert JSON arrays to CSV format.',
 	inputSchema: z.object({
 		operation: z.enum(['parse', 'stringify']).describe('CSV operation'),
-		data: z.union([z.string(), z.array(z.record(z.string(), z.unknown()))]).describe(
-			'CSV string to parse or array of objects to stringify'
-		),
+		data: z
+			.union([z.string(), z.array(z.record(z.string(), z.unknown()))])
+			.describe('CSV string to parse or array of objects to stringify'),
 		options: z
 			.object({
 				delimiter: z.string().optional().default(','),
@@ -741,10 +787,15 @@ export const csvTool = createTool({
 			})
 			.optional(),
 	}),
-	execute: async (params, context) => {
+	execute: async (params, _context) => {
 		try {
 			const { operation, data, options } = params
-			const { delimiter = ',', headers = true, customHeaders, skipEmptyLines = true } = options || {}
+			const {
+				delimiter = ',',
+				headers = true,
+				customHeaders,
+				skipEmptyLines = true,
+			} = options || {}
 
 			if (operation === 'parse') {
 				if (typeof data !== 'string') {
@@ -868,7 +919,8 @@ export const csvTool = createTool({
  */
 export const templateTool = createTool({
 	id: 'template',
-	description: 'Render templates with variable substitution. Supports Mustache-like {{variable}} syntax.',
+	description:
+		'Render templates with variable substitution. Supports Mustache-like {{variable}} syntax.',
 	inputSchema: z.object({
 		template: z.string().describe('Template string with {{variable}} placeholders'),
 		variables: z.record(z.string(), z.unknown()).describe('Variables to substitute'),
@@ -879,7 +931,7 @@ export const templateTool = createTool({
 			})
 			.optional(),
 	}),
-	execute: async (params, context) => {
+	execute: async (params, _context) => {
 		try {
 			const { template, variables, options } = params
 			const { missingBehavior = 'empty', escapeHtml = false } = options || {}
@@ -941,6 +993,6 @@ export const templateTool = createTool({
 /**
  * Get all data tools.
  */
-export function getDataTools(context: ToolContext) {
+export function getDataTools(_context: ToolContext) {
 	return [rssTool, scrapeTool, regexTool, cryptoTool, jsonSchemaTool, csvTool, templateTool]
 }

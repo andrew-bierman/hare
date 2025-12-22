@@ -1,4 +1,4 @@
-import { test, expect, type Page } from '@playwright/test'
+import { expect, type Page, test } from '@playwright/test'
 
 test.describe('Sidebar Navigation - All routes should load without 404', () => {
 	test('dashboard page loads correctly', async ({ page }: { page: Page }) => {

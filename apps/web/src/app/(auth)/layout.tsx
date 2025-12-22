@@ -32,9 +32,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
 						</p>
 					</div>
 
-					<div className="text-sm text-white/60">
-						Built with Cloudflare Workers
-					</div>
+					<div className="text-sm text-white/60">Built with Cloudflare Workers</div>
 				</div>
 			</div>
 

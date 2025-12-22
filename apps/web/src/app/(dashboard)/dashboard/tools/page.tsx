@@ -1,8 +1,5 @@
 'use client'
 
-import { Code, Database, Globe, HardDrive, Plus, Search, Trash2, Wrench } from 'lucide-react'
-import { type ChangeEvent, useState } from 'react'
-import { toast } from 'sonner'
 import { Badge } from '@workspace/ui/components/badge'
 import { Button } from '@workspace/ui/components/button'
 import {
@@ -32,14 +29,17 @@ import {
 } from '@workspace/ui/components/select'
 import { Skeleton } from '@workspace/ui/components/skeleton'
 import { Textarea } from '@workspace/ui/components/textarea'
+import { Code, Database, Globe, HardDrive, Plus, Search, Trash2, Wrench } from 'lucide-react'
+import { type ChangeEvent, useState } from 'react'
+import { toast } from 'sonner'
 import { useWorkspace } from 'web-app/components/providers/workspace-provider'
 import {
-	useTools,
+	TOOL_TYPES,
+	type Tool,
+	type ToolType,
 	useCreateTool,
 	useDeleteTool,
-	TOOL_TYPES,
-	type ToolType,
-	type Tool,
+	useTools,
 } from 'web-app/lib/api/hooks'
 
 const TOOL_ICONS: Record<ToolType, typeof Wrench> = {
@@ -109,7 +109,7 @@ export default function ToolsPage() {
 	const filteredTools = tools.filter(
 		(tool) =>
 			tool.name.toLowerCase().includes(search.toLowerCase()) ||
-			tool.description?.toLowerCase().includes(search.toLowerCase())
+			tool.description?.toLowerCase().includes(search.toLowerCase()),
 	)
 
 	const systemTools = filteredTools.filter((t) => t.isSystem)
@@ -317,7 +317,9 @@ export default function ToolsPage() {
 								id="tool-description"
 								placeholder="What does this tool do?"
 								value={newDescription}
-								onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setNewDescription(e.target.value)}
+								onChange={(e: ChangeEvent<HTMLTextAreaElement>) =>
+									setNewDescription(e.target.value)
+								}
 							/>
 						</div>
 						<div className="space-y-2">
@@ -366,18 +368,15 @@ export default function ToolsPage() {
 					<DialogHeader>
 						<DialogTitle>Delete Tool</DialogTitle>
 						<DialogDescription>
-							Are you sure you want to delete "{getToolToDelete()?.name}"? This action cannot be undone.
+							Are you sure you want to delete "{getToolToDelete()?.name}"? This action cannot be
+							undone.
 						</DialogDescription>
 					</DialogHeader>
 					<DialogFooter>
 						<Button variant="outline" onClick={() => setDeleteToolId(null)}>
 							Cancel
 						</Button>
-						<Button
-							variant="destructive"
-							onClick={handleDelete}
-							disabled={deleteTool.isPending}
-						>
+						<Button variant="destructive" onClick={handleDelete} disabled={deleteTool.isPending}>
 							{deleteTool.isPending ? 'Deleting...' : 'Delete'}
 						</Button>
 					</DialogFooter>

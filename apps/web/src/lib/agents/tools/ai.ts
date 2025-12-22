@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { createTool, success, failure, type ToolContext } from './types'
+import { createTool, failure, success, type ToolContext } from './types'
 
 /**
  * Sentiment Analysis Tool - Analyze the sentiment of text.
@@ -47,7 +47,9 @@ export const sentimentTool = createTool({
 				...(detailed && { allScores: sortedResults }),
 			})
 		} catch (error) {
-			return failure(`Sentiment analysis error: ${error instanceof Error ? error.message : 'Unknown error'}`)
+			return failure(
+				`Sentiment analysis error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+			)
 		}
 	},
 })
@@ -57,11 +59,16 @@ export const sentimentTool = createTool({
  */
 export const summarizeTool = createTool({
 	id: 'summarize',
-	description: 'Generate a concise summary of longer text content. Useful for distilling articles, documents, or conversations.',
+	description:
+		'Generate a concise summary of longer text content. Useful for distilling articles, documents, or conversations.',
 	inputSchema: z.object({
 		text: z.string().min(50).max(50000).describe('Text content to summarize'),
 		maxLength: z.number().optional().default(200).describe('Maximum summary length in words'),
-		style: z.enum(['brief', 'detailed', 'bullets']).optional().default('brief').describe('Summary style'),
+		style: z
+			.enum(['brief', 'detailed', 'bullets'])
+			.optional()
+			.default('brief')
+			.describe('Summary style'),
 	}),
 	execute: async (params, context) => {
 		try {
@@ -98,7 +105,9 @@ export const summarizeTool = createTool({
 				style,
 			})
 		} catch (error) {
-			return failure(`Summarization error: ${error instanceof Error ? error.message : 'Unknown error'}`)
+			return failure(
+				`Summarization error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+			)
 		}
 	},
 })
@@ -111,8 +120,15 @@ export const translateTool = createTool({
 	description: 'Translate text from one language to another. Supports many common languages.',
 	inputSchema: z.object({
 		text: z.string().min(1).max(10000).describe('Text to translate'),
-		targetLanguage: z.string().describe('Target language code (e.g., "es", "fr", "de", "ja", "zh", "ko", "pt", "it", "ru", "ar")'),
-		sourceLanguage: z.string().optional().describe('Source language code (auto-detect if not specified)'),
+		targetLanguage: z
+			.string()
+			.describe(
+				'Target language code (e.g., "es", "fr", "de", "ja", "zh", "ko", "pt", "it", "ru", "ar")',
+			),
+		sourceLanguage: z
+			.string()
+			.optional()
+			.describe('Source language code (auto-detect if not specified)'),
 	}),
 	execute: async (params, context) => {
 		try {
@@ -139,7 +155,9 @@ export const translateTool = createTool({
 				translatedLength: translatedText.length,
 			})
 		} catch (error) {
-			return failure(`Translation error: ${error instanceof Error ? error.message : 'Unknown error'}`)
+			return failure(
+				`Translation error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+			)
 		}
 	},
 })
@@ -149,7 +167,8 @@ export const translateTool = createTool({
  */
 export const imageGenerateTool = createTool({
 	id: 'image_generate',
-	description: 'Generate images from text descriptions using AI. Returns the image as base64-encoded data.',
+	description:
+		'Generate images from text descriptions using AI. Returns the image as base64-encoded data.',
 	inputSchema: z.object({
 		prompt: z.string().min(1).max(1000).describe('Description of the image to generate'),
 		negativePrompt: z.string().optional().describe('Things to avoid in the image'),
@@ -223,7 +242,9 @@ export const imageGenerateTool = createTool({
 				dataUrl: `data:image/png;base64,${base64Image}`,
 			})
 		} catch (error) {
-			return failure(`Image generation error: ${error instanceof Error ? error.message : 'Unknown error'}`)
+			return failure(
+				`Image generation error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+			)
 		}
 	},
 })
@@ -238,7 +259,11 @@ export const classifyTool = createTool({
 	inputSchema: z.object({
 		text: z.string().min(1).max(5000).describe('Text to classify'),
 		categories: z.array(z.string()).min(2).max(20).describe('List of possible categories'),
-		multiLabel: z.boolean().optional().default(false).describe('Allow multiple categories to match'),
+		multiLabel: z
+			.boolean()
+			.optional()
+			.default(false)
+			.describe('Allow multiple categories to match'),
 	}),
 	execute: async (params, context) => {
 		try {
@@ -274,7 +299,7 @@ Return only the single most appropriate category name.`
 				const resultCategories = result.split(',').map((s) => s.trim())
 				for (const rescat of resultCategories) {
 					const found = categories.find(
-						(cat) => cat.toLowerCase() === rescat || rescat.includes(cat.toLowerCase())
+						(cat) => cat.toLowerCase() === rescat || rescat.includes(cat.toLowerCase()),
 					)
 					if (found) matchedCategories.push(found)
 				}
@@ -287,7 +312,9 @@ Return only the single most appropriate category name.`
 				rawResponse: result,
 			})
 		} catch (error) {
-			return failure(`Classification error: ${error instanceof Error ? error.message : 'Unknown error'}`)
+			return failure(
+				`Classification error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+			)
 		}
 	},
 })
@@ -302,7 +329,9 @@ export const nerTool = createTool({
 	inputSchema: z.object({
 		text: z.string().min(1).max(10000).describe('Text to analyze for entities'),
 		entityTypes: z
-			.array(z.enum(['person', 'organization', 'location', 'date', 'money', 'email', 'phone', 'url']))
+			.array(
+				z.enum(['person', 'organization', 'location', 'date', 'money', 'email', 'phone', 'url']),
+			)
 			.optional()
 			.describe('Specific entity types to extract (all if not specified)'),
 	}),
@@ -314,9 +343,10 @@ export const nerTool = createTool({
 			const patterns: Record<string, RegExp> = {
 				email: /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/g,
 				phone: /(?:\+?1[-.\s]?)?\(?[0-9]{3}\)?[-.\s]?[0-9]{3}[-.\s]?[0-9]{4}/g,
-				url: /https?:\/\/(?:www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_\+.~#?&//=]*)/g,
-				money: /\$[\d,]+(?:\.\d{2})?|\d+(?:,\d{3})*(?:\.\d{2})?\s?(?:USD|EUR|GBP|JPY|dollars?|euros?|pounds?)/gi,
-				date: /(?:\d{1,2}[-\/]\d{1,2}[-\/]\d{2,4}|\d{4}[-\/]\d{1,2}[-\/]\d{1,2}|(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\.?\s+\d{1,2},?\s+\d{4})/gi,
+				url: /https?:\/\/(?:www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_+.~#?&//=]*)/g,
+				money:
+					/\$[\d,]+(?:\.\d{2})?|\d+(?:,\d{3})*(?:\.\d{2})?\s?(?:USD|EUR|GBP|JPY|dollars?|euros?|pounds?)/gi,
+				date: /(?:\d{1,2}[-/]\d{1,2}[-/]\d{2,4}|\d{4}[-/]\d{1,2}[-/]\d{1,2}|(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\.?\s+\d{1,2},?\s+\d{4})/gi,
 			}
 
 			const entities: Record<string, string[]> = {}
@@ -333,7 +363,7 @@ export const nerTool = createTool({
 
 			// Use AI for person, organization, location extraction
 			const aiTypes = ['person', 'organization', 'location'].filter(
-				(t) => !entityTypes || entityTypes.includes(t as any)
+				(t) => !entityTypes || entityTypes.includes(t as any),
 			)
 
 			if (aiTypes.length > 0) {
@@ -384,7 +414,8 @@ Text: "${text.slice(0, 3000)}"`
  */
 export const embeddingTool = createTool({
 	id: 'embedding',
-	description: 'Generate vector embeddings for text. Useful for semantic search, similarity comparison, and clustering.',
+	description:
+		'Generate vector embeddings for text. Useful for semantic search, similarity comparison, and clustering.',
 	inputSchema: z.object({
 		text: z.union([z.string(), z.array(z.string())]).describe('Text or array of texts to embed'),
 		model: z
@@ -434,7 +465,11 @@ export const qaTool = createTool({
 		options: z
 			.object({
 				maxLength: z.number().optional().default(200).describe('Maximum answer length'),
-				includeQuote: z.boolean().optional().default(false).describe('Include relevant quote from context'),
+				includeQuote: z
+					.boolean()
+					.optional()
+					.default(false)
+					.describe('Include relevant quote from context'),
 			})
 			.optional(),
 	}),
@@ -496,7 +531,7 @@ Answer:`
 /**
  * Get all AI tools.
  */
-export function getAITools(context: ToolContext) {
+export function getAITools(_context: ToolContext) {
 	return [
 		sentimentTool,
 		summarizeTool,
