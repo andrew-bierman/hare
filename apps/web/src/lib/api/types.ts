@@ -69,39 +69,50 @@ export interface ApiKeyVariables {
 }
 
 /**
+ * Base variables available in all routes (set by global middleware)
+ */
+export interface BaseVariables {
+	/** Request ID for tracing (set by requestId middleware) */
+	requestId?: string
+	/** Add timing entry (set by timing middleware) */
+	addTiming?: (name: string, duration: number, description?: string) => void
+}
+
+/**
  * Base Hono environment with Cloudflare bindings.
  * Use this as the base for all route handlers.
  */
 export interface HonoEnv {
 	Bindings: CloudflareEnv
+	Variables: BaseVariables
 }
 
 /**
  * Hono environment for auth-protected routes.
  */
 export interface AuthEnv extends HonoEnv {
-	Variables: AuthVariables
+	Variables: AuthVariables & BaseVariables
 }
 
 /**
  * Hono environment for workspace-scoped routes.
  */
 export interface WorkspaceEnv extends HonoEnv {
-	Variables: WorkspaceVariables
+	Variables: WorkspaceVariables & BaseVariables
 }
 
 /**
  * Hono environment for API key-authenticated routes.
  */
 export interface ApiKeyEnv extends HonoEnv {
-	Variables: ApiKeyVariables
+	Variables: ApiKeyVariables & BaseVariables
 }
 
 /**
  * Hono environment for optional auth routes.
  */
 export interface OptionalAuthEnv extends HonoEnv {
-	Variables: Partial<AuthVariables>
+	Variables: Partial<AuthVariables> & BaseVariables
 }
 
 // =============================================================================

@@ -66,7 +66,7 @@ export async function measureTiming<T>(
 		const end = performance.now()
 		const duration = end - start
 		const addTiming = c.get('addTiming')
-		if (addTiming && typeof addTiming === 'function') {
+		if (addTiming) {
 			addTiming(name, duration, description)
 		}
 	}
