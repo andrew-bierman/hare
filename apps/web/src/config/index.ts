@@ -140,7 +140,7 @@ export function getModelName(id: string): string {
 // System Tools
 // =============================================================================
 
-export type SystemToolType = 'http' | 'sql' | 'kv' | 'r2' | 'vectorize' | 'browser'
+export type SystemToolType = 'http' | 'sql' | 'kv' | 'r2' | 'search' | 'browser'
 
 export interface SystemTool {
 	type: SystemToolType
@@ -184,12 +184,12 @@ export const SYSTEM_TOOLS: SystemTool[] = [
 		requiredBinding: 'R2',
 	},
 	{
-		type: 'vectorize',
-		name: 'Vectorize',
-		description: 'Semantic search using Cloudflare Vectorize vector database',
+		type: 'search',
+		name: 'AI Search',
+		description: 'Semantic search using Cloudflare AI Search (AutoRAG)',
 		icon: 'Sparkles',
 		available: true,
-		requiredBinding: 'VECTORIZE',
+		requiredBinding: 'AI',
 	},
 	{
 		type: 'browser',
