@@ -122,7 +122,54 @@ export const UpdateWorkspaceSchema = z
 
 // Tool schemas
 export const ToolTypeSchema = z
-	.enum(['http', 'sql', 'kv', 'r2', 'vectorize', 'custom'])
+	.enum([
+		// Cloudflare native
+		'http',
+		'sql',
+		'kv',
+		'r2',
+		'vectorize',
+		'search',
+		// Utility
+		'datetime',
+		'json',
+		'text',
+		'math',
+		'uuid',
+		'hash',
+		'base64',
+		'url',
+		'delay',
+		// Integrations
+		'zapier',
+		'webhook',
+		'slack',
+		'discord',
+		'email',
+		'teams',
+		'twilio_sms',
+		'make',
+		'n8n',
+		// AI
+		'sentiment',
+		'summarize',
+		'translate',
+		'image_generate',
+		'classify',
+		'ner',
+		'embedding',
+		'question_answer',
+		// Data
+		'rss',
+		'scrape',
+		'regex',
+		'crypto',
+		'json_schema',
+		'csv',
+		'template',
+		// Custom
+		'custom',
+	])
 	.openapi({ example: 'http' })
 
 export const ToolSchema = z
