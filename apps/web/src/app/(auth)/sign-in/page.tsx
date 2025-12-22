@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { type FormEvent, useState } from 'react'
+import { type ChangeEvent, type FormEvent, useState } from 'react'
 import { toast } from 'sonner'
 import { Button } from '@workspace/ui/components/button'
 import {
@@ -69,7 +69,7 @@ export default function SignInPage() {
 								type="email"
 								placeholder="you@example.com"
 								value={email}
-								onChange={(e) => setEmail(e.target.value)}
+								onChange={(e: ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
 								required
 								disabled={isLoading}
 							/>
@@ -88,7 +88,7 @@ export default function SignInPage() {
 								id="password"
 								type="password"
 								value={password}
-								onChange={(e) => setPassword(e.target.value)}
+								onChange={(e: ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
 								required
 								disabled={isLoading}
 							/>

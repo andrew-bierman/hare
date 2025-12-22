@@ -1,7 +1,7 @@
 'use client'
 
 import { Code, Database, Globe, HardDrive, Plus, Search, Trash2, Wrench } from 'lucide-react'
-import { useState } from 'react'
+import { type ChangeEvent, useState } from 'react'
 import { toast } from 'sonner'
 import { Badge } from '@workspace/ui/components/badge'
 import { Button } from '@workspace/ui/components/button'
@@ -195,7 +195,7 @@ export default function ToolsPage() {
 						placeholder="Search tools..."
 						className="pl-8"
 						value={search}
-						onChange={(e) => setSearch(e.target.value)}
+						onChange={(e: ChangeEvent<HTMLInputElement>) => setSearch(e.target.value)}
 					/>
 				</div>
 			</div>
@@ -308,7 +308,7 @@ export default function ToolsPage() {
 								id="tool-name"
 								placeholder="My Custom Tool"
 								value={newName}
-								onChange={(e) => setNewName(e.target.value)}
+								onChange={(e: ChangeEvent<HTMLInputElement>) => setNewName(e.target.value)}
 							/>
 						</div>
 						<div className="space-y-2">
@@ -317,7 +317,7 @@ export default function ToolsPage() {
 								id="tool-description"
 								placeholder="What does this tool do?"
 								value={newDescription}
-								onChange={(e) => setNewDescription(e.target.value)}
+								onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setNewDescription(e.target.value)}
 							/>
 						</div>
 						<div className="space-y-2">
@@ -345,7 +345,7 @@ export default function ToolsPage() {
 								placeholder='{"url": "https://api.example.com"}'
 								className="font-mono text-sm"
 								value={newConfig}
-								onChange={(e) => setNewConfig(e.target.value)}
+								onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setNewConfig(e.target.value)}
 							/>
 						</div>
 					</div>

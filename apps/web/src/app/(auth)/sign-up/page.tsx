@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { type FormEvent, useState } from 'react'
+import { type ChangeEvent, type FormEvent, useState } from 'react'
 import { toast } from 'sonner'
 import { Button } from '@workspace/ui/components/button'
 import {
@@ -82,7 +82,7 @@ export default function SignUpPage() {
 								id="name"
 								placeholder="John Doe"
 								value={name}
-								onChange={(e) => setName(e.target.value)}
+								onChange={(e: ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
 								required
 								disabled={isLoading}
 							/>
@@ -94,7 +94,7 @@ export default function SignUpPage() {
 								type="email"
 								placeholder="you@example.com"
 								value={email}
-								onChange={(e) => setEmail(e.target.value)}
+								onChange={(e: ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
 								required
 								disabled={isLoading}
 							/>
@@ -105,7 +105,7 @@ export default function SignUpPage() {
 								id="password"
 								type="password"
 								value={password}
-								onChange={(e) => setPassword(e.target.value)}
+								onChange={(e: ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
 								required
 								disabled={isLoading}
 								minLength={8}
@@ -117,7 +117,7 @@ export default function SignUpPage() {
 								id="confirm-password"
 								type="password"
 								value={confirmPassword}
-								onChange={(e) => setConfirmPassword(e.target.value)}
+								onChange={(e: ChangeEvent<HTMLInputElement>) => setConfirmPassword(e.target.value)}
 								required
 								disabled={isLoading}
 								minLength={8}
