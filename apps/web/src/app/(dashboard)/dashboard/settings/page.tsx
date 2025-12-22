@@ -14,7 +14,7 @@ import { Separator } from '@workspace/ui/components/separator'
 import { Skeleton } from '@workspace/ui/components/skeleton'
 import { Bell, Key, LogOut, Shield, User } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { type ChangeEvent, useState } from 'react'
 import { toast } from 'sonner'
 import { useAuth } from 'web-app/components/providers/auth-provider'
 import { useWorkspace } from 'web-app/components/providers/workspace-provider'
@@ -82,7 +82,7 @@ export default function SettingsPage() {
 							<Input
 								id="name"
 								value={name || session?.user?.name || ''}
-								onChange={(e) => setName(e.target.value)}
+								onChange={(e: ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
 								placeholder="Your name"
 							/>
 						</div>

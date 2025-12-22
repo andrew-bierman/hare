@@ -1,7 +1,7 @@
-import { expect, test } from '@playwright/test'
+import { expect, type Page, test } from '@playwright/test'
 
 test.describe('Sidebar Navigation - All routes should load without 404', () => {
-	test('dashboard page loads correctly', async ({ page }) => {
+	test('dashboard page loads correctly', async ({ page }: { page: Page }) => {
 		await page.goto('/dashboard')
 		await expect(page).toHaveURL('/dashboard')
 		// Verify the page title is visible
@@ -10,7 +10,7 @@ test.describe('Sidebar Navigation - All routes should load without 404', () => {
 		await expect(page.locator('body')).not.toContainText('404')
 	})
 
-	test('agents page loads correctly', async ({ page }) => {
+	test('agents page loads correctly', async ({ page }: { page: Page }) => {
 		await page.goto('/dashboard/agents')
 		await expect(page).toHaveURL('/dashboard/agents')
 		// Verify the page title is visible (use exact: true to avoid matching other headings)
@@ -19,7 +19,7 @@ test.describe('Sidebar Navigation - All routes should load without 404', () => {
 		await expect(page.getByRole('link', { name: 'New Agent' })).toBeVisible()
 	})
 
-	test('tools page loads correctly', async ({ page }) => {
+	test('tools page loads correctly', async ({ page }: { page: Page }) => {
 		await page.goto('/dashboard/tools')
 		await expect(page).toHaveURL('/dashboard/tools')
 		// Verify the page title is visible (use exact: true to avoid matching other headings)
@@ -28,7 +28,7 @@ test.describe('Sidebar Navigation - All routes should load without 404', () => {
 		await expect(page.getByRole('button', { name: 'Add Tool' }).first()).toBeVisible()
 	})
 
-	test('usage page loads correctly', async ({ page }) => {
+	test('usage page loads correctly', async ({ page }: { page: Page }) => {
 		await page.goto('/dashboard/usage')
 		await expect(page).toHaveURL('/dashboard/usage')
 		// Verify the page title is visible
@@ -37,7 +37,7 @@ test.describe('Sidebar Navigation - All routes should load without 404', () => {
 		await expect(page.locator('body')).not.toContainText('404')
 	})
 
-	test('settings page loads correctly', async ({ page }) => {
+	test('settings page loads correctly', async ({ page }: { page: Page }) => {
 		await page.goto('/dashboard/settings')
 		await expect(page).toHaveURL('/dashboard/settings')
 		// Verify the page title is visible
@@ -48,7 +48,7 @@ test.describe('Sidebar Navigation - All routes should load without 404', () => {
 })
 
 test.describe('Sidebar Navigation Links', () => {
-	test('clicking sidebar links navigates to correct pages', async ({ page }) => {
+	test('clicking sidebar links navigates to correct pages', async ({ page }: { page: Page }) => {
 		// Start at dashboard
 		await page.goto('/dashboard')
 		await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible()
@@ -81,14 +81,14 @@ test.describe('Sidebar Navigation Links', () => {
 })
 
 test.describe('Agent Sub-Routes', () => {
-	test('new agent page loads correctly', async ({ page }) => {
+	test('new agent page loads correctly', async ({ page }: { page: Page }) => {
 		await page.goto('/dashboard/agents/new')
 		await expect(page).toHaveURL('/dashboard/agents/new')
 		// Should have the Create New Agent heading
 		await expect(page.getByRole('heading', { name: 'Create New Agent' })).toBeVisible()
 	})
 
-	test('agent detail page loads correctly', async ({ page }) => {
+	test('agent detail page loads correctly', async ({ page }: { page: Page }) => {
 		// Test with a sample agent ID - may show "not found" but shouldn't 404
 		await page.goto('/dashboard/agents/1')
 		await expect(page).toHaveURL('/dashboard/agents/1')
@@ -96,7 +96,7 @@ test.describe('Agent Sub-Routes', () => {
 		await expect(page.locator('body')).not.toContainText('404')
 	})
 
-	test('agent playground page loads correctly', async ({ page }) => {
+	test('agent playground page loads correctly', async ({ page }: { page: Page }) => {
 		// Test with a sample agent ID - may show "not found" but shouldn't 404
 		await page.goto('/dashboard/agents/1/playground')
 		await expect(page).toHaveURL('/dashboard/agents/1/playground')
@@ -106,19 +106,19 @@ test.describe('Agent Sub-Routes', () => {
 })
 
 test.describe('Public Routes', () => {
-	test('landing page loads correctly', async ({ page }) => {
+	test('landing page loads correctly', async ({ page }: { page: Page }) => {
 		await page.goto('/')
 		// Landing page should have content
 		await expect(page.locator('body')).not.toContainText('404')
 	})
 
-	test('sign-in page loads correctly', async ({ page }) => {
+	test('sign-in page loads correctly', async ({ page }: { page: Page }) => {
 		await page.goto('/sign-in')
 		await expect(page).toHaveURL('/sign-in')
 		await expect(page.getByRole('button', { name: 'Sign In' })).toBeVisible()
 	})
 
-	test('sign-up page loads correctly', async ({ page }) => {
+	test('sign-up page loads correctly', async ({ page }: { page: Page }) => {
 		await page.goto('/sign-up')
 		await expect(page).toHaveURL('/sign-up')
 		await expect(page.getByRole('button', { name: 'Create Account' })).toBeVisible()

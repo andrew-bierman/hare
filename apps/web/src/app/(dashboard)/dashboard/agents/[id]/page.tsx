@@ -32,7 +32,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@workspace/ui/componen
 import { Textarea } from '@workspace/ui/components/textarea'
 import { Rocket, Trash2 } from 'lucide-react'
 import { useParams, useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { type ChangeEvent, useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { useWorkspace } from 'web-app/components/providers/workspace-provider'
 import {
@@ -118,8 +118,8 @@ export default function AgentBuilderPage() {
 	}, [agent, name, description, model, instructions, selectedToolIds])
 
 	const handleToolToggle = (toolId: string) => {
-		setSelectedToolIds((prev) =>
-			prev.includes(toolId) ? prev.filter((id) => id !== toolId) : [...prev, toolId],
+		setSelectedToolIds((prev: string[]) =>
+			prev.includes(toolId) ? prev.filter((id: string) => id !== toolId) : [...prev, toolId],
 		)
 	}
 
@@ -261,14 +261,20 @@ export default function AgentBuilderPage() {
 								<CardContent className="space-y-4">
 									<div className="space-y-2">
 										<Label htmlFor="name">Agent Name</Label>
-										<Input id="name" value={name} onChange={(e) => setName(e.target.value)} />
+										<Input
+											id="name"
+											value={name}
+											onChange={(e: ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
+										/>
 									</div>
 									<div className="space-y-2">
 										<Label htmlFor="description">Description</Label>
 										<Textarea
 											id="description"
 											value={description}
-											onChange={(e) => setDescription(e.target.value)}
+											onChange={(e: ChangeEvent<HTMLTextAreaElement>) =>
+												setDescription(e.target.value)
+											}
 											className="h-24"
 										/>
 									</div>
@@ -350,7 +356,9 @@ export default function AgentBuilderPage() {
 								<Textarea
 									id="system-prompt"
 									value={instructions}
-									onChange={(e) => setInstructions(e.target.value)}
+									onChange={(e: ChangeEvent<HTMLTextAreaElement>) =>
+										setInstructions(e.target.value)
+									}
 									className="h-64 font-mono text-sm"
 									placeholder="You are a helpful assistant that..."
 								/>

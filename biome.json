@@ -21,7 +21,8 @@
 			},
 			"suspicious": {
 				"noExplicitAny": "warn",
-				"noArrayIndexKey": "off"
+				"noArrayIndexKey": "warn",
+				"noAssignInExpressions": "warn"
 			}
 		}
 	},

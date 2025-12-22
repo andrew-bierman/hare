@@ -29,26 +29,18 @@ export const apiKeyMiddleware: MiddlewareHandler<ApiKeyEnv> = async (c, next) =>
 	}
 
 	const db = await getDb(c)
-	if (!db) {
-		return c.json({ error: 'Service unavailable' }, 503)
-	}
-
-	// Hash the provided key
 	const hashedKey = await hashApiKey(apiKeyHeader)
 
-	// Find matching API key
 	const [keyRecord] = await db.select().from(apiKeys).where(eq(apiKeys.hashedKey, hashedKey))
 
 	if (!keyRecord) {
 		return c.json({ error: 'Invalid API key' }, 401)
 	}
 
-	// Check expiration
 	if (keyRecord.expiresAt && keyRecord.expiresAt < new Date()) {
 		return c.json({ error: 'API key expired' }, 401)
 	}
 
-	// Get workspace
 	const [workspace] = await db
 		.select()
 		.from(workspaces)
@@ -58,11 +50,13 @@ export const apiKeyMiddleware: MiddlewareHandler<ApiKeyEnv> = async (c, next) =>
 		return c.json({ error: 'Workspace not found' }, 404)
 	}
 
-	// Update last used timestamp (fire and forget)
+	// Update last used timestamp (non-blocking)
 	db.update(apiKeys)
 		.set({ lastUsedAt: new Date() })
 		.where(eq(apiKeys.id, keyRecord.id))
-		.catch(() => {})
+		.catch((error) => {
+			console.error('Failed to update API key lastUsedAt:', error)
+		})
 
 	c.set('apiKey', {
 		id: keyRecord.id,
@@ -85,11 +79,9 @@ export const apiKeyMiddleware: MiddlewareHandler<ApiKeyEnv> = async (c, next) =>
  * Check if API key has access to a specific agent.
  */
 export function hasAgentAccess(apiKey: ApiKeyInfo, agentId: string): boolean {
-	// If no agentIds restriction, allow all
 	if (!apiKey.permissions?.agentIds || apiKey.permissions.agentIds.length === 0) {
 		return true
 	}
-
 	return apiKey.permissions.agentIds.includes(agentId)
 }
 
@@ -97,11 +89,9 @@ export function hasAgentAccess(apiKey: ApiKeyInfo, agentId: string): boolean {
  * Check if API key has a specific scope.
  */
 export function hasScope(apiKey: ApiKeyInfo, scope: string): boolean {
-	// If no scopes restriction, allow all
 	if (!apiKey.permissions?.scopes || apiKey.permissions.scopes.length === 0) {
 		return true
 	}
-
 	return apiKey.permissions.scopes.includes(scope)
 }
 
@@ -114,11 +104,9 @@ export async function generateApiKey(): Promise<{
 	hashedKey: string
 	prefix: string
 }> {
-	// Generate 32 random bytes
 	const randomBytes = new Uint8Array(32)
 	crypto.getRandomValues(randomBytes)
 
-	// Convert to base64url
 	const key =
 		'hare_' +
 		btoa(String.fromCharCode(...randomBytes))

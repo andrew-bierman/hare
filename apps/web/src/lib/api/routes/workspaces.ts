@@ -1,6 +1,7 @@
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
 import { eq, or } from 'drizzle-orm'
 import { workspaceMembers, workspaces } from 'web-app/db/schema'
+import type { Database } from 'web-app/db/types'
 import { getDb } from '../db'
 import { authMiddleware } from '../middleware'
 import {
@@ -210,7 +211,7 @@ const deleteWorkspaceRoute = createRoute({
 async function getUserWorkspaceRole(
 	userId: string,
 	workspaceId: string,
-	db: NonNullable<Awaited<ReturnType<typeof getDb>>>,
+	db: Database,
 ): Promise<WorkspaceRole | null> {
 	// Check if user is owner
 	const [workspace] = await db.select().from(workspaces).where(eq(workspaces.id, workspaceId))
@@ -243,10 +244,6 @@ app.use('*', authMiddleware)
 app.openapi(listWorkspacesRoute, async (c) => {
 	const db = await getDb(c)
 	const user = c.get('user')
-
-	if (!db) {
-		return c.json({ error: 'Service unavailable' }, 503)
-	}
 
 	// Get workspaces where user is owner
 	const ownedWorkspaces = await db.select().from(workspaces).where(eq(workspaces.ownerId, user.id))
@@ -299,10 +296,6 @@ app.openapi(createWorkspaceRoute, async (c) => {
 	const db = await getDb(c)
 	const user = c.get('user')
 
-	if (!db) {
-		return c.json({ error: 'Service unavailable' }, 503)
-	}
-
 	// Generate unique slug
 	const baseSlug = data.name
 		.toLowerCase()
@@ -350,10 +343,6 @@ app.openapi(getWorkspaceRoute, async (c) => {
 	const db = await getDb(c)
 	const user = c.get('user')
 
-	if (!db) {
-		return c.json({ error: 'Service unavailable' }, 503)
-	}
-
 	const [workspace] = await db.select().from(workspaces).where(eq(workspaces.id, id))
 
 	if (!workspace) {
@@ -384,10 +373,6 @@ app.openapi(updateWorkspaceRoute, async (c) => {
 	const data = c.req.valid('json')
 	const db = await getDb(c)
 	const user = c.get('user')
-
-	if (!db) {
-		return c.json({ error: 'Service unavailable' }, 503)
-	}
 
 	// Check access - only owner and admin can update
 	const role = await getUserWorkspaceRole(user.id, id, db)
@@ -448,10 +433,6 @@ app.openapi(deleteWorkspaceRoute, async (c) => {
 	const { id } = c.req.valid('param')
 	const db = await getDb(c)
 	const user = c.get('user')
-
-	if (!db) {
-		return c.json({ error: 'Service unavailable' }, 503)
-	}
 
 	// Check ownership - only owner can delete
 	const [workspace] = await db.select().from(workspaces).where(eq(workspaces.id, id))

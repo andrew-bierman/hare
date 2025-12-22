@@ -1,4 +1,3 @@
-import type { D1Database } from '@cloudflare/workers-types'
 import { getCloudflareContext } from '@opennextjs/cloudflare'
 import type { Context } from 'hono'
 import { createDb, type Database } from 'web-app/db/client'
@@ -17,7 +16,7 @@ export class CloudflareEnvError extends Error {
  * Get D1 database binding from Cloudflare context.
  * Throws CloudflareEnvError if D1 is not available.
  */
-export async function getD1(c: Context): Promise<D1Database> {
+export async function getD1(c: { env: unknown }): Promise<D1Database> {
 	// First try Hono context (for wrangler dev / production worker)
 	const honoEnv = c.env as CloudflareEnv | undefined
 	if (honoEnv?.DB) {
@@ -41,7 +40,7 @@ export async function getD1(c: Context): Promise<D1Database> {
 			return env.DB
 		}
 	} catch {
-		// Async mode failed
+		// Async mode not available either
 	}
 
 	throw new CloudflareEnvError(
@@ -51,26 +50,9 @@ export async function getD1(c: Context): Promise<D1Database> {
 
 /**
  * Get database instance from Cloudflare context.
- * Returns null only when database is genuinely unavailable (for optional DB access).
- * For required DB access, use getD1() which throws on failure.
+ * Throws CloudflareEnvError if database is not available.
  */
-export async function getDb(c: Context): Promise<Database | null> {
-	try {
-		const d1 = await getD1(c)
-		return createDb(d1)
-	} catch (e) {
-		if (e instanceof CloudflareEnvError) {
-			return null
-		}
-		throw e
-	}
-}
-
-/**
- * Get database instance, throwing if not available.
- * Use this for routes that require database access.
- */
-export async function requireDb(c: Context): Promise<Database> {
+export async function getDb(c: Context): Promise<Database> {
 	const d1 = await getD1(c)
 	return createDb(d1)
 }
@@ -103,7 +85,7 @@ export async function getCloudflareEnv(c: Context): Promise<CloudflareEnv> {
 			return env
 		}
 	} catch {
-		// Async mode failed
+		// Async mode not available
 	}
 
 	throw new CloudflareEnvError(

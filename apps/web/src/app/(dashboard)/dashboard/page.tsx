@@ -2,7 +2,7 @@
 
 import { Badge } from '@workspace/ui/components/badge'
 import { Button } from '@workspace/ui/components/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@workspace/ui/components/card'
+import { Card, CardContent } from '@workspace/ui/components/card'
 import { Skeleton } from '@workspace/ui/components/skeleton'
 import {
 	Activity,
@@ -12,7 +12,6 @@ import {
 	Clock,
 	MessageSquare,
 	Plus,
-	Sparkles,
 	TrendingUp,
 	Wrench,
 } from 'lucide-react'
@@ -23,13 +22,13 @@ import { type Agent, AVAILABLE_MODELS, useAgents, useUsage } from 'web-app/lib/a
 function StatCardSkeleton() {
 	return (
 		<Card>
-			<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-				<Skeleton className="h-4 w-24" />
-				<Skeleton className="h-8 w-8 rounded-lg" />
-			</CardHeader>
-			<CardContent>
-				<Skeleton className="h-8 w-20 mb-2" />
-				<Skeleton className="h-3 w-32" />
+			<CardContent className="p-4 sm:p-6">
+				<div className="flex items-center justify-between mb-3">
+					<Skeleton className="h-4 w-20" />
+					<Skeleton className="h-10 w-10 rounded-lg" />
+				</div>
+				<Skeleton className="h-8 w-16 mb-2" />
+				<Skeleton className="h-3 w-28" />
 			</CardContent>
 		</Card>
 	)
@@ -37,22 +36,22 @@ function StatCardSkeleton() {
 
 function AgentCardSkeleton() {
 	return (
-		<div className="group relative overflow-hidden rounded-xl border bg-card p-6">
-			<div className="flex items-start justify-between">
-				<div className="flex items-center gap-3">
-					<Skeleton className="h-10 w-10 rounded-lg" />
-					<div className="space-y-2">
-						<Skeleton className="h-5 w-32" />
-						<Skeleton className="h-3 w-48" />
+		<Card>
+			<CardContent className="p-4 sm:p-6">
+				<div className="flex items-start justify-between mb-3">
+					<div className="flex items-center gap-3">
+						<Skeleton className="h-10 w-10 rounded-lg" />
+						<div className="space-y-1.5">
+							<Skeleton className="h-5 w-28" />
+							<Skeleton className="h-3 w-20" />
+						</div>
 					</div>
+					<Skeleton className="h-5 w-14 rounded-full" />
 				</div>
-				<Skeleton className="h-5 w-16 rounded-full" />
-			</div>
-			<div className="mt-4 flex items-center gap-4">
-				<Skeleton className="h-4 w-24" />
-				<Skeleton className="h-4 w-20" />
-			</div>
-		</div>
+				<Skeleton className="h-4 w-full mb-1" />
+				<Skeleton className="h-4 w-2/3" />
+			</CardContent>
+		</Card>
 	)
 }
 
@@ -82,42 +81,34 @@ export default function DashboardPage() {
 		{
 			title: 'Total Agents',
 			value: agents.length.toString(),
-			description: `${deployedAgents.length} currently deployed`,
+			description: `${deployedAgents.length} deployed`,
 			icon: Bot,
-			color: 'bg-violet-500/10 text-violet-600 dark:text-violet-400',
-			iconBg: 'bg-violet-500/10',
+			color: 'bg-violet-500',
 			trend: deployedAgents.length > 0 ? `+${deployedAgents.length}` : null,
-			trendUp: true,
 		},
 		{
 			title: 'API Calls',
 			value: formatNumber(usageData?.totalCalls ?? 0),
-			description: 'This billing period',
+			description: 'This period',
 			icon: MessageSquare,
-			color: 'bg-blue-500/10 text-blue-600 dark:text-blue-400',
-			iconBg: 'bg-blue-500/10',
+			color: 'bg-blue-500',
 			trend: null,
-			trendUp: true,
 		},
 		{
 			title: 'Tokens Used',
 			value: formatNumber(usageData?.totalTokens ?? 0),
 			description: `${formatNumber(usageData?.inputTokens ?? 0)} in / ${formatNumber(usageData?.outputTokens ?? 0)} out`,
 			icon: TrendingUp,
-			color: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
-			iconBg: 'bg-emerald-500/10',
+			color: 'bg-emerald-500',
 			trend: null,
-			trendUp: true,
 		},
 		{
 			title: 'Active Tools',
 			value: '6',
-			description: 'System tools available',
+			description: 'Available',
 			icon: Wrench,
-			color: 'bg-orange-500/10 text-orange-600 dark:text-orange-400',
-			iconBg: 'bg-orange-500/10',
+			color: 'bg-orange-500',
 			trend: null,
-			trendUp: true,
 		},
 	]
 
@@ -125,8 +116,8 @@ export default function DashboardPage() {
 		switch (status) {
 			case 'deployed':
 				return (
-					<Badge className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20 border-emerald-500/20">
-						<span className="mr-1.5 h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+					<Badge className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 gap-1">
+						<span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
 						Live
 					</Badge>
 				)
@@ -134,32 +125,49 @@ export default function DashboardPage() {
 				return (
 					<Badge
 						variant="secondary"
-						className="bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 hover:bg-yellow-500/20 border-yellow-500/20"
+						className="bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20"
 					>
 						Draft
 					</Badge>
 				)
 			default:
-				return (
-					<Badge variant="secondary" className="bg-muted">
-						{status}
-					</Badge>
-				)
+				return <Badge variant="secondary">{status}</Badge>
 		}
 	}
 
+	const quickActions = [
+		{
+			title: 'Create Agent',
+			description: 'Build a new AI agent',
+			icon: Bot,
+			href: '/dashboard/agents/new',
+		},
+		{
+			title: 'Manage Tools',
+			description: 'Configure capabilities',
+			icon: Wrench,
+			href: '/dashboard/tools',
+		},
+		{
+			title: 'View Usage',
+			description: 'Monitor performance',
+			icon: Activity,
+			href: '/dashboard/usage',
+		},
+	]
+
 	return (
-		<div className="flex-1 space-y-8 p-8 pt-6">
+		<div className="flex-1 p-4 sm:p-6 md:p-8 space-y-6">
 			{/* Header */}
-			<div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+			<div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
 				<div>
-					<h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-					<p className="text-muted-foreground mt-1">
-						Welcome back! Here's an overview of your agents and usage.
+					<h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Dashboard</h1>
+					<p className="text-muted-foreground text-sm sm:text-base mt-1">
+						Overview of your agents and usage
 					</p>
 				</div>
-				<Link href="/dashboard/agents/new">
-					<Button size="lg" className="gap-2">
+				<Link href="/dashboard/agents/new" className="w-full sm:w-auto">
+					<Button className="w-full sm:w-auto gap-2 h-11">
 						<Plus className="h-4 w-4" />
 						New Agent
 					</Button>
@@ -167,94 +175,73 @@ export default function DashboardPage() {
 			</div>
 
 			{/* Stats Grid */}
-			<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+			<div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
 				{isLoading
 					? [...Array(4)].map((_, i) => <StatCardSkeleton key={i} />)
 					: stats.map((stat) => (
-							<Card
-								key={stat.title}
-								className="relative overflow-hidden transition-all hover:shadow-md"
-							>
-								<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-									<CardTitle className="text-sm font-medium text-muted-foreground">
-										{stat.title}
-									</CardTitle>
-									<div className={`rounded-lg p-2 ${stat.iconBg}`}>
-										<stat.icon className={`h-4 w-4 ${stat.color.split(' ')[1]}`} />
+							<Card key={stat.title}>
+								<CardContent className="p-4 sm:p-6">
+									<div className="flex items-center justify-between mb-3">
+										<span className="text-xs sm:text-sm font-medium text-muted-foreground">
+											{stat.title}
+										</span>
+										<div
+											className={`flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-lg ${stat.color}`}
+										>
+											<stat.icon className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
+										</div>
 									</div>
-								</CardHeader>
-								<CardContent>
 									<div className="flex items-baseline gap-2">
-										<span className="text-3xl font-bold">{stat.value}</span>
+										<span className="text-2xl sm:text-3xl font-bold">{stat.value}</span>
 										{stat.trend && (
-											<span className="flex items-center text-xs font-medium text-emerald-600">
+											<span className="flex items-center text-xs font-medium text-emerald-600 bg-emerald-500/10 px-1.5 py-0.5 rounded-full">
 												<ArrowUpRight className="h-3 w-3" />
 												{stat.trend}
 											</span>
 										)}
 									</div>
-									<p className="mt-1 text-xs text-muted-foreground">{stat.description}</p>
+									<p className="mt-1 text-xs sm:text-sm text-muted-foreground">
+										{stat.description}
+									</p>
 								</CardContent>
 							</Card>
 						))}
 			</div>
 
 			{/* Quick Actions */}
-			<div className="grid gap-4 md:grid-cols-3">
-				<Card className="group cursor-pointer transition-all hover:shadow-md hover:border-primary/50">
-					<Link href="/dashboard/agents/new" className="block p-6">
-						<div className="flex items-center gap-4">
-							<div className="rounded-xl bg-primary/10 p-3 transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
-								<Sparkles className="h-6 w-6" />
-							</div>
-							<div className="flex-1">
-								<h3 className="font-semibold">Create Agent</h3>
-								<p className="text-sm text-muted-foreground">Build a new AI agent</p>
-							</div>
-							<ArrowRight className="h-5 w-5 text-muted-foreground transition-transform group-hover:translate-x-1" />
-						</div>
+			<div className="grid gap-3 sm:gap-4 sm:grid-cols-3">
+				{quickActions.map((action) => (
+					<Link key={action.href} href={action.href}>
+						<Card className="h-full hover:bg-muted/50 transition-colors">
+							<CardContent className="p-4 sm:p-6">
+								<div className="flex items-center gap-3 sm:gap-4">
+									<div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-lg bg-primary/10 flex-shrink-0">
+										<action.icon className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+									</div>
+									<div className="flex-1 min-w-0">
+										<h3 className="font-semibold text-sm sm:text-base">{action.title}</h3>
+										<p className="text-xs sm:text-sm text-muted-foreground truncate">
+											{action.description}
+										</p>
+									</div>
+									<ArrowRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+								</div>
+							</CardContent>
+						</Card>
 					</Link>
-				</Card>
-				<Card className="group cursor-pointer transition-all hover:shadow-md hover:border-primary/50">
-					<Link href="/dashboard/tools" className="block p-6">
-						<div className="flex items-center gap-4">
-							<div className="rounded-xl bg-orange-500/10 p-3 transition-colors group-hover:bg-orange-500 group-hover:text-white">
-								<Wrench className="h-6 w-6" />
-							</div>
-							<div className="flex-1">
-								<h3 className="font-semibold">Manage Tools</h3>
-								<p className="text-sm text-muted-foreground">Configure agent capabilities</p>
-							</div>
-							<ArrowRight className="h-5 w-5 text-muted-foreground transition-transform group-hover:translate-x-1" />
-						</div>
-					</Link>
-				</Card>
-				<Card className="group cursor-pointer transition-all hover:shadow-md hover:border-primary/50">
-					<Link href="/dashboard/usage" className="block p-6">
-						<div className="flex items-center gap-4">
-							<div className="rounded-xl bg-blue-500/10 p-3 transition-colors group-hover:bg-blue-500 group-hover:text-white">
-								<Activity className="h-6 w-6" />
-							</div>
-							<div className="flex-1">
-								<h3 className="font-semibold">View Analytics</h3>
-								<p className="text-sm text-muted-foreground">Monitor usage & performance</p>
-							</div>
-							<ArrowRight className="h-5 w-5 text-muted-foreground transition-transform group-hover:translate-x-1" />
-						</div>
-					</Link>
-				</Card>
+				))}
 			</div>
 
 			{/* Recent Agents */}
 			<div>
 				<div className="flex items-center justify-between mb-4">
 					<div>
-						<h2 className="text-xl font-semibold">Recent Agents</h2>
-						<p className="text-sm text-muted-foreground">Your agents ordered by last update</p>
+						<h2 className="text-lg sm:text-xl font-semibold">Recent Agents</h2>
+						<p className="text-xs sm:text-sm text-muted-foreground">Ordered by last update</p>
 					</div>
 					{agents.length > 0 && (
 						<Link href="/dashboard/agents">
-							<Button variant="ghost" size="sm" className="gap-1">
+							<Button variant="ghost" size="sm" className="gap-1 min-h-[44px]">
 								View all
 								<ArrowRight className="h-4 w-4" />
 							</Button>
@@ -263,42 +250,42 @@ export default function DashboardPage() {
 				</div>
 
 				{isLoading ? (
-					<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+					<div className="grid gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3">
 						{[...Array(3)].map((_, i) => (
 							<AgentCardSkeleton key={i} />
 						))}
 					</div>
 				) : recentAgents.length === 0 ? (
-					<Card className="border-dashed">
-						<CardContent className="flex flex-col items-center justify-center py-16">
-							<div className="rounded-full bg-muted p-4 mb-4">
-								<Bot className="h-8 w-8 text-muted-foreground" />
+					<Card className="border-dashed border-2">
+						<CardContent className="flex flex-col items-center justify-center py-12 px-4">
+							<div className="flex h-16 w-16 items-center justify-center rounded-xl bg-primary/10 mb-4">
+								<Bot className="h-8 w-8 text-primary" />
 							</div>
-							<h3 className="text-lg font-semibold mb-1">No agents yet</h3>
-							<p className="text-muted-foreground text-center max-w-sm mb-6">
-								Create your first AI agent to get started. It only takes a few minutes.
+							<h3 className="text-lg font-semibold mb-2">No agents yet</h3>
+							<p className="text-muted-foreground text-center text-sm max-w-xs mb-6">
+								Create your first AI agent to get started.
 							</p>
-							<Link href="/dashboard/agents/new">
-								<Button className="gap-2">
+							<Link href="/dashboard/agents/new" className="w-full sm:w-auto">
+								<Button className="w-full sm:w-auto gap-2 h-11">
 									<Plus className="h-4 w-4" />
-									Create Your First Agent
+									Create Agent
 								</Button>
 							</Link>
 						</CardContent>
 					</Card>
 				) : (
-					<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+					<div className="grid gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3">
 						{recentAgents.map((agent) => (
-							<Link key={agent.id} href={`/dashboard/agents/${agent.id}`} className="group block">
-								<Card className="h-full transition-all hover:shadow-md hover:border-primary/50">
-									<CardContent className="p-6">
-										<div className="flex items-start justify-between mb-4">
+							<Link key={agent.id} href={`/dashboard/agents/${agent.id}`}>
+								<Card className="h-full hover:bg-muted/50 transition-colors">
+									<CardContent className="p-4 sm:p-6">
+										<div className="flex items-start justify-between mb-3">
 											<div className="flex items-center gap-3">
-												<div className="rounded-lg bg-primary/10 p-2.5 transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
-													<Bot className="h-5 w-5" />
+												<div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary">
+													<Bot className="h-5 w-5 text-primary-foreground" />
 												</div>
-												<div>
-													<h3 className="font-semibold group-hover:text-primary transition-colors">
+												<div className="min-w-0">
+													<h3 className="font-semibold text-sm sm:text-base truncate">
 														{agent.name}
 													</h3>
 													<p className="text-xs text-muted-foreground">
@@ -308,18 +295,17 @@ export default function DashboardPage() {
 											</div>
 											{getStatusBadge(agent.status)}
 										</div>
-										<p className="text-sm text-muted-foreground line-clamp-2 mb-4">
+										<p className="text-xs sm:text-sm text-muted-foreground line-clamp-2 mb-3">
 											{agent.description || 'No description provided'}
 										</p>
-										<div className="flex items-center gap-4 text-xs text-muted-foreground">
-											<div className="flex items-center gap-1">
-												<Wrench className="h-3.5 w-3.5" />
+										<div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+											<div className="flex items-center gap-1 bg-muted/50 px-2 py-1 rounded-full">
+												<Wrench className="h-3 w-3" />
 												<span>{agent.toolIds?.length || 0} tools</span>
 											</div>
-											<div className="flex items-center gap-1">
-												<Clock className="h-3.5 w-3.5" />
+											<div className="flex items-center gap-1 bg-muted/50 px-2 py-1 rounded-full">
+												<Clock className="h-3 w-3" />
 												<span>
-													Updated{' '}
 													{new Date(agent.updatedAt).toLocaleDateString('en-US', {
 														month: 'short',
 														day: 'numeric',
@@ -333,13 +319,13 @@ export default function DashboardPage() {
 						))}
 
 						{/* Create New Card */}
-						<Link href="/dashboard/agents/new" className="group block">
-							<Card className="h-full border-dashed transition-all hover:shadow-md hover:border-primary">
-								<CardContent className="flex flex-col items-center justify-center h-full min-h-[200px] p-6">
-									<div className="rounded-full bg-muted p-3 mb-3 transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
-										<Plus className="h-6 w-6" />
+						<Link href="/dashboard/agents/new">
+							<Card className="h-full border-dashed border-2 hover:bg-muted/50 transition-colors">
+								<CardContent className="flex flex-col items-center justify-center h-full min-h-[180px] p-4">
+									<div className="flex h-12 w-12 items-center justify-center rounded-lg bg-muted mb-3">
+										<Plus className="h-6 w-6 text-muted-foreground" />
 									</div>
-									<span className="font-medium text-muted-foreground group-hover:text-primary transition-colors">
+									<span className="font-medium text-sm text-muted-foreground">
 										Create New Agent
 									</span>
 								</CardContent>

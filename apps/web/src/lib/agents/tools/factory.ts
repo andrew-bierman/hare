@@ -61,7 +61,7 @@ function createToolFromConfig(config: ToolConfig, context: ToolContext): Tool | 
 		case 'custom':
 			return createCustomToolFromConfig(config, context)
 		default:
-			console.warn(`Unknown tool type: ${config.type}`)
+			console.warn(`Unknown tool type "${config.type}" for tool ${config.id}`)
 			return null
 	}
 }

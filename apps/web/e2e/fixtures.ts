@@ -15,7 +15,7 @@ export const TEST_USER = {
 export const test = base.extend<{
 	authenticatedPage: Page
 }>({
-	authenticatedPage: async ({ page }, use) => {
+	authenticatedPage: async ({ page }: { page: Page }, use: (arg: Page) => Promise<void>) => {
 		// For now, we'll use the page without auth
 		// In a real implementation, you'd:
 		// 1. Create a test user in beforeAll
