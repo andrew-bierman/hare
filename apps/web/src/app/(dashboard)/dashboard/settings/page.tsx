@@ -2,7 +2,7 @@
 
 import { Bell, Key, LogOut, Shield, User } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { type ChangeEvent, useState } from 'react'
 import { toast } from 'sonner'
 import { Button } from '@workspace/ui/components/button'
 import {
@@ -82,7 +82,7 @@ export default function SettingsPage() {
 							<Input
 								id="name"
 								value={name || session?.user?.name || ''}
-								onChange={(e) => setName(e.target.value)}
+								onChange={(e: ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
 								placeholder="Your name"
 							/>
 						</div>

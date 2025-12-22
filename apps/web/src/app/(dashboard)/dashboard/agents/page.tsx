@@ -2,7 +2,7 @@
 
 import { Bot, Clock, Play, Plus, Search, Settings, Wrench } from 'lucide-react'
 import Link from 'next/link'
-import { useState } from 'react'
+import { type ChangeEvent, useState } from 'react'
 import { Badge } from '@workspace/ui/components/badge'
 import { Button } from '@workspace/ui/components/button'
 import {
@@ -152,7 +152,7 @@ export default function AgentsPage() {
 						placeholder="Search agents..."
 						className="pl-9 h-11"
 						value={search}
-						onChange={(e) => setSearch(e.target.value)}
+						onChange={(e: ChangeEvent<HTMLInputElement>) => setSearch(e.target.value)}
 					/>
 				</div>
 				<Tabs value={filter} onValueChange={(v) => setFilter(v as typeof filter)}>

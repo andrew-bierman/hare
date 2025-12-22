@@ -1,7 +1,8 @@
 import { Sparkles } from 'lucide-react'
 import Link from 'next/link'
+import type { ReactNode } from 'react'
 
-export default function AuthLayout({ children }: { children: React.ReactNode }) {
+export default function AuthLayout({ children }: { children: ReactNode }) {
 	return (
 		<div className="min-h-screen flex bg-background">
 			{/* Left side - branding */}

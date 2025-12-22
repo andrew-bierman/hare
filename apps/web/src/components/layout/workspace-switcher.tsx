@@ -1,7 +1,7 @@
 'use client'
 
 import { Check, ChevronsUpDown, Plus } from 'lucide-react'
-import { useState } from 'react'
+import { type ChangeEvent, type KeyboardEvent, useState } from 'react'
 import { toast } from 'sonner'
 import { Button } from '@workspace/ui/components/button'
 import {
@@ -102,8 +102,8 @@ export function WorkspaceSwitcher() {
 								id="workspace-name"
 								placeholder="My Workspace"
 								value={newWorkspaceName}
-								onChange={(e) => setNewWorkspaceName(e.target.value)}
-								onKeyDown={(e) => {
+								onChange={(e: ChangeEvent<HTMLInputElement>) => setNewWorkspaceName(e.target.value)}
+								onKeyDown={(e: KeyboardEvent<HTMLInputElement>) => {
 									if (e.key === 'Enter') {
 										handleCreateWorkspace()
 									}
