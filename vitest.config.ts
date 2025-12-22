@@ -19,20 +19,25 @@ export default defineWorkersConfig({
 			'.next/**',
 			'packages/**',
 		],
+		pool: '@cloudflare/vitest-pool-workers',
 		poolOptions: {
 			workers: {
 				miniflare: {
-					// Add minimal test bindings for Cloudflare Workers
+					// Add test bindings for Cloudflare Workers
 					bindings: {
 						ENVIRONMENT: 'test',
 						BETTER_AUTH_SECRET: 'test-secret-for-tests-min-32-chars-long',
 						BETTER_AUTH_URL: 'http://localhost:3000',
 						NEXTJS_ENV: 'test',
 					},
-					// Configure D1 database for tests
-					d1Databases: ['DB'],
-					// Configure KV namespace for tests
-					kvNamespaces: ['KV'],
+					// Configure D1 databases for tests
+					d1Databases: {
+						DB: 'test-db',
+					},
+					// Configure KV namespaces for tests
+					kvNamespaces: {
+						KV: 'test-kv',
+					},
 				},
 			},
 		},
