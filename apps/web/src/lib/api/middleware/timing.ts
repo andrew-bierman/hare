@@ -1,4 +1,4 @@
-import type { MiddlewareHandler } from 'hono'
+import type { Context, MiddlewareHandler } from 'hono'
 import type { HonoEnv } from '../types'
 
 interface TimingEntry {
@@ -54,7 +54,7 @@ export function timing(): MiddlewareHandler<HonoEnv> {
  * Usage: const result = await measureTiming(c, 'db-query', () => db.query(...))
  */
 export async function measureTiming<T>(
-	c: Parameters<MiddlewareHandler>[0],
+	c: Context<HonoEnv>,
 	name: string,
 	operation: () => Promise<T>,
 	description?: string,

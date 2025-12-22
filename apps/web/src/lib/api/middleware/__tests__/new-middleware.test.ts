@@ -61,6 +61,19 @@ describe('secureHeaders middleware', () => {
 		expect(res.headers.get('Content-Security-Policy')).toBe(customCsp)
 	})
 
+	it('default CSP does not include unsafe-inline or unsafe-eval', async () => {
+		const app = new Hono()
+		app.use('*', secureHeaders())
+		app.get('/', (c) => c.json({ ok: true }))
+
+		const res = await app.request('/')
+		const csp = res.headers.get('Content-Security-Policy')
+
+		expect(csp).toBeTruthy()
+		expect(csp).not.toContain('unsafe-inline')
+		expect(csp).not.toContain('unsafe-eval')
+	})
+
 	it('allows disabling specific headers', async () => {
 		const app = new Hono()
 		app.use('*', secureHeaders({ xFrameOptions: false, permissionsPolicy: false }))

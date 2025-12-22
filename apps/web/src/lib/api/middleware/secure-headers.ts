@@ -19,8 +19,26 @@ interface SecureHeadersOptions {
 }
 
 /**
+ * Default Content Security Policy
+ * This is a strict policy that should work for most API-only applications.
+ * For apps with UI, customize this policy to match your needs.
+ */
+const DEFAULT_CSP = [
+	"default-src 'self'",
+	"script-src 'self'",
+	"style-src 'self'",
+	"img-src 'self' data: https:",
+	"font-src 'self' data:",
+	"connect-src 'self' https:",
+	"frame-ancestors 'self'",
+].join('; ')
+
+/**
  * Secure headers middleware for adding security-related HTTP headers.
  * Helps prevent common web vulnerabilities like XSS, clickjacking, etc.
+ *
+ * Note: The default CSP is strict and doesn't allow unsafe-inline or unsafe-eval.
+ * If your application needs these, provide a custom CSP via options.
  */
 export function secureHeaders(options: SecureHeadersOptions = {}): MiddlewareHandler<HonoEnv> {
 	const {
@@ -37,9 +55,7 @@ export function secureHeaders(options: SecureHeadersOptions = {}): MiddlewareHan
 		// Content Security Policy
 		if (contentSecurityPolicy) {
 			const cspValue =
-				typeof contentSecurityPolicy === 'string'
-					? contentSecurityPolicy
-					: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https:; frame-ancestors 'self'"
+				typeof contentSecurityPolicy === 'string' ? contentSecurityPolicy : DEFAULT_CSP
 			c.header('Content-Security-Policy', cspValue)
 		}
 
