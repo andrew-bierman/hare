@@ -38,7 +38,6 @@ describe('Tool Factory', () => {
 		it('merges config defaults with runtime params', () => {
 			const config: ToolConfig = {
 				id: 'tool_1',
-				workspaceId: 'ws_1',
 				name: 'Test HTTP Tool',
 				description: 'Test tool',
 				type: 'http',
@@ -49,8 +48,6 @@ describe('Tool Factory', () => {
 				},
 				inputSchema: null,
 				code: null,
-				createdAt: new Date(),
-				updatedAt: new Date(),
 			}
 
 			// Placeholder - actual implementation would test tool creation
@@ -62,15 +59,12 @@ describe('Tool Factory', () => {
 		it('returns failure when no code is provided', () => {
 			const config: ToolConfig = {
 				id: 'tool_1',
-				workspaceId: 'ws_1',
 				name: 'Test Custom Tool',
 				description: 'Test tool',
 				type: 'custom',
 				config: null,
 				inputSchema: { param1: { type: 'string' } },
 				code: null,
-				createdAt: new Date(),
-				updatedAt: new Date(),
 			}
 
 			// Placeholder - actual implementation would test tool creation
@@ -80,15 +74,12 @@ describe('Tool Factory', () => {
 		it('returns failure indicating sandboxed environment is required', () => {
 			const config: ToolConfig = {
 				id: 'tool_1',
-				workspaceId: 'ws_1',
 				name: 'Test Custom Tool',
 				description: 'Test tool',
 				type: 'custom',
 				config: null,
 				inputSchema: { param1: { type: 'string' } },
 				code: 'console.log("test")',
-				createdAt: new Date(),
-				updatedAt: new Date(),
 			}
 
 			// Placeholder - actual implementation would test tool creation

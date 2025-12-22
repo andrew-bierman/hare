@@ -545,7 +545,7 @@ export const compressionTool = createTool({
 				// Create compression stream
 				const cs = new CompressionStream(algorithm)
 				const writer = cs.writable.getWriter()
-				writer.write(inputData)
+				writer.write(inputData as Uint8Array<ArrayBuffer>)
 				writer.close()
 
 				// Read compressed data

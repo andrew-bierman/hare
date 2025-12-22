@@ -59,7 +59,8 @@ describe('Tool Result Helpers', () => {
 
 	describe('createTool', () => {
 		it('creates a tool with all required properties', () => {
-			const mockExecute = async () => success('executed')
+			const mockExecute = async (_params: { input: string }, _context: unknown) =>
+				success('executed')
 			const tool = createTool({
 				id: 'test_tool',
 				description: 'A test tool',
@@ -78,7 +79,7 @@ describe('Tool Result Helpers', () => {
 				id: 'minimal_tool',
 				description: '',
 				inputSchema: z.object({}),
-				execute: async () => success(null),
+				execute: async (_params, _context) => success(null),
 			})
 
 			expect(tool.id).toBe('minimal_tool')
@@ -89,7 +90,7 @@ describe('Tool Result Helpers', () => {
 			const schema = z.object({
 				url: z.string().url(),
 				method: z.enum(['GET', 'POST', 'PUT', 'DELETE']),
-				headers: z.record(z.string()),
+				headers: z.record(z.string(), z.string()),
 				timeout: z.number().optional(),
 			})
 
@@ -97,7 +98,7 @@ describe('Tool Result Helpers', () => {
 				id: 'http_tool',
 				description: 'HTTP request tool',
 				inputSchema: schema,
-				execute: async () => success(null),
+				execute: async (_params, _context) => success(null),
 			})
 
 			expect(tool.id).toBe('http_tool')

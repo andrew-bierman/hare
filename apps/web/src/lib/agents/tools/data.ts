@@ -321,7 +321,7 @@ export const scrapeTool = createTool({
 				return results.slice(0, 20)
 			}
 
-			let result: unknown
+			let result: Record<string, unknown> = {}
 
 			if (selector) {
 				result = { selector, matches: extractBySelector(html, selector) }

@@ -48,6 +48,7 @@ export const MessageMetadataSchema = z.object({
 	toolResults: z.array(ToolResultSchema).optional(),
 	model: z.string().optional(),
 	usage: TokenUsageSchema.optional(),
+	agentId: z.string().optional(),
 })
 
 export type MessageMetadata = z.infer<typeof MessageMetadataSchema>
