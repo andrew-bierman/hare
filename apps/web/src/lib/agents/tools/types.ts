@@ -1,18 +1,36 @@
-import { z, type ZodSchema } from 'zod'
+import type { ZodSchema, z } from 'zod'
 
 /**
  * Tool execution context providing access to Cloudflare bindings.
+ * Note: CloudflareEnv is a global type from worker-configuration.d.ts
  */
-export interface ToolContext {
-	env: CloudflareEnv
-	workspaceId: string
-	userId: string
-}
+export const ToolContextSchema = z.object({
+	env: z.custom<CloudflareEnv>(),
+	workspaceId: z.string(),
+	userId: z.string(),
+})
+
+export type ToolContext = z.infer<typeof ToolContextSchema>
 
 /**
  * Result of a tool execution.
+ * Generic schema factory for type-safe tool results.
  */
-export interface ToolResult<T = unknown> {
+export const createToolResultSchema = <T extends z.ZodTypeAny>(dataSchema: T) =>
+	z.object({
+		success: z.boolean(),
+		data: dataSchema.optional(),
+		error: z.string().optional(),
+	})
+
+/** Base tool result schema for unknown data */
+export const ToolResultSchema = z.object({
+	success: z.boolean(),
+	data: z.unknown().optional(),
+	error: z.string().optional(),
+})
+
+export type ToolResult<T = unknown> = {
 	success: boolean
 	data?: T
 	error?: string
@@ -53,23 +71,79 @@ export interface Tool<TInput extends ZodSchema = ZodSchema, TOutput = unknown> {
  * ```
  */
 export function createTool<TInput extends ZodSchema, TOutput = unknown>(
-	config: Tool<TInput, TOutput>
+	config: Tool<TInput, TOutput>,
 ): Tool<TInput, TOutput> {
 	return config
 }
 
 /**
+ * All available tool types.
+ */
+export const ToolTypeSchema = z.enum([
+	// Cloudflare native
+	'http',
+	'sql',
+	'kv',
+	'r2',
+	'vectorize',
+	'search',
+	// Utility
+	'datetime',
+	'json',
+	'text',
+	'math',
+	'uuid',
+	'hash',
+	'base64',
+	'url',
+	'delay',
+	// Integrations
+	'zapier',
+	'webhook',
+	'slack',
+	'discord',
+	'email',
+	'teams',
+	'twilio_sms',
+	'make',
+	'n8n',
+	// AI
+	'sentiment',
+	'summarize',
+	'translate',
+	'image_generate',
+	'classify',
+	'ner',
+	'embedding',
+	'question_answer',
+	// Data
+	'rss',
+	'scrape',
+	'regex',
+	'crypto',
+	'json_schema',
+	'csv',
+	'template',
+	// Custom
+	'custom',
+])
+
+export type ToolType = z.infer<typeof ToolTypeSchema>
+
+/**
  * Tool configuration stored in the database.
  */
-export interface ToolConfig {
-	id: string
-	name: string
-	description: string | null
-	type: 'http' | 'sql' | 'kv' | 'r2' | 'vectorize' | 'search' | 'custom'
-	inputSchema?: Record<string, unknown> | null
-	config?: Record<string, unknown> | null
-	code?: string | null
-}
+export const ToolConfigSchema = z.object({
+	id: z.string(),
+	name: z.string(),
+	description: z.string().nullable(),
+	type: ToolTypeSchema,
+	inputSchema: z.record(z.string(), z.unknown()).nullable().optional(),
+	config: z.record(z.string(), z.unknown()).nullable().optional(),
+	code: z.string().nullable().optional(),
+})
+
+export type ToolConfig = z.infer<typeof ToolConfigSchema>
 
 /**
  * Helper to create a successful tool result.

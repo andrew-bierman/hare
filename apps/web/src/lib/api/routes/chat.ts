@@ -1,13 +1,14 @@
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
-import { streamSSE } from 'hono/streaming'
-import { eq } from 'drizzle-orm'
-import { ChatRequestSchema, ConversationSchema, IdParamSchema, MessageSchema } from '../schemas'
-import { getDb, getCloudflareEnv } from '../db'
-import { agents, conversations, messages, usage } from 'web-app/db/schema'
-import { createAgentFromConfig, type AgentConfig } from 'web-app/lib/agents'
-import { createMemoryStore, toAgentMessages } from 'web-app/lib/agents/memory'
 import type { CoreMessage } from 'ai'
-import { optionalAuthMiddleware, type AuthVariables } from '../middleware'
+import { eq } from 'drizzle-orm'
+import { streamSSE } from 'hono/streaming'
+import { agents, conversations, messages, usage } from 'web-app/db/schema'
+import { type AgentConfig, createAgentFromConfig } from 'web-app/lib/agents'
+import { createMemoryStore, toAgentMessages } from 'web-app/lib/agents/memory'
+import { getCloudflareEnv, getDb } from '../db'
+import { optionalAuthMiddleware } from '../middleware'
+import { ChatRequestSchema, ConversationSchema, IdParamSchema, MessageSchema } from '../schemas'
+import type { OptionalAuthEnv } from '../types'
 
 // Define routes
 const chatWithAgentRoute = createRoute({
@@ -137,8 +138,8 @@ const getConversationMessagesRoute = createRoute({
 	},
 })
 
-// Create app
-const app = new OpenAPIHono<{ Variables: Partial<AuthVariables> }>()
+// Create app with proper typing (includes Bindings and Variables)
+const app = new OpenAPIHono<OptionalAuthEnv>()
 
 // Apply optional auth middleware - chat can work with or without auth
 app.use('*', optionalAuthMiddleware)
@@ -153,15 +154,6 @@ app.openapi(chatWithAgentRoute, async (c) => {
 	// Get user from auth context (may be undefined for API key auth)
 	const user = c.get('user')
 	const userId = user?.id || 'anonymous'
-
-	// Validate environment
-	if (!db) {
-		return c.json({ error: 'Database not available' }, 503)
-	}
-
-	if (!env) {
-		return c.json({ error: 'Cloudflare environment not available' }, 503)
-	}
 
 	if (!env.AI) {
 		return c.json({ error: 'AI service not available' }, 503)
@@ -182,7 +174,9 @@ app.openapi(chatWithAgentRoute, async (c) => {
 	const memory = createMemoryStore(db, env.AI, env.VECTORIZE, agentConfig.workspaceId)
 
 	// Get or create conversation
-	const conversationId = sessionId || (await memory.getOrCreateConversation(agentId, userId, `Chat with ${agentConfig.name}`))
+	const conversationId =
+		sessionId ||
+		(await memory.getOrCreateConversation(agentId, userId, `Chat with ${agentConfig.name}`))
 
 	// Create the edge agent
 	const agent = await createAgentFromConfig(agentConfig as AgentConfig, db, env, {
@@ -214,7 +208,6 @@ app.openapi(chatWithAgentRoute, async (c) => {
 			// Stream text chunks
 			for await (const chunk of response.textStream) {
 				fullResponse += chunk
-				tokensOut++ // Approximate token count
 
 				await stream.writeSSE({
 					event: 'message',
@@ -228,9 +221,14 @@ app.openapi(chatWithAgentRoute, async (c) => {
 				agentId,
 			})
 
-			// Track usage
+			// Track usage (token counts are rough estimates based on ~4 chars/token)
+			// TODO: Use actual token counts from AI provider response when available
 			const latencyMs = Date.now() - startTime
-			tokensIn = agentMessages.reduce((acc, m) => acc + Math.ceil(m.content.length / 4), 0) // Rough estimate
+			tokensIn = agentMessages.reduce((acc, m) => {
+				const content = typeof m.content === 'string' ? m.content : JSON.stringify(m.content)
+				return acc + Math.ceil(content.length / 4)
+			}, 0)
+			tokensOut = Math.ceil(fullResponse.length / 4)
 
 			await db.insert(usage).values({
 				workspaceId: agentConfig.workspaceId,
@@ -278,10 +276,6 @@ app.openapi(listConversationsRoute, async (c) => {
 	const { id: agentId } = c.req.valid('param')
 	const db = await getDb(c)
 
-	if (!db) {
-		return c.json({ error: 'Service unavailable' }, 503)
-	}
-
 	const results = await db.select().from(conversations).where(eq(conversations.agentId, agentId))
 
 	// Get message counts for each conversation
@@ -302,7 +296,7 @@ app.openapi(listConversationsRoute, async (c) => {
 				createdAt: conv.createdAt.toISOString(),
 				updatedAt: conv.updatedAt.toISOString(),
 			}
-		})
+		}),
 	)
 
 	return c.json({ conversations: conversationsData }, 200)
@@ -313,11 +307,10 @@ app.openapi(getConversationMessagesRoute, async (c) => {
 	const { id: conversationId } = c.req.valid('param')
 	const db = await getDb(c)
 
-	if (!db) {
-		return c.json({ error: 'Service unavailable' }, 503)
-	}
-
-	const results = await db.select().from(messages).where(eq(messages.conversationId, conversationId))
+	const results = await db
+		.select()
+		.from(messages)
+		.where(eq(messages.conversationId, conversationId))
 
 	// Transform DB results to match API schema (filter out 'tool' role for API response)
 	const messagesData = results

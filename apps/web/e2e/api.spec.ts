@@ -1,7 +1,7 @@
-import { test, expect } from '@playwright/test'
+import { type APIRequestContext, expect, type Page, test } from '@playwright/test'
 
 test.describe('API Health & Infrastructure', () => {
-	test('health endpoint returns ok', async ({ request }) => {
+	test('health endpoint returns ok', async ({ request }: { request: APIRequestContext }) => {
 		const response = await request.get('/api/health')
 		expect(response.status()).toBe(200)
 		const body = await response.json()
@@ -10,7 +10,7 @@ test.describe('API Health & Infrastructure', () => {
 		expect(body.timestamp).toBeDefined()
 	})
 
-	test('OpenAPI spec is accessible', async ({ request }) => {
+	test('OpenAPI spec is accessible', async ({ request }: { request: APIRequestContext }) => {
 		const response = await request.get('/api/openapi.json')
 		expect(response.status()).toBe(200)
 		const body = await response.json()
@@ -18,21 +18,21 @@ test.describe('API Health & Infrastructure', () => {
 		expect(body.info.title).toBe('Hare API')
 	})
 
-	test('API docs page is accessible', async ({ page }) => {
+	test('API docs page is accessible', async ({ page }: { page: Page }) => {
 		await page.goto('/api/docs')
 		await expect(page).toHaveURL('/api/docs')
 		// Scalar API reference should load
 		await page.waitForLoadState('networkidle')
 	})
 
-	test('unknown API routes return 404', async ({ request }) => {
+	test('unknown API routes return 404', async ({ request }: { request: APIRequestContext }) => {
 		const response = await request.get('/api/nonexistent')
 		expect(response.status()).toBe(404)
 	})
 })
 
 test.describe('API CORS', () => {
-	test('should include CORS headers', async ({ request }) => {
+	test('should include CORS headers', async ({ request }: { request: APIRequestContext }) => {
 		const response = await request.get('/api/health')
 		// CORS middleware is enabled, should have headers
 		expect(response.status()).toBe(200)

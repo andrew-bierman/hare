@@ -301,7 +301,8 @@ export const LANDING_PAGE = {
 		{
 			step: '02',
 			title: 'Add Tools & Integrations',
-			description: 'Connect databases, APIs, and custom functions. Your agent becomes truly powerful.',
+			description:
+				'Connect databases, APIs, and custom functions. Your agent becomes truly powerful.',
 			icon: 'Terminal',
 		},
 		{

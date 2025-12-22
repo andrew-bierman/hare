@@ -58,7 +58,10 @@ export function getWorkersAIModelId(modelName: string): string {
  * Create a Workers AI model instance for use with the Vercel AI SDK.
  * Returns a LanguageModelV1 compatible model.
  */
-export function createWorkersAIModel(modelName: string, ai: Ai): ReturnType<ReturnType<typeof createWorkersAI>> {
+export function createWorkersAIModel(
+	modelName: string,
+	ai: Ai,
+): ReturnType<ReturnType<typeof createWorkersAI>> {
 	const workersai = createWorkersAI({ binding: ai })
 	const modelId = getWorkersAIModelId(modelName)
 	// Cast to the expected type - the model ID is validated by getWorkersAIModelId
@@ -68,7 +71,11 @@ export function createWorkersAIModel(modelName: string, ai: Ai): ReturnType<Retu
 /**
  * Generate embeddings using Workers AI.
  */
-export async function generateEmbeddings(ai: Ai, texts: string[], model: EmbeddingModelId = 'bge-base-en'): Promise<number[][]> {
+export async function generateEmbeddings(
+	ai: Ai,
+	texts: string[],
+	model: EmbeddingModelId = 'bge-base-en',
+): Promise<number[][]> {
 	const modelId = EMBEDDING_MODELS[model]
 
 	const response = await ai.run(modelId as Parameters<typeof ai.run>[0], {
@@ -82,7 +89,11 @@ export async function generateEmbeddings(ai: Ai, texts: string[], model: Embeddi
 /**
  * Generate a single embedding using Workers AI.
  */
-export async function generateEmbedding(ai: Ai, text: string, model: EmbeddingModelId = 'bge-base-en'): Promise<number[]> {
+export async function generateEmbedding(
+	ai: Ai,
+	text: string,
+	model: EmbeddingModelId = 'bge-base-en',
+): Promise<number[]> {
 	const embeddings = await generateEmbeddings(ai, [text], model)
 	if (!embeddings[0]) {
 		throw new Error('Failed to generate embedding')
@@ -95,11 +106,23 @@ export async function generateEmbedding(ai: Ai, text: string, model: EmbeddingMo
  */
 export function getAvailableModels(): { id: string; name: string; description: string }[] {
 	return [
-		{ id: 'llama-3.3-70b', name: 'Llama 3.3 70B', description: 'Most capable Llama model, great for complex tasks' },
-		{ id: 'llama-3.1-8b', name: 'Llama 3.1 8B', description: 'Fast and efficient for most use cases' },
+		{
+			id: 'llama-3.3-70b',
+			name: 'Llama 3.3 70B',
+			description: 'Most capable Llama model, great for complex tasks',
+		},
+		{
+			id: 'llama-3.1-8b',
+			name: 'Llama 3.1 8B',
+			description: 'Fast and efficient for most use cases',
+		},
 		{ id: 'llama-3.2-3b', name: 'Llama 3.2 3B', description: 'Compact model for simple tasks' },
 		{ id: 'mistral-7b', name: 'Mistral 7B', description: 'Strong performance, good for chat' },
 		{ id: 'qwen-1.5-14b', name: 'Qwen 1.5 14B', description: 'Excellent multilingual support' },
-		{ id: 'deepseek-r1-distill-qwen-32b', name: 'DeepSeek R1 32B', description: 'Strong reasoning capabilities' },
+		{
+			id: 'deepseek-r1-distill-qwen-32b',
+			name: 'DeepSeek R1 32B',
+			description: 'Strong reasoning capabilities',
+		},
 	]
 }

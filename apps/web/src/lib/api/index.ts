@@ -2,7 +2,7 @@ import { OpenAPIHono } from '@hono/zod-openapi'
 import { apiReference } from '@scalar/hono-api-reference'
 import { cors } from 'hono/cors'
 import { logger } from 'hono/logger'
-
+import { CloudflareEnvError } from './db'
 // Import route modules
 import agents from './routes/agents'
 import auth from './routes/auth'
@@ -10,9 +10,21 @@ import chat from './routes/chat'
 import tools from './routes/tools'
 import usage from './routes/usage'
 import workspaces from './routes/workspaces'
+import type { HonoEnv } from './types'
 
-// Create base app
-const app = new OpenAPIHono().basePath('/api')
+// Create base app with proper Cloudflare bindings type
+const app = new OpenAPIHono<HonoEnv>().basePath('/api')
+
+// Global error handler
+app.onError((error, c) => {
+	if (error instanceof CloudflareEnvError) {
+		console.error('CloudflareEnvError:', error.message)
+		return c.json({ error: 'Service unavailable' }, 503)
+	}
+
+	console.error('Unhandled error:', error)
+	return c.json({ error: 'Internal server error' }, 500)
+})
 
 // Middleware
 app.use('*', logger())

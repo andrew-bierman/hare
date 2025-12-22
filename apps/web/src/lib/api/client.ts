@@ -6,15 +6,15 @@
 
 import type {
 	Agent,
-	CreateAgentInput,
-	UpdateAgentInput,
-	Tool,
-	CreateToolInput,
-	Workspace,
-	CreateWorkspaceInput,
-	UsageSummary,
 	AgentUsage,
 	ApiError,
+	CreateAgentInput,
+	CreateToolInput,
+	CreateWorkspaceInput,
+	Tool,
+	UpdateAgentInput,
+	UsageSummary,
+	Workspace,
 } from './types'
 
 // =============================================================================
@@ -25,7 +25,7 @@ export class ApiClientError extends Error {
 	constructor(
 		message: string,
 		public readonly status: number,
-		public readonly code?: string
+		public readonly code?: string,
 	) {
 		super(message)
 		this.name = 'ApiClientError'
@@ -78,7 +78,7 @@ async function get<T>(path: string, params?: Record<string, string | undefined>)
 async function post<T, B>(
 	path: string,
 	body: B,
-	params?: Record<string, string | undefined>
+	params?: Record<string, string | undefined>,
 ): Promise<T> {
 	const response = await fetch(buildUrl(path, params), {
 		method: 'POST',
@@ -92,7 +92,7 @@ async function post<T, B>(
 async function patch<T, B>(
 	path: string,
 	body: B,
-	params?: Record<string, string | undefined>
+	params?: Record<string, string | undefined>,
 ): Promise<T> {
 	const response = await fetch(buildUrl(path, params), {
 		method: 'PATCH',

@@ -1,13 +1,11 @@
-import type { Database } from 'web-app/db/types'
 import type { CoreMessage } from 'ai'
-import { eq, desc, and, like } from 'drizzle-orm'
-import { messages, conversations } from 'web-app/db/schema'
+import { and, desc, eq, like } from 'drizzle-orm'
+import { conversations, messages } from 'web-app/db/schema'
+import type { Database, MessageMetadata } from 'web-app/db/types'
+import { isMessageRole, type MessageRole } from 'web-app/lib/api/types'
 import { generateEmbedding } from './providers/workers-ai'
 
-/**
- * Message role type matching our schema.
- */
-export type MessageRole = 'user' | 'assistant' | 'system' | 'tool'
+export type { MessageRole }
 
 /**
  * Conversation message structure.
@@ -18,17 +16,26 @@ export interface ConversationMessage {
 	role: MessageRole
 	content: string
 	createdAt: Date
-	metadata?: Record<string, unknown>
+	metadata?: MessageMetadata
 }
 
 /**
  * Memory store interface for conversation history.
  */
 export interface MemoryStore {
-	saveMessage(conversationId: string, role: MessageRole, content: string, metadata?: Record<string, unknown>): Promise<string>
+	saveMessage(
+		conversationId: string,
+		role: MessageRole,
+		content: string,
+		metadata?: MessageMetadata,
+	): Promise<string>
 	getMessages(conversationId: string, limit?: number): Promise<ConversationMessage[]>
 	getOrCreateConversation(agentId: string, userId: string, title?: string): Promise<string>
-	searchMessages(conversationId: string, query: string, limit?: number): Promise<ConversationMessage[]>
+	searchMessages(
+		conversationId: string,
+		query: string,
+		limit?: number,
+	): Promise<ConversationMessage[]>
 	deleteConversation(conversationId: string): Promise<void>
 }
 
@@ -41,7 +48,7 @@ export class D1MemoryStore implements MemoryStore {
 		private db: Database,
 		private ai?: Ai,
 		private vectorize?: VectorizeIndex,
-		private workspaceId?: string
+		private workspaceId?: string,
 	) {}
 
 	/**
@@ -59,7 +66,10 @@ export class D1MemoryStore implements MemoryStore {
 		const existingConversation = existing[0]
 		if (existingConversation) {
 			// Update the timestamp
-			await this.db.update(conversations).set({ updatedAt: new Date() }).where(eq(conversations.id, existingConversation.id))
+			await this.db
+				.update(conversations)
+				.set({ updatedAt: new Date() })
+				.where(eq(conversations.id, existingConversation.id))
 			return existingConversation.id
 		}
 
@@ -84,7 +94,12 @@ export class D1MemoryStore implements MemoryStore {
 	/**
 	 * Save a message to the conversation.
 	 */
-	async saveMessage(conversationId: string, role: MessageRole, content: string, metadata?: Record<string, unknown>): Promise<string> {
+	async saveMessage(
+		conversationId: string,
+		role: MessageRole,
+		content: string,
+		metadata?: MessageMetadata,
+	): Promise<string> {
 		// Save to D1 using Drizzle
 		const inserted = await this.db
 			.insert(messages)
@@ -92,7 +107,7 @@ export class D1MemoryStore implements MemoryStore {
 				conversationId,
 				role,
 				content,
-				metadata: metadata as Record<string, unknown>,
+				metadata,
 			})
 			.returning({ id: messages.id })
 
@@ -103,29 +118,27 @@ export class D1MemoryStore implements MemoryStore {
 		const messageId = insertedMessage.id
 
 		// Update conversation timestamp
-		await this.db.update(conversations).set({ updatedAt: new Date() }).where(eq(conversations.id, conversationId))
+		await this.db
+			.update(conversations)
+			.set({ updatedAt: new Date() })
+			.where(eq(conversations.id, conversationId))
 
 		// Save to Vectorize for semantic search (if available)
 		if (this.vectorize && this.ai && role !== 'system' && role !== 'tool') {
-			try {
-				const embedding = await generateEmbedding(this.ai, content)
+			const embedding = await generateEmbedding(this.ai, content)
 
-				await this.vectorize.insert([
-					{
-						id: messageId,
-						values: embedding,
-						namespace: this.workspaceId || 'default',
-						metadata: {
-							conversationId,
-							role,
-							createdAt: new Date().toISOString(),
-						},
+			await this.vectorize.insert([
+				{
+					id: messageId,
+					values: embedding,
+					namespace: this.workspaceId || 'default',
+					metadata: {
+						conversationId,
+						role,
+						createdAt: new Date().toISOString(),
 					},
-				])
-			} catch (error) {
-				console.error('Failed to save message embedding to Vectorize:', error)
-				// Continue even if vectorize fails - D1 is the source of truth
-			}
+				},
+			])
 		}
 
 		return messageId
@@ -142,52 +155,68 @@ export class D1MemoryStore implements MemoryStore {
 			.orderBy(desc(messages.createdAt))
 			.limit(limit)
 
-		// Reverse to get chronological order
-		return results.reverse().map((row) => ({
-			id: row.id,
-			conversationId: row.conversationId,
-			role: row.role as MessageRole,
-			content: row.content,
-			createdAt: row.createdAt,
-			metadata: row.metadata as Record<string, unknown> | undefined,
-		}))
+		// Reverse to get chronological order and validate roles
+		return results.reverse().map((row) => {
+			if (!isMessageRole(row.role)) {
+				throw new Error(`Invalid message role in database: ${row.role}`)
+			}
+			return {
+				id: row.id,
+				conversationId: row.conversationId,
+				role: row.role,
+				content: row.content,
+				createdAt: row.createdAt,
+				metadata: row.metadata ?? undefined,
+			}
+		})
 	}
 
 	/**
 	 * Search messages using semantic search or text fallback.
 	 */
-	async searchMessages(conversationId: string, query: string, limit = 10): Promise<ConversationMessage[]> {
+	async searchMessages(
+		conversationId: string,
+		query: string,
+		limit = 10,
+	): Promise<ConversationMessage[]> {
+		// Helper to convert DB row to ConversationMessage with validation
+		const toConversationMessage = (row: typeof messages.$inferSelect): ConversationMessage => {
+			if (!isMessageRole(row.role)) {
+				throw new Error(`Invalid message role in database: ${row.role}`)
+			}
+			return {
+				id: row.id,
+				conversationId: row.conversationId,
+				role: row.role,
+				content: row.content,
+				createdAt: row.createdAt,
+				metadata: row.metadata ?? undefined,
+			}
+		}
+
 		// Try semantic search with Vectorize
 		if (this.vectorize && this.ai) {
-			try {
-				const queryEmbedding = await generateEmbedding(this.ai, query)
+			const queryEmbedding = await generateEmbedding(this.ai, query)
 
-				const results = await this.vectorize.query(queryEmbedding, {
-					topK: limit,
-					namespace: this.workspaceId || 'default',
-					filter: { conversationId },
-					returnMetadata: 'all',
-				})
+			const results = await this.vectorize.query(queryEmbedding, {
+				topK: limit,
+				namespace: this.workspaceId || 'default',
+				filter: { conversationId },
+				returnMetadata: 'all',
+			})
 
-				if (results.matches.length > 0) {
-					// Fetch full messages from D1 using the IDs
-					const messageIds = results.matches.map((match) => match.id)
-					const messagesResult = await this.db.select().from(messages).where(eq(messages.conversationId, conversationId))
+			if (results.matches.length > 0) {
+				// Fetch full messages from D1 using the IDs
+				const messageIds = results.matches.map((match) => match.id)
+				const messagesResult = await this.db
+					.select()
+					.from(messages)
+					.where(eq(messages.conversationId, conversationId))
 
-					// Filter to matching IDs and sort by score
-					const matchedMessages = messagesResult.filter((m) => messageIds.includes(m.id))
+				// Filter to matching IDs and sort by score
+				const matchedMessages = messagesResult.filter((m) => messageIds.includes(m.id))
 
-					return matchedMessages.map((row) => ({
-						id: row.id,
-						conversationId: row.conversationId,
-						role: row.role as MessageRole,
-						content: row.content,
-						createdAt: row.createdAt,
-						metadata: row.metadata as Record<string, unknown> | undefined,
-					}))
-				}
-			} catch (error) {
-				console.error('Vectorize search failed, falling back to text search:', error)
+				return matchedMessages.map(toConversationMessage)
 			}
 		}
 
@@ -199,14 +228,7 @@ export class D1MemoryStore implements MemoryStore {
 			.orderBy(desc(messages.createdAt))
 			.limit(limit)
 
-		return results.map((row) => ({
-			id: row.id,
-			conversationId: row.conversationId,
-			role: row.role as MessageRole,
-			content: row.content,
-			createdAt: row.createdAt,
-			metadata: row.metadata as Record<string, unknown> | undefined,
-		}))
+		return results.map(toConversationMessage)
 	}
 
 	/**
@@ -214,19 +236,18 @@ export class D1MemoryStore implements MemoryStore {
 	 */
 	async deleteConversation(conversationId: string): Promise<void> {
 		// Get message IDs for Vectorize cleanup
-		const messageRows = await this.db.select({ id: messages.id }).from(messages).where(eq(messages.conversationId, conversationId))
+		const messageRows = await this.db
+			.select({ id: messages.id })
+			.from(messages)
+			.where(eq(messages.conversationId, conversationId))
 
 		// Delete from D1 (cascade will delete messages)
 		await this.db.delete(conversations).where(eq(conversations.id, conversationId))
 
 		// Delete from Vectorize
 		if (this.vectorize && messageRows.length > 0) {
-			try {
-				const ids = messageRows.map((m) => m.id)
-				await this.vectorize.deleteByIds(ids)
-			} catch (error) {
-				console.error('Failed to delete messages from Vectorize:', error)
-			}
+			const ids = messageRows.map((m) => m.id)
+			await this.vectorize.deleteByIds(ids)
 		}
 	}
 }
@@ -234,7 +255,12 @@ export class D1MemoryStore implements MemoryStore {
 /**
  * Create a memory store instance.
  */
-export function createMemoryStore(db: Database, ai?: Ai, vectorize?: VectorizeIndex, workspaceId?: string): MemoryStore {
+export function createMemoryStore(
+	db: Database,
+	ai?: Ai,
+	vectorize?: VectorizeIndex,
+	workspaceId?: string,
+): MemoryStore {
 	return new D1MemoryStore(db, ai, vectorize, workspaceId)
 }
 

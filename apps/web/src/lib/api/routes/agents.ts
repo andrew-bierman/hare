@@ -1,6 +1,9 @@
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
-import { eq, and } from 'drizzle-orm'
+import { and, eq } from 'drizzle-orm'
+import { agents, agentTools, deployments } from 'web-app/db/schema'
+import type { Database } from 'web-app/db/types'
 import { getDb } from '../db'
+import { authMiddleware, workspaceMiddleware } from '../middleware'
 import {
 	AgentSchema,
 	CreateAgentSchema,
@@ -11,8 +14,7 @@ import {
 	SuccessSchema,
 	UpdateAgentSchema,
 } from '../schemas'
-import { agents, agentTools, deployments } from 'web-app/db/schema'
-import { authMiddleware, workspaceMiddleware, type WorkspaceVariables } from '../middleware'
+import type { WorkspaceEnv } from '../types'
 
 // Define routes
 const listAgentsRoute = createRoute({
@@ -279,13 +281,16 @@ const deployAgentRoute = createRoute({
 /**
  * Get tool IDs attached to an agent.
  */
-async function getAgentToolIds(agentId: string, db: NonNullable<Awaited<ReturnType<typeof getDb>>>): Promise<string[]> {
-	const rows = await db.select({ toolId: agentTools.toolId }).from(agentTools).where(eq(agentTools.agentId, agentId))
+async function getAgentToolIds(agentId: string, db: Database): Promise<string[]> {
+	const rows = await db
+		.select({ toolId: agentTools.toolId })
+		.from(agentTools)
+		.where(eq(agentTools.agentId, agentId))
 	return rows.map((r) => r.toolId)
 }
 
-// Create app with proper typing
-const app = new OpenAPIHono<{ Variables: WorkspaceVariables }>()
+// Create app with proper typing (includes Bindings and Variables)
+const app = new OpenAPIHono<WorkspaceEnv>()
 
 // Apply middleware
 app.use('*', authMiddleware)
@@ -295,10 +300,6 @@ app.use('*', workspaceMiddleware)
 app.openapi(listAgentsRoute, async (c) => {
 	const db = await getDb(c)
 	const workspace = c.get('workspace')
-
-	if (!db) {
-		return c.json({ error: 'Service unavailable' }, 503)
-	}
 
 	const results = await db.select().from(agents).where(eq(agents.workspaceId, workspace.id))
 
@@ -316,7 +317,7 @@ app.openapi(listAgentsRoute, async (c) => {
 			toolIds: await getAgentToolIds(agent.id, db),
 			createdAt: agent.createdAt.toISOString(),
 			updatedAt: agent.updatedAt.toISOString(),
-		}))
+		})),
 	)
 
 	return c.json({ agents: agentsData }, 200)
@@ -328,10 +329,6 @@ app.openapi(createAgentRoute, async (c) => {
 	const user = c.get('user')
 	const workspace = c.get('workspace')
 	const role = c.get('workspaceRole')
-
-	if (!db) {
-		return c.json({ error: 'Service unavailable' }, 503)
-	}
 
 	// Check write permission
 	if (role === 'viewer') {
@@ -361,7 +358,7 @@ app.openapi(createAgentRoute, async (c) => {
 			data.toolIds.map((toolId: string) => ({
 				agentId: agent.id,
 				toolId,
-			}))
+			})),
 		)
 	}
 
@@ -379,7 +376,7 @@ app.openapi(createAgentRoute, async (c) => {
 			createdAt: agent.createdAt.toISOString(),
 			updatedAt: agent.updatedAt.toISOString(),
 		},
-		201
+		201,
 	)
 })
 
@@ -387,10 +384,6 @@ app.openapi(getAgentRoute, async (c) => {
 	const { id } = c.req.valid('param')
 	const db = await getDb(c)
 	const workspace = c.get('workspace')
-
-	if (!db) {
-		return c.json({ error: 'Service unavailable' }, 503)
-	}
 
 	// Verify agent belongs to workspace
 	const [agent] = await db
@@ -418,7 +411,7 @@ app.openapi(getAgentRoute, async (c) => {
 			createdAt: agent.createdAt.toISOString(),
 			updatedAt: agent.updatedAt.toISOString(),
 		},
-		200
+		200,
 	)
 })
 
@@ -428,10 +421,6 @@ app.openapi(updateAgentRoute, async (c) => {
 	const db = await getDb(c)
 	const workspace = c.get('workspace')
 	const role = c.get('workspaceRole')
-
-	if (!db) {
-		return c.json({ error: 'Service unavailable' }, 503)
-	}
 
 	// Check write permission
 	if (role === 'viewer') {
@@ -448,16 +437,16 @@ app.openapi(updateAgentRoute, async (c) => {
 		return c.json({ error: 'Agent not found' }, 404)
 	}
 
-	const updateData: Record<string, unknown> = {
+	// Build typed update object using Drizzle's inferred type
+	const updateData: Partial<typeof agents.$inferInsert> = {
 		updatedAt: new Date(),
+		...(data.name !== undefined && { name: data.name }),
+		...(data.description !== undefined && { description: data.description }),
+		...(data.model !== undefined && { model: data.model }),
+		...(data.instructions !== undefined && { instructions: data.instructions }),
+		...(data.config !== undefined && { config: data.config }),
+		...(data.status !== undefined && { status: data.status }),
 	}
-
-	if (data.name !== undefined) updateData.name = data.name
-	if (data.description !== undefined) updateData.description = data.description
-	if (data.model !== undefined) updateData.model = data.model
-	if (data.instructions !== undefined) updateData.instructions = data.instructions
-	if (data.config !== undefined) updateData.config = data.config
-	if (data.status !== undefined) updateData.status = data.status
 
 	const [agent] = await db.update(agents).set(updateData).where(eq(agents.id, id)).returning()
 
@@ -476,7 +465,7 @@ app.openapi(updateAgentRoute, async (c) => {
 				data.toolIds.map((toolId: string) => ({
 					agentId: id,
 					toolId,
-				}))
+				})),
 			)
 		}
 	}
@@ -497,7 +486,7 @@ app.openapi(updateAgentRoute, async (c) => {
 			createdAt: agent.createdAt.toISOString(),
 			updatedAt: agent.updatedAt.toISOString(),
 		},
-		200
+		200,
 	)
 })
 
@@ -506,10 +495,6 @@ app.openapi(deleteAgentRoute, async (c) => {
 	const db = await getDb(c)
 	const workspace = c.get('workspace')
 	const role = c.get('workspaceRole')
-
-	if (!db) {
-		return c.json({ error: 'Service unavailable' }, 503)
-	}
 
 	// Check admin permission for delete
 	if (role !== 'owner' && role !== 'admin') {
@@ -536,10 +521,6 @@ app.openapi(deployAgentRoute, async (c) => {
 	const user = c.get('user')
 	const workspace = c.get('workspace')
 	const role = c.get('workspaceRole')
-
-	if (!db) {
-		return c.json({ error: 'Service unavailable' }, 503)
-	}
 
 	// Check admin permission for deploy
 	if (role !== 'owner' && role !== 'admin') {
@@ -594,7 +575,7 @@ app.openapi(deployAgentRoute, async (c) => {
 			deployedAt: deployment.deployedAt.toISOString(),
 			version,
 		},
-		200
+		200,
 	)
 })
 

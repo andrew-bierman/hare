@@ -1,8 +1,5 @@
 'use client'
 
-import { Check, ChevronsUpDown, Plus } from 'lucide-react'
-import { useState } from 'react'
-import { toast } from 'sonner'
 import { Button } from '@workspace/ui/components/button'
 import {
 	Dialog,
@@ -23,6 +20,9 @@ import {
 import { Input } from '@workspace/ui/components/input'
 import { Label } from '@workspace/ui/components/label'
 import { Skeleton } from '@workspace/ui/components/skeleton'
+import { Check, ChevronsUpDown, Plus } from 'lucide-react'
+import { type ChangeEvent, type KeyboardEvent, useState } from 'react'
+import { toast } from 'sonner'
 import { useWorkspace } from 'web-app/components/providers/workspace-provider'
 import { useCreateWorkspace } from 'web-app/lib/api/hooks'
 
@@ -74,9 +74,7 @@ export function WorkspaceSwitcher() {
 								<div className="font-medium">{workspace.name}</div>
 								<div className="text-xs text-muted-foreground">{workspace.slug}</div>
 							</div>
-							{activeWorkspace?.id === workspace.id && (
-								<Check className="h-4 w-4 text-primary" />
-							)}
+							{activeWorkspace?.id === workspace.id && <Check className="h-4 w-4 text-primary" />}
 						</DropdownMenuItem>
 					))}
 					<DropdownMenuSeparator />
@@ -102,8 +100,8 @@ export function WorkspaceSwitcher() {
 								id="workspace-name"
 								placeholder="My Workspace"
 								value={newWorkspaceName}
-								onChange={(e) => setNewWorkspaceName(e.target.value)}
-								onKeyDown={(e) => {
+								onChange={(e: ChangeEvent<HTMLInputElement>) => setNewWorkspaceName(e.target.value)}
+								onKeyDown={(e: KeyboardEvent<HTMLInputElement>) => {
 									if (e.key === 'Enter') {
 										handleCreateWorkspace()
 									}

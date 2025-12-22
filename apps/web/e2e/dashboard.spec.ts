@@ -1,22 +1,22 @@
-import { test, expect } from '@playwright/test'
+import { expect, type Page, test } from '@playwright/test'
 
 test.describe('Dashboard Overview', () => {
-	test.beforeEach(async ({ page }) => {
+	test.beforeEach(async ({ page }: { page: Page }) => {
 		await page.goto('/dashboard')
 	})
 
-	test('displays dashboard heading', async ({ page }) => {
+	test('displays dashboard heading', async ({ page }: { page: Page }) => {
 		await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible()
 	})
 
-	test('displays key metrics cards', async ({ page }) => {
+	test('displays key metrics cards', async ({ page }: { page: Page }) => {
 		// Dashboard should show some metrics/stats
 		// Look for card-like elements with stats
 		const cards = page.locator('[class*="card"]')
 		await expect(cards.first()).toBeVisible()
 	})
 
-	test('has sidebar navigation', async ({ page }) => {
+	test('has sidebar navigation', async ({ page }: { page: Page }) => {
 		// Verify sidebar links exist
 		await expect(page.getByRole('link', { name: 'Dashboard' })).toBeVisible()
 		await expect(page.getByRole('link', { name: 'Agents' })).toBeVisible()
@@ -27,60 +27,60 @@ test.describe('Dashboard Overview', () => {
 })
 
 test.describe('Agents List Page', () => {
-	test.beforeEach(async ({ page }) => {
+	test.beforeEach(async ({ page }: { page: Page }) => {
 		await page.goto('/dashboard/agents')
 	})
 
-	test('displays agents heading', async ({ page }) => {
+	test('displays agents heading', async ({ page }: { page: Page }) => {
 		await expect(page.getByRole('heading', { name: 'Agents', exact: true })).toBeVisible()
 	})
 
-	test('has new agent button', async ({ page }) => {
+	test('has new agent button', async ({ page }: { page: Page }) => {
 		await expect(page.getByRole('link', { name: 'New Agent' })).toBeVisible()
 	})
 
-	test('new agent button navigates to create page', async ({ page }) => {
+	test('new agent button navigates to create page', async ({ page }: { page: Page }) => {
 		await page.getByRole('link', { name: 'New Agent' }).click()
 		await expect(page).toHaveURL('/dashboard/agents/new')
 	})
 })
 
 test.describe('Tools List Page', () => {
-	test.beforeEach(async ({ page }) => {
+	test.beforeEach(async ({ page }: { page: Page }) => {
 		await page.goto('/dashboard/tools')
 	})
 
-	test('displays tools heading', async ({ page }) => {
+	test('displays tools heading', async ({ page }: { page: Page }) => {
 		await expect(page.getByRole('heading', { name: 'Tools', exact: true })).toBeVisible()
 	})
 
-	test('has add tool button', async ({ page }) => {
+	test('has add tool button', async ({ page }: { page: Page }) => {
 		await expect(page.getByRole('button', { name: 'Add Tool' }).first()).toBeVisible()
 	})
 
-	test('shows tool categories or list', async ({ page }) => {
+	test('shows tool categories or list', async ({ page }: { page: Page }) => {
 		// Page should have some content about tools
 		await expect(page.locator('body')).not.toContainText('404')
 	})
 })
 
 test.describe('Usage Page', () => {
-	test.beforeEach(async ({ page }) => {
+	test.beforeEach(async ({ page }: { page: Page }) => {
 		await page.goto('/dashboard/usage')
 	})
 
-	test('displays usage heading', async ({ page }) => {
+	test('displays usage heading', async ({ page }: { page: Page }) => {
 		await expect(page.getByRole('heading', { name: 'Usage' })).toBeVisible()
 	})
 
-	test('shows usage statistics section', async ({ page }) => {
+	test('shows usage statistics section', async ({ page }: { page: Page }) => {
 		// Usage page should have stats/metrics
 		await expect(page.locator('body')).not.toContainText('404')
 	})
 })
 
 test.describe('Responsive Layout', () => {
-	test('dashboard is responsive on mobile', async ({ page }) => {
+	test('dashboard is responsive on mobile', async ({ page }: { page: Page }) => {
 		await page.setViewportSize({ width: 375, height: 667 })
 		await page.goto('/dashboard')
 
@@ -90,7 +90,7 @@ test.describe('Responsive Layout', () => {
 		await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible()
 	})
 
-	test('agents page is responsive on tablet', async ({ page }) => {
+	test('agents page is responsive on tablet', async ({ page }: { page: Page }) => {
 		await page.setViewportSize({ width: 768, height: 1024 })
 		await page.goto('/dashboard/agents')
 
@@ -100,7 +100,7 @@ test.describe('Responsive Layout', () => {
 })
 
 test.describe('Theme and Accessibility', () => {
-	test('pages have proper heading hierarchy', async ({ page }) => {
+	test('pages have proper heading hierarchy', async ({ page }: { page: Page }) => {
 		await page.goto('/dashboard')
 
 		// Should have an h1 heading
@@ -108,7 +108,7 @@ test.describe('Theme and Accessibility', () => {
 		await expect(h1).toBeVisible()
 	})
 
-	test('buttons are keyboard accessible', async ({ page }) => {
+	test('buttons are keyboard accessible', async ({ page }: { page: Page }) => {
 		await page.goto('/dashboard/agents')
 
 		// Tab to the New Agent button and verify it's focusable
@@ -117,7 +117,7 @@ test.describe('Theme and Accessibility', () => {
 		await expect(newAgentLink).toBeFocused()
 	})
 
-	test('form inputs are keyboard accessible', async ({ page }) => {
+	test('form inputs are keyboard accessible', async ({ page }: { page: Page }) => {
 		await page.goto('/sign-in')
 
 		// Tab through form elements

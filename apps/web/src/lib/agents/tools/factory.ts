@@ -1,15 +1,38 @@
-import type { Database } from 'web-app/db/types'
 import { eq } from 'drizzle-orm'
-import { tools as toolsTable, agentTools } from 'web-app/db/schema'
-import { type Tool, type ToolContext, type ToolConfig, createTool, success, failure } from './types'
+import { agentTools, tools as toolsTable } from 'web-app/db/schema'
+import type { Database } from 'web-app/db/types'
+import { z } from 'zod'
 import { httpRequestTool } from './http'
+import { createTool, failure, type Tool, type ToolConfig, type ToolContext } from './types'
+
+/**
+ * Build a Zod schema from a JSON Schema-like configuration.
+ * Returns a passthrough object schema for unknown structures.
+ */
+function buildInputSchema(inputSchema: Record<string, unknown> | null | undefined): z.ZodType {
+	if (!inputSchema || Object.keys(inputSchema).length === 0) {
+		// No schema defined - accept any object
+		return z.record(z.string(), z.unknown())
+	}
+
+	// For now, use a passthrough object schema
+	// In the future, this could be enhanced to parse JSON Schema properly
+	return z.record(z.string(), z.unknown())
+}
 
 /**
  * Load tools attached to an agent from the database.
  */
-export async function loadAgentTools(agentId: string, db: Database, context: ToolContext): Promise<Tool[]> {
+export async function loadAgentTools(
+	agentId: string,
+	db: Database,
+	context: ToolContext,
+): Promise<Tool[]> {
 	// Get tool IDs attached to this agent
-	const attachedTools = await db.select({ toolId: agentTools.toolId }).from(agentTools).where(eq(agentTools.agentId, agentId))
+	const attachedTools = await db
+		.select({ toolId: agentTools.toolId })
+		.from(agentTools)
+		.where(eq(agentTools.agentId, agentId))
 
 	if (attachedTools.length === 0) {
 		return []
@@ -23,7 +46,9 @@ export async function loadAgentTools(agentId: string, db: Database, context: Too
 	const attachedConfigs = toolConfigs.filter((t) => toolIds.includes(t.id))
 
 	// Convert to executable tools
-	return attachedConfigs.map((config) => createToolFromConfig(config as ToolConfig, context)).filter((t): t is Tool => t !== null)
+	return attachedConfigs
+		.map((config) => createToolFromConfig(config as ToolConfig, context))
+		.filter((t): t is Tool => t !== null)
 }
 
 /**
@@ -36,7 +61,7 @@ function createToolFromConfig(config: ToolConfig, context: ToolContext): Tool | 
 		case 'custom':
 			return createCustomToolFromConfig(config, context)
 		default:
-			console.warn(`Unknown tool type: ${config.type}`)
+			console.warn(`Unknown tool type "${config.type}" for tool ${config.id}`)
 			return null
 	}
 }
@@ -44,7 +69,7 @@ function createToolFromConfig(config: ToolConfig, context: ToolContext): Tool | 
 /**
  * Create an HTTP tool from configuration.
  */
-function createHTTPToolFromConfig(config: ToolConfig, context: ToolContext): Tool {
+function createHTTPToolFromConfig(config: ToolConfig, _context: ToolContext): Tool {
 	const toolConfig = config.config as {
 		url?: string
 		method?: string
@@ -70,27 +95,32 @@ function createHTTPToolFromConfig(config: ToolConfig, context: ToolContext): Too
 }
 
 /**
- * Create a custom tool from configuration with user-provided code.
+ * Create a custom tool from configuration.
+ *
+ * NOTE: Custom tool execution requires a secure sandboxed environment.
+ * Currently, custom tools will return an error indicating they need to be
+ * executed in a Cloudflare Worker or similar isolated environment.
  */
-function createCustomToolFromConfig(config: ToolConfig, context: ToolContext): Tool {
+function createCustomToolFromConfig(config: ToolConfig, _context: ToolContext): Tool {
+	// Use the tool's own input schema, not a misleading HTTP fallback
+	const inputSchema = buildInputSchema(config.inputSchema)
+
 	return createTool({
 		id: config.id,
 		description: config.description || '',
-		inputSchema: httpRequestTool.inputSchema, // Fallback schema
-		execute: async (params, ctx) => {
+		inputSchema,
+		execute: async (_params, _ctx) => {
 			if (!config.code) {
 				return failure('No code provided for custom tool')
 			}
 
-			try {
-				// Create a sandboxed function from the code
-				// Note: In production, consider using Cloudflare Workers for isolation
-				const fn = new Function('params', 'context', `return (async () => { ${config.code} })()`)
-				const result = await fn(params, ctx)
-				return success(result)
-			} catch (error) {
-				return failure(`Custom tool execution failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
-			}
+			// Custom tool execution requires sandboxed environment
+			// Direct eval/Function execution is unsafe and disabled
+			return failure(
+				'Custom tool execution is not available in this environment. ' +
+					'Custom tools must be executed in a sandboxed Cloudflare Worker. ' +
+					'Please use built-in tool types (http, kv, r2, sql, vectorize) instead.',
+			)
 		},
 	})
 }

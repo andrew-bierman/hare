@@ -1,9 +1,17 @@
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
-import { eq, and } from 'drizzle-orm'
-import { getDb } from '../db'
-import { CreateToolSchema, ErrorSchema, IdParamSchema, SuccessSchema, ToolSchema, UpdateToolSchema } from '../schemas'
+import { and, eq } from 'drizzle-orm'
 import { tools } from 'web-app/db/schema'
-import { authMiddleware, workspaceMiddleware, type WorkspaceVariables } from '../middleware'
+import { getDb } from '../db'
+import { authMiddleware, workspaceMiddleware } from '../middleware'
+import {
+	CreateToolSchema,
+	ErrorSchema,
+	IdParamSchema,
+	SuccessSchema,
+	ToolSchema,
+	UpdateToolSchema,
+} from '../schemas'
+import type { WorkspaceEnv } from '../types'
 
 // System tools that are always available
 const SYSTEM_TOOLS = [
@@ -287,8 +295,8 @@ function mapToolType(dbType: string): ToolType {
 	return 'custom'
 }
 
-// Create app with proper typing
-const app = new OpenAPIHono<{ Variables: WorkspaceVariables }>()
+// Create app with proper typing (includes Bindings and Variables)
+const app = new OpenAPIHono<WorkspaceEnv>()
 
 // Apply middleware
 app.use('*', authMiddleware)
@@ -299,10 +307,6 @@ app.openapi(listToolsRoute, async (c) => {
 	const { includeSystem } = c.req.valid('query')
 	const db = await getDb(c)
 	const workspace = c.get('workspace')
-
-	if (!db) {
-		return c.json({ error: 'Service unavailable' }, 503)
-	}
 
 	// Get custom tools from database
 	const customTools = await db.select().from(tools).where(eq(tools.workspaceId, workspace.id))
@@ -340,10 +344,6 @@ app.openapi(createToolRoute, async (c) => {
 	const workspace = c.get('workspace')
 	const role = c.get('workspaceRole')
 
-	if (!db) {
-		return c.json({ error: 'Service unavailable' }, 503)
-	}
-
 	// Check write permission
 	if (role === 'viewer') {
 		return c.json({ error: 'Insufficient permissions' }, 403)
@@ -378,7 +378,7 @@ app.openapi(createToolRoute, async (c) => {
 			createdAt: tool.createdAt.toISOString(),
 			updatedAt: tool.updatedAt.toISOString(),
 		},
-		201
+		201,
 	)
 })
 
@@ -398,12 +398,8 @@ app.openapi(getToolRoute, async (c) => {
 				createdAt: now,
 				updatedAt: now,
 			},
-			200
+			200,
 		)
-	}
-
-	if (!db) {
-		return c.json({ error: 'Service unavailable' }, 503)
 	}
 
 	// Get custom tool from database
@@ -428,7 +424,7 @@ app.openapi(getToolRoute, async (c) => {
 			createdAt: tool.createdAt.toISOString(),
 			updatedAt: tool.updatedAt.toISOString(),
 		},
-		200
+		200,
 	)
 })
 
@@ -442,10 +438,6 @@ app.openapi(updateToolRoute, async (c) => {
 	// Check if trying to modify system tool
 	if (SYSTEM_TOOLS.some((t) => t.id === id)) {
 		return c.json({ error: 'Cannot modify system tools' }, 400)
-	}
-
-	if (!db) {
-		return c.json({ error: 'Service unavailable' }, 503)
 	}
 
 	// Check write permission
@@ -463,14 +455,14 @@ app.openapi(updateToolRoute, async (c) => {
 		return c.json({ error: 'Tool not found' }, 404)
 	}
 
-	const updateData: Record<string, unknown> = {
+	// Build typed update object using Drizzle's inferred type
+	const updateData: Partial<typeof tools.$inferInsert> = {
 		updatedAt: new Date(),
+		...(data.name !== undefined && { name: data.name }),
+		...(data.description !== undefined && { description: data.description }),
+		...(data.type !== undefined && { type: data.type }),
+		...(data.config !== undefined && { config: data.config }),
 	}
-
-	if (data.name !== undefined) updateData.name = data.name
-	if (data.description !== undefined) updateData.description = data.description
-	if (data.type !== undefined) updateData.type = data.type
-	if (data.config !== undefined) updateData.config = data.config
 
 	const [tool] = await db.update(tools).set(updateData).where(eq(tools.id, id)).returning()
 
@@ -491,7 +483,7 @@ app.openapi(updateToolRoute, async (c) => {
 			createdAt: tool.createdAt.toISOString(),
 			updatedAt: tool.updatedAt.toISOString(),
 		},
-		200
+		200,
 	)
 })
 
@@ -504,10 +496,6 @@ app.openapi(deleteToolRoute, async (c) => {
 	// Check if trying to delete system tool
 	if (SYSTEM_TOOLS.some((t) => t.id === id)) {
 		return c.json({ error: 'Cannot delete system tools' }, 400)
-	}
-
-	if (!db) {
-		return c.json({ error: 'Service unavailable' }, 503)
 	}
 
 	// Check admin permission for delete

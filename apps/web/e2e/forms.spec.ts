@@ -1,11 +1,11 @@
-import { test, expect } from '@playwright/test'
+import { expect, type Page, test } from '@playwright/test'
 
 test.describe('Agent Creation Form', () => {
-	test.beforeEach(async ({ page }) => {
+	test.beforeEach(async ({ page }: { page: Page }) => {
 		await page.goto('/dashboard/agents/new')
 	})
 
-	test('displays all required form fields', async ({ page }) => {
+	test('displays all required form fields', async ({ page }: { page: Page }) => {
 		// Agent name field (label includes asterisk for required)
 		await expect(page.getByLabel(/Agent Name/)).toBeVisible()
 
@@ -19,11 +19,11 @@ test.describe('Agent Creation Form', () => {
 		await expect(page.getByLabel('System Prompt')).toBeVisible()
 	})
 
-	test('has create button', async ({ page }) => {
+	test('has create button', async ({ page }: { page: Page }) => {
 		await expect(page.getByRole('button', { name: /create/i })).toBeVisible()
 	})
 
-	test('can fill in form fields', async ({ page }) => {
+	test('can fill in form fields', async ({ page }: { page: Page }) => {
 		// Fill agent name
 		await page.getByLabel(/Agent Name/).fill('My Test Agent')
 		await expect(page.getByLabel(/Agent Name/)).toHaveValue('My Test Agent')
@@ -39,38 +39,38 @@ test.describe('Agent Creation Form', () => {
 })
 
 test.describe('Settings Form', () => {
-	test.beforeEach(async ({ page }) => {
+	test.beforeEach(async ({ page }: { page: Page }) => {
 		await page.goto('/dashboard/settings')
 	})
 
-	test('displays profile section', async ({ page }) => {
+	test('displays profile section', async ({ page }: { page: Page }) => {
 		await expect(page.getByText('Profile', { exact: true }).first()).toBeVisible()
 	})
 
-	test('has name input field', async ({ page }) => {
+	test('has name input field', async ({ page }: { page: Page }) => {
 		// Look for a name-related input
 		const nameInput = page.getByLabel(/name/i).first()
 		await expect(nameInput).toBeVisible()
 	})
 
-	test('has email input field', async ({ page }) => {
+	test('has email input field', async ({ page }: { page: Page }) => {
 		const emailInput = page.getByLabel(/email/i).first()
 		await expect(emailInput).toBeVisible()
 	})
 })
 
 test.describe('Sign In Form', () => {
-	test.beforeEach(async ({ page }) => {
+	test.beforeEach(async ({ page }: { page: Page }) => {
 		await page.goto('/sign-in')
 	})
 
-	test('displays all form fields', async ({ page }) => {
+	test('displays all form fields', async ({ page }: { page: Page }) => {
 		await expect(page.getByLabel('Email')).toBeVisible()
 		await expect(page.getByLabel('Password')).toBeVisible()
 		await expect(page.getByRole('button', { name: 'Sign In' })).toBeVisible()
 	})
 
-	test('can fill in credentials', async ({ page }) => {
+	test('can fill in credentials', async ({ page }: { page: Page }) => {
 		await page.getByLabel('Email').fill('test@example.com')
 		await expect(page.getByLabel('Email')).toHaveValue('test@example.com')
 
@@ -78,17 +78,17 @@ test.describe('Sign In Form', () => {
 		await expect(page.getByLabel('Password')).toHaveValue('password123')
 	})
 
-	test('has link to sign up', async ({ page }) => {
+	test('has link to sign up', async ({ page }: { page: Page }) => {
 		await expect(page.getByRole('link', { name: /sign up/i })).toBeVisible()
 	})
 })
 
 test.describe('Sign Up Form', () => {
-	test.beforeEach(async ({ page }) => {
+	test.beforeEach(async ({ page }: { page: Page }) => {
 		await page.goto('/sign-up')
 	})
 
-	test('displays all form fields', async ({ page }) => {
+	test('displays all form fields', async ({ page }: { page: Page }) => {
 		await expect(page.getByLabel('Full Name')).toBeVisible()
 		await expect(page.getByLabel('Email')).toBeVisible()
 		await expect(page.getByLabel('Password', { exact: true })).toBeVisible()
@@ -96,7 +96,7 @@ test.describe('Sign Up Form', () => {
 		await expect(page.getByRole('button', { name: 'Create Account' })).toBeVisible()
 	})
 
-	test('can fill in registration details', async ({ page }) => {
+	test('can fill in registration details', async ({ page }: { page: Page }) => {
 		await page.getByLabel('Full Name').fill('John Doe')
 		await expect(page.getByLabel('Full Name')).toHaveValue('John Doe')
 
@@ -110,7 +110,7 @@ test.describe('Sign Up Form', () => {
 		await expect(page.getByLabel('Confirm Password')).toHaveValue('password123')
 	})
 
-	test('has link to sign in', async ({ page }) => {
+	test('has link to sign in', async ({ page }: { page: Page }) => {
 		await expect(page.getByRole('link', { name: /sign in/i })).toBeVisible()
 	})
 })

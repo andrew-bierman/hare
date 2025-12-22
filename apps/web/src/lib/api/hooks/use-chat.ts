@@ -1,7 +1,7 @@
 'use client'
 
-import { useCallback, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
+import { useCallback, useState } from 'react'
 
 // Helper to extract error message from API response
 function getErrorMessage(error: unknown, fallback: string): string {
@@ -47,7 +47,13 @@ export interface ChatStreamEvent {
 async function fetchConversations(agentId: string): Promise<{ conversations: Conversation[] }> {
 	const response = await fetch(`/api/chat/agents/${agentId}/conversations`)
 	if (!response.ok) {
-		const error = await response.json().catch(() => ({}))
+		let error: unknown = null
+		try {
+			error = await response.json()
+		} catch {
+			// Response body was not JSON - use status text
+			error = { error: response.statusText || 'Unknown error' }
+		}
 		throw new Error(getErrorMessage(error, 'Failed to fetch conversations'))
 	}
 	return response.json()
@@ -56,7 +62,13 @@ async function fetchConversations(agentId: string): Promise<{ conversations: Con
 async function fetchMessages(conversationId: string): Promise<{ messages: Message[] }> {
 	const response = await fetch(`/api/chat/conversations/${conversationId}/messages`)
 	if (!response.ok) {
-		const error = await response.json().catch(() => ({}))
+		let error: unknown = null
+		try {
+			error = await response.json()
+		} catch {
+			// Response body was not JSON - use status text
+			error = { error: response.statusText || 'Unknown error' }
+		}
 		throw new Error(getErrorMessage(error, 'Failed to fetch messages'))
 	}
 	return response.json()
@@ -122,7 +134,13 @@ export function useChat(agentId: string | undefined) {
 				})
 
 				if (!response.ok) {
-					const errorData = await response.json().catch(() => ({}))
+					let errorData: unknown = null
+					try {
+						errorData = await response.json()
+					} catch {
+						// Response body was not JSON - use status text
+						errorData = { error: response.statusText || 'Unknown error' }
+					}
 					throw new Error(getErrorMessage(errorData, 'Failed to send message'))
 				}
 
@@ -161,8 +179,11 @@ export function useChat(agentId: string | undefined) {
 								} else if (event.type === 'error') {
 									setError(event.message || 'An error occurred')
 								}
-							} catch {
-								// Ignore parse errors for malformed events
+							} catch (parseError) {
+								// Log parse errors in development for debugging
+								if (process.env.NODE_ENV === 'development') {
+									console.warn('Failed to parse SSE event:', line, parseError)
+								}
 							}
 						}
 					}
@@ -175,7 +196,7 @@ export function useChat(agentId: string | undefined) {
 				setIsStreaming(false)
 			}
 		},
-		[agentId, isStreaming, sessionId]
+		[agentId, isStreaming, sessionId],
 	)
 
 	const clearMessages = useCallback(() => {

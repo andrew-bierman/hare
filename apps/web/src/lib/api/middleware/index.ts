@@ -1,8 +1,19 @@
+// Re-export types from the central types module
+export type {
+	ApiKeyEnv,
+	ApiKeyInfo,
+	ApiKeyVariables,
+	AuthEnv,
+	AuthSession,
+	AuthUser,
+	AuthVariables,
+	HonoEnv,
+	OptionalAuthEnv,
+	WorkspaceEnv,
+	WorkspaceInfo,
+	WorkspaceRole,
+	WorkspaceVariables,
+} from '../types'
+export { apiKeyMiddleware, generateApiKey, hasAgentAccess, hasScope } from './api-key'
 export { authMiddleware, optionalAuthMiddleware } from './auth'
-export type { AuthUser, AuthVariables } from './auth'
-
-export { workspaceMiddleware, requirePermission, hasPermission } from './workspace'
-export type { WorkspaceRole, WorkspaceInfo, WorkspaceVariables } from './workspace'
-
-export { apiKeyMiddleware, hasAgentAccess, hasScope, generateApiKey } from './api-key'
-export type { ApiKeyInfo, ApiKeyVariables } from './api-key'
+export { hasPermission, requirePermission, workspaceMiddleware } from './workspace'

@@ -1,38 +1,21 @@
+import { and, eq } from 'drizzle-orm'
 import type { MiddlewareHandler } from 'hono'
-import { eq, and } from 'drizzle-orm'
+import { workspaceMembers, workspaces } from 'web-app/db/schema'
 import { getDb } from '../db'
-import { workspaces, workspaceMembers } from 'web-app/db/schema'
-import type { AuthVariables } from './auth'
-
-export type WorkspaceRole = 'owner' | 'admin' | 'member' | 'viewer'
-
-export interface WorkspaceInfo {
-	id: string
-	name: string
-	slug: string
-	ownerId: string
-}
-
-export interface WorkspaceVariables extends AuthVariables {
-	workspace: WorkspaceInfo
-	workspaceRole: WorkspaceRole
-}
+import { isWorkspaceRole, type WorkspaceEnv, type WorkspaceRole } from '../types'
 
 /**
  * Workspace middleware that validates workspace access.
  * Expects workspaceId in query params or route params.
  * Must be used after authMiddleware.
  */
-export const workspaceMiddleware: MiddlewareHandler<{ Variables: WorkspaceVariables }> = async (c, next) => {
+export const workspaceMiddleware: MiddlewareHandler<WorkspaceEnv> = async (c, next) => {
 	const user = c.get('user')
 	if (!user) {
 		return c.json({ error: 'Unauthorized' }, 401)
 	}
 
 	const db = await getDb(c)
-	if (!db) {
-		return c.json({ error: 'Service unavailable' }, 503)
-	}
 
 	// Get workspaceId from query or params
 	const workspaceId = c.req.query('workspaceId') || c.req.param('workspaceId')
@@ -71,13 +54,19 @@ export const workspaceMiddleware: MiddlewareHandler<{ Variables: WorkspaceVariab
 		return c.json({ error: 'Access denied to workspace' }, 403)
 	}
 
+	// Validate role from database
+	if (!isWorkspaceRole(membership.role)) {
+		console.error(`Invalid workspace role in database: ${membership.role}`)
+		return c.json({ error: 'Invalid workspace configuration' }, 500)
+	}
+
 	c.set('workspace', {
 		id: workspace.id,
 		name: workspace.name,
 		slug: workspace.slug,
 		ownerId: workspace.ownerId,
 	})
-	c.set('workspaceRole', membership.role as WorkspaceRole)
+	c.set('workspaceRole', membership.role)
 
 	await next()
 }
@@ -85,7 +74,10 @@ export const workspaceMiddleware: MiddlewareHandler<{ Variables: WorkspaceVariab
 /**
  * Check if user has permission for an action based on role.
  */
-export function hasPermission(role: WorkspaceRole, action: 'read' | 'write' | 'admin' | 'owner'): boolean {
+export function hasPermission(
+	role: WorkspaceRole,
+	action: 'read' | 'write' | 'admin' | 'owner',
+): boolean {
 	const permissions: Record<WorkspaceRole, Set<string>> = {
 		owner: new Set(['read', 'write', 'admin', 'owner']),
 		admin: new Set(['read', 'write', 'admin']),
@@ -100,8 +92,8 @@ export function hasPermission(role: WorkspaceRole, action: 'read' | 'write' | 'a
  * Middleware factory for permission-based access control.
  */
 export function requirePermission(
-	action: 'read' | 'write' | 'admin' | 'owner'
-): MiddlewareHandler<{ Variables: WorkspaceVariables }> {
+	action: 'read' | 'write' | 'admin' | 'owner',
+): MiddlewareHandler<WorkspaceEnv> {
 	return async (c, next) => {
 		const role = c.get('workspaceRole')
 

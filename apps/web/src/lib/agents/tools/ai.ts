@@ -1,0 +1,545 @@
+import { z } from 'zod'
+import { createTool, failure, success, type ToolContext } from './types'
+
+/**
+ * Sentiment Analysis Tool - Analyze the sentiment of text.
+ */
+export const sentimentTool = createTool({
+	id: 'sentiment',
+	description:
+		'Analyze the sentiment of text. Returns positive, negative, or neutral classification with confidence scores.',
+	inputSchema: z.object({
+		text: z.string().min(1).max(5000).describe('Text to analyze for sentiment'),
+		detailed: z.boolean().optional().default(false).describe('Return detailed emotion breakdown'),
+	}),
+	execute: async (params, context) => {
+		try {
+			const { text, detailed } = params
+
+			// Use Workers AI for sentiment analysis
+			const response = await context.env.AI.run('@cf/huggingface/distilbert-sst-2-int8', {
+				text,
+			})
+
+			if (!response || !Array.isArray(response)) {
+				return failure('Sentiment analysis failed: Invalid response')
+			}
+
+			// The model returns an array of label/score pairs
+			const results = response as Array<{ label: string; score: number }>
+			const sortedResults = results.sort((a, b) => b.score - a.score)
+			const topResult = sortedResults[0]
+
+			// Map labels to sentiment
+			const sentimentMap: Record<string, string> = {
+				POSITIVE: 'positive',
+				NEGATIVE: 'negative',
+				NEUTRAL: 'neutral',
+			}
+
+			const sentiment = sentimentMap[topResult.label] || topResult.label.toLowerCase()
+			const confidence = topResult.score
+
+			return success({
+				sentiment,
+				confidence: Math.round(confidence * 100) / 100,
+				label: topResult.label,
+				...(detailed && { allScores: sortedResults }),
+			})
+		} catch (error) {
+			return failure(
+				`Sentiment analysis error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+			)
+		}
+	},
+})
+
+/**
+ * Text Summarization Tool - Generate summaries of long text.
+ */
+export const summarizeTool = createTool({
+	id: 'summarize',
+	description:
+		'Generate a concise summary of longer text content. Useful for distilling articles, documents, or conversations.',
+	inputSchema: z.object({
+		text: z.string().min(50).max(50000).describe('Text content to summarize'),
+		maxLength: z.number().optional().default(200).describe('Maximum summary length in words'),
+		style: z
+			.enum(['brief', 'detailed', 'bullets'])
+			.optional()
+			.default('brief')
+			.describe('Summary style'),
+	}),
+	execute: async (params, context) => {
+		try {
+			const { text, maxLength, style } = params
+
+			let prompt: string
+			switch (style) {
+				case 'bullets':
+					prompt = `Summarize the following text as bullet points (max ${maxLength} words total):\n\n${text}`
+					break
+				case 'detailed':
+					prompt = `Provide a comprehensive summary of the following text (max ${maxLength} words):\n\n${text}`
+					break
+				default:
+					prompt = `Provide a brief, concise summary of the following text (max ${maxLength} words):\n\n${text}`
+			}
+
+			const response = await context.env.AI.run('@cf/meta/llama-3.1-8b-instruct', {
+				prompt,
+				max_tokens: Math.min(maxLength * 2, 1000),
+			})
+
+			if (!response || typeof response !== 'object' || !('response' in response)) {
+				return failure('Summarization failed: Invalid response')
+			}
+
+			const summary = (response as { response: string }).response
+
+			return success({
+				summary: summary.trim(),
+				originalLength: text.length,
+				summaryLength: summary.trim().length,
+				compressionRatio: Math.round((1 - summary.trim().length / text.length) * 100),
+				style,
+			})
+		} catch (error) {
+			return failure(
+				`Summarization error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+			)
+		}
+	},
+})
+
+/**
+ * Translation Tool - Translate text between languages.
+ */
+export const translateTool = createTool({
+	id: 'translate',
+	description: 'Translate text from one language to another. Supports many common languages.',
+	inputSchema: z.object({
+		text: z.string().min(1).max(10000).describe('Text to translate'),
+		targetLanguage: z
+			.string()
+			.describe(
+				'Target language code (e.g., "es", "fr", "de", "ja", "zh", "ko", "pt", "it", "ru", "ar")',
+			),
+		sourceLanguage: z
+			.string()
+			.optional()
+			.describe('Source language code (auto-detect if not specified)'),
+	}),
+	execute: async (params, context) => {
+		try {
+			const { text, targetLanguage, sourceLanguage } = params
+
+			// Use Workers AI translation model
+			const response = await context.env.AI.run('@cf/meta/m2m100-1.2b', {
+				text,
+				target_lang: targetLanguage,
+				source_lang: sourceLanguage || 'en',
+			})
+
+			if (!response || typeof response !== 'object' || !('translated_text' in response)) {
+				return failure('Translation failed: Invalid response')
+			}
+
+			const translatedText = (response as { translated_text: string }).translated_text
+
+			return success({
+				translatedText,
+				sourceLanguage: sourceLanguage || 'auto-detected',
+				targetLanguage,
+				originalLength: text.length,
+				translatedLength: translatedText.length,
+			})
+		} catch (error) {
+			return failure(
+				`Translation error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+			)
+		}
+	},
+})
+
+/**
+ * Image Generation Tool - Generate images from text descriptions.
+ */
+export const imageGenerateTool = createTool({
+	id: 'image_generate',
+	description:
+		'Generate images from text descriptions using AI. Returns the image as base64-encoded data.',
+	inputSchema: z.object({
+		prompt: z.string().min(1).max(1000).describe('Description of the image to generate'),
+		negativePrompt: z.string().optional().describe('Things to avoid in the image'),
+		width: z.number().optional().default(512).describe('Image width (256-1024)'),
+		height: z.number().optional().default(512).describe('Image height (256-1024)'),
+		steps: z.number().optional().default(20).describe('Number of diffusion steps (1-50)'),
+		guidance: z.number().optional().default(7.5).describe('Guidance scale (1-20)'),
+	}),
+	execute: async (params, context) => {
+		try {
+			const { prompt, negativePrompt, width, height, steps, guidance } = params
+
+			// Validate dimensions
+			const validWidth = Math.min(Math.max(width, 256), 1024)
+			const validHeight = Math.min(Math.max(height, 256), 1024)
+			const validSteps = Math.min(Math.max(steps, 1), 50)
+			const validGuidance = Math.min(Math.max(guidance, 1), 20)
+
+			const response = await context.env.AI.run('@cf/stabilityai/stable-diffusion-xl-base-1.0', {
+				prompt,
+				negative_prompt: negativePrompt,
+				width: validWidth,
+				height: validHeight,
+				num_steps: validSteps,
+				guidance: validGuidance,
+			})
+
+			if (!response) {
+				return failure('Image generation failed: No response')
+			}
+
+			// The response is typically a ReadableStream or ArrayBuffer
+			let base64Image: string
+
+			if (response instanceof ReadableStream) {
+				const reader = response.getReader()
+				const chunks: Uint8Array[] = []
+				let done = false
+
+				while (!done) {
+					const result = await reader.read()
+					done = result.done
+					if (result.value) {
+						chunks.push(result.value)
+					}
+				}
+
+				const totalLength = chunks.reduce((acc, chunk) => acc + chunk.length, 0)
+				const combined = new Uint8Array(totalLength)
+				let offset = 0
+				for (const chunk of chunks) {
+					combined.set(chunk, offset)
+					offset += chunk.length
+				}
+
+				base64Image = btoa(String.fromCharCode(...combined))
+			} else if (response instanceof ArrayBuffer) {
+				base64Image = btoa(String.fromCharCode(...new Uint8Array(response)))
+			} else if (typeof response === 'object' && 'image' in response) {
+				base64Image = (response as { image: string }).image
+			} else {
+				return failure('Image generation failed: Unexpected response format')
+			}
+
+			return success({
+				image: base64Image,
+				mimeType: 'image/png',
+				width: validWidth,
+				height: validHeight,
+				prompt,
+				dataUrl: `data:image/png;base64,${base64Image}`,
+			})
+		} catch (error) {
+			return failure(
+				`Image generation error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+			)
+		}
+	},
+})
+
+/**
+ * Text Classification Tool - Classify text into categories.
+ */
+export const classifyTool = createTool({
+	id: 'classify',
+	description:
+		'Classify text into custom categories. Useful for routing, tagging, or categorizing content.',
+	inputSchema: z.object({
+		text: z.string().min(1).max(5000).describe('Text to classify'),
+		categories: z.array(z.string()).min(2).max(20).describe('List of possible categories'),
+		multiLabel: z
+			.boolean()
+			.optional()
+			.default(false)
+			.describe('Allow multiple categories to match'),
+	}),
+	execute: async (params, context) => {
+		try {
+			const { text, categories, multiLabel } = params
+
+			// Create a classification prompt
+			const prompt = multiLabel
+				? `Classify the following text into one or more of these categories: ${categories.join(', ')}
+
+Text: "${text}"
+
+Return only the matching category names, comma-separated. If none match, return "unknown".`
+				: `Classify the following text into exactly one of these categories: ${categories.join(', ')}
+
+Text: "${text}"
+
+Return only the single most appropriate category name.`
+
+			const response = await context.env.AI.run('@cf/meta/llama-3.1-8b-instruct', {
+				prompt,
+				max_tokens: 100,
+			})
+
+			if (!response || typeof response !== 'object' || !('response' in response)) {
+				return failure('Classification failed: Invalid response')
+			}
+
+			const result = (response as { response: string }).response.trim().toLowerCase()
+			const matchedCategories = categories.filter((cat) => result.includes(cat.toLowerCase()))
+
+			if (matchedCategories.length === 0) {
+				// Try to find the closest match
+				const resultCategories = result.split(',').map((s) => s.trim())
+				for (const rescat of resultCategories) {
+					const found = categories.find(
+						(cat) => cat.toLowerCase() === rescat || rescat.includes(cat.toLowerCase()),
+					)
+					if (found) matchedCategories.push(found)
+				}
+			}
+
+			return success({
+				categories: multiLabel ? matchedCategories : [matchedCategories[0] || 'unknown'],
+				allCategories: categories,
+				confidence: matchedCategories.length > 0 ? 'high' : 'low',
+				rawResponse: result,
+			})
+		} catch (error) {
+			return failure(
+				`Classification error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+			)
+		}
+	},
+})
+
+/**
+ * Named Entity Recognition Tool - Extract entities from text.
+ */
+export const nerTool = createTool({
+	id: 'ner',
+	description:
+		'Extract named entities from text such as people, organizations, locations, dates, and more.',
+	inputSchema: z.object({
+		text: z.string().min(1).max(10000).describe('Text to analyze for entities'),
+		entityTypes: z
+			.array(
+				z.enum(['person', 'organization', 'location', 'date', 'money', 'email', 'phone', 'url']),
+			)
+			.optional()
+			.describe('Specific entity types to extract (all if not specified)'),
+	}),
+	execute: async (params, context) => {
+		try {
+			const { text, entityTypes } = params
+
+			// Use regex patterns for common entities
+			const patterns: Record<string, RegExp> = {
+				email: /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/g,
+				phone: /(?:\+?1[-.\s]?)?\(?[0-9]{3}\)?[-.\s]?[0-9]{3}[-.\s]?[0-9]{4}/g,
+				url: /https?:\/\/(?:www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_+.~#?&//=]*)/g,
+				money:
+					/\$[\d,]+(?:\.\d{2})?|\d+(?:,\d{3})*(?:\.\d{2})?\s?(?:USD|EUR|GBP|JPY|dollars?|euros?|pounds?)/gi,
+				date: /(?:\d{1,2}[-/]\d{1,2}[-/]\d{2,4}|\d{4}[-/]\d{1,2}[-/]\d{1,2}|(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\.?\s+\d{1,2},?\s+\d{4})/gi,
+			}
+
+			const entities: Record<string, string[]> = {}
+
+			// Extract pattern-based entities
+			for (const [type, pattern] of Object.entries(patterns)) {
+				if (!entityTypes || entityTypes.includes(type as any)) {
+					const matches = text.match(pattern) || []
+					if (matches.length > 0) {
+						entities[type] = [...new Set(matches)]
+					}
+				}
+			}
+
+			// Use AI for person, organization, location extraction
+			const aiTypes = ['person', 'organization', 'location'].filter(
+				(t) => !entityTypes || entityTypes.includes(t as any),
+			)
+
+			if (aiTypes.length > 0) {
+				const prompt = `Extract all ${aiTypes.join(', ')} names from the following text. Return them as JSON with keys: ${aiTypes.map((t) => `"${t}s"`).join(', ')} (arrays of strings). Only output valid JSON, nothing else.
+
+Text: "${text.slice(0, 3000)}"`
+
+				try {
+					const response = await context.env.AI.run('@cf/meta/llama-3.1-8b-instruct', {
+						prompt,
+						max_tokens: 500,
+					})
+
+					if (response && typeof response === 'object' && 'response' in response) {
+						const aiResult = (response as { response: string }).response
+						// Try to parse JSON from the response
+						const jsonMatch = aiResult.match(/\{[\s\S]*\}/)
+						if (jsonMatch) {
+							const parsed = JSON.parse(jsonMatch[0])
+							for (const type of aiTypes) {
+								const key = `${type}s`
+								if (Array.isArray(parsed[key]) && parsed[key].length > 0) {
+									entities[type] = [...new Set(parsed[key] as string[])]
+								}
+							}
+						}
+					}
+				} catch {
+					// AI extraction failed, continue with pattern-based results
+				}
+			}
+
+			const totalEntities = Object.values(entities).reduce((acc, arr) => acc + arr.length, 0)
+
+			return success({
+				entities,
+				totalCount: totalEntities,
+				typesFound: Object.keys(entities),
+			})
+		} catch (error) {
+			return failure(`NER error: ${error instanceof Error ? error.message : 'Unknown error'}`)
+		}
+	},
+})
+
+/**
+ * Text Embedding Tool - Generate vector embeddings for text.
+ */
+export const embeddingTool = createTool({
+	id: 'embedding',
+	description:
+		'Generate vector embeddings for text. Useful for semantic search, similarity comparison, and clustering.',
+	inputSchema: z.object({
+		text: z.union([z.string(), z.array(z.string())]).describe('Text or array of texts to embed'),
+		model: z
+			.enum(['bge-base-en', 'bge-small-en', 'bge-large-en'])
+			.optional()
+			.default('bge-base-en')
+			.describe('Embedding model to use'),
+	}),
+	execute: async (params, context) => {
+		try {
+			const { text, model } = params
+
+			const texts = Array.isArray(text) ? text : [text]
+			const modelId = `@cf/baai/${model}-v1.5`
+
+			const response = await context.env.AI.run(modelId as any, {
+				text: texts,
+			})
+
+			if (!response || typeof response !== 'object' || !('data' in response)) {
+				return failure('Embedding generation failed: Invalid response')
+			}
+
+			const embeddings = (response as { data: number[][] }).data
+
+			return success({
+				embeddings,
+				dimensions: embeddings[0]?.length || 0,
+				count: embeddings.length,
+				model,
+			})
+		} catch (error) {
+			return failure(`Embedding error: ${error instanceof Error ? error.message : 'Unknown error'}`)
+		}
+	},
+})
+
+/**
+ * Question Answering Tool - Answer questions based on context.
+ */
+export const qaTool = createTool({
+	id: 'question_answer',
+	description: 'Answer questions based on provided context. Useful for RAG and document Q&A.',
+	inputSchema: z.object({
+		question: z.string().min(1).max(500).describe('Question to answer'),
+		context: z.string().min(1).max(20000).describe('Context/document to find the answer in'),
+		options: z
+			.object({
+				maxLength: z.number().optional().default(200).describe('Maximum answer length'),
+				includeQuote: z
+					.boolean()
+					.optional()
+					.default(false)
+					.describe('Include relevant quote from context'),
+			})
+			.optional(),
+	}),
+	execute: async (params, context) => {
+		try {
+			const { question, context: textContext, options } = params
+			const { maxLength = 200, includeQuote = false } = options || {}
+
+			const prompt = includeQuote
+				? `Based on the following context, answer the question and provide a relevant quote.
+
+Context: "${textContext.slice(0, 15000)}"
+
+Question: ${question}
+
+Provide your answer in this format:
+Answer: [your answer here, max ${maxLength} words]
+Quote: [relevant quote from the context]`
+				: `Based on the following context, answer the question concisely (max ${maxLength} words).
+
+Context: "${textContext.slice(0, 15000)}"
+
+Question: ${question}
+
+Answer:`
+
+			const response = await context.env.AI.run('@cf/meta/llama-3.1-8b-instruct', {
+				prompt,
+				max_tokens: maxLength * 2,
+			})
+
+			if (!response || typeof response !== 'object' || !('response' in response)) {
+				return failure('Question answering failed: Invalid response')
+			}
+
+			const result = (response as { response: string }).response.trim()
+
+			if (includeQuote) {
+				const answerMatch = result.match(/Answer:\s*([\s\S]*?)(?=Quote:|$)/i)
+				const quoteMatch = result.match(/Quote:\s*([\s\S]*?)$/i)
+
+				return success({
+					answer: answerMatch?.[1]?.trim() || result,
+					quote: quoteMatch?.[1]?.trim(),
+					question,
+				})
+			}
+
+			return success({
+				answer: result,
+				question,
+			})
+		} catch (error) {
+			return failure(`Q&A error: ${error instanceof Error ? error.message : 'Unknown error'}`)
+		}
+	},
+})
+
+/**
+ * Get all AI tools.
+ */
+export function getAITools(_context: ToolContext) {
+	return [
+		sentimentTool,
+		summarizeTool,
+		translateTool,
+		imageGenerateTool,
+		classifyTool,
+		nerTool,
+		embeddingTool,
+		qaTool,
+	]
+}

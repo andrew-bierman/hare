@@ -1,27 +1,8 @@
-import type { MiddlewareHandler } from 'hono'
 import { eq } from 'drizzle-orm'
-import { getDb } from '../db'
+import type { MiddlewareHandler } from 'hono'
 import { apiKeys, workspaces } from 'web-app/db/schema'
-
-export interface ApiKeyInfo {
-	id: string
-	workspaceId: string
-	name: string
-	permissions: {
-		scopes?: string[]
-		agentIds?: string[]
-	} | null
-}
-
-export interface ApiKeyVariables {
-	apiKey: ApiKeyInfo
-	workspace: {
-		id: string
-		name: string
-		slug: string
-		ownerId: string
-	}
-}
+import { getDb } from '../db'
+import type { ApiKeyEnv, ApiKeyInfo } from '../types'
 
 /**
  * Hash an API key for comparison.
@@ -40,7 +21,7 @@ async function hashApiKey(key: string): Promise<string> {
  * Validates X-API-Key header against api_keys table.
  * Use for external API access (agent endpoints).
  */
-export const apiKeyMiddleware: MiddlewareHandler<{ Variables: ApiKeyVariables }> = async (c, next) => {
+export const apiKeyMiddleware: MiddlewareHandler<ApiKeyEnv> = async (c, next) => {
 	const apiKeyHeader = c.req.header('X-API-Key')
 
 	if (!apiKeyHeader) {
@@ -48,37 +29,34 @@ export const apiKeyMiddleware: MiddlewareHandler<{ Variables: ApiKeyVariables }>
 	}
 
 	const db = await getDb(c)
-	if (!db) {
-		return c.json({ error: 'Service unavailable' }, 503)
-	}
-
-	// Hash the provided key
 	const hashedKey = await hashApiKey(apiKeyHeader)
 
-	// Find matching API key
 	const [keyRecord] = await db.select().from(apiKeys).where(eq(apiKeys.hashedKey, hashedKey))
 
 	if (!keyRecord) {
 		return c.json({ error: 'Invalid API key' }, 401)
 	}
 
-	// Check expiration
 	if (keyRecord.expiresAt && keyRecord.expiresAt < new Date()) {
 		return c.json({ error: 'API key expired' }, 401)
 	}
 
-	// Get workspace
-	const [workspace] = await db.select().from(workspaces).where(eq(workspaces.id, keyRecord.workspaceId))
+	const [workspace] = await db
+		.select()
+		.from(workspaces)
+		.where(eq(workspaces.id, keyRecord.workspaceId))
 
 	if (!workspace) {
 		return c.json({ error: 'Workspace not found' }, 404)
 	}
 
-	// Update last used timestamp (fire and forget)
+	// Update last used timestamp (non-blocking)
 	db.update(apiKeys)
 		.set({ lastUsedAt: new Date() })
 		.where(eq(apiKeys.id, keyRecord.id))
-		.catch(() => {})
+		.catch((error) => {
+			console.error('Failed to update API key lastUsedAt:', error)
+		})
 
 	c.set('apiKey', {
 		id: keyRecord.id,
@@ -101,11 +79,9 @@ export const apiKeyMiddleware: MiddlewareHandler<{ Variables: ApiKeyVariables }>
  * Check if API key has access to a specific agent.
  */
 export function hasAgentAccess(apiKey: ApiKeyInfo, agentId: string): boolean {
-	// If no agentIds restriction, allow all
 	if (!apiKey.permissions?.agentIds || apiKey.permissions.agentIds.length === 0) {
 		return true
 	}
-
 	return apiKey.permissions.agentIds.includes(agentId)
 }
 
@@ -113,11 +89,9 @@ export function hasAgentAccess(apiKey: ApiKeyInfo, agentId: string): boolean {
  * Check if API key has a specific scope.
  */
 export function hasScope(apiKey: ApiKeyInfo, scope: string): boolean {
-	// If no scopes restriction, allow all
 	if (!apiKey.permissions?.scopes || apiKey.permissions.scopes.length === 0) {
 		return true
 	}
-
 	return apiKey.permissions.scopes.includes(scope)
 }
 
@@ -125,12 +99,14 @@ export function hasScope(apiKey: ApiKeyInfo, scope: string): boolean {
  * Generate a new API key.
  * Returns the raw key (show once to user) and the hashed key (store in DB).
  */
-export async function generateApiKey(): Promise<{ key: string; hashedKey: string; prefix: string }> {
-	// Generate 32 random bytes
+export async function generateApiKey(): Promise<{
+	key: string
+	hashedKey: string
+	prefix: string
+}> {
 	const randomBytes = new Uint8Array(32)
 	crypto.getRandomValues(randomBytes)
 
-	// Convert to base64url
 	const key =
 		'hare_' +
 		btoa(String.fromCharCode(...randomBytes))

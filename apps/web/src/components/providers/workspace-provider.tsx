@@ -1,14 +1,7 @@
 'use client'
 
-import {
-	createContext,
-	type ReactNode,
-	useCallback,
-	useContext,
-	useEffect,
-	useState,
-} from 'react'
-import { useWorkspaces, useCreateWorkspace, type Workspace } from 'web-app/lib/api/hooks'
+import { createContext, type ReactNode, useCallback, useContext, useEffect, useState } from 'react'
+import { useCreateWorkspace, useWorkspaces, type Workspace } from 'web-app/lib/api/hooks'
 import { useAuth } from './auth-provider'
 
 interface WorkspaceContextValue {
