@@ -1,8 +1,9 @@
 import type { Database } from 'web-app/db/types'
 import { eq } from 'drizzle-orm'
 import { tools as toolsTable, agentTools } from 'web-app/db/schema'
-import { type Tool, type ToolContext, type ToolConfig, createTool, success, failure } from './types'
+import { type Tool, type ToolContext, type ToolConfig, createTool } from './types'
 import { httpRequestTool } from './http'
+import { logger } from 'web-app/lib/logger'
 
 /**
  * Load tools attached to an agent from the database.
@@ -34,9 +35,14 @@ function createToolFromConfig(config: ToolConfig, context: ToolContext): Tool | 
 		case 'http':
 			return createHTTPToolFromConfig(config, context)
 		case 'custom':
-			return createCustomToolFromConfig(config, context)
+			// Custom code execution is disabled for security reasons
+			logger.warn('Custom tool type is not supported - arbitrary code execution is disabled', {
+				toolId: config.id,
+				toolName: config.name,
+			})
+			return null
 		default:
-			console.warn(`Unknown tool type: ${config.type}`)
+			logger.warn('Unknown tool type encountered', { toolId: config.id, type: config.type })
 			return null
 	}
 }
@@ -69,28 +75,3 @@ function createHTTPToolFromConfig(config: ToolConfig, context: ToolContext): Too
 	})
 }
 
-/**
- * Create a custom tool from configuration with user-provided code.
- */
-function createCustomToolFromConfig(config: ToolConfig, context: ToolContext): Tool {
-	return createTool({
-		id: config.id,
-		description: config.description || '',
-		inputSchema: httpRequestTool.inputSchema, // Fallback schema
-		execute: async (params, ctx) => {
-			if (!config.code) {
-				return failure('No code provided for custom tool')
-			}
-
-			try {
-				// Create a sandboxed function from the code
-				// Note: In production, consider using Cloudflare Workers for isolation
-				const fn = new Function('params', 'context', `return (async () => { ${config.code} })()`)
-				const result = await fn(params, ctx)
-				return success(result)
-			} catch (error) {
-				return failure(`Custom tool execution failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
-			}
-		},
-	})
-}

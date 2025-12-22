@@ -1,6 +1,7 @@
 import type { MiddlewareHandler } from 'hono'
-import { getCloudflareContext } from '@opennextjs/cloudflare'
 import { createAuth } from 'web-app/lib/auth'
+import { getD1 } from '../db'
+import { logger } from 'web-app/lib/logger'
 
 export interface AuthUser {
 	id: string
@@ -15,39 +16,6 @@ export interface AuthVariables {
 		id: string
 		expiresAt: Date
 	}
-}
-
-/**
- * Get D1 database binding from context.
- */
-async function getD1(c: { env: unknown }): Promise<D1Database | null> {
-	// First try Hono context
-	const honoD1 = (c.env as { DB?: D1Database })?.DB
-	if (honoD1) {
-		return honoD1
-	}
-
-	// Try sync mode (edge runtime)
-	try {
-		const { env } = getCloudflareContext()
-		if (env.DB) {
-			return env.DB
-		}
-	} catch {
-		// Sync mode failed
-	}
-
-	// Try async mode (Node.js runtime)
-	try {
-		const { env } = await getCloudflareContext({ async: true })
-		if (env.DB) {
-			return env.DB
-		}
-	} catch {
-		// Async mode failed
-	}
-
-	return null
 }
 
 /**
@@ -97,6 +65,7 @@ export const optionalAuthMiddleware: MiddlewareHandler<{ Variables: Partial<Auth
 	const d1 = await getD1(c)
 
 	if (!d1) {
+		logger.debug('Database not available for optional auth', { path: c.req.path })
 		await next()
 		return
 	}
@@ -121,8 +90,9 @@ export const optionalAuthMiddleware: MiddlewareHandler<{ Variables: Partial<Auth
 				expiresAt: session.session.expiresAt,
 			})
 		}
-	} catch {
-		// Ignore auth errors for optional auth
+	} catch (error) {
+		// Log but continue - optional auth should not block requests
+		logger.debug('Optional auth session check failed', { path: c.req.path }, error)
 	}
 
 	await next()

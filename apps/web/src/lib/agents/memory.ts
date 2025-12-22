@@ -3,6 +3,7 @@ import type { CoreMessage } from 'ai'
 import { eq, desc, and, like } from 'drizzle-orm'
 import { messages, conversations } from 'web-app/db/schema'
 import { generateEmbedding } from './providers/workers-ai'
+import { logger } from 'web-app/lib/logger'
 
 /**
  * Message role type matching our schema.
@@ -123,8 +124,8 @@ export class D1MemoryStore implements MemoryStore {
 					},
 				])
 			} catch (error) {
-				console.error('Failed to save message embedding to Vectorize:', error)
-				// Continue even if vectorize fails - D1 is the source of truth
+				// Log but continue - D1 is the source of truth, Vectorize is for optional semantic search
+				logger.warn('Failed to save message embedding to Vectorize', { messageId, conversationId }, error)
 			}
 		}
 
@@ -187,7 +188,8 @@ export class D1MemoryStore implements MemoryStore {
 					}))
 				}
 			} catch (error) {
-				console.error('Vectorize search failed, falling back to text search:', error)
+				// Log but fall back to text search - Vectorize is optional
+				logger.warn('Vectorize search failed, falling back to text search', { conversationId, query }, error)
 			}
 		}
 
@@ -219,13 +221,14 @@ export class D1MemoryStore implements MemoryStore {
 		// Delete from D1 (cascade will delete messages)
 		await this.db.delete(conversations).where(eq(conversations.id, conversationId))
 
-		// Delete from Vectorize
+		// Delete from Vectorize (non-critical, best effort)
 		if (this.vectorize && messageRows.length > 0) {
 			try {
 				const ids = messageRows.map((m) => m.id)
 				await this.vectorize.deleteByIds(ids)
 			} catch (error) {
-				console.error('Failed to delete messages from Vectorize:', error)
+				// Log but continue - D1 delete already succeeded, Vectorize cleanup is best-effort
+				logger.warn('Failed to delete messages from Vectorize', { conversationId, messageCount: messageRows.length }, error)
 			}
 		}
 	}

@@ -2,6 +2,7 @@ import type { MiddlewareHandler } from 'hono'
 import { eq } from 'drizzle-orm'
 import { getDb } from '../db'
 import { apiKeys, workspaces } from 'web-app/db/schema'
+import { logger } from 'web-app/lib/logger'
 
 export interface ApiKeyInfo {
 	id: string
@@ -74,11 +75,13 @@ export const apiKeyMiddleware: MiddlewareHandler<{ Variables: ApiKeyVariables }>
 		return c.json({ error: 'Workspace not found' }, 404)
 	}
 
-	// Update last used timestamp (fire and forget)
+	// Update last used timestamp (non-blocking, but log failures)
 	db.update(apiKeys)
 		.set({ lastUsedAt: new Date() })
 		.where(eq(apiKeys.id, keyRecord.id))
-		.catch(() => {})
+		.catch((error) => {
+			logger.warn('Failed to update API key lastUsedAt', { apiKeyId: keyRecord.id }, error)
+		})
 
 	c.set('apiKey', {
 		id: keyRecord.id,
