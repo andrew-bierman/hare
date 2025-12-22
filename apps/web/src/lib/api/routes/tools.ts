@@ -3,7 +3,8 @@ import { eq, and } from 'drizzle-orm'
 import { getDb } from '../db'
 import { CreateToolSchema, ErrorSchema, IdParamSchema, SuccessSchema, ToolSchema, UpdateToolSchema } from '../schemas'
 import { tools } from 'web-app/db/schema'
-import { authMiddleware, workspaceMiddleware, type WorkspaceVariables } from '../middleware'
+import { authMiddleware, workspaceMiddleware } from '../middleware'
+import type { WorkspaceEnv } from '../types'
 
 // System tools that are always available
 const SYSTEM_TOOLS = [
@@ -287,8 +288,8 @@ function mapToolType(dbType: string): ToolType {
 	return 'custom'
 }
 
-// Create app with proper typing
-const app = new OpenAPIHono<{ Variables: WorkspaceVariables }>()
+// Create app with proper typing (includes Bindings and Variables)
+const app = new OpenAPIHono<WorkspaceEnv>()
 
 // Apply middleware
 app.use('*', authMiddleware)
@@ -451,14 +452,14 @@ app.openapi(updateToolRoute, async (c) => {
 		return c.json({ error: 'Tool not found' }, 404)
 	}
 
-	const updateData: Record<string, unknown> = {
+	// Build typed update object using Drizzle's inferred type
+	const updateData: Partial<typeof tools.$inferInsert> = {
 		updatedAt: new Date(),
+		...(data.name !== undefined && { name: data.name }),
+		...(data.description !== undefined && { description: data.description }),
+		...(data.type !== undefined && { type: data.type }),
+		...(data.config !== undefined && { config: data.config }),
 	}
-
-	if (data.name !== undefined) updateData.name = data.name
-	if (data.description !== undefined) updateData.description = data.description
-	if (data.type !== undefined) updateData.type = data.type
-	if (data.config !== undefined) updateData.config = data.config
 
 	const [tool] = await db.update(tools).set(updateData).where(eq(tools.id, id)).returning()
 

@@ -1,8 +1,24 @@
+import { z } from 'zod'
 import type { Database } from 'web-app/db/types'
 import { eq } from 'drizzle-orm'
 import { tools as toolsTable, agentTools } from 'web-app/db/schema'
-import { type Tool, type ToolContext, type ToolConfig, createTool } from './types'
+import { type Tool, type ToolContext, type ToolConfig, createTool, failure } from './types'
 import { httpRequestTool } from './http'
+
+/**
+ * Build a Zod schema from a JSON Schema-like configuration.
+ * Returns a passthrough object schema for unknown structures.
+ */
+function buildInputSchema(inputSchema: Record<string, unknown> | null | undefined): z.ZodType {
+	if (!inputSchema || Object.keys(inputSchema).length === 0) {
+		// No schema defined - accept any object
+		return z.record(z.string(), z.unknown())
+	}
+
+	// For now, use a passthrough object schema
+	// In the future, this could be enhanced to parse JSON Schema properly
+	return z.record(z.string(), z.unknown())
+}
 
 /**
  * Load tools attached to an agent from the database.
@@ -34,9 +50,7 @@ function createToolFromConfig(config: ToolConfig, context: ToolContext): Tool | 
 		case 'http':
 			return createHTTPToolFromConfig(config, context)
 		case 'custom':
-			// Custom code execution is disabled for security reasons
-			console.warn(`Custom tool "${config.name}" (${config.id}) is not supported - arbitrary code execution is disabled`)
-			return null
+			return createCustomToolFromConfig(config, context)
 		default:
 			console.warn(`Unknown tool type "${config.type}" for tool ${config.id}`)
 			return null
@@ -71,3 +85,33 @@ function createHTTPToolFromConfig(config: ToolConfig, context: ToolContext): Too
 	})
 }
 
+/**
+ * Create a custom tool from configuration.
+ *
+ * NOTE: Custom tool execution requires a secure sandboxed environment.
+ * Currently, custom tools will return an error indicating they need to be
+ * executed in a Cloudflare Worker or similar isolated environment.
+ */
+function createCustomToolFromConfig(config: ToolConfig, context: ToolContext): Tool {
+	// Use the tool's own input schema, not a misleading HTTP fallback
+	const inputSchema = buildInputSchema(config.inputSchema)
+
+	return createTool({
+		id: config.id,
+		description: config.description || '',
+		inputSchema,
+		execute: async (params, ctx) => {
+			if (!config.code) {
+				return failure('No code provided for custom tool')
+			}
+
+			// Custom tool execution requires sandboxed environment
+			// Direct eval/Function execution is unsafe and disabled
+			return failure(
+				'Custom tool execution is not available in this environment. ' +
+					'Custom tools must be executed in a sandboxed Cloudflare Worker. ' +
+					'Please use built-in tool types (http, kv, r2, sql, vectorize) instead.'
+			)
+		},
+	})
+}

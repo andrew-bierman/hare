@@ -1,5 +1,45 @@
 import { z } from '@hono/zod-openapi'
 
+/**
+ * JSON value schema - represents any valid JSON value.
+ * Uses z.unknown() for type safety, requiring type narrowing at runtime.
+ */
+const JsonValueSchema: z.ZodType<unknown> = z.lazy(() =>
+	z.union([z.string(), z.number(), z.boolean(), z.null(), z.array(JsonValueSchema), z.record(z.string(), JsonValueSchema)])
+)
+
+/**
+ * JSON Schema property definition.
+ * Represents a single property in a JSON Schema.
+ */
+export const JsonSchemaPropertySchema = z
+	.object({
+		type: z.string().optional(),
+		description: z.string().optional(),
+		enum: z.array(z.string()).optional(),
+		default: JsonValueSchema.optional(),
+		required: z.boolean().optional(),
+	})
+	.passthrough() // Allow additional JSON Schema properties
+
+/**
+ * JSON Schema object.
+ * Represents the inputSchema for tools, allowing arbitrary JSON Schema properties.
+ */
+export const JsonSchemaSchema = z.record(z.string(), JsonSchemaPropertySchema)
+
+/**
+ * Tool configuration schema.
+ * Configuration can be any JSON object with string keys.
+ */
+export const ToolConfigSchema = z.record(z.string(), JsonValueSchema)
+
+/**
+ * Metadata schema for chat messages.
+ * Allows any JSON object with string keys.
+ */
+export const MetadataSchema = z.record(z.string(), JsonValueSchema)
+
 // Common schemas
 export const IdParamSchema = z.object({
 	id: z.string().openapi({ param: { name: 'id', in: 'path' }, example: 'agent_abc123' }),
@@ -131,13 +171,13 @@ export const ToolSchema = z
 		name: z.string().openapi({ example: 'HTTP Request' }),
 		description: z.string().openapi({ example: 'Make HTTP requests to external APIs' }),
 		type: ToolTypeSchema,
-		inputSchema: z.record(z.string(), z.any()).openapi({
+		inputSchema: JsonSchemaSchema.openapi({
 			example: {
 				url: { type: 'string', description: 'The URL to request' },
 				method: { type: 'string', enum: ['GET', 'POST', 'PUT', 'DELETE'] },
 			},
 		}),
-		config: z.record(z.string(), z.any()).optional().openapi({ example: {} }),
+		config: ToolConfigSchema.optional().openapi({ example: {} }),
 		code: z
 			.string()
 			.optional()
@@ -153,8 +193,8 @@ export const CreateToolSchema = z
 		name: z.string().min(1).max(100).openapi({ example: 'My Custom Tool' }),
 		description: z.string().min(1).openapi({ example: 'A custom tool for my agent' }),
 		type: ToolTypeSchema,
-		inputSchema: z.record(z.string(), z.any()).openapi({ example: { input: { type: 'string' } } }),
-		config: z.record(z.string(), z.any()).optional().openapi({ example: {} }),
+		inputSchema: JsonSchemaSchema.openapi({ example: { input: { type: 'string' } } }),
+		config: ToolConfigSchema.optional().openapi({ example: {} }),
 		code: z
 			.string()
 			.optional()
@@ -211,10 +251,7 @@ export const ChatRequestSchema = z
 	.object({
 		message: z.string().min(1).openapi({ example: 'Hello, how are you?' }),
 		sessionId: z.string().optional().openapi({ example: 'session_abc123' }),
-		metadata: z
-			.record(z.string(), z.any())
-			.optional()
-			.openapi({ example: { userId: 'user_123' } }),
+		metadata: MetadataSchema.optional().openapi({ example: { userId: 'user_123' } }),
 	})
 	.openapi('ChatRequest')
 

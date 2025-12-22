@@ -7,7 +7,8 @@ import { agents, conversations, messages, usage } from 'web-app/db/schema'
 import { createAgentFromConfig, type AgentConfig } from 'web-app/lib/agents'
 import { createMemoryStore, toAgentMessages } from 'web-app/lib/agents/memory'
 import type { CoreMessage } from 'ai'
-import { optionalAuthMiddleware, type AuthVariables } from '../middleware'
+import { optionalAuthMiddleware } from '../middleware'
+import type { OptionalAuthEnv } from '../types'
 
 // Define routes
 const chatWithAgentRoute = createRoute({
@@ -137,8 +138,8 @@ const getConversationMessagesRoute = createRoute({
 	},
 })
 
-// Create app
-const app = new OpenAPIHono<{ Variables: Partial<AuthVariables> }>()
+// Create app with proper typing (includes Bindings and Variables)
+const app = new OpenAPIHono<OptionalAuthEnv>()
 
 // Apply optional auth middleware - chat can work with or without auth
 app.use('*', optionalAuthMiddleware)

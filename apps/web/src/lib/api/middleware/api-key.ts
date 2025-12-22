@@ -2,26 +2,7 @@ import type { MiddlewareHandler } from 'hono'
 import { eq } from 'drizzle-orm'
 import { getDb } from '../db'
 import { apiKeys, workspaces } from 'web-app/db/schema'
-
-export interface ApiKeyInfo {
-	id: string
-	workspaceId: string
-	name: string
-	permissions: {
-		scopes?: string[]
-		agentIds?: string[]
-	} | null
-}
-
-export interface ApiKeyVariables {
-	apiKey: ApiKeyInfo
-	workspace: {
-		id: string
-		name: string
-		slug: string
-		ownerId: string
-	}
-}
+import type { ApiKeyEnv, ApiKeyInfo } from '../types'
 
 /**
  * Hash an API key for comparison.
@@ -40,7 +21,7 @@ async function hashApiKey(key: string): Promise<string> {
  * Validates X-API-Key header against api_keys table.
  * Use for external API access (agent endpoints).
  */
-export const apiKeyMiddleware: MiddlewareHandler<{ Variables: ApiKeyVariables }> = async (c, next) => {
+export const apiKeyMiddleware: MiddlewareHandler<ApiKeyEnv> = async (c, next) => {
 	const apiKeyHeader = c.req.header('X-API-Key')
 
 	if (!apiKeyHeader) {

@@ -3,42 +3,37 @@ import { getCloudflareContext } from '@opennextjs/cloudflare'
 import { createDb, type Database } from 'web-app/db/client'
 
 /**
- * Error thrown when required Cloudflare bindings are not available.
+ * Error thrown when Cloudflare environment is not available.
  */
-export class EnvironmentError extends Error {
-	constructor(
-		message: string,
-		public readonly binding: string
-	) {
+export class CloudflareEnvError extends Error {
+	constructor(message: string) {
 		super(message)
-		this.name = 'EnvironmentError'
+		this.name = 'CloudflareEnvError'
 	}
 }
 
 /**
- * Get D1 database binding from the current context.
- * Tries Hono context first, then falls back to OpenNext context modes.
- *
- * @throws {EnvironmentError} if D1 binding is not available
+ * Get D1 database binding from Cloudflare context.
+ * Throws CloudflareEnvError if D1 is not available.
  */
 export async function getD1(c: { env: unknown }): Promise<D1Database> {
-	// Try Hono context first (wrangler dev / production worker)
-	const honoD1 = (c.env as CloudflareEnv | undefined)?.DB
-	if (honoD1) {
-		return honoD1
+	// First try Hono context (for wrangler dev / production worker)
+	const honoEnv = c.env as CloudflareEnv | undefined
+	if (honoEnv?.DB) {
+		return honoEnv.DB
 	}
 
-	// Try sync mode (edge runtime with initOpenNextCloudflareForDev)
+	// Try sync mode (for edge runtime with initOpenNextCloudflareForDev)
 	try {
 		const { env } = getCloudflareContext()
 		if (env.DB) {
 			return env.DB
 		}
 	} catch {
-		// Sync mode not available, try async
+		// Sync mode not available, continue to async
 	}
 
-	// Try async mode (Node.js runtime)
+	// Try async mode (for Node.js runtime)
 	try {
 		const { env } = await getCloudflareContext({ async: true })
 		if (env.DB) {
@@ -48,35 +43,47 @@ export async function getD1(c: { env: unknown }): Promise<D1Database> {
 		// Async mode not available either
 	}
 
-	throw new EnvironmentError(
-		'D1 database binding not available. Ensure DB is configured in wrangler.toml and the worker is running in Cloudflare environment.',
-		'DB'
-	)
+	throw new CloudflareEnvError('D1 database binding not available. Ensure DB is configured in wrangler.toml.')
 }
 
 /**
  * Get database instance from Cloudflare context.
- *
- * @throws {EnvironmentError} if D1 binding is not available
+ * Returns null only when database is genuinely unavailable (for optional DB access).
+ * For required DB access, use requireDb() which throws on failure.
  */
-export async function getDb(c: Context): Promise<Database> {
+export async function getDb(c: Context): Promise<Database | null> {
+	try {
+		const d1 = await getD1(c)
+		return createDb(d1)
+	} catch (e) {
+		if (e instanceof CloudflareEnvError) {
+			return null
+		}
+		throw e
+	}
+}
+
+/**
+ * Get database instance, throwing if not available.
+ * Use this for routes that require database access.
+ */
+export async function requireDb(c: Context): Promise<Database> {
 	const d1 = await getD1(c)
 	return createDb(d1)
 }
 
 /**
  * Get the full Cloudflare environment with all bindings.
- *
- * @throws {EnvironmentError} if environment is not available
+ * Throws CloudflareEnvError if environment is not available.
  */
 export async function getCloudflareEnv(c: Context): Promise<CloudflareEnv> {
-	// Try Hono context first
+	// First try Hono context
 	const honoEnv = c.env as CloudflareEnv | undefined
 	if (honoEnv?.DB) {
 		return honoEnv
 	}
 
-	// Try sync mode (edge runtime)
+	// Try sync mode (for edge runtime)
 	try {
 		const { env } = getCloudflareContext()
 		if (env.DB) {
@@ -86,7 +93,7 @@ export async function getCloudflareEnv(c: Context): Promise<CloudflareEnv> {
 		// Sync mode not available
 	}
 
-	// Try async mode (Node.js runtime)
+	// Try async mode (for Node.js runtime)
 	try {
 		const { env } = await getCloudflareContext({ async: true })
 		if (env.DB) {
@@ -96,8 +103,5 @@ export async function getCloudflareEnv(c: Context): Promise<CloudflareEnv> {
 		// Async mode not available
 	}
 
-	throw new EnvironmentError(
-		'Cloudflare environment not available. Ensure bindings are configured in wrangler.toml.',
-		'CloudflareEnv'
-	)
+	throw new CloudflareEnvError('Cloudflare environment not available. Ensure bindings are configured.')
 }

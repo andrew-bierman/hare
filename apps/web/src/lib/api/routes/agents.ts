@@ -12,7 +12,8 @@ import {
 	UpdateAgentSchema,
 } from '../schemas'
 import { agents, agentTools, deployments } from 'web-app/db/schema'
-import { authMiddleware, workspaceMiddleware, type WorkspaceVariables } from '../middleware'
+import { authMiddleware, workspaceMiddleware } from '../middleware'
+import type { WorkspaceEnv } from '../types'
 
 // Define routes
 const listAgentsRoute = createRoute({
@@ -284,8 +285,8 @@ async function getAgentToolIds(agentId: string, db: NonNullable<Awaited<ReturnTy
 	return rows.map((r) => r.toolId)
 }
 
-// Create app with proper typing
-const app = new OpenAPIHono<{ Variables: WorkspaceVariables }>()
+// Create app with proper typing (includes Bindings and Variables)
+const app = new OpenAPIHono<WorkspaceEnv>()
 
 // Apply middleware
 app.use('*', authMiddleware)
@@ -436,16 +437,16 @@ app.openapi(updateAgentRoute, async (c) => {
 		return c.json({ error: 'Agent not found' }, 404)
 	}
 
-	const updateData: Record<string, unknown> = {
+	// Build typed update object using Drizzle's inferred type
+	const updateData: Partial<typeof agents.$inferInsert> = {
 		updatedAt: new Date(),
+		...(data.name !== undefined && { name: data.name }),
+		...(data.description !== undefined && { description: data.description }),
+		...(data.model !== undefined && { model: data.model }),
+		...(data.instructions !== undefined && { instructions: data.instructions }),
+		...(data.config !== undefined && { config: data.config }),
+		...(data.status !== undefined && { status: data.status }),
 	}
-
-	if (data.name !== undefined) updateData.name = data.name
-	if (data.description !== undefined) updateData.description = data.description
-	if (data.model !== undefined) updateData.model = data.model
-	if (data.instructions !== undefined) updateData.instructions = data.instructions
-	if (data.config !== undefined) updateData.config = data.config
-	if (data.status !== undefined) updateData.status = data.status
 
 	const [agent] = await db.update(agents).set(updateData).where(eq(agents.id, id)).returning()
 

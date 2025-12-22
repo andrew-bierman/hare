@@ -3,7 +3,8 @@ import { and, eq, gte, lte, sql } from 'drizzle-orm'
 import { getDb } from '../db'
 import { AgentUsageResponseSchema, ErrorSchema, IdParamSchema, UsageQuerySchema, UsageResponseSchema } from '../schemas'
 import { usage, agents } from 'web-app/db/schema'
-import { authMiddleware, workspaceMiddleware, type WorkspaceVariables } from '../middleware'
+import { authMiddleware, workspaceMiddleware } from '../middleware'
+import type { WorkspaceEnv } from '../types'
 
 // Define routes
 const getWorkspaceUsageRoute = createRoute({
@@ -73,8 +74,8 @@ const getAgentUsageRoute = createRoute({
 	},
 })
 
-// Create app with proper typing
-const app = new OpenAPIHono<{ Variables: WorkspaceVariables }>()
+// Create app with proper typing (includes Bindings and Variables)
+const app = new OpenAPIHono<WorkspaceEnv>()
 
 // Apply middleware
 app.use('*', authMiddleware)
