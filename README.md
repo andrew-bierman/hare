@@ -761,29 +761,49 @@ bun run test:unit
 # Run E2E tests (Playwright)
 bun run test:e2e
 
-# Run tests with coverage
-bun test --coverage
+# Run tests with coverage report
+bun run test:coverage
+```
+
+### 📊 Test Coverage
+
+Hare uses **Vitest** with v8 coverage provider. Coverage is configured with **90% thresholds** for lines, functions, branches, and statements.
+
+Coverage reports are generated in multiple formats:
+- Text summary (console output)
+- HTML report (`coverage/index.html`)
+- JSON report (`coverage/coverage-final.json`)
+- LCOV report (`coverage/lcov.info`)
+
+To view the HTML coverage report:
+```bash
+open coverage/index.html
 ```
 
 ### ✍️ Writing Tests
 
 Hare uses **Vitest** for unit tests and **Playwright** for end-to-end tests.
 
-Example test file:
+Example unit test:
 
 ```typescript
-// apps/web/src/db/__tests__/schema.test.ts
-import { describe, expect, test } from "vitest"
-import { agents } from "../schema/agents"
+// apps/web/src/lib/api/__tests__/types.test.ts
+import { describe, expect, it } from 'vitest'
+import { isWorkspaceRole } from '../types'
 
-describe("Agent Schema", () => {
-  test("should have correct default model", () => {
-    expect(agents.model.default).toBe("llama-3.3-70b")
+describe('isWorkspaceRole', () => {
+  it('returns true for valid workspace roles', () => {
+    expect(isWorkspaceRole('owner')).toBe(true)
+    expect(isWorkspaceRole('admin')).toBe(true)
+  })
+
+  it('returns false for invalid workspace roles', () => {
+    expect(isWorkspaceRole('superadmin')).toBe(false)
   })
 })
 ```
 
-For Playwright E2E tests:
+Example E2E test:
 
 ```typescript
 // packages/e2e/tests/home.spec.ts
@@ -794,6 +814,19 @@ test('homepage loads', async ({ page }) => {
   await expect(page).toHaveTitle(/Hare/)
 })
 ```
+
+### 🧪 Test Structure
+
+Unit tests are located in `__tests__` directories alongside source files:
+- API tests: `apps/web/src/lib/api/__tests__/`
+- Middleware tests: `apps/web/src/lib/api/middleware/__tests__/`
+- Provider tests: `apps/web/src/lib/agents/providers/__tests__/`
+- Tool tests: `apps/web/src/lib/agents/tools/__tests__/`
+- UI tests: `packages/ui/src/lib/__tests__/`
+
+E2E tests are in dedicated directories:
+- Web app: `apps/web/e2e/`
+- Shared: `packages/e2e/`
 
 ---
 
