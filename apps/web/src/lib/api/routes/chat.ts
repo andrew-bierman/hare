@@ -6,7 +6,7 @@ import { agents, conversations, messages, usage } from 'web-app/db/schema'
 import { type AgentConfig, createAgentFromConfig } from 'web-app/lib/agents'
 import { createMemoryStore, toAgentMessages } from 'web-app/lib/agents/memory'
 import { getCloudflareEnv, getDb } from '../db'
-import { authMiddleware, betaAccessMiddleware, chatRateLimitMiddleware } from '../middleware'
+import { authMiddleware, aiChatFeatureMiddleware, chatRateLimitMiddleware } from '../middleware'
 import { ChatRequestSchema, ConversationSchema, IdParamSchema, MessageSchema } from '../schemas'
 import type { AuthEnv } from '../types'
 
@@ -141,12 +141,15 @@ const getConversationMessagesRoute = createRoute({
 // Create app with proper typing (includes Bindings and Variables)
 const app = new OpenAPIHono<AuthEnv>()
 
-// Apply auth, beta access, and rate limiting middleware for chat
+// Apply middleware stack for chat endpoint
+// 1. Require authentication
+// 2. Check if AI chat feature is enabled (feature flag)
+// 3. Enforce rate limiting
 app.use('/agents/:id/chat', authMiddleware)
-app.use('/agents/:id/chat', betaAccessMiddleware)
+app.use('/agents/:id/chat', aiChatFeatureMiddleware)
 app.use('/agents/:id/chat', chatRateLimitMiddleware)
 
-// List conversations and get messages don't need beta access or rate limiting
+// List conversations and get messages only need auth
 app.use('/agents/:id/conversations', authMiddleware)
 app.use('/conversations/:id/messages', authMiddleware)
 

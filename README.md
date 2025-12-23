@@ -592,8 +592,8 @@ CLOUDFLARE_D1_DATABASE_ID=your_database_id
 BETTER_AUTH_SECRET=your_secret_here  # Generate with: openssl rand -base64 32
 BETTER_AUTH_URL=http://localhost:3000
 
-# 🔒 Security (Beta Access Control)
-ENFORCE_BETA_ACCESS=false  # Set to 'true' in production to enforce beta access control
+# 🎛️ Feature Flags
+ENABLE_AI_CHAT=true  # Set to 'false' to disable AI chat features
 
 # 🔑 OAuth Providers (optional - for social login)
 GOOGLE_CLIENT_ID=your_google_client_id
@@ -621,15 +621,14 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 
 Hare includes comprehensive security measures to protect your application and data:
 
-### 🔒 Beta Access Control
+### 🎛️ Feature Flags
 
-During beta testing, access to AI features can be restricted to approved users:
+Simple feature toggles for controlling access to features:
 
-- **Beta Access Table**: Tracks which users have access to AI features
-- **Middleware Protection**: Chat endpoints require beta access when enabled
-- **Admin Management**: Admins can grant/revoke access via API endpoints at `/api/admin/beta-access`
-- **Auto-Grant in Dev**: Development mode automatically grants access for testing
-- **Environment Control**: Set `ENFORCE_BETA_ACCESS=true` to enable in production
+- **AI Chat**: Enable/disable AI chat features with `ENABLE_AI_CHAT` environment variable
+- **Simple Control**: Just set `ENABLE_AI_CHAT=false` to disable AI features instantly
+- **No Database Required**: Feature flags are environment-based, no migrations needed
+- **Emergency Disable**: Perfect for rolling out features gradually or emergency shutdowns
 
 ### 🚦 Rate Limiting
 
@@ -700,14 +699,13 @@ Secure API key system (in usage table):
 
 When deploying to production:
 
-1. **Enable Beta Access**: Set `ENFORCE_BETA_ACCESS=true`
+1. **Control Features**: Use `ENABLE_AI_CHAT=false` to disable features during rollout
 2. **Use HTTPS**: Always use SSL/TLS certificates
 3. **Rotate Secrets**: Change `BETTER_AUTH_SECRET` regularly
-4. **Review Access**: Periodically audit beta access list
-5. **Monitor Usage**: Check rate limit logs for suspicious activity
-6. **Update Dependencies**: Keep packages up to date
-7. **Configure CORS**: Set strict allowed origins
-8. **Review Logs**: Monitor error logs for security issues
+4. **Monitor Usage**: Check rate limit logs for suspicious activity
+5. **Update Dependencies**: Keep packages up to date
+6. **Configure CORS**: Set strict allowed origins
+7. **Review Logs**: Monitor error logs for security issues
 
 ---
 

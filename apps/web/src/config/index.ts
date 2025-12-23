@@ -35,8 +35,8 @@ export const FEATURES = {
 	customTools: true,
 	/** Enable agent playground */
 	playground: true,
-	/** Enforce beta access control for AI features */
-	betaAccessControl: process.env.NODE_ENV === 'production' || process.env.ENFORCE_BETA_ACCESS === 'true',
+	/** Enable AI chat features (feature flag for beta) */
+	aiChat: process.env.ENABLE_AI_CHAT !== 'false', // Default enabled, can be disabled
 	/** Enable rate limiting */
 	rateLimiting: true,
 } as const
@@ -416,18 +416,8 @@ export const DEV_CONFIG = {
 } as const
 
 // =============================================================================
-// Beta Access & Rate Limiting
+// Rate Limiting
 // =============================================================================
-
-export const BETA_CONFIG = {
-	/** Enable beta access control (whitelist mode) */
-	enabled: FEATURES.betaAccessControl,
-	/** Automatically grant beta access to new signups (dev only) */
-	autoGrantAccess: process.env.NODE_ENV === 'development',
-	/** Beta access message shown to users without access */
-	deniedMessage:
-		'This feature is currently in private beta. Please contact us for early access.',
-} as const
 
 export const RATE_LIMITS = {
 	/** Chat endpoint rate limits */
@@ -463,5 +453,4 @@ export type LandingPage = typeof LANDING_PAGE
 export type NavItems = typeof NAV_ITEMS
 export type ErrorMessages = typeof ERROR_MESSAGES
 export type DevConfig = typeof DEV_CONFIG
-export type BetaConfig = typeof BETA_CONFIG
 export type RateLimits = typeof RATE_LIMITS
