@@ -3,29 +3,19 @@
  *
  * Implements the MCP specification for remote tool servers.
  * Allows external AI clients to connect and use Hare tools.
+ *
+ * NOTE: This file can only be imported in Cloudflare Workers context
+ * because it uses the 'agents/mcp' package which depends on 'cloudflare:workers'.
  */
 
 import { McpAgent } from 'agents/mcp'
+import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { z } from 'zod'
 import { getSystemTools, type Tool, type ToolContext } from './tools'
+import { type McpAgentState, DEFAULT_MCP_AGENT_STATE } from './types'
 
-/**
- * MCP Agent state.
- */
-export interface McpAgentState {
-	workspaceId: string
-	connectedClients: number
-	lastActivity: number
-}
-
-/**
- * Default MCP agent state.
- */
-const DEFAULT_STATE: McpAgentState = {
-	workspaceId: '',
-	connectedClients: 0,
-	lastActivity: Date.now(),
-}
+// Re-export types for convenience
+export type { McpAgentState }
 
 /**
  * HareMcpAgent - Exposes Hare tools via Model Context Protocol.
@@ -34,11 +24,11 @@ const DEFAULT_STATE: McpAgentState = {
  * Hare's tools in a standardized way.
  */
 export class HareMcpAgent extends McpAgent<CloudflareEnv, McpAgentState, Record<string, unknown>> {
-	/** Server name */
-	server = {
+	/** Server configuration required by McpAgent */
+	server = new McpServer({
 		name: 'hare-mcp',
 		version: '1.0.0',
-	}
+	})
 
 	/** Available tools */
 	private hareTools: Map<string, Tool> = new Map()
@@ -46,25 +36,38 @@ export class HareMcpAgent extends McpAgent<CloudflareEnv, McpAgentState, Record<
 	/**
 	 * Initial state.
 	 */
-	override initialState: McpAgentState = DEFAULT_STATE
+	override initialState: McpAgentState = DEFAULT_MCP_AGENT_STATE
 
 	/**
-	 * Initialize MCP agent and register tools.
+	 * Called when the agent starts - load tools.
 	 */
-	async init(): Promise<void> {
-		// Load system tools
-		const context = this.createToolContext()
-		const systemTools = getSystemTools(context)
+	async onStart(): Promise<void> {
+		// Load system tools with a default context for initialization
+		const initContext = this.createToolContext()
+		const systemTools = getSystemTools(initContext)
 
 		for (const tool of systemTools) {
 			this.hareTools.set(tool.id, tool)
+		}
+	}
 
-			// Convert Zod schema to JSON Schema for MCP
-			const inputSchema = this.zodToJsonSchema(tool.inputSchema)
+	/**
+	 * Initialize MCP tools - called by the MCP server.
+	 * This is where we register tools and resources with the MCP protocol.
+	 */
+	async init(): Promise<void> {
+		// Register tools with MCP
+		for (const [toolId, tool] of this.hareTools) {
+			// Use Zod v4's built-in toJSONSchema for conversion
+			const inputSchema = z.toJSONSchema(tool.inputSchema, {
+				unrepresentable: 'any',
+			})
 
-			// Register tool with MCP
-			this.server.tool(tool.id, tool.description, inputSchema, async (params: unknown) => {
-				const result = await tool.execute(params as Record<string, unknown>, context)
+			// Register tool with MCP - create fresh context for each execution
+			this.server.tool(toolId, tool.description, inputSchema, async (params: unknown) => {
+				// Create fresh context with current workspaceId for each tool execution
+				const executionContext = this.createToolContext()
+				const result = await tool.execute(params as Record<string, unknown>, executionContext)
 
 				if (result.success) {
 					return {
@@ -88,7 +91,7 @@ export class HareMcpAgent extends McpAgent<CloudflareEnv, McpAgentState, Record<
 			})
 		}
 
-		// Register some MCP-specific resources
+		// Register workspace resource
 		this.server.resource('workspace', 'Current workspace information', async () => {
 			return {
 				contents: [
@@ -104,32 +107,6 @@ export class HareMcpAgent extends McpAgent<CloudflareEnv, McpAgentState, Record<
 				],
 			}
 		})
-
-		// Register prompts
-		this.server.prompt(
-			'analyze-data',
-			'Analyze data using Hare tools',
-			[
-				{
-					name: 'data',
-					description: 'The data to analyze',
-					required: true,
-				},
-			],
-			async (args: { data: string }) => {
-				return {
-					messages: [
-						{
-							role: 'user' as const,
-							content: {
-								type: 'text' as const,
-								text: `Please analyze the following data using the available tools:\n\n${args.data}`,
-							},
-						},
-					],
-				}
-			},
-		)
 	}
 
 	/**
@@ -144,79 +121,14 @@ export class HareMcpAgent extends McpAgent<CloudflareEnv, McpAgentState, Record<
 	}
 
 	/**
-	 * Create tool execution context.
+	 * Create tool execution context with current state.
+	 * Called on-demand for each tool execution to ensure fresh context.
 	 */
 	private createToolContext(): ToolContext {
 		return {
 			env: this.env,
 			workspaceId: this.state.workspaceId || 'default',
 			userId: 'mcp-client',
-		}
-	}
-
-	/**
-	 * Convert Zod schema to JSON Schema for MCP.
-	 */
-	private zodToJsonSchema(schema: z.ZodSchema): Record<string, unknown> {
-		// Basic conversion - for complex schemas, consider using zod-to-json-schema
-		try {
-			const shape = (schema as z.ZodObject<z.ZodRawShape>).shape
-			if (!shape) {
-				return { type: 'object', properties: {} }
-			}
-
-			const properties: Record<string, unknown> = {}
-			const required: string[] = []
-
-			for (const [key, value] of Object.entries(shape)) {
-				const zodType = value as z.ZodTypeAny
-				properties[key] = this.zodTypeToJsonSchema(zodType)
-
-				// Check if required (not optional)
-				if (!zodType.isOptional()) {
-					required.push(key)
-				}
-			}
-
-			return {
-				type: 'object',
-				properties,
-				required: required.length > 0 ? required : undefined,
-			}
-		} catch {
-			return { type: 'object', properties: {} }
-		}
-	}
-
-	/**
-	 * Convert a single Zod type to JSON Schema.
-	 */
-	private zodTypeToJsonSchema(zodType: z.ZodTypeAny): Record<string, unknown> {
-		const typeName = zodType._def.typeName
-
-		switch (typeName) {
-			case 'ZodString':
-				return { type: 'string' }
-			case 'ZodNumber':
-				return { type: 'number' }
-			case 'ZodBoolean':
-				return { type: 'boolean' }
-			case 'ZodArray':
-				return {
-					type: 'array',
-					items: this.zodTypeToJsonSchema(zodType._def.type),
-				}
-			case 'ZodObject':
-				return this.zodToJsonSchema(zodType)
-			case 'ZodOptional':
-				return this.zodTypeToJsonSchema(zodType._def.innerType)
-			case 'ZodEnum':
-				return {
-					type: 'string',
-					enum: zodType._def.values,
-				}
-			default:
-				return { type: 'string' }
 		}
 	}
 }

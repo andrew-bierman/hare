@@ -7,8 +7,6 @@
  * - MCP protocol requests
  */
 
-import { routeAgentRequest } from 'agents'
-
 /**
  * Route configuration for agents.
  */
@@ -19,28 +17,6 @@ export interface AgentRouteConfig {
 	workspaceId: string
 	/** Optional user ID */
 	userId?: string
-}
-
-/**
- * Create a request to route to an agent.
- *
- * @param request Original request
- * @param config Route configuration
- * @returns Modified request with agent context headers
- */
-export function createAgentRequest(request: Request, config: AgentRouteConfig): Request {
-	const headers = new Headers(request.headers)
-	headers.set('x-agent-id', config.agentId)
-	headers.set('x-workspace-id', config.workspaceId)
-	if (config.userId) {
-		headers.set('x-user-id', config.userId)
-	}
-
-	return new Request(request.url, {
-		method: request.method,
-		headers,
-		body: request.body,
-	})
 }
 
 /**
@@ -56,8 +32,10 @@ export async function routeToHareAgent(
 	env: CloudflareEnv,
 	agentId: string,
 ): Promise<Response> {
-	// Use the agents SDK routing
-	return routeAgentRequest(request, env)
+	// Get the Durable Object stub and forward the request
+	const id = env.HARE_AGENT.idFromName(agentId)
+	const stub = env.HARE_AGENT.get(id)
+	return stub.fetch(request)
 }
 
 /**
@@ -152,7 +130,7 @@ export function getAgentIdFromRequest(request: Request): string | null {
 	// Check URL path (e.g., /agents/abc123/chat)
 	const url = new URL(request.url)
 	const pathMatch = url.pathname.match(/\/agents\/([^/]+)/)
-	if (pathMatch) return pathMatch[1]
+	if (pathMatch?.[1]) return pathMatch[1]
 
 	// Check query param
 	const queryAgentId = url.searchParams.get('agentId')

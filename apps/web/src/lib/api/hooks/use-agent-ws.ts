@@ -1,5 +1,12 @@
 'use client'
 
+/**
+ * Agent WebSocket Hook
+ *
+ * A React hook for WebSocket connection to Cloudflare Agents.
+ * Provides real-time bidirectional communication with state sync.
+ */
+
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { HareAgentState, ServerMessage, ClientMessage } from 'web-app/lib/agents'
 
@@ -26,20 +33,8 @@ export interface UseAgentWebSocketOptions {
 	agentId: string
 	/** User ID for identification */
 	userId?: string
-	/** Auto-reconnect on disconnect */
-	autoReconnect?: boolean
-	/** Reconnect interval in ms */
-	reconnectInterval?: number
-	/** Maximum reconnect attempts */
-	maxReconnectAttempts?: number
-	/** Callback when connected */
-	onConnect?: () => void
-	/** Callback when disconnected */
-	onDisconnect?: () => void
 	/** Callback when state updates */
 	onStateUpdate?: (state: HareAgentState) => void
-	/** Callback when error occurs */
-	onError?: (error: string) => void
 }
 
 /**
@@ -60,26 +55,20 @@ export interface UseAgentWebSocketReturn {
 	error: string | null
 	/** Send a chat message */
 	sendMessage: (content: string) => void
-	/** Execute a tool */
-	executeTool: (toolId: string, params: Record<string, unknown>) => void
-	/** Schedule a task */
-	scheduleTask: (action: string, executeAt?: number, cron?: string, payload?: Record<string, unknown>) => void
-	/** Get current state */
-	refreshState: () => void
-	/** Connect to agent */
-	connect: () => void
-	/** Disconnect from agent */
-	disconnect: () => void
 	/** Clear messages */
 	clearMessages: () => void
+	/** Stop generation */
+	stop: () => void
+	/** Refresh/reconnect */
+	refreshState: () => void
 }
 
 /**
  * Build WebSocket URL for agent connection.
  */
 function buildWebSocketUrl(agentId: string, userId?: string): string {
-	const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
-	const host = window.location.host
+	const protocol = typeof window !== 'undefined' && window.location.protocol === 'https:' ? 'wss:' : 'ws:'
+	const host = typeof window !== 'undefined' ? window.location.host : 'localhost:3000'
 	let url = `${protocol}//${host}/api/agent-ws/agents/${agentId}/ws`
 	if (userId) {
 		url += `?userId=${encodeURIComponent(userId)}`
@@ -89,8 +78,6 @@ function buildWebSocketUrl(agentId: string, userId?: string): string {
 
 /**
  * React hook for WebSocket connection to a Cloudflare Agent.
- *
- * Provides real-time bidirectional communication with state sync.
  *
  * @example
  * ```tsx
@@ -104,27 +91,23 @@ function buildWebSocketUrl(agentId: string, userId?: string): string {
  *   userId: 'user-123',
  * })
  *
- * // Send a message
  * sendMessage('Hello!')
  * ```
  */
 export function useAgentWebSocket(options: UseAgentWebSocketOptions): UseAgentWebSocketReturn {
-	const {
-		agentId,
-		userId,
-		autoReconnect = true,
-		reconnectInterval = 3000,
-		maxReconnectAttempts = 5,
-		onConnect,
-		onDisconnect,
-		onStateUpdate,
-		onError,
-	} = options
+	const { agentId, userId, onStateUpdate } = options
 
-	// Refs
+	// Refs for stable values
 	const wsRef = useRef<WebSocket | null>(null)
-	const reconnectAttemptsRef = useRef(0)
-	const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+	const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+	const streamingTextRef = useRef('')
+	const mountedRef = useRef(true)
+	const onStateUpdateRef = useRef(onStateUpdate)
+
+	// Keep callback ref updated
+	useEffect(() => {
+		onStateUpdateRef.current = onStateUpdate
+	}, [onStateUpdate])
 
 	// State
 	const [status, setStatus] = useState<ConnectionStatus>('disconnected')
@@ -133,6 +116,11 @@ export function useAgentWebSocket(options: UseAgentWebSocketOptions): UseAgentWe
 	const [isProcessing, setIsProcessing] = useState(false)
 	const [streamingText, setStreamingText] = useState('')
 	const [error, setError] = useState<string | null>(null)
+
+	// Keep streamingTextRef in sync
+	useEffect(() => {
+		streamingTextRef.current = streamingText
+	}, [streamingText])
 
 	/**
 	 * Send a message through WebSocket.
@@ -144,70 +132,10 @@ export function useAgentWebSocket(options: UseAgentWebSocketOptions): UseAgentWe
 	}, [])
 
 	/**
-	 * Handle incoming WebSocket message.
-	 */
-	const handleMessage = useCallback((event: MessageEvent) => {
-		try {
-			const serverMessage = JSON.parse(event.data) as ServerMessage
-
-			switch (serverMessage.type) {
-				case 'text': {
-					const data = serverMessage.data as { content: string }
-					setStreamingText((prev) => prev + data.content)
-					break
-				}
-
-				case 'state_update': {
-					const state = serverMessage.data as HareAgentState
-					setAgentState(state)
-					setIsProcessing(state.isProcessing)
-					onStateUpdate?.(state)
-					break
-				}
-
-				case 'tool_call': {
-					// Tool is being called - could show in UI
-					break
-				}
-
-				case 'tool_result': {
-					// Tool result received - could show in UI
-					break
-				}
-
-				case 'done': {
-					// Finalize the streaming message
-					setMessages((prev) => {
-						const updated = [...prev]
-						const lastMessage = updated[updated.length - 1]
-						if (lastMessage?.role === 'assistant') {
-							lastMessage.content = streamingText
-						}
-						return updated
-					})
-					setStreamingText('')
-					setIsProcessing(false)
-					break
-				}
-
-				case 'error': {
-					const data = serverMessage.data as { message: string }
-					setError(data.message)
-					setIsProcessing(false)
-					onError?.(data.message)
-					break
-				}
-			}
-		} catch (err) {
-			console.error('Failed to parse WebSocket message:', err)
-		}
-	}, [streamingText, onStateUpdate, onError])
-
-	/**
 	 * Connect to the agent WebSocket.
 	 */
 	const connect = useCallback(() => {
-		if (wsRef.current?.readyState === WebSocket.OPEN) {
+		if (wsRef.current?.readyState === WebSocket.OPEN || !mountedRef.current) {
 			return
 		}
 
@@ -217,33 +145,84 @@ export function useAgentWebSocket(options: UseAgentWebSocketOptions): UseAgentWe
 		const ws = new WebSocket(buildWebSocketUrl(agentId, userId))
 
 		ws.onopen = () => {
+			if (!mountedRef.current) {
+				ws.close()
+				return
+			}
 			setStatus('connected')
-			reconnectAttemptsRef.current = 0
-			onConnect?.()
 		}
 
-		ws.onmessage = handleMessage
+		ws.onmessage = (event) => {
+			if (!mountedRef.current) return
+
+			try {
+				const serverMessage = JSON.parse(event.data) as ServerMessage
+
+				switch (serverMessage.type) {
+					case 'text': {
+						const data = serverMessage.data as { content: string }
+						setStreamingText((prev) => prev + data.content)
+						break
+					}
+
+					case 'state_update': {
+						const state = serverMessage.data as HareAgentState
+						setAgentState(state)
+						setIsProcessing(state.isProcessing)
+						onStateUpdateRef.current?.(state)
+						break
+					}
+
+					case 'done': {
+						const finalText = streamingTextRef.current
+						setMessages((prev) => {
+							if (prev.length === 0) return prev
+							const lastMessage = prev[prev.length - 1]
+							if (lastMessage?.role !== 'assistant') return prev
+							return [
+								...prev.slice(0, -1),
+								{ ...lastMessage, content: finalText },
+							]
+						})
+						setStreamingText('')
+						setIsProcessing(false)
+						break
+					}
+
+					case 'error': {
+						const data = serverMessage.data as { message: string }
+						setError(data.message)
+						setIsProcessing(false)
+						break
+					}
+				}
+			} catch (err) {
+				console.error('Failed to parse WebSocket message:', err)
+			}
+		}
 
 		ws.onerror = () => {
+			if (!mountedRef.current) return
 			setStatus('error')
 			setError('WebSocket connection error')
 		}
 
 		ws.onclose = () => {
+			if (!mountedRef.current) return
 			setStatus('disconnected')
-			onDisconnect?.()
 
-			// Auto-reconnect logic
-			if (autoReconnect && reconnectAttemptsRef.current < maxReconnectAttempts) {
-				reconnectAttemptsRef.current++
+			// Auto-reconnect after 3 seconds
+			if (mountedRef.current) {
 				reconnectTimeoutRef.current = setTimeout(() => {
-					connect()
-				}, reconnectInterval)
+					if (mountedRef.current) {
+						connect()
+					}
+				}, 3000)
 			}
 		}
 
 		wsRef.current = ws
-	}, [agentId, userId, autoReconnect, reconnectInterval, maxReconnectAttempts, handleMessage, onConnect, onDisconnect])
+	}, [agentId, userId])
 
 	/**
 	 * Disconnect from the agent.
@@ -253,13 +232,12 @@ export function useAgentWebSocket(options: UseAgentWebSocketOptions): UseAgentWe
 			clearTimeout(reconnectTimeoutRef.current)
 			reconnectTimeoutRef.current = null
 		}
-		reconnectAttemptsRef.current = maxReconnectAttempts // Prevent auto-reconnect
 
 		if (wsRef.current) {
 			wsRef.current.close()
 			wsRef.current = null
 		}
-	}, [maxReconnectAttempts])
+	}, [])
 
 	/**
 	 * Send a chat message.
@@ -300,31 +278,6 @@ export function useAgentWebSocket(options: UseAgentWebSocketOptions): UseAgentWe
 	}, [send, userId])
 
 	/**
-	 * Execute a tool.
-	 */
-	const executeTool = useCallback((toolId: string, params: Record<string, unknown>) => {
-		send({
-			type: 'execute_tool',
-			payload: { toolId, params },
-		})
-	}, [send])
-
-	/**
-	 * Schedule a task.
-	 */
-	const scheduleTask = useCallback((
-		action: string,
-		executeAt?: number,
-		cron?: string,
-		payload?: Record<string, unknown>,
-	) => {
-		send({
-			type: 'schedule',
-			payload: { action, executeAt, cron, payload },
-		})
-	}, [send])
-
-	/**
 	 * Request current state.
 	 */
 	const refreshState = useCallback(() => {
@@ -340,27 +293,48 @@ export function useAgentWebSocket(options: UseAgentWebSocketOptions): UseAgentWe
 		setError(null)
 	}, [])
 
-	// Update streaming message in real-time
+	/**
+	 * Stop generation (close and reconnect).
+	 */
+	const stop = useCallback(() => {
+		disconnect()
+		setIsProcessing(false)
+		// Reconnect after a short delay
+		setTimeout(() => {
+			if (mountedRef.current) {
+				connect()
+			}
+		}, 100)
+	}, [disconnect, connect])
+
+	// Update streaming message in real-time (immutably)
 	useEffect(() => {
 		if (streamingText) {
 			setMessages((prev) => {
-				const updated = [...prev]
-				const lastMessage = updated[updated.length - 1]
-				if (lastMessage?.role === 'assistant') {
-					lastMessage.content = streamingText
-				}
-				return updated
+				if (prev.length === 0) return prev
+				const lastMessage = prev[prev.length - 1]
+				if (lastMessage?.role !== 'assistant') return prev
+				return [
+					...prev.slice(0, -1),
+					{ ...lastMessage, content: streamingText },
+				]
 			})
 		}
 	}, [streamingText])
 
 	// Connect on mount, disconnect on unmount
 	useEffect(() => {
+		mountedRef.current = true
 		connect()
+
 		return () => {
+			mountedRef.current = false
+			if (reconnectTimeoutRef.current) {
+				clearTimeout(reconnectTimeoutRef.current)
+			}
 			disconnect()
 		}
-	}, [connect, disconnect])
+	}, [agentId, userId, connect, disconnect])
 
 	return {
 		status,
@@ -370,30 +344,8 @@ export function useAgentWebSocket(options: UseAgentWebSocketOptions): UseAgentWe
 		streamingText,
 		error,
 		sendMessage,
-		executeTool,
-		scheduleTask,
-		refreshState,
-		connect,
-		disconnect,
 		clearMessages,
-	}
-}
-
-/**
- * Simpler hook that just manages connection status.
- */
-export function useAgentConnection(agentId: string, userId?: string) {
-	const [isConnected, setIsConnected] = useState(false)
-
-	const result = useAgentWebSocket({
-		agentId,
-		userId,
-		onConnect: () => setIsConnected(true),
-		onDisconnect: () => setIsConnected(false),
-	})
-
-	return {
-		...result,
-		isConnected,
+		stop,
+		refreshState,
 	}
 }

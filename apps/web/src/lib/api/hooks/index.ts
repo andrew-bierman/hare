@@ -39,10 +39,9 @@ export {
 
 // Chat hooks
 export { useChat } from './use-chat'
-// WebSocket Agent hooks (Cloudflare Agents SDK)
+// WebSocket Agent hooks
 export {
 	useAgentWebSocket,
-	useAgentConnection,
 	type UseAgentWebSocketOptions,
 	type UseAgentWebSocketReturn,
 	type AgentMessage,

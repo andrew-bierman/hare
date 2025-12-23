@@ -7,117 +7,77 @@
  * - Real-time state synchronization
  * - Scheduling and alarms
  * - Tool execution
+ *
+ * NOTE: This file can only be imported in Cloudflare Workers context
+ * because it uses the 'agents' package which depends on 'cloudflare:workers'.
  */
 
 import { Agent, type Connection, type ConnectionContext, type WSMessage } from 'agents'
 import type { CoreMessage } from 'ai'
 import { streamText } from 'ai'
+import { z } from 'zod'
 import { createWorkersAIModel } from './providers/workers-ai'
 import { getSystemTools, type Tool, type ToolContext, type ToolResult } from './tools'
+import {
+	type HareAgentState,
+	type ClientMessage,
+	type ChatPayload,
+	type ToolExecutePayload,
+	type SchedulePayload,
+	type ScheduledTask,
+	type ServerMessage,
+	DEFAULT_HARE_AGENT_STATE,
+} from './types'
+
+// Re-export types for convenience
+export type { HareAgentState, ClientMessage, ServerMessage }
 
 /**
- * Agent state that is persisted and synced with clients.
+ * Validation schemas for client messages.
  */
-export interface HareAgentState {
-	/** Agent configuration ID from database */
-	agentId: string
-	/** Workspace ID */
-	workspaceId: string
-	/** Agent name */
-	name: string
-	/** Agent instructions/system prompt */
-	instructions: string
-	/** Model to use */
-	model: string
-	/** Conversation history */
-	messages: CoreMessage[]
-	/** Whether the agent is currently processing */
-	isProcessing: boolean
-	/** Last activity timestamp */
-	lastActivity: number
-	/** Connected user IDs */
-	connectedUsers: string[]
-	/** Scheduled tasks */
-	scheduledTasks: ScheduledTask[]
-	/** Agent status */
-	status: 'idle' | 'processing' | 'error'
-	/** Last error if any */
-	lastError?: string
-}
+const ChatPayloadSchema = z.object({
+	message: z.string().min(1, 'Message cannot be empty'),
+	userId: z.string().min(1),
+	sessionId: z.string().optional(),
+	metadata: z.record(z.string(), z.unknown()).optional(),
+})
 
-/**
- * Scheduled task definition.
- */
-export interface ScheduledTask {
-	id: string
-	type: 'one-time' | 'recurring'
-	executeAt?: number
-	cron?: string
-	action: string
-	payload?: Record<string, unknown>
-}
+const ToolExecutePayloadSchema = z.object({
+	toolId: z.string().min(1, 'Tool ID is required'),
+	params: z.record(z.string(), z.unknown()),
+})
 
-/**
- * Message sent from client to agent.
- */
-export interface ClientMessage {
-	type: 'chat' | 'configure' | 'execute_tool' | 'get_state' | 'schedule'
-	payload: unknown
-}
+const SchedulePayloadSchema = z.object({
+	action: z.string().min(1, 'Action is required'),
+	executeAt: z.number().positive().optional(),
+	cron: z.string().optional(),
+	payload: z.record(z.string(), z.unknown()).optional(),
+})
 
-/**
- * Chat message payload.
- */
-export interface ChatPayload {
-	message: string
-	userId: string
-	sessionId?: string
-	metadata?: Record<string, unknown>
-}
-
-/**
- * Tool execution payload.
- */
-export interface ToolExecutePayload {
-	toolId: string
-	params: Record<string, unknown>
-}
-
-/**
- * Schedule payload.
- */
-export interface SchedulePayload {
-	action: string
-	executeAt?: number
-	cron?: string
-	payload?: Record<string, unknown>
-}
-
-/**
- * Server message sent to clients.
- */
-export interface ServerMessage {
-	type: 'text' | 'tool_call' | 'tool_result' | 'state_update' | 'error' | 'done'
-	data: unknown
-	timestamp: number
-}
-
-/**
- * Default initial state.
- */
-const DEFAULT_STATE: HareAgentState = {
-	agentId: '',
-	workspaceId: '',
-	name: 'Hare Agent',
-	instructions: 'You are a helpful AI assistant.',
-	model: '@cf/meta/llama-3.3-70b-instruct-fp8-fast',
-	messages: [],
-	isProcessing: false,
-	lastActivity: Date.now(),
-	connectedUsers: [],
-	scheduledTasks: [],
-	status: 'idle',
-}
+const ConfigurePayloadSchema = z.object({
+	agentId: z.string().min(1).optional(),
+	workspaceId: z.string().min(1).optional(),
+	name: z.string().min(1).optional(),
+	instructions: z.string().optional(),
+	model: z.string().min(1).optional(),
+	messages: z.array(z.object({
+		role: z.enum(['user', 'assistant', 'system']),
+		content: z.string(),
+	})).optional(),
+	isProcessing: z.boolean().optional(),
+	lastActivity: z.number().positive().optional(),
+	connectedUsers: z.array(z.string()).optional(),
+	scheduledTasks: z.array(z.object({
+		id: z.string(),
+		type: z.enum(['one-time', 'recurring']),
+		executeAt: z.number().optional(),
+		cron: z.string().optional(),
+		action: z.string(),
+		payload: z.record(z.string(), z.unknown()).optional(),
+	})).optional(),
+	status: z.enum(['idle', 'processing', 'error']).optional(),
+	lastError: z.string().optional(),
+})
 
 /**
  * HareAgent - A Cloudflare Agents SDK implementation.
@@ -132,10 +92,13 @@ export class HareAgent extends Agent<CloudflareEnv, HareAgentState> {
 	// Tools available to this agent
 	private tools: Map<string, Tool> = new Map()
 
+	// Track connection to userId mapping for cleanup
+	private connectionUserMap: Map<Connection, string> = new Map()
+
 	/**
 	 * Initialize the agent with default state.
 	 */
-	override initialState: HareAgentState = DEFAULT_STATE
+	override initialState: HareAgentState = DEFAULT_HARE_AGENT_STATE
 
 	/**
 	 * Called when the agent is created or loaded.
@@ -181,8 +144,8 @@ export class HareAgent extends Agent<CloudflareEnv, HareAgentState> {
 
 		// List scheduled tasks
 		if (url.pathname === '/schedules' && request.method === 'GET') {
-			const schedules = await this.getSchedules()
-			return Response.json({ schedules })
+			// Return scheduled tasks from state (getSchedules is for internal schedule management)
+			return Response.json({ schedules: this.state.scheduledTasks })
 		}
 
 		return new Response('Not found', { status: 404 })
@@ -193,6 +156,9 @@ export class HareAgent extends Agent<CloudflareEnv, HareAgentState> {
 	 */
 	async onConnect(connection: Connection, ctx: ConnectionContext): Promise<void> {
 		const userId = ctx.request.headers.get('x-user-id') || 'anonymous'
+
+		// Track this connection's userId for cleanup on disconnect
+		this.connectionUserMap.set(connection, userId)
 
 		// Add user to connected users
 		this.setState({
@@ -218,17 +184,35 @@ export class HareAgent extends Agent<CloudflareEnv, HareAgentState> {
 			const clientMessage = data as ClientMessage
 
 			switch (clientMessage.type) {
-				case 'chat':
-					await this.handleChat(connection, clientMessage.payload as ChatPayload)
+				case 'chat': {
+					const parseResult = ChatPayloadSchema.safeParse(clientMessage.payload)
+					if (!parseResult.success) {
+						this.sendError(connection, `Invalid chat payload: ${parseResult.error.message}`)
+						return
+					}
+					await this.handleChat(connection, parseResult.data)
 					break
+				}
 
-				case 'configure':
-					await this.configure(clientMessage.payload as Partial<HareAgentState>)
+				case 'configure': {
+					const parseResult = ConfigurePayloadSchema.safeParse(clientMessage.payload)
+					if (!parseResult.success) {
+						this.sendError(connection, `Invalid configure payload: ${parseResult.error.message}`)
+						return
+					}
+					await this.configure(parseResult.data)
 					break
+				}
 
-				case 'execute_tool':
-					await this.handleToolExecution(connection, clientMessage.payload as ToolExecutePayload)
+				case 'execute_tool': {
+					const parseResult = ToolExecutePayloadSchema.safeParse(clientMessage.payload)
+					if (!parseResult.success) {
+						this.sendError(connection, `Invalid tool execution payload: ${parseResult.error.message}`)
+						return
+					}
+					await this.handleToolExecution(connection, parseResult.data)
 					break
+				}
 
 				case 'get_state':
 					this.sendToConnection(connection, {
@@ -238,9 +222,15 @@ export class HareAgent extends Agent<CloudflareEnv, HareAgentState> {
 					})
 					break
 
-				case 'schedule':
-					await this.handleSchedule(connection, clientMessage.payload as SchedulePayload)
+				case 'schedule': {
+					const parseResult = SchedulePayloadSchema.safeParse(clientMessage.payload)
+					if (!parseResult.success) {
+						this.sendError(connection, `Invalid schedule payload: ${parseResult.error.message}`)
+						return
+					}
+					await this.handleSchedule(connection, parseResult.data)
 					break
+				}
 
 				default:
 					this.sendError(connection, `Unknown message type: ${clientMessage.type}`)
@@ -254,11 +244,32 @@ export class HareAgent extends Agent<CloudflareEnv, HareAgentState> {
 	 * Handle WebSocket disconnection.
 	 */
 	async onClose(connection: Connection): Promise<void> {
-		// Note: We can't easily get userId here, but state sync will clean up on next activity
-		this.setState({
-			...this.state,
-			lastActivity: Date.now(),
-		})
+		// Get the userId for this connection and remove from connected users
+		const userId = this.connectionUserMap.get(connection)
+		this.connectionUserMap.delete(connection)
+
+		if (userId) {
+			// Check if this user still has other connections
+			const hasOtherConnections = Array.from(this.connectionUserMap.values()).includes(userId)
+
+			if (!hasOtherConnections) {
+				this.setState({
+					...this.state,
+					connectedUsers: this.state.connectedUsers.filter((id) => id !== userId),
+					lastActivity: Date.now(),
+				})
+			} else {
+				this.setState({
+					...this.state,
+					lastActivity: Date.now(),
+				})
+			}
+		} else {
+			this.setState({
+				...this.state,
+				lastActivity: Date.now(),
+			})
+		}
 	}
 
 	/**
@@ -266,7 +277,7 @@ export class HareAgent extends Agent<CloudflareEnv, HareAgentState> {
 	 */
 	onStateUpdate(state: HareAgentState): void {
 		// Broadcast state update to all connected clients
-		this.broadcast({
+		this.broadcastMessage({
 			type: 'state_update',
 			data: state,
 			timestamp: Date.now(),
@@ -512,11 +523,13 @@ export class HareAgent extends Agent<CloudflareEnv, HareAgentState> {
 		const { action, executeAt, cron, payload: taskPayload } = payload
 
 		try {
-			let scheduleId: string
+			// Include the action in the payload so the dispatcher can route it
+			const schedulePayload = { action, ...taskPayload }
+			let schedule: { id: string }
 
 			if (cron) {
-				// Recurring schedule
-				scheduleId = await this.schedule(cron, action, taskPayload)
+				// Recurring schedule - use executeScheduledTask as the callback
+				schedule = await this.schedule(cron, 'executeScheduledTask', schedulePayload)
 			} else if (executeAt) {
 				// One-time schedule
 				const delay = executeAt - Date.now()
@@ -524,7 +537,7 @@ export class HareAgent extends Agent<CloudflareEnv, HareAgentState> {
 					this.sendError(connection, 'Schedule time must be in the future')
 					return
 				}
-				scheduleId = await this.schedule(delay, action, taskPayload)
+				schedule = await this.schedule(delay, 'executeScheduledTask', schedulePayload)
 			} else {
 				this.sendError(connection, 'Either executeAt or cron must be provided')
 				return
@@ -532,7 +545,7 @@ export class HareAgent extends Agent<CloudflareEnv, HareAgentState> {
 
 			// Track in state
 			const task: ScheduledTask = {
-				id: scheduleId,
+				id: schedule.id,
 				type: cron ? 'recurring' : 'one-time',
 				executeAt,
 				cron,
@@ -548,11 +561,30 @@ export class HareAgent extends Agent<CloudflareEnv, HareAgentState> {
 
 			this.sendToConnection(connection, {
 				type: 'state_update',
-				data: { scheduled: scheduleId, task },
+				data: { scheduled: schedule.id, task },
 				timestamp: Date.now(),
 			})
 		} catch (error) {
 			this.sendError(connection, error instanceof Error ? error.message : 'Scheduling failed')
+		}
+	}
+
+	/**
+	 * Dispatcher for scheduled tasks.
+	 * Routes to the appropriate handler based on the action in the payload.
+	 */
+	async executeScheduledTask(data: { action: string; [key: string]: unknown }): Promise<void> {
+		const { action, ...payload } = data
+
+		switch (action) {
+			case 'sendReminder':
+				await this.sendReminder(payload as { message: string; userId: string })
+				break
+			case 'runMaintenance':
+				await this.runMaintenance(payload as Record<string, unknown>)
+				break
+			default:
+				console.warn(`Unknown scheduled action: ${action}`)
 		}
 	}
 
@@ -563,7 +595,7 @@ export class HareAgent extends Agent<CloudflareEnv, HareAgentState> {
 
 	async sendReminder(data: { message: string; userId: string }): Promise<void> {
 		// Broadcast reminder to all connected clients
-		this.broadcast({
+		this.broadcastMessage({
 			type: 'text',
 			data: { content: `🔔 Reminder: ${data.message}`, userId: data.userId },
 			timestamp: Date.now(),
@@ -621,12 +653,18 @@ export class HareAgent extends Agent<CloudflareEnv, HareAgentState> {
 
 	/**
 	 * Broadcast a message to all connected clients.
+	 * Uses the connectionUserMap to iterate over known connections
+	 * since getConnections() comes from the Server base class.
 	 */
-	private broadcast(message: ServerMessage): void {
+	private broadcastMessage(message: ServerMessage): void {
 		const data = JSON.stringify(message)
-		// Use the connections from the Agent base class
-		for (const connection of this.getConnections()) {
-			connection.send(data)
+		// Iterate over tracked connections
+		for (const connection of this.connectionUserMap.keys()) {
+			try {
+				connection.send(data)
+			} catch {
+				// Connection may have closed, will be cleaned up in onClose
+			}
 		}
 	}
 

@@ -6,11 +6,33 @@
  */
 
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
+import { and, eq } from 'drizzle-orm'
+import { workspaceMembers } from 'web-app/db/schema'
 import { isWebSocketRequest, routeToMcpAgent } from 'web-app/lib/agents'
-import { getCloudflareEnv } from '../db'
+import { getCloudflareEnv, getDb } from '../db'
 import { optionalAuthMiddleware } from '../middleware'
 import { ErrorSchema } from '../schemas'
 import type { OptionalAuthEnv } from '../types'
+
+/**
+ * Check if a user has access to a workspace.
+ */
+async function hasWorkspaceAccess(
+	db: ReturnType<typeof import('../db').getDb> extends Promise<infer T> ? T : never,
+	userId: string,
+	workspaceId: string,
+): Promise<boolean> {
+	const [membership] = await db
+		.select()
+		.from(workspaceMembers)
+		.where(
+			and(
+				eq(workspaceMembers.workspaceId, workspaceId),
+				eq(workspaceMembers.userId, userId),
+			),
+		)
+	return !!membership
+}
 
 // MCP WebSocket route
 const mcpConnectRoute = createRoute({
@@ -86,11 +108,21 @@ app.use('*', optionalAuthMiddleware)
 // MCP WebSocket connection
 app.openapi(mcpConnectRoute, async (c) => {
 	const { workspaceId } = c.req.valid('param')
+	const db = await getDb(c)
 	const env = await getCloudflareEnv(c)
+	const user = c.get('user')
 
 	// Check if it's a WebSocket request
 	if (!isWebSocketRequest(c.req.raw)) {
 		return c.json({ error: 'WebSocket upgrade required' }, 400)
+	}
+
+	// Authorization: verify user has access to the workspace
+	if (user?.id) {
+		const hasAccess = await hasWorkspaceAccess(db, user.id, workspaceId)
+		if (!hasAccess) {
+			return c.json({ error: 'Unauthorized: no access to this workspace' }, 403)
+		}
 	}
 
 	// Route to the MCP Agent Durable Object

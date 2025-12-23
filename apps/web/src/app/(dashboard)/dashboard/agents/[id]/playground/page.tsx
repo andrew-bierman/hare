@@ -33,8 +33,10 @@ import {
 	useAgent,
 	useAgentWebSocket,
 	useChat,
+	type AgentMessage,
 	type ConnectionStatus,
 } from 'web-app/lib/api/hooks'
+import type { HareAgentState } from 'web-app/lib/agents'
 
 function LoadingSkeleton() {
 	return (
@@ -73,38 +75,29 @@ function ConnectionIndicator({ status }: { status: ConnectionStatus }) {
 	)
 }
 
-export default function PlaygroundPage() {
-	const params = useParams()
-	const router = useRouter()
-	const agentId = params.id as string
+/**
+ * Shared chat interface props.
+ */
+interface ChatInterfaceProps {
+	messages: AgentMessage[]
+	isStreaming: boolean
+	error: string | null
+	sendMessage: (content: string) => void
+	clearMessages: () => void
+	suggestedPrompts: string[]
+}
 
-	// Mode toggle: 'sse' for Server-Sent Events, 'ws' for WebSocket
-	const [mode, setMode] = useState<'sse' | 'ws'>('ws')
-
-	const { activeWorkspace } = useWorkspace()
-	const {
-		data: agent,
-		isLoading: agentLoading,
-		error: agentError,
-	} = useAgent(agentId, activeWorkspace?.id)
-
-	// SSE-based chat hook
-	const sseChat = useChat(agentId)
-
-	// WebSocket-based chat hook
-	const wsChat = useAgentWebSocket({
-		agentId,
-		userId: 'playground-user',
-		autoReconnect: true,
-	})
-
-	// Use the appropriate chat based on mode
-	const messages = mode === 'ws' ? wsChat.messages : sseChat.messages
-	const isStreaming = mode === 'ws' ? wsChat.isProcessing : sseChat.isStreaming
-	const chatError = mode === 'ws' ? wsChat.error : sseChat.error
-	const sendMessage = mode === 'ws' ? wsChat.sendMessage : sseChat.sendMessage
-	const clearMessages = mode === 'ws' ? wsChat.clearMessages : sseChat.clearMessages
-
+/**
+ * Shared chat interface component.
+ */
+function ChatInterface({
+	messages,
+	isStreaming,
+	error,
+	sendMessage,
+	clearMessages,
+	suggestedPrompts,
+}: ChatInterfaceProps) {
 	const messagesEndRef = useRef<HTMLDivElement>(null)
 	const inputRef = useRef<HTMLInputElement>(null)
 
@@ -120,6 +113,232 @@ export default function PlaygroundPage() {
 		sendMessage(input.value.trim())
 		input.value = ''
 	}
+
+	return (
+		<Card className="md:col-span-3 flex flex-col overflow-hidden">
+			<CardContent className="flex-1 flex flex-col p-0 min-h-0">
+				{/* Messages */}
+				<div className="flex-1 overflow-y-auto p-6 space-y-6">
+					{messages.length === 0 ? (
+						<div className="h-full flex flex-col items-center justify-center text-center">
+							<div className="rounded-full bg-primary/10 p-4 mb-4">
+								<Sparkles className="h-8 w-8 text-primary" />
+							</div>
+							<h3 className="text-lg font-semibold mb-2">Start a conversation</h3>
+							<p className="text-muted-foreground mb-6 max-w-sm">
+								Test how your agent responds to different prompts and questions.
+							</p>
+							<div className="flex flex-wrap gap-2 justify-center">
+								{suggestedPrompts.map((prompt) => (
+									<Button
+										key={prompt}
+										variant="outline"
+										size="sm"
+										className="text-xs"
+										onClick={() => {
+											if (inputRef.current) {
+												inputRef.current.value = prompt
+												inputRef.current.focus()
+											}
+										}}
+									>
+										{prompt}
+									</Button>
+								))}
+							</div>
+						</div>
+					) : (
+						<>
+							{messages.map((message) => (
+								<div
+									key={message.id}
+									className={`flex gap-3 ${message.role === 'user' ? 'flex-row-reverse' : ''}`}
+								>
+									<div
+										className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
+											message.role === 'user' ? 'bg-primary' : 'bg-primary/10'
+										}`}
+									>
+										{message.role === 'user' ? (
+											<User className="h-4 w-4 text-primary-foreground" />
+										) : (
+											<Bot className="h-4 w-4 text-primary" />
+										)}
+									</div>
+									<div
+										className={`max-w-[75%] rounded-2xl px-4 py-3 ${
+											message.role === 'user'
+												? 'bg-primary text-primary-foreground rounded-tr-sm'
+												: 'bg-muted rounded-tl-sm'
+										}`}
+									>
+										<p className="whitespace-pre-wrap text-sm leading-relaxed">
+											{message.content}
+										</p>
+									</div>
+								</div>
+							))}
+							{isStreaming &&
+								messages[messages.length - 1]?.role === 'assistant' &&
+								messages[messages.length - 1]?.content === '' && (
+									<div className="flex gap-3">
+										<div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+											<Bot className="h-4 w-4 text-primary" />
+										</div>
+										<div className="bg-muted rounded-2xl rounded-tl-sm px-4 py-3">
+											<div className="flex gap-1.5">
+												<span
+													className="w-2 h-2 bg-primary/50 rounded-full animate-bounce"
+													style={{ animationDelay: '0ms' }}
+												/>
+												<span
+													className="w-2 h-2 bg-primary/50 rounded-full animate-bounce"
+													style={{ animationDelay: '150ms' }}
+												/>
+												<span
+													className="w-2 h-2 bg-primary/50 rounded-full animate-bounce"
+													style={{ animationDelay: '300ms' }}
+												/>
+											</div>
+										</div>
+									</div>
+								)}
+						</>
+					)}
+					<div ref={messagesEndRef} />
+				</div>
+
+				{/* Error */}
+				{error && (
+					<div className="mx-6 mb-4 p-3 bg-destructive/10 text-destructive rounded-lg text-sm flex items-center gap-2">
+						<Info className="h-4 w-4 flex-shrink-0" />
+						{error}
+					</div>
+				)}
+
+				{/* Input */}
+				<div className="border-t p-4">
+					<div className="flex gap-3">
+						<Input
+							ref={inputRef}
+							placeholder="Type your message..."
+							disabled={isStreaming}
+							className="rounded-full px-4"
+							onKeyDown={(e) => {
+								if (e.key === 'Enter' && !e.shiftKey) {
+									e.preventDefault()
+									handleSend()
+								}
+							}}
+						/>
+						<Button
+							onClick={handleSend}
+							size="icon"
+							disabled={isStreaming}
+							className="rounded-full flex-shrink-0"
+						>
+							<Send className="h-4 w-4" />
+						</Button>
+					</div>
+					<p className="text-xs text-muted-foreground text-center mt-2">
+						Press Enter to send, Shift+Enter for new line
+					</p>
+				</div>
+			</CardContent>
+		</Card>
+	)
+}
+
+/**
+ * WebSocket chat mode - only instantiated when mode is 'ws'.
+ */
+function WebSocketChatMode({
+	agentId,
+	suggestedPrompts,
+	onStatusChange,
+	onAgentStateChange,
+}: {
+	agentId: string
+	suggestedPrompts: string[]
+	onStatusChange: (status: ConnectionStatus) => void
+	onAgentStateChange: (state: HareAgentState | null) => void
+}) {
+	const wsChat = useAgentWebSocket({
+		agentId,
+		userId: 'playground-user',
+	})
+
+	// Report status changes to parent
+	useEffect(() => {
+		onStatusChange(wsChat.status)
+	}, [wsChat.status, onStatusChange])
+
+	useEffect(() => {
+		onAgentStateChange(wsChat.agentState)
+	}, [wsChat.agentState, onAgentStateChange])
+
+	return (
+		<ChatInterface
+			messages={wsChat.messages}
+			isStreaming={wsChat.isProcessing}
+			error={wsChat.error}
+			sendMessage={wsChat.sendMessage}
+			clearMessages={wsChat.clearMessages}
+			suggestedPrompts={suggestedPrompts}
+		/>
+	)
+}
+
+/**
+ * SSE chat mode - only instantiated when mode is 'sse'.
+ */
+function SSEChatMode({
+	agentId,
+	suggestedPrompts,
+}: {
+	agentId: string
+	suggestedPrompts: string[]
+}) {
+	const sseChat = useChat(agentId)
+
+	// Map SSE messages to our AgentMessage format
+	const messages: AgentMessage[] = sseChat.messages.map((msg) => ({
+		id: msg.id,
+		role: msg.role,
+		content: msg.content,
+		createdAt: msg.createdAt || new Date().toISOString(),
+	}))
+
+	return (
+		<ChatInterface
+			messages={messages}
+			isStreaming={sseChat.isStreaming}
+			error={sseChat.error}
+			sendMessage={sseChat.sendMessage}
+			clearMessages={sseChat.clearMessages}
+			suggestedPrompts={suggestedPrompts}
+		/>
+	)
+}
+
+export default function PlaygroundPage() {
+	const params = useParams()
+	const router = useRouter()
+	const agentId = params.id as string
+
+	// Mode toggle: 'sse' for Server-Sent Events, 'ws' for WebSocket
+	const [mode, setMode] = useState<'sse' | 'ws'>('ws')
+
+	// Track WebSocket state for the sidebar (only relevant in ws mode)
+	const [wsStatus, setWsStatus] = useState<ConnectionStatus>('disconnected')
+	const [wsAgentState, setWsAgentState] = useState<HareAgentState | null>(null)
+
+	const { activeWorkspace } = useWorkspace()
+	const {
+		data: agent,
+		isLoading: agentLoading,
+		error: agentError,
+	} = useAgent(agentId, activeWorkspace?.id)
 
 	const getModelName = (modelId: string) => {
 		const model = AVAILABLE_MODELS.find((m) => m.id === modelId)
@@ -195,7 +414,7 @@ export default function PlaygroundPage() {
 							<div className="flex items-center gap-2">
 								<h1 className="text-xl font-semibold">{agent.name}</h1>
 								{mode === 'ws' ? (
-									<ConnectionIndicator status={wsChat.status} />
+									<ConnectionIndicator status={wsStatus} />
 								) : (
 									<Badge className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20">
 										<span className="mr-1.5 h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
@@ -235,158 +454,30 @@ export default function PlaygroundPage() {
 							Settings
 						</Button>
 					</Link>
-					<Button
-						variant="outline"
-						size="sm"
-						onClick={clearMessages}
-						disabled={messages.length === 0}
-						className="gap-1.5"
-					>
-						<RotateCcw className="h-4 w-4" />
-						Clear
-					</Button>
 				</div>
 			</div>
 
 			{/* Main Content */}
 			<div className="flex-1 grid gap-6 md:grid-cols-4 min-h-0">
-				{/* Chat Area */}
-				<Card className="md:col-span-3 flex flex-col overflow-hidden">
-					<CardContent className="flex-1 flex flex-col p-0 min-h-0">
-						{/* Messages */}
-						<div className="flex-1 overflow-y-auto p-6 space-y-6">
-							{messages.length === 0 ? (
-								<div className="h-full flex flex-col items-center justify-center text-center">
-									<div className="rounded-full bg-primary/10 p-4 mb-4">
-										<Sparkles className="h-8 w-8 text-primary" />
-									</div>
-									<h3 className="text-lg font-semibold mb-2">Start a conversation</h3>
-									<p className="text-muted-foreground mb-6 max-w-sm">
-										Test how your agent responds to different prompts and questions.
-									</p>
-									<div className="flex flex-wrap gap-2 justify-center">
-										{suggestedPrompts.map((prompt) => (
-											<Button
-												key={prompt}
-												variant="outline"
-												size="sm"
-												className="text-xs"
-												onClick={() => {
-													if (inputRef.current) {
-														inputRef.current.value = prompt
-														inputRef.current.focus()
-													}
-												}}
-											>
-												{prompt}
-											</Button>
-										))}
-									</div>
-								</div>
-							) : (
-								<>
-									{messages.map((message) => (
-										<div
-											key={message.id}
-											className={`flex gap-3 ${message.role === 'user' ? 'flex-row-reverse' : ''}`}
-										>
-											<div
-												className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
-													message.role === 'user' ? 'bg-primary' : 'bg-primary/10'
-												}`}
-											>
-												{message.role === 'user' ? (
-													<User className="h-4 w-4 text-primary-foreground" />
-												) : (
-													<Bot className="h-4 w-4 text-primary" />
-												)}
-											</div>
-											<div
-												className={`max-w-[75%] rounded-2xl px-4 py-3 ${
-													message.role === 'user'
-														? 'bg-primary text-primary-foreground rounded-tr-sm'
-														: 'bg-muted rounded-tl-sm'
-												}`}
-											>
-												<p className="whitespace-pre-wrap text-sm leading-relaxed">
-													{message.content}
-												</p>
-											</div>
-										</div>
-									))}
-									{isStreaming &&
-										messages[messages.length - 1]?.role === 'assistant' &&
-										messages[messages.length - 1]?.content === '' && (
-											<div className="flex gap-3">
-												<div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-													<Bot className="h-4 w-4 text-primary" />
-												</div>
-												<div className="bg-muted rounded-2xl rounded-tl-sm px-4 py-3">
-													<div className="flex gap-1.5">
-														<span
-															className="w-2 h-2 bg-primary/50 rounded-full animate-bounce"
-															style={{ animationDelay: '0ms' }}
-														/>
-														<span
-															className="w-2 h-2 bg-primary/50 rounded-full animate-bounce"
-															style={{ animationDelay: '150ms' }}
-														/>
-														<span
-															className="w-2 h-2 bg-primary/50 rounded-full animate-bounce"
-															style={{ animationDelay: '300ms' }}
-														/>
-													</div>
-												</div>
-											</div>
-										)}
-								</>
-							)}
-							<div ref={messagesEndRef} />
-						</div>
-
-						{/* Error */}
-						{chatError && (
-							<div className="mx-6 mb-4 p-3 bg-destructive/10 text-destructive rounded-lg text-sm flex items-center gap-2">
-								<Info className="h-4 w-4 flex-shrink-0" />
-								{chatError}
-							</div>
-						)}
-
-						{/* Input */}
-						<div className="border-t p-4">
-							<div className="flex gap-3">
-								<Input
-									ref={inputRef}
-									placeholder="Type your message..."
-									disabled={isStreaming}
-									className="rounded-full px-4"
-									onKeyDown={(e) => {
-										if (e.key === 'Enter' && !e.shiftKey) {
-											e.preventDefault()
-											handleSend()
-										}
-									}}
-								/>
-								<Button
-									onClick={handleSend}
-									size="icon"
-									disabled={isStreaming}
-									className="rounded-full flex-shrink-0"
-								>
-									<Send className="h-4 w-4" />
-								</Button>
-							</div>
-							<p className="text-xs text-muted-foreground text-center mt-2">
-								Press Enter to send, Shift+Enter for new line
-							</p>
-						</div>
-					</CardContent>
-				</Card>
+				{/* Chat Area - conditionally render to avoid dual connections */}
+				{mode === 'ws' ? (
+					<WebSocketChatMode
+						agentId={agentId}
+						suggestedPrompts={suggestedPrompts}
+						onStatusChange={setWsStatus}
+						onAgentStateChange={setWsAgentState}
+					/>
+				) : (
+					<SSEChatMode
+						agentId={agentId}
+						suggestedPrompts={suggestedPrompts}
+					/>
+				)}
 
 				{/* Sidebar */}
 				<div className="space-y-4">
 					{/* WebSocket Agent State (only in WS mode) */}
-					{mode === 'ws' && wsChat.agentState && (
+					{mode === 'ws' && wsAgentState && (
 						<Card className="border-primary/20 bg-primary/5">
 							<CardHeader className="pb-3">
 								<CardTitle className="text-sm font-medium flex items-center gap-2">
@@ -398,22 +489,22 @@ export default function PlaygroundPage() {
 								<div className="flex items-center justify-between">
 									<span className="text-sm text-muted-foreground">Status</span>
 									<Badge
-										variant={wsChat.agentState.status === 'idle' ? 'secondary' : 'default'}
+										variant={wsAgentState.status === 'idle' ? 'secondary' : 'default'}
 										className="capitalize"
 									>
-										{wsChat.agentState.status}
+										{wsAgentState.status}
 									</Badge>
 								</div>
 								<div className="flex items-center justify-between">
 									<span className="text-sm text-muted-foreground">Messages</span>
 									<span className="text-sm font-medium">
-										{wsChat.agentState.messages.length}
+										{wsAgentState.messages.length}
 									</span>
 								</div>
 								<div className="flex items-center justify-between">
 									<span className="text-sm text-muted-foreground">Connected Users</span>
 									<span className="text-sm font-medium">
-										{wsChat.agentState.connectedUsers.length}
+										{wsAgentState.connectedUsers.length}
 									</span>
 								</div>
 								<Separator />
@@ -423,18 +514,9 @@ export default function PlaygroundPage() {
 										Scheduled Tasks
 									</div>
 									<span className="text-sm font-medium">
-										{wsChat.agentState.scheduledTasks.length}
+										{wsAgentState.scheduledTasks.length}
 									</span>
 								</div>
-								<Button
-									variant="outline"
-									size="sm"
-									className="w-full gap-1.5"
-									onClick={() => wsChat.refreshState()}
-								>
-									<RotateCcw className="h-3 w-3" />
-									Refresh State
-								</Button>
 							</CardContent>
 						</Card>
 					)}

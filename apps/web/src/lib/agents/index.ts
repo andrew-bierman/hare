@@ -7,15 +7,32 @@
  * - Real-time state synchronization
  * - Scheduling and alarms
  * - Model Context Protocol (MCP) support
+ *
+ * NOTE: The actual agent classes (HareAgent, HareMcpAgent) are NOT exported here
+ * because they import from 'agents' which uses 'cloudflare:workers' - a Workers-only module.
+ * Those classes should only be imported in:
+ * - open-next.config.ts (for Cloudflare Workers deployment)
+ * - worker.ts (for local development reference)
  */
 
 import type { Database } from 'web-app/db/types'
 import { type AgentTool, createEdgeAgent, type EdgeAgent } from './agent'
 import { getSystemTools, loadAgentTools, type ToolContext } from './tools'
 
-// Re-export CF Agents SDK classes
-export { HareAgent, type HareAgentState, type ClientMessage, type ServerMessage } from './hare-agent'
-export { HareMcpAgent, type McpAgentState } from './mcp-agent'
+// Re-export types (safe to import anywhere)
+export type {
+	HareAgentState,
+	McpAgentState,
+	ClientMessage,
+	ServerMessage,
+	ScheduledTask,
+	ChatPayload,
+	ToolExecutePayload,
+	SchedulePayload,
+} from './types'
+export { DEFAULT_HARE_AGENT_STATE, DEFAULT_MCP_AGENT_STATE } from './types'
+
+// Re-export router utilities (safe to import anywhere)
 export {
 	routeToHareAgent,
 	routeWebSocketToAgent,
