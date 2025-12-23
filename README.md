@@ -9,9 +9,7 @@
 
 Hare is a SaaS platform for creating, deploying, and managing AI agents on Cloudflare's global edge network. Just like its namesake, Hare is built for **speed** ⚡—delivering lightning-fast agent responses with sub-50ms cold starts from 300+ cities worldwide.
 
-Built as a **Cloudflare-native** platform using Workers AI, D1, KV, R2, and Vectorize, Hare eliminates the infrastructure complexity of traditional AI agent platforms. No more waiting for slow cold starts or dealing with complex deployment pipelines—your agents hop from development to production in seconds.
-
-> **⚠️ Architecture Note**: Hare currently uses Cloudflare infrastructure (Workers, D1, KV, R2, Workers AI) with a custom agent implementation. It does **not yet** use the official [Cloudflare Agents SDK](https://developers.cloudflare.com/agents/). See [CLOUDFLARE_AGENTS_ALIGNMENT.md](./CLOUDFLARE_AGENTS_ALIGNMENT.md) for details on our migration roadmap to full Cloudflare Agents SDK alignment.
+Built using the **Cloudflare Agents SDK** with Durable Objects, Workers AI, D1, KV, and R2, Hare provides stateful, persistent AI agent instances with real-time WebSocket communication. Agents maintain conversation context across requests and can scale to millions of concurrent instances globally.
 
 ---
 
@@ -43,31 +41,6 @@ Built as a **Cloudflare-native** platform using Workers AI, D1, KV, R2, and Vect
 - [Contributing](#contributing)
 - [FAQ](#faq)
 - [License](#license)
-
----
-
-## 📢 Important: Cloudflare Agents SDK Alignment
-
-**Current Status**: Hare uses Cloudflare's infrastructure (Workers, D1, KV, R2, Workers AI) with a custom agent implementation based on Vercel AI SDK and Hono. We are **not currently using the official [Cloudflare Agents SDK](https://developers.cloudflare.com/agents/)**, which is built on Durable Objects.
-
-**What this means**:
-- ✅ We leverage all Cloudflare services (Workers AI, D1, KV, R2, Vectorize)
-- ✅ Agents run on Cloudflare Workers with sub-50ms latency
-- ✅ Full Cloudflare-native infrastructure
-- ❌ Not using CF Agents SDK's Durable Objects architecture
-- ❌ Missing WebSocket real-time communication
-- ❌ No per-agent stateful instances
-
-**Migration Roadmap**: We have a comprehensive plan to migrate to the official Cloudflare Agents SDK over the next 3-6 months. This will unlock:
-- **Durable Object-based agents**: True stateful, persistent agent instances
-- **WebSocket support**: Real-time bi-directional communication
-- **Advanced features**: Workflow scheduling, human-in-the-loop interactions
-- **Better performance**: Warm agent instances, co-located state
-
-📖 **Learn More**:
-- [Architecture Review & Analysis](./docs/ARCHITECTURE_REVIEW.md)
-- [Detailed Alignment Report](./CLOUDFLARE_AGENTS_ALIGNMENT.md)
-- [Migration Guide](./docs/CLOUDFLARE_AGENTS_MIGRATION_GUIDE.md)
 
 ---
 
@@ -283,42 +256,60 @@ bun run preview
 
 ### 🏗️ System Overview
 
-The entire app runs as a single Next.js application deployed to Cloudflare Pages with `@opennextjs/cloudflare`:
+Hare uses the **Cloudflare Agents SDK** with Durable Objects as the core architecture:
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                  🐇 apps/web (Next.js 15)                       │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                 │
-│  ┌─────────────────────────────────────────────────────────┐   │
-│  │                 ⚛️ React Frontend                        │   │
-│  │  • Dashboard pages (RSC + Client Components)             │   │
-│  │  • shadcn/ui components                                  │   │
-│  │  • Hono RPC client for type-safe API calls               │   │
-│  │  • TanStack Query for data fetching                      │   │
-│  └─────────────────────────────────────────────────────────┘   │
-│                              │                                  │
-│                              ▼                                  │
-│  ┌─────────────────────────────────────────────────────────┐   │
-│  │           🔌 /api/[[...route]] (Hono)                    │   │
-│  │  • REST endpoints with OpenAPI/Scalar docs               │   │
-│  │  • Better Auth handlers                                  │   │
-│  │  • Zod validation                                        │   │
-│  │  • Type-safe RPC exports                                 │   │
-│  └─────────────────────────────────────────────────────────┘   │
-│                              │                                  │
-│                              ▼                                  │
-│  ┌─────────────────────────────────────────────────────────┐   │
-│  │              ☁️ Cloudflare Services                      │   │
-│  │  • D1 (SQLite) via Drizzle ORM                          │   │
-│  │  • KV for sessions/cache                                 │   │
-│  │  • R2 for file storage                                   │   │
-│  │  • Vectorize for embeddings                              │   │
-│  │  • Workers AI for inference                              │   │
-│  └─────────────────────────────────────────────────────────┘   │
+│  User Request                                                    │
+│      │                                                           │
+│      ▼                                                           │
+│  ┌─────────────────┐                                            │
+│  │  Next.js Pages  │  (React Server Components)                 │
+│  └────────┬────────┘                                            │
+│           │                                                      │
+│           ▼                                                      │
+│  ┌─────────────────┐                                            │
+│  │  Hono API       │  (REST + WebSocket routing)                │
+│  └────────┬────────┘                                            │
+│           │                                                      │
+│           ▼                                                      │
+│  ┌──────────────────────────────────────────────┐               │
+│  │         Durable Object Namespace             │               │
+│  │  ┌────────────────────────────────────────┐  │               │
+│  │  │  HareAgent (Durable Object)           │  │               │
+│  │  │  • Persistent state                    │  │               │
+│  │  │  • Conversation history                │  │               │
+│  │  │  • WebSocket connections               │  │               │
+│  │  │  • SQLite per agent                    │  │               │
+│  │  │                                        │  │               │
+│  │  │  Calls Workers AI ──────────────────► │  │               │
+│  │  └────────────────────────────────────────┘  │               │
+│  │                                               │               │
+│  │  Other agent instances (millions scalable)...│               │
+│  └──────────────────────────────────────────────┘               │
+│           │                                                      │
+│           ▼                                                      │
+│  ┌──────────────────┐                                           │
+│  │  WebSocket       │  (Bi-directional real-time streaming)     │
+│  │  or HTTP         │                                           │
+│  └──────────────────┘                                           │
 │                                                                 │
+│  State: Per-agent Durable Object (isolated, persistent)        │
+│  Communication: WebSocket (real-time) + HTTP (REST)             │
+│  Agent Lifetime: Long-lived, maintains state across requests   │
 └─────────────────────────────────────────────────────────────────┘
 ```
+
+### 🎯 Key Features
+
+- **Stateful Agents**: Each agent is a persistent Durable Object instance
+- **Real-Time**: WebSocket support for bi-directional streaming
+- **Automatic State**: Conversation history managed automatically
+- **SQLite Per Agent**: Each agent has its own database
+- **Global Scale**: Millions of concurrent agent instances
 
 ### 🔌 Hono in Next.js
 

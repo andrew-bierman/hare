@@ -47,7 +47,26 @@
 	// Workers AI
 	"ai": {
 		"binding": "AI"
-	}
+	},
+
+	// Durable Objects for Cloudflare Agents SDK
+	"durable_objects": {
+		"bindings": [
+			{
+				"name": "HARE_AGENT",
+				"class_name": "HareAgent",
+				"script_name": "hare"
+			}
+		]
+	},
+
+	// Migrations for Durable Objects with SQLite
+	"migrations": [
+		{
+			"tag": "v1",
+			"new_sqlite_classes": ["HareAgent"]
+		}
+	]
 
 	// Environment variables: use .dev.vars for local, CF dashboard for production
 }

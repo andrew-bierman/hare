@@ -18,4 +18,5 @@ interface CloudflareEnv {
 	WORKER_SELF_REFERENCE: Fetcher
 	AI: Ai
 	ASSETS: Fetcher
+	HARE_AGENT: DurableObjectNamespace
 }
