@@ -2,6 +2,7 @@ import type { MiddlewareHandler } from 'hono'
 import { and, eq, gte } from 'drizzle-orm'
 import { rateLimits } from 'web-app/db/schema'
 import { RATE_LIMITS } from 'web-app/config'
+import type { Database } from 'web-app/db/types'
 import { getDb } from '../db'
 import type { AuthEnv } from '../types'
 
@@ -28,7 +29,6 @@ export function createRateLimitMiddleware(options: RateLimitOptions): Middleware
 
 		const db = await getDb(c)
 		const now = new Date()
-		const windowStart = new Date(now.getTime() - options.windowMs)
 
 		// Get or create rate limit record for this user and endpoint
 		const [existing] = await db
@@ -124,7 +124,7 @@ export const chatRateLimitMiddleware = createRateLimitMiddleware({
  * Update token count for rate limiting (call after processing)
  */
 export async function updateTokenCount(
-	db: any,
+	db: Database,
 	userId: string,
 	endpoint: string,
 	tokenCount: number,

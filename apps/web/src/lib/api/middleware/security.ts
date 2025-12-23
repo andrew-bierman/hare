@@ -5,12 +5,15 @@ import { secureHeaders } from 'hono/secure-headers'
 /**
  * Security headers middleware
  * Adds security-related HTTP headers to all responses
+ * 
+ * Note: unsafe-eval is required for Next.js in development mode.
+ * In production, Next.js uses static optimization which doesn't require unsafe-eval.
  */
 export const securityHeadersMiddleware: MiddlewareHandler = secureHeaders({
 	// Content Security Policy
 	contentSecurityPolicy: {
 		defaultSrc: ["'self'"],
-		scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"], // Required for Next.js
+		scriptSrc: ["'self'", "'unsafe-inline'", ...(process.env.NODE_ENV === 'development' ? ["'unsafe-eval'"] : [])],
 		styleSrc: ["'self'", "'unsafe-inline'"], // Required for Tailwind
 		imgSrc: ["'self'", 'data:', 'https:', 'blob:'],
 		fontSrc: ["'self'", 'data:'],

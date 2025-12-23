@@ -1,6 +1,7 @@
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
-import { and, desc, eq } from 'drizzle-orm'
+import { and, desc, eq, or } from 'drizzle-orm'
 import { betaAccess, workspaceMembers } from 'web-app/db/schema'
+import type { Database } from 'web-app/db/types'
 import { getDb } from '../db'
 import { authMiddleware } from '../middleware'
 import { ErrorSchema, IdParamSchema, SuccessSchema } from '../schemas'
@@ -172,19 +173,18 @@ const revokeBetaAccessRoute = createRoute({
 })
 
 // Helper to check if user is admin in any workspace
-async function isAdmin(db: any, userId: string): Promise<boolean> {
+async function isAdmin(db: Database, userId: string): Promise<boolean> {
 	const memberships = await db
 		.select()
 		.from(workspaceMembers)
 		.where(
 			and(
 				eq(workspaceMembers.userId, userId),
-				// Admin or owner role
-				// Note: SQLite doesn't have OR in WHERE directly with Drizzle, so we check in code
+				or(eq(workspaceMembers.role, 'owner'), eq(workspaceMembers.role, 'admin')),
 			),
 		)
 
-	return memberships.some((m: any) => m.role === 'owner' || m.role === 'admin')
+	return memberships.length > 0
 }
 
 // Create app

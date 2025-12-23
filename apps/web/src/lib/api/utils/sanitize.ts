@@ -38,22 +38,6 @@ export function sanitizeUserInput(input: string): string {
 }
 
 /**
- * Sanitize SQL input by escaping single quotes
- * 
- * @deprecated This function provides incomplete protection against SQL injection.
- * Always use parameterized queries or prepared statements instead.
- * This is kept only for legacy compatibility and should NOT be used for new code.
- * 
- * SQL injection protection requires proper use of parameterized queries with your database library.
- * For Drizzle ORM: Use the built-in query builder with parameters
- * For raw SQL: Use db.prepare() with bound parameters
- */
-export function sanitizeSql(input: string): string {
-	// Only escapes single quotes - does NOT provide complete SQL injection protection
-	return input.replace(/'/g, "''")
-}
-
-/**
  * Validate and sanitize email address
  */
 export function sanitizeEmail(email: string): string {
