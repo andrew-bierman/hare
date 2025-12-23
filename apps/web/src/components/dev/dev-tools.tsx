@@ -4,28 +4,75 @@ import { useQueryClient } from '@tanstack/react-query'
 import { Badge } from '@workspace/ui/components/badge'
 import { Button } from '@workspace/ui/components/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@workspace/ui/components/card'
-import { Bug, ChevronDown, ChevronUp, Copy, Database, LogIn, RefreshCw, Trash2, X } from 'lucide-react'
+import {
+	Bot,
+	Bug,
+	ChevronDown,
+	ChevronUp,
+	Copy,
+	LogIn,
+	LogOut,
+	Plus,
+	Rabbit,
+	RefreshCw,
+	Rocket,
+	Trash2,
+	UserPlus,
+	Wrench,
+	X,
+} from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { toast } from 'sonner'
+import { useWorkspace } from 'web-app/components/providers/workspace-provider'
 import { DEV_CONFIG, FEATURES } from 'web-app/config'
 import { authClient } from 'web-app/lib/auth-client'
+import { useCreateAgent, useCreateWorkspace } from 'web-app/lib/api/hooks'
 
 /**
  * Developer tools panel - only shown in development mode
  * Provides quick actions for testing and debugging
  */
+// Random rabbit-themed agent names
+const RABBIT_NAMES = [
+	'Hoppy Helper',
+	'Bunny Bot',
+	'Carrot Cruncher',
+	'Warren Wizard',
+	'Fluffy Assistant',
+	'Thumper AI',
+	'Cotton Tail',
+	'Jack Rabbit',
+	'Velvet Ears',
+	'Meadow Mind',
+]
+
+const AGENT_DESCRIPTIONS = [
+	'A speedy assistant that hops to help',
+	'Burrows deep into problems to find solutions',
+	'Quick as a hare, smart as a fox',
+	'Your friendly neighborhood rabbit helper',
+	'Nibbles through tasks with ease',
+]
+
 export function DevTools() {
 	const [isOpen, setIsOpen] = useState(false)
 	const [isMinimized, setIsMinimized] = useState(false)
-	const [isSeeding, setIsSeeding] = useState(false)
+	const [isSigningUp, setIsSigningUp] = useState(false)
 	const queryClient = useQueryClient()
 	const router = useRouter()
+
+	const { activeWorkspace } = useWorkspace()
+	const createAgent = useCreateAgent(activeWorkspace?.id)
+	const createWorkspace = useCreateWorkspace()
 
 	// Only render in dev mode
 	if (!FEATURES.devMode) {
 		return null
 	}
+
+	const randomName = () => RABBIT_NAMES[Math.floor(Math.random() * RABBIT_NAMES.length)]
+	const randomDesc = () => AGENT_DESCRIPTIONS[Math.floor(Math.random() * AGENT_DESCRIPTIONS.length)]
 
 	const handleQuickSignIn = async () => {
 		try {
@@ -56,19 +103,59 @@ export function DevTools() {
 		}
 	}
 
-	const handleSeedData = async () => {
-		setIsSeeding(true)
+	const handleQuickSignUp = async () => {
+		setIsSigningUp(true)
+		const timestamp = Date.now()
 		try {
-			const response = await fetch('/api/dev/seed', { method: 'POST' })
-			if (!response.ok) {
-				throw new Error('Failed to seed data')
+			const result = await authClient.signUp.email({
+				email: `test${timestamp}@example.com`,
+				password: 'password123',
+				name: `Test User ${timestamp}`,
+			})
+			if (result.error) {
+				toast.error(`Sign up failed: ${result.error.message}`)
+			} else {
+				toast.success(`Created & signed in as test${timestamp}@example.com`)
+				queryClient.invalidateQueries()
+				router.refresh()
+				router.push('/dashboard')
 			}
-			toast.success('Sample data loaded!')
-			queryClient.invalidateQueries()
-		} catch (_error) {
-			toast.error('Failed to seed data')
+		} catch (error) {
+			toast.error(`Sign up failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
 		} finally {
-			setIsSeeding(false)
+			setIsSigningUp(false)
+		}
+	}
+
+	const handleCreateAgent = async () => {
+		if (!activeWorkspace) {
+			toast.error('No workspace selected')
+			return
+		}
+		try {
+			const agent = await createAgent.mutateAsync({
+				name: randomName()!,
+				description: randomDesc(),
+				model: '@cf/meta/llama-3.3-70b-instruct-fp8-fast',
+				instructions: 'You are a helpful AI assistant with a playful rabbit personality. Be quick, helpful, and add occasional rabbit puns.',
+			})
+			toast.success(`Created agent: ${agent.name}`)
+			router.push(`/dashboard/agents/${agent.id}`)
+		} catch (_error) {
+			toast.error('Failed to create agent')
+		}
+	}
+
+	const handleCreateWorkspace = async () => {
+		const timestamp = Date.now()
+		try {
+			const workspace = await createWorkspace.mutateAsync({
+				name: `Workspace ${timestamp}`,
+				slug: `workspace-${timestamp}`,
+			})
+			toast.success(`Created workspace: ${workspace.name}`)
+		} catch (_error) {
+			toast.error('Failed to create workspace')
 		}
 	}
 
@@ -97,23 +184,23 @@ export function DevTools() {
 			<Button
 				variant="outline"
 				size="icon"
-				className="fixed bottom-4 right-4 z-50 h-10 w-10 rounded-full shadow-lg bg-yellow-500 hover:bg-yellow-600 text-black border-yellow-600"
+				className="fixed bottom-4 right-4 z-50 h-12 w-12 rounded-full shadow-lg bg-gradient-to-br from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white border-orange-600"
 				onClick={() => setIsOpen(true)}
 			>
-				<Bug className="h-5 w-5" />
+				<Rabbit className="h-6 w-6" />
 			</Button>
 		)
 	}
 
 	return (
-		<Card className="fixed bottom-4 right-4 z-50 w-80 shadow-xl border-yellow-500/50 bg-background/95 backdrop-blur">
-			<CardHeader className="py-3 px-4 flex flex-row items-center justify-between space-y-0">
+		<Card className="fixed bottom-4 right-4 z-50 w-80 shadow-xl border-orange-500/50 bg-background/95 backdrop-blur">
+			<CardHeader className="py-3 px-4 flex flex-row items-center justify-between space-y-0 bg-gradient-to-r from-orange-500/10 to-amber-500/10">
 				<div className="flex items-center gap-2">
-					<Bug className="h-4 w-4 text-yellow-500" />
+					<Rabbit className="h-4 w-4 text-orange-500" />
 					<CardTitle className="text-sm font-medium">Dev Tools</CardTitle>
 					<Badge
 						variant="outline"
-						className="text-[10px] px-1.5 py-0 text-yellow-600 border-yellow-500/50"
+						className="text-[10px] px-1.5 py-0 text-orange-600 border-orange-500/50 bg-orange-500/10"
 					>
 						DEV
 					</Badge>
@@ -137,39 +224,68 @@ export function DevTools() {
 					{/* Auth Actions */}
 					<div className="space-y-2">
 						<p className="text-xs font-medium text-muted-foreground">Authentication</p>
-						<div className="flex gap-2">
+						<div className="grid grid-cols-2 gap-2">
 							<Button
 								variant="outline"
 								size="sm"
-								className="flex-1 h-8 text-xs"
+								className="h-8 text-xs"
 								onClick={handleQuickSignIn}
 							>
 								<LogIn className="h-3 w-3 mr-1.5" />
-								Quick Sign In
+								Sign In
 							</Button>
 							<Button
 								variant="outline"
 								size="sm"
-								className="flex-1 h-8 text-xs"
+								className="h-8 text-xs"
+								onClick={handleQuickSignUp}
+								disabled={isSigningUp}
+							>
+								<UserPlus className="h-3 w-3 mr-1.5" />
+								{isSigningUp ? '...' : 'New User'}
+							</Button>
+							<Button
+								variant="outline"
+								size="sm"
+								className="h-8 text-xs col-span-2"
 								onClick={handleSignOut}
 							>
+								<LogOut className="h-3 w-3 mr-1.5" />
 								Sign Out
 							</Button>
 						</div>
-						<Button
-							variant="ghost"
-							size="sm"
-							className="w-full h-8 text-xs justify-start"
-							onClick={handleCopySession}
-						>
-							<Copy className="h-3 w-3 mr-1.5" />
-							Copy Session to Clipboard
-						</Button>
+					</div>
+
+					{/* Quick Create */}
+					<div className="space-y-2">
+						<p className="text-xs font-medium text-muted-foreground">Quick Create</p>
+						<div className="grid grid-cols-2 gap-2">
+							<Button
+								variant="outline"
+								size="sm"
+								className="h-8 text-xs border-orange-500/50 text-orange-600 hover:text-orange-600 hover:bg-orange-500/10"
+								onClick={handleCreateAgent}
+								disabled={createAgent.isPending || !activeWorkspace}
+							>
+								<Bot className="h-3 w-3 mr-1.5" />
+								{createAgent.isPending ? '...' : 'Agent'}
+							</Button>
+							<Button
+								variant="outline"
+								size="sm"
+								className="h-8 text-xs border-blue-500/50 text-blue-600 hover:text-blue-600 hover:bg-blue-500/10"
+								onClick={handleCreateWorkspace}
+								disabled={createWorkspace.isPending}
+							>
+								<Plus className="h-3 w-3 mr-1.5" />
+								{createWorkspace.isPending ? '...' : 'Workspace'}
+							</Button>
+						</div>
 					</div>
 
 					{/* Cache Actions */}
 					<div className="space-y-2">
-						<p className="text-xs font-medium text-muted-foreground">Cache & Data</p>
+						<p className="text-xs font-medium text-muted-foreground">Cache</p>
 						<div className="flex gap-2">
 							<Button
 								variant="outline"
@@ -178,7 +294,7 @@ export function DevTools() {
 								onClick={handleRefreshAll}
 							>
 								<RefreshCw className="h-3 w-3 mr-1.5" />
-								Refresh All
+								Refresh
 							</Button>
 							<Button
 								variant="outline"
@@ -187,26 +303,23 @@ export function DevTools() {
 								onClick={handleClearCache}
 							>
 								<Trash2 className="h-3 w-3 mr-1.5" />
-								Clear Cache
+								Clear
+							</Button>
+							<Button
+								variant="ghost"
+								size="sm"
+								className="h-8 text-xs"
+								onClick={handleCopySession}
+							>
+								<Copy className="h-3 w-3" />
 							</Button>
 						</div>
-						<Button
-							variant="outline"
-							size="sm"
-							className="w-full h-8 text-xs border-emerald-500/50 text-emerald-600 hover:text-emerald-600 hover:bg-emerald-500/10"
-							onClick={handleSeedData}
-							disabled={isSeeding}
-						>
-							<Database className="h-3 w-3 mr-1.5" />
-							{isSeeding ? 'Loading...' : 'Load Sample Data'}
-						</Button>
 					</div>
 
 					{/* Info */}
-					<div className="pt-2 border-t">
-						<p className="text-[10px] text-muted-foreground">
-							Test user: {DEV_CONFIG.testUser.email}
-						</p>
+					<div className="pt-2 border-t text-[10px] text-muted-foreground space-y-0.5">
+						<p>Test: {DEV_CONFIG.testUser.email} / password123</p>
+						{activeWorkspace && <p>Workspace: {activeWorkspace.name}</p>}
 					</div>
 				</CardContent>
 			)}
