@@ -1,13 +1,31 @@
 /**
  * Hare AI Agent System
  *
- * Native Cloudflare Workers implementation for AI agents.
- * No external framework dependencies - fully Edge-compatible.
+ * Built on Cloudflare Agents SDK for:
+ * - Durable Object-backed state persistence
+ * - WebSocket support with hibernation
+ * - Real-time state synchronization
+ * - Scheduling and alarms
+ * - Model Context Protocol (MCP) support
  */
 
 import type { Database } from 'web-app/db/types'
 import { type AgentTool, createEdgeAgent, type EdgeAgent } from './agent'
 import { getSystemTools, loadAgentTools, type ToolContext } from './tools'
+
+// Re-export CF Agents SDK classes
+export { HareAgent, type HareAgentState, type ClientMessage, type ServerMessage } from './hare-agent'
+export { HareMcpAgent, type McpAgentState } from './mcp-agent'
+export {
+	routeToHareAgent,
+	routeWebSocketToAgent,
+	routeHttpToAgent,
+	routeToMcpAgent,
+	isWebSocketRequest,
+	getAgentIdFromRequest,
+	createAgentHeaders,
+	type AgentRouteConfig,
+} from './router'
 
 /**
  * Agent configuration from database.

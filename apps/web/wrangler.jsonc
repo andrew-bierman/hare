@@ -47,7 +47,29 @@
 	// Workers AI
 	"ai": {
 		"binding": "AI"
-	}
+	},
+
+	// Durable Objects for CF Agents
+	"durable_objects": {
+		"bindings": [
+			{
+				"name": "HARE_AGENT",
+				"class_name": "HareAgent"
+			},
+			{
+				"name": "MCP_AGENT",
+				"class_name": "HareMcpAgent"
+			}
+		]
+	},
+
+	// Migrations for Durable Objects (required for SQLite storage)
+	"migrations": [
+		{
+			"tag": "v1",
+			"new_sqlite_classes": ["HareAgent", "HareMcpAgent"]
+		}
+	]
 
 	// Environment variables: use .dev.vars for local, CF dashboard for production
 }

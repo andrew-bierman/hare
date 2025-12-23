@@ -5,9 +5,11 @@ import { logger } from 'hono/logger'
 import { CloudflareEnvError } from './db'
 // Import route modules
 import agents from './routes/agents'
+import agentWs from './routes/agent-ws'
 import auth from './routes/auth'
 import chat from './routes/chat'
 import dev from './routes/dev'
+import mcp from './routes/mcp'
 import tools from './routes/tools'
 import usage from './routes/usage'
 import workspaces from './routes/workspaces'
@@ -34,12 +36,14 @@ app.use('*', cors())
 // Mount routes - chain for type inference
 const routes = app
 	.route('/agents', agents)
+	.route('/agent-ws', agentWs)
 	.route('/workspaces', workspaces)
 	.route('/tools', tools)
 	.route('/auth', auth)
 	.route('/chat', chat)
 	.route('/usage', usage)
 	.route('/dev', dev)
+	.route('/mcp', mcp)
 
 // OpenAPI documentation
 app.doc('/openapi.json', {
@@ -59,8 +63,10 @@ app.doc('/openapi.json', {
 		{ name: 'Authentication', description: 'User authentication and session management' },
 		{ name: 'Workspaces', description: 'Workspace management' },
 		{ name: 'Agents', description: 'AI agent creation and deployment' },
+		{ name: 'Agent WebSocket', description: 'Real-time WebSocket connections to Cloudflare Agents' },
 		{ name: 'Tools', description: 'Tool management for agents' },
-		{ name: 'Chat', description: 'Chat with deployed agents' },
+		{ name: 'Chat', description: 'Chat with deployed agents (SSE)' },
+		{ name: 'MCP', description: 'Model Context Protocol for external AI clients' },
 		{ name: 'Usage', description: 'Usage statistics and analytics' },
 	],
 })

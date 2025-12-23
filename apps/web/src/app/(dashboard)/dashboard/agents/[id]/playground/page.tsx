@@ -9,22 +9,32 @@ import { Skeleton } from '@workspace/ui/components/skeleton'
 import {
 	ArrowLeft,
 	Bot,
+	Calendar,
 	Clock,
 	Info,
 	Lightbulb,
+	Radio,
 	RotateCcw,
 	Send,
 	Settings,
 	Sparkles,
 	User,
+	Wifi,
+	WifiOff,
 	Wrench,
 	Zap,
 } from 'lucide-react'
 import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useWorkspace } from 'web-app/components/providers/workspace-provider'
-import { AVAILABLE_MODELS, useAgent, useChat } from 'web-app/lib/api/hooks'
+import {
+	AVAILABLE_MODELS,
+	useAgent,
+	useAgentWebSocket,
+	useChat,
+	type ConnectionStatus,
+} from 'web-app/lib/api/hooks'
 
 function LoadingSkeleton() {
 	return (
@@ -41,10 +51,35 @@ function LoadingSkeleton() {
 	)
 }
 
+/**
+ * Connection status indicator component.
+ */
+function ConnectionIndicator({ status }: { status: ConnectionStatus }) {
+	const statusConfig = {
+		connecting: { icon: Radio, color: 'text-yellow-500', bg: 'bg-yellow-500/10', label: 'Connecting' },
+		connected: { icon: Wifi, color: 'text-emerald-500', bg: 'bg-emerald-500/10', label: 'Connected' },
+		disconnected: { icon: WifiOff, color: 'text-gray-500', bg: 'bg-gray-500/10', label: 'Disconnected' },
+		error: { icon: WifiOff, color: 'text-red-500', bg: 'bg-red-500/10', label: 'Error' },
+	}
+
+	const config = statusConfig[status]
+	const Icon = config.icon
+
+	return (
+		<Badge className={`${config.bg} ${config.color} border-transparent gap-1.5`}>
+			<Icon className="h-3 w-3" />
+			{config.label}
+		</Badge>
+	)
+}
+
 export default function PlaygroundPage() {
 	const params = useParams()
 	const router = useRouter()
 	const agentId = params.id as string
+
+	// Mode toggle: 'sse' for Server-Sent Events, 'ws' for WebSocket
+	const [mode, setMode] = useState<'sse' | 'ws'>('ws')
 
 	const { activeWorkspace } = useWorkspace()
 	const {
@@ -52,7 +87,23 @@ export default function PlaygroundPage() {
 		isLoading: agentLoading,
 		error: agentError,
 	} = useAgent(agentId, activeWorkspace?.id)
-	const { messages, isStreaming, error: chatError, sendMessage, clearMessages } = useChat(agentId)
+
+	// SSE-based chat hook
+	const sseChat = useChat(agentId)
+
+	// WebSocket-based chat hook
+	const wsChat = useAgentWebSocket({
+		agentId,
+		userId: 'playground-user',
+		autoReconnect: true,
+	})
+
+	// Use the appropriate chat based on mode
+	const messages = mode === 'ws' ? wsChat.messages : sseChat.messages
+	const isStreaming = mode === 'ws' ? wsChat.isProcessing : sseChat.isStreaming
+	const chatError = mode === 'ws' ? wsChat.error : sseChat.error
+	const sendMessage = mode === 'ws' ? wsChat.sendMessage : sseChat.sendMessage
+	const clearMessages = mode === 'ws' ? wsChat.clearMessages : sseChat.clearMessages
 
 	const messagesEndRef = useRef<HTMLDivElement>(null)
 	const inputRef = useRef<HTMLInputElement>(null)
@@ -60,7 +111,7 @@ export default function PlaygroundPage() {
 	// Auto-scroll to bottom on new messages
 	useEffect(() => {
 		messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-	}, [])
+	}, [messages])
 
 	const handleSend = () => {
 		const input = inputRef.current
@@ -143,16 +194,41 @@ export default function PlaygroundPage() {
 						<div>
 							<div className="flex items-center gap-2">
 								<h1 className="text-xl font-semibold">{agent.name}</h1>
-								<Badge className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20">
-									<span className="mr-1.5 h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-									Live
-								</Badge>
+								{mode === 'ws' ? (
+									<ConnectionIndicator status={wsChat.status} />
+								) : (
+									<Badge className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20">
+										<span className="mr-1.5 h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+										Live
+									</Badge>
+								)}
 							</div>
 							<p className="text-sm text-muted-foreground">{getModelName(agent.model)}</p>
 						</div>
 					</div>
 				</div>
 				<div className="flex items-center gap-2">
+					{/* Mode Toggle */}
+					<div className="flex items-center border rounded-lg p-0.5">
+						<Button
+							variant={mode === 'ws' ? 'default' : 'ghost'}
+							size="sm"
+							onClick={() => setMode('ws')}
+							className="gap-1.5 h-7 px-2"
+						>
+							<Wifi className="h-3 w-3" />
+							WebSocket
+						</Button>
+						<Button
+							variant={mode === 'sse' ? 'default' : 'ghost'}
+							size="sm"
+							onClick={() => setMode('sse')}
+							className="gap-1.5 h-7 px-2"
+						>
+							<Radio className="h-3 w-3" />
+							SSE
+						</Button>
+					</div>
 					<Link href={`/dashboard/agents/${agentId}`}>
 						<Button variant="outline" size="sm" className="gap-1.5">
 							<Settings className="h-4 w-4" />
@@ -309,6 +385,60 @@ export default function PlaygroundPage() {
 
 				{/* Sidebar */}
 				<div className="space-y-4">
+					{/* WebSocket Agent State (only in WS mode) */}
+					{mode === 'ws' && wsChat.agentState && (
+						<Card className="border-primary/20 bg-primary/5">
+							<CardHeader className="pb-3">
+								<CardTitle className="text-sm font-medium flex items-center gap-2">
+									<Wifi className="h-4 w-4" />
+									Agent State
+								</CardTitle>
+							</CardHeader>
+							<CardContent className="space-y-3">
+								<div className="flex items-center justify-between">
+									<span className="text-sm text-muted-foreground">Status</span>
+									<Badge
+										variant={wsChat.agentState.status === 'idle' ? 'secondary' : 'default'}
+										className="capitalize"
+									>
+										{wsChat.agentState.status}
+									</Badge>
+								</div>
+								<div className="flex items-center justify-between">
+									<span className="text-sm text-muted-foreground">Messages</span>
+									<span className="text-sm font-medium">
+										{wsChat.agentState.messages.length}
+									</span>
+								</div>
+								<div className="flex items-center justify-between">
+									<span className="text-sm text-muted-foreground">Connected Users</span>
+									<span className="text-sm font-medium">
+										{wsChat.agentState.connectedUsers.length}
+									</span>
+								</div>
+								<Separator />
+								<div className="flex items-center justify-between">
+									<div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+										<Calendar className="h-3.5 w-3.5" />
+										Scheduled Tasks
+									</div>
+									<span className="text-sm font-medium">
+										{wsChat.agentState.scheduledTasks.length}
+									</span>
+								</div>
+								<Button
+									variant="outline"
+									size="sm"
+									className="w-full gap-1.5"
+									onClick={() => wsChat.refreshState()}
+								>
+									<RotateCcw className="h-3 w-3" />
+									Refresh State
+								</Button>
+							</CardContent>
+						</Card>
+					)}
+
 					{/* Agent Config */}
 					<Card>
 						<CardHeader className="pb-3">
@@ -322,6 +452,12 @@ export default function PlaygroundPage() {
 								<span className="text-sm text-muted-foreground">Model</span>
 								<Badge variant="secondary" className="font-mono text-xs">
 									{getModelName(agent.model).split(' ')[0]}
+								</Badge>
+							</div>
+							<div className="flex items-center justify-between">
+								<span className="text-sm text-muted-foreground">Mode</span>
+								<Badge variant="outline" className="font-mono text-xs">
+									{mode === 'ws' ? 'WebSocket' : 'SSE'}
 								</Badge>
 							</div>
 							{agent.config?.temperature !== undefined && (
@@ -354,22 +490,41 @@ export default function PlaygroundPage() {
 						<CardHeader className="pb-3">
 							<CardTitle className="text-sm font-medium flex items-center gap-2">
 								<Lightbulb className="h-4 w-4" />
-								Tips
+								{mode === 'ws' ? 'WebSocket Features' : 'Tips'}
 							</CardTitle>
 						</CardHeader>
 						<CardContent className="space-y-3 text-sm text-muted-foreground">
-							<div className="flex gap-2">
-								<Zap className="h-4 w-4 flex-shrink-0 mt-0.5" />
-								<p>Test edge cases to find unexpected behaviors.</p>
-							</div>
-							<div className="flex gap-2">
-								<Clock className="h-4 w-4 flex-shrink-0 mt-0.5" />
-								<p>Note response times for optimization.</p>
-							</div>
-							<div className="flex gap-2">
-								<Settings className="h-4 w-4 flex-shrink-0 mt-0.5" />
-								<p>Adjust system prompt if responses aren't right.</p>
-							</div>
+							{mode === 'ws' ? (
+								<>
+									<div className="flex gap-2">
+										<Wifi className="h-4 w-4 flex-shrink-0 mt-0.5 text-emerald-500" />
+										<p>Real-time bidirectional communication with state sync.</p>
+									</div>
+									<div className="flex gap-2">
+										<Calendar className="h-4 w-4 flex-shrink-0 mt-0.5 text-blue-500" />
+										<p>Schedule tasks and set reminders via the API.</p>
+									</div>
+									<div className="flex gap-2">
+										<Zap className="h-4 w-4 flex-shrink-0 mt-0.5 text-yellow-500" />
+										<p>Durable Object persistence with hibernation.</p>
+									</div>
+								</>
+							) : (
+								<>
+									<div className="flex gap-2">
+										<Zap className="h-4 w-4 flex-shrink-0 mt-0.5" />
+										<p>Test edge cases to find unexpected behaviors.</p>
+									</div>
+									<div className="flex gap-2">
+										<Clock className="h-4 w-4 flex-shrink-0 mt-0.5" />
+										<p>Note response times for optimization.</p>
+									</div>
+									<div className="flex gap-2">
+										<Settings className="h-4 w-4 flex-shrink-0 mt-0.5" />
+										<p>Adjust system prompt if responses aren't right.</p>
+									</div>
+								</>
+							)}
 						</CardContent>
 					</Card>
 				</div>

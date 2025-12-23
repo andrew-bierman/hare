@@ -39,6 +39,15 @@ export {
 
 // Chat hooks
 export { useChat } from './use-chat'
+// WebSocket Agent hooks (Cloudflare Agents SDK)
+export {
+	useAgentWebSocket,
+	useAgentConnection,
+	type UseAgentWebSocketOptions,
+	type UseAgentWebSocketReturn,
+	type AgentMessage,
+	type ConnectionStatus,
+} from './use-agent-ws'
 // Tool hooks
 export {
 	TOOL_TYPES,
