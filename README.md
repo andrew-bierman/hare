@@ -11,6 +11,8 @@ Hare is a SaaS platform for creating, deploying, and managing AI agents on Cloud
 
 Built as a **Cloudflare-native** platform using Workers AI, D1, KV, R2, and Vectorize, Hare eliminates the infrastructure complexity of traditional AI agent platforms. No more waiting for slow cold starts or dealing with complex deployment pipelines—your agents hop from development to production in seconds.
 
+> **⚠️ Architecture Note**: Hare currently uses Cloudflare infrastructure (Workers, D1, KV, R2, Workers AI) with a custom agent implementation. It does **not yet** use the official [Cloudflare Agents SDK](https://developers.cloudflare.com/agents/). See [CLOUDFLARE_AGENTS_ALIGNMENT.md](./CLOUDFLARE_AGENTS_ALIGNMENT.md) for details on our migration roadmap to full Cloudflare Agents SDK alignment.
+
 ---
 
 ## Table of Contents
@@ -41,6 +43,31 @@ Built as a **Cloudflare-native** platform using Workers AI, D1, KV, R2, and Vect
 - [Contributing](#contributing)
 - [FAQ](#faq)
 - [License](#license)
+
+---
+
+## 📢 Important: Cloudflare Agents SDK Alignment
+
+**Current Status**: Hare uses Cloudflare's infrastructure (Workers, D1, KV, R2, Workers AI) with a custom agent implementation based on Vercel AI SDK and Hono. We are **not currently using the official [Cloudflare Agents SDK](https://developers.cloudflare.com/agents/)**, which is built on Durable Objects.
+
+**What this means**:
+- ✅ We leverage all Cloudflare services (Workers AI, D1, KV, R2, Vectorize)
+- ✅ Agents run on Cloudflare Workers with sub-50ms latency
+- ✅ Full Cloudflare-native infrastructure
+- ❌ Not using CF Agents SDK's Durable Objects architecture
+- ❌ Missing WebSocket real-time communication
+- ❌ No per-agent stateful instances
+
+**Migration Roadmap**: We have a comprehensive plan to migrate to the official Cloudflare Agents SDK over the next 3-6 months. This will unlock:
+- **Durable Object-based agents**: True stateful, persistent agent instances
+- **WebSocket support**: Real-time bi-directional communication
+- **Advanced features**: Workflow scheduling, human-in-the-loop interactions
+- **Better performance**: Warm agent instances, co-located state
+
+📖 **Learn More**:
+- [Architecture Review & Analysis](./docs/ARCHITECTURE_REVIEW.md)
+- [Detailed Alignment Report](./CLOUDFLARE_AGENTS_ALIGNMENT.md)
+- [Migration Guide](./docs/CLOUDFLARE_AGENTS_MIGRATION_GUIDE.md)
 
 ---
 
