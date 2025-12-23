@@ -593,7 +593,9 @@ BETTER_AUTH_SECRET=your_secret_here  # Generate with: openssl rand -base64 32
 BETTER_AUTH_URL=http://localhost:3000
 
 # 🎛️ Feature Flags
-ENABLE_AI_CHAT=true  # Set to 'false' to disable AI chat features
+ENABLE_AI_CHAT=true                             # Global enable/disable for AI chat
+AI_CHAT_BETA_MODE=true                          # Restrict to specific users (beta)
+AI_CHAT_ALLOWED_EMAILS=user1@example.com,user2@example.com  # Allowed emails
 
 # 🔑 OAuth Providers (optional - for social login)
 GOOGLE_CLIENT_ID=your_google_client_id
@@ -623,12 +625,26 @@ Hare includes comprehensive security measures to protect your application and da
 
 ### 🎛️ Feature Flags
 
-Simple feature toggles for controlling access to features:
+Flexible feature control with optional user-specific access:
 
-- **AI Chat**: Enable/disable AI chat features with `ENABLE_AI_CHAT` environment variable
-- **Simple Control**: Just set `ENABLE_AI_CHAT=false` to disable AI features instantly
-- **No Database Required**: Feature flags are environment-based, no migrations needed
-- **Emergency Disable**: Perfect for rolling out features gradually or emergency shutdowns
+- **Global Control**: Enable/disable AI chat features with `ENABLE_AI_CHAT` environment variable
+- **Beta Mode**: Set `AI_CHAT_BETA_MODE=true` to restrict access to specific users
+- **Email Allowlist**: Specify allowed users with `AI_CHAT_ALLOWED_EMAILS` (comma-separated)
+- **No Database Required**: All configuration via environment variables
+- **Perfect for Beta**: Enable feature for 4-5 users in production while testing
+- **Emergency Disable**: Set `ENABLE_AI_CHAT=false` to disable globally
+
+**Example Configuration:**
+```bash
+# Production beta: enable for specific users only
+ENABLE_AI_CHAT=true
+AI_CHAT_BETA_MODE=true
+AI_CHAT_ALLOWED_EMAILS=alice@company.com,bob@company.com,charlie@company.com
+
+# After beta: enable for everyone
+ENABLE_AI_CHAT=true
+AI_CHAT_BETA_MODE=false
+```
 
 ### 🚦 Rate Limiting
 

@@ -37,8 +37,21 @@ export const FEATURES = {
 	playground: true,
 	/** Enable AI chat features (feature flag for beta) */
 	aiChat: process.env.ENABLE_AI_CHAT !== 'false', // Default enabled, can be disabled
+	/** Restrict AI chat to specific users (beta mode) */
+	aiChatBetaMode: process.env.AI_CHAT_BETA_MODE === 'true', // Default false
 	/** Enable rate limiting */
 	rateLimiting: true,
+} as const
+
+// =============================================================================
+// Beta Access
+// =============================================================================
+
+export const BETA_ACCESS = {
+	/** Enable beta access restrictions */
+	enabled: FEATURES.aiChatBetaMode,
+	/** Allowed user emails (comma-separated) */
+	allowedEmails: process.env.AI_CHAT_ALLOWED_EMAILS?.split(',').map(e => e.trim().toLowerCase()) || [],
 } as const
 
 // =============================================================================
@@ -449,6 +462,7 @@ export const RATE_LIMITS = {
 
 export type AppConfig = typeof APP_CONFIG
 export type Features = typeof FEATURES
+export type BetaAccess = typeof BETA_ACCESS
 export type LandingPage = typeof LANDING_PAGE
 export type NavItems = typeof NAV_ITEMS
 export type ErrorMessages = typeof ERROR_MESSAGES
