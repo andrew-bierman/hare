@@ -4,7 +4,8 @@ import { useQueryClient } from '@tanstack/react-query'
 import { Badge } from '@workspace/ui/components/badge'
 import { Button } from '@workspace/ui/components/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@workspace/ui/components/card'
-import { Bug, ChevronDown, ChevronUp, Copy, LogIn, RefreshCw, Trash2, X } from 'lucide-react'
+import { Bug, ChevronDown, ChevronUp, Copy, Database, LogIn, RefreshCw, Trash2, X } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { DEV_CONFIG, FEATURES } from 'web-app/config'
@@ -17,7 +18,9 @@ import { authClient } from 'web-app/lib/auth-client'
 export function DevTools() {
 	const [isOpen, setIsOpen] = useState(false)
 	const [isMinimized, setIsMinimized] = useState(false)
+	const [isSeeding, setIsSeeding] = useState(false)
 	const queryClient = useQueryClient()
+	const router = useRouter()
 
 	// Only render in dev mode
 	if (!FEATURES.devMode) {
@@ -35,6 +38,7 @@ export function DevTools() {
 			} else {
 				toast.success('Signed in as test user')
 				queryClient.invalidateQueries()
+				router.refresh()
 			}
 		} catch (error) {
 			toast.error(`Sign in failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
@@ -46,8 +50,25 @@ export function DevTools() {
 			await authClient.signOut()
 			toast.success('Signed out')
 			queryClient.invalidateQueries()
+			router.refresh()
 		} catch (_error) {
 			toast.error('Sign out failed')
+		}
+	}
+
+	const handleSeedData = async () => {
+		setIsSeeding(true)
+		try {
+			const response = await fetch('/api/dev/seed', { method: 'POST' })
+			if (!response.ok) {
+				throw new Error('Failed to seed data')
+			}
+			toast.success('Sample data loaded!')
+			queryClient.invalidateQueries()
+		} catch (_error) {
+			toast.error('Failed to seed data')
+		} finally {
+			setIsSeeding(false)
 		}
 	}
 
@@ -169,6 +190,16 @@ export function DevTools() {
 								Clear Cache
 							</Button>
 						</div>
+						<Button
+							variant="outline"
+							size="sm"
+							className="w-full h-8 text-xs border-emerald-500/50 text-emerald-600 hover:text-emerald-600 hover:bg-emerald-500/10"
+							onClick={handleSeedData}
+							disabled={isSeeding}
+						>
+							<Database className="h-3 w-3 mr-1.5" />
+							{isSeeding ? 'Loading...' : 'Load Sample Data'}
+						</Button>
 					</div>
 
 					{/* Info */}

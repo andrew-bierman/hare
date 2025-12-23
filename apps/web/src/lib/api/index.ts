@@ -7,6 +7,7 @@ import { CloudflareEnvError } from './db'
 import agents from './routes/agents'
 import auth from './routes/auth'
 import chat from './routes/chat'
+import dev from './routes/dev'
 import tools from './routes/tools'
 import usage from './routes/usage'
 import workspaces from './routes/workspaces'
@@ -38,6 +39,7 @@ const routes = app
 	.route('/auth', auth)
 	.route('/chat', chat)
 	.route('/usage', usage)
+	.route('/dev', dev)
 
 // OpenAPI documentation
 app.doc('/openapi.json', {
