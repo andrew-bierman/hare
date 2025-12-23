@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { createTool, success, failure, type ToolContext, type ToolResult } from './types'
+import { createTool, failure, success, type ToolContext, type ToolResult } from './types'
 
 /**
  * Cloudflare Sandbox Integration
@@ -54,7 +54,7 @@ export async function executeSandboxed<T = unknown>(
 	code: string,
 	language: 'javascript' | 'python' | 'bash',
 	context: ToolContext,
-	config: Partial<SandboxConfig> = {}
+	config: Partial<SandboxConfig> = {},
 ): Promise<ToolResult<T>> {
 	const cfg = { ...DEFAULT_CONFIG, ...config }
 
@@ -68,7 +68,9 @@ export async function executeSandboxed<T = unknown>(
 		return executeInWorker(code, cfg)
 	}
 
-	return failure(`${language} execution requires Cloudflare Sandbox. Add SANDBOX binding to wrangler.toml.`)
+	return failure(
+		`${language} execution requires Cloudflare Sandbox. Add SANDBOX binding to wrangler.toml.`,
+	)
 }
 
 /**
@@ -78,14 +80,17 @@ async function executeWithCloudfareSandbox<T>(
 	code: string,
 	language: 'javascript' | 'python' | 'bash',
 	context: ToolContext,
-	config: SandboxConfig
+	config: SandboxConfig,
 ): Promise<ToolResult<T>> {
 	try {
 		// Get sandbox from Durable Object binding
-		const sandbox = (context.env as any).SANDBOX.get((context.env as any).SANDBOX.idFromName(context.workspaceId))
+		const sandbox = (context.env as any).SANDBOX.get(
+			(context.env as any).SANDBOX.idFromName(context.workspaceId),
+		)
 
 		// Write code to file
-		const filename = language === 'javascript' ? 'script.js' : language === 'python' ? 'script.py' : 'script.sh'
+		const filename =
+			language === 'javascript' ? 'script.js' : language === 'python' ? 'script.py' : 'script.sh'
 		const filepath = `${config.workDir}/${filename}`
 
 		await sandbox.writeFile(filepath, code)
@@ -226,7 +231,10 @@ print(json.dumps({"sum": sum(data), "avg": sum(data)/len(data)}))
 **Limits:** 30s timeout, container isolation`,
 	inputSchema: z.object({
 		code: z.string().min(1).max(100_000).describe('Code to execute'),
-		language: z.enum(['javascript', 'python', 'bash']).default('javascript').describe('Programming language'),
+		language: z
+			.enum(['javascript', 'python', 'bash'])
+			.default('javascript')
+			.describe('Programming language'),
 		timeout: z.number().min(1000).max(60000).optional().default(30000).describe('Timeout in ms'),
 	}),
 	execute: async (input, context) => {
@@ -292,7 +300,7 @@ export const sandboxFileTool = createTool({
 
 		try {
 			const sandbox = (context.env as any).SANDBOX.get(
-				(context.env as any).SANDBOX.idFromName(context.workspaceId)
+				(context.env as any).SANDBOX.idFromName(context.workspaceId),
 			)
 
 			switch (input.operation) {

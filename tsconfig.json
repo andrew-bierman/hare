@@ -16,14 +16,16 @@
     "paths": {
       "web-app/*": ["apps/web/src/*"],
       "@workspace/ui/*": ["packages/ui/src/*"],
-      "@workspace/ui": ["packages/ui/src/index.ts"]
+      "@workspace/ui": ["packages/ui/src/index.ts"],
     },
+    "types": ["node"],
   },
   "include": [
     "apps/**/*.ts",
     "apps/**/*.tsx",
     "packages/**/*.ts",
     "packages/**/*.tsx",
+    "apps/web/cloudflare-env.d.ts",
   ],
   "exclude": ["node_modules", ".next", "dist"],
 }

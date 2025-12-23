@@ -4,7 +4,9 @@ import { getWorkersAIModel } from '../models'
 describe('getWorkersAIModel', () => {
 	describe('Claude models', () => {
 		it('maps claude-3-5-sonnet-20241022 to Workers AI model', () => {
-			expect(getWorkersAIModel('claude-3-5-sonnet-20241022')).toBe('@cf/anthropic/claude-3-5-sonnet')
+			expect(getWorkersAIModel('claude-3-5-sonnet-20241022')).toBe(
+				'@cf/anthropic/claude-3-5-sonnet',
+			)
 		})
 
 		it('maps claude-3-haiku to Workers AI model', () => {
@@ -18,11 +20,15 @@ describe('getWorkersAIModel', () => {
 
 	describe('Llama models', () => {
 		it('maps llama-3.3-70b-instruct to Workers AI model', () => {
-			expect(getWorkersAIModel('llama-3.3-70b-instruct')).toBe('@cf/meta/llama-3.3-70b-instruct-fp8-fast')
+			expect(getWorkersAIModel('llama-3.3-70b-instruct')).toBe(
+				'@cf/meta/llama-3.3-70b-instruct-fp8-fast',
+			)
 		})
 
 		it('maps llama-3.2-11b-vision to Workers AI model', () => {
-			expect(getWorkersAIModel('llama-3.2-11b-vision')).toBe('@cf/meta/llama-3.2-11b-vision-instruct')
+			expect(getWorkersAIModel('llama-3.2-11b-vision')).toBe(
+				'@cf/meta/llama-3.2-11b-vision-instruct',
+			)
 		})
 
 		it('maps llama-3.1-8b to Workers AI model', () => {

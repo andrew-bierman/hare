@@ -1,7 +1,9 @@
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
-import { eq, and } from 'drizzle-orm'
-import { getDb } from '../db'
+import { and, eq } from 'drizzle-orm'
+import { agents, agentTools, deployments } from 'web-app/db/schema'
 import type { Database } from 'web-app/db/types'
+import { getDb } from '../db'
+import { authMiddleware, workspaceMiddleware } from '../middleware'
 import {
 	AgentSchema,
 	CreateAgentSchema,
@@ -12,8 +14,6 @@ import {
 	SuccessSchema,
 	UpdateAgentSchema,
 } from '../schemas'
-import { agents, agentTools, deployments } from 'web-app/db/schema'
-import { authMiddleware, workspaceMiddleware, requirePermission, strictRateLimiter } from '../middleware'
 import type { WorkspaceEnv } from '../types'
 
 // Define routes
@@ -282,51 +282,24 @@ const deployAgentRoute = createRoute({
  * Get tool IDs attached to an agent.
  */
 async function getAgentToolIds(agentId: string, db: Database): Promise<string[]> {
-	const rows = await db.select({ toolId: agentTools.toolId }).from(agentTools).where(eq(agentTools.agentId, agentId))
+	const rows = await db
+		.select({ toolId: agentTools.toolId })
+		.from(agentTools)
+		.where(eq(agentTools.agentId, agentId))
 	return rows.map((r) => r.toolId)
 }
 
 // Create app with proper typing (includes Bindings and Variables)
 const app = new OpenAPIHono<WorkspaceEnv>()
 
-// Apply base middleware to all routes
+// Apply middleware
 app.use('*', authMiddleware)
 app.use('*', workspaceMiddleware)
-
-// Apply permission-based middleware to specific operations
-// POST (create) requires 'write' permission
-app.use('/', async (c, next) => {
-	if (c.req.method === 'POST') {
-		return requirePermission('write')(c, next)
-	}
-	await next()
-})
-
-// PATCH (update) requires 'write' permission
-app.use('/:id', async (c, next) => {
-	if (c.req.method === 'PATCH') {
-		return requirePermission('write')(c, next)
-	}
-	await next()
-})
-
-// DELETE requires 'admin' permission
-app.use('/:id', async (c, next) => {
-	if (c.req.method === 'DELETE') {
-		return requirePermission('admin')(c, next)
-	}
-	await next()
-})
-
-// Deploy requires 'admin' permission + rate limiting
-app.use('/:id/deploy', strictRateLimiter)
-app.use('/:id/deploy', requirePermission('admin'))
 
 // Register routes
 app.openapi(listAgentsRoute, async (c) => {
 	const db = await getDb(c)
 	const workspace = c.get('workspace')
-
 
 	const results = await db.select().from(agents).where(eq(agents.workspaceId, workspace.id))
 
@@ -344,7 +317,7 @@ app.openapi(listAgentsRoute, async (c) => {
 			toolIds: await getAgentToolIds(agent.id, db),
 			createdAt: agent.createdAt.toISOString(),
 			updatedAt: agent.updatedAt.toISOString(),
-		}))
+		})),
 	)
 
 	return c.json({ agents: agentsData }, 200)
@@ -355,8 +328,12 @@ app.openapi(createAgentRoute, async (c) => {
 	const db = await getDb(c)
 	const user = c.get('user')
 	const workspace = c.get('workspace')
+	const role = c.get('workspaceRole')
 
-	// Permission check handled by middleware (requirePermission('write'))
+	// Check write permission
+	if (role === 'viewer') {
+		return c.json({ error: 'Insufficient permissions' }, 403)
+	}
 
 	const [agent] = await db
 		.insert(agents)
@@ -381,7 +358,7 @@ app.openapi(createAgentRoute, async (c) => {
 			data.toolIds.map((toolId: string) => ({
 				agentId: agent.id,
 				toolId,
-			}))
+			})),
 		)
 	}
 
@@ -399,7 +376,7 @@ app.openapi(createAgentRoute, async (c) => {
 			createdAt: agent.createdAt.toISOString(),
 			updatedAt: agent.updatedAt.toISOString(),
 		},
-		201
+		201,
 	)
 })
 
@@ -407,7 +384,6 @@ app.openapi(getAgentRoute, async (c) => {
 	const { id } = c.req.valid('param')
 	const db = await getDb(c)
 	const workspace = c.get('workspace')
-
 
 	// Verify agent belongs to workspace
 	const [agent] = await db
@@ -435,7 +411,7 @@ app.openapi(getAgentRoute, async (c) => {
 			createdAt: agent.createdAt.toISOString(),
 			updatedAt: agent.updatedAt.toISOString(),
 		},
-		200
+		200,
 	)
 })
 
@@ -444,8 +420,12 @@ app.openapi(updateAgentRoute, async (c) => {
 	const data = c.req.valid('json')
 	const db = await getDb(c)
 	const workspace = c.get('workspace')
+	const role = c.get('workspaceRole')
 
-	// Permission check handled by middleware (requirePermission('write'))
+	// Check write permission
+	if (role === 'viewer') {
+		return c.json({ error: 'Insufficient permissions' }, 403)
+	}
 
 	// Verify agent belongs to workspace
 	const [existing] = await db
@@ -485,7 +465,7 @@ app.openapi(updateAgentRoute, async (c) => {
 				data.toolIds.map((toolId: string) => ({
 					agentId: id,
 					toolId,
-				}))
+				})),
 			)
 		}
 	}
@@ -506,7 +486,7 @@ app.openapi(updateAgentRoute, async (c) => {
 			createdAt: agent.createdAt.toISOString(),
 			updatedAt: agent.updatedAt.toISOString(),
 		},
-		200
+		200,
 	)
 })
 
@@ -514,8 +494,12 @@ app.openapi(deleteAgentRoute, async (c) => {
 	const { id } = c.req.valid('param')
 	const db = await getDb(c)
 	const workspace = c.get('workspace')
+	const role = c.get('workspaceRole')
 
-	// Permission check handled by middleware (requirePermission('admin'))
+	// Check admin permission for delete
+	if (role !== 'owner' && role !== 'admin') {
+		return c.json({ error: 'Insufficient permissions' }, 403)
+	}
 
 	// Verify agent belongs to workspace
 	const result = await db
@@ -536,8 +520,12 @@ app.openapi(deployAgentRoute, async (c) => {
 	const db = await getDb(c)
 	const user = c.get('user')
 	const workspace = c.get('workspace')
+	const role = c.get('workspaceRole')
 
-	// Permission check handled by middleware (requirePermission('admin') + strictRateLimiter)
+	// Check admin permission for deploy
+	if (role !== 'owner' && role !== 'admin') {
+		return c.json({ error: 'Insufficient permissions' }, 403)
+	}
 
 	// Verify agent belongs to workspace
 	const [existing] = await db
@@ -587,7 +575,7 @@ app.openapi(deployAgentRoute, async (c) => {
 			deployedAt: deployment.deployedAt.toISOString(),
 			version,
 		},
-		200
+		200,
 	)
 })
 

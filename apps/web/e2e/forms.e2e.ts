@@ -1,4 +1,4 @@
-import { test, expect, type Page } from '@playwright/test'
+import { expect, type Page, test } from '@playwright/test'
 
 test.describe('Agent Creation Form', () => {
 	test.beforeEach(async ({ page }: { page: Page }) => {

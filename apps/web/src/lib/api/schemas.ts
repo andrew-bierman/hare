@@ -5,7 +5,14 @@ import { z } from '@hono/zod-openapi'
  * Uses z.unknown() for type safety, requiring type narrowing at runtime.
  */
 const JsonValueSchema: z.ZodType<unknown> = z.lazy(() =>
-	z.union([z.string(), z.number(), z.boolean(), z.null(), z.array(JsonValueSchema), z.record(z.string(), JsonValueSchema)])
+	z.union([
+		z.string(),
+		z.number(),
+		z.boolean(),
+		z.null(),
+		z.array(JsonValueSchema),
+		z.record(z.string(), JsonValueSchema),
+	]),
 )
 
 /**

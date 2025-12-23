@@ -1,15 +1,20 @@
 import { z } from 'zod'
-import { createTool, success, failure, type ToolContext } from './types'
+import { createTool, failure, success, type ToolContext } from './types'
 
 /**
  * HTTP Request Tool - Make HTTP requests to external APIs.
  */
 export const httpRequestTool = createTool({
 	id: 'http_request',
-	description: 'Make an HTTP request to an external API. Supports GET, POST, PUT, PATCH, DELETE methods.',
+	description:
+		'Make an HTTP request to an external API. Supports GET, POST, PUT, PATCH, DELETE methods.',
 	inputSchema: z.object({
 		url: z.string().url().describe('The URL to send the request to'),
-		method: z.enum(['GET', 'POST', 'PUT', 'PATCH', 'DELETE']).optional().default('GET').describe('HTTP method'),
+		method: z
+			.enum(['GET', 'POST', 'PUT', 'PATCH', 'DELETE'])
+			.optional()
+			.default('GET')
+			.describe('HTTP method'),
 		headers: z.record(z.string(), z.string()).optional().describe('Additional headers to include'),
 		body: z.string().optional().describe('Request body (for POST, PUT, PATCH)'),
 		timeout: z.number().optional().default(30000).describe('Request timeout in milliseconds'),
@@ -59,7 +64,9 @@ export const httpRequestTool = createTool({
 			if (error instanceof Error && error.name === 'AbortError') {
 				return failure(`Request timed out after ${params.timeout}ms`)
 			}
-			return failure(`HTTP request failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
+			return failure(
+				`HTTP request failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+			)
 		}
 	},
 })
@@ -100,7 +107,7 @@ export const httpPostTool = createTool({
 				headers: params.headers,
 				timeout: 30000,
 			},
-			context
+			context,
 		)
 	},
 })

@@ -1,4 +1,4 @@
-import { test, expect, type Page, type APIRequestContext } from '@playwright/test'
+import { type APIRequestContext, expect, type Page, test } from '@playwright/test'
 
 test.describe('API Health & Infrastructure', () => {
 	test('health endpoint returns ok', async ({ request }: { request: APIRequestContext }) => {

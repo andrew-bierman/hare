@@ -5,7 +5,7 @@ import { apiClient } from '../client'
 import type { CreateWorkspaceInput } from '../types'
 
 // Re-export types for convenience
-export type { Workspace, CreateWorkspaceInput } from '../types'
+export type { CreateWorkspaceInput, Workspace } from '../types'
 
 export function useWorkspaces() {
 	return useQuery({

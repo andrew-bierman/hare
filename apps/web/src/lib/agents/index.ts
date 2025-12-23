@@ -6,8 +6,8 @@
  */
 
 import type { Database } from 'web-app/db/types'
-import { type EdgeAgent, createEdgeAgent, type AgentTool } from './agent'
-import { loadAgentTools, getSystemTools, type ToolContext, } from './tools'
+import { type AgentTool, createEdgeAgent, type EdgeAgent } from './agent'
+import { getSystemTools, loadAgentTools, type ToolContext } from './tools'
 
 /**
  * Agent configuration from database.
@@ -46,7 +46,7 @@ export async function createAgentFromConfig(
 	agentConfig: AgentConfig,
 	db: Database,
 	env: CloudflareEnv,
-	options: CreateAgentOptions
+	options: CreateAgentOptions,
 ): Promise<EdgeAgent> {
 	const { includeSystemTools = true, userId } = options
 
@@ -126,7 +126,7 @@ export function createSimpleAgent(
 	instructions: string,
 	model: string,
 	env: CloudflareEnv,
-	tools: AgentTool[] = []
+	tools: AgentTool[] = [],
 ): EdgeAgent {
 	return createEdgeAgent({
 		name,
@@ -137,9 +137,15 @@ export function createSimpleAgent(
 	})
 }
 
-// Re-export types and utilities
-export type { ToolContext, Tool, ToolConfig, ToolResult } from './tools'
-export type { EdgeAgent, AgentTool } from './agent'
+export type { AgentTool, EdgeAgent } from './agent'
 export { createEdgeAgent } from './agent'
-export { createWorkersAIModel, getWorkersAIModelId, getAvailableModels, generateEmbedding, generateEmbeddings } from './providers/workers-ai'
+export {
+	createWorkersAIModel,
+	generateEmbedding,
+	generateEmbeddings,
+	getAvailableModels,
+	getWorkersAIModelId,
+} from './providers/workers-ai'
+// Re-export types and utilities
+export type { Tool, ToolConfig, ToolContext, ToolResult } from './tools'
 export * from './tools'

@@ -5,7 +5,7 @@ import { apiClient } from '../client'
 import type { CreateToolInput, ToolType } from '../types'
 
 // Re-export types for convenience
-export type { Tool, CreateToolInput, ToolType } from '../types'
+export type { CreateToolInput, Tool, ToolType } from '../types'
 
 export function useTools(workspaceId: string | undefined) {
 	return useQuery({

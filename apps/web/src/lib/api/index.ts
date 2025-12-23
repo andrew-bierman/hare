@@ -7,15 +7,15 @@ import { requestId } from 'hono/request-id'
 import { secureHeaders } from 'hono/secure-headers'
 import { timing } from 'hono/timing'
 import { CloudflareEnvError } from './db'
-import type { HonoEnv } from './types'
-
 // Import route modules
 import agents from './routes/agents'
 import auth from './routes/auth'
 import chat from './routes/chat'
+import dev from './routes/dev'
 import tools from './routes/tools'
 import usage from './routes/usage'
 import workspaces from './routes/workspaces'
+import type { HonoEnv } from './types'
 
 // Create base app with proper Cloudflare bindings type
 const app = new OpenAPIHono<HonoEnv>().basePath('/api')
@@ -46,6 +46,7 @@ const routes = app
 	.route('/auth', auth)
 	.route('/chat', chat)
 	.route('/usage', usage)
+	.route('/dev', dev)
 
 // Development: Show registered routes on startup
 if (process.env.NODE_ENV === 'development') {

@@ -1,13 +1,13 @@
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
-import { streamSSE } from 'hono/streaming'
-import { eq } from 'drizzle-orm'
-import { ChatRequestSchema, ConversationSchema, IdParamSchema, MessageSchema } from '../schemas'
-import { getDb, getCloudflareEnv } from '../db'
-import { agents, conversations, messages, usage } from 'web-app/db/schema'
-import { createAgentFromConfig, type AgentConfig } from 'web-app/lib/agents'
-import { createMemoryStore, toAgentMessages } from 'web-app/lib/agents/memory'
 import type { CoreMessage } from 'ai'
-import { optionalAuthMiddleware, chatRateLimiter } from '../middleware'
+import { eq } from 'drizzle-orm'
+import { streamSSE } from 'hono/streaming'
+import { agents, conversations, messages, usage } from 'web-app/db/schema'
+import { type AgentConfig, createAgentFromConfig } from 'web-app/lib/agents'
+import { createMemoryStore, toAgentMessages } from 'web-app/lib/agents/memory'
+import { getCloudflareEnv, getDb } from '../db'
+import { optionalAuthMiddleware } from '../middleware'
+import { ChatRequestSchema, ConversationSchema, IdParamSchema, MessageSchema } from '../schemas'
 import type { OptionalAuthEnv } from '../types'
 
 // Define routes
@@ -141,9 +141,8 @@ const getConversationMessagesRoute = createRoute({
 // Create app with proper typing (includes Bindings and Variables)
 const app = new OpenAPIHono<OptionalAuthEnv>()
 
-// Apply middleware
-app.use('*', chatRateLimiter) // Rate limit chat requests (30/min)
-app.use('*', optionalAuthMiddleware) // Chat can work with or without auth
+// Apply optional auth middleware - chat can work with or without auth
+app.use('*', optionalAuthMiddleware)
 
 // Chat with agent
 app.openapi(chatWithAgentRoute, async (c) => {
@@ -172,10 +171,12 @@ app.openapi(chatWithAgentRoute, async (c) => {
 	}
 
 	// Set up memory store
-	const memory = createMemoryStore(db, env.AI, env.VECTORIZE, agentConfig.workspaceId)
+	const memory = createMemoryStore(db, agentConfig.workspaceId)
 
 	// Get or create conversation
-	const conversationId = sessionId || (await memory.getOrCreateConversation(agentId, userId, `Chat with ${agentConfig.name}`))
+	const conversationId =
+		sessionId ||
+		(await memory.getOrCreateConversation(agentId, userId, `Chat with ${agentConfig.name}`))
 
 	// Create the edge agent
 	const agent = await createAgentFromConfig(agentConfig as AgentConfig, db, env, {
@@ -295,7 +296,7 @@ app.openapi(listConversationsRoute, async (c) => {
 				createdAt: conv.createdAt.toISOString(),
 				updatedAt: conv.updatedAt.toISOString(),
 			}
-		})
+		}),
 	)
 
 	return c.json({ conversations: conversationsData }, 200)
@@ -306,7 +307,10 @@ app.openapi(getConversationMessagesRoute, async (c) => {
 	const { id: conversationId } = c.req.valid('param')
 	const db = await getDb(c)
 
-	const results = await db.select().from(messages).where(eq(messages.conversationId, conversationId))
+	const results = await db
+		.select()
+		.from(messages)
+		.where(eq(messages.conversationId, conversationId))
 
 	// Transform DB results to match API schema (filter out 'tool' role for API response)
 	const messagesData = results
