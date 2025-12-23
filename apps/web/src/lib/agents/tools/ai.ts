@@ -84,6 +84,10 @@ export const sentimentTool = createTool({
 			const sortedResults = results.sort((a, b) => b.score - a.score)
 			const topResult = sortedResults[0]
 
+			if (!topResult) {
+				return failure('Sentiment analysis failed: Empty response')
+			}
+
 			// Map labels to sentiment
 			const sentimentMap: Record<string, string> = {
 				POSITIVE: 'positive',

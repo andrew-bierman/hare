@@ -171,7 +171,7 @@ app.openapi(chatWithAgentRoute, async (c) => {
 	}
 
 	// Set up memory store
-	const memory = createMemoryStore(db, env.AI, env.VECTORIZE, agentConfig.workspaceId)
+	const memory = createMemoryStore(db, agentConfig.workspaceId)
 
 	// Get or create conversation
 	const conversationId =

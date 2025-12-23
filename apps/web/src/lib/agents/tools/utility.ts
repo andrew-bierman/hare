@@ -239,13 +239,19 @@ export const jsonTool = createTool({
 
 				for (let i = 0; i < parts.length - 1; i++) {
 					const part = parts[i]
-					if (!(part in current)) {
-						current[part] = Number.isNaN(Number(parts[i + 1])) ? {} : []
+					const nextPart = parts[i + 1]
+					if (part && !(part in current)) {
+						current[part] = nextPart && Number.isNaN(Number(nextPart)) ? {} : []
 					}
-					current = current[part] as Record<string, unknown>
+					if (part) {
+						current = current[part] as Record<string, unknown>
+					}
 				}
 
-				current[parts[parts.length - 1]] = val
+				const lastPart = parts[parts.length - 1]
+				if (lastPart) {
+					current[lastPart] = val
+				}
 				return result
 			}
 
@@ -256,11 +262,14 @@ export const jsonTool = createTool({
 
 				for (let i = 0; i < parts.length - 1; i++) {
 					const part = parts[i]
-					if (!(part in current)) return result
+					if (!part || !(part in current)) return result
 					current = current[part] as Record<string, unknown>
 				}
 
-				delete current[parts[parts.length - 1]]
+				const lastPart = parts[parts.length - 1]
+				if (lastPart) {
+					delete current[lastPart]
+				}
 				return result
 			}
 
@@ -687,7 +696,9 @@ export const mathTool = createTool({
 					if (!numbers || numbers.length === 0) return failure('Array of numbers required')
 					const sorted = [...numbers].sort((x, y) => x - y)
 					const mid = Math.floor(sorted.length / 2)
-					const median = sorted.length % 2 !== 0 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2
+					const midVal = sorted[mid] ?? 0
+					const midPrevVal = sorted[mid - 1] ?? 0
+					const median = sorted.length % 2 !== 0 ? midVal : (midPrevVal + midVal) / 2
 					return success({ result: median })
 				}
 

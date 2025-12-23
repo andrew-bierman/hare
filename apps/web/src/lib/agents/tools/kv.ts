@@ -2,6 +2,26 @@ import { z } from 'zod'
 import { createTool, failure, success, type ToolContext } from './types'
 
 /**
+ * Get workspace-scoped key.
+ * All KV keys are prefixed with workspaceId to ensure multi-tenant isolation.
+ */
+function scopedKey(workspaceId: string, key: string): string {
+	// Validate key doesn't try to escape workspace scope
+	if (key.includes('..') || key.startsWith('/')) {
+		throw new Error('Invalid key: path traversal not allowed')
+	}
+	return `ws/${workspaceId}/${key}`
+}
+
+/**
+ * Strip workspace prefix from key for display.
+ */
+function unscopedKey(workspaceId: string, fullKey: string): string {
+	const prefix = `ws/${workspaceId}/`
+	return fullKey.startsWith(prefix) ? fullKey.slice(prefix.length) : fullKey
+}
+
+/**
  * KV Get Tool - Retrieve a value from Cloudflare KV.
  */
 export const kvGetTool = createTool({
@@ -23,16 +43,17 @@ export const kvGetTool = createTool({
 		}
 
 		try {
+			const fullKey = scopedKey(context.workspaceId, params.key)
 			let value: unknown
 			switch (params.type) {
 				case 'json':
-					value = await kv.get(params.key, 'json')
+					value = await kv.get(fullKey, 'json')
 					break
 				case 'arrayBuffer':
-					value = await kv.get(params.key, 'arrayBuffer')
+					value = await kv.get(fullKey, 'arrayBuffer')
 					break
 				default:
-					value = await kv.get(params.key, 'text')
+					value = await kv.get(fullKey, 'text')
 			}
 
 			return success({ key: params.key, value, found: value !== null })
@@ -66,6 +87,7 @@ export const kvPutTool = createTool({
 		}
 
 		try {
+			const fullKey = scopedKey(context.workspaceId, params.key)
 			const options: KVNamespacePutOptions = {}
 			if (params.expirationTtl) {
 				options.expirationTtl = params.expirationTtl
@@ -74,7 +96,7 @@ export const kvPutTool = createTool({
 				options.metadata = params.metadata
 			}
 
-			await kv.put(params.key, params.value, options)
+			await kv.put(fullKey, params.value, options)
 			return success({ key: params.key, stored: true })
 		} catch (error) {
 			return failure(
@@ -100,7 +122,8 @@ export const kvDeleteTool = createTool({
 		}
 
 		try {
-			await kv.delete(params.key)
+			const fullKey = scopedKey(context.workspaceId, params.key)
+			await kv.delete(fullKey)
 			return success({ key: params.key, deleted: true })
 		} catch (error) {
 			return failure(
@@ -128,11 +151,15 @@ export const kvListTool = createTool({
 		}
 
 		try {
+			// Always scope to workspace, optionally with additional user prefix
+			const workspacePrefix = `ws/${context.workspaceId}/`
+			const fullPrefix = params.prefix
+				? scopedKey(context.workspaceId, params.prefix)
+				: workspacePrefix
+
 			const options: KVNamespaceListOptions = {
 				limit: params.limit,
-			}
-			if (params.prefix) {
-				options.prefix = params.prefix
+				prefix: fullPrefix,
 			}
 			if (params.cursor) {
 				options.cursor = params.cursor
@@ -141,7 +168,7 @@ export const kvListTool = createTool({
 			const result = await kv.list(options)
 			return success({
 				keys: result.keys.map((k) => ({
-					name: k.name,
+					name: unscopedKey(context.workspaceId, k.name),
 					expiration: k.expiration,
 					metadata: k.metadata,
 				})),

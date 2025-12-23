@@ -105,7 +105,11 @@ export const markdownTool = createTool({
 			const headings: Array<{ level: number; text: string }> = []
 			const regex = /^(#{1,6}) (.+)$/gm
 			for (const match of md.matchAll(regex)) {
-				headings.push({ level: match[1].length, text: match[2] })
+				const hashes = match[1]
+				const text = match[2]
+				if (hashes && text) {
+					headings.push({ level: hashes.length, text })
+				}
 			}
 			return headings
 		}
@@ -116,13 +120,21 @@ export const markdownTool = createTool({
 			// Images
 			const imgRegex = /!\[([^\]]*)\]\(([^)]+)\)/g
 			for (const match of md.matchAll(imgRegex)) {
-				links.push({ text: match[1], url: match[2], isImage: true })
+				const text = match[1]
+				const url = match[2]
+				if (text !== undefined && url) {
+					links.push({ text, url, isImage: true })
+				}
 			}
 
 			// Links
 			const linkRegex = /(?<!!)\[([^\]]+)\]\(([^)]+)\)/g
 			for (const match of md.matchAll(linkRegex)) {
-				links.push({ text: match[1], url: match[2], isImage: false })
+				const text = match[1]
+				const url = match[2]
+				if (text && url) {
+					links.push({ text, url, isImage: false })
+				}
 			}
 
 			return links
@@ -132,7 +144,10 @@ export const markdownTool = createTool({
 			const blocks: Array<{ language: string; code: string }> = []
 			const regex = /```(\w+)?\n([\s\S]*?)```/g
 			for (const match of md.matchAll(regex)) {
-				blocks.push({ language: match[1] || 'text', code: match[2].trim() })
+				const code = match[2]
+				if (code) {
+					blocks.push({ language: match[1] ?? 'text', code: code.trim() })
+				}
 			}
 			return blocks
 		}
@@ -232,14 +247,18 @@ export const diffTool = createTool({
 			const n = b.length
 			const dp: number[][] = Array(m + 1)
 				.fill(null)
-				.map(() => Array(n + 1).fill(0))
+				.map(() => Array<number>(n + 1).fill(0))
 
 			for (let i = 1; i <= m; i++) {
+				const dpRow = dp[i]
+				const dpPrevRow = dp[i - 1]
+				if (!dpRow || !dpPrevRow) continue
+
 				for (let j = 1; j <= n; j++) {
 					if (a[i - 1] === b[j - 1]) {
-						dp[i][j] = dp[i - 1][j - 1] + 1
+						dpRow[j] = (dpPrevRow[j - 1] ?? 0) + 1
 					} else {
-						dp[i][j] = Math.max(dp[i - 1][j], dp[i][j - 1])
+						dpRow[j] = Math.max(dpPrevRow[j] ?? 0, dpRow[j - 1] ?? 0)
 					}
 				}
 			}
@@ -254,32 +273,39 @@ export const diffTool = createTool({
 			let newLine = b.length
 
 			while (i > 0 || j > 0) {
-				if (i > 0 && j > 0 && a[i - 1] === b[j - 1]) {
+				const aVal = a[i - 1]
+				const bVal = b[j - 1]
+				const dpRow = dp[i]
+				const dpPrevRow = dp[i - 1]
+
+				if (i > 0 && j > 0 && aVal === bVal && aVal !== undefined) {
 					changes.unshift({
 						type: 'equal',
-						value: a[i - 1],
+						value: aVal,
 						lineNumber: mode === 'lines' ? { old: oldLine, new: newLine } : undefined,
 					})
 					i--
 					j--
 					oldLine--
 					newLine--
-				} else if (j > 0 && (i === 0 || dp[i][j - 1] >= dp[i - 1][j])) {
+				} else if (j > 0 && (i === 0 || (dpRow?.[j - 1] ?? 0) >= (dpPrevRow?.[j] ?? 0)) && bVal !== undefined) {
 					changes.unshift({
 						type: 'add',
-						value: b[j - 1],
+						value: bVal,
 						lineNumber: mode === 'lines' ? { new: newLine } : undefined,
 					})
 					j--
 					newLine--
-				} else if (i > 0) {
+				} else if (i > 0 && aVal !== undefined) {
 					changes.unshift({
 						type: 'delete',
-						value: a[i - 1],
+						value: aVal,
 						lineNumber: mode === 'lines' ? { old: oldLine } : undefined,
 					})
 					i--
 					oldLine--
+				} else {
+					break // Safety exit
 				}
 			}
 			return changes
@@ -427,7 +453,8 @@ export const qrcodeTool = createTool({
 					for (let j = 0; j < 7; j++) {
 						const isOuter = i === 0 || i === 6 || j === 0 || j === 6
 						const isInner = i >= 2 && i <= 4 && j >= 2 && j <= 4
-						matrix[y + i][x + j] = isOuter || isInner
+						const row = matrix[y + i]
+						if (row) row[x + j] = isOuter || isInner
 					}
 				}
 			}
@@ -438,8 +465,10 @@ export const qrcodeTool = createTool({
 
 			// Add timing patterns
 			for (let i = 8; i < size - 8; i++) {
-				matrix[6][i] = i % 2 === 0
-				matrix[i][6] = i % 2 === 0
+				const row6 = matrix[6]
+				const rowI = matrix[i]
+				if (row6) row6[i] = i % 2 === 0
+				if (rowI) rowI[6] = i % 2 === 0
 			}
 
 			// Encode data (simplified - just fills remaining space)
@@ -465,8 +494,10 @@ export const qrcodeTool = createTool({
 						if (row >= size - 8 && x < 9) continue
 						if (row === 6 || x === 6) continue
 
-						if (bitIndex < dataBits.length) {
-							matrix[row][x] = dataBits[bitIndex] === 1
+						const matrixRow = matrix[row]
+						const bit = dataBits[bitIndex]
+						if (matrixRow && bitIndex < dataBits.length && bit !== undefined) {
+							matrixRow[x] = bit === 1
 							bitIndex++
 						}
 					}
@@ -484,8 +515,10 @@ export const qrcodeTool = createTool({
 		svg += `<rect width="100%" height="100%" fill="white"/>`
 
 		for (let y = 0; y < matrix.length; y++) {
-			for (let x = 0; x < matrix[y].length; x++) {
-				if (matrix[y][x]) {
+			const matrixRow = matrix[y]
+			if (!matrixRow) continue
+			for (let x = 0; x < matrixRow.length; x++) {
+				if (matrixRow[x]) {
 					svg += `<rect x="${x * moduleSize}" y="${y * moduleSize}" width="${moduleSize}" height="${moduleSize}" fill="black"/>`
 				}
 			}
@@ -651,30 +684,45 @@ export const colorTool = createTool({
 			// Hex
 			const hexMatch = c.match(/^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i)
 			if (hexMatch) {
-				return {
-					r: parseInt(hexMatch[1], 16),
-					g: parseInt(hexMatch[2], 16),
-					b: parseInt(hexMatch[3], 16),
+				const r = hexMatch[1]
+				const g = hexMatch[2]
+				const b = hexMatch[3]
+				if (r && g && b) {
+					return {
+						r: parseInt(r, 16),
+						g: parseInt(g, 16),
+						b: parseInt(b, 16),
+					}
 				}
 			}
 
 			// Short hex
 			const shortHexMatch = c.match(/^#?([a-f\d])([a-f\d])([a-f\d])$/i)
 			if (shortHexMatch) {
-				return {
-					r: parseInt(shortHexMatch[1] + shortHexMatch[1], 16),
-					g: parseInt(shortHexMatch[2] + shortHexMatch[2], 16),
-					b: parseInt(shortHexMatch[3] + shortHexMatch[3], 16),
+				const r = shortHexMatch[1]
+				const g = shortHexMatch[2]
+				const b = shortHexMatch[3]
+				if (r && g && b) {
+					return {
+						r: parseInt(r + r, 16),
+						g: parseInt(g + g, 16),
+						b: parseInt(b + b, 16),
+					}
 				}
 			}
 
 			// RGB
 			const rgbMatch = c.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/i)
 			if (rgbMatch) {
-				return {
-					r: parseInt(rgbMatch[1], 10),
-					g: parseInt(rgbMatch[2], 10),
-					b: parseInt(rgbMatch[3], 10),
+				const r = rgbMatch[1]
+				const g = rgbMatch[2]
+				const b = rgbMatch[3]
+				if (r && g && b) {
+					return {
+						r: parseInt(r, 10),
+						g: parseInt(g, 10),
+						b: parseInt(b, 10),
+					}
 				}
 			}
 
@@ -841,10 +889,13 @@ export const colorTool = createTool({
 			case 'contrast': {
 				// Calculate relative luminance
 				const luminance = (r: number, g: number, b: number): number => {
-					const [rs, gs, bs] = [r, g, b].map((c) => {
+					const values = [r, g, b].map((c) => {
 						c /= 255
 						return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4
 					})
+					const rs = values[0] ?? 0
+					const gs = values[1] ?? 0
+					const bs = values[2] ?? 0
 					return 0.2126 * rs + 0.7152 * gs + 0.0722 * bs
 				}
 

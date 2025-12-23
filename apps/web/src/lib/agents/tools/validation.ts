@@ -150,7 +150,7 @@ export const validatePhoneTool = createTool({
 				pattern: /^1?([2-9]\d{2})([2-9]\d{2})(\d{4})$/,
 				format: (d) => {
 					const match = d.match(/^1?(\d{3})(\d{3})(\d{4})$/)
-					if (!match) return d
+					if (!match?.[1] || !match[2] || !match[3]) return d
 					return format === 'e164'
 						? `+1${match[1]}${match[2]}${match[3]}`
 						: format === 'national'
@@ -169,7 +169,7 @@ export const validatePhoneTool = createTool({
 				pattern: /^1?([2-9]\d{2})([2-9]\d{2})(\d{4})$/,
 				format: (d) => {
 					const match = d.match(/^1?(\d{3})(\d{3})(\d{4})$/)
-					if (!match) return d
+					if (!match?.[1] || !match[2] || !match[3]) return d
 					return format === 'e164'
 						? `+1${match[1]}${match[2]}${match[3]}`
 						: `+1 (${match[1]}) ${match[2]}-${match[3]}`
@@ -374,7 +374,9 @@ export const validateCreditCardTool = createTool({
 		let isEven = false
 
 		for (let i = cleaned.length - 1; i >= 0; i--) {
-			let digit = parseInt(cleaned[i], 10)
+			const char = cleaned[i]
+			if (!char) continue
+			let digit = parseInt(char, 10)
 
 			if (isEven) {
 				digit *= 2
@@ -461,10 +463,17 @@ export const validateIpTool = createTool({
 				result.version = 4
 
 				if (checkType) {
-					const [a, b, c, d] = octets
+					const a = octets[0]
+					const b = octets[1]
+					const c = octets[2]
+					const d = octets[3]
 
+					if (a === undefined || b === undefined || c === undefined || d === undefined) {
+						result.valid = false
+						result.errors.push('Invalid IP address format')
+					}
 					// Check loopback
-					if (a === 127) {
+					else if (a === 127) {
 						result.isLoopback = true
 						result.type = 'loopback'
 					}
@@ -588,12 +597,14 @@ export const validateJsonTool = createTool({
 
 				// Try to extract position from error message
 				const posMatch = error.message.match(/position (\d+)/)
-				if (posMatch) {
-					const pos = parseInt(posMatch[1], 10)
+				const posStr = posMatch?.[1]
+				if (posStr) {
+					const pos = parseInt(posStr, 10)
 					const lines = json.substring(0, pos).split('\n')
+					const lastLine = lines[lines.length - 1]
 					result.position = {
 						line: lines.length,
-						column: lines[lines.length - 1].length + 1,
+						column: (lastLine?.length ?? 0) + 1,
 					}
 				}
 			} else {

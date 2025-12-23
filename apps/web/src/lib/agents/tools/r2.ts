@@ -2,6 +2,28 @@ import { z } from 'zod'
 import { createTool, failure, success, type ToolContext } from './types'
 
 /**
+ * Get workspace-scoped path.
+ * All R2 paths are prefixed with workspaceId to ensure multi-tenant isolation.
+ */
+function scopedPath(workspaceId: string, key: string): string {
+	// Validate path doesn't try to escape workspace scope
+	if (key.includes('..')) {
+		throw new Error('Invalid path: path traversal not allowed')
+	}
+	// Normalize leading slash
+	const normalizedKey = key.startsWith('/') ? key.slice(1) : key
+	return `ws/${workspaceId}/${normalizedKey}`
+}
+
+/**
+ * Strip workspace prefix from path for display.
+ */
+function unscopedPath(workspaceId: string, fullPath: string): string {
+	const prefix = `ws/${workspaceId}/`
+	return fullPath.startsWith(prefix) ? fullPath.slice(prefix.length) : fullPath
+}
+
+/**
  * R2 Get Tool - Retrieve an object from Cloudflare R2.
  */
 export const r2GetTool = createTool({
@@ -18,7 +40,8 @@ export const r2GetTool = createTool({
 		}
 
 		try {
-			const object = await r2.get(params.key)
+			const fullPath = scopedPath(context.workspaceId, params.key)
+			const object = await r2.get(fullPath)
 			if (!object) {
 				return success({ key: params.key, found: false, content: null as string | null })
 			}
@@ -64,13 +87,14 @@ export const r2PutTool = createTool({
 		}
 
 		try {
+			const fullPath = scopedPath(context.workspaceId, params.key)
 			const options: R2PutOptions = {}
 			if (params.contentType || params.metadata) {
 				options.httpMetadata = params.contentType ? { contentType: params.contentType } : undefined
 				options.customMetadata = params.metadata
 			}
 
-			const result = await r2.put(params.key, params.content, options)
+			const result = await r2.put(fullPath, params.content, options)
 			return success({
 				key: params.key,
 				stored: true,
@@ -101,7 +125,8 @@ export const r2DeleteTool = createTool({
 		}
 
 		try {
-			await r2.delete(params.key)
+			const fullPath = scopedPath(context.workspaceId, params.key)
+			await r2.delete(fullPath)
 			return success({ key: params.key, deleted: true })
 		} catch (error) {
 			return failure(
@@ -133,24 +158,32 @@ export const r2ListTool = createTool({
 		}
 
 		try {
+			// Always scope to workspace, optionally with additional user prefix
+			const workspacePrefix = `ws/${context.workspaceId}/`
+			const fullPrefix = params.prefix
+				? scopedPath(context.workspaceId, params.prefix)
+				: workspacePrefix
+
 			const options: R2ListOptions = {
 				limit: params.limit,
+				prefix: fullPrefix,
 			}
-			if (params.prefix) options.prefix = params.prefix
 			if (params.cursor) options.cursor = params.cursor
 			if (params.delimiter) options.delimiter = params.delimiter
 
 			const result = await r2.list(options)
 			return success({
 				objects: result.objects.map((obj) => ({
-					key: obj.key,
+					key: unscopedPath(context.workspaceId, obj.key),
 					size: obj.size,
 					etag: obj.etag,
 					uploaded: obj.uploaded.toISOString(),
 				})),
 				truncated: result.truncated,
 				cursor: result.truncated ? (result as unknown as { cursor?: string }).cursor : undefined,
-				delimitedPrefixes: result.delimitedPrefixes,
+				delimitedPrefixes: result.delimitedPrefixes?.map((p) =>
+					unscopedPath(context.workspaceId, p),
+				),
 			})
 		} catch (error) {
 			return failure(
@@ -176,7 +209,8 @@ export const r2HeadTool = createTool({
 		}
 
 		try {
-			const head = await r2.head(params.key)
+			const fullPath = scopedPath(context.workspaceId, params.key)
+			const head = await r2.head(fullPath)
 			if (!head) {
 				return success({ key: params.key, found: false })
 			}

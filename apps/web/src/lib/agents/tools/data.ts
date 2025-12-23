@@ -34,18 +34,18 @@ export const rssTool = createTool({
 				const getTagContent = (tag: string, content: string): string | null => {
 					const regex = new RegExp(`<${tag}[^>]*>([\\s\\S]*?)</${tag}>`, 'i')
 					const match = content.match(regex)
-					return match ? match[1].trim() : null
+					return match?.[1]?.trim() ?? null
 				}
 
 				const getCdataContent = (text: string): string => {
 					const cdataMatch = text.match(/<!\[CDATA\[([\s\S]*?)\]\]>/)
-					return cdataMatch ? cdataMatch[1] : text.replace(/<[^>]+>/g, '').trim()
+					return cdataMatch?.[1] ?? text.replace(/<[^>]+>/g, '').trim()
 				}
 
 				const getAttr = (tag: string, attr: string, content: string): string | null => {
 					const regex = new RegExp(`<${tag}[^>]*${attr}=["']([^"']+)["']`, 'i')
 					const match = content.match(regex)
-					return match ? match[1] : null
+					return match?.[1] ?? null
 				}
 
 				// Detect feed type
@@ -69,22 +69,22 @@ export const rssTool = createTool({
 
 					let match: RegExpExecArray | null
 					while ((match = entryRegex.exec(xml)) !== null && entries.length < limit) {
-						const entry = match[1]
+						const entry = match[1] ?? ''
 						entries.push({
-							title: getCdataContent(getTagContent('title', entry) || ''),
-							link: getAttr('link', 'href', entry) || getTagContent('id', entry) || '',
-							published: getTagContent('published', entry) || getTagContent('updated', entry) || '',
-							summary: getCdataContent(getTagContent('summary', entry) || ''),
+							title: getCdataContent(getTagContent('title', entry) ?? ''),
+							link: getAttr('link', 'href', entry) ?? getTagContent('id', entry) ?? '',
+							published: getTagContent('published', entry) ?? getTagContent('updated', entry) ?? '',
+							summary: getCdataContent(getTagContent('summary', entry) ?? ''),
 							...(includeContent && {
-								content: getCdataContent(getTagContent('content', entry) || ''),
+								content: getCdataContent(getTagContent('content', entry) ?? ''),
 							}),
-							author: getTagContent('name', getTagContent('author', entry) || '') || undefined,
+							author: getTagContent('name', getTagContent('author', entry) ?? '') ?? undefined,
 						})
 					}
 
 					return {
 						type: 'atom',
-						title: getCdataContent(title || ''),
+						title: getCdataContent(title ?? ''),
 						link,
 						updated,
 						items: entries,
@@ -110,38 +110,40 @@ export const rssTool = createTool({
 
 					let match: RegExpExecArray | null
 					while ((match = itemRegex.exec(xml)) !== null && items.length < limit) {
-						const item = match[1]
+						const item = match[1] ?? ''
 
 						// Extract categories
 						const categories: string[] = []
 						const catRegex = /<category[^>]*>([^<]+)<\/category>/gi
 						for (const catMatch of item.matchAll(catRegex)) {
-							categories.push(getCdataContent(catMatch[1]))
+							if (catMatch[1]) {
+								categories.push(getCdataContent(catMatch[1]))
+							}
 						}
 
 						items.push({
-							title: getCdataContent(getTagContent('title', item) || ''),
-							link: getTagContent('link', item) || getTagContent('guid', item) || '',
-							pubDate: getTagContent('pubDate', item) || '',
-							description: getCdataContent(getTagContent('description', item) || ''),
+							title: getCdataContent(getTagContent('title', item) ?? ''),
+							link: getTagContent('link', item) ?? getTagContent('guid', item) ?? '',
+							pubDate: getTagContent('pubDate', item) ?? '',
+							description: getCdataContent(getTagContent('description', item) ?? ''),
 							...(includeContent && {
 								content: getCdataContent(
-									getTagContent('content:encoded', item) ||
-										getTagContent('description', item) ||
+									getTagContent('content:encoded', item) ??
+										getTagContent('description', item) ??
 										'',
 								),
 							}),
 							author:
-								getTagContent('author', item) || getTagContent('dc:creator', item) || undefined,
+								getTagContent('author', item) ?? getTagContent('dc:creator', item) ?? undefined,
 							...(categories.length > 0 && { categories }),
 						})
 					}
 
 					return {
 						type: 'rss',
-						title: getCdataContent(title || ''),
+						title: getCdataContent(title ?? ''),
 						link,
-						description: getCdataContent(description || ''),
+						description: getCdataContent(description ?? ''),
 						lastBuildDate,
 						items,
 					}
@@ -230,7 +232,7 @@ export const scrapeTool = createTool({
 				const regex = /<a[^>]+href=["']([^"']+)["'][^>]*>([^<]*)<\/a>/gi
 				for (const match of html.matchAll(regex)) {
 					const href = match[1]
-					const text = match[2].trim()
+					const text = match[2]?.trim()
 					if (href && text) {
 						links.push({ href, text })
 					}
@@ -242,10 +244,13 @@ export const scrapeTool = createTool({
 				const images: Array<{ src: string; alt: string }> = []
 				const regex = /<img[^>]+src=["']([^"']+)["'][^>]*(?:alt=["']([^"']*)["'])?/gi
 				for (const match of html.matchAll(regex)) {
-					images.push({
-						src: match[1],
-						alt: match[2] || '',
-					})
+					const src = match[1]
+					if (src) {
+						images.push({
+							src,
+							alt: match[2] ?? '',
+						})
+					}
 				}
 				return images.slice(0, 50)
 			}
@@ -254,10 +259,14 @@ export const scrapeTool = createTool({
 				const headings: Array<{ level: number; text: string }> = []
 				const regex = /<h([1-6])[^>]*>([^<]*)<\/h[1-6]>/gi
 				for (const match of html.matchAll(regex)) {
-					headings.push({
-						level: parseInt(match[1], 10),
-						text: match[2].trim(),
-					})
+					const level = match[1]
+					const text = match[2]?.trim()
+					if (level && text) {
+						headings.push({
+							level: parseInt(level, 10),
+							text,
+						})
+					}
 				}
 				return headings
 			}
@@ -278,13 +287,13 @@ export const scrapeTool = createTool({
 						'i',
 					)
 					const match = html.match(regex)
-					return match ? match[1] : ''
+					return match?.[1] ?? ''
 				}
 
 				const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i)
 
 				return {
-					title: titleMatch ? titleMatch[1].trim() : '',
+					title: titleMatch?.[1]?.trim() ?? '',
 					description: getMetaContent('description'),
 					keywords: getMetaContent('keywords'),
 					ogTitle: getMetaContent('og:title'),
@@ -315,7 +324,10 @@ export const scrapeTool = createTool({
 				}
 
 				for (const match of html.matchAll(regex)) {
-					results.push(extractText(match[1]))
+					const content = match[1]
+					if (content) {
+						results.push(extractText(content))
+					}
 				}
 
 				return results.slice(0, 20)
@@ -474,8 +486,11 @@ export const regexTool = createTool({
 							// Unnamed groups
 							const obj: Record<string, string> = {}
 							for (let i = 1; i < match.length; i++) {
-								const name = groupNames?.[i - 1] || `group${i}`
-								obj[name] = match[i]
+								const name = groupNames?.[i - 1] ?? `group${i}`
+								const value = match[i]
+								if (value !== undefined) {
+									obj[name] = value
+								}
 							}
 							extracted.push(obj)
 						}
@@ -843,15 +858,17 @@ export const csvTool = createTool({
 				let headerRow: string[]
 				let dataLines: string[]
 
+				const firstLine = lines[0] ?? ''
+
 				if (headers) {
-					headerRow = customHeaders || parseRow(lines[0])
+					headerRow = customHeaders ?? parseRow(firstLine)
 					dataLines = lines.slice(1)
 				} else if (customHeaders) {
 					headerRow = customHeaders
 					dataLines = lines
 				} else {
 					// Generate default headers
-					const firstRow = parseRow(lines[0])
+					const firstRow = parseRow(firstLine)
 					headerRow = firstRow.map((_, i) => `column${i + 1}`)
 					dataLines = lines
 				}
