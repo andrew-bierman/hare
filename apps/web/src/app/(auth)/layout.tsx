@@ -1,6 +1,9 @@
 import { Rabbit } from 'lucide-react'
 import Link from 'next/link'
 import type { ReactNode } from 'react'
+import { APP_CONFIG, AUTH_CONTENT } from 'web-app/config'
+
+const { layout } = AUTH_CONTENT
 
 export default function AuthLayout({ children }: { children: ReactNode }) {
 	return (
@@ -22,23 +25,21 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
 						<div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/20 backdrop-blur-sm">
 							<Rabbit className="h-6 w-6 text-white" />
 						</div>
-						<span className="font-bold text-2xl text-white">Hare</span>
+						<span className="font-bold text-2xl text-white">{APP_CONFIG.name}</span>
 					</Link>
 
 					<div className="space-y-6">
-						<h1 className="text-4xl font-bold text-white leading-tight">
-							Build & Deploy
-							<br />
-							AI Agents at the Edge
+						<h1 className="text-4xl font-bold text-white leading-tight whitespace-pre-line">
+							{layout.headline}
 						</h1>
 						<p className="text-lg text-white/80 max-w-md">
-							The fastest way to create, deploy, and scale AI agents. Hop into production in seconds with Cloudflare Workers.
+							{layout.description}
 						</p>
 					</div>
 
 					<div className="text-sm text-white/60 flex items-center gap-2">
 						<Rabbit className="h-4 w-4" />
-						Built for speed - just like a hare
+						{layout.footer}
 					</div>
 				</div>
 			</div>

@@ -6,7 +6,6 @@ import { Button } from '@workspace/ui/components/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@workspace/ui/components/card'
 import {
 	Bot,
-	Bug,
 	ChevronDown,
 	ChevronUp,
 	Copy,
@@ -15,45 +14,19 @@ import {
 	Plus,
 	Rabbit,
 	RefreshCw,
-	Rocket,
 	Trash2,
 	UserPlus,
-	Wrench,
 	X,
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { useWorkspace } from 'web-app/components/providers/workspace-provider'
-import { DEV_CONFIG, FEATURES } from 'web-app/config'
+import { DEV_CONFIG, DEV_TOOLS_CONTENT, FEATURES } from 'web-app/config'
 import { authClient } from 'web-app/lib/auth-client'
 import { useCreateAgent, useCreateWorkspace } from 'web-app/lib/api/hooks'
 
-/**
- * Developer tools panel - only shown in development mode
- * Provides quick actions for testing and debugging
- */
-// Random rabbit-themed agent names
-const RABBIT_NAMES = [
-	'Hoppy Helper',
-	'Bunny Bot',
-	'Carrot Cruncher',
-	'Warren Wizard',
-	'Fluffy Assistant',
-	'Thumper AI',
-	'Cotton Tail',
-	'Jack Rabbit',
-	'Velvet Ears',
-	'Meadow Mind',
-]
-
-const AGENT_DESCRIPTIONS = [
-	'A speedy assistant that hops to help',
-	'Burrows deep into problems to find solutions',
-	'Quick as a hare, smart as a fox',
-	'Your friendly neighborhood rabbit helper',
-	'Nibbles through tasks with ease',
-]
+const { sections, agentNames, agentDescriptions, defaultInstructions } = DEV_TOOLS_CONTENT
 
 export function DevTools() {
 	const [isOpen, setIsOpen] = useState(false)
@@ -71,8 +44,8 @@ export function DevTools() {
 		return null
 	}
 
-	const randomName = () => RABBIT_NAMES[Math.floor(Math.random() * RABBIT_NAMES.length)]
-	const randomDesc = () => AGENT_DESCRIPTIONS[Math.floor(Math.random() * AGENT_DESCRIPTIONS.length)]
+	const randomName = () => agentNames[Math.floor(Math.random() * agentNames.length)]
+	const randomDesc = () => agentDescriptions[Math.floor(Math.random() * agentDescriptions.length)]
 
 	const handleQuickSignIn = async () => {
 		try {
@@ -137,7 +110,7 @@ export function DevTools() {
 				name: randomName()!,
 				description: randomDesc(),
 				model: '@cf/meta/llama-3.3-70b-instruct-fp8-fast',
-				instructions: 'You are a helpful AI assistant with a playful rabbit personality. Be quick, helpful, and add occasional rabbit puns.',
+				instructions: defaultInstructions,
 			})
 			toast.success(`Created agent: ${agent.name}`)
 			router.push(`/dashboard/agents/${agent.id}`)
@@ -197,12 +170,12 @@ export function DevTools() {
 			<CardHeader className="py-3 px-4 flex flex-row items-center justify-between space-y-0 bg-gradient-to-r from-orange-500/10 to-amber-500/10">
 				<div className="flex items-center gap-2">
 					<Rabbit className="h-4 w-4 text-orange-500" />
-					<CardTitle className="text-sm font-medium">Dev Tools</CardTitle>
+					<CardTitle className="text-sm font-medium">{DEV_TOOLS_CONTENT.title}</CardTitle>
 					<Badge
 						variant="outline"
 						className="text-[10px] px-1.5 py-0 text-orange-600 border-orange-500/50 bg-orange-500/10"
 					>
-						DEV
+						{DEV_TOOLS_CONTENT.badge}
 					</Badge>
 				</div>
 				<div className="flex items-center gap-1">
@@ -223,7 +196,7 @@ export function DevTools() {
 				<CardContent className="py-3 px-4 space-y-3">
 					{/* Auth Actions */}
 					<div className="space-y-2">
-						<p className="text-xs font-medium text-muted-foreground">Authentication</p>
+						<p className="text-xs font-medium text-muted-foreground">{sections.auth.title}</p>
 						<div className="grid grid-cols-2 gap-2">
 							<Button
 								variant="outline"
@@ -232,7 +205,7 @@ export function DevTools() {
 								onClick={handleQuickSignIn}
 							>
 								<LogIn className="h-3 w-3 mr-1.5" />
-								Sign In
+								{sections.auth.signIn}
 							</Button>
 							<Button
 								variant="outline"
@@ -242,7 +215,7 @@ export function DevTools() {
 								disabled={isSigningUp}
 							>
 								<UserPlus className="h-3 w-3 mr-1.5" />
-								{isSigningUp ? '...' : 'New User'}
+								{isSigningUp ? '...' : sections.auth.signUp}
 							</Button>
 							<Button
 								variant="outline"
@@ -251,14 +224,14 @@ export function DevTools() {
 								onClick={handleSignOut}
 							>
 								<LogOut className="h-3 w-3 mr-1.5" />
-								Sign Out
+								{sections.auth.signOut}
 							</Button>
 						</div>
 					</div>
 
 					{/* Quick Create */}
 					<div className="space-y-2">
-						<p className="text-xs font-medium text-muted-foreground">Quick Create</p>
+						<p className="text-xs font-medium text-muted-foreground">{sections.quickCreate.title}</p>
 						<div className="grid grid-cols-2 gap-2">
 							<Button
 								variant="outline"
@@ -268,7 +241,7 @@ export function DevTools() {
 								disabled={createAgent.isPending || !activeWorkspace}
 							>
 								<Bot className="h-3 w-3 mr-1.5" />
-								{createAgent.isPending ? '...' : 'Agent'}
+								{createAgent.isPending ? '...' : sections.quickCreate.agent}
 							</Button>
 							<Button
 								variant="outline"
@@ -278,14 +251,14 @@ export function DevTools() {
 								disabled={createWorkspace.isPending}
 							>
 								<Plus className="h-3 w-3 mr-1.5" />
-								{createWorkspace.isPending ? '...' : 'Workspace'}
+								{createWorkspace.isPending ? '...' : sections.quickCreate.workspace}
 							</Button>
 						</div>
 					</div>
 
 					{/* Cache Actions */}
 					<div className="space-y-2">
-						<p className="text-xs font-medium text-muted-foreground">Cache</p>
+						<p className="text-xs font-medium text-muted-foreground">{sections.cache.title}</p>
 						<div className="flex gap-2">
 							<Button
 								variant="outline"
@@ -294,7 +267,7 @@ export function DevTools() {
 								onClick={handleRefreshAll}
 							>
 								<RefreshCw className="h-3 w-3 mr-1.5" />
-								Refresh
+								{sections.cache.refresh}
 							</Button>
 							<Button
 								variant="outline"
@@ -303,7 +276,7 @@ export function DevTools() {
 								onClick={handleClearCache}
 							>
 								<Trash2 className="h-3 w-3 mr-1.5" />
-								Clear
+								{sections.cache.clear}
 							</Button>
 							<Button
 								variant="ghost"

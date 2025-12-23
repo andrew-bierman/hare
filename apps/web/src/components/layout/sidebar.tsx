@@ -5,15 +5,16 @@ import { cn } from '@workspace/ui/lib/utils'
 import { Activity, Bot, Home, Rabbit, Settings, Wrench } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { APP_CONFIG, DASHBOARD_CONTENT, FEATURES, NAV_ITEMS } from 'web-app/config'
 import { WorkspaceSwitcher } from './workspace-switcher'
 
-const routes = [
-	{ label: 'Dashboard', icon: Home, href: '/dashboard' },
-	{ label: 'Agents', icon: Bot, href: '/dashboard/agents' },
-	{ label: 'Tools', icon: Wrench, href: '/dashboard/tools' },
-	{ label: 'Usage', icon: Activity, href: '/dashboard/usage' },
-	{ label: 'Settings', icon: Settings, href: '/dashboard/settings' },
-]
+const ICONS = { Home, Bot, Wrench, Activity, Settings } as const
+
+const routes = NAV_ITEMS.dashboard.map((item) => ({
+	label: item.label,
+	icon: ICONS[item.icon as keyof typeof ICONS],
+	href: item.href,
+}))
 
 export function Sidebar() {
 	const pathname = usePathname()
@@ -31,10 +32,12 @@ export function Sidebar() {
 					<div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-orange-500 to-amber-500 shadow-lg shadow-orange-500/25">
 						<Rabbit className="h-5 w-5 text-white" />
 					</div>
-					<span className="font-bold text-lg bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">Hare</span>
-					<Badge variant="secondary" className="text-[10px] px-1.5 bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400">
-						Beta
-					</Badge>
+					<span className="font-bold text-lg bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">{APP_CONFIG.name}</span>
+					{FEATURES.showBetaBadge && (
+						<Badge variant="secondary" className="text-[10px] px-1.5 bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400">
+							{APP_CONFIG.stage}
+						</Badge>
+					)}
 				</Link>
 			</div>
 
@@ -70,10 +73,10 @@ export function Sidebar() {
 			{/* Help */}
 			<div className="p-3 border-t">
 				<Link
-					href="/docs"
+					href={APP_CONFIG.docs}
 					className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-muted hover:text-foreground min-h-[44px]"
 				>
-					<span>View Docs</span>
+					<span>{DASHBOARD_CONTENT.sidebar.docsLink}</span>
 				</Link>
 			</div>
 		</div>

@@ -4,7 +4,7 @@
  */
 
 // =============================================================================
-// App Metadata
+// App Metadata & Branding
 // =============================================================================
 
 export const APP_CONFIG = {
@@ -16,6 +16,17 @@ export const APP_CONFIG = {
 	stage: 'beta' as const,
 	repository: 'https://github.com/your-org/hare',
 	docs: '/docs',
+
+	// Rabbit/Hare themed branding
+	branding: {
+		icon: 'Rabbit',
+		tagline: 'Fast as a hare',
+		mottos: [
+			'Hop into production',
+			'Quick as a bunny',
+			'Built for speed - just like a hare',
+		],
+	},
 } as const
 
 // =============================================================================
@@ -239,92 +250,275 @@ export const AGENT_LIMITS = {
 
 export const LANDING_PAGE = {
 	hero: {
-		badge: 'Now in Public Beta',
+		badge: 'Public Beta',
 		title: 'Build & Deploy',
-		titleHighlight: 'AI Agents at the Edge',
+		titleHighlight: 'AI Agents',
+		titleSuffix: 'at the Edge',
 		description:
-			'The fastest way to create, deploy, and scale AI agents. Built on Cloudflare Workers for instant global deployment. Open source and self-hostable.',
+			'The fastest way to create, deploy, and scale AI agents. Open source and self-hostable.',
 		primaryCta: 'Start Building Free',
-		secondaryCta: 'View Live Demo',
+		secondaryCta: 'Live Demo',
 	},
 	stats: [
-		{ value: '300+', label: 'Edge Locations' },
-		{ value: '<50ms', label: 'Global Latency' },
-		{ value: '99.99%', label: 'Uptime SLA' },
-		{ value: '10K+', label: 'Agents Deployed' },
+		{ value: '300+', label: 'Edge Locations', icon: 'Globe' },
+		{ value: '<50ms', label: 'Global Latency', icon: 'Zap' },
+		{ value: '99.99%', label: 'Uptime SLA', icon: 'Shield' },
+		{ value: '10K+', label: 'Agents Deployed', icon: 'Bot' },
+	],
+	badges: [
+		{ label: 'Open Source', icon: 'GitBranch' },
+		{ label: '300+ Locations', icon: 'Globe' },
+		{ label: '<50ms Latency', icon: 'Zap' },
 	],
 	features: [
 		{
 			title: 'Visual Agent Builder',
-			description:
-				'Design complex agent workflows with our intuitive drag-and-drop interface. No code required to get started.',
+			description: 'Design complex agent workflows with our intuitive drag-and-drop interface.',
 			icon: 'Boxes',
 		},
 		{
 			title: 'Instant Deployment',
-			description:
-				"Deploy to Cloudflare's global edge network in seconds. Your agents run close to your users, everywhere.",
+			description: "Deploy to Cloudflare's global edge network in seconds.",
 			icon: 'Cloud',
 		},
 		{
 			title: 'Built-in Tools',
-			description:
-				'Connect to databases, APIs, and storage out of the box. SQL, HTTP, KV, R2, and vector search ready to go.',
+			description: 'SQL, HTTP, KV, R2, and vector search ready to go.',
 			icon: 'Layers',
 		},
 		{
 			title: 'Developer SDK',
-			description:
-				'Full TypeScript SDK with type-safe APIs. Integrate agents into any application with a few lines of code.',
+			description: 'Full TypeScript SDK with type-safe APIs.',
 			icon: 'Code',
 		},
 		{
 			title: 'Real-time Streaming',
-			description:
-				'Stream responses as they generate. Build responsive chat interfaces with built-in WebSocket support.',
+			description: 'Stream responses with built-in WebSocket support.',
 			icon: 'MessageSquare',
 		},
 		{
 			title: 'Enterprise Security',
-			description:
-				'SOC 2 compliant infrastructure with end-to-end encryption. Your data never leaves your control.',
+			description: 'SOC 2 compliant with end-to-end encryption.',
 			icon: 'Shield',
 		},
 	],
 	steps: [
-		{
-			step: '01',
-			title: 'Define Your Agent',
-			description: "Configure your agent's personality, capabilities, and the tools it can access.",
-			icon: 'Bot',
-		},
-		{
-			step: '02',
-			title: 'Add Tools & Integrations',
-			description:
-				'Connect databases, APIs, and custom functions. Your agent becomes truly powerful.',
-			icon: 'Terminal',
-		},
-		{
-			step: '03',
-			title: 'Test in Playground',
-			description: 'Iterate quickly with our live playground. See exactly how your agent behaves.',
-			icon: 'Play',
-		},
-		{
-			step: '04',
-			title: 'Deploy Globally',
-			description: 'One click to deploy. Your agent runs on 300+ edge locations worldwide.',
-			icon: 'Globe',
-		},
+		{ title: 'Define', description: 'Configure your agent', icon: 'Bot' },
+		{ title: 'Add Tools', description: 'Connect databases & APIs', icon: 'Terminal' },
+		{ title: 'Test', description: 'Iterate in playground', icon: 'Play' },
+		{ title: 'Deploy', description: '300+ edge locations', icon: 'Globe' },
 	],
 	cta: {
 		title: 'Ready to build your first agent?',
-		description:
-			'Join developers who are building the future of AI-powered applications. Free to start, scales with you.',
+		description: 'Free to start, scales with you. Hop to it!',
 		primaryCta: 'Get Started Free',
-		secondaryCta: 'Star on GitHub',
+		secondaryCta: 'GitHub',
 	},
+	codeExample: `import { Agent } from '@hare/sdk'
+
+const agent = new Agent({
+  name: 'Support Bot',
+  model: 'claude-3-sonnet',
+  tools: ['database', 'email'],
+})
+
+await agent.deploy()`,
+} as const
+
+// =============================================================================
+// Auth Pages Content
+// =============================================================================
+
+export const AUTH_CONTENT = {
+	signIn: {
+		title: 'Welcome back',
+		subtitle: 'Sign in to your account to continue',
+		submitButton: 'Sign In',
+		loadingButton: 'Signing in...',
+		forgotPassword: 'Forgot password?',
+		noAccount: "Don't have an account?",
+		signUpLink: 'Sign up',
+	},
+	signUp: {
+		title: 'Create an account',
+		subtitle: 'Get started with Hare for free',
+		submitButton: 'Create Account',
+		loadingButton: 'Creating account...',
+		hasAccount: 'Already have an account?',
+		signInLink: 'Sign in',
+		terms: 'By creating an account, you agree to our',
+		termsLink: 'Terms of Service',
+		privacyLink: 'Privacy Policy',
+	},
+	layout: {
+		headline: 'Build & Deploy\nAI Agents at the Edge',
+		description: 'The fastest way to create, deploy, and scale AI agents. Hop into production in seconds with Cloudflare Workers.',
+		footer: 'Built for speed - just like a hare',
+	},
+	fields: {
+		email: { label: 'Email', placeholder: 'you@example.com' },
+		password: { label: 'Password', placeholder: 'Enter your password' },
+		confirmPassword: { label: 'Confirm Password', placeholder: 'Confirm your password' },
+		name: { label: 'Full Name', placeholder: 'John Doe' },
+	},
+	validation: {
+		passwordMinLength: 'Password must be at least 8 characters',
+		passwordsNoMatch: 'Passwords do not match',
+	},
+	success: {
+		signIn: 'Signed in successfully',
+		signUp: 'Account created successfully',
+		signOut: 'Signed out',
+	},
+} as const
+
+// =============================================================================
+// Dashboard Content
+// =============================================================================
+
+export const DASHBOARD_CONTENT = {
+	header: {
+		searchPlaceholder: 'Search agents, tools...',
+	},
+	sidebar: {
+		docsLink: 'View Docs',
+	},
+	home: {
+		title: 'Dashboard',
+		subtitle: 'Overview of your agents and usage',
+		newAgentButton: 'New Agent',
+		noAgents: {
+			title: 'No agents yet',
+			description: 'Create your first AI agent to get started.',
+			cta: 'Create Agent',
+		},
+		recentAgents: {
+			title: 'Recent Agents',
+			subtitle: 'Ordered by last update',
+			viewAll: 'View all',
+			createNew: 'Create New Agent',
+		},
+		stats: {
+			totalAgents: { title: 'Total Agents', description: 'deployed' },
+			apiCalls: { title: 'API Calls', description: 'This period' },
+			tokensUsed: { title: 'Tokens Used', description: 'in / out' },
+			activeTools: { title: 'Active Tools', description: 'Available' },
+		},
+		quickActions: [
+			{ title: 'Create Agent', description: 'Build a new AI agent', icon: 'Bot', href: '/dashboard/agents/new' },
+			{ title: 'Manage Tools', description: 'Configure capabilities', icon: 'Wrench', href: '/dashboard/tools' },
+			{ title: 'View Usage', description: 'Monitor performance', icon: 'Activity', href: '/dashboard/usage' },
+		],
+	},
+	agents: {
+		title: 'Agents',
+		subtitle: 'Manage your AI agents',
+		newButton: 'New Agent',
+		status: {
+			deployed: 'Live',
+			draft: 'Draft',
+			archived: 'Archived',
+		},
+	},
+	tools: {
+		title: 'Tools',
+		subtitle: 'Configure agent capabilities',
+	},
+	usage: {
+		title: 'Usage',
+		subtitle: 'Monitor your API usage and costs',
+	},
+	settings: {
+		title: 'Settings',
+		subtitle: 'Manage your account and preferences',
+	},
+} as const
+
+// =============================================================================
+// Dev Tools Content
+// =============================================================================
+
+export const DEV_TOOLS_CONTENT = {
+	title: 'Dev Tools',
+	badge: 'DEV',
+	sections: {
+		auth: {
+			title: 'Authentication',
+			signIn: 'Sign In',
+			signUp: 'New User',
+			signOut: 'Sign Out',
+		},
+		quickCreate: {
+			title: 'Quick Create',
+			agent: 'Agent',
+			workspace: 'Workspace',
+		},
+		cache: {
+			title: 'Cache',
+			refresh: 'Refresh',
+			clear: 'Clear',
+		},
+	},
+	// Random rabbit-themed names for quick agent creation
+	agentNames: [
+		'Hoppy Helper',
+		'Bunny Bot',
+		'Carrot Cruncher',
+		'Warren Wizard',
+		'Fluffy Assistant',
+		'Thumper AI',
+		'Cotton Tail',
+		'Jack Rabbit',
+		'Velvet Ears',
+		'Meadow Mind',
+	],
+	agentDescriptions: [
+		'A speedy assistant that hops to help',
+		'Burrows deep into problems to find solutions',
+		'Quick as a hare, smart as a fox',
+		'Your friendly neighborhood rabbit helper',
+		'Nibbles through tasks with ease',
+	],
+	defaultInstructions: 'You are a helpful AI assistant with a playful rabbit personality. Be quick, helpful, and add occasional rabbit puns.',
+} as const
+
+// =============================================================================
+// Common UI Text
+// =============================================================================
+
+export const UI_TEXT = {
+	loading: 'Loading...',
+	saving: 'Saving...',
+	deleting: 'Deleting...',
+	deploying: 'Deploying...',
+	save: 'Save',
+	cancel: 'Cancel',
+	delete: 'Delete',
+	edit: 'Edit',
+	create: 'Create',
+	deploy: 'Deploy',
+	duplicate: 'Duplicate',
+	back: 'Back',
+	next: 'Next',
+	done: 'Done',
+	confirm: 'Confirm',
+	close: 'Close',
+	search: 'Search',
+	filter: 'Filter',
+	sort: 'Sort',
+	refresh: 'Refresh',
+	copy: 'Copy',
+	copied: 'Copied!',
+	viewAll: 'View all',
+	learnMore: 'Learn more',
+	getStarted: 'Get Started',
+	signIn: 'Sign In',
+	signUp: 'Sign Up',
+	signOut: 'Sign Out',
+	profile: 'Profile',
+	settings: 'Settings',
+	tools: 'tools',
+	noDescription: 'No description provided',
 } as const
 
 // =============================================================================

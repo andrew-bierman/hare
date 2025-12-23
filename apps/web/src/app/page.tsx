@@ -22,54 +22,19 @@ import {
 	Play,
 	Rabbit,
 	Shield,
-	Sparkles,
 	Terminal,
 	Zap,
 } from 'lucide-react'
 import Link from 'next/link'
 import { useAuth } from 'web-app/components/providers/auth-provider'
+import { APP_CONFIG, LANDING_PAGE, NAV_ITEMS, UI_TEXT } from 'web-app/config'
+
+// Icon mapping for dynamic rendering
+const ICONS = { Bot, Boxes, Cloud, Code, Globe, Layers, MessageSquare, Play, Shield, Terminal, Zap, GitBranch } as const
 
 export default function LandingPage() {
 	const { data: session, isPending } = useAuth()
-	const features = [
-		{
-			title: 'Visual Agent Builder',
-			description: 'Design complex agent workflows with our intuitive drag-and-drop interface.',
-			icon: Boxes,
-		},
-		{
-			title: 'Instant Deployment',
-			description: "Deploy to Cloudflare's global edge network in seconds.",
-			icon: Cloud,
-		},
-		{
-			title: 'Built-in Tools',
-			description: 'SQL, HTTP, KV, R2, and vector search ready to go.',
-			icon: Layers,
-		},
-		{
-			title: 'Developer SDK',
-			description: 'Full TypeScript SDK with type-safe APIs.',
-			icon: Code,
-		},
-		{
-			title: 'Real-time Streaming',
-			description: 'Stream responses with built-in WebSocket support.',
-			icon: MessageSquare,
-		},
-		{
-			title: 'Enterprise Security',
-			description: 'SOC 2 compliant with end-to-end encryption.',
-			icon: Shield,
-		},
-	]
-
-	const steps = [
-		{ title: 'Define', description: 'Configure your agent', icon: Bot },
-		{ title: 'Add Tools', description: 'Connect databases & APIs', icon: Terminal },
-		{ title: 'Test', description: 'Iterate in playground', icon: Play },
-		{ title: 'Deploy', description: '300+ edge locations', icon: Globe },
-	]
+	const { hero, features, steps, stats, badges, cta, codeExample } = LANDING_PAGE
 
 	return (
 		<div className="flex min-h-screen flex-col">
@@ -80,22 +45,20 @@ export default function LandingPage() {
 						<div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-orange-500 to-amber-500 shadow-lg shadow-orange-500/25">
 							<Rabbit className="h-5 w-5 text-white" />
 						</div>
-						<span className="font-bold text-lg bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">Hare</span>
+						<span className="font-bold text-lg bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">{APP_CONFIG.name}</span>
 					</Link>
 
 					<nav className="hidden md:flex items-center gap-6">
-						<Link href="#features" className="text-sm text-muted-foreground hover:text-foreground">
-							Features
-						</Link>
-						<Link
-							href="#how-it-works"
-							className="text-sm text-muted-foreground hover:text-foreground"
-						>
-							How it Works
-						</Link>
-						<Link href="/docs" className="text-sm text-muted-foreground hover:text-foreground">
-							Docs
-						</Link>
+						{NAV_ITEMS.main.map((item) => (
+							<Link
+								key={item.href}
+								href={item.href}
+								className="text-sm text-muted-foreground hover:text-foreground"
+								{...('external' in item && item.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+							>
+								{item.label}
+							</Link>
+						))}
 					</nav>
 
 					<div className="flex items-center gap-2">
@@ -112,11 +75,11 @@ export default function LandingPage() {
 							<>
 								<Link href="/sign-in" className="hidden sm:block">
 									<Button variant="ghost" size="sm">
-										Sign In
+										{UI_TEXT.signIn}
 									</Button>
 								</Link>
 								<Link href="/sign-up">
-									<Button size="sm">Get Started</Button>
+									<Button size="sm">{UI_TEXT.getStarted}</Button>
 								</Link>
 							</>
 						)}
@@ -129,47 +92,44 @@ export default function LandingPage() {
 				<div className="container max-w-4xl mx-auto text-center">
 					<Badge variant="secondary" className="mb-4 bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 border-orange-200 dark:border-orange-800">
 						<Rabbit className="h-3 w-3 mr-1" />
-						Public Beta
+						{hero.badge}
 					</Badge>
 
 					<h1 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl lg:text-6xl">
-						Build & Deploy <span className="bg-gradient-to-r from-orange-500 to-amber-500 bg-clip-text text-transparent">AI Agents</span> at the Edge
+						{hero.title} <span className="bg-gradient-to-r from-orange-500 to-amber-500 bg-clip-text text-transparent">{hero.titleHighlight}</span> {hero.titleSuffix}
 					</h1>
 
 					<p className="mt-4 text-base text-muted-foreground sm:text-lg md:text-xl max-w-2xl mx-auto">
-						The fastest way to create, deploy, and scale AI agents. Open source and self-hostable.
+						{hero.description}
 					</p>
 
 					{/* CTA - stack on mobile */}
 					<div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center sm:gap-4">
 						<Link href="/sign-up" className="w-full sm:w-auto">
 							<Button size="lg" className="w-full sm:w-auto gap-2 h-12 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white shadow-lg shadow-orange-500/25">
-								Start Building Free
+								{hero.primaryCta}
 								<ArrowRight className="h-4 w-4" />
 							</Button>
 						</Link>
 						<Link href="/dashboard" className="w-full sm:w-auto">
 							<Button size="lg" variant="outline" className="w-full sm:w-auto gap-2 h-12 border-orange-300 hover:bg-orange-50 dark:border-orange-800 dark:hover:bg-orange-950">
 								<Rabbit className="h-4 w-4" />
-								Live Demo
+								{hero.secondaryCta}
 							</Button>
 						</Link>
 					</div>
 
-					{/* Stats */}
+					{/* Badges */}
 					<div className="mt-8 flex flex-wrap justify-center gap-4 text-sm text-muted-foreground">
-						<div className="flex items-center gap-1.5">
-							<GitBranch className="h-4 w-4" />
-							<span>Open Source</span>
-						</div>
-						<div className="flex items-center gap-1.5">
-							<Globe className="h-4 w-4" />
-							<span>300+ Locations</span>
-						</div>
-						<div className="flex items-center gap-1.5">
-							<Zap className="h-4 w-4" />
-							<span>&lt;50ms Latency</span>
-						</div>
+						{badges.map((badge) => {
+							const Icon = ICONS[badge.icon as keyof typeof ICONS]
+							return (
+								<div key={badge.label} className="flex items-center gap-1.5">
+									{Icon && <Icon className="h-4 w-4" />}
+									<span>{badge.label}</span>
+								</div>
+							)
+						})}
 					</div>
 				</div>
 			</section>
@@ -185,17 +145,7 @@ export default function LandingPage() {
 							<span className="ml-2 text-xs text-muted-foreground font-mono">agent.ts</span>
 						</div>
 						<pre className="p-4 overflow-x-auto text-xs sm:text-sm">
-							<code className="text-muted-foreground">
-								{`import { Agent } from '@hare/sdk'
-
-const agent = new Agent({
-  name: 'Support Bot',
-  model: 'claude-3-sonnet',
-  tools: ['database', 'email'],
-})
-
-await agent.deploy()`}
-							</code>
+							<code className="text-muted-foreground">{codeExample}</code>
 						</pre>
 					</div>
 				</div>
@@ -213,19 +163,22 @@ await agent.deploy()`}
 					</div>
 
 					<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-						{features.map((feature) => (
-							<Card key={feature.title} className="h-full">
-								<CardHeader className="pb-3">
-									<div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 mb-2">
-										<feature.icon className="h-5 w-5 text-primary" />
-									</div>
-									<CardTitle className="text-lg">{feature.title}</CardTitle>
-								</CardHeader>
-								<CardContent className="pt-0">
-									<CardDescription>{feature.description}</CardDescription>
-								</CardContent>
-							</Card>
-						))}
+						{features.map((feature) => {
+							const Icon = ICONS[feature.icon as keyof typeof ICONS]
+							return (
+								<Card key={feature.title} className="h-full">
+									<CardHeader className="pb-3">
+										<div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 mb-2">
+											{Icon && <Icon className="h-5 w-5 text-primary" />}
+										</div>
+										<CardTitle className="text-lg">{feature.title}</CardTitle>
+									</CardHeader>
+									<CardContent className="pt-0">
+										<CardDescription>{feature.description}</CardDescription>
+									</CardContent>
+								</Card>
+							)
+						})}
 					</div>
 				</div>
 			</section>
@@ -237,25 +190,28 @@ await agent.deploy()`}
 						<Badge variant="outline" className="mb-3">
 							How it Works
 						</Badge>
-						<h2 className="text-2xl font-bold sm:text-3xl md:text-4xl">4 simple steps</h2>
+						<h2 className="text-2xl font-bold sm:text-3xl md:text-4xl">{steps.length} simple steps</h2>
 						<p className="mt-2 text-muted-foreground">Build your first agent in under 5 minutes.</p>
 					</div>
 
 					<div className="grid gap-6 sm:grid-cols-2 md:grid-cols-4">
-						{steps.map((step, index) => (
-							<div key={step.title} className="flex gap-4 md:flex-col md:text-center">
-								<div className="flex-shrink-0 flex h-12 w-12 items-center justify-center rounded-full border-2 bg-background md:mx-auto">
-									<step.icon className="h-5 w-5 text-primary" />
+						{steps.map((step, index) => {
+							const Icon = ICONS[step.icon as keyof typeof ICONS]
+							return (
+								<div key={step.title} className="flex gap-4 md:flex-col md:text-center">
+									<div className="flex-shrink-0 flex h-12 w-12 items-center justify-center rounded-full border-2 bg-background md:mx-auto">
+										{Icon && <Icon className="h-5 w-5 text-primary" />}
+									</div>
+									<div>
+										<span className="text-xs font-medium text-muted-foreground">
+											Step {index + 1}
+										</span>
+										<h3 className="font-semibold">{step.title}</h3>
+										<p className="text-sm text-muted-foreground">{step.description}</p>
+									</div>
 								</div>
-								<div>
-									<span className="text-xs font-medium text-muted-foreground">
-										Step {index + 1}
-									</span>
-									<h3 className="font-semibold">{step.title}</h3>
-									<p className="text-sm text-muted-foreground">{step.description}</p>
-								</div>
-							</div>
-						))}
+							)
+						})}
 					</div>
 				</div>
 			</section>
@@ -264,12 +220,7 @@ await agent.deploy()`}
 			<section className="px-4 py-12 sm:py-16 md:py-24 bg-muted/50">
 				<div className="container max-w-3xl mx-auto">
 					<div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-						{[
-							{ value: '300+', label: 'Edge Locations' },
-							{ value: '<50ms', label: 'Global Latency' },
-							{ value: '99.99%', label: 'Uptime SLA' },
-							{ value: '10K+', label: 'Agents Deployed' },
-						].map((stat) => (
+						{stats.map((stat) => (
 							<div key={stat.label} className="text-center p-4 rounded-lg border bg-background">
 								<div className="text-2xl font-bold sm:text-3xl text-primary">{stat.value}</div>
 								<div className="text-xs sm:text-sm text-muted-foreground mt-1">{stat.label}</div>
@@ -287,26 +238,26 @@ await agent.deploy()`}
 							<Rabbit className="h-12 w-12 text-white/90" />
 						</div>
 						<h2 className="text-xl font-bold sm:text-2xl md:text-3xl">
-							Ready to build your first agent?
+							{cta.title}
 						</h2>
 						<p className="mt-3 text-white/80 text-sm sm:text-base">
-							Free to start, scales with you. Hop to it!
+							{cta.description}
 						</p>
 						<div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
 							<Link href="/sign-up" className="w-full sm:w-auto">
 								<Button size="lg" variant="secondary" className="w-full sm:w-auto gap-2 h-12 bg-white text-orange-600 hover:bg-orange-50">
-									Get Started Free
+									{cta.primaryCta}
 									<ArrowRight className="h-4 w-4" />
 								</Button>
 							</Link>
-							<Link href="https://github.com" className="w-full sm:w-auto">
+							<Link href={APP_CONFIG.repository} className="w-full sm:w-auto">
 								<Button
 									size="lg"
 									variant="outline"
 									className="w-full sm:w-auto gap-2 h-12 border-white/30 text-white hover:bg-white/10"
 								>
 									<GitBranch className="h-4 w-4" />
-									GitHub
+									{cta.secondaryCta}
 								</Button>
 							</Link>
 						</div>
@@ -322,21 +273,14 @@ await agent.deploy()`}
 							<div className="flex h-6 w-6 items-center justify-center rounded bg-gradient-to-br from-orange-500 to-amber-500">
 								<Rabbit className="h-3.5 w-3.5 text-white" />
 							</div>
-							<span className="font-semibold bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">Hare</span>
+							<span className="font-semibold bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">{APP_CONFIG.name}</span>
 						</div>
 						<nav className="flex flex-wrap justify-center gap-4 text-sm text-muted-foreground">
-							<Link href="/docs" className="hover:text-orange-600">
-								Docs
-							</Link>
-							<Link href="https://github.com" className="hover:text-orange-600">
-								GitHub
-							</Link>
-							<Link href="/privacy" className="hover:text-orange-600">
-								Privacy
-							</Link>
-							<Link href="/terms" className="hover:text-orange-600">
-								Terms
-							</Link>
+							{NAV_ITEMS.footer.map((item) => (
+								<Link key={item.href} href={item.href} className="hover:text-orange-600">
+									{item.label}
+								</Link>
+							))}
 						</nav>
 					</div>
 				</div>

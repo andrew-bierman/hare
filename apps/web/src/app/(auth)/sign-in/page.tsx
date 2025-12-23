@@ -9,7 +9,10 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { type ChangeEvent, type FormEvent, useState } from 'react'
 import { toast } from 'sonner'
+import { APP_CONFIG, AUTH_CONTENT } from 'web-app/config'
 import { signIn } from 'web-app/lib/auth-client'
+
+const { signIn: content, fields } = AUTH_CONTENT
 
 export default function SignInPage() {
 	const router = useRouter()
@@ -32,7 +35,7 @@ export default function SignInPage() {
 				return
 			}
 
-			toast.success('Signed in successfully')
+			toast.success(AUTH_CONTENT.success.signIn)
 			router.push('/dashboard')
 			router.refresh()
 		} catch (error) {
@@ -51,13 +54,13 @@ export default function SignInPage() {
 					<div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-orange-500 to-amber-500 shadow-lg shadow-orange-500/25">
 						<Rabbit className="h-6 w-6 text-white" />
 					</div>
-					<span className="font-bold text-2xl bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">Hare</span>
+					<span className="font-bold text-2xl bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">{APP_CONFIG.name}</span>
 				</Link>
 			</div>
 
 			<div className="flex flex-col space-y-2 text-center lg:text-left">
-				<h1 className="text-3xl font-bold tracking-tight">Welcome back</h1>
-				<p className="text-muted-foreground">Sign in to your account to continue</p>
+				<h1 className="text-3xl font-bold tracking-tight">{content.title}</h1>
+				<p className="text-muted-foreground">{content.subtitle}</p>
 			</div>
 
 			<Card className="border-border/50 shadow-lg">
@@ -65,12 +68,12 @@ export default function SignInPage() {
 					<CardContent className="pt-6 space-y-5">
 						<div className="space-y-2">
 							<Label htmlFor="email" className="text-sm font-medium">
-								Email
+								{fields.email.label}
 							</Label>
 							<Input
 								id="email"
 								type="email"
-								placeholder="you@example.com"
+								placeholder={fields.email.placeholder}
 								value={email}
 								onChange={(e: ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
 								required
@@ -81,13 +84,13 @@ export default function SignInPage() {
 						<div className="space-y-2">
 							<div className="flex items-center justify-between">
 								<Label htmlFor="password" className="text-sm font-medium">
-									Password
+									{fields.password.label}
 								</Label>
 								<Link
 									href="/forgot-password"
 									className="text-xs text-primary hover:underline font-medium"
 								>
-									Forgot password?
+									{content.forgotPassword}
 								</Link>
 							</div>
 							<Input
@@ -111,19 +114,19 @@ export default function SignInPage() {
 							{isLoading ? (
 								<>
 									<Loader2 className="h-4 w-4 animate-spin" />
-									Signing in...
+									{content.loadingButton}
 								</>
 							) : (
 								<>
-									Sign In
+									{content.submitButton}
 									<ArrowRight className="h-4 w-4" />
 								</>
 							)}
 						</Button>
 						<div className="text-sm text-center text-muted-foreground">
-							Don't have an account?{' '}
+							{content.noAccount}{' '}
 							<Link href="/sign-up" className="text-primary hover:underline font-medium">
-								Sign up
+								{content.signUpLink}
 							</Link>
 						</div>
 					</CardFooter>
