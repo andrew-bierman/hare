@@ -1,28 +1,51 @@
 'use client'
 
-import { useState } from 'react'
-import { Bug, ChevronDown, ChevronUp, Copy, LogIn, RefreshCw, Trash2, X } from 'lucide-react'
+import { useQueryClient } from '@tanstack/react-query'
+import { Badge } from '@workspace/ui/components/badge'
 import { Button } from '@workspace/ui/components/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@workspace/ui/components/card'
-import { Badge } from '@workspace/ui/components/badge'
-import { FEATURES, DEV_CONFIG } from 'web-app/config'
-import { authClient } from 'web-app/lib/auth-client'
-import { useQueryClient } from '@tanstack/react-query'
+import {
+	Bot,
+	ChevronDown,
+	ChevronUp,
+	Copy,
+	LogIn,
+	LogOut,
+	Plus,
+	Rabbit,
+	RefreshCw,
+	Trash2,
+	UserPlus,
+	X,
+} from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { useState } from 'react'
 import { toast } from 'sonner'
+import { useWorkspace } from 'web-app/components/providers/workspace-provider'
+import { DEV_CONFIG, DEV_TOOLS_CONTENT, FEATURES } from 'web-app/config'
+import { authClient } from 'web-app/lib/auth-client'
+import { useCreateAgent, useCreateWorkspace } from 'web-app/lib/api/hooks'
 
-/**
- * Developer tools panel - only shown in development mode
- * Provides quick actions for testing and debugging
- */
+const { sections, agentNames, agentDescriptions, defaultInstructions } = DEV_TOOLS_CONTENT
+
 export function DevTools() {
 	const [isOpen, setIsOpen] = useState(false)
 	const [isMinimized, setIsMinimized] = useState(false)
+	const [isSigningUp, setIsSigningUp] = useState(false)
 	const queryClient = useQueryClient()
+	const router = useRouter()
+
+	const { activeWorkspace } = useWorkspace()
+	const createAgent = useCreateAgent(activeWorkspace?.id)
+	const createWorkspace = useCreateWorkspace()
 
 	// Only render in dev mode
 	if (!FEATURES.devMode) {
 		return null
 	}
+
+	const randomName = () => agentNames[Math.floor(Math.random() * agentNames.length)]
+	const randomDesc = () => agentDescriptions[Math.floor(Math.random() * agentDescriptions.length)]
 
 	const handleQuickSignIn = async () => {
 		try {
@@ -35,9 +58,10 @@ export function DevTools() {
 			} else {
 				toast.success('Signed in as test user')
 				queryClient.invalidateQueries()
+				router.refresh()
 			}
 		} catch (error) {
-			toast.error('Sign in failed: ' + (error instanceof Error ? error.message : 'Unknown error'))
+			toast.error(`Sign in failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
 		}
 	}
 
@@ -46,8 +70,65 @@ export function DevTools() {
 			await authClient.signOut()
 			toast.success('Signed out')
 			queryClient.invalidateQueries()
-		} catch (error) {
+			router.refresh()
+		} catch (_error) {
 			toast.error('Sign out failed')
+		}
+	}
+
+	const handleQuickSignUp = async () => {
+		setIsSigningUp(true)
+		const timestamp = Date.now()
+		try {
+			const result = await authClient.signUp.email({
+				email: `test${timestamp}@example.com`,
+				password: 'password123',
+				name: `Test User ${timestamp}`,
+			})
+			if (result.error) {
+				toast.error(`Sign up failed: ${result.error.message}`)
+			} else {
+				toast.success(`Created & signed in as test${timestamp}@example.com`)
+				queryClient.invalidateQueries()
+				router.refresh()
+				router.push('/dashboard')
+			}
+		} catch (error) {
+			toast.error(`Sign up failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
+		} finally {
+			setIsSigningUp(false)
+		}
+	}
+
+	const handleCreateAgent = async () => {
+		if (!activeWorkspace) {
+			toast.error('No workspace selected')
+			return
+		}
+		try {
+			const agent = await createAgent.mutateAsync({
+				name: randomName()!,
+				description: randomDesc(),
+				model: '@cf/meta/llama-3.3-70b-instruct-fp8-fast',
+				instructions: defaultInstructions,
+			})
+			toast.success(`Created agent: ${agent.name}`)
+			router.push(`/dashboard/agents/${agent.id}`)
+		} catch (_error) {
+			toast.error('Failed to create agent')
+		}
+	}
+
+	const handleCreateWorkspace = async () => {
+		const timestamp = Date.now()
+		try {
+			const workspace = await createWorkspace.mutateAsync({
+				name: `Workspace ${timestamp}`,
+				slug: `workspace-${timestamp}`,
+			})
+			toast.success(`Created workspace: ${workspace.name}`)
+		} catch (_error) {
+			toast.error('Failed to create workspace')
 		}
 	}
 
@@ -76,22 +157,25 @@ export function DevTools() {
 			<Button
 				variant="outline"
 				size="icon"
-				className="fixed bottom-4 right-4 z-50 h-10 w-10 rounded-full shadow-lg bg-yellow-500 hover:bg-yellow-600 text-black border-yellow-600"
+				className="fixed bottom-4 right-4 z-50 h-12 w-12 rounded-full shadow-lg bg-gradient-to-br from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white border-orange-600"
 				onClick={() => setIsOpen(true)}
 			>
-				<Bug className="h-5 w-5" />
+				<Rabbit className="h-6 w-6" />
 			</Button>
 		)
 	}
 
 	return (
-		<Card className="fixed bottom-4 right-4 z-50 w-80 shadow-xl border-yellow-500/50 bg-background/95 backdrop-blur">
-			<CardHeader className="py-3 px-4 flex flex-row items-center justify-between space-y-0">
+		<Card className="fixed bottom-4 right-4 z-50 w-80 shadow-xl border-orange-500/50 bg-background/95 backdrop-blur">
+			<CardHeader className="py-3 px-4 flex flex-row items-center justify-between space-y-0 bg-gradient-to-r from-orange-500/10 to-amber-500/10">
 				<div className="flex items-center gap-2">
-					<Bug className="h-4 w-4 text-yellow-500" />
-					<CardTitle className="text-sm font-medium">Dev Tools</CardTitle>
-					<Badge variant="outline" className="text-[10px] px-1.5 py-0 text-yellow-600 border-yellow-500/50">
-						DEV
+					<Rabbit className="h-4 w-4 text-orange-500" />
+					<CardTitle className="text-sm font-medium">{DEV_TOOLS_CONTENT.title}</CardTitle>
+					<Badge
+						variant="outline"
+						className="text-[10px] px-1.5 py-0 text-orange-600 border-orange-500/50 bg-orange-500/10"
+					>
+						{DEV_TOOLS_CONTENT.badge}
 					</Badge>
 				</div>
 				<div className="flex items-center gap-1">
@@ -103,12 +187,7 @@ export function DevTools() {
 					>
 						{isMinimized ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
 					</Button>
-					<Button
-						variant="ghost"
-						size="icon"
-						className="h-6 w-6"
-						onClick={() => setIsOpen(false)}
-					>
+					<Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setIsOpen(false)}>
 						<X className="h-3 w-3" />
 					</Button>
 				</div>
@@ -117,40 +196,69 @@ export function DevTools() {
 				<CardContent className="py-3 px-4 space-y-3">
 					{/* Auth Actions */}
 					<div className="space-y-2">
-						<p className="text-xs font-medium text-muted-foreground">Authentication</p>
-						<div className="flex gap-2">
+						<p className="text-xs font-medium text-muted-foreground">{sections.auth.title}</p>
+						<div className="grid grid-cols-2 gap-2">
 							<Button
 								variant="outline"
 								size="sm"
-								className="flex-1 h-8 text-xs"
+								className="h-8 text-xs"
 								onClick={handleQuickSignIn}
 							>
 								<LogIn className="h-3 w-3 mr-1.5" />
-								Quick Sign In
+								{sections.auth.signIn}
 							</Button>
 							<Button
 								variant="outline"
 								size="sm"
-								className="flex-1 h-8 text-xs"
+								className="h-8 text-xs"
+								onClick={handleQuickSignUp}
+								disabled={isSigningUp}
+							>
+								<UserPlus className="h-3 w-3 mr-1.5" />
+								{isSigningUp ? '...' : sections.auth.signUp}
+							</Button>
+							<Button
+								variant="outline"
+								size="sm"
+								className="h-8 text-xs col-span-2"
 								onClick={handleSignOut}
 							>
-								Sign Out
+								<LogOut className="h-3 w-3 mr-1.5" />
+								{sections.auth.signOut}
 							</Button>
 						</div>
-						<Button
-							variant="ghost"
-							size="sm"
-							className="w-full h-8 text-xs justify-start"
-							onClick={handleCopySession}
-						>
-							<Copy className="h-3 w-3 mr-1.5" />
-							Copy Session to Clipboard
-						</Button>
+					</div>
+
+					{/* Quick Create */}
+					<div className="space-y-2">
+						<p className="text-xs font-medium text-muted-foreground">{sections.quickCreate.title}</p>
+						<div className="grid grid-cols-2 gap-2">
+							<Button
+								variant="outline"
+								size="sm"
+								className="h-8 text-xs border-orange-500/50 text-orange-600 hover:text-orange-600 hover:bg-orange-500/10"
+								onClick={handleCreateAgent}
+								disabled={createAgent.isPending || !activeWorkspace}
+							>
+								<Bot className="h-3 w-3 mr-1.5" />
+								{createAgent.isPending ? '...' : sections.quickCreate.agent}
+							</Button>
+							<Button
+								variant="outline"
+								size="sm"
+								className="h-8 text-xs border-blue-500/50 text-blue-600 hover:text-blue-600 hover:bg-blue-500/10"
+								onClick={handleCreateWorkspace}
+								disabled={createWorkspace.isPending}
+							>
+								<Plus className="h-3 w-3 mr-1.5" />
+								{createWorkspace.isPending ? '...' : sections.quickCreate.workspace}
+							</Button>
+						</div>
 					</div>
 
 					{/* Cache Actions */}
 					<div className="space-y-2">
-						<p className="text-xs font-medium text-muted-foreground">Cache & Data</p>
+						<p className="text-xs font-medium text-muted-foreground">{sections.cache.title}</p>
 						<div className="flex gap-2">
 							<Button
 								variant="outline"
@@ -159,7 +267,7 @@ export function DevTools() {
 								onClick={handleRefreshAll}
 							>
 								<RefreshCw className="h-3 w-3 mr-1.5" />
-								Refresh All
+								{sections.cache.refresh}
 							</Button>
 							<Button
 								variant="outline"
@@ -168,16 +276,23 @@ export function DevTools() {
 								onClick={handleClearCache}
 							>
 								<Trash2 className="h-3 w-3 mr-1.5" />
-								Clear Cache
+								{sections.cache.clear}
+							</Button>
+							<Button
+								variant="ghost"
+								size="sm"
+								className="h-8 text-xs"
+								onClick={handleCopySession}
+							>
+								<Copy className="h-3 w-3" />
 							</Button>
 						</div>
 					</div>
 
 					{/* Info */}
-					<div className="pt-2 border-t">
-						<p className="text-[10px] text-muted-foreground">
-							Test user: {DEV_CONFIG.testUser.email}
-						</p>
+					<div className="pt-2 border-t text-[10px] text-muted-foreground space-y-0.5">
+						<p>Test: {DEV_CONFIG.testUser.email} / password123</p>
+						{activeWorkspace && <p>Workspace: {activeWorkspace.name}</p>}
 					</div>
 				</CardContent>
 			)}

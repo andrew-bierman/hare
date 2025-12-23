@@ -1,15 +1,15 @@
 import { describe, expect, it } from 'vitest'
 import {
-	CreateAgentSchema,
-	CreateWorkspaceSchema,
-	CreateToolSchema,
 	AgentConfigSchema,
 	AgentStatusSchema,
+	ChatRequestSchema,
+	CreateAgentSchema,
+	CreateToolSchema,
+	CreateWorkspaceSchema,
+	SignInSchema,
+	SignUpSchema,
 	ToolTypeSchema,
 	WorkspaceRoleSchema,
-	SignUpSchema,
-	SignInSchema,
-	ChatRequestSchema,
 } from '../schemas'
 
 describe('API Schemas', () => {

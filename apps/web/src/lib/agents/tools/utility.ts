@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { createTool, success, failure, type ToolContext } from './types'
+import { createTool, failure, success, type ToolContext } from './types'
 
 /**
  * DateTime Tool - Get current time, format dates, calculate differences.
@@ -18,23 +18,27 @@ export const datetimeTool = createTool({
 			.string()
 			.optional()
 			.describe(
-				'Output format: "iso", "date", "time", "datetime", "relative", "unix", or custom format tokens'
+				'Output format: "iso", "date", "time", "datetime", "relative", "unix", or custom format tokens',
 			),
-		timezone: z.string().optional().default('UTC').describe('Timezone (e.g., "America/New_York", "UTC")'),
+		timezone: z
+			.string()
+			.optional()
+			.default('UTC')
+			.describe('Timezone (e.g., "America/New_York", "UTC")'),
 		amount: z.number().optional().describe('Amount to add/subtract'),
 		unit: z
 			.enum(['years', 'months', 'weeks', 'days', 'hours', 'minutes', 'seconds', 'milliseconds'])
 			.optional()
 			.describe('Unit for add/subtract'),
 	}),
-	execute: async (params, context) => {
+	execute: async (params, _context) => {
 		try {
 			const { operation, date, date2, format, timezone, amount, unit } = params
 
 			const parseDate = (d?: string): Date => {
 				if (!d) return new Date()
 				const parsed = new Date(d)
-				if (isNaN(parsed.getTime())) throw new Error(`Invalid date: ${d}`)
+				if (Number.isNaN(parsed.getTime())) throw new Error(`Invalid date: ${d}`)
 				return parsed
 			}
 
@@ -104,9 +108,15 @@ export const datetimeTool = createTool({
 						hour: d.getUTCHours(),
 						minute: d.getUTCMinutes(),
 						second: d.getUTCSeconds(),
-						dayOfWeek: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][
-							d.getUTCDay()
-						],
+						dayOfWeek: [
+							'Sunday',
+							'Monday',
+							'Tuesday',
+							'Wednesday',
+							'Thursday',
+							'Friday',
+							'Saturday',
+						][d.getUTCDay()],
 					})
 				}
 
@@ -195,16 +205,19 @@ export const jsonTool = createTool({
 	description:
 		'Parse JSON strings, stringify objects, extract values using dot notation paths, or transform JSON data.',
 	inputSchema: z.object({
-		operation: z.enum(['parse', 'stringify', 'get', 'set', 'delete', 'merge', 'keys', 'values', 'flatten']).describe(
-			'Operation to perform'
-		),
+		operation: z
+			.enum(['parse', 'stringify', 'get', 'set', 'delete', 'merge', 'keys', 'values', 'flatten'])
+			.describe('Operation to perform'),
 		data: z.unknown().describe('The JSON data or string to operate on'),
-		path: z.string().optional().describe('Dot notation path for get/set/delete (e.g., "user.name", "items[0].id")'),
+		path: z
+			.string()
+			.optional()
+			.describe('Dot notation path for get/set/delete (e.g., "user.name", "items[0].id")'),
 		value: z.unknown().optional().describe('Value to set at path'),
 		data2: z.unknown().optional().describe('Second object for merge operation'),
 		pretty: z.boolean().optional().default(true).describe('Pretty print output for stringify'),
 	}),
-	execute: async (params, context) => {
+	execute: async (params, _context) => {
 		try {
 			const { operation, data, path, value, data2, pretty } = params
 
@@ -226,13 +239,19 @@ export const jsonTool = createTool({
 
 				for (let i = 0; i < parts.length - 1; i++) {
 					const part = parts[i]
-					if (!(part in current)) {
-						current[part] = isNaN(Number(parts[i + 1])) ? {} : []
+					const nextPart = parts[i + 1]
+					if (part && !(part in current)) {
+						current[part] = nextPart && Number.isNaN(Number(nextPart)) ? {} : []
 					}
-					current = current[part] as Record<string, unknown>
+					if (part) {
+						current = current[part] as Record<string, unknown>
+					}
 				}
 
-				current[parts[parts.length - 1]] = val
+				const lastPart = parts[parts.length - 1]
+				if (lastPart) {
+					current[lastPart] = val
+				}
 				return result
 			}
 
@@ -243,11 +262,14 @@ export const jsonTool = createTool({
 
 				for (let i = 0; i < parts.length - 1; i++) {
 					const part = parts[i]
-					if (!(part in current)) return result
+					if (!part || !(part in current)) return result
 					current = current[part] as Record<string, unknown>
 				}
 
-				delete current[parts[parts.length - 1]]
+				const lastPart = parts[parts.length - 1]
+				if (lastPart) {
+					delete current[lastPart]
+				}
 				return result
 			}
 
@@ -321,7 +343,10 @@ export const jsonTool = createTool({
 					if (typeof data !== 'object' || data === null) {
 						return failure('Keys requires an object')
 					}
-					return success({ keys: Object.keys(data as object), count: Object.keys(data as object).length })
+					return success({
+						keys: Object.keys(data as object),
+						count: Object.keys(data as object).length,
+					})
 				}
 
 				case 'values': {
@@ -395,13 +420,27 @@ export const textTool = createTool({
 		pattern: z.string().optional().describe('Regex pattern for extract'),
 		times: z.number().optional().default(1).describe('Number of times for repeat'),
 	}),
-	execute: async (params, context) => {
+	execute: async (params, _context) => {
 		try {
-			const { operation, text, separator, search, replacement, length, padChar, suffix, pattern, times } = params
+			const {
+				operation,
+				text,
+				separator,
+				search,
+				replacement,
+				length,
+				padChar,
+				suffix,
+				pattern,
+				times,
+			} = params
 
 			switch (operation) {
 				case 'split':
-					return success({ result: text.split(separator || ''), count: text.split(separator || '').length })
+					return success({
+						result: text.split(separator || ''),
+						count: text.split(separator || '').length,
+					})
 
 				case 'join':
 					// Expects text to be parseable as JSON array
@@ -460,12 +499,13 @@ export const textTool = createTool({
 				case 'reverse':
 					return success({ result: text.split('').reverse().join('') })
 
-				case 'wordCount':
+				case 'wordCount': {
 					const words = text
 						.trim()
 						.split(/\s+/)
 						.filter((w) => w.length > 0)
 					return success({ count: words.length, words })
+				}
 
 				case 'charCount':
 					return success({
@@ -475,9 +515,10 @@ export const textTool = createTool({
 						digits: text.replace(/[^0-9]/g, '').length,
 					})
 
-				case 'lines':
+				case 'lines': {
 					const lines = text.split(/\r?\n/)
 					return success({ lines, count: lines.length })
+				}
 
 				case 'slug':
 					return success({
@@ -491,9 +532,7 @@ export const textTool = createTool({
 
 				case 'camelCase':
 					return success({
-						result: text
-							.toLowerCase()
-							.replace(/[^a-zA-Z0-9]+(.)/g, (_, chr) => chr.toUpperCase()),
+						result: text.toLowerCase().replace(/[^a-zA-Z0-9]+(.)/g, (_, chr) => chr.toUpperCase()),
 					})
 
 				case 'snakeCase':
@@ -512,11 +551,12 @@ export const textTool = createTool({
 							.toLowerCase(),
 					})
 
-				case 'extract':
+				case 'extract': {
 					if (!pattern) return failure('Pattern required for extract')
 					const regex = new RegExp(pattern, 'g')
 					const matches = text.match(regex)
 					return success({ matches: matches || [], count: matches?.length || 0 })
+				}
 
 				case 'contains':
 					if (!search) return failure('Search string required')
@@ -583,7 +623,7 @@ export const mathTool = createTool({
 		decimals: z.number().optional().default(2).describe('Decimal places for rounding'),
 		expression: z.string().optional().describe('Safe math expression to evaluate'),
 	}),
-	execute: async (params, context) => {
+	execute: async (params, _context) => {
 		try {
 			const { operation, a, b, numbers, min, max, decimals, expression } = params
 
@@ -611,7 +651,7 @@ export const mathTool = createTool({
 
 				case 'power':
 					if (a === undefined || b === undefined) return failure('Two numbers required')
-					return success({ result: Math.pow(a, b) })
+					return success({ result: a ** b })
 
 				case 'sqrt':
 					if (a === undefined) return failure('Number required')
@@ -630,10 +670,11 @@ export const mathTool = createTool({
 					if (a === undefined) return failure('Number required')
 					return success({ result: Math.ceil(a) })
 
-				case 'round':
+				case 'round': {
 					if (a === undefined) return failure('Number required')
-					const factor = Math.pow(10, decimals)
+					const factor = 10 ** decimals
 					return success({ result: Math.round(a * factor) / factor })
+				}
 
 				case 'min':
 					if (!numbers || numbers.length === 0) return failure('Array of numbers required')
@@ -651,27 +692,36 @@ export const mathTool = createTool({
 					if (!numbers || numbers.length === 0) return failure('Array of numbers required')
 					return success({ result: numbers.reduce((acc, n) => acc + n, 0) / numbers.length })
 
-				case 'median':
+				case 'median': {
 					if (!numbers || numbers.length === 0) return failure('Array of numbers required')
 					const sorted = [...numbers].sort((x, y) => x - y)
 					const mid = Math.floor(sorted.length / 2)
-					const median = sorted.length % 2 !== 0 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2
+					const midVal = sorted[mid] ?? 0
+					const midPrevVal = sorted[mid - 1] ?? 0
+					const median = sorted.length % 2 !== 0 ? midVal : (midPrevVal + midVal) / 2
 					return success({ result: median })
+				}
 
-				case 'random':
+				case 'random': {
 					const lo = min ?? 0
 					const hi = max ?? 1
 					return success({ result: Math.random() * (hi - lo) + lo })
+				}
 
-				case 'randomInt':
+				case 'randomInt': {
 					const minInt = min ?? 0
 					const maxInt = max ?? 100
 					return success({ result: Math.floor(Math.random() * (maxInt - minInt + 1)) + minInt })
+				}
 
 				case 'percentage':
-					if (a === undefined || b === undefined) return failure('Two numbers required (part, whole)')
+					if (a === undefined || b === undefined)
+						return failure('Two numbers required (part, whole)')
 					if (b === 0) return failure('Whole cannot be zero')
-					return success({ result: (a / b) * 100, formatted: `${((a / b) * 100).toFixed(decimals)}%` })
+					return success({
+						result: (a / b) * 100,
+						formatted: `${((a / b) * 100).toFixed(decimals)}%`,
+					})
 
 				case 'clamp':
 					if (a === undefined || min === undefined || max === undefined) {
@@ -679,7 +729,7 @@ export const mathTool = createTool({
 					}
 					return success({ result: Math.min(Math.max(a, min), max) })
 
-				case 'evaluate':
+				case 'evaluate': {
 					if (!expression) return failure('Expression required')
 					// Safe evaluation - only allow numbers and basic operators
 					const safeExpression = expression.replace(/[^0-9+\-*/%().^ ]/g, '')
@@ -690,6 +740,7 @@ export const mathTool = createTool({
 					const jsExpression = safeExpression.replace(/\^/g, '**')
 					const result = Function(`"use strict"; return (${jsExpression})`)()
 					return success({ result, expression })
+				}
 
 				default:
 					return failure(`Unknown operation: ${operation}`)
@@ -707,14 +758,16 @@ export const uuidTool = createTool({
 	id: 'uuid',
 	description: 'Generate UUIDs (v4), nano IDs, or other unique identifiers.',
 	inputSchema: z.object({
-		type: z.enum(['uuid', 'nanoid', 'ulid', 'cuid', 'timestamp', 'short']).optional().default('uuid').describe(
-			'Type of ID to generate'
-		),
+		type: z
+			.enum(['uuid', 'nanoid', 'ulid', 'cuid', 'timestamp', 'short'])
+			.optional()
+			.default('uuid')
+			.describe('Type of ID to generate'),
 		count: z.number().optional().default(1).describe('Number of IDs to generate'),
 		length: z.number().optional().default(21).describe('Length for nanoid/short'),
 		prefix: z.string().optional().describe('Optional prefix to add'),
 	}),
-	execute: async (params, context) => {
+	execute: async (params, _context) => {
 		try {
 			const { type, count, length, prefix } = params
 
@@ -741,7 +794,7 @@ export const uuidTool = createTool({
 						let ulid = ''
 						// Timestamp (10 chars)
 						for (let i = 9; i >= 0; i--) {
-							ulid = ENCODING[Math.floor(now / Math.pow(32, i)) % 32] + ulid
+							ulid = ENCODING[Math.floor(now / 32 ** i) % 32] + ulid
 						}
 						// Random (16 chars)
 						const random = new Uint8Array(10)
@@ -799,14 +852,22 @@ export const hashTool = createTool({
 	id: 'hash',
 	description: 'Generate cryptographic hashes (SHA-256, SHA-384, SHA-512) or verify hashes.',
 	inputSchema: z.object({
-		operation: z.enum(['hash', 'verify', 'hmac']).optional().default('hash').describe('Operation to perform'),
+		operation: z
+			.enum(['hash', 'verify', 'hmac'])
+			.optional()
+			.default('hash')
+			.describe('Operation to perform'),
 		data: z.string().describe('Data to hash'),
-		algorithm: z.enum(['SHA-256', 'SHA-384', 'SHA-512']).optional().default('SHA-256').describe('Hash algorithm'),
+		algorithm: z
+			.enum(['SHA-256', 'SHA-384', 'SHA-512'])
+			.optional()
+			.default('SHA-256')
+			.describe('Hash algorithm'),
 		encoding: z.enum(['hex', 'base64']).optional().default('hex').describe('Output encoding'),
 		expected: z.string().optional().describe('Expected hash for verification'),
 		key: z.string().optional().describe('Secret key for HMAC'),
 	}),
-	execute: async (params, context) => {
+	execute: async (params, _context) => {
 		try {
 			const { operation, data, algorithm, encoding, expected, key } = params
 
@@ -849,7 +910,7 @@ export const hashTool = createTool({
 						encoder.encode(key),
 						{ name: 'HMAC', hash: algorithm },
 						false,
-						['sign']
+						['sign'],
 					)
 					const signature = await crypto.subtle.sign('HMAC', keyData, encoder.encode(data))
 					const hmac = encode(signature)
@@ -870,13 +931,14 @@ export const hashTool = createTool({
  */
 export const base64Tool = createTool({
 	id: 'base64',
-	description: 'Encode data to base64 or decode base64 to text. Supports standard and URL-safe variants.',
+	description:
+		'Encode data to base64 or decode base64 to text. Supports standard and URL-safe variants.',
 	inputSchema: z.object({
 		operation: z.enum(['encode', 'decode']).describe('Operation to perform'),
 		data: z.string().describe('Data to encode/decode'),
 		urlSafe: z.boolean().optional().default(false).describe('Use URL-safe base64 variant'),
 	}),
-	execute: async (params, context) => {
+	execute: async (params, _context) => {
 		try {
 			const { operation, data, urlSafe } = params
 
@@ -886,7 +948,11 @@ export const base64Tool = createTool({
 					if (urlSafe) {
 						encoded = encoded.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
 					}
-					return success({ result: encoded, originalLength: data.length, encodedLength: encoded.length })
+					return success({
+						result: encoded,
+						originalLength: data.length,
+						encodedLength: encoded.length,
+					})
 				}
 
 				case 'decode': {
@@ -896,7 +962,11 @@ export const base64Tool = createTool({
 						while (input.length % 4) input += '='
 					}
 					const decoded = decodeURIComponent(escape(atob(input)))
-					return success({ result: decoded, encodedLength: data.length, decodedLength: decoded.length })
+					return success({
+						result: decoded,
+						encodedLength: data.length,
+						decodedLength: decoded.length,
+					})
 				}
 
 				default:
@@ -917,7 +987,16 @@ export const urlTool = createTool({
 		'Parse URLs, construct URLs, encode/decode URL components, or manipulate query parameters.',
 	inputSchema: z.object({
 		operation: z
-			.enum(['parse', 'build', 'encode', 'decode', 'addParams', 'removeParams', 'getParams', 'join'])
+			.enum([
+				'parse',
+				'build',
+				'encode',
+				'decode',
+				'addParams',
+				'removeParams',
+				'getParams',
+				'join',
+			])
 			.describe('Operation to perform'),
 		url: z.string().optional().describe('URL to operate on'),
 		base: z.string().optional().describe('Base URL for building/joining'),
@@ -926,7 +1005,7 @@ export const urlTool = createTool({
 		paramNames: z.array(z.string()).optional().describe('Parameter names to remove'),
 		text: z.string().optional().describe('Text to encode/decode'),
 	}),
-	execute: async (params, context) => {
+	execute: async (params, _context) => {
 		try {
 			const { operation, url, base, path, params: queryParams, paramNames, text } = params
 
@@ -1027,12 +1106,17 @@ export const urlTool = createTool({
  */
 export const delayTool = createTool({
 	id: 'delay',
-	description: 'Wait for a specified amount of time before continuing. Useful for rate limiting or timing.',
+	description:
+		'Wait for a specified amount of time before continuing. Useful for rate limiting or timing.',
 	inputSchema: z.object({
-		duration: z.number().min(0).max(30000).describe('Duration to wait in milliseconds (max 30 seconds)'),
+		duration: z
+			.number()
+			.min(0)
+			.max(30000)
+			.describe('Duration to wait in milliseconds (max 30 seconds)'),
 		reason: z.string().optional().describe('Reason for the delay (for logging)'),
 	}),
-	execute: async (params, context) => {
+	execute: async (params, _context) => {
 		const { duration, reason } = params
 		const start = Date.now()
 		await new Promise((resolve) => setTimeout(resolve, duration))
@@ -1049,6 +1133,16 @@ export const delayTool = createTool({
 /**
  * Get all utility tools.
  */
-export function getUtilityTools(context: ToolContext) {
-	return [datetimeTool, jsonTool, textTool, mathTool, uuidTool, hashTool, base64Tool, urlTool, delayTool]
+export function getUtilityTools(_context: ToolContext) {
+	return [
+		datetimeTool,
+		jsonTool,
+		textTool,
+		mathTool,
+		uuidTool,
+		hashTool,
+		base64Tool,
+		urlTool,
+		delayTool,
+	]
 }

@@ -1,11 +1,18 @@
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
 import { eq, or } from 'drizzle-orm'
-import { getDb } from '../db'
+import { workspaceMembers, workspaces } from 'web-app/db/schema'
 import type { Database } from 'web-app/db/types'
-import { CreateWorkspaceSchema, ErrorSchema, IdParamSchema, SuccessSchema, UpdateWorkspaceSchema, WorkspaceSchema } from '../schemas'
-import { workspaces, workspaceMembers } from 'web-app/db/schema'
+import { getDb } from '../db'
 import { authMiddleware } from '../middleware'
-import { type WorkspaceRole, isWorkspaceRole, type AuthEnv } from '../types'
+import {
+	CreateWorkspaceSchema,
+	ErrorSchema,
+	IdParamSchema,
+	SuccessSchema,
+	UpdateWorkspaceSchema,
+	WorkspaceSchema,
+} from '../schemas'
+import { type AuthEnv, isWorkspaceRole, type WorkspaceRole } from '../types'
 
 // Define routes
 const listWorkspacesRoute = createRoute({
@@ -204,7 +211,7 @@ const deleteWorkspaceRoute = createRoute({
 async function getUserWorkspaceRole(
 	userId: string,
 	workspaceId: string,
-	db: Database
+	db: Database,
 ): Promise<WorkspaceRole | null> {
 	// Check if user is owner
 	const [workspace] = await db.select().from(workspaces).where(eq(workspaces.id, workspaceId))
@@ -238,12 +245,14 @@ app.openapi(listWorkspacesRoute, async (c) => {
 	const db = await getDb(c)
 	const user = c.get('user')
 
-
 	// Get workspaces where user is owner
 	const ownedWorkspaces = await db.select().from(workspaces).where(eq(workspaces.ownerId, user.id))
 
 	// Get workspaces where user is a member
-	const memberships = await db.select().from(workspaceMembers).where(eq(workspaceMembers.userId, user.id))
+	const memberships = await db
+		.select()
+		.from(workspaceMembers)
+		.where(eq(workspaceMembers.userId, user.id))
 
 	const memberWorkspaceIds = memberships.map((m) => m.workspaceId)
 	const memberWorkspaces =
@@ -255,7 +264,10 @@ app.openapi(listWorkspacesRoute, async (c) => {
 			: []
 
 	// Combine and dedupe
-	const allWorkspaces = [...ownedWorkspaces, ...memberWorkspaces.filter((mw) => !ownedWorkspaces.some((ow) => ow.id === mw.id))]
+	const allWorkspaces = [
+		...ownedWorkspaces,
+		...memberWorkspaces.filter((mw) => !ownedWorkspaces.some((ow) => ow.id === mw.id)),
+	]
 
 	const workspacesData = allWorkspaces.map((workspace) => {
 		const membership = memberships.find((m) => m.workspaceId === workspace.id)
@@ -283,7 +295,6 @@ app.openapi(createWorkspaceRoute, async (c) => {
 	const data = c.req.valid('json')
 	const db = await getDb(c)
 	const user = c.get('user')
-
 
 	// Generate unique slug
 	const baseSlug = data.name
@@ -323,7 +334,7 @@ app.openapi(createWorkspaceRoute, async (c) => {
 			createdAt: workspace.createdAt.toISOString(),
 			updatedAt: workspace.updatedAt.toISOString(),
 		},
-		201
+		201,
 	)
 })
 
@@ -331,7 +342,6 @@ app.openapi(getWorkspaceRoute, async (c) => {
 	const { id } = c.req.valid('param')
 	const db = await getDb(c)
 	const user = c.get('user')
-
 
 	const [workspace] = await db.select().from(workspaces).where(eq(workspaces.id, id))
 
@@ -354,7 +364,7 @@ app.openapi(getWorkspaceRoute, async (c) => {
 			createdAt: workspace.createdAt.toISOString(),
 			updatedAt: workspace.updatedAt.toISOString(),
 		},
-		200
+		200,
 	)
 })
 
@@ -363,7 +373,6 @@ app.openapi(updateWorkspaceRoute, async (c) => {
 	const data = c.req.valid('json')
 	const db = await getDb(c)
 	const user = c.get('user')
-
 
 	// Check access - only owner and admin can update
 	const role = await getUserWorkspaceRole(user.id, id, db)
@@ -397,7 +406,11 @@ app.openapi(updateWorkspaceRoute, async (c) => {
 	}
 	if (data.description !== undefined) updateData.description = data.description
 
-	const [workspace] = await db.update(workspaces).set(updateData).where(eq(workspaces.id, id)).returning()
+	const [workspace] = await db
+		.update(workspaces)
+		.set(updateData)
+		.where(eq(workspaces.id, id))
+		.returning()
 
 	if (!workspace) {
 		return c.json({ error: 'Failed to update workspace' }, 500)
@@ -412,7 +425,7 @@ app.openapi(updateWorkspaceRoute, async (c) => {
 			createdAt: workspace.createdAt.toISOString(),
 			updatedAt: workspace.updatedAt.toISOString(),
 		},
-		200
+		200,
 	)
 })
 
@@ -420,7 +433,6 @@ app.openapi(deleteWorkspaceRoute, async (c) => {
 	const { id } = c.req.valid('param')
 	const db = await getDb(c)
 	const user = c.get('user')
-
 
 	// Check ownership - only owner can delete
 	const [workspace] = await db.select().from(workspaces).where(eq(workspaces.id, id))

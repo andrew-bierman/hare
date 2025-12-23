@@ -1,6 +1,6 @@
-import { createDb } from 'web-app/db'
 import { betterAuth } from 'better-auth'
 import { drizzleAdapter } from 'better-auth/adapters/drizzle'
+import { createDb } from 'web-app/db'
 import * as schema from 'web-app/db/schema'
 
 // Auth instance - will be initialized with D1 binding at runtime
