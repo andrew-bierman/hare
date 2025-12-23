@@ -1,8 +1,5 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
-import { type ChangeEvent, useState } from 'react'
-import { toast } from 'sonner'
 import { Button } from '@workspace/ui/components/button'
 import {
 	Card,
@@ -11,6 +8,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from '@workspace/ui/components/card'
+import { Checkbox } from '@workspace/ui/components/checkbox'
 import { Input } from '@workspace/ui/components/input'
 import { Label } from '@workspace/ui/components/label'
 import {
@@ -21,10 +19,12 @@ import {
 	SelectValue,
 } from '@workspace/ui/components/select'
 import { Textarea } from '@workspace/ui/components/textarea'
-import { Checkbox } from '@workspace/ui/components/checkbox'
+import { useRouter } from 'next/navigation'
+import { type ChangeEvent, useState } from 'react'
+import { toast } from 'sonner'
 import { useWorkspace } from 'web-app/components/providers/workspace-provider'
 import { AgentInstructionsEditor } from 'web-app/components/agent/agent-instructions-editor'
-import { useCreateAgent, useTools, AVAILABLE_MODELS, type Tool } from 'web-app/lib/api/hooks'
+import { AVAILABLE_MODELS, type Tool, useCreateAgent, useTools } from 'web-app/lib/api/hooks'
 
 export default function NewAgentPage() {
 	const router = useRouter()
@@ -42,7 +42,7 @@ export default function NewAgentPage() {
 
 	const handleToolToggle = (toolId: string) => {
 		setSelectedToolIds((prev: string[]) =>
-			prev.includes(toolId) ? prev.filter((id: string) => id !== toolId) : [...prev, toolId]
+			prev.includes(toolId) ? prev.filter((id: string) => id !== toolId) : [...prev, toolId],
 		)
 	}
 
@@ -221,7 +221,10 @@ export default function NewAgentPage() {
 						<CardContent className="space-y-2 text-sm text-muted-foreground">
 							<p>Give your agent a clear, descriptive name that reflects its purpose.</p>
 							<p>Write a detailed system prompt to guide the agent's behavior and responses.</p>
-							<p>Start with Llama 3.3 70B for the best quality, or use a smaller model for faster responses.</p>
+							<p>
+								Start with Llama 3.3 70B for the best quality, or use a smaller model for faster
+								responses.
+							</p>
 							<p>After creation, you'll need to deploy the agent before testing it.</p>
 						</CardContent>
 					</Card>

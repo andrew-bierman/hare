@@ -1,7 +1,9 @@
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
-import { eq, and } from 'drizzle-orm'
-import { getDb } from '../db'
+import { and, eq } from 'drizzle-orm'
+import { agents, agentTools, deployments } from 'web-app/db/schema'
 import type { Database } from 'web-app/db/types'
+import { getDb } from '../db'
+import { authMiddleware, workspaceMiddleware } from '../middleware'
 import {
 	AgentSchema,
 	CreateAgentSchema,
@@ -12,8 +14,6 @@ import {
 	SuccessSchema,
 	UpdateAgentSchema,
 } from '../schemas'
-import { agents, agentTools, deployments } from 'web-app/db/schema'
-import { authMiddleware, workspaceMiddleware } from '../middleware'
 import type { WorkspaceEnv } from '../types'
 
 // Define routes
@@ -282,7 +282,10 @@ const deployAgentRoute = createRoute({
  * Get tool IDs attached to an agent.
  */
 async function getAgentToolIds(agentId: string, db: Database): Promise<string[]> {
-	const rows = await db.select({ toolId: agentTools.toolId }).from(agentTools).where(eq(agentTools.agentId, agentId))
+	const rows = await db
+		.select({ toolId: agentTools.toolId })
+		.from(agentTools)
+		.where(eq(agentTools.agentId, agentId))
 	return rows.map((r) => r.toolId)
 }
 
@@ -297,7 +300,6 @@ app.use('*', workspaceMiddleware)
 app.openapi(listAgentsRoute, async (c) => {
 	const db = await getDb(c)
 	const workspace = c.get('workspace')
-
 
 	const results = await db.select().from(agents).where(eq(agents.workspaceId, workspace.id))
 
@@ -315,7 +317,7 @@ app.openapi(listAgentsRoute, async (c) => {
 			toolIds: await getAgentToolIds(agent.id, db),
 			createdAt: agent.createdAt.toISOString(),
 			updatedAt: agent.updatedAt.toISOString(),
-		}))
+		})),
 	)
 
 	return c.json({ agents: agentsData }, 200)
@@ -327,7 +329,6 @@ app.openapi(createAgentRoute, async (c) => {
 	const user = c.get('user')
 	const workspace = c.get('workspace')
 	const role = c.get('workspaceRole')
-
 
 	// Check write permission
 	if (role === 'viewer') {
@@ -357,7 +358,7 @@ app.openapi(createAgentRoute, async (c) => {
 			data.toolIds.map((toolId: string) => ({
 				agentId: agent.id,
 				toolId,
-			}))
+			})),
 		)
 	}
 
@@ -375,7 +376,7 @@ app.openapi(createAgentRoute, async (c) => {
 			createdAt: agent.createdAt.toISOString(),
 			updatedAt: agent.updatedAt.toISOString(),
 		},
-		201
+		201,
 	)
 })
 
@@ -383,7 +384,6 @@ app.openapi(getAgentRoute, async (c) => {
 	const { id } = c.req.valid('param')
 	const db = await getDb(c)
 	const workspace = c.get('workspace')
-
 
 	// Verify agent belongs to workspace
 	const [agent] = await db
@@ -411,7 +411,7 @@ app.openapi(getAgentRoute, async (c) => {
 			createdAt: agent.createdAt.toISOString(),
 			updatedAt: agent.updatedAt.toISOString(),
 		},
-		200
+		200,
 	)
 })
 
@@ -421,7 +421,6 @@ app.openapi(updateAgentRoute, async (c) => {
 	const db = await getDb(c)
 	const workspace = c.get('workspace')
 	const role = c.get('workspaceRole')
-
 
 	// Check write permission
 	if (role === 'viewer') {
@@ -466,7 +465,7 @@ app.openapi(updateAgentRoute, async (c) => {
 				data.toolIds.map((toolId: string) => ({
 					agentId: id,
 					toolId,
-				}))
+				})),
 			)
 		}
 	}
@@ -487,7 +486,7 @@ app.openapi(updateAgentRoute, async (c) => {
 			createdAt: agent.createdAt.toISOString(),
 			updatedAt: agent.updatedAt.toISOString(),
 		},
-		200
+		200,
 	)
 })
 
@@ -496,7 +495,6 @@ app.openapi(deleteAgentRoute, async (c) => {
 	const db = await getDb(c)
 	const workspace = c.get('workspace')
 	const role = c.get('workspaceRole')
-
 
 	// Check admin permission for delete
 	if (role !== 'owner' && role !== 'admin') {
@@ -523,7 +521,6 @@ app.openapi(deployAgentRoute, async (c) => {
 	const user = c.get('user')
 	const workspace = c.get('workspace')
 	const role = c.get('workspaceRole')
-
 
 	// Check admin permission for deploy
 	if (role !== 'owner' && role !== 'admin') {
@@ -578,7 +575,7 @@ app.openapi(deployAgentRoute, async (c) => {
 			deployedAt: deployment.deployedAt.toISOString(),
 			version,
 		},
-		200
+		200,
 	)
 })
 

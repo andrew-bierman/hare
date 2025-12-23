@@ -1,5 +1,11 @@
 'use client'
 
+import { Badge } from '@workspace/ui/components/badge'
+import { Button } from '@workspace/ui/components/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@workspace/ui/components/card'
+import { Input } from '@workspace/ui/components/input'
+import { Separator } from '@workspace/ui/components/separator'
+import { Skeleton } from '@workspace/ui/components/skeleton'
 import {
 	ArrowLeft,
 	Bot,
@@ -17,20 +23,8 @@ import {
 import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
 import { useEffect, useRef } from 'react'
-import { Badge } from '@workspace/ui/components/badge'
-import { Button } from '@workspace/ui/components/button'
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from '@workspace/ui/components/card'
-import { Input } from '@workspace/ui/components/input'
-import { Separator } from '@workspace/ui/components/separator'
-import { Skeleton } from '@workspace/ui/components/skeleton'
 import { useWorkspace } from 'web-app/components/providers/workspace-provider'
-import { useAgent, useChat, AVAILABLE_MODELS } from 'web-app/lib/api/hooks'
+import { AVAILABLE_MODELS, useAgent, useChat } from 'web-app/lib/api/hooks'
 import { ToolCallList } from 'web-app/components/chat/tool-call-list'
 
 function LoadingSkeleton() {
@@ -67,7 +61,7 @@ export default function PlaygroundPage() {
 	// Auto-scroll to bottom on new messages
 	useEffect(() => {
 		messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-	}, [messages])
+	}, [])
 
 	const handleSend = () => {
 		const input = inputRef.current
@@ -223,9 +217,7 @@ export default function PlaygroundPage() {
 										>
 											<div
 												className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
-													message.role === 'user'
-														? 'bg-primary'
-														: 'bg-primary/10'
+													message.role === 'user' ? 'bg-primary' : 'bg-primary/10'
 												}`}
 											>
 												{message.role === 'user' ? (

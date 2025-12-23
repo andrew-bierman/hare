@@ -1,9 +1,5 @@
 'use client'
 
-import { useParams, useRouter } from 'next/navigation'
-import { type ChangeEvent, useEffect, useState } from 'react'
-import { toast } from 'sonner'
-import { Rocket, Trash2 } from 'lucide-react'
 import { Badge } from '@workspace/ui/components/badge'
 import { Button } from '@workspace/ui/components/button'
 import {
@@ -13,6 +9,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from '@workspace/ui/components/card'
+import { Checkbox } from '@workspace/ui/components/checkbox'
 import {
 	Dialog,
 	DialogContent,
@@ -33,18 +30,22 @@ import {
 import { Skeleton } from '@workspace/ui/components/skeleton'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@workspace/ui/components/tabs'
 import { Textarea } from '@workspace/ui/components/textarea'
+import { Rocket, Trash2 } from 'lucide-react'
+import { useParams, useRouter } from 'next/navigation'
+import { type ChangeEvent, useEffect, useState } from 'react'
+import { toast } from 'sonner'
 import { useWorkspace } from 'web-app/components/providers/workspace-provider'
 import { AgentInstructionsEditor } from 'web-app/components/agent/agent-instructions-editor'
 import { ToolPicker } from 'web-app/components/agent/tool-picker'
 import {
+	AVAILABLE_MODELS,
+	type Tool,
 	useAgent,
-	useUpdateAgent,
+	useAgentUsage,
 	useDeleteAgent,
 	useDeployAgent,
 	useTools,
-	useAgentUsage,
-	AVAILABLE_MODELS,
-	type Tool,
+	useUpdateAgent,
 } from 'web-app/lib/api/hooks'
 
 function LoadingSkeleton() {
@@ -168,11 +169,20 @@ export default function AgentBuilderPage() {
 	const getStatusDisplay = (status: string) => {
 		switch (status) {
 			case 'deployed':
-				return { label: 'Deployed', className: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300' }
+				return {
+					label: 'Deployed',
+					className: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300',
+				}
 			case 'draft':
-				return { label: 'Draft', className: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300' }
+				return {
+					label: 'Draft',
+					className: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300',
+				}
 			case 'archived':
-				return { label: 'Archived', className: 'bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300' }
+				return {
+					label: 'Archived',
+					className: 'bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300',
+				}
 			default:
 				return { label: status, className: '' }
 		}
@@ -186,9 +196,7 @@ export default function AgentBuilderPage() {
 		return (
 			<div className="flex-1 p-8 pt-6">
 				<Card className="p-6 text-center">
-					<p className="text-destructive">
-						{error?.message || 'Agent not found'}
-					</p>
+					<p className="text-destructive">{error?.message || 'Agent not found'}</p>
 					<Button className="mt-4" onClick={() => router.push('/dashboard/agents')}>
 						Back to Agents
 					</Button>
@@ -260,7 +268,9 @@ export default function AgentBuilderPage() {
 										<Textarea
 											id="description"
 											value={description}
-											onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setDescription(e.target.value)}
+											onChange={(e: ChangeEvent<HTMLTextAreaElement>) =>
+												setDescription(e.target.value)
+											}
 											className="h-24"
 										/>
 									</div>
@@ -420,11 +430,7 @@ export default function AgentBuilderPage() {
 						<Button variant="outline" onClick={() => setIsDeleteOpen(false)}>
 							Cancel
 						</Button>
-						<Button
-							variant="destructive"
-							onClick={handleDelete}
-							disabled={deleteAgent.isPending}
-						>
+						<Button variant="destructive" onClick={handleDelete} disabled={deleteAgent.isPending}>
 							{deleteAgent.isPending ? 'Deleting...' : 'Delete'}
 						</Button>
 					</DialogFooter>

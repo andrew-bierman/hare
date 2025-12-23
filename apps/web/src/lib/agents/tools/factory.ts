@@ -1,9 +1,9 @@
-import { z } from 'zod'
-import type { Database } from 'web-app/db/types'
 import { eq } from 'drizzle-orm'
-import { tools as toolsTable, agentTools } from 'web-app/db/schema'
-import { type Tool, type ToolContext, type ToolConfig, createTool, failure } from './types'
+import { agentTools, tools as toolsTable } from 'web-app/db/schema'
+import type { Database } from 'web-app/db/types'
+import { z } from 'zod'
 import { httpRequestTool } from './http'
+import { createTool, failure, type Tool, type ToolConfig, type ToolContext } from './types'
 
 /**
  * Build a Zod schema from a JSON Schema-like configuration.
@@ -23,9 +23,16 @@ function buildInputSchema(inputSchema: Record<string, unknown> | null | undefine
 /**
  * Load tools attached to an agent from the database.
  */
-export async function loadAgentTools(agentId: string, db: Database, context: ToolContext): Promise<Tool[]> {
+export async function loadAgentTools(
+	agentId: string,
+	db: Database,
+	context: ToolContext,
+): Promise<Tool[]> {
 	// Get tool IDs attached to this agent
-	const attachedTools = await db.select({ toolId: agentTools.toolId }).from(agentTools).where(eq(agentTools.agentId, agentId))
+	const attachedTools = await db
+		.select({ toolId: agentTools.toolId })
+		.from(agentTools)
+		.where(eq(agentTools.agentId, agentId))
 
 	if (attachedTools.length === 0) {
 		return []
@@ -39,7 +46,9 @@ export async function loadAgentTools(agentId: string, db: Database, context: Too
 	const attachedConfigs = toolConfigs.filter((t) => toolIds.includes(t.id))
 
 	// Convert to executable tools
-	return attachedConfigs.map((config) => createToolFromConfig(config as ToolConfig, context)).filter((t): t is Tool => t !== null)
+	return attachedConfigs
+		.map((config) => createToolFromConfig(config as ToolConfig, context))
+		.filter((t): t is Tool => t !== null)
 }
 
 /**
@@ -60,7 +69,7 @@ function createToolFromConfig(config: ToolConfig, context: ToolContext): Tool | 
 /**
  * Create an HTTP tool from configuration.
  */
-function createHTTPToolFromConfig(config: ToolConfig, context: ToolContext): Tool {
+function createHTTPToolFromConfig(config: ToolConfig, _context: ToolContext): Tool {
 	const toolConfig = config.config as {
 		url?: string
 		method?: string
@@ -92,7 +101,7 @@ function createHTTPToolFromConfig(config: ToolConfig, context: ToolContext): Too
  * Currently, custom tools will return an error indicating they need to be
  * executed in a Cloudflare Worker or similar isolated environment.
  */
-function createCustomToolFromConfig(config: ToolConfig, context: ToolContext): Tool {
+function createCustomToolFromConfig(config: ToolConfig, _context: ToolContext): Tool {
 	// Use the tool's own input schema, not a misleading HTTP fallback
 	const inputSchema = buildInputSchema(config.inputSchema)
 
@@ -100,7 +109,7 @@ function createCustomToolFromConfig(config: ToolConfig, context: ToolContext): T
 		id: config.id,
 		description: config.description || '',
 		inputSchema,
-		execute: async (params, ctx) => {
+		execute: async (_params, _ctx) => {
 			if (!config.code) {
 				return failure('No code provided for custom tool')
 			}
@@ -110,7 +119,7 @@ function createCustomToolFromConfig(config: ToolConfig, context: ToolContext): T
 			return failure(
 				'Custom tool execution is not available in this environment. ' +
 					'Custom tools must be executed in a sandboxed Cloudflare Worker. ' +
-					'Please use built-in tool types (http, kv, r2, sql, vectorize) instead.'
+					'Please use built-in tool types (http, kv, r2, sql, vectorize) instead.',
 			)
 		},
 	})

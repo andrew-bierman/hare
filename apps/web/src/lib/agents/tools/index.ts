@@ -5,49 +5,50 @@
  * Includes system tools, utility tools, AI tools, integration tools, and data tools.
  */
 
-// Types and utilities
-export { createTool, success, failure, type Tool, type ToolContext, type ToolConfig, type ToolResult, type ToolType } from './types'
-
 // Tool factory
 export { loadAgentTools } from './factory'
+// Types and utilities
+export {
+	createTool,
+	failure,
+	success,
+	type Tool,
+	type ToolConfig,
+	type ToolContext,
+	type ToolResult,
+	type ToolType,
+} from './types'
 
 // ==========================================
 // SYSTEM TOOLS (Cloudflare Native)
 // ==========================================
 
-// KV tools
-export { kvGetTool, kvPutTool, kvDeleteTool, kvListTool, getKVTools } from './kv'
-
-// R2 tools
-export { r2GetTool, r2PutTool, r2DeleteTool, r2ListTool, r2HeadTool, getR2Tools } from './r2'
-
-// SQL tools
-export { sqlQueryTool, sqlExecuteTool, sqlBatchTool, getSQLTools } from './sql'
-
-// Vectorize tools
-export { vectorizeInsertTool, vectorizeQueryTool, vectorizeDeleteTool, vectorizeGetTool, getVectorizeTools } from './vectorize'
-
 // HTTP tools
-export { httpRequestTool, httpGetTool, httpPostTool, getHTTPTools } from './http'
-
-// Search tools
-export { semanticSearchTool, memorySearchTool, getSearchTools } from './search'
+export { getHTTPTools, httpGetTool, httpPostTool, httpRequestTool } from './http'
+// KV tools
+export { getKVTools, kvDeleteTool, kvGetTool, kvListTool, kvPutTool } from './kv'
+// R2 tools
+export { getR2Tools, r2DeleteTool, r2GetTool, r2HeadTool, r2ListTool, r2PutTool } from './r2'
+// Search tools (AutoRAG/AI Search)
+export { aiSearchAnswerTool, aiSearchTool, getSearchTools } from './search'
+// SQL tools
+export { getSQLTools, sqlBatchTool, sqlExecuteTool, sqlQueryTool } from './sql'
 
 // ==========================================
 // UTILITY TOOLS
 // ==========================================
 
 export {
-	datetimeTool,
-	jsonTool,
-	textTool,
-	mathTool,
-	uuidTool,
-	hashTool,
 	base64Tool,
-	urlTool,
+	datetimeTool,
 	delayTool,
 	getUtilityTools,
+	hashTool,
+	jsonTool,
+	mathTool,
+	textTool,
+	urlTool,
+	uuidTool,
 } from './utility'
 
 // ==========================================
@@ -55,9 +56,9 @@ export {
 // ==========================================
 
 export {
-	zapierTool,
-	webhookTool,
 	getIntegrationTools,
+	webhookTool,
+	zapierTool,
 } from './integrations'
 
 // ==========================================
@@ -65,15 +66,15 @@ export {
 // ==========================================
 
 export {
+	classifyTool,
+	embeddingTool,
+	getAITools,
+	imageGenerateTool,
+	nerTool,
+	qaTool,
 	sentimentTool,
 	summarizeTool,
 	translateTool,
-	imageGenerateTool,
-	classifyTool,
-	nerTool,
-	embeddingTool,
-	qaTool,
-	getAITools,
 } from './ai'
 
 // ==========================================
@@ -81,14 +82,14 @@ export {
 // ==========================================
 
 export {
+	cryptoTool,
+	csvTool,
+	getDataTools,
+	jsonSchemaTool,
+	regexTool,
 	rssTool,
 	scrapeTool,
-	regexTool,
-	cryptoTool,
-	jsonSchemaTool,
-	csvTool,
 	templateTool,
-	getDataTools,
 } from './data'
 
 // ==========================================
@@ -98,9 +99,9 @@ export {
 export {
 	codeExecuteTool,
 	codeValidateTool,
-	sandboxFileTool,
-	getSandboxTools,
 	executeSandboxed,
+	getSandboxTools,
+	sandboxFileTool,
 } from './sandbox'
 
 // ==========================================
@@ -108,13 +109,13 @@ export {
 // ==========================================
 
 export {
-	validateEmailTool,
-	validatePhoneTool,
-	validateUrlTool,
+	getValidationTools,
 	validateCreditCardTool,
+	validateEmailTool,
 	validateIpTool,
 	validateJsonTool,
-	getValidationTools,
+	validatePhoneTool,
+	validateUrlTool,
 } from './validation'
 
 // ==========================================
@@ -122,32 +123,31 @@ export {
 // ==========================================
 
 export {
-	markdownTool,
-	diffTool,
-	qrcodeTool,
-	compressionTool,
 	colorTool,
+	compressionTool,
+	diffTool,
 	getTransformTools,
+	markdownTool,
+	qrcodeTool,
 } from './transform'
 
 // ==========================================
 // TOOL AGGREGATION
 // ==========================================
 
-import { type Tool, type ToolContext } from './types'
-import { getKVTools } from './kv'
-import { getR2Tools } from './r2'
-import { getSQLTools } from './sql'
-import { getVectorizeTools } from './vectorize'
-import { getHTTPTools } from './http'
-import { getSearchTools } from './search'
-import { getUtilityTools } from './utility'
-import { getIntegrationTools } from './integrations'
 import { getAITools } from './ai'
 import { getDataTools } from './data'
+import { getHTTPTools } from './http'
+import { getIntegrationTools } from './integrations'
+import { getKVTools } from './kv'
+import { getR2Tools } from './r2'
 import { getSandboxTools } from './sandbox'
-import { getValidationTools } from './validation'
+import { getSearchTools } from './search'
+import { getSQLTools } from './sql'
 import { getTransformTools } from './transform'
+import type { Tool, ToolContext } from './types'
+import { getUtilityTools } from './utility'
+import { getValidationTools } from './validation'
 
 /**
  * Tool categories for organization and filtering.
@@ -176,7 +176,6 @@ export function getSystemTools(context: ToolContext): Tool[] {
 		...getKVTools(context),
 		...getR2Tools(context),
 		...getSQLTools(context),
-		...getVectorizeTools(context),
 		...getHTTPTools(context),
 		...getSearchTools(context),
 		// Utility tools
@@ -206,7 +205,7 @@ export function getToolsByCategory(category: ToolCategory, context: ToolContext)
 		case 'database':
 			return getSQLTools(context)
 		case 'search':
-			return [...getVectorizeTools(context), ...getSearchTools(context)]
+			return getSearchTools(context)
 		case 'http':
 			return getHTTPTools(context)
 		case 'utility':
@@ -223,7 +222,6 @@ export function getToolsByCategory(category: ToolCategory, context: ToolContext)
 			return getValidationTools(context)
 		case 'transform':
 			return getTransformTools(context)
-		case 'all':
 		default:
 			return getSystemTools(context)
 	}
@@ -242,26 +240,70 @@ export function getSystemToolsMap(context: ToolContext): Map<string, Tool> {
  */
 export const SYSTEM_TOOL_IDS = [
 	// Cloudflare native
-	'kv_get', 'kv_put', 'kv_delete', 'kv_list',
-	'r2_get', 'r2_put', 'r2_delete', 'r2_list', 'r2_head',
-	'sql_query', 'sql_execute', 'sql_batch',
-	'vectorize_insert', 'vectorize_query', 'vectorize_delete', 'vectorize_get',
-	'http_request', 'http_get', 'http_post',
-	'semantic_search', 'memory_search',
+	'kv_get',
+	'kv_put',
+	'kv_delete',
+	'kv_list',
+	'r2_get',
+	'r2_put',
+	'r2_delete',
+	'r2_list',
+	'r2_head',
+	'sql_query',
+	'sql_execute',
+	'sql_batch',
+	'http_request',
+	'http_get',
+	'http_post',
+	'ai_search',
+	'ai_search_answer',
 	// Utility
-	'datetime', 'json', 'text', 'math', 'uuid', 'hash', 'base64', 'url', 'delay',
+	'datetime',
+	'json',
+	'text',
+	'math',
+	'uuid',
+	'hash',
+	'base64',
+	'url',
+	'delay',
 	// Integrations (Zapier = single hub for externals)
-	'zapier', 'webhook',
+	'zapier',
+	'webhook',
 	// AI (Workers AI - no external APIs)
-	'sentiment', 'summarize', 'translate', 'image_generate', 'classify', 'ner', 'embedding', 'question_answer',
+	'sentiment',
+	'summarize',
+	'translate',
+	'image_generate',
+	'classify',
+	'ner',
+	'embedding',
+	'question_answer',
 	// Data
-	'rss', 'scrape', 'regex', 'crypto', 'json_schema', 'csv', 'template',
+	'rss',
+	'scrape',
+	'regex',
+	'crypto',
+	'json_schema',
+	'csv',
+	'template',
 	// Sandbox (Cloudflare Sandbox SDK)
-	'code_execute', 'code_validate', 'sandbox_file',
+	'code_execute',
+	'code_validate',
+	'sandbox_file',
 	// Validation
-	'validate_email', 'validate_phone', 'validate_url', 'validate_credit_card', 'validate_ip', 'validate_json',
+	'validate_email',
+	'validate_phone',
+	'validate_url',
+	'validate_credit_card',
+	'validate_ip',
+	'validate_json',
 	// Transform
-	'markdown', 'diff', 'qrcode', 'compression', 'color',
+	'markdown',
+	'diff',
+	'qrcode',
+	'compression',
+	'color',
 ] as const
 
 export type SystemToolId = (typeof SYSTEM_TOOL_IDS)[number]
@@ -277,7 +319,7 @@ export function isSystemTool(toolId: string): toolId is SystemToolId {
  * Tool count by category (for documentation)
  */
 export const TOOL_COUNTS = {
-	cloudflare: 21, // KV, R2, SQL, Vectorize, HTTP, Search
+	cloudflare: 17, // KV(4), R2(5), SQL(3), HTTP(3), Search(2)
 	utility: 9,
 	integrations: 2, // Zapier (all externals) + generic webhook
 	ai: 8,
@@ -285,5 +327,5 @@ export const TOOL_COUNTS = {
 	sandbox: 3,
 	validation: 6,
 	transform: 5,
-	total: 61,
+	total: 57,
 } as const

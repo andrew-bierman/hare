@@ -1,19 +1,24 @@
 import { z } from 'zod'
-import { createTool, success, failure, type ToolContext } from './types'
+import { createTool, success, type ToolContext } from './types'
 
 /**
  * Email Validation Tool
  */
 export const validateEmailTool = createTool({
 	id: 'validate_email',
-	description: 'Validate email addresses. Checks format, common typos, and optionally checks MX records.',
+	description:
+		'Validate email addresses. Checks format, common typos, and optionally checks MX records.',
 	inputSchema: z.object({
 		email: z.string().describe('Email address to validate'),
 		checkMx: z.boolean().optional().default(false).describe('Check if domain has valid MX records'),
-		suggestCorrection: z.boolean().optional().default(true).describe('Suggest corrections for common typos'),
+		suggestCorrection: z
+			.boolean()
+			.optional()
+			.default(true)
+			.describe('Suggest corrections for common typos'),
 	}),
-	execute: async (params, context) => {
-		const { email, checkMx, suggestCorrection } = params
+	execute: async (params, _context) => {
+		const { email, checkMx: _checkMx, suggestCorrection } = params
 
 		const result: {
 			valid: boolean
@@ -29,7 +34,8 @@ export const validateEmailTool = createTool({
 		}
 
 		// Basic format check
-		const emailRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/
+		const emailRegex =
+			/^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/
 		if (!emailRegex.test(email)) {
 			result.valid = false
 			result.errors.push('Invalid email format')
@@ -99,10 +105,18 @@ export const validatePhoneTool = createTool({
 	description: 'Validate and format phone numbers. Supports international formats.',
 	inputSchema: z.object({
 		phone: z.string().describe('Phone number to validate'),
-		country: z.string().optional().default('US').describe('Expected country code (ISO 3166-1 alpha-2)'),
-		format: z.enum(['e164', 'national', 'international']).optional().default('e164').describe('Output format'),
+		country: z
+			.string()
+			.optional()
+			.default('US')
+			.describe('Expected country code (ISO 3166-1 alpha-2)'),
+		format: z
+			.enum(['e164', 'national', 'international'])
+			.optional()
+			.default('e164')
+			.describe('Output format'),
 	}),
-	execute: async (params, context) => {
+	execute: async (params, _context) => {
 		const { phone, country, format } = params
 
 		// Remove all non-digit characters except leading +
@@ -136,7 +150,7 @@ export const validatePhoneTool = createTool({
 				pattern: /^1?([2-9]\d{2})([2-9]\d{2})(\d{4})$/,
 				format: (d) => {
 					const match = d.match(/^1?(\d{3})(\d{3})(\d{4})$/)
-					if (!match) return d
+					if (!match?.[1] || !match[2] || !match[3]) return d
 					return format === 'e164'
 						? `+1${match[1]}${match[2]}${match[3]}`
 						: format === 'national'
@@ -155,7 +169,7 @@ export const validatePhoneTool = createTool({
 				pattern: /^1?([2-9]\d{2})([2-9]\d{2})(\d{4})$/,
 				format: (d) => {
 					const match = d.match(/^1?(\d{3})(\d{3})(\d{4})$/)
-					if (!match) return d
+					if (!match?.[1] || !match[2] || !match[3]) return d
 					return format === 'e164'
 						? `+1${match[1]}${match[2]}${match[3]}`
 						: `+1 (${match[1]}) ${match[2]}-${match[3]}`
@@ -190,14 +204,23 @@ export const validatePhoneTool = createTool({
  */
 export const validateUrlTool = createTool({
 	id: 'validate_url',
-	description: 'Validate URLs. Checks format, protocol, and optionally verifies the URL is reachable.',
+	description:
+		'Validate URLs. Checks format, protocol, and optionally verifies the URL is reachable.',
 	inputSchema: z.object({
 		url: z.string().describe('URL to validate'),
-		allowedProtocols: z.array(z.string()).optional().default(['http', 'https']).describe('Allowed protocols'),
-		checkReachable: z.boolean().optional().default(false).describe('Check if URL is reachable (HEAD request)'),
+		allowedProtocols: z
+			.array(z.string())
+			.optional()
+			.default(['http', 'https'])
+			.describe('Allowed protocols'),
+		checkReachable: z
+			.boolean()
+			.optional()
+			.default(false)
+			.describe('Check if URL is reachable (HEAD request)'),
 		timeout: z.number().optional().default(5000).describe('Timeout for reachability check'),
 	}),
-	execute: async (params, context) => {
+	execute: async (params, _context) => {
 		const { url, allowedProtocols, checkReachable, timeout } = params
 
 		const result: {
@@ -234,7 +257,9 @@ export const validateUrlTool = createTool({
 			// Check allowed protocols
 			if (!allowedProtocols.includes(protocol)) {
 				result.valid = false
-				result.errors.push(`Protocol '${protocol}' not allowed. Allowed: ${allowedProtocols.join(', ')}`)
+				result.errors.push(
+					`Protocol '${protocol}' not allowed. Allowed: ${allowedProtocols.join(', ')}`,
+				)
 			}
 
 			// Check for valid hostname
@@ -270,7 +295,7 @@ export const validateUrlTool = createTool({
 					}
 				}
 			}
-		} catch (error) {
+		} catch (_error) {
 			result.valid = false
 			result.errors.push('Invalid URL format')
 		}
@@ -284,14 +309,15 @@ export const validateUrlTool = createTool({
  */
 export const validateCreditCardTool = createTool({
 	id: 'validate_credit_card',
-	description: 'Validate credit card numbers using the Luhn algorithm. Detects card type (Visa, Mastercard, etc.).',
+	description:
+		'Validate credit card numbers using the Luhn algorithm. Detects card type (Visa, Mastercard, etc.).',
 	inputSchema: z.object({
 		number: z.string().describe('Credit card number to validate'),
 		validateExpiry: z.boolean().optional().default(false).describe('Also validate expiry date'),
 		expiryMonth: z.number().optional().describe('Expiry month (1-12)'),
 		expiryYear: z.number().optional().describe('Expiry year (2-digit or 4-digit)'),
 	}),
-	execute: async (params, context) => {
+	execute: async (params, _context) => {
 		const { number, validateExpiry, expiryMonth, expiryYear } = params
 
 		// Remove spaces and dashes
@@ -348,7 +374,9 @@ export const validateCreditCardTool = createTool({
 		let isEven = false
 
 		for (let i = cleaned.length - 1; i >= 0; i--) {
-			let digit = parseInt(cleaned[i], 10)
+			const char = cleaned[i]
+			if (!char) continue
+			let digit = parseInt(char, 10)
 
 			if (isEven) {
 				digit *= 2
@@ -398,12 +426,13 @@ export const validateCreditCardTool = createTool({
  */
 export const validateIpTool = createTool({
 	id: 'validate_ip',
-	description: 'Validate IP addresses (IPv4 and IPv6). Detects type and checks for reserved ranges.',
+	description:
+		'Validate IP addresses (IPv4 and IPv6). Detects type and checks for reserved ranges.',
 	inputSchema: z.object({
 		ip: z.string().describe('IP address to validate'),
 		checkType: z.boolean().optional().default(true).describe('Detect IP type and range'),
 	}),
-	execute: async (params, context) => {
+	execute: async (params, _context) => {
 		const { ip, checkType } = params
 
 		const result: {
@@ -434,10 +463,17 @@ export const validateIpTool = createTool({
 				result.version = 4
 
 				if (checkType) {
-					const [a, b, c, d] = octets
+					const a = octets[0]
+					const b = octets[1]
+					const c = octets[2]
+					const d = octets[3]
 
+					if (a === undefined || b === undefined || c === undefined || d === undefined) {
+						result.valid = false
+						result.errors.push('Invalid IP address format')
+					}
 					// Check loopback
-					if (a === 127) {
+					else if (a === 127) {
 						result.isLoopback = true
 						result.type = 'loopback'
 					}
@@ -523,10 +559,14 @@ export const validateJsonTool = createTool({
 	description: 'Validate JSON strings. Provides detailed error messages for invalid JSON.',
 	inputSchema: z.object({
 		json: z.string().describe('JSON string to validate'),
-		strict: z.boolean().optional().default(false).describe('Strict mode (no trailing commas, no comments)'),
+		strict: z
+			.boolean()
+			.optional()
+			.default(false)
+			.describe('Strict mode (no trailing commas, no comments)'),
 	}),
-	execute: async (params, context) => {
-		const { json, strict } = params
+	execute: async (params, _context) => {
+		const { json, strict: _strict } = params
 
 		const result: {
 			valid: boolean
@@ -557,12 +597,14 @@ export const validateJsonTool = createTool({
 
 				// Try to extract position from error message
 				const posMatch = error.message.match(/position (\d+)/)
-				if (posMatch) {
-					const pos = parseInt(posMatch[1], 10)
+				const posStr = posMatch?.[1]
+				if (posStr) {
+					const pos = parseInt(posStr, 10)
 					const lines = json.substring(0, pos).split('\n')
+					const lastLine = lines[lines.length - 1]
 					result.position = {
 						line: lines.length,
-						column: lines[lines.length - 1].length + 1,
+						column: (lastLine?.length ?? 0) + 1,
 					}
 				}
 			} else {
@@ -577,7 +619,7 @@ export const validateJsonTool = createTool({
 /**
  * Get all validation tools
  */
-export function getValidationTools(context: ToolContext) {
+export function getValidationTools(_context: ToolContext) {
 	return [
 		validateEmailTool,
 		validatePhoneTool,

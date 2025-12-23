@@ -3,16 +3,16 @@ import { apiReference } from '@scalar/hono-api-reference'
 import { cors } from 'hono/cors'
 import { logger } from 'hono/logger'
 import { CloudflareEnvError } from './db'
-import type { HonoEnv } from './types'
-
 // Import route modules
 import agents from './routes/agents'
 import analytics from './routes/analytics'
 import auth from './routes/auth'
 import chat from './routes/chat'
+import dev from './routes/dev'
 import tools from './routes/tools'
 import usage from './routes/usage'
 import workspaces from './routes/workspaces'
+import type { HonoEnv } from './types'
 
 // Create base app with proper Cloudflare bindings type
 const app = new OpenAPIHono<HonoEnv>().basePath('/api')
@@ -41,6 +41,7 @@ const routes = app
 	.route('/auth', auth)
 	.route('/chat', chat)
 	.route('/usage', usage)
+	.route('/dev', dev)
 
 // OpenAPI documentation
 app.doc('/openapi.json', {
