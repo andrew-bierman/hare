@@ -204,10 +204,11 @@ describe('API Schemas', () => {
 			expect(ToolTypeSchema.safeParse('r2').success).toBe(true)
 			expect(ToolTypeSchema.safeParse('vectorize').success).toBe(true)
 			expect(ToolTypeSchema.safeParse('custom').success).toBe(true)
+			expect(ToolTypeSchema.safeParse('webhook').success).toBe(true)
 		})
 
 		it('rejects invalid tool types', () => {
-			expect(ToolTypeSchema.safeParse('webhook').success).toBe(false)
+			expect(ToolTypeSchema.safeParse('invalid_type').success).toBe(false)
 			expect(ToolTypeSchema.safeParse('api').success).toBe(false)
 		})
 	})
