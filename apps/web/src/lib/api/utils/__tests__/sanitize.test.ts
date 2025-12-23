@@ -85,6 +85,12 @@ describe('sanitizeFilename', () => {
 		expect(sanitizeFilename('..\\..\\windows\\system32')).toBe('windowssystem32')
 	})
 
+	it('should handle nested path traversal attempts', () => {
+		// Attacker tries to bypass by nesting '..' sequences
+		expect(sanitizeFilename('....//....//etc/passwd')).toBe('etcpasswd')
+		expect(sanitizeFilename('....\\.....\\windows')).toBe('windows')
+	})
+
 	it('should remove path separators', () => {
 		expect(sanitizeFilename('path/to/file.txt')).toBe('pathtofile.txt')
 		expect(sanitizeFilename('windows\\path\\file.txt')).toBe('windowspathfile.txt')

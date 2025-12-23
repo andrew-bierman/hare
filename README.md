@@ -592,6 +592,9 @@ CLOUDFLARE_D1_DATABASE_ID=your_database_id
 BETTER_AUTH_SECRET=your_secret_here  # Generate with: openssl rand -base64 32
 BETTER_AUTH_URL=http://localhost:3000
 
+# 🔒 Security (Beta Access Control)
+ENFORCE_BETA_ACCESS=false  # Set to 'true' in production to enforce beta access control
+
 # 🔑 OAuth Providers (optional - for social login)
 GOOGLE_CLIENT_ID=your_google_client_id
 GOOGLE_CLIENT_SECRET=your_google_client_secret
@@ -611,6 +614,100 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 - Generate a secure auth secret: `openssl rand -base64 32`
 - Get your Cloudflare credentials from the [Cloudflare Dashboard](https://dash.cloudflare.com/)
 - OAuth credentials can be obtained from [Google Cloud Console](https://console.cloud.google.com/) and [GitHub Settings](https://github.com/settings/developers)
+
+---
+
+## Security Features
+
+Hare includes comprehensive security measures to protect your application and data:
+
+### 🔒 Beta Access Control
+
+During beta testing, access to AI features can be restricted to approved users:
+
+- **Beta Access Table**: Tracks which users have access to AI features
+- **Middleware Protection**: Chat endpoints require beta access when enabled
+- **Admin Management**: Admins can grant/revoke access via API endpoints at `/api/admin/beta-access`
+- **Auto-Grant in Dev**: Development mode automatically grants access for testing
+- **Environment Control**: Set `ENFORCE_BETA_ACCESS=true` to enable in production
+
+### 🚦 Rate Limiting
+
+Protects against abuse with configurable rate limits:
+
+- **Per-User Limits**: 100 requests/hour and 50,000 tokens/hour per user (configurable)
+- **Time Windows**: Rolling 1-hour windows for rate limit tracking
+- **Response Headers**: `X-RateLimit-*` headers show remaining quota
+- **IP Tracking**: Records IP addresses and user agents for monitoring
+- **Automatic Cleanup**: Rate limit windows reset automatically
+
+### 🛡️ Security Headers
+
+All API responses include security headers:
+
+- **CSP**: Content Security Policy to prevent XSS attacks
+- **HSTS**: Strict Transport Security for HTTPS enforcement
+- **X-Frame-Options**: Prevents clickjacking attacks
+- **X-Content-Type-Options**: Prevents MIME sniffing
+- **Referrer Policy**: Controls referrer information
+- **Permissions Policy**: Restricts browser features
+
+### 🔐 CORS Configuration
+
+Secure cross-origin resource sharing:
+
+- **Allowed Origins**: Configurable via environment variables
+- **Credentials Support**: Allows cookies for authentication
+- **Method Restrictions**: Only allows necessary HTTP methods
+- **Header Control**: Exposes rate limit headers
+
+### 🧹 Input Sanitization
+
+Comprehensive input validation and sanitization:
+
+- **XSS Protection**: HTML entity encoding for user input
+- **Path Traversal Prevention**: Filename and URL sanitization
+- **SQL Injection**: All queries use parameterized statements (Drizzle ORM)
+- **Metadata Cleaning**: Removes dangerous object properties
+- **Content Validation**: Checks agent instructions for suspicious patterns
+
+### 🔍 Security Scanning
+
+Automated security checks:
+
+- **CodeQL Analysis**: Continuous security scanning (currently 0 issues)
+- **Dependency Scanning**: Regular checks for vulnerable packages
+- **TypeScript Strict Mode**: Catches potential issues at compile time
+
+### 📊 Audit Trail
+
+Track usage and access:
+
+- **Usage Tracking**: Records all API calls with metadata
+- **Last Access**: Tracks when beta users last used AI features
+- **IP and User Agent**: Logged for rate limiting and security monitoring
+
+### 🔑 API Key Management
+
+Secure API key system (in usage table):
+
+- **Hashed Storage**: Keys are hashed before storage
+- **Scoped Permissions**: Keys can be limited to specific agents/endpoints
+- **Expiration**: Optional expiration dates for temporary access
+- **Usage Tracking**: Last used timestamp for each key
+
+### 📝 Best Practices
+
+When deploying to production:
+
+1. **Enable Beta Access**: Set `ENFORCE_BETA_ACCESS=true`
+2. **Use HTTPS**: Always use SSL/TLS certificates
+3. **Rotate Secrets**: Change `BETTER_AUTH_SECRET` regularly
+4. **Review Access**: Periodically audit beta access list
+5. **Monitor Usage**: Check rate limit logs for suspicious activity
+6. **Update Dependencies**: Keep packages up to date
+7. **Configure CORS**: Set strict allowed origins
+8. **Review Logs**: Monitor error logs for security issues
 
 ---
 

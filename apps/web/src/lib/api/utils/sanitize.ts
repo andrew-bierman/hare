@@ -39,9 +39,17 @@ export function sanitizeUserInput(input: string): string {
 
 /**
  * Sanitize SQL input by escaping single quotes
- * Note: Use parameterized queries whenever possible instead of this
+ * 
+ * @deprecated This function provides incomplete protection against SQL injection.
+ * Always use parameterized queries or prepared statements instead.
+ * This is kept only for legacy compatibility and should NOT be used for new code.
+ * 
+ * SQL injection protection requires proper use of parameterized queries with your database library.
+ * For Drizzle ORM: Use the built-in query builder with parameters
+ * For raw SQL: Use db.prepare() with bound parameters
  */
 export function sanitizeSql(input: string): string {
+	// Only escapes single quotes - does NOT provide complete SQL injection protection
 	return input.replace(/'/g, "''")
 }
 
@@ -92,14 +100,23 @@ export function sanitizeUrl(url: string): string {
  * Prevents directory traversal attacks
  */
 export function sanitizeFilename(filename: string): string {
-	// Remove path traversal attempts
-	let sanitized = filename.replace(/\.\./g, '')
+	let sanitized = filename
+
+	// Remove path traversal attempts - use while loop to handle nested sequences
+	// This handles cases like '.../.../' that would become '../' after single pass
+	while (sanitized.includes('..')) {
+		sanitized = sanitized.replace(/\.\./g, '')
+	}
 
 	// Remove path separators
 	sanitized = sanitized.replace(/[/\\]/g, '')
 
-	// Remove null bytes
-	sanitized = sanitized.replace(/\0/g, '')
+	// Remove null bytes and other dangerous characters
+	sanitized = sanitized.replace(/[\0\x00]/g, '')
+
+	// Remove any remaining path-like patterns
+	sanitized = sanitized.replace(/\.\//g, '')
+	sanitized = sanitized.replace(/\.\\/g, '')
 
 	// Trim and limit length
 	sanitized = sanitized.trim().substring(0, 255)
