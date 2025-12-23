@@ -4,7 +4,7 @@ import { Button } from '@workspace/ui/components/button'
 import { Card, CardContent, CardFooter } from '@workspace/ui/components/card'
 import { Input } from '@workspace/ui/components/input'
 import { Label } from '@workspace/ui/components/label'
-import { ArrowRight, Loader2, Sparkles } from 'lucide-react'
+import { ArrowRight, Loader2, Rabbit } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { type ChangeEvent, type FormEvent, useState } from 'react'
@@ -33,7 +33,8 @@ export default function SignInPage() {
 			}
 
 			toast.success('Signed in successfully')
-			router.push('/')
+			router.push('/dashboard')
+			router.refresh()
 		} catch (error) {
 			toast.error('An unexpected error occurred')
 			console.error(error)
@@ -47,10 +48,10 @@ export default function SignInPage() {
 			{/* Mobile logo */}
 			<div className="lg:hidden flex flex-col items-center space-y-4">
 				<Link href="/" className="flex items-center gap-3">
-					<div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/80 shadow-lg shadow-primary/25">
-						<Sparkles className="h-6 w-6 text-primary-foreground" />
+					<div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-orange-500 to-amber-500 shadow-lg shadow-orange-500/25">
+						<Rabbit className="h-6 w-6 text-white" />
 					</div>
-					<span className="font-bold text-2xl">Hare</span>
+					<span className="font-bold text-2xl bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">Hare</span>
 				</Link>
 			</div>
 
@@ -104,7 +105,7 @@ export default function SignInPage() {
 						<Button
 							type="submit"
 							size="lg"
-							className="w-full gap-2 shadow-lg shadow-primary/25"
+							className="w-full gap-2 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white shadow-lg shadow-orange-500/25"
 							disabled={isLoading}
 						>
 							{isLoading ? (

@@ -1,3 +1,5 @@
+'use client'
+
 import { Badge } from '@workspace/ui/components/badge'
 import { Button } from '@workspace/ui/components/button'
 import {
@@ -18,14 +20,17 @@ import {
 	Layers,
 	MessageSquare,
 	Play,
+	Rabbit,
 	Shield,
 	Sparkles,
 	Terminal,
 	Zap,
 } from 'lucide-react'
 import Link from 'next/link'
+import { useAuth } from 'web-app/components/providers/auth-provider'
 
 export default function LandingPage() {
+	const { data: session, isPending } = useAuth()
 	const features = [
 		{
 			title: 'Visual Agent Builder',
@@ -72,10 +77,10 @@ export default function LandingPage() {
 			<header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
 				<div className="container flex h-14 items-center justify-between px-4 sm:h-16">
 					<Link href="/" className="flex items-center gap-2">
-						<div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-							<Sparkles className="h-4 w-4 text-primary-foreground" />
+						<div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-orange-500 to-amber-500 shadow-lg shadow-orange-500/25">
+							<Rabbit className="h-5 w-5 text-white" />
 						</div>
-						<span className="font-bold text-lg">Hare</span>
+						<span className="font-bold text-lg bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">Hare</span>
 					</Link>
 
 					<nav className="hidden md:flex items-center gap-6">
@@ -94,14 +99,27 @@ export default function LandingPage() {
 					</nav>
 
 					<div className="flex items-center gap-2">
-						<Link href="/sign-in" className="hidden sm:block">
-							<Button variant="ghost" size="sm">
-								Sign In
-							</Button>
-						</Link>
-						<Link href="/sign-up">
-							<Button size="sm">Get Started</Button>
-						</Link>
+						{isPending ? (
+							<div className="h-9 w-20 animate-pulse rounded-md bg-muted" />
+						) : session?.user ? (
+							<Link href="/dashboard">
+								<Button size="sm" className="gap-2">
+									<Rabbit className="h-4 w-4" />
+									Dashboard
+								</Button>
+							</Link>
+						) : (
+							<>
+								<Link href="/sign-in" className="hidden sm:block">
+									<Button variant="ghost" size="sm">
+										Sign In
+									</Button>
+								</Link>
+								<Link href="/sign-up">
+									<Button size="sm">Get Started</Button>
+								</Link>
+							</>
+						)}
 					</div>
 				</div>
 			</header>
@@ -109,13 +127,13 @@ export default function LandingPage() {
 			{/* Hero */}
 			<section className="px-4 py-12 sm:py-16 md:py-24 lg:py-32">
 				<div className="container max-w-4xl mx-auto text-center">
-					<Badge variant="secondary" className="mb-4">
-						<Sparkles className="h-3 w-3 mr-1" />
+					<Badge variant="secondary" className="mb-4 bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 border-orange-200 dark:border-orange-800">
+						<Rabbit className="h-3 w-3 mr-1" />
 						Public Beta
 					</Badge>
 
 					<h1 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl lg:text-6xl">
-						Build & Deploy <span className="text-primary">AI Agents</span> at the Edge
+						Build & Deploy <span className="bg-gradient-to-r from-orange-500 to-amber-500 bg-clip-text text-transparent">AI Agents</span> at the Edge
 					</h1>
 
 					<p className="mt-4 text-base text-muted-foreground sm:text-lg md:text-xl max-w-2xl mx-auto">
@@ -125,14 +143,14 @@ export default function LandingPage() {
 					{/* CTA - stack on mobile */}
 					<div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center sm:gap-4">
 						<Link href="/sign-up" className="w-full sm:w-auto">
-							<Button size="lg" className="w-full sm:w-auto gap-2 h-12">
+							<Button size="lg" className="w-full sm:w-auto gap-2 h-12 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white shadow-lg shadow-orange-500/25">
 								Start Building Free
 								<ArrowRight className="h-4 w-4" />
 							</Button>
 						</Link>
 						<Link href="/dashboard" className="w-full sm:w-auto">
-							<Button size="lg" variant="outline" className="w-full sm:w-auto gap-2 h-12">
-								<Play className="h-4 w-4" />
+							<Button size="lg" variant="outline" className="w-full sm:w-auto gap-2 h-12 border-orange-300 hover:bg-orange-50 dark:border-orange-800 dark:hover:bg-orange-950">
+								<Rabbit className="h-4 w-4" />
 								Live Demo
 							</Button>
 						</Link>
@@ -264,16 +282,19 @@ await agent.deploy()`}
 			{/* CTA */}
 			<section className="px-4 py-12 sm:py-16 md:py-24">
 				<div className="container max-w-3xl mx-auto">
-					<div className="rounded-2xl bg-primary p-6 sm:p-8 md:p-12 text-center text-primary-foreground">
+					<div className="rounded-2xl bg-gradient-to-br from-orange-500 to-amber-500 p-6 sm:p-8 md:p-12 text-center text-white shadow-xl shadow-orange-500/25">
+						<div className="flex justify-center mb-4">
+							<Rabbit className="h-12 w-12 text-white/90" />
+						</div>
 						<h2 className="text-xl font-bold sm:text-2xl md:text-3xl">
 							Ready to build your first agent?
 						</h2>
-						<p className="mt-3 text-primary-foreground/80 text-sm sm:text-base">
-							Free to start, scales with you.
+						<p className="mt-3 text-white/80 text-sm sm:text-base">
+							Free to start, scales with you. Hop to it!
 						</p>
 						<div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
 							<Link href="/sign-up" className="w-full sm:w-auto">
-								<Button size="lg" variant="secondary" className="w-full sm:w-auto gap-2 h-12">
+								<Button size="lg" variant="secondary" className="w-full sm:w-auto gap-2 h-12 bg-white text-orange-600 hover:bg-orange-50">
 									Get Started Free
 									<ArrowRight className="h-4 w-4" />
 								</Button>
@@ -282,7 +303,7 @@ await agent.deploy()`}
 								<Button
 									size="lg"
 									variant="outline"
-									className="w-full sm:w-auto gap-2 h-12 border-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/10"
+									className="w-full sm:w-auto gap-2 h-12 border-white/30 text-white hover:bg-white/10"
 								>
 									<GitBranch className="h-4 w-4" />
 									GitHub
@@ -298,22 +319,22 @@ await agent.deploy()`}
 				<div className="container">
 					<div className="flex flex-col items-center gap-4 text-center sm:flex-row sm:justify-between sm:text-left">
 						<div className="flex items-center gap-2">
-							<div className="flex h-6 w-6 items-center justify-center rounded bg-primary">
-								<Sparkles className="h-3 w-3 text-primary-foreground" />
+							<div className="flex h-6 w-6 items-center justify-center rounded bg-gradient-to-br from-orange-500 to-amber-500">
+								<Rabbit className="h-3.5 w-3.5 text-white" />
 							</div>
-							<span className="font-semibold">Hare</span>
+							<span className="font-semibold bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">Hare</span>
 						</div>
 						<nav className="flex flex-wrap justify-center gap-4 text-sm text-muted-foreground">
-							<Link href="/docs" className="hover:text-foreground">
+							<Link href="/docs" className="hover:text-orange-600">
 								Docs
 							</Link>
-							<Link href="https://github.com" className="hover:text-foreground">
+							<Link href="https://github.com" className="hover:text-orange-600">
 								GitHub
 							</Link>
-							<Link href="/privacy" className="hover:text-foreground">
+							<Link href="/privacy" className="hover:text-orange-600">
 								Privacy
 							</Link>
-							<Link href="/terms" className="hover:text-foreground">
+							<Link href="/terms" className="hover:text-orange-600">
 								Terms
 							</Link>
 						</nav>
