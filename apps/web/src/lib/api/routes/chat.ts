@@ -6,9 +6,9 @@ import { agents, conversations, messages, usage } from 'web-app/db/schema'
 import { type AgentConfig, createAgentFromConfig } from 'web-app/lib/agents'
 import { createMemoryStore, toAgentMessages } from 'web-app/lib/agents/memory'
 import { getCloudflareEnv, getDb } from '../db'
-import { optionalAuthMiddleware } from '../middleware'
+import { authMiddleware, betaAccessMiddleware, chatRateLimitMiddleware } from '../middleware'
 import { ChatRequestSchema, ConversationSchema, IdParamSchema, MessageSchema } from '../schemas'
-import type { OptionalAuthEnv } from '../types'
+import type { AuthEnv } from '../types'
 
 // Define routes
 const chatWithAgentRoute = createRoute({
@@ -139,10 +139,16 @@ const getConversationMessagesRoute = createRoute({
 })
 
 // Create app with proper typing (includes Bindings and Variables)
-const app = new OpenAPIHono<OptionalAuthEnv>()
+const app = new OpenAPIHono<AuthEnv>()
 
-// Apply optional auth middleware - chat can work with or without auth
-app.use('*', optionalAuthMiddleware)
+// Apply auth, beta access, and rate limiting middleware for chat
+app.use('/agents/:id/chat', authMiddleware)
+app.use('/agents/:id/chat', betaAccessMiddleware)
+app.use('/agents/:id/chat', chatRateLimitMiddleware)
+
+// List conversations and get messages don't need beta access or rate limiting
+app.use('/agents/:id/conversations', authMiddleware)
+app.use('/conversations/:id/messages', authMiddleware)
 
 // Chat with agent
 app.openapi(chatWithAgentRoute, async (c) => {
@@ -153,7 +159,7 @@ app.openapi(chatWithAgentRoute, async (c) => {
 
 	// Get user from auth context (may be undefined for API key auth)
 	const user = c.get('user')
-	const userId = user?.id || 'anonymous'
+	const userId = user.id
 
 	if (!env.AI) {
 		return c.json({ error: 'AI service not available' }, 503)

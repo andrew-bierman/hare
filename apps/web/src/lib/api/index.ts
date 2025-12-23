@@ -1,9 +1,10 @@
 import { OpenAPIHono } from '@hono/zod-openapi'
 import { apiReference } from '@scalar/hono-api-reference'
-import { cors } from 'hono/cors'
 import { logger } from 'hono/logger'
 import { CloudflareEnvError } from './db'
+import { securityHeadersMiddleware, corsMiddleware } from './middleware'
 // Import route modules
+import admin from './routes/admin'
 import agents from './routes/agents'
 import auth from './routes/auth'
 import chat from './routes/chat'
@@ -29,10 +30,12 @@ app.onError((error, c) => {
 
 // Middleware
 app.use('*', logger())
-app.use('*', cors())
+app.use('*', corsMiddleware)
+app.use('*', securityHeadersMiddleware)
 
 // Mount routes - chain for type inference
 const routes = app
+	.route('/admin/beta-access', admin)
 	.route('/agents', agents)
 	.route('/workspaces', workspaces)
 	.route('/tools', tools)
@@ -56,6 +59,7 @@ app.doc('/openapi.json', {
 		},
 	],
 	tags: [
+		{ name: 'Admin', description: 'Administrative endpoints for managing beta access' },
 		{ name: 'Authentication', description: 'User authentication and session management' },
 		{ name: 'Workspaces', description: 'Workspace management' },
 		{ name: 'Agents', description: 'AI agent creation and deployment' },

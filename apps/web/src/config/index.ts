@@ -35,6 +35,10 @@ export const FEATURES = {
 	customTools: true,
 	/** Enable agent playground */
 	playground: true,
+	/** Enforce beta access control for AI features */
+	betaAccessControl: process.env.NODE_ENV === 'production' || process.env.ENFORCE_BETA_ACCESS === 'true',
+	/** Enable rate limiting */
+	rateLimiting: true,
 } as const
 
 // =============================================================================
@@ -412,6 +416,44 @@ export const DEV_CONFIG = {
 } as const
 
 // =============================================================================
+// Beta Access & Rate Limiting
+// =============================================================================
+
+export const BETA_CONFIG = {
+	/** Enable beta access control (whitelist mode) */
+	enabled: FEATURES.betaAccessControl,
+	/** Automatically grant beta access to new signups (dev only) */
+	autoGrantAccess: process.env.NODE_ENV === 'development',
+	/** Beta access message shown to users without access */
+	deniedMessage:
+		'This feature is currently in private beta. Please contact us for early access.',
+} as const
+
+export const RATE_LIMITS = {
+	/** Chat endpoint rate limits */
+	chat: {
+		/** Maximum requests per hour per user */
+		requestsPerHour: 100,
+		/** Maximum tokens per hour per user */
+		tokensPerHour: 50000,
+		/** Window duration in milliseconds (1 hour) */
+		windowMs: 60 * 60 * 1000,
+	},
+	/** Agent creation rate limits */
+	agentCreation: {
+		/** Maximum agents created per hour per workspace */
+		perHour: 10,
+		windowMs: 60 * 60 * 1000,
+	},
+	/** API key usage */
+	apiKey: {
+		/** Maximum requests per hour per API key */
+		requestsPerHour: 1000,
+		windowMs: 60 * 60 * 1000,
+	},
+} as const
+
+// =============================================================================
 // Type Exports
 // =============================================================================
 
@@ -421,3 +463,5 @@ export type LandingPage = typeof LANDING_PAGE
 export type NavItems = typeof NAV_ITEMS
 export type ErrorMessages = typeof ERROR_MESSAGES
 export type DevConfig = typeof DEV_CONFIG
+export type BetaConfig = typeof BETA_CONFIG
+export type RateLimits = typeof RATE_LIMITS

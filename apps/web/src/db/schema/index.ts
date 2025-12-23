@@ -1,6 +1,9 @@
 // Auth tables
 export * from './auth'
 
+// Beta access tables
+export * from './beta-access'
+
 // Agent tables
 export * from './agents'
 
