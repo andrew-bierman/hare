@@ -4,6 +4,7 @@ import { Button } from '@workspace/ui/components/button'
 import { Input } from '@workspace/ui/components/input'
 import { Bell, Menu, Rabbit, Search } from 'lucide-react'
 import Link from 'next/link'
+import { APP_CONFIG, DASHBOARD_CONTENT } from 'web-app/config'
 import { UserNav } from './user-nav'
 
 export function Header() {
@@ -21,7 +22,7 @@ export function Header() {
 						<div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-orange-500 to-amber-500">
 							<Rabbit className="h-4 w-4 text-white" />
 						</div>
-						<span className="font-bold text-lg bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">Hare</span>
+						<span className="font-bold text-lg bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">{APP_CONFIG.name}</span>
 					</Link>
 				</div>
 
@@ -30,7 +31,7 @@ export function Header() {
 					<div className="relative w-full">
 						<Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
 						<Input
-							placeholder="Search agents, tools..."
+							placeholder={DASHBOARD_CONTENT.header.searchPlaceholder}
 							className="pl-9 h-10 bg-muted/50 border-transparent focus:border-orange-300 focus:bg-background transition-colors"
 						/>
 					</div>

@@ -1,4 +1,4 @@
-import { z, type ZodSchema } from 'zod'
+import type { z, ZodSchema } from 'zod'
 
 /**
  * Tool execution context providing access to Cloudflare bindings.

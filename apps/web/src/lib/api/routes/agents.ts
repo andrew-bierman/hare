@@ -279,9 +279,18 @@ const deployAgentRoute = createRoute({
 })
 
 /**
+ * Input for getting agent tool IDs.
+ */
+interface GetAgentToolIdsInput {
+	agentId: string
+	db: Database
+}
+
+/**
  * Get tool IDs attached to an agent.
  */
-async function getAgentToolIds(agentId: string, db: Database): Promise<string[]> {
+async function getAgentToolIds(input: GetAgentToolIdsInput): Promise<string[]> {
+	const { agentId, db } = input
 	const rows = await db
 		.select({ toolId: agentTools.toolId })
 		.from(agentTools)
@@ -314,7 +323,7 @@ app.openapi(listAgentsRoute, async (c) => {
 			instructions: agent.instructions || '',
 			config: agent.config || undefined,
 			status: agent.status,
-			toolIds: await getAgentToolIds(agent.id, db),
+			toolIds: await getAgentToolIds({ agentId: agent.id, db }),
 			createdAt: agent.createdAt.toISOString(),
 			updatedAt: agent.updatedAt.toISOString(),
 		})),
@@ -352,14 +361,17 @@ app.openapi(createAgentRoute, async (c) => {
 		return c.json({ error: 'Failed to create agent' }, 500)
 	}
 
-	// Attach tools if provided
+	// Attach tools if provided (filter out system tools which don't exist in DB)
 	if (data.toolIds && data.toolIds.length > 0) {
-		await db.insert(agentTools).values(
-			data.toolIds.map((toolId: string) => ({
-				agentId: agent.id,
-				toolId,
-			})),
-		)
+		const customToolIds = data.toolIds.filter((id: string) => !id.startsWith('system-'))
+		if (customToolIds.length > 0) {
+			await db.insert(agentTools).values(
+				customToolIds.map((toolId: string) => ({
+					agentId: agent.id,
+					toolId,
+				})),
+			)
+		}
 	}
 
 	return c.json(
@@ -395,7 +407,7 @@ app.openapi(getAgentRoute, async (c) => {
 		return c.json({ error: 'Agent not found' }, 404)
 	}
 
-	const toolIds = await getAgentToolIds(agent.id, db)
+	const toolIds = await getAgentToolIds({ agentId: agent.id, db })
 
 	return c.json(
 		{
@@ -454,15 +466,16 @@ app.openapi(updateAgentRoute, async (c) => {
 		return c.json({ error: 'Failed to update agent' }, 500)
 	}
 
-	// Update tool attachments if provided
+	// Update tool attachments if provided (filter out system tools which don't exist in DB)
 	if (data.toolIds !== undefined) {
 		// Remove existing attachments
 		await db.delete(agentTools).where(eq(agentTools.agentId, id))
 
-		// Add new attachments
-		if (data.toolIds.length > 0) {
+		// Add new attachments (only custom tools, not system tools)
+		const customToolIds = data.toolIds.filter((id: string) => !id.startsWith('system-'))
+		if (customToolIds.length > 0) {
 			await db.insert(agentTools).values(
-				data.toolIds.map((toolId: string) => ({
+				customToolIds.map((toolId: string) => ({
 					agentId: id,
 					toolId,
 				})),
@@ -470,7 +483,7 @@ app.openapi(updateAgentRoute, async (c) => {
 		}
 	}
 
-	const toolIds = await getAgentToolIds(id, db)
+	const toolIds = await getAgentToolIds({ agentId: id, db })
 
 	return c.json(
 		{

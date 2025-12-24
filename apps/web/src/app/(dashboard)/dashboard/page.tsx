@@ -17,7 +17,10 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { useWorkspace } from 'web-app/components/providers/workspace-provider'
+import { DASHBOARD_CONTENT, UI_TEXT } from 'web-app/config'
 import { type Agent, AVAILABLE_MODELS, useAgents, useUsage } from 'web-app/lib/api/hooks'
+
+const { home: content } = DASHBOARD_CONTENT
 
 function StatCardSkeleton() {
 	return (
@@ -79,33 +82,33 @@ export default function DashboardPage() {
 
 	const stats = [
 		{
-			title: 'Total Agents',
+			title: content.stats.totalAgents.title,
 			value: agents.length.toString(),
-			description: `${deployedAgents.length} deployed`,
+			description: `${deployedAgents.length} ${content.stats.totalAgents.description}`,
 			icon: Bot,
 			color: 'bg-violet-500',
 			trend: deployedAgents.length > 0 ? `+${deployedAgents.length}` : null,
 		},
 		{
-			title: 'API Calls',
+			title: content.stats.apiCalls.title,
 			value: formatNumber(usageData?.totalCalls ?? 0),
-			description: 'This period',
+			description: content.stats.apiCalls.description,
 			icon: MessageSquare,
 			color: 'bg-blue-500',
 			trend: null,
 		},
 		{
-			title: 'Tokens Used',
+			title: content.stats.tokensUsed.title,
 			value: formatNumber(usageData?.totalTokens ?? 0),
-			description: `${formatNumber(usageData?.inputTokens ?? 0)} in / ${formatNumber(usageData?.outputTokens ?? 0)} out`,
+			description: `${formatNumber(usageData?.inputTokens ?? 0)} ${content.stats.tokensUsed.description.replace('in / out', '')} ${formatNumber(usageData?.outputTokens ?? 0)}`,
 			icon: TrendingUp,
 			color: 'bg-emerald-500',
 			trend: null,
 		},
 		{
-			title: 'Active Tools',
+			title: content.stats.activeTools.title,
 			value: '6',
-			description: 'Available',
+			description: content.stats.activeTools.description,
 			icon: Wrench,
 			color: 'bg-orange-500',
 			trend: null,
@@ -118,7 +121,7 @@ export default function DashboardPage() {
 				return (
 					<Badge className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 gap-1">
 						<span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-						Live
+						{DASHBOARD_CONTENT.agents.status.deployed}
 					</Badge>
 				)
 			case 'draft':
@@ -127,7 +130,7 @@ export default function DashboardPage() {
 						variant="secondary"
 						className="bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20"
 					>
-						Draft
+						{DASHBOARD_CONTENT.agents.status.draft}
 					</Badge>
 				)
 			default:
@@ -135,41 +138,26 @@ export default function DashboardPage() {
 		}
 	}
 
-	const quickActions = [
-		{
-			title: 'Create Agent',
-			description: 'Build a new AI agent',
-			icon: Bot,
-			href: '/dashboard/agents/new',
-		},
-		{
-			title: 'Manage Tools',
-			description: 'Configure capabilities',
-			icon: Wrench,
-			href: '/dashboard/tools',
-		},
-		{
-			title: 'View Usage',
-			description: 'Monitor performance',
-			icon: Activity,
-			href: '/dashboard/usage',
-		},
-	]
+	const ICONS = { Bot, Wrench, Activity } as const
+	const quickActions = content.quickActions.map((action) => ({
+		...action,
+		icon: ICONS[action.icon as keyof typeof ICONS],
+	}))
 
 	return (
 		<div className="flex-1 p-4 sm:p-6 md:p-8 space-y-6">
 			{/* Header */}
 			<div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
 				<div>
-					<h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Dashboard</h1>
+					<h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{content.title}</h1>
 					<p className="text-muted-foreground text-sm sm:text-base mt-1">
-						Overview of your agents and usage
+						{content.subtitle}
 					</p>
 				</div>
 				<Link href="/dashboard/agents/new" className="w-full sm:w-auto">
 					<Button className="w-full sm:w-auto gap-2 h-11">
 						<Plus className="h-4 w-4" />
-						New Agent
+						{content.newAgentButton}
 					</Button>
 				</Link>
 			</div>
@@ -236,13 +224,13 @@ export default function DashboardPage() {
 			<div>
 				<div className="flex items-center justify-between mb-4">
 					<div>
-						<h2 className="text-lg sm:text-xl font-semibold">Recent Agents</h2>
-						<p className="text-xs sm:text-sm text-muted-foreground">Ordered by last update</p>
+						<h2 className="text-lg sm:text-xl font-semibold">{content.recentAgents.title}</h2>
+						<p className="text-xs sm:text-sm text-muted-foreground">{content.recentAgents.subtitle}</p>
 					</div>
 					{agents.length > 0 && (
 						<Link href="/dashboard/agents">
 							<Button variant="ghost" size="sm" className="gap-1 min-h-[44px]">
-								View all
+								{content.recentAgents.viewAll}
 								<ArrowRight className="h-4 w-4" />
 							</Button>
 						</Link>
@@ -261,14 +249,14 @@ export default function DashboardPage() {
 							<div className="flex h-16 w-16 items-center justify-center rounded-xl bg-primary/10 mb-4">
 								<Bot className="h-8 w-8 text-primary" />
 							</div>
-							<h3 className="text-lg font-semibold mb-2">No agents yet</h3>
+							<h3 className="text-lg font-semibold mb-2">{content.noAgents.title}</h3>
 							<p className="text-muted-foreground text-center text-sm max-w-xs mb-6">
-								Create your first AI agent to get started.
+								{content.noAgents.description}
 							</p>
 							<Link href="/dashboard/agents/new" className="w-full sm:w-auto">
 								<Button className="w-full sm:w-auto gap-2 h-11">
 									<Plus className="h-4 w-4" />
-									Create Agent
+									{content.noAgents.cta}
 								</Button>
 							</Link>
 						</CardContent>
@@ -296,12 +284,12 @@ export default function DashboardPage() {
 											{getStatusBadge(agent.status)}
 										</div>
 										<p className="text-xs sm:text-sm text-muted-foreground line-clamp-2 mb-3">
-											{agent.description || 'No description provided'}
+											{agent.description || UI_TEXT.noDescription}
 										</p>
 										<div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
 											<div className="flex items-center gap-1 bg-muted/50 px-2 py-1 rounded-full">
 												<Wrench className="h-3 w-3" />
-												<span>{agent.toolIds?.length || 0} tools</span>
+												<span>{agent.toolIds?.length || 0} {UI_TEXT.tools}</span>
 											</div>
 											<div className="flex items-center gap-1 bg-muted/50 px-2 py-1 rounded-full">
 												<Clock className="h-3 w-3" />
@@ -326,7 +314,7 @@ export default function DashboardPage() {
 										<Plus className="h-6 w-6 text-muted-foreground" />
 									</div>
 									<span className="font-medium text-sm text-muted-foreground">
-										Create New Agent
+										{content.recentAgents.createNew}
 									</span>
 								</CardContent>
 							</Card>

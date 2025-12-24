@@ -185,7 +185,7 @@ app.openapi(chatWithAgentRoute, async (c) => {
 	// Get or create conversation
 	const conversationId =
 		sessionId ||
-		(await memory.getOrCreateConversation(agentId, userId, `Chat with ${agentConfig.name}`))
+		(await memory.getOrCreateConversation({ agentId, userId, title: `Chat with ${agentConfig.name}` }))
 
 	// Create the edge agent
 	const agent = await createAgentFromConfig(agentConfig as AgentConfig, db, env, {
@@ -194,14 +194,14 @@ app.openapi(chatWithAgentRoute, async (c) => {
 	})
 
 	// Load conversation history
-	const historyMessages = await memory.getMessages(conversationId, 20)
+	const historyMessages = await memory.getMessages({ conversationId, limit: 20 })
 	const agentMessages: CoreMessage[] = toAgentMessages(historyMessages)
 
 	// Add the new user message
 	agentMessages.push({ role: 'user' as const, content: message })
 
 	// Save user message to memory
-	await memory.saveMessage(conversationId, 'user', message, metadata as Record<string, unknown>)
+	await memory.saveMessage({ conversationId, role: 'user', content: message, metadata: metadata as Record<string, unknown> })
 
 	// Stream the response
 	return streamSSE(c, async (stream) => {
@@ -225,9 +225,14 @@ app.openapi(chatWithAgentRoute, async (c) => {
 			}
 
 			// Save assistant message to memory
-			await memory.saveMessage(conversationId, 'assistant', fullResponse, {
-				model: agentConfig.model,
-				agentId,
+			await memory.saveMessage({
+				conversationId,
+				role: 'assistant',
+				content: fullResponse,
+				metadata: {
+					model: agentConfig.model,
+					agentId,
+				},
 			})
 
 			// Track usage (token counts are rough estimates based on ~4 chars/token)
