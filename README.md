@@ -206,9 +206,18 @@ cd hare
 bun install
 
 # Copy environment variables
-cp .env.example .env
-# Edit .env with your credentials
+cp .env.example .env.local
+# Edit .env.local with your credentials
 ```
+
+**💡 Environment File Management:**
+
+Hare uses an environment shim script to automatically generate app-specific environment files from a single root `.env.local` file. When you run `bun install`:
+
+- `.env.local` → `apps/web/.env.local` (for Next.js, with `NEXT_PUBLIC_` prefix)
+- `.env.local` → `apps/web/.dev.vars` (for Cloudflare Workers, server-side only)
+
+This ensures consistency across your monorepo and follows Cloudflare's convention of using `.dev.vars` for local development instead of `.env`.
 
 ### 🗄️ Database Setup
 
@@ -580,7 +589,21 @@ data: {"type": "done", "usage": {"tokensIn": 150, "tokensOut": 89}}
 
 ## Environment Variables
 
-Create a `.env` file based on `.env.example`:
+Hare uses a **monorepo environment shim** to manage environment variables across different apps. Create a `.env.local` file at the root based on `.env.example`, and the shim script will automatically generate app-specific files during `bun install`.
+
+### Setup
+
+```bash
+# Copy the example file
+cp .env.example .env.local
+
+# Edit with your credentials
+# The postinstall script will automatically generate:
+# - apps/web/.env.local (for Next.js)
+# - apps/web/.dev.vars (for Cloudflare Workers)
+```
+
+### Environment Variables Reference
 
 ```bash
 # ☁️ Cloudflare (for Drizzle migrations)
@@ -606,11 +629,28 @@ STRIPE_WEBHOOK_SECRET=whsec_...
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
 
+### How It Works
+
+The environment shim script (`.github/scripts/env.js`) runs automatically during `bun install` and:
+
+1. **Reads** the root `.env.local` file
+2. **Transforms** `PUBLIC_` prefixed variables to `NEXT_PUBLIC_` for Next.js
+3. **Generates** `apps/web/.env.local` with all variables (including `NEXT_PUBLIC_`)
+4. **Generates** `apps/web/.dev.vars` with only server-side variables (excludes `NEXT_PUBLIC_` and `PUBLIC_`)
+
+This approach:
+- ✅ Maintains a single source of truth for environment variables
+- ✅ Follows Cloudflare's convention of using `.dev.vars` for Workers
+- ✅ Automatically transforms variables for Next.js
+- ✅ Prevents accidental exposure of server-side secrets
+- ✅ Skips generation in CI environments
+
 **💡 Tips:**
-- Copy `.env.example` to `.env` to get started: `cp .env.example .env`
+- Copy `.env.example` to `.env.local` to get started: `cp .env.example .env.local`
 - Generate a secure auth secret: `openssl rand -base64 32`
 - Get your Cloudflare credentials from the [Cloudflare Dashboard](https://dash.cloudflare.com/)
 - OAuth credentials can be obtained from [Google Cloud Console](https://console.cloud.google.com/) and [GitHub Settings](https://github.com/settings/developers)
+- To manually regenerate environment files: `node .github/scripts/env.js`
 
 ---
 
