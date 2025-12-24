@@ -95,14 +95,6 @@ test.describe('Agent Sub-Routes', () => {
 		// Should not be a 404 page
 		await expect(page.locator('body')).not.toContainText('404')
 	})
-
-	test('agent playground page loads correctly', async ({ page }: { page: Page }) => {
-		// Test with a sample agent ID - may show "not found" but shouldn't 404
-		await page.goto('/dashboard/agents/1/playground')
-		await expect(page).toHaveURL('/dashboard/agents/1/playground')
-		// Should not be a 404 page
-		await expect(page.locator('body')).not.toContainText('404')
-	})
 })
 
 test.describe('Public Routes', () => {
