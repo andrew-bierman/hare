@@ -18,11 +18,10 @@ export default defineWorkersConfig({
       ".next/**",
       "**/e2e/**",
       "**/*.spec.ts",
-      // Cloudflare-specific tests that require @cloudflare/vitest-pool-workers
-      "**/lib/api/routes/__tests__/**",
     ],
     poolOptions: {
       workers: {
+        wrangler: { configPath: "./apps/web/wrangler.jsonc" },
         miniflare: {
           compatibilityDate: "2025-01-01",
           compatibilityFlags: ["nodejs_compat"],
@@ -33,7 +32,6 @@ export default defineWorkersConfig({
             NEXTJS_ENV: "test",
           },
           d1Databases: ["DB"],
-          d1DatabasePath: "./apps/web/.wrangler/state/v3/d1",
         },
       },
     },
