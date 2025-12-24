@@ -1,12 +1,5 @@
 import { type APIRequestContext, expect, type Page, test as baseTest } from '@playwright/test'
-import {
-	test,
-	generateTestUser,
-	signUpViaUI,
-	signInViaUI,
-	createTestUser,
-	signInTestUser,
-} from './fixtures'
+import { test, signUpViaUI } from './fixtures'
 
 baseTest.describe('Authentication - Page Rendering', () => {
 	baseTest('should show sign-in page', async ({ page }: { page: Page }) => {
@@ -123,12 +116,8 @@ test.describe('Authentication - Sign Up Flow', () => {
 
 		await page.getByRole('button', { name: 'Create Account' }).click()
 
-		// Should show an error message (implementation specific)
-		// Wait a bit to see if error appears or stays on same page
-		await page.waitForTimeout(2000)
-		// Should either stay on sign-up page or show error
-		const currentUrl = page.url()
-		expect(currentUrl.includes('sign-up') || currentUrl.includes('dashboard')).toBeTruthy()
+		// Should stay on sign-up page (duplicate email error)
+		await expect(page).toHaveURL(/sign-up/)
 	})
 
 	test('should show error for password mismatch', async ({ page, testUser }) => {
@@ -142,9 +131,8 @@ test.describe('Authentication - Sign Up Flow', () => {
 
 		await page.getByRole('button', { name: 'Create Account' }).click()
 
-		// Should stay on sign-up page or show validation error
-		await page.waitForTimeout(1000)
-		expect(page.url()).toContain('sign-up')
+		// Should stay on sign-up page due to validation error
+		await expect(page).toHaveURL(/sign-up/)
 	})
 })
 
@@ -176,9 +164,8 @@ test.describe('Authentication - Sign In Flow', () => {
 		await page.getByLabel('Password').fill('WrongPassword123!')
 		await page.getByRole('button', { name: 'Sign In' }).click()
 
-		// Should stay on sign-in page or show error
-		await page.waitForTimeout(2000)
-		expect(page.url()).toContain('sign-in')
+		// Should stay on sign-in page (invalid credentials)
+		await expect(page).toHaveURL(/sign-in/)
 	})
 })
 

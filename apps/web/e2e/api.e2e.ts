@@ -27,9 +27,7 @@ test.describe('API Health & Infrastructure', () => {
 		await page.goto('/api/docs')
 		await page.waitForLoadState('networkidle')
 		await expect(page).toHaveURL('/api/docs')
-		// Scalar API reference should load - wait for it
-		await page.waitForTimeout(1000)
-		// Check that the page has loaded content
+		// Check that the page has loaded content (not a 404)
 		await expect(page.locator('body')).not.toContainText('404')
 	})
 
@@ -45,21 +43,15 @@ test.describe('API Health & Infrastructure', () => {
 		const responseTime = endTime - startTime
 
 		expect(response.status()).toBe(200)
-		// Health endpoint should respond reasonably quickly (allowing for cold starts)
-		expect(responseTime).toBeLessThan(5000)
+		// Health endpoint should respond within 2 seconds (allows for initial cold start)
+		expect(responseTime).toBeLessThan(2000)
 	})
 })
 
 test.describe('API CORS', () => {
-	test('should include CORS headers', async ({ request }: { request: APIRequestContext }) => {
+	test('API endpoint is accessible', async ({ request }: { request: APIRequestContext }) => {
 		const response = await request.get('/api/health')
-		// CORS middleware is enabled, should have headers
 		expect(response.status()).toBe(200)
-
-		// Check for common CORS headers if present
-		const headers = response.headers()
-		// The presence of these headers depends on CORS configuration
-		// This test just ensures the endpoint is accessible
 	})
 
 	test('OPTIONS request should work for CORS preflight', async ({ request }: { request: APIRequestContext }) => {
