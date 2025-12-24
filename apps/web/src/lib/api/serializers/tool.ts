@@ -1,40 +1,32 @@
 import type { InferSelectModel } from 'drizzle-orm'
+import type { z } from '@hono/zod-openapi'
 import type { tools } from 'web-app/db/schema'
+import type { ToolSchema, ToolTypeSchema } from '../schemas'
 
 type ToolRow = InferSelectModel<typeof tools>
 
 /**
- * Valid tool types for API responses.
+ * Valid tool types for API responses (derived from Zod schema).
  */
-export type ToolType = 'http' | 'sql' | 'kv' | 'r2' | 'vectorize' | 'custom'
+export type ToolType = z.infer<typeof ToolTypeSchema>
 
 /**
- * API response shape for a tool.
+ * API response shape for a tool (derived from Zod schema).
  */
-export interface SerializedTool {
-	id: string
-	name: string
-	description: string
-	type: ToolType
-	inputSchema: Record<string, unknown>
-	config?: Record<string, unknown>
-	code?: string
-	isSystem: boolean
-	createdAt: string
-	updatedAt: string
-}
+export type SerializedTool = z.infer<typeof ToolSchema>
 
 /**
  * Map database tool type to API tool type.
  * Returns 'custom' for unknown types.
  */
 export function mapToolType(dbType: string): ToolType {
-	const validTypes: ToolType[] = ['http', 'sql', 'kv', 'r2', 'vectorize', 'custom']
-	if (validTypes.includes(dbType as ToolType)) {
-		return dbType as ToolType
-	}
-	return 'custom'
+	return dbType as ToolType
 }
+
+/**
+ * Input schema type for tools (matches JSON Schema format).
+ */
+type InputSchema = SerializedTool['inputSchema']
 
 /**
  * Serialize a database tool row to API response format.
@@ -42,7 +34,7 @@ export function mapToolType(dbType: string): ToolType {
 export function serializeTool(
 	tool: ToolRow,
 	options: {
-		inputSchema?: Record<string, unknown>
+		inputSchema?: InputSchema
 		code?: string
 	} = {},
 ): SerializedTool {
@@ -52,7 +44,7 @@ export function serializeTool(
 		description: tool.description || '',
 		type: mapToolType(tool.type),
 		inputSchema: options.inputSchema || {},
-		config: tool.config || undefined,
+		config: tool.config as SerializedTool['config'],
 		code: options.code,
 		isSystem: false,
 		createdAt: tool.createdAt.toISOString(),
@@ -68,7 +60,7 @@ export interface SystemToolDefinition {
 	name: string
 	description: string
 	type: ToolType
-	inputSchema: Record<string, unknown>
+	inputSchema: InputSchema
 	isSystem: true
 }
 

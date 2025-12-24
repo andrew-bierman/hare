@@ -71,6 +71,14 @@ const createToolRoute = createRoute({
 				},
 			},
 		},
+		403: {
+			description: 'Write access required',
+			content: { 'application/json': { schema: ErrorSchema } },
+		},
+		500: {
+			description: 'Failed to create tool',
+			content: { 'application/json': { schema: ErrorSchema } },
+		},
 		...commonResponses,
 	},
 })
@@ -140,6 +148,10 @@ const updateToolRoute = createRoute({
 			description: 'Cannot modify system tool',
 			content: { 'application/json': { schema: ErrorSchema } },
 		},
+		403: {
+			description: 'Write access required',
+			content: { 'application/json': { schema: ErrorSchema } },
+		},
 		404: {
 			description: 'Tool not found',
 			content: {
@@ -147,6 +159,10 @@ const updateToolRoute = createRoute({
 					schema: ErrorSchema,
 				},
 			},
+		},
+		500: {
+			description: 'Failed to update tool',
+			content: { 'application/json': { schema: ErrorSchema } },
 		},
 		...commonResponses,
 	},
@@ -175,6 +191,10 @@ const deleteToolRoute = createRoute({
 		},
 		400: {
 			description: 'Cannot delete system tool',
+			content: { 'application/json': { schema: ErrorSchema } },
+		},
+		403: {
+			description: 'Admin access required',
 			content: { 'application/json': { schema: ErrorSchema } },
 		},
 		404: {

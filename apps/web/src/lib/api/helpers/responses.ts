@@ -28,23 +28,12 @@ export const IdParamSchema = z.object({
 
 /**
  * Reusable OpenAPI response definitions for common HTTP status codes.
- * Use these to maintain consistency across all API routes.
+ * Only includes truly universal responses that don't need custom messages.
+ * Note: 403, 404, 500 are NOT included - routes define these with context-specific messages.
  */
 export const commonResponses = {
 	401: {
-		description: 'Unauthorized',
-		content: { 'application/json': { schema: ErrorSchema } },
-	},
-	403: {
-		description: 'Forbidden',
-		content: { 'application/json': { schema: ErrorSchema } },
-	},
-	404: {
-		description: 'Not found',
-		content: { 'application/json': { schema: ErrorSchema } },
-	},
-	500: {
-		description: 'Internal server error',
+		description: 'Unauthorized - authentication required',
 		content: { 'application/json': { schema: ErrorSchema } },
 	},
 	503: {

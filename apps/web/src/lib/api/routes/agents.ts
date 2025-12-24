@@ -72,6 +72,14 @@ const createAgentRoute = createRoute({
 				},
 			},
 		},
+		403: {
+			description: 'Write access required',
+			content: { 'application/json': { schema: ErrorSchema } },
+		},
+		500: {
+			description: 'Failed to create agent',
+			content: { 'application/json': { schema: ErrorSchema } },
+		},
 		...commonResponses,
 	},
 })
@@ -137,6 +145,10 @@ const updateAgentRoute = createRoute({
 				},
 			},
 		},
+		403: {
+			description: 'Write access required',
+			content: { 'application/json': { schema: ErrorSchema } },
+		},
 		404: {
 			description: 'Agent not found',
 			content: {
@@ -144,6 +156,10 @@ const updateAgentRoute = createRoute({
 					schema: ErrorSchema,
 				},
 			},
+		},
+		500: {
+			description: 'Failed to update agent',
+			content: { 'application/json': { schema: ErrorSchema } },
 		},
 		...commonResponses,
 	},
@@ -169,6 +185,10 @@ const deleteAgentRoute = createRoute({
 					schema: SuccessSchema,
 				},
 			},
+		},
+		403: {
+			description: 'Admin access required',
+			content: { 'application/json': { schema: ErrorSchema } },
 		},
 		404: {
 			description: 'Agent not found',
@@ -214,6 +234,10 @@ const deployAgentRoute = createRoute({
 			description: 'Agent not ready for deployment',
 			content: { 'application/json': { schema: ErrorSchema } },
 		},
+		403: {
+			description: 'Admin access required',
+			content: { 'application/json': { schema: ErrorSchema } },
+		},
 		404: {
 			description: 'Agent not found',
 			content: {
@@ -221,6 +245,10 @@ const deployAgentRoute = createRoute({
 					schema: ErrorSchema,
 				},
 			},
+		},
+		500: {
+			description: 'Failed to create deployment',
+			content: { 'application/json': { schema: ErrorSchema } },
 		},
 		...commonResponses,
 	},

@@ -63,6 +63,10 @@ const createWorkspaceRoute = createRoute({
 				},
 			},
 		},
+		500: {
+			description: 'Failed to create workspace',
+			content: { 'application/json': { schema: ErrorSchema } },
+		},
 		...commonResponses,
 	},
 })
@@ -126,6 +130,10 @@ const updateWorkspaceRoute = createRoute({
 				},
 			},
 		},
+		403: {
+			description: 'Admin access required',
+			content: { 'application/json': { schema: ErrorSchema } },
+		},
 		404: {
 			description: 'Workspace not found',
 			content: {
@@ -133,6 +141,10 @@ const updateWorkspaceRoute = createRoute({
 					schema: ErrorSchema,
 				},
 			},
+		},
+		500: {
+			description: 'Failed to update workspace',
+			content: { 'application/json': { schema: ErrorSchema } },
 		},
 		...commonResponses,
 	},
