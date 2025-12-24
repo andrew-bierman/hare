@@ -18,6 +18,8 @@ export default defineWorkersConfig({
       ".next/**",
       "**/e2e/**",
       "**/*.spec.ts",
+      // Cloudflare-specific tests that require @cloudflare/vitest-pool-workers
+      "**/lib/api/routes/__tests__/**",
     ],
     poolOptions: {
       workers: {

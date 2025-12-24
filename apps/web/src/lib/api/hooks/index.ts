@@ -39,6 +39,14 @@ export {
 
 // Chat hooks
 export { useChat } from './use-chat'
+// WebSocket Agent hooks
+export {
+	useAgentWebSocket,
+	type UseAgentWebSocketOptions,
+	type UseAgentWebSocketReturn,
+	type AgentMessage,
+	type ConnectionStatus,
+} from './use-agent-ws'
 // Tool hooks
 export {
 	TOOL_TYPES,

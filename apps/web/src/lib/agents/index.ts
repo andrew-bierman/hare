@@ -1,13 +1,48 @@
 /**
  * Hare AI Agent System
  *
- * Native Cloudflare Workers implementation for AI agents.
- * No external framework dependencies - fully Edge-compatible.
+ * Built on Cloudflare Agents SDK for:
+ * - Durable Object-backed state persistence
+ * - WebSocket support with hibernation
+ * - Real-time state synchronization
+ * - Scheduling and alarms
+ * - Model Context Protocol (MCP) support
+ *
+ * NOTE: The actual agent classes (HareAgent, HareMcpAgent) are NOT exported here
+ * because they import from 'agents' which uses 'cloudflare:workers' - a Workers-only module.
+ * Those classes should only be imported in:
+ * - open-next.config.ts (for Cloudflare Workers deployment)
+ * - worker.ts (for local development reference)
  */
 
 import type { Database } from 'web-app/db/types'
 import { type AgentTool, createEdgeAgent, type EdgeAgent } from './agent'
 import { getSystemTools, loadAgentTools, type ToolContext } from './tools'
+
+// Re-export types (safe to import anywhere)
+export type {
+	HareAgentState,
+	McpAgentState,
+	ClientMessage,
+	ServerMessage,
+	ScheduledTask,
+	ChatPayload,
+	ToolExecutePayload,
+	SchedulePayload,
+} from './types'
+export { DEFAULT_HARE_AGENT_STATE, DEFAULT_MCP_AGENT_STATE } from './types'
+
+// Re-export router utilities (safe to import anywhere)
+export {
+	routeToHareAgent,
+	routeWebSocketToAgent,
+	routeHttpToAgent,
+	routeToMcpAgent,
+	isWebSocketRequest,
+	getAgentIdFromRequest,
+	createAgentHeaders,
+	type AgentRouteConfig,
+} from './router'
 
 /**
  * Agent configuration from database.
@@ -58,7 +93,7 @@ export async function createAgentFromConfig(
 	}
 
 	// Load agent's tools from database
-	const dbTools = await loadAgentTools(agentConfig.id, db, toolContext)
+	const dbTools = await loadAgentTools({ agentId: agentConfig.id, db, context: toolContext })
 
 	// Get system tools if requested
 	const systemTools = includeSystemTools ? getSystemTools(toolContext) : []

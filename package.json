@@ -8,6 +8,7 @@
     "packages/*"
   ],
   "scripts": {
+    "postinstall": "bun run .github/scripts/env.ts",
     "dev": "turbo dev",
     "build": "turbo build",
     "start": "bun run --cwd apps/web start",
@@ -32,6 +33,7 @@
     "test:watch": "vitest",
     "test:ui": "vitest --ui",
     "test:unit": "vitest run --filter unit",
+    "test:workers": "vitest run --config vitest.workers.config.ts",
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
     "cf:typegen": "bun run --cwd apps/web cf-typegen",
