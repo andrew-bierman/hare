@@ -173,7 +173,7 @@ hare/
 │   ├── e2e/                    # End-to-end tests (Playwright)
 │   └── typescript-config/      # Shared TypeScript configs
 │
-├── .env.example                # Environment template
+├── .env.local.example          # Environment template
 ├── package.json                # Root workspace config
 ├── bun.lockb                   # Bun lockfile
 ├── turbo.json                  # Turborepo configuration
@@ -206,7 +206,7 @@ cd hare
 bun install
 
 # Copy environment variables
-cp .env.example .env.local
+cp .env.local.example .env.local
 # Edit .env.local with your credentials
 ```
 
@@ -589,13 +589,13 @@ data: {"type": "done", "usage": {"tokensIn": 150, "tokensOut": 89}}
 
 ## Environment Variables
 
-Hare uses a **monorepo environment shim** to manage environment variables across different apps. Create a `.env.local` file at the root based on `.env.example`, and the shim script will automatically generate app-specific files during `bun install`.
+Hare uses a **monorepo environment shim** to manage environment variables across different apps. Create a `.env.local` file at the root based on `.env.local.example`, and the shim script will automatically generate app-specific files during `bun install`.
 
 ### Setup
 
 ```bash
 # Copy the example file
-cp .env.example .env.local
+cp .env.local.example .env.local
 
 # Edit with your credentials
 # The postinstall script will automatically generate:
@@ -646,7 +646,7 @@ This approach:
 - ✅ Skips generation in CI environments
 
 **💡 Tips:**
-- Copy `.env.example` to `.env.local` to get started: `cp .env.example .env.local`
+- Copy `.env.local.example` to `.env.local` to get started: `cp .env.local.example .env.local`
 - Generate a secure auth secret: `openssl rand -base64 32`
 - Get your Cloudflare credentials from the [Cloudflare Dashboard](https://dash.cloudflare.com/)
 - OAuth credentials can be obtained from [Google Cloud Console](https://console.cloud.google.com/) and [GitHub Settings](https://github.com/settings/developers)

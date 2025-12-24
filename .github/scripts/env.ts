@@ -38,7 +38,7 @@ const envFilePath = join(rootDir, sourceFileName)
 
 if (!existsSync(envFilePath)) {
   console.log('⚠️  .env.local file does not exist at root level')
-  console.log('💡 Create one from .env.example: cp .env.example .env.local')
+  console.log('💡 Create one from .env.local.example: cp .env.local.example .env.local')
   process.exit(0)
 }
 
