@@ -631,7 +631,7 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 
 ### How It Works
 
-The environment shim script (`.github/scripts/env.js`) runs automatically during `bun install` and:
+The environment shim script (`.github/scripts/env.ts`) runs automatically during `bun install` and:
 
 1. **Reads** the root `.env.local` file
 2. **Transforms** `PUBLIC_` prefixed variables to `NEXT_PUBLIC_` for Next.js
@@ -650,7 +650,7 @@ This approach:
 - Generate a secure auth secret: `openssl rand -base64 32`
 - Get your Cloudflare credentials from the [Cloudflare Dashboard](https://dash.cloudflare.com/)
 - OAuth credentials can be obtained from [Google Cloud Console](https://console.cloud.google.com/) and [GitHub Settings](https://github.com/settings/developers)
-- To manually regenerate environment files: `node .github/scripts/env.js`
+- To manually regenerate environment files: `bun run .github/scripts/env.ts`
 
 ---
 
