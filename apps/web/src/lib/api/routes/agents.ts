@@ -352,14 +352,17 @@ app.openapi(createAgentRoute, async (c) => {
 		return c.json({ error: 'Failed to create agent' }, 500)
 	}
 
-	// Attach tools if provided
+	// Attach tools if provided (filter out system tools which don't exist in DB)
 	if (data.toolIds && data.toolIds.length > 0) {
-		await db.insert(agentTools).values(
-			data.toolIds.map((toolId: string) => ({
-				agentId: agent.id,
-				toolId,
-			})),
-		)
+		const customToolIds = data.toolIds.filter((id: string) => !id.startsWith('system-'))
+		if (customToolIds.length > 0) {
+			await db.insert(agentTools).values(
+				customToolIds.map((toolId: string) => ({
+					agentId: agent.id,
+					toolId,
+				})),
+			)
+		}
 	}
 
 	return c.json(
@@ -454,15 +457,16 @@ app.openapi(updateAgentRoute, async (c) => {
 		return c.json({ error: 'Failed to update agent' }, 500)
 	}
 
-	// Update tool attachments if provided
+	// Update tool attachments if provided (filter out system tools which don't exist in DB)
 	if (data.toolIds !== undefined) {
 		// Remove existing attachments
 		await db.delete(agentTools).where(eq(agentTools.agentId, id))
 
-		// Add new attachments
-		if (data.toolIds.length > 0) {
+		// Add new attachments (only custom tools, not system tools)
+		const customToolIds = data.toolIds.filter((id: string) => !id.startsWith('system-'))
+		if (customToolIds.length > 0) {
 			await db.insert(agentTools).values(
-				data.toolIds.map((toolId: string) => ({
+				customToolIds.map((toolId: string) => ({
 					agentId: id,
 					toolId,
 				})),
