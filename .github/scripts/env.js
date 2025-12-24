@@ -9,11 +9,12 @@
  * - Cloudflare Workers: generates .dev.vars (excludes PUBLIC_ vars)
  * 
  * Based on: https://github.com/timothymiller/t4-app/blob/master/.github/scripts/env.ts
+ * (adapted for Node.js compatibility and Hare's Cloudflare-first architecture)
  * 
  * Usage:
- *   node .github/scripts/env.ts
+ *   node .github/scripts/env.js
  *   # or with bun:
- *   bun run .github/scripts/env.ts
+ *   bun run .github/scripts/env.js
  * 
  * Automatically runs via postinstall hook (skipped in CI).
  */
