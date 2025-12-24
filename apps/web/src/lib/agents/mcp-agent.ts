@@ -46,6 +46,7 @@ export class HareMcpAgent extends McpAgent<CloudflareEnv, McpAgentState, Record<
 		const initContext = this.createToolContext()
 		const systemTools = getSystemTools(initContext)
 
+		// Register each tool with MCP server
 		for (const tool of systemTools) {
 			this.hareTools.set(tool.id, tool)
 		}
@@ -107,6 +108,13 @@ export class HareMcpAgent extends McpAgent<CloudflareEnv, McpAgentState, Record<
 				],
 			}
 		})
+	}
+
+	/**
+	 * Called when state is updated.
+	 */
+	onStateUpdate(state: McpAgentState): void {
+		console.log('MCP Agent state updated:', state)
 	}
 
 	/**

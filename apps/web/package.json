@@ -24,6 +24,7 @@
 	"dependencies": {
 		"@ai-sdk/provider": "^2.0.0",
 		"@ai-sdk/provider-utils": "^3.0.19",
+		"@modelcontextprotocol/sdk": "^1.0.0",
 		"agents": "0.0.67",
 		"@hono/zod-openapi": "^1.1.5",
 		"@hono/zod-validator": "^0.7.5",
