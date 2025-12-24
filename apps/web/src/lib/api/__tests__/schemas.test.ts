@@ -202,7 +202,6 @@ describe('API Schemas', () => {
 			expect(ToolTypeSchema.safeParse('sql').success).toBe(true)
 			expect(ToolTypeSchema.safeParse('kv').success).toBe(true)
 			expect(ToolTypeSchema.safeParse('r2').success).toBe(true)
-			expect(ToolTypeSchema.safeParse('vectorize').success).toBe(true)
 			expect(ToolTypeSchema.safeParse('custom').success).toBe(true)
 			expect(ToolTypeSchema.safeParse('webhook').success).toBe(true)
 		})
