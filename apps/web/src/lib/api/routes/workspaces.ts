@@ -4,7 +4,7 @@ import { workspaceMembers, workspaces } from 'web-app/db/schema'
 import type { Database } from 'web-app/db/types'
 import { generateUniqueSlug } from 'web-app/lib/utils'
 import { getDb } from '../db'
-import { commonResponses, requireAdminAccess, requireOwner } from '../helpers'
+import { commonResponses, requireAdminAccess } from '../helpers'
 import { authMiddleware } from '../middleware'
 import {
 	CreateWorkspaceSchema,
