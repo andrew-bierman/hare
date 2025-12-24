@@ -1,12 +1,22 @@
 import { z } from 'zod'
+import Parser from 'rss-parser'
+import Papa from 'papaparse'
 import { createTool, failure, success, type ToolContext } from './types'
 
+// Initialize RSS parser
+const rssParser = new Parser({
+	customFields: {
+		item: ['content:encoded', 'dc:creator'],
+	},
+})
+
 /**
- * RSS Feed Tool - Fetch and parse RSS/Atom feeds.
+ * RSS Feed Tool - Uses rss-parser for robust feed parsing
  */
 export const rssTool = createTool({
 	id: 'rss',
-	description: 'Fetch and parse RSS or Atom feeds. Returns structured feed data with items.',
+	description:
+		'Fetch and parse RSS or Atom feeds. Uses rss-parser for robust handling of various feed formats.',
 	inputSchema: z.object({
 		url: z.string().url().describe('URL of the RSS/Atom feed'),
 		limit: z.number().optional().default(10).describe('Maximum number of items to return'),
@@ -16,145 +26,42 @@ export const rssTool = createTool({
 		try {
 			const { url, limit, includeContent } = params
 
-			const response = await fetch(url, {
-				headers: {
-					'User-Agent': 'Hare-Agent/1.0 RSS Reader',
-					Accept: 'application/rss+xml, application/atom+xml, application/xml, text/xml',
-				},
+			// Use rss-parser to fetch and parse the feed
+			const feed = await rssParser.parseURL(url)
+
+			// Transform items to our format
+			const items = feed.items.slice(0, limit).map((item) => {
+				const extendedItem = item as typeof item & {
+					'content:encoded'?: string
+					'dc:creator'?: string
+					summary?: string
+					author?: string
+					description?: string
+				}
+				return {
+					title: item.title ?? '',
+					link: item.link ?? item.guid ?? '',
+					pubDate: item.pubDate ?? item.isoDate ?? '',
+					description: item.contentSnippet ?? extendedItem.summary ?? '',
+					...(includeContent && {
+						content:
+							extendedItem['content:encoded'] ?? item.content ?? extendedItem.description ?? '',
+					}),
+					author:
+						item.creator ?? extendedItem['dc:creator'] ?? extendedItem.author ?? undefined,
+					categories: item.categories,
+					guid: item.guid,
+				}
 			})
 
-			if (!response.ok) {
-				return failure(`Failed to fetch feed: ${response.status} ${response.statusText}`)
-			}
-
-			const xml = await response.text()
-
-			// Simple XML parser for RSS/Atom
-			const parseXml = (_text: string) => {
-				const getTagContent = (tag: string, content: string): string | null => {
-					const regex = new RegExp(`<${tag}[^>]*>([\\s\\S]*?)</${tag}>`, 'i')
-					const match = content.match(regex)
-					return match?.[1]?.trim() ?? null
-				}
-
-				const getCdataContent = (text: string): string => {
-					const cdataMatch = text.match(/<!\[CDATA\[([\s\S]*?)\]\]>/)
-					return cdataMatch?.[1] ?? text.replace(/<[^>]+>/g, '').trim()
-				}
-
-				const getAttr = (tag: string, attr: string, content: string): string | null => {
-					const regex = new RegExp(`<${tag}[^>]*${attr}=["']([^"']+)["']`, 'i')
-					const match = content.match(regex)
-					return match?.[1] ?? null
-				}
-
-				// Detect feed type
-				const isAtom = xml.includes('<feed') && xml.includes('xmlns="http://www.w3.org/2005/Atom"')
-
-				if (isAtom) {
-					// Parse Atom feed
-					const title = getTagContent('title', xml)
-					const link = getAttr('link', 'href', xml)
-					const updated = getTagContent('updated', xml)
-
-					const entryRegex = /<entry>([\s\S]*?)<\/entry>/gi
-					const entries: Array<{
-						title: string
-						link: string
-						published: string
-						summary: string
-						content?: string
-						author?: string
-					}> = []
-
-					let match: RegExpExecArray | null
-					while ((match = entryRegex.exec(xml)) !== null && entries.length < limit) {
-						const entry = match[1] ?? ''
-						entries.push({
-							title: getCdataContent(getTagContent('title', entry) ?? ''),
-							link: getAttr('link', 'href', entry) ?? getTagContent('id', entry) ?? '',
-							published: getTagContent('published', entry) ?? getTagContent('updated', entry) ?? '',
-							summary: getCdataContent(getTagContent('summary', entry) ?? ''),
-							...(includeContent && {
-								content: getCdataContent(getTagContent('content', entry) ?? ''),
-							}),
-							author: getTagContent('name', getTagContent('author', entry) ?? '') ?? undefined,
-						})
-					}
-
-					return {
-						type: 'atom',
-						title: getCdataContent(title ?? ''),
-						link,
-						updated,
-						items: entries,
-					}
-				} else {
-					// Parse RSS 2.0 feed
-					const channel = getTagContent('channel', xml) || xml
-					const title = getTagContent('title', channel)
-					const link = getTagContent('link', channel)
-					const description = getTagContent('description', channel)
-					const lastBuildDate = getTagContent('lastBuildDate', channel)
-
-					const itemRegex = /<item>([\s\S]*?)<\/item>/gi
-					const items: Array<{
-						title: string
-						link: string
-						pubDate: string
-						description: string
-						content?: string
-						author?: string
-						categories?: string[]
-					}> = []
-
-					let match: RegExpExecArray | null
-					while ((match = itemRegex.exec(xml)) !== null && items.length < limit) {
-						const item = match[1] ?? ''
-
-						// Extract categories
-						const categories: string[] = []
-						const catRegex = /<category[^>]*>([^<]+)<\/category>/gi
-						for (const catMatch of item.matchAll(catRegex)) {
-							if (catMatch[1]) {
-								categories.push(getCdataContent(catMatch[1]))
-							}
-						}
-
-						items.push({
-							title: getCdataContent(getTagContent('title', item) ?? ''),
-							link: getTagContent('link', item) ?? getTagContent('guid', item) ?? '',
-							pubDate: getTagContent('pubDate', item) ?? '',
-							description: getCdataContent(getTagContent('description', item) ?? ''),
-							...(includeContent && {
-								content: getCdataContent(
-									getTagContent('content:encoded', item) ??
-										getTagContent('description', item) ??
-										'',
-								),
-							}),
-							author:
-								getTagContent('author', item) ?? getTagContent('dc:creator', item) ?? undefined,
-							...(categories.length > 0 && { categories }),
-						})
-					}
-
-					return {
-						type: 'rss',
-						title: getCdataContent(title ?? ''),
-						link,
-						description: getCdataContent(description ?? ''),
-						lastBuildDate,
-						items,
-					}
-				}
-			}
-
-			const feed = parseXml(xml)
-
 			return success({
-				...feed,
-				itemCount: feed.items.length,
+				type: feed.feedUrl?.includes('atom') ? 'atom' : 'rss',
+				title: feed.title ?? '',
+				link: feed.link,
+				description: feed.description,
+				lastBuildDate: feed.lastBuildDate,
+				items,
+				itemCount: items.length,
 				fetchedAt: new Date().toISOString(),
 			})
 		} catch (error) {
@@ -783,11 +690,12 @@ export const jsonSchemaTool = createTool({
 })
 
 /**
- * CSV Tool - Parse and generate CSV data.
+ * CSV Tool - Uses papaparse for robust CSV parsing
  */
 export const csvTool = createTool({
 	id: 'csv',
-	description: 'Parse CSV text to JSON or convert JSON arrays to CSV format.',
+	description:
+		'Parse CSV text to JSON or convert JSON arrays to CSV format. Uses papaparse for robust handling of edge cases.',
 	inputSchema: z.object({
 		operation: z.enum(['parse', 'stringify']).describe('CSV operation'),
 		data: z
@@ -817,75 +725,25 @@ export const csvTool = createTool({
 					return failure('Parse requires a CSV string')
 				}
 
-				const lines = data.split(/\r?\n/).filter((line) => !skipEmptyLines || line.trim())
-				if (lines.length === 0) {
-					return success({ data: [], rowCount: 0 })
-				}
-
-				const parseRow = (row: string): string[] => {
-					const result: string[] = []
-					let current = ''
-					let inQuotes = false
-
-					for (let i = 0; i < row.length; i++) {
-						const char = row[i]
-						const nextChar = row[i + 1]
-
-						if (inQuotes) {
-							if (char === '"' && nextChar === '"') {
-								current += '"'
-								i++
-							} else if (char === '"') {
-								inQuotes = false
-							} else {
-								current += char
-							}
-						} else {
-							if (char === '"') {
-								inQuotes = true
-							} else if (char === delimiter) {
-								result.push(current)
-								current = ''
-							} else {
-								current += char
-							}
-						}
-					}
-					result.push(current)
-					return result
-				}
-
-				let headerRow: string[]
-				let dataLines: string[]
-
-				const firstLine = lines[0] ?? ''
-
-				if (headers) {
-					headerRow = customHeaders ?? parseRow(firstLine)
-					dataLines = lines.slice(1)
-				} else if (customHeaders) {
-					headerRow = customHeaders
-					dataLines = lines
-				} else {
-					// Generate default headers
-					const firstRow = parseRow(firstLine)
-					headerRow = firstRow.map((_, i) => `column${i + 1}`)
-					dataLines = lines
-				}
-
-				const parsed = dataLines.map((line) => {
-					const values = parseRow(line)
-					const obj: Record<string, string> = {}
-					headerRow.forEach((header, i) => {
-						obj[header] = values[i] || ''
-					})
-					return obj
+				// Use papaparse for parsing
+				const result = Papa.parse<Record<string, string>>(data, {
+					delimiter,
+					header: headers,
+					skipEmptyLines: skipEmptyLines ? 'greedy' : false,
+					transformHeader: customHeaders
+						? (_header: string, index: number) => customHeaders[index] ?? `column${index + 1}`
+						: undefined,
 				})
 
+				if (result.errors.length > 0) {
+					const errorMessages = result.errors.map((e: Papa.ParseError) => e.message).join('; ')
+					return failure(`CSV parse errors: ${errorMessages}`)
+				}
+
 				return success({
-					data: parsed,
-					headers: headerRow,
-					rowCount: parsed.length,
+					data: result.data,
+					headers: result.meta.fields ?? [],
+					rowCount: result.data.length,
 				})
 			}
 
@@ -898,24 +756,13 @@ export const csvTool = createTool({
 					return success({ csv: '', rowCount: 0 })
 				}
 
-				const escapeValue = (val: unknown): string => {
-					const str = String(val ?? '')
-					if (str.includes(delimiter) || str.includes('"') || str.includes('\n')) {
-						return `"${str.replace(/"/g, '""')}"`
-					}
-					return str
-				}
-
+				// Use papaparse for stringifying
 				const headerRow = customHeaders || Object.keys(data[0] as object)
-				const rows = [
-					...(headers ? [headerRow.join(delimiter)] : []),
-					...data.map((row) => {
-						const obj = row as Record<string, unknown>
-						return headerRow.map((h) => escapeValue(obj[h])).join(delimiter)
-					}),
-				]
-
-				const csv = rows.join('\n')
+				const csv = Papa.unparse(data as Record<string, unknown>[], {
+					delimiter,
+					header: headers,
+					columns: headerRow,
+				})
 
 				return success({
 					csv,
