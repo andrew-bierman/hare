@@ -72,12 +72,18 @@ export const workspaceMiddleware: MiddlewareHandler<WorkspaceEnv> = async (c, ne
 }
 
 /**
+ * Input for checking permission.
+ */
+export interface HasPermissionInput {
+	role: WorkspaceRole
+	action: 'read' | 'write' | 'admin' | 'owner'
+}
+
+/**
  * Check if user has permission for an action based on role.
  */
-export function hasPermission(
-	role: WorkspaceRole,
-	action: 'read' | 'write' | 'admin' | 'owner',
-): boolean {
+export function hasPermission(input: HasPermissionInput): boolean {
+	const { role, action } = input
 	const permissions: Record<WorkspaceRole, Set<string>> = {
 		owner: new Set(['read', 'write', 'admin', 'owner']),
 		admin: new Set(['read', 'write', 'admin']),
@@ -97,7 +103,7 @@ export function requirePermission(
 	return async (c, next) => {
 		const role = c.get('workspaceRole')
 
-		if (!role || !hasPermission(role, action)) {
+		if (!role || !hasPermission({ role, action })) {
 			return c.json({ error: 'Insufficient permissions' }, 403)
 		}
 
