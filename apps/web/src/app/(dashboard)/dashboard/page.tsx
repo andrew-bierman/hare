@@ -165,7 +165,7 @@ export default function DashboardPage() {
 			{/* Stats Grid */}
 			<div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
 				{isLoading
-					? [...Array(4)].map((_, i) => <StatCardSkeleton key={i} />)
+					? [...Array(4)].map((_, i) => <StatCardSkeleton key={`stat-skeleton-${i}`} />)
 					: stats.map((stat) => (
 							<Card key={stat.title}>
 								<CardContent className="p-4 sm:p-6">
@@ -240,7 +240,7 @@ export default function DashboardPage() {
 				{isLoading ? (
 					<div className="grid gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3">
 						{[...Array(3)].map((_, i) => (
-							<AgentCardSkeleton key={i} />
+							<AgentCardSkeleton key={`agent-skeleton-${i}`} />
 						))}
 					</div>
 				) : recentAgents.length === 0 ? (

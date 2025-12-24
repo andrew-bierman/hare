@@ -6,7 +6,7 @@ import { createTool, failure, success, type ToolContext } from './types'
  * These are "agent data" tables, not system tables.
  * System tables (users, sessions, api_keys, etc.) are blocked.
  */
-const ALLOWED_TABLES = new Set([
+const _ALLOWED_TABLES = new Set([
 	// Agent-specific data tables that agents can query
 	// Add tables here that agents should be able to access
 	'agent_data', // Generic agent data storage
