@@ -161,7 +161,7 @@ test.describe('Agent Editor', () => {
 			await authenticatedPage.waitForTimeout(2000)
 
 			// Verify name was updated
-			await expect(authenticatedPage.getByDisplayValue(newName)).toBeVisible()
+			await expect(nameInput).toHaveValue(newName)
 		}
 	})
 })
