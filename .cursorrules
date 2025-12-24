@@ -1,46 +1,29 @@
----
-description: Hare - AI agent platform on Cloudflare edge
-globs: "**/*.ts, **/*.tsx, **/*.json"
-alwaysApply: true
----
-
 # Hare Development Guide
 
-Hare is an AI agent platform deployed on Cloudflare's edge network. This guide ensures consistent, high-quality contributions.
+Hare is an AI agent platform deployed on Cloudflare's edge network.
 
 ## Tech Stack
 
-- **Runtime**: Bun 1.3.5 (use `bun` for all package management)
-- **Frontend**: Next.js 15, React 19, App Router, shadcn/ui, Tailwind CSS
-- **API**: Hono with OpenAPI/Zod validation
-- **Database**: Cloudflare D1 (SQLite) + Drizzle ORM
-- **AI**: Vercel AI SDK + Workers AI (Llama, Mistral, etc.)
-- **Auth**: Better Auth
-- **Infra**: Cloudflare Pages, D1, KV, R2, Vectorize, Agents SDK
+- Runtime: Bun 1.3.5 (use `bun` for all package management)
+- Frontend: Next.js 15, React 19, App Router, shadcn/ui, Tailwind CSS
+- API: Hono with OpenAPI/Zod validation
+- Database: Cloudflare D1 (SQLite) + Drizzle ORM
+- AI: Vercel AI SDK + Workers AI (Llama, Mistral, etc.)
+- Auth: Better Auth
+- Infra: Cloudflare Pages, D1, KV, R2, Vectorize, Agents SDK
 
 ## Commands
 
 ```sh
-# Development
 bun install              # Install dependencies
 bun run dev              # Start dev server (Turbo)
 bun run build            # Build for production
-bun run preview          # Test on local Cloudflare runtime
-
-# Code Quality
 bun run check:fix        # Lint + format with Biome
 bun run typecheck        # TypeScript check
-
-# Testing
 bun run test             # Run Vitest tests
-bun run test:watch       # Watch mode
-bun run test:coverage    # Coverage report
 bun run test:e2e         # Playwright E2E tests
-
-# Database
 bun run db:generate      # Generate migrations from schema
 bun run db:migrate:local # Apply to local D1
-bun run db:push          # Push schema directly
 bun run db:studio        # Open Drizzle Studio
 ```
 
@@ -69,11 +52,11 @@ apps/web/src/
 
 ## Code Style (Biome)
 
-- **Indentation**: Tabs
-- **Quotes**: Single quotes
-- **Semicolons**: No (omit when possible)
-- **Line width**: 100 characters
-- **Imports**: No unused imports/variables (error)
+- Indentation: Tabs
+- Quotes: Single quotes
+- Semicolons: No (omit when possible)
+- Line width: 100 characters
+- Imports: No unused imports/variables (error)
 
 Run `bun run check:fix` before committing.
 
@@ -132,11 +115,11 @@ const result = await streamText({
 ## Cloudflare Bindings
 
 Access via `env` in API routes:
-- `env.DB` - D1 database
-- `env.KV` - Key-value store
-- `env.R2` - Object storage
-- `env.AI` - Workers AI
-- `env.VECTORIZE` - Vector database
+- env.DB - D1 database
+- env.KV - Key-value store
+- env.R2 - Object storage
+- env.AI - Workers AI
+- env.VECTORIZE - Vector database
 
 ## Testing
 
@@ -154,20 +137,20 @@ describe('example', () => {
 ## Git Commits
 
 Use gitmoji spec:
-- `feat:` or `:sparkles:` - New feature
-- `fix:` or `:bug:` - Bug fix
-- `refactor:` or `:recycle:` - Refactoring
-- `docs:` or `:memo:` - Documentation
-- `test:` or `:white_check_mark:` - Tests
-- `chore:` or `:wrench:` - Maintenance
+- ✨ feat: New feature
+- 🐛 fix: Bug fix
+- ♻️ refactor: Refactoring
+- 📝 docs: Documentation
+- ✅ test: Tests
+- 🔧 chore: Maintenance
 
 ## Key Conventions
 
-1. **Type Safety**: Use Zod for runtime validation, TypeScript for compile-time
-2. **Error Handling**: Use Hono's built-in error handling, throw HTTPException
-3. **State**: TanStack Query for server state, React state for UI
-4. **Styling**: Tailwind CSS + shadcn/ui, use `cn()` for conditional classes
-5. **Paths**: Use `@/` alias for imports from `src/`
+1. Type Safety: Use Zod for runtime validation, TypeScript for compile-time
+2. Error Handling: Use Hono's built-in error handling, throw HTTPException
+3. State: TanStack Query for server state, React state for UI
+4. Styling: Tailwind CSS + shadcn/ui, use `cn()` for conditional classes
+5. Paths: Use `@/` alias for imports from `src/`
 
 ---
 
@@ -209,7 +192,7 @@ Then register in `apps/web/src/lib/agents/tools/index.ts`:
 2. Add to `getSystemTools()` function
 3. Add tool ID to `SYSTEM_TOOL_IDS` array
 
-**Tool Categories**: storage, database, search, http, utility, integrations, ai, data, sandbox, validation, transform
+Tool Categories: storage, database, search, http, utility, integrations, ai, data, sandbox, validation, transform
 
 ---
 
