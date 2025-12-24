@@ -1,7 +1,7 @@
 {
 	"$schema": "node_modules/wrangler/config-schema.json",
 	"name": "hare",
-	"main": ".open-next/worker.js",
+	"main": "custom-worker.ts",
 	"compatibility_date": "2025-12-01",
 	"compatibility_flags": ["nodejs_compat"],
 
@@ -56,6 +56,10 @@
 				"name": "HARE_AGENT",
 				"class_name": "HareAgent",
 				"script_name": "hare"
+			},
+			{
+				"name": "MCP_AGENT",
+				"class_name": "HareMcpAgent"
 			}
 		]
 	},
@@ -64,7 +68,7 @@
 	"migrations": [
 		{
 			"tag": "v1",
-			"new_sqlite_classes": ["HareAgent"]
+			"new_sqlite_classes": ["HareAgent", "HareMcpAgent"]
 		}
 	]
 

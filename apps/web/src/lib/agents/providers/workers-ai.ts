@@ -55,13 +55,21 @@ export function getWorkersAIModelId(modelName: string): string {
 }
 
 /**
+ * Input for creating a Workers AI model.
+ */
+export interface CreateWorkersAIModelInput {
+	modelName: string
+	ai: Ai
+}
+
+/**
  * Create a Workers AI model instance for use with the Vercel AI SDK.
  * Returns a LanguageModelV1 compatible model.
  */
 export function createWorkersAIModel(
-	modelName: string,
-	ai: Ai,
+	input: CreateWorkersAIModelInput,
 ): ReturnType<ReturnType<typeof createWorkersAI>> {
+	const { modelName, ai } = input
 	const workersai = createWorkersAI({ binding: ai })
 	const modelId = getWorkersAIModelId(modelName)
 	// Cast to the expected type - the model ID is validated by getWorkersAIModelId
@@ -69,13 +77,19 @@ export function createWorkersAIModel(
 }
 
 /**
+ * Input for generating embeddings.
+ */
+export interface GenerateEmbeddingsInput {
+	ai: Ai
+	texts: string[]
+	model?: EmbeddingModelId
+}
+
+/**
  * Generate embeddings using Workers AI.
  */
-export async function generateEmbeddings(
-	ai: Ai,
-	texts: string[],
-	model: EmbeddingModelId = 'bge-base-en',
-): Promise<number[][]> {
+export async function generateEmbeddings(input: GenerateEmbeddingsInput): Promise<number[][]> {
+	const { ai, texts, model = 'bge-base-en' } = input
 	const modelId = EMBEDDING_MODELS[model]
 
 	const response = await ai.run(modelId as Parameters<typeof ai.run>[0], {
@@ -87,14 +101,20 @@ export async function generateEmbeddings(
 }
 
 /**
+ * Input for generating a single embedding.
+ */
+export interface GenerateEmbeddingInput {
+	ai: Ai
+	text: string
+	model?: EmbeddingModelId
+}
+
+/**
  * Generate a single embedding using Workers AI.
  */
-export async function generateEmbedding(
-	ai: Ai,
-	text: string,
-	model: EmbeddingModelId = 'bge-base-en',
-): Promise<number[]> {
-	const embeddings = await generateEmbeddings(ai, [text], model)
+export async function generateEmbedding(input: GenerateEmbeddingInput): Promise<number[]> {
+	const { ai, text, model = 'bge-base-en' } = input
+	const embeddings = await generateEmbeddings({ ai, texts: [text], model })
 	if (!embeddings[0]) {
 		throw new Error('Failed to generate embedding')
 	}

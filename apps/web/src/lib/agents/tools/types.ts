@@ -88,7 +88,6 @@ export const ToolTypeSchema = z.enum([
 	'sql',
 	'kv',
 	'r2',
-	'vectorize',
 	'search',
 	// Utility
 	'datetime',

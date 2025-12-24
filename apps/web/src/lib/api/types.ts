@@ -151,7 +151,10 @@ export function isWorkspaceRole(value: unknown): value is WorkspaceRole {
  * Throws if invalid.
  */
 export function assertWorkspaceRole(value: unknown): asserts value is WorkspaceRole {
-	WorkspaceRoleSchema.parse(value)
+	const result = WorkspaceRoleSchema.safeParse(value)
+	if (!result.success) {
+		throw new Error('Invalid workspace role')
+	}
 }
 
 /**
@@ -174,7 +177,10 @@ export function isMessageRole(value: unknown): value is MessageRole {
  * Throws if invalid.
  */
 export function assertMessageRole(value: unknown): asserts value is MessageRole {
-	MessageRoleSchema.parse(value)
+	const result = MessageRoleSchema.safeParse(value)
+	if (!result.success) {
+		throw new Error('Invalid message role')
+	}
 }
 
 // =============================================================================
@@ -257,7 +263,7 @@ export type UpdateAgentInput = z.infer<typeof UpdateAgentInputSchema>
 /**
  * Tool type schema (client-side subset).
  */
-export const ToolTypeSchema = z.enum(['http', 'sql', 'kv', 'r2', 'vectorize', 'custom'])
+export const ToolTypeSchema = z.enum(['http', 'sql', 'kv', 'r2', 'custom'])
 
 export type ToolType = z.infer<typeof ToolTypeSchema>
 

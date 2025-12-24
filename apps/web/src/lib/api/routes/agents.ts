@@ -3,6 +3,7 @@ import { and, eq } from 'drizzle-orm'
 import { agents, agentTools, deployments } from 'web-app/db/schema'
 import type { Database } from 'web-app/db/types'
 import { getCloudflareEnv, getDb } from '../db'
+import { commonResponses, requireAdminAccess, requireWriteAccess } from '../helpers'
 import { authMiddleware, workspaceMiddleware } from '../middleware'
 import {
 	AgentSchema,
@@ -14,6 +15,7 @@ import {
 	SuccessSchema,
 	UpdateAgentSchema,
 } from '../schemas'
+import { serializeAgent } from '../serializers'
 import type { WorkspaceEnv } from '../types'
 
 // Define routes
@@ -39,14 +41,7 @@ const listAgentsRoute = createRoute({
 				},
 			},
 		},
-		401: {
-			description: 'Unauthorized',
-			content: { 'application/json': { schema: ErrorSchema } },
-		},
-		503: {
-			description: 'Service unavailable',
-			content: { 'application/json': { schema: ErrorSchema } },
-		},
+		...commonResponses,
 	},
 })
 
@@ -77,22 +72,15 @@ const createAgentRoute = createRoute({
 				},
 			},
 		},
-		401: {
-			description: 'Unauthorized',
-			content: { 'application/json': { schema: ErrorSchema } },
-		},
 		403: {
-			description: 'Forbidden',
+			description: 'Write access required',
 			content: { 'application/json': { schema: ErrorSchema } },
 		},
 		500: {
-			description: 'Internal server error',
+			description: 'Failed to create agent',
 			content: { 'application/json': { schema: ErrorSchema } },
 		},
-		503: {
-			description: 'Service unavailable',
-			content: { 'application/json': { schema: ErrorSchema } },
-		},
+		...commonResponses,
 	},
 })
 
@@ -125,10 +113,7 @@ const getAgentRoute = createRoute({
 				},
 			},
 		},
-		503: {
-			description: 'Service unavailable',
-			content: { 'application/json': { schema: ErrorSchema } },
-		},
+		...commonResponses,
 	},
 })
 
@@ -161,7 +146,7 @@ const updateAgentRoute = createRoute({
 			},
 		},
 		403: {
-			description: 'Forbidden',
+			description: 'Write access required',
 			content: { 'application/json': { schema: ErrorSchema } },
 		},
 		404: {
@@ -173,13 +158,10 @@ const updateAgentRoute = createRoute({
 			},
 		},
 		500: {
-			description: 'Internal server error',
+			description: 'Failed to update agent',
 			content: { 'application/json': { schema: ErrorSchema } },
 		},
-		503: {
-			description: 'Service unavailable',
-			content: { 'application/json': { schema: ErrorSchema } },
-		},
+		...commonResponses,
 	},
 })
 
@@ -205,7 +187,7 @@ const deleteAgentRoute = createRoute({
 			},
 		},
 		403: {
-			description: 'Forbidden',
+			description: 'Admin access required',
 			content: { 'application/json': { schema: ErrorSchema } },
 		},
 		404: {
@@ -216,10 +198,7 @@ const deleteAgentRoute = createRoute({
 				},
 			},
 		},
-		503: {
-			description: 'Service unavailable',
-			content: { 'application/json': { schema: ErrorSchema } },
-		},
+		...commonResponses,
 	},
 })
 
@@ -256,7 +235,7 @@ const deployAgentRoute = createRoute({
 			content: { 'application/json': { schema: ErrorSchema } },
 		},
 		403: {
-			description: 'Forbidden',
+			description: 'Admin access required',
 			content: { 'application/json': { schema: ErrorSchema } },
 		},
 		404: {
@@ -268,20 +247,26 @@ const deployAgentRoute = createRoute({
 			},
 		},
 		500: {
-			description: 'Internal server error',
+			description: 'Failed to create deployment',
 			content: { 'application/json': { schema: ErrorSchema } },
 		},
-		503: {
-			description: 'Service unavailable',
-			content: { 'application/json': { schema: ErrorSchema } },
-		},
+		...commonResponses,
 	},
 })
 
 /**
+ * Input for getting agent tool IDs.
+ */
+interface GetAgentToolIdsInput {
+	agentId: string
+	db: Database
+}
+
+/**
  * Get tool IDs attached to an agent.
  */
-async function getAgentToolIds(agentId: string, db: Database): Promise<string[]> {
+async function getAgentToolIds(input: GetAgentToolIdsInput): Promise<string[]> {
+	const { agentId, db } = input
 	const rows = await db
 		.select({ toolId: agentTools.toolId })
 		.from(agentTools)
@@ -289,7 +274,22 @@ async function getAgentToolIds(agentId: string, db: Database): Promise<string[]>
 	return rows.map((r) => r.toolId)
 }
 
-// Create app with proper typing (includes Bindings and Variables)
+/**
+ * Find an agent by ID and workspace, or return null.
+ */
+async function findAgentByIdAndWorkspace(
+	db: Database,
+	id: string,
+	workspaceId: string,
+) {
+	const [agent] = await db
+		.select()
+		.from(agents)
+		.where(and(eq(agents.id, id), eq(agents.workspaceId, workspaceId)))
+	return agent || null
+}
+
+// Create app with proper typing
 const app = new OpenAPIHono<WorkspaceEnv>()
 
 // Apply middleware
@@ -303,21 +303,10 @@ app.openapi(listAgentsRoute, async (c) => {
 
 	const results = await db.select().from(agents).where(eq(agents.workspaceId, workspace.id))
 
-	// Get tool IDs for each agent
 	const agentsData = await Promise.all(
-		results.map(async (agent) => ({
-			id: agent.id,
-			workspaceId: agent.workspaceId,
-			name: agent.name,
-			description: agent.description,
-			model: agent.model,
-			instructions: agent.instructions || '',
-			config: agent.config || undefined,
-			status: agent.status,
-			toolIds: await getAgentToolIds(agent.id, db),
-			createdAt: agent.createdAt.toISOString(),
-			updatedAt: agent.updatedAt.toISOString(),
-		})),
+		results.map(async (agent) =>
+			serializeAgent(agent, await getAgentToolIds({ agentId: agent.id, db })),
+		),
 	)
 
 	return c.json({ agents: agentsData }, 200)
@@ -330,10 +319,7 @@ app.openapi(createAgentRoute, async (c) => {
 	const workspace = c.get('workspace')
 	const role = c.get('workspaceRole')
 
-	// Check write permission
-	if (role === 'viewer') {
-		return c.json({ error: 'Insufficient permissions' }, 403)
-	}
+	requireWriteAccess(role)
 
 	const [agent] = await db
 		.insert(agents)
@@ -352,32 +338,20 @@ app.openapi(createAgentRoute, async (c) => {
 		return c.json({ error: 'Failed to create agent' }, 500)
 	}
 
-	// Attach tools if provided
+	// Attach tools if provided (filter out system tools which don't exist in DB)
 	if (data.toolIds && data.toolIds.length > 0) {
-		await db.insert(agentTools).values(
-			data.toolIds.map((toolId: string) => ({
-				agentId: agent.id,
-				toolId,
-			})),
-		)
+		const customToolIds = data.toolIds.filter((id: string) => !id.startsWith('system-'))
+		if (customToolIds.length > 0) {
+			await db.insert(agentTools).values(
+				customToolIds.map((toolId: string) => ({
+					agentId: agent.id,
+					toolId,
+				})),
+			)
+		}
 	}
 
-	return c.json(
-		{
-			id: agent.id,
-			workspaceId: agent.workspaceId,
-			name: agent.name,
-			description: agent.description,
-			model: agent.model,
-			instructions: agent.instructions || '',
-			config: agent.config || undefined,
-			status: agent.status,
-			toolIds: data.toolIds || [],
-			createdAt: agent.createdAt.toISOString(),
-			updatedAt: agent.updatedAt.toISOString(),
-		},
-		201,
-	)
+	return c.json(serializeAgent(agent, data.toolIds || []), 201)
 })
 
 app.openapi(getAgentRoute, async (c) => {
@@ -385,34 +359,13 @@ app.openapi(getAgentRoute, async (c) => {
 	const db = await getDb(c)
 	const workspace = c.get('workspace')
 
-	// Verify agent belongs to workspace
-	const [agent] = await db
-		.select()
-		.from(agents)
-		.where(and(eq(agents.id, id), eq(agents.workspaceId, workspace.id)))
-
+	const agent = await findAgentByIdAndWorkspace(db, id, workspace.id)
 	if (!agent) {
 		return c.json({ error: 'Agent not found' }, 404)
 	}
 
-	const toolIds = await getAgentToolIds(agent.id, db)
-
-	return c.json(
-		{
-			id: agent.id,
-			workspaceId: agent.workspaceId,
-			name: agent.name,
-			description: agent.description,
-			model: agent.model,
-			instructions: agent.instructions || '',
-			config: agent.config || undefined,
-			status: agent.status,
-			toolIds,
-			createdAt: agent.createdAt.toISOString(),
-			updatedAt: agent.updatedAt.toISOString(),
-		},
-		200,
-	)
+	const toolIds = await getAgentToolIds({ agentId: agent.id, db })
+	return c.json(serializeAgent(agent, toolIds), 200)
 })
 
 app.openapi(updateAgentRoute, async (c) => {
@@ -422,22 +375,14 @@ app.openapi(updateAgentRoute, async (c) => {
 	const workspace = c.get('workspace')
 	const role = c.get('workspaceRole')
 
-	// Check write permission
-	if (role === 'viewer') {
-		return c.json({ error: 'Insufficient permissions' }, 403)
-	}
+	requireWriteAccess(role)
 
-	// Verify agent belongs to workspace
-	const [existing] = await db
-		.select()
-		.from(agents)
-		.where(and(eq(agents.id, id), eq(agents.workspaceId, workspace.id)))
-
+	const existing = await findAgentByIdAndWorkspace(db, id, workspace.id)
 	if (!existing) {
 		return c.json({ error: 'Agent not found' }, 404)
 	}
 
-	// Build typed update object using Drizzle's inferred type
+	// Build typed update object
 	const updateData: Partial<typeof agents.$inferInsert> = {
 		updatedAt: new Date(),
 		...(data.name !== undefined && { name: data.name }),
@@ -454,15 +399,15 @@ app.openapi(updateAgentRoute, async (c) => {
 		return c.json({ error: 'Failed to update agent' }, 500)
 	}
 
-	// Update tool attachments if provided
+	// Update tool attachments if provided (filter out system tools which don't exist in DB)
 	if (data.toolIds !== undefined) {
-		// Remove existing attachments
 		await db.delete(agentTools).where(eq(agentTools.agentId, id))
 
-		// Add new attachments
-		if (data.toolIds.length > 0) {
+		// Add new attachments (only custom tools, not system tools)
+		const customToolIds = data.toolIds.filter((toolId: string) => !toolId.startsWith('system-'))
+		if (customToolIds.length > 0) {
 			await db.insert(agentTools).values(
-				data.toolIds.map((toolId: string) => ({
+				customToolIds.map((toolId: string) => ({
 					agentId: id,
 					toolId,
 				})),
@@ -470,24 +415,8 @@ app.openapi(updateAgentRoute, async (c) => {
 		}
 	}
 
-	const toolIds = await getAgentToolIds(id, db)
-
-	return c.json(
-		{
-			id: agent.id,
-			workspaceId: agent.workspaceId,
-			name: agent.name,
-			description: agent.description,
-			model: agent.model,
-			instructions: agent.instructions || '',
-			config: agent.config || undefined,
-			status: agent.status,
-			toolIds,
-			createdAt: agent.createdAt.toISOString(),
-			updatedAt: agent.updatedAt.toISOString(),
-		},
-		200,
-	)
+	const toolIds = await getAgentToolIds({ agentId: id, db })
+	return c.json(serializeAgent(agent, toolIds), 200)
 })
 
 app.openapi(deleteAgentRoute, async (c) => {
@@ -496,12 +425,8 @@ app.openapi(deleteAgentRoute, async (c) => {
 	const workspace = c.get('workspace')
 	const role = c.get('workspaceRole')
 
-	// Check admin permission for delete
-	if (role !== 'owner' && role !== 'admin') {
-		return c.json({ error: 'Insufficient permissions' }, 403)
-	}
+	requireAdminAccess(role)
 
-	// Verify agent belongs to workspace
 	const result = await db
 		.delete(agents)
 		.where(and(eq(agents.id, id), eq(agents.workspaceId, workspace.id)))
@@ -523,22 +448,13 @@ app.openapi(deployAgentRoute, async (c) => {
 	const workspace = c.get('workspace')
 	const role = c.get('workspaceRole')
 
-	// Check admin permission for deploy
-	if (role !== 'owner' && role !== 'admin') {
-		return c.json({ error: 'Insufficient permissions' }, 403)
-	}
+	requireAdminAccess(role)
 
-	// Verify agent belongs to workspace
-	const [existing] = await db
-		.select()
-		.from(agents)
-		.where(and(eq(agents.id, id), eq(agents.workspaceId, workspace.id)))
-
+	const existing = await findAgentByIdAndWorkspace(db, id, workspace.id)
 	if (!existing) {
 		return c.json({ error: 'Agent not found' }, 404)
 	}
 
-	// Validate agent is ready for deployment
 	if (!existing.instructions) {
 		return c.json({ error: 'Agent must have instructions before deployment' }, 400)
 	}
@@ -579,7 +495,6 @@ app.openapi(deployAgentRoute, async (c) => {
 		})
 		.where(eq(agents.id, id))
 
-	// Create deployment record
 	const version = data.version || '1.0.0'
 	const [deployment] = await db
 		.insert(deployments)

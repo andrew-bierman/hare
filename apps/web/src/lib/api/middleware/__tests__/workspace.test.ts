@@ -4,73 +4,73 @@ import { hasPermission } from '../workspace'
 describe('hasPermission', () => {
 	describe('owner role', () => {
 		it('has read permission', () => {
-			expect(hasPermission('owner', 'read')).toBe(true)
+			expect(hasPermission({ role: 'owner', action: 'read' })).toBe(true)
 		})
 
 		it('has write permission', () => {
-			expect(hasPermission('owner', 'write')).toBe(true)
+			expect(hasPermission({ role: 'owner', action: 'write' })).toBe(true)
 		})
 
 		it('has admin permission', () => {
-			expect(hasPermission('owner', 'admin')).toBe(true)
+			expect(hasPermission({ role: 'owner', action: 'admin' })).toBe(true)
 		})
 
 		it('has owner permission', () => {
-			expect(hasPermission('owner', 'owner')).toBe(true)
+			expect(hasPermission({ role: 'owner', action: 'owner' })).toBe(true)
 		})
 	})
 
 	describe('admin role', () => {
 		it('has read permission', () => {
-			expect(hasPermission('admin', 'read')).toBe(true)
+			expect(hasPermission({ role: 'admin', action: 'read' })).toBe(true)
 		})
 
 		it('has write permission', () => {
-			expect(hasPermission('admin', 'write')).toBe(true)
+			expect(hasPermission({ role: 'admin', action: 'write' })).toBe(true)
 		})
 
 		it('has admin permission', () => {
-			expect(hasPermission('admin', 'admin')).toBe(true)
+			expect(hasPermission({ role: 'admin', action: 'admin' })).toBe(true)
 		})
 
 		it('does not have owner permission', () => {
-			expect(hasPermission('admin', 'owner')).toBe(false)
+			expect(hasPermission({ role: 'admin', action: 'owner' })).toBe(false)
 		})
 	})
 
 	describe('member role', () => {
 		it('has read permission', () => {
-			expect(hasPermission('member', 'read')).toBe(true)
+			expect(hasPermission({ role: 'member', action: 'read' })).toBe(true)
 		})
 
 		it('has write permission', () => {
-			expect(hasPermission('member', 'write')).toBe(true)
+			expect(hasPermission({ role: 'member', action: 'write' })).toBe(true)
 		})
 
 		it('does not have admin permission', () => {
-			expect(hasPermission('member', 'admin')).toBe(false)
+			expect(hasPermission({ role: 'member', action: 'admin' })).toBe(false)
 		})
 
 		it('does not have owner permission', () => {
-			expect(hasPermission('member', 'owner')).toBe(false)
+			expect(hasPermission({ role: 'member', action: 'owner' })).toBe(false)
 		})
 	})
 
 	describe('viewer role', () => {
 		it('has read permission', () => {
-			expect(hasPermission('viewer', 'read')).toBe(true)
+			expect(hasPermission({ role: 'viewer', action: 'read' })).toBe(true)
 		})
 
 		it('does not have write permission', () => {
-			expect(hasPermission('viewer', 'write')).toBe(false)
+			expect(hasPermission({ role: 'viewer', action: 'write' })).toBe(false)
 		})
 
 		it('does not have admin permission', () => {
-			expect(hasPermission('viewer', 'admin')).toBe(false)
+			expect(hasPermission({ role: 'viewer', action: 'admin' })).toBe(false)
 		})
 
 		it('does not have owner permission', () => {
-			expect(hasPermission('viewer', 'owner')).toBe(false)
+			expect(hasPermission({ role: 'viewer', action: 'owner' })).toBe(false)
 		})
 	})
 })
