@@ -21,13 +21,19 @@ function buildInputSchema(inputSchema: Record<string, unknown> | null | undefine
 }
 
 /**
+ * Input for loading agent tools.
+ */
+export interface LoadAgentToolsInput {
+	agentId: string
+	db: Database
+	context: ToolContext
+}
+
+/**
  * Load tools attached to an agent from the database.
  */
-export async function loadAgentTools(
-	agentId: string,
-	db: Database,
-	context: ToolContext,
-): Promise<Tool[]> {
+export async function loadAgentTools(input: LoadAgentToolsInput): Promise<Tool[]> {
+	const { agentId, db, context } = input
 	// Get tool IDs attached to this agent
 	const attachedTools = await db
 		.select({ toolId: agentTools.toolId })

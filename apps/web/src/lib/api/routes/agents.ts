@@ -279,9 +279,18 @@ const deployAgentRoute = createRoute({
 })
 
 /**
+ * Input for getting agent tool IDs.
+ */
+interface GetAgentToolIdsInput {
+	agentId: string
+	db: Database
+}
+
+/**
  * Get tool IDs attached to an agent.
  */
-async function getAgentToolIds(agentId: string, db: Database): Promise<string[]> {
+async function getAgentToolIds(input: GetAgentToolIdsInput): Promise<string[]> {
+	const { agentId, db } = input
 	const rows = await db
 		.select({ toolId: agentTools.toolId })
 		.from(agentTools)
@@ -314,7 +323,7 @@ app.openapi(listAgentsRoute, async (c) => {
 			instructions: agent.instructions || '',
 			config: agent.config || undefined,
 			status: agent.status,
-			toolIds: await getAgentToolIds(agent.id, db),
+			toolIds: await getAgentToolIds({ agentId: agent.id, db }),
 			createdAt: agent.createdAt.toISOString(),
 			updatedAt: agent.updatedAt.toISOString(),
 		})),
@@ -395,7 +404,7 @@ app.openapi(getAgentRoute, async (c) => {
 		return c.json({ error: 'Agent not found' }, 404)
 	}
 
-	const toolIds = await getAgentToolIds(agent.id, db)
+	const toolIds = await getAgentToolIds({ agentId: agent.id, db })
 
 	return c.json(
 		{
@@ -470,7 +479,7 @@ app.openapi(updateAgentRoute, async (c) => {
 		}
 	}
 
-	const toolIds = await getAgentToolIds(id, db)
+	const toolIds = await getAgentToolIds({ agentId: id, db })
 
 	return c.json(
 		{
