@@ -96,14 +96,21 @@ export const test = base.extend<{
 					// Wait before retry
 					await page.waitForTimeout(1000)
 					// Generate new unique user for retry to avoid duplicate email issues
-					testUser.email = `test-${createId()}@example.com`
-					testUser.name = `Test User ${createId().slice(0, 8)}`
+					// Create new values instead of mutating the input parameter
+					const newId = createId()
+					testUser = {
+						...testUser,
+						email: `test-${newId}@example.com`,
+						name: `Test User ${newId.slice(0, 8)}`,
+					}
 				}
 			}
 		}
 
-		if (lastError && !(await page.url()).includes('/dashboard')) {
-			throw lastError
+		// Check if we successfully navigated to dashboard
+		const currentUrl = page.url()
+		if (!currentUrl.includes('/dashboard')) {
+			throw lastError ?? new Error(`Failed to navigate to /dashboard after ${maxRetries} attempts. Final URL: ${currentUrl}`)
 		}
 
 		await use(page)
