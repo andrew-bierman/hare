@@ -23,7 +23,7 @@ export default defineWorkersConfig({
       workers: {
         wrangler: { configPath: "./apps/web/wrangler.jsonc" },
         miniflare: {
-          compatibilityDate: "2025-01-01",
+          compatibilityDate: "2025-12-01",
           compatibilityFlags: ["nodejs_compat"],
           bindings: {
             ENVIRONMENT: "test",
