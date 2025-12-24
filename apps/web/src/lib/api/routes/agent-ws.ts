@@ -283,7 +283,7 @@ app.openapi(agentWebSocketRoute, async (c) => {
 	})
 
 	// Route to the HareAgent Durable Object
-	return routeWebSocketToAgent(request, env, agentId)
+	return routeWebSocketToAgent({ request, env, agentId })
 })
 
 // Get agent state handler
@@ -309,7 +309,7 @@ app.openapi(agentStateRoute, async (c) => {
 	}
 
 	// Get state from Durable Object
-	const response = await routeHttpToAgent(c.req.raw, env, agentId, '/state')
+	const response = await routeHttpToAgent({ request: c.req.raw, env, agentId, path: '/state' })
 	const state = await response.json() as {
 		agentId: string
 		workspaceId: string
@@ -364,7 +364,7 @@ app.openapi(configureAgentRoute, async (c) => {
 		}),
 	})
 
-	const response = await routeHttpToAgent(configRequest, env, agentId, '/configure')
+	const response = await routeHttpToAgent({ request: configRequest, env, agentId, path: '/configure' })
 	const state = await response.json()
 
 	return c.json({ success: true, state }, 200)
@@ -393,7 +393,7 @@ app.openapi(agentSchedulesRoute, async (c) => {
 	}
 
 	// Get schedules from Durable Object
-	const response = await routeHttpToAgent(c.req.raw, env, agentId, '/schedules')
+	const response = await routeHttpToAgent({ request: c.req.raw, env, agentId, path: '/schedules' })
 	const result = await response.json() as {
 		schedules: Array<{
 			id: string
