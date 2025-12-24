@@ -175,7 +175,6 @@ export const ToolTypeSchema = z
 		'sql',
 		'kv',
 		'r2',
-		'vectorize',
 		'search',
 		// Utility
 		'datetime',

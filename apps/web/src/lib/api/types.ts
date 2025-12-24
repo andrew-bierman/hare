@@ -263,7 +263,7 @@ export type UpdateAgentInput = z.infer<typeof UpdateAgentInputSchema>
 /**
  * Tool type schema (client-side subset).
  */
-export const ToolTypeSchema = z.enum(['http', 'sql', 'kv', 'r2', 'vectorize', 'custom'])
+export const ToolTypeSchema = z.enum(['http', 'sql', 'kv', 'r2', 'custom'])
 
 export type ToolType = z.infer<typeof ToolTypeSchema>
 

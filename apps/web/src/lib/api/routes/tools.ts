@@ -63,18 +63,6 @@ const SYSTEM_TOOLS = [
 		},
 		isSystem: true,
 	},
-	{
-		id: 'system-vectorize',
-		name: 'Semantic Search',
-		description: 'Search and store content using semantic similarity',
-		type: 'vectorize' as const,
-		inputSchema: {
-			operation: { type: 'string', enum: ['search', 'insert', 'delete'] },
-			query: { type: 'string', description: 'Text to search for' },
-			text: { type: 'string', optional: true },
-		},
-		isSystem: true,
-	},
 ]
 
 // Define routes
@@ -286,9 +274,9 @@ const deleteToolRoute = createRoute({
 })
 
 // Helper to ensure tool type is valid for API response
-type ToolType = 'http' | 'sql' | 'kv' | 'r2' | 'vectorize' | 'custom'
+type ToolType = 'http' | 'sql' | 'kv' | 'r2' | 'custom'
 function mapToolType(dbType: string): ToolType {
-	const validTypes: ToolType[] = ['http', 'sql', 'kv', 'r2', 'vectorize', 'custom']
+	const validTypes: ToolType[] = ['http', 'sql', 'kv', 'r2', 'custom']
 	if (validTypes.includes(dbType as ToolType)) {
 		return dbType as ToolType
 	}

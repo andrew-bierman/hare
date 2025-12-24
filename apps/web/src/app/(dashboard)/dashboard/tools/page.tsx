@@ -47,7 +47,6 @@ const TOOL_ICONS: Record<ToolType, typeof Wrench> = {
 	sql: Database,
 	kv: HardDrive,
 	r2: HardDrive,
-	vectorize: Search,
 	custom: Code,
 }
 
