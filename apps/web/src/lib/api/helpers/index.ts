@@ -1,10 +1,35 @@
 /**
- * Hono Helpers for the Hare API.
+ * API Helper utilities for routes.
  *
- * These are utility functions (not middleware) that assist in developing
- * the application. They provide convenient wrappers around Hono's built-in
- * helpers with application-specific defaults and types.
+ * Provides common patterns for:
+ * - Response schemas and definitions
+ * - Permission checks
+ * - Error handling
+ * - Testing utilities
+ * - Content negotiation
+ * - Cookie management
  */
+
+// Response schemas and common responses
+export {
+	commonResponses,
+	ErrorSchema,
+	IdParamSchema,
+	SuccessSchema,
+} from './responses'
+
+// Permission helpers
+export {
+	ForbiddenError,
+	handleRouteError,
+	hasAdminAccess,
+	hasWriteAccess,
+	isOwner,
+	NotFoundError,
+	requireAdminAccess,
+	requireOwner,
+	requireWriteAccess,
+} from './permissions'
 
 // Testing helpers - for type-safe API testing
 export { client, createTestClient, createMockRequest, type AppType } from './testing'
