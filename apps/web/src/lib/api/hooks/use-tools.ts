@@ -61,6 +61,5 @@ export const TOOL_TYPES: { value: ToolType; label: string; description: string }
 	{ value: 'sql', label: 'SQL Query', description: 'Execute read-only SQL queries' },
 	{ value: 'kv', label: 'Key-Value Store', description: 'Store and retrieve key-value data' },
 	{ value: 'r2', label: 'Object Storage', description: 'Store and retrieve files' },
-	{ value: 'vectorize', label: 'Semantic Search', description: 'Search using embeddings' },
 	{ value: 'custom', label: 'Custom', description: 'Custom tool implementation' },
 ]

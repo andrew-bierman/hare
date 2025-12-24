@@ -1,0 +1,271 @@
+# Hare Development Guide
+
+Hare is an AI agent platform deployed on Cloudflare's edge network.
+
+## Tech Stack
+
+- Runtime: Bun 1.3.5 (use `bun` for all package management)
+- Frontend: Next.js 15, React 19, App Router, shadcn/ui, Tailwind CSS
+- API: Hono with OpenAPI/Zod validation
+- Database: Cloudflare D1 (SQLite) + Drizzle ORM
+- AI: Vercel AI SDK + Workers AI (Llama, Mistral, etc.)
+- Auth: Better Auth
+- Infra: Cloudflare Pages, D1, KV, R2, Vectorize, Agents SDK
+
+## Commands
+
+```sh
+bun install              # Install dependencies
+bun run dev              # Start dev server (Turbo)
+bun run build            # Build for production
+bun run check:fix        # Lint + format with Biome
+bun run typecheck        # TypeScript check
+bun run test             # Run Vitest tests
+bun run test:e2e         # Playwright E2E tests
+bun run db:generate      # Generate migrations from schema
+bun run db:migrate:local # Apply to local D1
+bun run db:studio        # Open Drizzle Studio
+```
+
+## Project Structure
+
+```
+apps/web/src/
+├── app/                    # Next.js App Router pages
+│   ├── (auth)/             # Auth pages (login, signup)
+│   ├── (dashboard)/        # Protected routes
+│   └── api/[[...route]]/   # Hono API (catch-all)
+├── lib/
+│   ├── agents/             # Agent implementations
+│   │   ├── hare-agent.ts   # Main Agents SDK agent
+│   │   ├── tools/          # 40+ tool implementations
+│   │   └── providers/      # LLM providers (Workers AI)
+│   └── api/                # Hono routes & hooks
+│       ├── routes/         # API route handlers
+│       ├── hooks/          # React Query hooks
+│       └── schemas.ts      # Zod schemas
+├── db/
+│   └── schema/             # Drizzle table definitions
+└── components/             # React components
+    └── ui/                 # shadcn/ui components
+```
+
+## Code Style (Biome)
+
+- Indentation: Tabs
+- Quotes: Single quotes
+- Semicolons: No (omit when possible)
+- Line width: 100 characters
+- Imports: No unused imports/variables (error)
+
+Run `bun run check:fix` before committing.
+
+## Patterns
+
+### API Routes (Hono)
+```ts
+// apps/web/src/lib/api/routes/example.ts
+import { Hono } from 'hono'
+import { z } from 'zod'
+
+const schema = z.object({ name: z.string() })
+
+export const exampleRoutes = new Hono()
+  .post('/example', zValidator('json', schema), async (c) => {
+    const { name } = c.req.valid('json')
+    return c.json({ message: `Hello ${name}` })
+  })
+```
+
+### Database (Drizzle)
+```ts
+// Schema in apps/web/src/db/schema/
+import { sqliteTable, text } from 'drizzle-orm/sqlite-core'
+
+export const items = sqliteTable('items', {
+  id: text('id').primaryKey(),
+  name: text('name').notNull(),
+})
+```
+
+### React Components
+```tsx
+// Use shadcn/ui components from @/components/ui
+import { Button } from '@/components/ui/button'
+import { useQuery } from '@tanstack/react-query'
+
+export function Example() {
+  const { data } = useQuery({ queryKey: ['items'], queryFn: fetchItems })
+  return <Button onClick={handleClick}>Click me</Button>
+}
+```
+
+### AI/Streaming
+```ts
+import { streamText } from 'ai'
+import { createWorkersAI } from '@/lib/agents/providers/workers-ai'
+
+const result = await streamText({
+  model: createWorkersAI('@cf/meta/llama-3.3-70b-instruct-fp8-fast', env.AI),
+  messages,
+  tools: agentTools,
+})
+```
+
+## Cloudflare Bindings
+
+Access via `env` in API routes:
+- env.DB - D1 database
+- env.KV - Key-value store
+- env.R2 - Object storage
+- env.AI - Workers AI
+- env.VECTORIZE - Vector database
+
+## Testing
+
+```ts
+// __tests__/example.test.ts
+import { describe, it, expect } from 'vitest'
+
+describe('example', () => {
+  it('works', () => {
+    expect(1 + 1).toBe(2)
+  })
+})
+```
+
+## Git Commits
+
+Use gitmoji spec:
+- ✨ feat: New feature
+- 🐛 fix: Bug fix
+- ♻️ refactor: Refactoring
+- 📝 docs: Documentation
+- ✅ test: Tests
+- 🔧 chore: Maintenance
+
+## Key Conventions
+
+1. Type Safety: Use Zod for runtime validation, TypeScript for compile-time
+2. Error Handling: Use Hono's built-in error handling, throw HTTPException
+3. State: TanStack Query for server state, React state for UI
+4. Styling: Tailwind CSS + shadcn/ui, use `cn()` for conditional classes
+5. Paths: Use `@/` alias for imports from `src/`
+6. Function Parameters: Functions with >1 parameter should accept a single options object
+
+```ts
+// Bad
+function createUser(name: string, email: string, role: string) {}
+
+// Good
+function createUser(options: { name: string; email: string; role: string }) {}
+```
+
+---
+
+## Adding New Tools
+
+Tools are in `apps/web/src/lib/agents/tools/`. Use `createTool` for type safety:
+
+```ts
+// apps/web/src/lib/agents/tools/my-tool.ts
+import { z } from 'zod'
+import { createTool, success, failure, type ToolContext } from './types'
+
+export const myTool = createTool({
+  id: 'my_tool',
+  description: 'Short description of what the tool does',
+  inputSchema: z.object({
+    query: z.string().describe('The search query'),
+    limit: z.number().optional().default(10).describe('Max results'),
+  }),
+  execute: async (params, context: ToolContext) => {
+    try {
+      // Access Cloudflare bindings via context.env
+      const result = await context.env.KV.get(params.query)
+      return success({ data: result })
+    } catch (error) {
+      return failure(`Failed: ${error instanceof Error ? error.message : 'Unknown'}`)
+    }
+  },
+})
+
+// Export getter for tool factory
+export function getMyTools(context: ToolContext) {
+  return [myTool]
+}
+```
+
+Then register in `apps/web/src/lib/agents/tools/index.ts`:
+1. Add export for your tool
+2. Add to `getSystemTools()` function
+3. Add tool ID to `SYSTEM_TOOL_IDS` array
+
+Tool Categories: storage, database, search, http, utility, integrations, ai, data, sandbox, validation, transform
+
+---
+
+## MCP (Model Context Protocol)
+
+The MCP agent (`apps/web/src/lib/agents/mcp-agent.ts`) exposes tools to external AI clients:
+
+- Extends `McpAgent` from Cloudflare Agents SDK
+- Auto-registers all system tools via `getSystemTools()`
+- Converts Zod schemas to JSON Schema for MCP compatibility
+- Exposes workspace resources
+
+To add MCP-specific resources:
+```ts
+this.server.resource('my-resource', 'Description', async () => ({
+  contents: [{ uri: 'hare://...', mimeType: 'application/json', text: '...' }]
+}))
+```
+
+---
+
+## Deployment
+
+### Local Development
+```sh
+bun run dev              # Start with Turbo (uses Next.js + Miniflare)
+bun run preview          # Test on local Cloudflare runtime
+```
+
+### Production (Cloudflare Pages)
+```sh
+bun run build            # Build Next.js
+bun run deploy           # Deploy to Cloudflare Pages
+```
+
+### Database Migrations
+```sh
+bun run db:generate      # Generate from Drizzle schema changes
+bun run db:migrate:local # Apply to local D1
+bun run db:migrate:remote # Apply to production D1
+```
+
+### Pre-deploy Checklist
+1. `bun run check:fix` - Lint/format passes
+2. `bun run typecheck` - No TypeScript errors
+3. `bun run test` - All tests pass
+4. `bun run build` - Build succeeds
+5. Database migrations applied if schema changed
+
+---
+
+## Gitmoji Reference
+
+| Emoji | Code | Use |
+|-------|------|-----|
+| ✨ | `:sparkles:` | New feature |
+| 🐛 | `:bug:` | Bug fix |
+| ♻️ | `:recycle:` | Refactor |
+| 📝 | `:memo:` | Docs |
+| ✅ | `:white_check_mark:` | Tests |
+| 🔧 | `:wrench:` | Config |
+| ⬆️ | `:arrow_up:` | Upgrade deps |
+| 🎨 | `:art:` | Style/format |
+| 🔥 | `:fire:` | Remove code |
+| 🚀 | `:rocket:` | Deploy |
+| 💄 | `:lipstick:` | UI/cosmetic |
+| 🏗️ | `:building_construction:` | Architecture |
