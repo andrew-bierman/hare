@@ -12,11 +12,9 @@ import { createTool, success, type ToolContext } from './types'
  */
 export const validateEmailTool = createTool({
 	id: 'validate_email',
-	description:
-		'Validate email addresses. Checks format, common typos, and optionally checks MX records.',
+	description: 'Validate email addresses. Checks format and suggests corrections for common typos.',
 	inputSchema: z.object({
 		email: z.string().describe('Email address to validate'),
-		checkMx: z.boolean().optional().default(false).describe('Check if domain has valid MX records'),
 		suggestCorrection: z
 			.boolean()
 			.optional()

@@ -54,8 +54,12 @@ export const rssTool = createTool({
 				}
 			})
 
+			// Detect feed type from parsed structure
+			// Atom feeds have 'updated' field, RSS feeds have 'lastBuildDate'
+			const feedType = feed.lastBuildDate ? 'rss' : 'atom'
+
 			return success({
-				type: feed.feedUrl?.includes('atom') ? 'atom' : 'rss',
+				type: feedType,
 				title: feed.title ?? '',
 				link: feed.link,
 				description: feed.description,

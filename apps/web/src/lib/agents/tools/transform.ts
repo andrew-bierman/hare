@@ -5,12 +5,14 @@ import QRCode from 'qrcode'
 import Color from 'color'
 import { createTool, failure, success, type ToolContext } from './types'
 
-// Initialize markdown-it with GFM-like options
-const md = new MarkdownIt({
-	html: false,
-	linkify: true,
-	typographer: true,
-})
+// Create markdown-it instance with options
+const createMarkdownParser = (gfm = true) =>
+	new MarkdownIt({
+		html: false,
+		linkify: gfm,
+		typographer: gfm,
+		breaks: gfm,
+	})
 
 /**
  * Markdown Tool - Uses markdown-it for proper CommonMark parsing
@@ -39,7 +41,9 @@ export const markdownTool = createTool({
 			.optional(),
 	}),
 	execute: async (params, _context) => {
-		const { operation, markdown } = params
+		const { operation, markdown, options } = params
+		const { gfm = true } = options || {}
+		const md = createMarkdownParser(gfm)
 
 		// Helper to extract headings from markdown
 		const extractHeadings = (content: string): Array<{ level: number; text: string }> => {
@@ -154,7 +158,6 @@ export const diffTool = createTool({
 			.optional()
 			.default('lines')
 			.describe('Comparison mode'),
-		context: z.number().optional().default(3).describe('Lines of context around changes'),
 	}),
 	execute: async (params, _context) => {
 		const { original, modified, mode } = params
@@ -309,8 +312,8 @@ export const qrcodeTool = createTool({
 				margin: 1,
 			})
 
-			// Convert to base64 data URL
-			const base64 = btoa(svg)
+			// Convert to base64 data URL (use Buffer for edge runtime compatibility)
+			const base64 = Buffer.from(svg, 'utf-8').toString('base64')
 			const dataUrl = `data:image/svg+xml;base64,${base64}`
 
 			return success({
