@@ -2,6 +2,27 @@ import { z } from 'zod'
 import { createTool, failure, success, type ToolContext, type ToolResult } from './types'
 
 /**
+ * Sandbox binding interface for type safety
+ */
+interface SandboxBinding {
+	get(id: unknown): SandboxInstance
+	idFromName(name: string): unknown
+}
+
+interface SandboxInstance {
+	writeFile(path: string, content: string): Promise<void>
+	readFile(path: string): Promise<string>
+	exec(
+		command: string,
+		options?: { timeout?: number }
+	): Promise<{ stdout: string; stderr: string; exitCode: number }>
+}
+
+interface CloudflareEnvWithSandbox extends CloudflareEnv {
+	SANDBOX?: SandboxBinding
+}
+
+/**
  * Cloudflare Sandbox Integration
  *
  * Uses Cloudflare's official Sandbox SDK for secure code execution.
@@ -40,8 +61,8 @@ const DEFAULT_CONFIG: SandboxConfig = {
 /**
  * Check if Cloudflare Sandbox is available
  */
-function hasSandbox(env: CloudflareEnv): boolean {
-	return 'SANDBOX' in env && env.SANDBOX !== undefined
+function hasSandbox(env: CloudflareEnv): env is CloudflareEnvWithSandbox {
+	return 'SANDBOX' in env && (env as CloudflareEnvWithSandbox).SANDBOX !== undefined
 }
 
 /**
@@ -84,8 +105,9 @@ async function executeWithCloudfareSandbox<T>(
 ): Promise<ToolResult<T>> {
 	try {
 		// Get sandbox from Durable Object binding
-		const sandbox = (context.env as any).SANDBOX.get(
-			(context.env as any).SANDBOX.idFromName(context.workspaceId),
+		const envWithSandbox = context.env as CloudflareEnvWithSandbox
+		const sandbox = envWithSandbox.SANDBOX!.get(
+			envWithSandbox.SANDBOX!.idFromName(context.workspaceId),
 		)
 
 		// Write code to file
@@ -299,8 +321,9 @@ export const sandboxFileTool = createTool({
 		}
 
 		try {
-			const sandbox = (context.env as any).SANDBOX.get(
-				(context.env as any).SANDBOX.idFromName(context.workspaceId),
+			const envWithSandbox = context.env as CloudflareEnvWithSandbox
+			const sandbox = envWithSandbox.SANDBOX!.get(
+				envWithSandbox.SANDBOX!.idFromName(context.workspaceId),
 			)
 
 			switch (input.operation) {
