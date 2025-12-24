@@ -203,7 +203,7 @@ export default function ToolsPage() {
 			{isLoading ? (
 				<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
 					{[...Array(6)].map((_, i) => (
-						<ToolCardSkeleton key={i} />
+						<ToolCardSkeleton key={`tool-skeleton-${i}`} />
 					))}
 				</div>
 			) : (

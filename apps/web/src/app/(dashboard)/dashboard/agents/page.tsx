@@ -183,7 +183,7 @@ export default function AgentsPage() {
 			{isLoading ? (
 				<div className="grid gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3">
 					{[...Array(6)].map((_, i) => (
-						<AgentCardSkeleton key={i} />
+						<AgentCardSkeleton key={`skeleton-${i}`} />
 					))}
 				</div>
 			) : filteredAgents.length === 0 ? (
