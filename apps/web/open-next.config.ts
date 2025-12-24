@@ -7,3 +7,7 @@ export default defineCloudflareConfig({
 	// See https://opennext.js.org/cloudflare/caching for more details
 	// incrementalCache: r2IncrementalCache,
 })
+
+// Note: Durable Object classes (HareAgent, HareMcpAgent) are exported from custom-worker.ts
+// This avoids the "Could not resolve cloudflare:workers" error during OpenNext bundling
+// See: https://opennext.js.org/cloudflare/howtos/custom-worker

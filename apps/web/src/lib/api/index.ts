@@ -1,13 +1,19 @@
 import { OpenAPIHono } from '@hono/zod-openapi'
 import { apiReference } from '@scalar/hono-api-reference'
 import { cors } from 'hono/cors'
+import { showRoutes, getRouterName } from 'hono/dev'
 import { logger } from 'hono/logger'
+import { requestId } from 'hono/request-id'
+import { secureHeaders } from 'hono/secure-headers'
+import { timing } from 'hono/timing'
 import { CloudflareEnvError } from './db'
 // Import route modules
 import agents from './routes/agents'
+import agentWs from './routes/agent-ws'
 import auth from './routes/auth'
 import chat from './routes/chat'
 import dev from './routes/dev'
+import mcp from './routes/mcp'
 import tools from './routes/tools'
 import usage from './routes/usage'
 import workspaces from './routes/workspaces'
@@ -28,18 +34,30 @@ app.onError((error, c) => {
 })
 
 // Middleware
-app.use('*', logger())
+app.use('*', requestId()) // Adds X-Request-Id header for tracing
+app.use('*', logger()) // Request logging (uses requestId)
+app.use('*', timing()) // Adds Server-Timing headers for performance monitoring
+app.use('*', secureHeaders()) // Security headers (X-Content-Type-Options, X-Frame-Options, etc.)
 app.use('*', cors())
 
 // Mount routes - chain for type inference
 const routes = app
 	.route('/agents', agents)
+	.route('/agent-ws', agentWs)
 	.route('/workspaces', workspaces)
 	.route('/tools', tools)
 	.route('/auth', auth)
 	.route('/chat', chat)
 	.route('/usage', usage)
 	.route('/dev', dev)
+	.route('/mcp', mcp)
+
+// Development: Show registered routes on startup
+if (process.env.NODE_ENV === 'development') {
+	console.log(`\n🚀 Hare API using ${getRouterName(app)} router`)
+	showRoutes(app, { verbose: true, colorize: true })
+	console.log('')
+}
 
 // OpenAPI documentation
 app.doc('/openapi.json', {
@@ -59,8 +77,10 @@ app.doc('/openapi.json', {
 		{ name: 'Authentication', description: 'User authentication and session management' },
 		{ name: 'Workspaces', description: 'Workspace management' },
 		{ name: 'Agents', description: 'AI agent creation and deployment' },
+		{ name: 'Agent WebSocket', description: 'Real-time WebSocket connections to Cloudflare Agents' },
 		{ name: 'Tools', description: 'Tool management for agents' },
-		{ name: 'Chat', description: 'Chat with deployed agents' },
+		{ name: 'Chat', description: 'Chat with deployed agents (SSE)' },
+		{ name: 'MCP', description: 'Model Context Protocol for external AI clients' },
 		{ name: 'Usage', description: 'Usage statistics and analytics' },
 	],
 })
