@@ -168,6 +168,15 @@ Use gitmoji spec:
 3. **State**: TanStack Query for server state, React state for UI
 4. **Styling**: Tailwind CSS + shadcn/ui, use `cn()` for conditional classes
 5. **Paths**: Use `@/` alias for imports from `src/`
+6. **Function Parameters**: Functions with >1 parameter should accept a single options object
+
+```ts
+// Bad
+function createUser(name: string, email: string, role: string) {}
+
+// Good
+function createUser(options: { name: string; email: string; role: string }) {}
+```
 
 ---
 
