@@ -315,7 +315,7 @@ export class HareAgent extends Agent<CloudflareEnv, HareAgentState> {
 			const messages = [...this.state.messages, userMessage]
 
 			// Create AI model
-			const model = createWorkersAIModel(this.state.model, this.env.AI)
+			const model = createWorkersAIModel({ modelName: this.state.model, ai: this.env.AI })
 
 			// Build system prompt
 			const systemMessage: CoreMessage = {
@@ -395,7 +395,7 @@ export class HareAgent extends Agent<CloudflareEnv, HareAgentState> {
 			const messages = [...this.state.messages, userMessage]
 
 			// Create AI model
-			const model = createWorkersAIModel(this.state.model, this.env.AI)
+			const model = createWorkersAIModel({ modelName: this.state.model, ai: this.env.AI })
 
 			// Build system prompt
 			const systemMessage: CoreMessage = {

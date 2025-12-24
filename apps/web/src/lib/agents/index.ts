@@ -93,7 +93,7 @@ export async function createAgentFromConfig(
 	}
 
 	// Load agent's tools from database
-	const dbTools = await loadAgentTools(agentConfig.id, db, toolContext)
+	const dbTools = await loadAgentTools({ agentId: agentConfig.id, db, context: toolContext })
 
 	// Get system tools if requested
 	const systemTools = includeSystemTools ? getSystemTools(toolContext) : []

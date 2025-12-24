@@ -126,7 +126,7 @@ app.openapi(mcpConnectRoute, async (c) => {
 	}
 
 	// Route to the MCP Agent Durable Object
-	return routeToMcpAgent(c.req.raw, env, workspaceId)
+	return routeToMcpAgent({ request: c.req.raw, env, workspaceId })
 })
 
 // MCP info

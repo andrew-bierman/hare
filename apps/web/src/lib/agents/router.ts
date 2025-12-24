@@ -20,18 +20,47 @@ export interface AgentRouteConfig {
 }
 
 /**
- * Route a request to a HareAgent Durable Object.
- *
- * @param request The incoming request
- * @param env Cloudflare environment bindings
- * @param agentId The agent ID to route to
- * @returns Response from the agent
+ * Input for routing to a HareAgent.
  */
-export async function routeToHareAgent(
-	request: Request,
-	env: CloudflareEnv,
-	agentId: string,
-): Promise<Response> {
+export interface RouteToHareAgentInput {
+	request: Request
+	env: CloudflareEnv
+	agentId: string
+}
+
+/**
+ * Input for routing a WebSocket to an agent.
+ */
+export interface RouteWebSocketToAgentInput {
+	request: Request
+	env: CloudflareEnv
+	agentId: string
+}
+
+/**
+ * Input for routing HTTP to an agent.
+ */
+export interface RouteHttpToAgentInput {
+	request: Request
+	env: CloudflareEnv
+	agentId: string
+	path: string
+}
+
+/**
+ * Input for routing to the MCP agent.
+ */
+export interface RouteToMcpAgentInput {
+	request: Request
+	env: CloudflareEnv
+	workspaceId: string
+}
+
+/**
+ * Route a request to a HareAgent Durable Object.
+ */
+export async function routeToHareAgent(input: RouteToHareAgentInput): Promise<Response> {
+	const { request, env, agentId } = input
 	// Get the Durable Object stub and forward the request
 	const id = env.HARE_AGENT.idFromName(agentId)
 	const stub = env.HARE_AGENT.get(id)
@@ -40,17 +69,9 @@ export async function routeToHareAgent(
 
 /**
  * Route a WebSocket connection to an agent.
- *
- * @param request The WebSocket upgrade request
- * @param env Cloudflare environment bindings
- * @param agentId The agent ID to connect to
- * @returns WebSocket response
  */
-export async function routeWebSocketToAgent(
-	request: Request,
-	env: CloudflareEnv,
-	agentId: string,
-): Promise<Response> {
+export async function routeWebSocketToAgent(input: RouteWebSocketToAgentInput): Promise<Response> {
+	const { request, env, agentId } = input
 	// Get the Durable Object stub
 	const id = env.HARE_AGENT.idFromName(agentId)
 	const stub = env.HARE_AGENT.get(id)
@@ -61,19 +82,9 @@ export async function routeWebSocketToAgent(
 
 /**
  * Route an HTTP request to an agent.
- *
- * @param request The HTTP request
- * @param env Cloudflare environment bindings
- * @param agentId The agent ID
- * @param path The path to route to (e.g., '/chat', '/state')
- * @returns Response from the agent
  */
-export async function routeHttpToAgent(
-	request: Request,
-	env: CloudflareEnv,
-	agentId: string,
-	path: string,
-): Promise<Response> {
+export async function routeHttpToAgent(input: RouteHttpToAgentInput): Promise<Response> {
+	const { request, env, agentId, path } = input
 	// Get the Durable Object stub
 	const id = env.HARE_AGENT.idFromName(agentId)
 	const stub = env.HARE_AGENT.get(id)
@@ -93,17 +104,9 @@ export async function routeHttpToAgent(
 
 /**
  * Route a request to the MCP agent.
- *
- * @param request The MCP request
- * @param env Cloudflare environment bindings
- * @param workspaceId The workspace ID for MCP context
- * @returns Response from the MCP agent
  */
-export async function routeToMcpAgent(
-	request: Request,
-	env: CloudflareEnv,
-	workspaceId: string,
-): Promise<Response> {
+export async function routeToMcpAgent(input: RouteToMcpAgentInput): Promise<Response> {
+	const { request, env, workspaceId } = input
 	// Use workspace ID as the MCP agent instance ID
 	const id = env.MCP_AGENT.idFromName(workspaceId)
 	const stub = env.MCP_AGENT.get(id)
