@@ -151,7 +151,10 @@ export function isWorkspaceRole(value: unknown): value is WorkspaceRole {
  * Throws if invalid.
  */
 export function assertWorkspaceRole(value: unknown): asserts value is WorkspaceRole {
-	WorkspaceRoleSchema.parse(value)
+	const result = WorkspaceRoleSchema.safeParse(value)
+	if (!result.success) {
+		throw new Error(`Invalid workspace role: ${JSON.stringify(result.error.issues)}`)
+	}
 }
 
 /**
@@ -174,7 +177,10 @@ export function isMessageRole(value: unknown): value is MessageRole {
  * Throws if invalid.
  */
 export function assertMessageRole(value: unknown): asserts value is MessageRole {
-	MessageRoleSchema.parse(value)
+	const result = MessageRoleSchema.safeParse(value)
+	if (!result.success) {
+		throw new Error(`Invalid message role: ${JSON.stringify(result.error.issues)}`)
+	}
 }
 
 // =============================================================================

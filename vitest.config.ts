@@ -18,6 +18,7 @@ export default defineConfig({
       ".next/**",
       "**/e2e/**",
       "**/*.spec.ts",
+      "**/routes/__tests__/**", // Cloudflare worker tests require special pool
     ],
     environment: "node",
     coverage: {
