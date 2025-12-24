@@ -44,8 +44,6 @@ export const FEATURES = {
 	analytics: true,
 	/** Enable custom tools */
 	customTools: true,
-	/** Enable agent playground */
-	playground: true,
 } as const
 
 // =============================================================================
@@ -305,7 +303,6 @@ export const LANDING_PAGE = {
 	steps: [
 		{ title: 'Define', description: 'Configure your agent', icon: 'Bot' },
 		{ title: 'Add Tools', description: 'Connect databases & APIs', icon: 'Terminal' },
-		{ title: 'Test', description: 'Iterate in playground', icon: 'Play' },
 		{ title: 'Deploy', description: '300+ edge locations', icon: 'Globe' },
 	],
 	cta: {
