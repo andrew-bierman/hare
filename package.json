@@ -8,6 +8,7 @@
     "packages/*"
   ],
   "scripts": {
+    "postinstall": "bun run .github/scripts/env.ts",
     "dev": "turbo dev",
     "build": "turbo build",
     "start": "bun run --cwd apps/web start",
