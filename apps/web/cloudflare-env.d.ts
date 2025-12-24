@@ -21,4 +21,6 @@ interface CloudflareEnv {
 	// Durable Objects for CF Agents
 	HARE_AGENT: DurableObjectNamespace
 	MCP_AGENT: DurableObjectNamespace
+	// Vectorize index (optional - not all deployments have this configured)
+	VECTORIZE?: VectorizeIndex
 }
