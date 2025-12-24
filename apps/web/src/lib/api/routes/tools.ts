@@ -1,7 +1,9 @@
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
 import { and, eq } from 'drizzle-orm'
 import { tools } from 'web-app/db/schema'
+import { getSystemToolById, isSystemToolId, SYSTEM_TOOLS } from 'web-app/lib/agents/tools/system-tools'
 import { getDb } from '../db'
+import { commonResponses, requireAdminAccess, requireWriteAccess } from '../helpers'
 import { authMiddleware, workspaceMiddleware } from '../middleware'
 import {
 	CreateToolSchema,
@@ -11,71 +13,8 @@ import {
 	ToolSchema,
 	UpdateToolSchema,
 } from '../schemas'
+import { serializeSystemTool, serializeTool, type SystemToolDefinition } from '../serializers'
 import type { WorkspaceEnv } from '../types'
-
-// System tools that are always available
-const SYSTEM_TOOLS = [
-	{
-		id: 'system-http',
-		name: 'HTTP Request',
-		description: 'Make HTTP requests to external APIs',
-		type: 'http' as const,
-		inputSchema: {
-			url: { type: 'string', description: 'The URL to request' },
-			method: { type: 'string', enum: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'] },
-			headers: { type: 'object', optional: true },
-			body: { type: 'any', optional: true },
-		},
-		isSystem: true,
-	},
-	{
-		id: 'system-kv',
-		name: 'Key-Value Store',
-		description: 'Store and retrieve data from key-value storage',
-		type: 'kv' as const,
-		inputSchema: {
-			operation: { type: 'string', enum: ['get', 'put', 'delete', 'list'] },
-			key: { type: 'string', description: 'The key to operate on' },
-			value: { type: 'string', optional: true },
-		},
-		isSystem: true,
-	},
-	{
-		id: 'system-r2',
-		name: 'Object Storage',
-		description: 'Store and retrieve files from object storage',
-		type: 'r2' as const,
-		inputSchema: {
-			operation: { type: 'string', enum: ['get', 'put', 'delete', 'list'] },
-			path: { type: 'string', description: 'The path/key of the object' },
-			content: { type: 'string', optional: true },
-		},
-		isSystem: true,
-	},
-	{
-		id: 'system-sql',
-		name: 'SQL Query',
-		description: 'Execute read-only SQL queries on the database',
-		type: 'sql' as const,
-		inputSchema: {
-			query: { type: 'string', description: 'The SQL query to execute' },
-			params: { type: 'array', optional: true },
-		},
-		isSystem: true,
-	},
-	{
-		id: 'system-vectorize',
-		name: 'Semantic Search',
-		description: 'Search and store content using semantic similarity',
-		type: 'vectorize' as const,
-		inputSchema: {
-			operation: { type: 'string', enum: ['search', 'insert', 'delete'] },
-			query: { type: 'string', description: 'Text to search for' },
-			text: { type: 'string', optional: true },
-		},
-		isSystem: true,
-	},
-]
 
 // Define routes
 const listToolsRoute = createRoute({
@@ -101,10 +40,7 @@ const listToolsRoute = createRoute({
 				},
 			},
 		},
-		503: {
-			description: 'Service unavailable',
-			content: { 'application/json': { schema: ErrorSchema } },
-		},
+		...commonResponses,
 	},
 })
 
@@ -135,18 +71,7 @@ const createToolRoute = createRoute({
 				},
 			},
 		},
-		403: {
-			description: 'Forbidden',
-			content: { 'application/json': { schema: ErrorSchema } },
-		},
-		500: {
-			description: 'Internal server error',
-			content: { 'application/json': { schema: ErrorSchema } },
-		},
-		503: {
-			description: 'Service unavailable',
-			content: { 'application/json': { schema: ErrorSchema } },
-		},
+		...commonResponses,
 	},
 })
 
@@ -179,10 +104,7 @@ const getToolRoute = createRoute({
 				},
 			},
 		},
-		503: {
-			description: 'Service unavailable',
-			content: { 'application/json': { schema: ErrorSchema } },
-		},
+		...commonResponses,
 	},
 })
 
@@ -218,10 +140,6 @@ const updateToolRoute = createRoute({
 			description: 'Cannot modify system tool',
 			content: { 'application/json': { schema: ErrorSchema } },
 		},
-		403: {
-			description: 'Forbidden',
-			content: { 'application/json': { schema: ErrorSchema } },
-		},
 		404: {
 			description: 'Tool not found',
 			content: {
@@ -230,14 +148,7 @@ const updateToolRoute = createRoute({
 				},
 			},
 		},
-		500: {
-			description: 'Internal server error',
-			content: { 'application/json': { schema: ErrorSchema } },
-		},
-		503: {
-			description: 'Service unavailable',
-			content: { 'application/json': { schema: ErrorSchema } },
-		},
+		...commonResponses,
 	},
 })
 
@@ -266,10 +177,6 @@ const deleteToolRoute = createRoute({
 			description: 'Cannot delete system tool',
 			content: { 'application/json': { schema: ErrorSchema } },
 		},
-		403: {
-			description: 'Forbidden',
-			content: { 'application/json': { schema: ErrorSchema } },
-		},
 		404: {
 			description: 'Tool not found',
 			content: {
@@ -278,24 +185,11 @@ const deleteToolRoute = createRoute({
 				},
 			},
 		},
-		503: {
-			description: 'Service unavailable',
-			content: { 'application/json': { schema: ErrorSchema } },
-		},
+		...commonResponses,
 	},
 })
 
-// Helper to ensure tool type is valid for API response
-type ToolType = 'http' | 'sql' | 'kv' | 'r2' | 'vectorize' | 'custom'
-function mapToolType(dbType: string): ToolType {
-	const validTypes: ToolType[] = ['http', 'sql', 'kv', 'r2', 'vectorize', 'custom']
-	if (validTypes.includes(dbType as ToolType)) {
-		return dbType as ToolType
-	}
-	return 'custom'
-}
-
-// Create app with proper typing (includes Bindings and Variables)
+// Create app with proper typing
 const app = new OpenAPIHono<WorkspaceEnv>()
 
 // Apply middleware
@@ -310,28 +204,11 @@ app.openapi(listToolsRoute, async (c) => {
 
 	// Get custom tools from database
 	const customTools = await db.select().from(tools).where(eq(tools.workspaceId, workspace.id))
-
-	const customToolsData = customTools.map((tool) => ({
-		id: tool.id,
-		name: tool.name,
-		description: tool.description || '',
-		type: mapToolType(tool.type),
-		inputSchema: {},
-		config: tool.config || undefined,
-		isSystem: false,
-		createdAt: tool.createdAt.toISOString(),
-		updatedAt: tool.updatedAt.toISOString(),
-	}))
+	const customToolsData = customTools.map((tool) => serializeTool(tool))
 
 	// Include system tools if requested
-	const now = new Date().toISOString()
 	const systemToolsData = includeSystem
-		? SYSTEM_TOOLS.map((t) => ({
-				...t,
-				config: undefined,
-				createdAt: now,
-				updatedAt: now,
-			}))
+		? SYSTEM_TOOLS.map((t) => serializeSystemTool(t as SystemToolDefinition))
 		: []
 
 	return c.json({ tools: [...systemToolsData, ...customToolsData] }, 200)
@@ -344,10 +221,7 @@ app.openapi(createToolRoute, async (c) => {
 	const workspace = c.get('workspace')
 	const role = c.get('workspaceRole')
 
-	// Check write permission
-	if (role === 'viewer') {
-		return c.json({ error: 'Insufficient permissions' }, 403)
-	}
+	requireWriteAccess(role)
 
 	const [tool] = await db
 		.insert(tools)
@@ -366,18 +240,7 @@ app.openapi(createToolRoute, async (c) => {
 	}
 
 	return c.json(
-		{
-			id: tool.id,
-			name: tool.name,
-			description: tool.description || '',
-			type: mapToolType(tool.type),
-			inputSchema: data.inputSchema,
-			config: tool.config || undefined,
-			code: data.code,
-			isSystem: false,
-			createdAt: tool.createdAt.toISOString(),
-			updatedAt: tool.updatedAt.toISOString(),
-		},
+		serializeTool(tool, { inputSchema: data.inputSchema, code: data.code }),
 		201,
 	)
 })
@@ -388,18 +251,9 @@ app.openapi(getToolRoute, async (c) => {
 	const workspace = c.get('workspace')
 
 	// Check for system tool first
-	const systemTool = SYSTEM_TOOLS.find((t) => t.id === id)
+	const systemTool = getSystemToolById(id)
 	if (systemTool) {
-		const now = new Date().toISOString()
-		return c.json(
-			{
-				...systemTool,
-				config: undefined,
-				createdAt: now,
-				updatedAt: now,
-			},
-			200,
-		)
+		return c.json(serializeSystemTool(systemTool as SystemToolDefinition), 200)
 	}
 
 	// Get custom tool from database
@@ -412,20 +266,7 @@ app.openapi(getToolRoute, async (c) => {
 		return c.json({ error: 'Tool not found' }, 404)
 	}
 
-	return c.json(
-		{
-			id: tool.id,
-			name: tool.name,
-			description: tool.description || '',
-			type: mapToolType(tool.type),
-			inputSchema: {},
-			config: tool.config || undefined,
-			isSystem: false,
-			createdAt: tool.createdAt.toISOString(),
-			updatedAt: tool.updatedAt.toISOString(),
-		},
-		200,
-	)
+	return c.json(serializeTool(tool), 200)
 })
 
 app.openapi(updateToolRoute, async (c) => {
@@ -436,14 +277,11 @@ app.openapi(updateToolRoute, async (c) => {
 	const role = c.get('workspaceRole')
 
 	// Check if trying to modify system tool
-	if (SYSTEM_TOOLS.some((t) => t.id === id)) {
+	if (isSystemToolId(id)) {
 		return c.json({ error: 'Cannot modify system tools' }, 400)
 	}
 
-	// Check write permission
-	if (role === 'viewer') {
-		return c.json({ error: 'Insufficient permissions' }, 403)
-	}
+	requireWriteAccess(role)
 
 	// Verify tool belongs to workspace
 	const [existing] = await db
@@ -455,7 +293,7 @@ app.openapi(updateToolRoute, async (c) => {
 		return c.json({ error: 'Tool not found' }, 404)
 	}
 
-	// Build typed update object using Drizzle's inferred type
+	// Build typed update object
 	const updateData: Partial<typeof tools.$inferInsert> = {
 		updatedAt: new Date(),
 		...(data.name !== undefined && { name: data.name }),
@@ -471,18 +309,7 @@ app.openapi(updateToolRoute, async (c) => {
 	}
 
 	return c.json(
-		{
-			id: tool.id,
-			name: tool.name,
-			description: tool.description || '',
-			type: mapToolType(tool.type),
-			inputSchema: data.inputSchema ?? {},
-			config: tool.config || undefined,
-			code: data.code,
-			isSystem: false,
-			createdAt: tool.createdAt.toISOString(),
-			updatedAt: tool.updatedAt.toISOString(),
-		},
+		serializeTool(tool, { inputSchema: data.inputSchema, code: data.code }),
 		200,
 	)
 })
@@ -494,14 +321,11 @@ app.openapi(deleteToolRoute, async (c) => {
 	const role = c.get('workspaceRole')
 
 	// Check if trying to delete system tool
-	if (SYSTEM_TOOLS.some((t) => t.id === id)) {
+	if (isSystemToolId(id)) {
 		return c.json({ error: 'Cannot delete system tools' }, 400)
 	}
 
-	// Check admin permission for delete
-	if (role !== 'owner' && role !== 'admin') {
-		return c.json({ error: 'Insufficient permissions' }, 403)
-	}
+	requireAdminAccess(role)
 
 	// Verify tool belongs to workspace and delete
 	const result = await db
