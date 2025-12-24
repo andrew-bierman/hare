@@ -30,7 +30,7 @@ export const test = base.extend<{
 	testUser: { email: string; password: string; name: string }
 }>({
 	// Provide a unique test user for each test
-	testUser: async ({}, use) => {
+	testUser: async (_, use) => {
 		await use(generateTestUser())
 	},
 
@@ -130,7 +130,7 @@ export { expect }
 export async function createTestUser(
 	request: APIRequestContext,
 	user = TEST_USER
-): Promise<{ success: boolean; response: any }> {
+): Promise<{ success: boolean; response: unknown }> {
 	try {
 		const response = await request.post('/api/auth/sign-up/email', {
 			data: {
@@ -156,7 +156,7 @@ export async function createTestUser(
 export async function signInTestUser(
 	request: APIRequestContext,
 	user = TEST_USER
-): Promise<{ success: boolean; response: any }> {
+): Promise<{ success: boolean; response: unknown }> {
 	try {
 		const response = await request.post('/api/auth/sign-in/email', {
 			data: {

@@ -1,12 +1,5 @@
 import { type APIRequestContext, expect, type Page, test as baseTest } from '@playwright/test'
-import {
-	test,
-	generateTestUser,
-	signUpViaUI,
-	signInViaUI,
-	createTestUser,
-	signInTestUser,
-} from './fixtures'
+import { test, signUpViaUI } from './fixtures'
 
 baseTest.describe('Authentication - Page Rendering', () => {
 	baseTest('should show sign-in page', async ({ page }: { page: Page }) => {

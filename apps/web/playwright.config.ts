@@ -1,27 +1,7 @@
 import { defineConfig, devices } from '@playwright/test'
 
-// Detect which port the dev server is running on
-async function detectPort(): Promise<number> {
-	const ports = [3000, 3001]
-
-	for (const port of ports) {
-		try {
-			const response = await fetch(`http://localhost:${port}`)
-			if (response.ok || response.status < 500) {
-				console.log(`Detected dev server on port ${port}`)
-				return port
-			}
-		} catch {
-			// Port not available, try next
-		}
-	}
-
-	// Default to 3000 if no server detected
-	return 3000
-}
-
 // Try to detect the port synchronously for web server config
-const DEFAULT_PORT = process.env.PORT ? parseInt(process.env.PORT) : 3000
+const DEFAULT_PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000
 
 export default defineConfig({
 	testDir: './e2e',

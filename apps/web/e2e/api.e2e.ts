@@ -57,7 +57,7 @@ test.describe('API CORS', () => {
 		expect(response.status()).toBe(200)
 
 		// Check for common CORS headers if present
-		const headers = response.headers()
+		const _headers = response.headers()
 		// The presence of these headers depends on CORS configuration
 		// This test just ensures the endpoint is accessible
 	})
