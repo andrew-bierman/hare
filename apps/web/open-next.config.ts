@@ -8,7 +8,6 @@ export default defineCloudflareConfig({
 	// incrementalCache: r2IncrementalCache,
 })
 
-// Re-export Durable Object classes for Cloudflare Agents
-// These are required for the wrangler.jsonc durable_objects configuration
-export { HareAgent } from './src/lib/agents/hare-agent'
-export { HareMcpAgent } from './src/lib/agents/mcp-agent'
+// NOTE: Durable Object classes are exported from worker.ts instead
+// This avoids the "Could not resolve cloudflare:workers" error during OpenNext bundling
+// See: https://opennext.js.org/cloudflare/howtos/custom-worker
