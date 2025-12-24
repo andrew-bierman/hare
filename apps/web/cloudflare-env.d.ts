@@ -18,6 +18,7 @@ interface CloudflareEnv {
 	WORKER_SELF_REFERENCE: Fetcher
 	AI: Ai
 	ASSETS: Fetcher
+	VECTORIZE: VectorizeIndex
 	// Durable Objects for CF Agents
 	HARE_AGENT: DurableObjectNamespace
 	MCP_AGENT: DurableObjectNamespace

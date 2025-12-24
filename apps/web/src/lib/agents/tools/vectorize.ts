@@ -29,7 +29,7 @@ export const vectorizeInsertTool = createTool({
 				if (!ai) {
 					return failure('AI binding required for text embedding')
 				}
-				values = await generateEmbedding(ai, params.text)
+				values = await generateEmbedding({ ai, text: params.text })
 			} else if (params.vector) {
 				values = params.vector
 			} else {
@@ -87,7 +87,7 @@ export const vectorizeQueryTool = createTool({
 				if (!ai) {
 					return failure('AI binding required for text search')
 				}
-				queryVector = await generateEmbedding(ai, params.text)
+				queryVector = await generateEmbedding({ ai, text: params.text })
 			} else if (params.vector) {
 				queryVector = params.vector
 			} else {
@@ -109,7 +109,7 @@ export const vectorizeQueryTool = createTool({
 
 			const results = await vectorize.query(queryVector, options)
 			return success({
-				matches: results.matches.map((match) => ({
+				matches: results.matches.map((match: VectorizeMatch) => ({
 					id: match.id,
 					score: match.score,
 					metadata: match.metadata,
@@ -170,7 +170,7 @@ export const vectorizeGetTool = createTool({
 		try {
 			const results = await vectorize.getByIds(params.ids)
 			return success({
-				vectors: results.map((v) => ({
+				vectors: results.map((v: VectorizeVector) => ({
 					id: v.id,
 					values: v.values,
 					metadata: v.metadata,

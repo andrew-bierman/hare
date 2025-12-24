@@ -1,9 +1,5 @@
 import { z } from 'zod'
-import {
-	parsePhoneNumberFromString,
-	isValidPhoneNumber,
-	type CountryCode,
-} from 'libphonenumber-js'
+import { parsePhoneNumberFromString, type CountryCode } from 'libphonenumber-js'
 import validator from 'validator'
 import { createTool, success, type ToolContext } from './types'
 
