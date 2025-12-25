@@ -19,22 +19,49 @@ export interface ConversationMessage {
 }
 
 /**
+ * Input for saving a message.
+ */
+export interface SaveMessageInput {
+	conversationId: string
+	role: MessageRole
+	content: string
+	metadata?: MessageMetadata
+}
+
+/**
+ * Input for getting messages.
+ */
+export interface GetMessagesInput {
+	conversationId: string
+	limit?: number
+}
+
+/**
+ * Input for getting or creating a conversation.
+ */
+export interface GetOrCreateConversationInput {
+	agentId: string
+	userId: string
+	title?: string
+}
+
+/**
+ * Input for searching messages.
+ */
+export interface SearchMessagesInput {
+	conversationId: string
+	query: string
+	limit?: number
+}
+
+/**
  * Memory store interface for conversation history.
  */
 export interface MemoryStore {
-	saveMessage(
-		conversationId: string,
-		role: MessageRole,
-		content: string,
-		metadata?: MessageMetadata,
-	): Promise<string>
-	getMessages(conversationId: string, limit?: number): Promise<ConversationMessage[]>
-	getOrCreateConversation(agentId: string, userId: string, title?: string): Promise<string>
-	searchMessages(
-		conversationId: string,
-		query: string,
-		limit?: number,
-	): Promise<ConversationMessage[]>
+	saveMessage(input: SaveMessageInput): Promise<string>
+	getMessages(input: GetMessagesInput): Promise<ConversationMessage[]>
+	getOrCreateConversation(input: GetOrCreateConversationInput): Promise<string>
+	searchMessages(input: SearchMessagesInput): Promise<ConversationMessage[]>
 	deleteConversation(conversationId: string): Promise<void>
 }
 
@@ -51,7 +78,8 @@ export class D1MemoryStore implements MemoryStore {
 	/**
 	 * Get or create a conversation for an agent and user.
 	 */
-	async getOrCreateConversation(agentId: string, userId: string, title?: string): Promise<string> {
+	async getOrCreateConversation(input: GetOrCreateConversationInput): Promise<string> {
+		const { agentId, userId, title } = input
 		// Try to find existing conversation
 		const existing = await this.db
 			.select()
@@ -91,12 +119,8 @@ export class D1MemoryStore implements MemoryStore {
 	/**
 	 * Save a message to the conversation.
 	 */
-	async saveMessage(
-		conversationId: string,
-		role: MessageRole,
-		content: string,
-		metadata?: MessageMetadata,
-	): Promise<string> {
+	async saveMessage(input: SaveMessageInput): Promise<string> {
+		const { conversationId, role, content, metadata } = input
 		// Save to D1 using Drizzle
 		const inserted = await this.db
 			.insert(messages)
@@ -126,7 +150,8 @@ export class D1MemoryStore implements MemoryStore {
 	/**
 	 * Get messages for a conversation.
 	 */
-	async getMessages(conversationId: string, limit = 50): Promise<ConversationMessage[]> {
+	async getMessages(input: GetMessagesInput): Promise<ConversationMessage[]> {
+		const { conversationId, limit = 50 } = input
 		const results = await this.db
 			.select()
 			.from(messages)
@@ -153,11 +178,8 @@ export class D1MemoryStore implements MemoryStore {
 	/**
 	 * Search messages using text search.
 	 */
-	async searchMessages(
-		conversationId: string,
-		query: string,
-		limit = 10,
-	): Promise<ConversationMessage[]> {
+	async searchMessages(input: SearchMessagesInput): Promise<ConversationMessage[]> {
+		const { conversationId, query, limit = 10 } = input
 		// Helper to convert DB row to ConversationMessage with validation
 		const toConversationMessage = (row: typeof messages.$inferSelect): ConversationMessage => {
 			if (!isMessageRole(row.role)) {

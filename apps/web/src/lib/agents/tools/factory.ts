@@ -21,13 +21,19 @@ function buildInputSchema(inputSchema: Record<string, unknown> | null | undefine
 }
 
 /**
+ * Input for loading agent tools.
+ */
+export interface LoadAgentToolsInput {
+	agentId: string
+	db: Database
+	context: ToolContext
+}
+
+/**
  * Load tools attached to an agent from the database.
  */
-export async function loadAgentTools(
-	agentId: string,
-	db: Database,
-	context: ToolContext,
-): Promise<Tool[]> {
+export async function loadAgentTools(input: LoadAgentToolsInput): Promise<Tool[]> {
+	const { agentId, db, context } = input
 	// Get tool IDs attached to this agent
 	const attachedTools = await db
 		.select({ toolId: agentTools.toolId })
@@ -119,7 +125,7 @@ function createCustomToolFromConfig(config: ToolConfig, _context: ToolContext): 
 			return failure(
 				'Custom tool execution is not available in this environment. ' +
 					'Custom tools must be executed in a sandboxed Cloudflare Worker. ' +
-					'Please use built-in tool types (http, kv, r2, sql, vectorize) instead.',
+					'Please use built-in tool types (http, kv, r2, sql) instead.',
 			)
 		},
 	})

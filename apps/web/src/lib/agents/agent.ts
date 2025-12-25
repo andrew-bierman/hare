@@ -49,7 +49,7 @@ export class EdgeAgent {
 	constructor(options: AgentOptions) {
 		this.name = options.name
 		this.instructions = options.instructions
-		this.model = createWorkersAIModel(options.model, options.ai)
+		this.model = createWorkersAIModel({ modelName: options.model, ai: options.ai })
 		this.tools = new Map()
 
 		if (options.tools) {
