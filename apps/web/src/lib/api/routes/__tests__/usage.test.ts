@@ -1,16 +1,12 @@
 import { env } from 'cloudflare:test'
-import { readFileSync } from 'node:fs'
-import { join } from 'node:path'
 import { beforeAll, describe, expect, it } from 'vitest'
 import { app } from 'web-app/lib/api/index'
 
 // Apply D1 migrations before tests
+// NOTE: File system access doesn't work in Cloudflare Workers test environment
+// These tests only check authentication which doesn't require migrations
 beforeAll(async () => {
-	const migration = readFileSync(
-		join(__dirname, '../../../../../../migrations/0000_slow_invaders.sql'),
-		'utf-8',
-	)
-	await env.DB.exec(migration)
+	// Migration loading skipped - tests only verify auth responses
 })
 
 describe('Usage API', () => {

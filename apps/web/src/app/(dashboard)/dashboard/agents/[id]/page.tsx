@@ -320,22 +320,6 @@ export default function AgentBuilderPage() {
 									</div>
 								</CardContent>
 							</Card>
-
-							<Card>
-								<CardHeader>
-									<CardTitle>Quick Actions</CardTitle>
-								</CardHeader>
-								<CardContent className="space-y-2">
-									<Button
-										variant="outline"
-										className="w-full"
-										onClick={() => router.push(`/dashboard/agents/${agentId}/playground`)}
-										disabled={agent.status !== 'deployed'}
-									>
-										Test in Playground
-									</Button>
-								</CardContent>
-							</Card>
 						</div>
 					</div>
 				</TabsContent>
