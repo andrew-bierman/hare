@@ -125,7 +125,7 @@ function createCustomToolFromConfig(config: ToolConfig, _context: ToolContext): 
 			return failure(
 				'Custom tool execution is not available in this environment. ' +
 					'Custom tools must be executed in a sandboxed Cloudflare Worker. ' +
-					'Please use built-in tool types (http, kv, r2, sql, vectorize) instead.',
+					'Please use built-in tool types (http, kv, r2, sql) instead.',
 			)
 		},
 	})

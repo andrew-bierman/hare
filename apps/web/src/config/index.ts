@@ -34,39 +34,35 @@ export const APP_CONFIG = {
 // =============================================================================
 
 export const FEATURES = {
-  /** Enable developer mode UI helpers */
-  devMode: process.env.NODE_ENV === "development",
-  /** Show beta badge in UI */
-  showBetaBadge: true,
-  /** Enable workspace switching */
-  workspaces: true,
-  /** Enable usage analytics */
-  analytics: true,
-  /** Enable custom tools */
-  customTools: true,
-  /** Enable agent playground */
-  playground: true,
-  /** Enable AI chat features (feature flag for beta) */
-  aiChat: process.env.ENABLE_AI_CHAT !== "false", // Default enabled, can be disabled
-  /** Restrict AI chat to specific users (beta mode) */
-  aiChatBetaMode: process.env.AI_CHAT_BETA_MODE === "true", // Default false
-  /** Enable rate limiting */
-  rateLimiting: true,
-} as const;
+	/** Enable developer mode UI helpers */
+	devMode: process.env.NODE_ENV === 'development',
+	/** Show beta badge in UI */
+	showBetaBadge: true,
+	/** Enable workspace switching */
+	workspaces: true,
+	/** Enable usage analytics */
+	analytics: true,
+	/** Enable custom tools */
+	customTools: true,
+	/** Enable AI chat features (feature flag for beta) */
+	aiChat: process.env.ENABLE_AI_CHAT !== 'false', // Default enabled, can be disabled
+	/** Restrict AI chat to specific users (beta mode) */
+	aiChatBetaMode: process.env.AI_CHAT_BETA_MODE === 'true', // Default false
+	/** Enable rate limiting */
+	rateLimiting: true,
+} as const
 
 // =============================================================================
 // Beta Access
 // =============================================================================
 
 export const BETA_ACCESS = {
-  /** Enable beta access restrictions */
-  enabled: FEATURES.aiChatBetaMode,
-  /** Allowed user emails (comma-separated) */
-  allowedEmails:
-    process.env.AI_CHAT_ALLOWED_EMAILS?.split(",").map((e) =>
-      e.trim().toLowerCase(),
-    ) || [],
-} as const;
+	/** Enable beta access restrictions */
+	enabled: FEATURES.aiChatBetaMode,
+	/** Allowed user emails (comma-separated) */
+	allowedEmails:
+		process.env.AI_CHAT_ALLOWED_EMAILS?.split(',').map((e) => e.trim().toLowerCase()) || [],
+} as const
 
 // =============================================================================
 // AI Models
@@ -276,77 +272,71 @@ export const AGENT_LIMITS = {
 // =============================================================================
 
 export const LANDING_PAGE = {
-  hero: {
-    badge: "Public Beta",
-    title: "Build & Deploy",
-    titleHighlight: "AI Agents",
-    titleSuffix: "at the Edge",
-    description:
-      "The fastest way to create, deploy, and scale AI agents. Open source and self-hostable.",
-    primaryCta: "Start Building Free",
-    secondaryCta: "Live Demo",
-  },
-  stats: [
-    { value: "300+", label: "Edge Locations", icon: "Globe" },
-    { value: "<50ms", label: "Global Latency", icon: "Zap" },
-    { value: "99.99%", label: "Uptime SLA", icon: "Shield" },
-    { value: "10K+", label: "Agents Deployed", icon: "Bot" },
-  ],
-  badges: [
-    { label: "Open Source", icon: "GitBranch" },
-    { label: "300+ Locations", icon: "Globe" },
-    { label: "<50ms Latency", icon: "Zap" },
-  ],
-  features: [
-    {
-      title: "Visual Agent Builder",
-      description:
-        "Design complex agent workflows with our intuitive drag-and-drop interface.",
-      icon: "Boxes",
-    },
-    {
-      title: "Instant Deployment",
-      description: "Deploy to Cloudflare's global edge network in seconds.",
-      icon: "Cloud",
-    },
-    {
-      title: "Built-in Tools",
-      description: "SQL, HTTP, KV, R2, and vector search ready to go.",
-      icon: "Layers",
-    },
-    {
-      title: "Developer SDK",
-      description: "Full TypeScript SDK with type-safe APIs.",
-      icon: "Code",
-    },
-    {
-      title: "Real-time Streaming",
-      description: "Stream responses with built-in WebSocket support.",
-      icon: "MessageSquare",
-    },
-    {
-      title: "Enterprise Security",
-      description: "SOC 2 compliant with end-to-end encryption.",
-      icon: "Shield",
-    },
-  ],
-  steps: [
-    { title: "Define", description: "Configure your agent", icon: "Bot" },
-    {
-      title: "Add Tools",
-      description: "Connect databases & APIs",
-      icon: "Terminal",
-    },
-    { title: "Test", description: "Iterate in playground", icon: "Play" },
-    { title: "Deploy", description: "300+ edge locations", icon: "Globe" },
-  ],
-  cta: {
-    title: "Ready to build your first agent?",
-    description: "Free to start, scales with you. Hop to it!",
-    primaryCta: "Get Started Free",
-    secondaryCta: "GitHub",
-  },
-  codeExample: `import { Agent } from '@hare/sdk'
+	hero: {
+		badge: 'Public Beta',
+		title: 'Build & Deploy',
+		titleHighlight: 'AI Agents',
+		titleSuffix: 'at the Edge',
+		description:
+			'The fastest way to create, deploy, and scale AI agents. Open source and self-hostable.',
+		primaryCta: 'Start Building Free',
+		secondaryCta: 'Live Demo',
+	},
+	stats: [
+		{ value: '300+', label: 'Edge Locations', icon: 'Globe' },
+		{ value: '<50ms', label: 'Global Latency', icon: 'Zap' },
+		{ value: '99.99%', label: 'Uptime SLA', icon: 'Shield' },
+		{ value: '10K+', label: 'Agents Deployed', icon: 'Bot' },
+	],
+	badges: [
+		{ label: 'Open Source', icon: 'GitBranch' },
+		{ label: '300+ Locations', icon: 'Globe' },
+		{ label: '<50ms Latency', icon: 'Zap' },
+	],
+	features: [
+		{
+			title: 'Visual Agent Builder',
+			description: 'Design complex agent workflows with our intuitive drag-and-drop interface.',
+			icon: 'Boxes',
+		},
+		{
+			title: 'Instant Deployment',
+			description: "Deploy to Cloudflare's global edge network in seconds.",
+			icon: 'Cloud',
+		},
+		{
+			title: 'Built-in Tools',
+			description: 'SQL, HTTP, KV, R2, and vector search ready to go.',
+			icon: 'Layers',
+		},
+		{
+			title: 'Developer SDK',
+			description: 'Full TypeScript SDK with type-safe APIs.',
+			icon: 'Code',
+		},
+		{
+			title: 'Real-time Streaming',
+			description: 'Stream responses with built-in WebSocket support.',
+			icon: 'MessageSquare',
+		},
+		{
+			title: 'Enterprise Security',
+			description: 'SOC 2 compliant with end-to-end encryption.',
+			icon: 'Shield',
+		},
+	],
+	steps: [
+		{ title: 'Define', description: 'Configure your agent', icon: 'Bot' },
+		{ title: 'Add Tools', description: 'Connect databases & APIs', icon: 'Terminal' },
+		{ title: 'Deploy', description: '300+ edge locations', icon: 'Globe' },
+	],
+	cta: {
+		title: 'Ready to build your first agent?',
+		description: 'Free to start, scales with you. Hop to it!',
+		primaryCta: 'Get Started Free',
+		secondaryCta: 'GitHub',
+	},
+	codeExample: `import { Agent } from '@hare/sdk'
 
 const agent = new Agent({
   name: 'Support Bot',

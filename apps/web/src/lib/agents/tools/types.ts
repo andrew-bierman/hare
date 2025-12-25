@@ -1,4 +1,4 @@
-import type { z, ZodSchema } from 'zod'
+import { z, type ZodSchema } from 'zod'
 
 /**
  * Tool execution context providing access to Cloudflare bindings.
@@ -88,7 +88,6 @@ export const ToolTypeSchema = z.enum([
 	'sql',
 	'kv',
 	'r2',
-	'vectorize',
 	'search',
 	// Utility
 	'datetime',
