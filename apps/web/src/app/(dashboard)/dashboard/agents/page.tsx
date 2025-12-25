@@ -6,7 +6,7 @@ import { Card, CardContent } from '@workspace/ui/components/card'
 import { Input } from '@workspace/ui/components/input'
 import { Skeleton } from '@workspace/ui/components/skeleton'
 import { Tabs, TabsList, TabsTrigger } from '@workspace/ui/components/tabs'
-import { Bot, Clock, Play, Plus, Search, Settings, Wrench } from 'lucide-react'
+import { Bot, Clock, Plus, Search, Settings, Wrench } from 'lucide-react'
 import Link from 'next/link'
 import { type ChangeEvent, useState } from 'react'
 import { useWorkspace } from 'web-app/components/providers/workspace-provider'
@@ -183,7 +183,7 @@ export default function AgentsPage() {
 			{isLoading ? (
 				<div className="grid gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3">
 					{[...Array(6)].map((_, i) => (
-						<AgentCardSkeleton key={i} />
+						<AgentCardSkeleton key={`skeleton-${i}`} />
 					))}
 				</div>
 			) : filteredAgents.length === 0 ? (
@@ -256,12 +256,6 @@ export default function AgentsPage() {
 											<Settings className="h-4 w-4" />
 											<span className="hidden sm:inline">Configure</span>
 											<span className="sm:hidden">Edit</span>
-										</Button>
-									</Link>
-									<Link href={`/dashboard/agents/${agent.id}/playground`} className="flex-1">
-										<Button className="w-full gap-2 h-10" disabled={agent.status !== 'deployed'}>
-											<Play className="h-4 w-4" />
-											Test
 										</Button>
 									</Link>
 								</div>

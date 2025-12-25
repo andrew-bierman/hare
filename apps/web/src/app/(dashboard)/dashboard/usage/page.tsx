@@ -87,7 +87,7 @@ export default function UsagePage() {
 
 			<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
 				{isLoading
-					? [...Array(4)].map((_, i) => <StatCardSkeleton key={i} />)
+					? [...Array(4)].map((_, i) => <StatCardSkeleton key={`usage-skeleton-${i}`} />)
 					: stats.map((stat) => (
 							<Card key={stat.title}>
 								<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
