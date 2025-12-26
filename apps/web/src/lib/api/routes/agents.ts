@@ -1,11 +1,13 @@
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
 import { and, eq } from 'drizzle-orm'
-import { agents, agentTools, deployments } from 'web-app/db/schema'
+import { AGENT_LIMITS, AI_MODELS, getModelById } from 'web-app/config'
+import { agents, agentTools, deployments, tools as toolsTable } from 'web-app/db/schema'
 import type { Database } from 'web-app/db/types'
 import { getDb } from '../db'
 import { commonResponses, requireAdminAccess, requireWriteAccess } from '../helpers'
 import { authMiddleware, workspaceMiddleware } from '../middleware'
 import {
+	AgentConfigSchema,
 	AgentSchema,
 	CreateAgentSchema,
 	DeployAgentSchema,
@@ -17,6 +19,7 @@ import {
 } from '../schemas'
 import { serializeAgent } from '../serializers'
 import type { WorkspaceEnv } from '../types'
+import { validateAgentInstructions } from '../utils/sanitize'
 
 // Define routes
 const listAgentsRoute = createRoute({
@@ -254,6 +257,96 @@ const deployAgentRoute = createRoute({
 	},
 })
 
+// =============================================================================
+// Configuration Validation Schemas
+// =============================================================================
+
+const ValidationIssueSchema = z.object({
+	field: z.string().describe('Field that has the issue'),
+	type: z.enum(['error', 'warning']).describe('Issue severity'),
+	message: z.string().describe('Issue description'),
+})
+
+const ModelPreviewSchema = z.object({
+	id: z.string().describe('Model ID'),
+	name: z.string().describe('Human-readable model name'),
+	provider: z.string().describe('Model provider'),
+	contextWindow: z.number().describe('Maximum context window size'),
+	maxOutputTokens: z.number().describe('Maximum output tokens'),
+	supportsTools: z.boolean().describe('Whether model supports tool calling'),
+	estimatedCostPer1KTokens: z.number().describe('Estimated cost per 1K tokens'),
+})
+
+const ConfigPreviewSchema = z.object({
+	temperature: z.number().describe('Effective temperature'),
+	maxTokens: z.number().describe('Effective max tokens'),
+	topP: z.number().optional().describe('Effective top-p if set'),
+	topK: z.number().optional().describe('Effective top-k if set'),
+})
+
+const ValidationResponseSchema = z.object({
+	valid: z.boolean().describe('Whether the configuration is valid for deployment'),
+	errors: z.array(ValidationIssueSchema).describe('Blocking errors that must be fixed'),
+	warnings: z.array(ValidationIssueSchema).describe('Non-blocking warnings'),
+	preview: z
+		.object({
+			name: z.string().describe('Agent name'),
+			description: z.string().nullable().describe('Agent description'),
+			model: ModelPreviewSchema.describe('Resolved model information'),
+			config: ConfigPreviewSchema.describe('Effective configuration with defaults'),
+			toolCount: z.number().describe('Number of tools attached'),
+			toolsValid: z.boolean().describe('Whether all tools are valid'),
+			instructionsLength: z.number().describe('Length of instructions'),
+			estimatedTokens: z.number().describe('Estimated instruction token count'),
+			readyForDeployment: z.boolean().describe('Whether agent can be deployed'),
+		})
+		.optional()
+		.describe('Preview of the resolved configuration (only if no critical errors)'),
+})
+
+const ValidateConfigSchema = z
+	.object({
+		name: z.string().optional().describe('Agent name'),
+		description: z.string().optional().describe('Agent description'),
+		model: z.string().optional().describe('Model ID'),
+		instructions: z.string().optional().describe('Agent instructions'),
+		config: AgentConfigSchema.optional().describe('Model configuration'),
+		toolIds: z.array(z.string()).optional().describe('Tool IDs to attach'),
+	})
+	.openapi('ValidateConfig')
+
+const validateConfigRoute = createRoute({
+	method: 'post',
+	path: '/validate',
+	tags: ['Agents'],
+	summary: 'Validate agent configuration',
+	description:
+		'Validates agent configuration and returns detailed feedback with a preview of the resolved settings',
+	request: {
+		query: z.object({
+			workspaceId: z.string().describe('Workspace ID'),
+		}),
+		body: {
+			content: {
+				'application/json': {
+					schema: ValidateConfigSchema,
+				},
+			},
+		},
+	},
+	responses: {
+		200: {
+			description: 'Validation results',
+			content: {
+				'application/json': {
+					schema: ValidationResponseSchema,
+				},
+			},
+		},
+		...commonResponses,
+	},
+})
+
 /**
  * Input for getting agent tool IDs.
  */
@@ -484,6 +577,267 @@ app.openapi(deployAgentRoute, async (c) => {
 			status: 'deployed' as const,
 			deployedAt: deployment.deployedAt.toISOString(),
 			version,
+		},
+		200,
+	)
+})
+
+// =============================================================================
+// Validation Route Handler
+// =============================================================================
+
+app.openapi(validateConfigRoute, async (c) => {
+	const data = c.req.valid('json')
+	const db = await getDb(c)
+	const workspace = c.get('workspace')
+
+	const errors: Array<{ field: string; type: 'error'; message: string }> = []
+	const warnings: Array<{ field: string; type: 'warning'; message: string }> = []
+
+	// Validate name
+	if (data.name !== undefined) {
+		if (data.name.length < AGENT_LIMITS.nameMinLength) {
+			errors.push({
+				field: 'name',
+				type: 'error',
+				message: `Name must be at least ${AGENT_LIMITS.nameMinLength} character`,
+			})
+		}
+		if (data.name.length > AGENT_LIMITS.nameMaxLength) {
+			errors.push({
+				field: 'name',
+				type: 'error',
+				message: `Name must be at most ${AGENT_LIMITS.nameMaxLength} characters`,
+			})
+		}
+	} else {
+		errors.push({
+			field: 'name',
+			type: 'error',
+			message: 'Name is required',
+		})
+	}
+
+	// Validate description
+	if (data.description && data.description.length > AGENT_LIMITS.descriptionMaxLength) {
+		warnings.push({
+			field: 'description',
+			type: 'warning',
+			message: `Description exceeds recommended length of ${AGENT_LIMITS.descriptionMaxLength} characters`,
+		})
+	}
+
+	// Validate model
+	let modelInfo = null
+	if (data.model) {
+		modelInfo = getModelById(data.model)
+		if (!modelInfo) {
+			errors.push({
+				field: 'model',
+				type: 'error',
+				message: `Unknown model: ${data.model}. Available models: ${AI_MODELS.map((m) => m.id).join(', ')}`,
+			})
+		} else if (!modelInfo.supportsTools && data.toolIds && data.toolIds.length > 0) {
+			warnings.push({
+				field: 'model',
+				type: 'warning',
+				message: `Model ${modelInfo.name} does not support tool calling. Tools will be ignored.`,
+			})
+		}
+	} else {
+		errors.push({
+			field: 'model',
+			type: 'error',
+			message: 'Model is required',
+		})
+	}
+
+	// Validate instructions
+	let instructionsLength = 0
+	let estimatedTokens = 0
+	if (data.instructions !== undefined) {
+		instructionsLength = data.instructions.length
+
+		if (instructionsLength === 0) {
+			errors.push({
+				field: 'instructions',
+				type: 'error',
+				message: 'Instructions are required for deployment',
+			})
+		} else if (instructionsLength > AGENT_LIMITS.instructionsMaxLength) {
+			errors.push({
+				field: 'instructions',
+				type: 'error',
+				message: `Instructions exceed maximum length of ${AGENT_LIMITS.instructionsMaxLength} characters`,
+			})
+		}
+
+		// Rough token estimation (approx 4 chars per token)
+		estimatedTokens = Math.ceil(instructionsLength / 4)
+
+		// Check context window if model is known
+		if (modelInfo && estimatedTokens > modelInfo.contextWindow * 0.5) {
+			warnings.push({
+				field: 'instructions',
+				type: 'warning',
+				message: `Instructions may use more than 50% of the model's context window (${modelInfo.contextWindow} tokens)`,
+			})
+		}
+
+		// Validate instructions content
+		const instructionValidation = validateAgentInstructions(data.instructions)
+		if (!instructionValidation.valid) {
+			for (const issue of instructionValidation.issues) {
+				warnings.push({
+					field: 'instructions',
+					type: 'warning',
+					message: issue,
+				})
+			}
+		}
+	} else {
+		errors.push({
+			field: 'instructions',
+			type: 'error',
+			message: 'Instructions are required',
+		})
+	}
+
+	// Validate config parameters
+	if (data.config) {
+		if (data.config.temperature !== undefined) {
+			if (data.config.temperature < 0 || data.config.temperature > 2) {
+				errors.push({
+					field: 'config.temperature',
+					type: 'error',
+					message: 'Temperature must be between 0 and 2',
+				})
+			}
+			if (data.config.temperature > 1.5) {
+				warnings.push({
+					field: 'config.temperature',
+					type: 'warning',
+					message: 'High temperature (>1.5) may produce inconsistent results',
+				})
+			}
+		}
+
+		if (data.config.maxTokens !== undefined) {
+			if (modelInfo && data.config.maxTokens > modelInfo.maxOutputTokens) {
+				errors.push({
+					field: 'config.maxTokens',
+					type: 'error',
+					message: `Max tokens (${data.config.maxTokens}) exceeds model limit (${modelInfo.maxOutputTokens})`,
+				})
+			}
+		}
+	}
+
+	// Validate tools
+	let toolsValid = true
+	const toolIds = data.toolIds || []
+
+	if (toolIds.length > AGENT_LIMITS.maxToolsPerAgent) {
+		errors.push({
+			field: 'toolIds',
+			type: 'error',
+			message: `Too many tools. Maximum is ${AGENT_LIMITS.maxToolsPerAgent}`,
+		})
+		toolsValid = false
+	}
+
+	// Check custom tools exist (system tools start with 'system-')
+	const customToolIds = toolIds.filter((id) => !id.startsWith('system-'))
+	if (customToolIds.length > 0) {
+		const existingTools = await db
+			.select({ id: toolsTable.id })
+			.from(toolsTable)
+			.where(eq(toolsTable.workspaceId, workspace.id))
+
+		const existingToolIds = new Set(existingTools.map((t) => t.id))
+		const missingTools = customToolIds.filter((id) => !existingToolIds.has(id))
+
+		if (missingTools.length > 0) {
+			errors.push({
+				field: 'toolIds',
+				type: 'error',
+				message: `Unknown tools: ${missingTools.join(', ')}`,
+			})
+			toolsValid = false
+		}
+	}
+
+	// Build response
+	const hasErrors = errors.length > 0
+	const isValid = !hasErrors
+
+	// Preview type for the response
+	type ConfigPreview = {
+		name: string
+		description: string | null
+		model: {
+			id: string
+			name: string
+			provider: string
+			contextWindow: number
+			maxOutputTokens: number
+			supportsTools: boolean
+			estimatedCostPer1KTokens: number
+		}
+		config: {
+			temperature: number
+			maxTokens: number
+			topP?: number
+			topK?: number
+		}
+		toolCount: number
+		toolsValid: boolean
+		instructionsLength: number
+		estimatedTokens: number
+		readyForDeployment: boolean
+	}
+
+	// Build preview only if we have enough valid data
+	let preview: ConfigPreview | undefined
+	if (data.name && modelInfo) {
+		const effectiveConfig = {
+			temperature: data.config?.temperature ?? 0.7,
+			maxTokens: data.config?.maxTokens ?? 4096,
+			...(data.config?.topP !== undefined && { topP: data.config.topP }),
+			...(data.config?.topK !== undefined && { topK: data.config.topK }),
+		}
+
+		// Estimate cost (per 1K tokens, average of input/output)
+		const avgCostPer1M = (modelInfo.inputCostPer1M + modelInfo.outputCostPer1M) / 2
+		const estimatedCostPer1KTokens = avgCostPer1M / 1000
+
+		preview = {
+			name: data.name,
+			description: data.description ?? null,
+			model: {
+				id: modelInfo.id,
+				name: modelInfo.name,
+				provider: modelInfo.provider,
+				contextWindow: modelInfo.contextWindow,
+				maxOutputTokens: modelInfo.maxOutputTokens,
+				supportsTools: modelInfo.supportsTools,
+				estimatedCostPer1KTokens,
+			},
+			config: effectiveConfig,
+			toolCount: toolIds.length,
+			toolsValid,
+			instructionsLength,
+			estimatedTokens,
+			readyForDeployment: isValid && instructionsLength > 0,
+		}
+	}
+
+	return c.json(
+		{
+			valid: isValid,
+			errors,
+			warnings,
+			preview,
 		},
 		200,
 	)
