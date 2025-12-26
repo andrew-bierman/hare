@@ -353,8 +353,7 @@ baseTest.describe('Tools Integration with Agents', () => {
 		await page.goto('/dashboard/tools')
 		await page.waitForLoadState('networkidle')
 
-		// Page should mention agents
-		const agentText = page.getByText(/agent/i).first()
-		// This is informational text about tools being available to agents
+		// Page should load without errors - tools are available to agents
+		await expect(page.locator('body')).not.toContainText('404')
 	})
 })
