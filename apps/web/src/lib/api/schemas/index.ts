@@ -7,14 +7,32 @@
 
 // Agent schemas
 export {
+	AGENT_VALIDATION,
 	AgentConfigSchema,
+	AgentPreviewInputSchema,
+	AgentPreviewResponseSchema,
+	AgentPreviewSchema,
 	AgentSchema,
 	AgentStatusSchema,
+	ALLOWED_MODEL_IDS,
+	ConfigPreviewSchema,
 	CreateAgentSchema,
 	DeployAgentSchema,
 	DeploymentSchema,
+	ModelIdSchema,
+	ModelPreviewSchema,
 	UpdateAgentSchema,
+	ValidationIssueSchema,
 } from './agents'
+// API key schemas
+export {
+	ApiKeyListSchema,
+	ApiKeyPermissionsSchema,
+	ApiKeySchema,
+	ApiKeyWithSecretSchema,
+	CreateApiKeySchema,
+	UpdateApiKeySchema,
+} from './api-keys'
 // Auth schemas
 export {
 	AuthResponseSchema,
@@ -44,6 +62,19 @@ export {
 	MetadataSchema,
 	SuccessSchema,
 } from './common'
+// Schedule schemas
+export {
+	CreateScheduleSchema,
+	ExecutionHistorySchema,
+	ExecutionResultSchema,
+	ExecutionStatusSchema,
+	ScheduleExecutionSchema,
+	ScheduleListSchema,
+	ScheduleSchema,
+	ScheduleStatusSchema,
+	ScheduleTypeSchema,
+	UpdateScheduleSchema,
+} from './schedules'
 // Tool schemas
 export {
 	CreateToolSchema,
@@ -64,7 +95,14 @@ export {
 // Workspace schemas
 export {
 	CreateWorkspaceSchema,
+	InvitationStatusSchema,
+	MemberRoleSchema,
+	SendInvitationSchema,
+	UpdateMemberRoleSchema,
 	UpdateWorkspaceSchema,
+	WorkspaceInvitationSchema,
+	WorkspaceMemberParamsSchema,
+	WorkspaceMemberSchema,
 	WorkspaceRoleSchema,
 	WorkspaceSchema,
 } from './workspaces'

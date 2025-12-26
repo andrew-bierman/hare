@@ -30,6 +30,7 @@ import {
 import { Skeleton } from '@workspace/ui/components/skeleton'
 import { Textarea } from '@workspace/ui/components/textarea'
 import { Code, Database, Globe, HardDrive, Plus, Search, Trash2, Wrench } from 'lucide-react'
+import Link from 'next/link'
 import { type ChangeEvent, useState } from 'react'
 import { toast } from 'sonner'
 import { useWorkspace } from 'web-app/components/providers/workspace-provider'
@@ -181,10 +182,18 @@ export default function ToolsPage() {
 		<div className="flex-1 space-y-4 p-8 pt-6">
 			<div className="flex items-center justify-between">
 				<h2 className="text-3xl font-bold tracking-tight">Tools</h2>
-				<Button onClick={() => setIsCreateOpen(true)}>
-					<Plus className="mr-2 h-4 w-4" />
-					Add Tool
-				</Button>
+				<div className="flex gap-2">
+					<Button variant="outline" onClick={() => setIsCreateOpen(true)}>
+						<Plus className="mr-2 h-4 w-4" />
+						Quick Add
+					</Button>
+					<Button asChild>
+						<Link href="/dashboard/tools/new">
+							<Globe className="mr-2 h-4 w-4" />
+							Create HTTP Tool
+						</Link>
+					</Button>
+				</div>
 			</div>
 
 			<div className="flex items-center space-x-2">

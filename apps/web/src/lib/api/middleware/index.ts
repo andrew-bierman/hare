@@ -23,6 +23,14 @@ export {
 export { authMiddleware, optionalAuthMiddleware } from './auth'
 export { aiChatFeatureMiddleware } from './beta-access'
 export {
+	getLogStats,
+	getLogs,
+	type LogQueryParams,
+	type LogStats,
+	loggingMiddleware,
+	type RequestLog,
+} from './logging'
+export {
 	apiRateLimiter,
 	chatRateLimiter,
 	externalApiRateLimiter,

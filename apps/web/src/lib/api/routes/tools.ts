@@ -18,6 +18,12 @@ import {
 	UpdateToolSchema,
 } from '../schemas'
 import { type SystemToolDefinition, serializeSystemTool, serializeTool } from '../serializers'
+import {
+	HttpToolConfigSchema,
+	InputSchemaSchema,
+	isUrlSafe,
+	testHttpTool,
+} from '../services/custom-tool-executor'
 import type { WorkspaceEnv } from '../types'
 
 // Define routes
@@ -74,6 +80,10 @@ const createToolRoute = createRoute({
 					schema: ToolSchema,
 				},
 			},
+		},
+		400: {
+			description: 'Invalid configuration or URL not allowed',
+			content: { 'application/json': { schema: ErrorSchema } },
 		},
 		403: {
 			description: 'Write access required',
@@ -213,6 +223,119 @@ const deleteToolRoute = createRoute({
 	},
 })
 
+// Tool test request schema
+const TestToolRequestSchema = z
+	.object({
+		config: HttpToolConfigSchema,
+		inputSchema: InputSchemaSchema.optional(),
+		testInput: z.record(z.string(), z.unknown()).optional(),
+	})
+	.openapi('TestToolRequest')
+
+// Tool test response schema
+const ToolTestResultSchema = z
+	.object({
+		success: z.boolean(),
+		status: z.number().optional(),
+		statusText: z.string().optional(),
+		headers: z.record(z.string(), z.string()).optional(),
+		data: z.unknown().optional(),
+		error: z.string().optional(),
+		duration: z.number(),
+		requestDetails: z.object({
+			url: z.string(),
+			method: z.string(),
+			headers: z.record(z.string(), z.string()).optional(),
+			body: z.string().optional(),
+		}),
+	})
+	.openapi('ToolTestResult')
+
+const testToolRoute = createRoute({
+	method: 'post',
+	path: '/test',
+	tags: ['Tools'],
+	summary: 'Test HTTP tool configuration',
+	description: 'Test an HTTP tool configuration with mock input before saving',
+	request: {
+		query: z.object({
+			workspaceId: z.string().describe('Workspace ID'),
+		}),
+		body: {
+			content: {
+				'application/json': {
+					schema: TestToolRequestSchema,
+				},
+			},
+		},
+	},
+	responses: {
+		200: {
+			description: 'Tool test result',
+			content: {
+				'application/json': {
+					schema: ToolTestResultSchema,
+				},
+			},
+		},
+		400: {
+			description: 'Invalid configuration or URL not allowed',
+			content: { 'application/json': { schema: ErrorSchema } },
+		},
+		403: {
+			description: 'Write access required',
+			content: { 'application/json': { schema: ErrorSchema } },
+		},
+		...commonResponses,
+	},
+})
+
+const testExistingToolRoute = createRoute({
+	method: 'post',
+	path: '/{id}/test',
+	tags: ['Tools'],
+	summary: 'Test an existing tool',
+	description: 'Test an existing HTTP tool with test input',
+	request: {
+		params: IdParamSchema,
+		query: z.object({
+			workspaceId: z.string().describe('Workspace ID'),
+		}),
+		body: {
+			content: {
+				'application/json': {
+					schema: z.object({
+						testInput: z.record(z.string(), z.unknown()).optional(),
+					}),
+				},
+			},
+		},
+	},
+	responses: {
+		200: {
+			description: 'Tool test result',
+			content: {
+				'application/json': {
+					schema: ToolTestResultSchema,
+				},
+			},
+		},
+		400: {
+			description: 'Tool type does not support testing',
+			content: { 'application/json': { schema: ErrorSchema } },
+		},
+		403: {
+			description: 'Write access required',
+			content: { 'application/json': { schema: ErrorSchema } },
+		},
+		404: {
+			description: 'Tool not found',
+			content: { 'application/json': { schema: ErrorSchema } },
+		},
+		...commonResponses,
+	},
+})
+
 // Create app with proper typing
 const app = new OpenAPIHono<WorkspaceEnv>()
 
@@ -247,6 +370,26 @@ app.openapi(createToolRoute, async (c) => {
 
 	requireWriteAccess(role)
 
+	// Validate URL safety for HTTP tools
+	if (data.type === 'http' && data.config?.url && typeof data.config.url === 'string') {
+		const urlSafety = isUrlSafe(data.config.url)
+		if (!urlSafety.safe) {
+			return c.json({ error: urlSafety.reason || 'Invalid URL' }, 400)
+		}
+	}
+
+	// Transform inputSchema from API format to database format
+	const dbInputSchema = data.inputSchema
+		? {
+				type: 'object' as const,
+				properties: data.inputSchema as typeof tools.$inferInsert.inputSchema extends infer T
+					? T extends { properties?: infer P }
+						? P
+						: never
+					: never,
+			}
+		: null
+
 	const [tool] = await db
 		.insert(tools)
 		.values({
@@ -254,7 +397,8 @@ app.openapi(createToolRoute, async (c) => {
 			name: data.name,
 			description: data.description,
 			type: data.type,
-			config: data.config,
+			inputSchema: dbInputSchema,
+			config: data.config as typeof tools.$inferInsert.config,
 			createdBy: user.id,
 		})
 		.returning()
@@ -314,13 +458,34 @@ app.openapi(updateToolRoute, async (c) => {
 		return c.json({ error: 'Tool not found' }, 404)
 	}
 
+	// Validate URL safety for HTTP tools
+	if (data.config?.url && typeof data.config.url === 'string') {
+		const urlSafety = isUrlSafe(data.config.url)
+		if (!urlSafety.safe) {
+			return c.json({ error: urlSafety.reason || 'Invalid URL' }, 400)
+		}
+	}
+
+	// Transform inputSchema from API format to database format
+	const dbInputSchema = data.inputSchema
+		? {
+				type: 'object' as const,
+				properties: data.inputSchema as typeof tools.$inferInsert.inputSchema extends infer T
+					? T extends { properties?: infer P }
+						? P
+						: never
+					: never,
+			}
+		: undefined
+
 	// Build typed update object
 	const updateData: Partial<typeof tools.$inferInsert> = {
 		updatedAt: new Date(),
 		...(data.name !== undefined && { name: data.name }),
 		...(data.description !== undefined && { description: data.description }),
 		...(data.type !== undefined && { type: data.type }),
-		...(data.config !== undefined && { config: data.config }),
+		...(data.inputSchema !== undefined && { inputSchema: dbInputSchema }),
+		...(data.config !== undefined && { config: data.config as typeof tools.$inferInsert.config }),
 	}
 
 	const [tool] = await db.update(tools).set(updateData).where(eq(tools.id, id)).returning()
@@ -356,6 +521,85 @@ app.openapi(deleteToolRoute, async (c) => {
 	}
 
 	return c.json({ success: true }, 200)
+})
+
+// Test tool configuration (before saving)
+app.openapi(testToolRoute, async (c) => {
+	const data = c.req.valid('json')
+	const role = c.get('workspaceRole')
+
+	requireWriteAccess(role)
+
+	// Validate URL safety
+	const urlSafety = isUrlSafe(data.config.url)
+	if (!urlSafety.safe) {
+		return c.json({ error: urlSafety.reason || 'Invalid URL' }, 400)
+	}
+
+	// Execute the test
+	const result = await testHttpTool(data)
+
+	return c.json(result, 200)
+})
+
+// Test existing tool
+app.openapi(testExistingToolRoute, async (c) => {
+	const { id } = c.req.valid('param')
+	const data = c.req.valid('json')
+	const db = await getDb(c)
+	const workspace = c.get('workspace')
+	const role = c.get('workspaceRole')
+
+	requireWriteAccess(role)
+
+	// Get the tool
+	const [tool] = await db
+		.select()
+		.from(tools)
+		.where(and(eq(tools.id, id), eq(tools.workspaceId, workspace.id)))
+
+	if (!tool) {
+		return c.json({ error: 'Tool not found' }, 404)
+	}
+
+	// Only HTTP tools can be tested
+	if (tool.type !== 'http') {
+		return c.json({ error: 'Only HTTP tools can be tested' }, 400)
+	}
+
+	// Validate config exists
+	if (!tool.config?.url) {
+		return c.json({ error: 'Tool has no URL configured' }, 400)
+	}
+
+	// Build test config from tool
+	const testConfig = {
+		url: tool.config.url,
+		method: (tool.config.method as 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE') || 'GET',
+		headers: tool.config.headers,
+		body: tool.config.body,
+		bodyType: (tool.config.bodyType as 'json' | 'form' | 'text') || 'json',
+		responseMapping: tool.config.responseMapping,
+		timeout: tool.config.timeout || 10000,
+	}
+
+	// Parse the config
+	const configParsed = HttpToolConfigSchema.safeParse(testConfig)
+	if (!configParsed.success) {
+		return c.json({ error: `Invalid tool configuration: ${configParsed.error.message}` }, 400)
+	}
+
+	// Get input schema from tool
+	const inputSchema = tool.inputSchema ? InputSchemaSchema.safeParse(tool.inputSchema) : undefined
+
+	// Execute the test
+	const result = await testHttpTool({
+		config: configParsed.data,
+		inputSchema: inputSchema?.success ? inputSchema.data : undefined,
+		testInput: data.testInput,
+	})
+
+	return c.json(result, 200)
 })
 
 export default app

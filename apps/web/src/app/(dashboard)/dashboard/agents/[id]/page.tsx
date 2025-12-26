@@ -34,6 +34,7 @@ import {
 	Brain,
 	CheckCircle,
 	Code,
+	CodeXml,
 	Database,
 	FileCode,
 	Globe,
@@ -46,29 +47,35 @@ import {
 	Trash2,
 	Wrench,
 } from 'lucide-react'
+import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
 import { type ChangeEvent, useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
 import { AgentInstructionsEditor } from 'web-app/components/agent/agent-instructions-editor'
+import { MemoryViewer } from 'web-app/components/agent/memory-viewer'
+import { ScheduledTasksSection } from 'web-app/components/agent/scheduled-tasks-section'
 import { ToolPicker } from 'web-app/components/agent/tool-picker'
 import { useWorkspace } from 'web-app/components/providers/workspace-provider'
 import { AGENT_LIMITS } from 'web-app/config'
 import {
 	AVAILABLE_MODELS,
 	useAgent,
+	useAgentPreviewQuery,
 	useAgentUsage,
 	useDeleteAgent,
 	useDeployAgent,
 	useTools,
 	useUpdateAgent,
+	type ValidationIssue,
 } from 'web-app/lib/api/hooks'
+import { useDebouncedValue } from 'web-app/lib/hooks/use-debounce'
 import { z } from 'zod'
 
-// Validation schema for agent configuration
+// Validation schema for agent configuration (client-side quick validation)
 const agentConfigSchema = z.object({
 	name: z
 		.string()
-		.min(2, 'Name must be at least 2 characters')
+		.min(1, 'Name is required')
 		.max(
 			AGENT_LIMITS.nameMaxLength,
 			`Name must be at most ${AGENT_LIMITS.nameMaxLength} characters`,
@@ -83,7 +90,7 @@ const agentConfigSchema = z.object({
 		.or(z.literal('')),
 	instructions: z
 		.string()
-		.min(10, 'Instructions must be at least 10 characters')
+		.min(1, 'Instructions are required')
 		.max(
 			AGENT_LIMITS.instructionsMaxLength,
 			`Instructions must be at most ${AGENT_LIMITS.instructionsMaxLength} characters`,
@@ -91,17 +98,42 @@ const agentConfigSchema = z.object({
 	model: z.string().min(1, 'Model is required'),
 })
 
-// Type for validation errors
+// Type for validation errors (merged from client + server)
 type ValidationErrors = {
 	name?: string
 	description?: string
 	instructions?: string
 	model?: string
+	'config.temperature'?: string
+	'config.maxTokens'?: string
+	toolIds?: string
 }
 
-// Type for validation warnings
+// Type for validation warnings (merged from client + server)
 type ValidationWarnings = {
 	tools?: string
+	model?: string
+	instructions?: string
+	'config.temperature'?: string
+}
+
+// Helper to convert server validation issues to error/warning maps
+function processServerValidation(issues: ValidationIssue[]): {
+	errors: ValidationErrors
+	warnings: ValidationWarnings
+} {
+	const errors: ValidationErrors = {}
+	const warnings: ValidationWarnings = {}
+
+	for (const issue of issues) {
+		if (issue.type === 'error') {
+			errors[issue.field as keyof ValidationErrors] = issue.message
+		} else {
+			warnings[issue.field as keyof ValidationWarnings] = issue.message
+		}
+	}
+
+	return { errors, warnings }
 }
 
 // Tool category icons mapping
@@ -170,10 +202,45 @@ export default function AgentBuilderPage() {
 	const [selectedToolIds, setSelectedToolIds] = useState<string[]>([])
 	const [isDeleteOpen, setIsDeleteOpen] = useState(false)
 	const [hasChanges, setHasChanges] = useState(false)
-	const [validationErrors, setValidationErrors] = useState<ValidationErrors>({})
-	const [validationWarnings, setValidationWarnings] = useState<ValidationWarnings>({})
+	const [clientValidationErrors, setClientValidationErrors] = useState<ValidationErrors>({})
+	const [clientValidationWarnings, setClientValidationWarnings] = useState<ValidationWarnings>({})
 
 	const tools = toolsData?.tools ?? []
+
+	// Debounce values for server validation to avoid too many API calls
+	const debouncedOverrides = useDebouncedValue(
+		{
+			name,
+			description: description || undefined,
+			model,
+			instructions,
+			toolIds: selectedToolIds,
+		},
+		800, // Wait 800ms after user stops typing
+	)
+
+	// Server-side preview validation query
+	const { data: serverPreview, isLoading: isValidating } = useAgentPreviewQuery({
+		agentId,
+		workspaceId: activeWorkspace?.id,
+		overrides: debouncedOverrides,
+		enabled: !!agentId && !!activeWorkspace?.id && hasChanges,
+	})
+
+	// Process server validation results
+	const serverValidation = useMemo(() => {
+		if (!serverPreview) return { errors: {}, warnings: {} }
+		return processServerValidation([...serverPreview.errors, ...serverPreview.warnings])
+	}, [serverPreview])
+
+	// Merge client and server validation errors/warnings
+	const validationErrors = useMemo(() => {
+		return { ...clientValidationErrors, ...serverValidation.errors }
+	}, [clientValidationErrors, serverValidation.errors])
+
+	const validationWarnings = useMemo(() => {
+		return { ...clientValidationWarnings, ...serverValidation.warnings }
+	}, [clientValidationWarnings, serverValidation.warnings])
 
 	// Initialize form with agent data
 	useEffect(() => {
@@ -199,7 +266,7 @@ export default function AgentBuilderPage() {
 		}
 	}, [agent, name, description, model, instructions, selectedToolIds])
 
-	// Validate configuration in real-time
+	// Client-side validation (immediate feedback)
 	useEffect(() => {
 		const result = agentConfigSchema.safeParse({
 			name,
@@ -216,9 +283,9 @@ export default function AgentBuilderPage() {
 					errors[field] = issue.message
 				}
 			}
-			setValidationErrors(errors)
+			setClientValidationErrors(errors)
 		} else {
-			setValidationErrors({})
+			setClientValidationErrors({})
 		}
 
 		// Check for warnings (tools)
@@ -226,7 +293,7 @@ export default function AgentBuilderPage() {
 		if (selectedToolIds.length === 0) {
 			warnings.tools = 'No tools selected. Your agent may have limited capabilities.'
 		}
-		setValidationWarnings(warnings)
+		setClientValidationWarnings(warnings)
 	}, [name, description, instructions, model, selectedToolIds])
 
 	// Check if model is valid
@@ -376,6 +443,12 @@ export default function AgentBuilderPage() {
 							{deployAgent.isPending ? 'Deploying...' : 'Deploy'}
 						</Button>
 					)}
+					<Link href={`/dashboard/agents/${agentId}/embed`}>
+						<Button variant="outline">
+							<CodeXml className="mr-2 h-4 w-4" />
+							Embed
+						</Button>
+					</Link>
 					<Button variant="outline" onClick={() => setIsDeleteOpen(true)}>
 						<Trash2 className="mr-2 h-4 w-4" />
 						Delete
@@ -394,6 +467,8 @@ export default function AgentBuilderPage() {
 					<TabsTrigger value="general">General</TabsTrigger>
 					<TabsTrigger value="prompt">Prompt</TabsTrigger>
 					<TabsTrigger value="tools">Tools</TabsTrigger>
+					<TabsTrigger value="memory">Memory</TabsTrigger>
+					<TabsTrigger value="schedules">Schedules</TabsTrigger>
 					<TabsTrigger value="preview">Preview</TabsTrigger>
 					<TabsTrigger value="analytics">Analytics</TabsTrigger>
 				</TabsList>
@@ -561,6 +636,18 @@ export default function AgentBuilderPage() {
 					</Card>
 				</TabsContent>
 
+				<TabsContent value="memory" className="space-y-4">
+					{activeWorkspace?.id && (
+						<MemoryViewer agentId={agentId} workspaceId={activeWorkspace.id} />
+					)}
+				</TabsContent>
+
+				<TabsContent value="schedules" className="space-y-4">
+					{activeWorkspace?.id && (
+						<ScheduledTasksSection agentId={agentId} workspaceId={activeWorkspace.id} />
+					)}
+				</TabsContent>
+
 				<TabsContent value="preview" className="space-y-4">
 					<div className="grid gap-4 md:grid-cols-2">
 						{/* Configuration Summary */}
@@ -599,24 +686,52 @@ export default function AgentBuilderPage() {
 
 								{/* Validation Status */}
 								<div className="pt-4 border-t">
-									<h4 className="text-sm font-medium mb-2">Validation Status</h4>
-									{hasValidationErrors ? (
-										<div className="flex items-center gap-2 text-destructive">
-											<AlertTriangle className="h-4 w-4" />
-											<span className="text-sm">
-												{Object.keys(validationErrors).length} validation error(s)
+									<div className="flex items-center justify-between mb-2">
+										<h4 className="text-sm font-medium">Validation Status</h4>
+										{isValidating && (
+											<span className="text-xs text-muted-foreground animate-pulse">
+												Validating...
 											</span>
+										)}
+									</div>
+									{hasValidationErrors ? (
+										<div className="space-y-2">
+											<div className="flex items-center gap-2 text-destructive">
+												<AlertTriangle className="h-4 w-4" />
+												<span className="text-sm">
+													{Object.keys(validationErrors).length} validation error(s)
+												</span>
+											</div>
+											{/* Show individual errors */}
+											<ul className="pl-6 space-y-1">
+												{Object.entries(validationErrors).map(([field, message]) => (
+													<li key={field} className="text-xs text-destructive">
+														<span className="font-medium">{field}:</span> {message}
+													</li>
+												))}
+											</ul>
 										</div>
 									) : (
 										<div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400">
 											<CheckCircle className="h-4 w-4" />
-											<span className="text-sm">Configuration is valid</span>
+											<span className="text-sm">
+												{serverPreview?.preview?.readyForDeployment
+													? 'Ready for deployment'
+													: 'Configuration is valid'}
+											</span>
 										</div>
 									)}
-									{validationWarnings.tools && (
-										<div className="flex items-center gap-2 text-yellow-600 dark:text-yellow-400 mt-2">
-											<AlertTriangle className="h-4 w-4" />
-											<span className="text-sm">1 warning</span>
+									{Object.keys(validationWarnings).length > 0 && (
+										<div className="mt-2 space-y-1">
+											{Object.entries(validationWarnings).map(([field, message]) => (
+												<div
+													key={field}
+													className="flex items-start gap-2 text-yellow-600 dark:text-yellow-400"
+												>
+													<AlertTriangle className="h-4 w-4 flex-shrink-0 mt-0.5" />
+													<span className="text-xs">{message}</span>
+												</div>
+											))}
 										</div>
 									)}
 								</div>

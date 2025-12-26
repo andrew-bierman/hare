@@ -309,8 +309,9 @@ export type CreateToolInput = z.infer<typeof CreateToolInputSchema>
 export const WorkspaceSchema = z.object({
 	id: z.string(),
 	name: z.string(),
-	slug: z.string(),
+	slug: z.string().optional(),
 	description: z.string().nullable(),
+	role: WorkspaceRoleSchema.optional(),
 	createdAt: z.string(),
 	updatedAt: z.string(),
 })
@@ -452,3 +453,180 @@ export const ApiSuccessSchema = z.object({
 })
 
 export type ApiSuccess = z.infer<typeof ApiSuccessSchema>
+
+// =============================================================================
+// Schedule Types
+// =============================================================================
+
+/**
+ * Schedule type schema.
+ */
+export const ScheduleTypeSchema = z.enum(['one-time', 'recurring'])
+
+export type ScheduleType = z.infer<typeof ScheduleTypeSchema>
+
+/**
+ * Schedule status schema.
+ */
+export const ScheduleStatusSchema = z.enum([
+	'pending',
+	'active',
+	'paused',
+	'completed',
+	'cancelled',
+])
+
+export type ScheduleStatus = z.infer<typeof ScheduleStatusSchema>
+
+/**
+ * Execution status schema.
+ */
+export const ExecutionStatusSchema = z.enum(['running', 'completed', 'failed'])
+
+export type ExecutionStatus = z.infer<typeof ExecutionStatusSchema>
+
+/**
+ * Schedule schema.
+ */
+export const ScheduleSchema = z.object({
+	id: z.string(),
+	agentId: z.string(),
+	type: ScheduleTypeSchema,
+	executeAt: z.string().nullable(),
+	cron: z.string().nullable(),
+	action: z.string(),
+	payload: z.record(z.string(), z.unknown()).nullable(),
+	status: ScheduleStatusSchema,
+	lastExecutedAt: z.string().nullable(),
+	nextExecuteAt: z.string().nullable(),
+	executionCount: z.number(),
+	createdAt: z.string(),
+	updatedAt: z.string(),
+})
+
+export type Schedule = z.infer<typeof ScheduleSchema>
+
+/**
+ * Create schedule input schema.
+ */
+export const CreateScheduleInputSchema = z.object({
+	type: ScheduleTypeSchema,
+	executeAt: z.string().optional(),
+	cron: z.string().optional(),
+	action: z.string(),
+	payload: z.record(z.string(), z.unknown()).optional(),
+})
+
+export type CreateScheduleInput = z.infer<typeof CreateScheduleInputSchema>
+
+/**
+ * Update schedule input schema.
+ */
+export const UpdateScheduleInputSchema = z.object({
+	status: ScheduleStatusSchema.optional(),
+	executeAt: z.string().optional(),
+	cron: z.string().optional(),
+	payload: z.record(z.string(), z.unknown()).optional(),
+})
+
+export type UpdateScheduleInput = z.infer<typeof UpdateScheduleInputSchema>
+
+/**
+ * Execution result schema.
+ */
+export const ExecutionResultSchema = z.object({
+	success: z.boolean().optional(),
+	message: z.string().optional(),
+	data: z.unknown().optional(),
+	error: z.string().optional(),
+})
+
+export type ExecutionResult = z.infer<typeof ExecutionResultSchema>
+
+/**
+ * Schedule execution schema.
+ */
+export const ScheduleExecutionSchema = z.object({
+	id: z.string(),
+	scheduleId: z.string(),
+	agentId: z.string(),
+	status: ExecutionStatusSchema,
+	startedAt: z.string(),
+	completedAt: z.string().nullable(),
+	durationMs: z.number().nullable(),
+	result: ExecutionResultSchema.nullable(),
+	error: z.string().nullable(),
+})
+
+export type ScheduleExecution = z.infer<typeof ScheduleExecutionSchema>
+
+// =============================================================================
+// Workspace Member Types
+// =============================================================================
+
+/**
+ * Member role schema (excludes owner - used for invitations and role updates).
+ */
+export const MemberRoleSchema = z.enum(['admin', 'member', 'viewer'])
+
+export type MemberRole = z.infer<typeof MemberRoleSchema>
+
+/**
+ * Invitation status schema.
+ */
+export const InvitationStatusSchema = z.enum(['pending', 'accepted', 'expired', 'revoked'])
+
+export type InvitationStatus = z.infer<typeof InvitationStatusSchema>
+
+/**
+ * Workspace member schema.
+ */
+export const WorkspaceMemberSchema = z.object({
+	id: z.string(),
+	userId: z.string(),
+	name: z.string(),
+	email: z.string().email(),
+	image: z.string().nullable(),
+	role: WorkspaceRoleSchema,
+	joinedAt: z.string(),
+})
+
+export type WorkspaceMember = z.infer<typeof WorkspaceMemberSchema>
+
+/**
+ * Workspace invitation schema.
+ */
+export const WorkspaceInvitationSchema = z.object({
+	id: z.string(),
+	email: z.string().email(),
+	role: MemberRoleSchema,
+	status: InvitationStatusSchema,
+	invitedBy: z.object({
+		id: z.string(),
+		name: z.string(),
+		email: z.string().email(),
+	}),
+	expiresAt: z.string(),
+	createdAt: z.string(),
+})
+
+export type WorkspaceInvitation = z.infer<typeof WorkspaceInvitationSchema>
+
+/**
+ * Send invitation input schema.
+ */
+export const SendInvitationInputSchema = z.object({
+	email: z.string().email(),
+	role: MemberRoleSchema.optional().default('member'),
+})
+
+export type SendInvitationInput = z.infer<typeof SendInvitationInputSchema>
+
+/**
+ * Update member role input schema.
+ */
+export const UpdateMemberRoleInputSchema = z.object({
+	role: MemberRoleSchema,
+})
+
+export type UpdateMemberRoleInput = z.infer<typeof UpdateMemberRoleInputSchema>

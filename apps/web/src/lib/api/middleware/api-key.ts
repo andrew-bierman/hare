@@ -17,19 +17,41 @@ async function hashApiKey(key: string): Promise<string> {
 }
 
 /**
+ * Extract API key from request headers.
+ * Supports both Authorization: Bearer <key> and X-API-Key: <key> formats.
+ */
+function extractApiKey(c: {
+	req: { header: (name: string) => string | undefined }
+}): string | null {
+	// First, check Authorization header with Bearer token
+	const authHeader = c.req.header('Authorization')
+	if (authHeader?.startsWith('Bearer ')) {
+		return authHeader.slice(7) // Remove 'Bearer ' prefix
+	}
+
+	// Fallback to X-API-Key header
+	const apiKeyHeader = c.req.header('X-API-Key')
+	if (apiKeyHeader) {
+		return apiKeyHeader
+	}
+
+	return null
+}
+
+/**
  * API Key authentication middleware.
- * Validates X-API-Key header against api_keys table.
+ * Validates Authorization: Bearer <key> or X-API-Key header against api_keys table.
  * Use for external API access (agent endpoints).
  */
 export const apiKeyMiddleware: MiddlewareHandler<ApiKeyEnv> = async (c, next) => {
-	const apiKeyHeader = c.req.header('X-API-Key')
+	const apiKey = extractApiKey(c)
 
-	if (!apiKeyHeader) {
+	if (!apiKey) {
 		return c.json({ error: 'API key required' }, 401)
 	}
 
 	const db = await getDb(c)
-	const hashedKey = await hashApiKey(apiKeyHeader)
+	const hashedKey = await hashApiKey(apiKey)
 
 	const [keyRecord] = await db.select().from(apiKeys).where(eq(apiKeys.hashedKey, hashedKey))
 

@@ -18,6 +18,8 @@ interface CloudflareEnv {
 	WORKER_SELF_REFERENCE: Fetcher
 	AI: Ai
 	ASSETS: Fetcher
+	// Vectorize for semantic search / vector memory
+	VECTORIZE: VectorizeIndex
 	// Durable Objects for CF Agents
 	HARE_AGENT: DurableObjectNamespace
 	MCP_AGENT: DurableObjectNamespace
@@ -25,4 +27,9 @@ interface CloudflareEnv {
 	RATE_LIMITER: import('@elithrar/workers-hono-rate-limit').RateLimitBinding
 	RATE_LIMITER_STRICT: import('@elithrar/workers-hono-rate-limit').RateLimitBinding
 	RATE_LIMITER_CHAT: import('@elithrar/workers-hono-rate-limit').RateLimitBinding
+	// Stripe billing
+	STRIPE_SECRET_KEY: string
+	STRIPE_WEBHOOK_SECRET: string
+	// App URL for redirects
+	NEXT_PUBLIC_APP_URL?: string
 }

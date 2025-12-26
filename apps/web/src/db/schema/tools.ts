@@ -79,12 +79,32 @@ export const tools = sqliteTable('tools', {
 			'custom',
 		],
 	}).notNull(),
+	inputSchema: text('inputSchema', { mode: 'json' }).$type<{
+		type: 'object'
+		properties?: Record<
+			string,
+			{
+				type: 'string' | 'number' | 'boolean' | 'array' | 'object'
+				description?: string
+				default?: unknown
+				enum?: string[]
+				required?: boolean
+			}
+		>
+		required?: string[]
+	}>(),
 	config: text('config', { mode: 'json' }).$type<{
 		// HTTP/Webhook config
 		url?: string
 		method?: string
 		headers?: Record<string, string>
 		body?: string
+		bodyType?: 'json' | 'form' | 'text'
+		responseMapping?: {
+			path?: string
+			transform?: string
+		}
+		timeout?: number
 		// SQL config
 		query?: string
 		database?: string
