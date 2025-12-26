@@ -41,6 +41,9 @@ test.describe('Agent Creation Form', () => {
 test.describe('Settings Form', () => {
 	test.beforeEach(async ({ page }: { page: Page }) => {
 		await page.goto('/dashboard/settings')
+		await page.waitForLoadState('networkidle')
+		// Wait for skeleton to disappear and content to load
+		await page.waitForSelector('h2:has-text("Settings")', { timeout: 10000 })
 	})
 
 	test('displays profile section', async ({ page }: { page: Page }) => {
@@ -48,13 +51,13 @@ test.describe('Settings Form', () => {
 	})
 
 	test('has name input field', async ({ page }: { page: Page }) => {
-		// Look for a name-related input
-		const nameInput = page.getByLabel(/name/i).first()
+		// Look for the Name label in the Profile card
+		const nameInput = page.getByLabel('Name')
 		await expect(nameInput).toBeVisible()
 	})
 
 	test('has email input field', async ({ page }: { page: Page }) => {
-		const emailInput = page.getByLabel(/email/i).first()
+		const emailInput = page.getByLabel('Email')
 		await expect(emailInput).toBeVisible()
 	})
 })

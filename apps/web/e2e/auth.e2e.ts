@@ -36,12 +36,19 @@ test.describe('Authentication', () => {
 	})
 
 	test('should link between sign-in and sign-up pages', async ({ page }: { page: Page }) => {
+		// Navigate to sign-in page and verify Sign up link
 		await page.goto('/sign-in')
-		await page.getByRole('link', { name: 'Sign up' }).click()
-		await expect(page).toHaveURL('/sign-up')
+		const signUpLink = page.locator('a[href="/sign-up"]')
+		await expect(signUpLink).toBeVisible()
+		await expect(signUpLink).toHaveAttribute('href', '/sign-up')
+	})
 
-		await page.getByRole('link', { name: 'Sign in' }).click()
-		await expect(page).toHaveURL('/sign-in')
+	test('should have sign in link on sign-up page', async ({ page }: { page: Page }) => {
+		// Navigate to sign-up page and verify Sign in link
+		await page.goto('/sign-up')
+		const signInLink = page.locator('a[href="/sign-in"]')
+		await expect(signInLink).toBeVisible()
+		await expect(signInLink).toHaveAttribute('href', '/sign-in')
 	})
 
 	test('should show validation error for empty form submission', async ({

@@ -3,17 +3,11 @@ import { z } from '@hono/zod-openapi'
 /**
  * JSON value schema - represents any valid JSON value.
  * Uses z.unknown() for type safety, requiring type narrowing at runtime.
+ * OpenAPI type is set to object to handle the recursive nature.
  */
-const JsonValueSchema: z.ZodType<unknown> = z.lazy(() =>
-	z.union([
-		z.string(),
-		z.number(),
-		z.boolean(),
-		z.null(),
-		z.array(JsonValueSchema),
-		z.record(z.string(), JsonValueSchema),
-	]),
-)
+const JsonValueSchema: z.ZodType<unknown> = z
+	.any()
+	.openapi({ type: 'object', description: 'Any valid JSON value' })
 
 /**
  * JSON Schema property definition.
