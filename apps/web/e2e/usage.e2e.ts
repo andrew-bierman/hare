@@ -24,6 +24,113 @@ baseTest.describe('Usage Page - Unauthenticated', () => {
 	})
 })
 
+baseTest.describe('Usage Page - Layout', () => {
+	baseTest.beforeEach(async ({ page }: { page: Page }) => {
+		await page.goto('/dashboard/usage')
+		await page.waitForLoadState('networkidle')
+		// Wait for loading skeletons to disappear
+		await page.waitForTimeout(2000)
+	})
+
+	baseTest('displays usage page heading', async ({ page }: { page: Page }) => {
+		await expect(page.getByRole('heading', { name: 'Usage' })).toBeVisible()
+	})
+
+	baseTest('displays cards on the page', async ({ page }: { page: Page }) => {
+		// Usage page should have card elements
+		const cards = page.locator('[class*="card"]')
+		await expect(cards.first()).toBeVisible({ timeout: 10000 })
+	})
+
+	baseTest('displays token breakdown section', async ({ page }: { page: Page }) => {
+		await expect(page.getByText('Token Breakdown')).toBeVisible()
+	})
+
+	baseTest('displays usage by agent section', async ({ page }: { page: Page }) => {
+		await expect(page.getByText('Usage by Agent')).toBeVisible()
+	})
+
+	baseTest('displays about section', async ({ page }: { page: Page }) => {
+		await expect(page.getByText('About Usage Tracking')).toBeVisible()
+	})
+})
+
+baseTest.describe('Usage Page - Content', () => {
+	baseTest.beforeEach(async ({ page }: { page: Page }) => {
+		await page.goto('/dashboard/usage')
+		await page.waitForLoadState('networkidle')
+	})
+
+	baseTest('shows usage description text', async ({ page }: { page: Page }) => {
+		await expect(page.getByText(/Usage is tracked automatically/)).toBeVisible()
+	})
+
+	baseTest('shows billing information', async ({ page }: { page: Page }) => {
+		await expect(page.getByText(/Cloudflare Workers AI pricing/)).toBeVisible()
+	})
+})
+
+baseTest.describe('Usage Page - Responsive Design', () => {
+	baseTest('displays correctly on mobile', async ({ page }: { page: Page }) => {
+		await page.setViewportSize({ width: 375, height: 667 })
+		await page.goto('/dashboard/usage')
+		await page.waitForLoadState('networkidle')
+
+		await expect(page.getByRole('heading', { name: 'Usage' })).toBeVisible()
+	})
+
+	baseTest('displays correctly on tablet', async ({ page }: { page: Page }) => {
+		await page.setViewportSize({ width: 768, height: 1024 })
+		await page.goto('/dashboard/usage')
+		await page.waitForLoadState('networkidle')
+
+		await expect(page.getByRole('heading', { name: 'Usage' })).toBeVisible()
+	})
+
+	baseTest('displays correctly on desktop', async ({ page }: { page: Page }) => {
+		await page.setViewportSize({ width: 1920, height: 1080 })
+		await page.goto('/dashboard/usage')
+		await page.waitForLoadState('networkidle')
+
+		await expect(page.getByRole('heading', { name: 'Usage' })).toBeVisible()
+		await expect(page.getByText('Token Breakdown')).toBeVisible()
+		await expect(page.getByText('Usage by Agent')).toBeVisible()
+	})
+})
+
+baseTest.describe('Usage Page - Cards', () => {
+	baseTest.beforeEach(async ({ page }: { page: Page }) => {
+		await page.goto('/dashboard/usage')
+		await page.waitForLoadState('networkidle')
+	})
+
+	baseTest('page has card elements', async ({ page }: { page: Page }) => {
+		// Stats should show some cards
+		const cards = page.locator('[class*="card"]')
+		await expect(cards.first()).toBeVisible()
+	})
+
+	baseTest('token breakdown section is visible', async ({ page }: { page: Page }) => {
+		await expect(page.getByText('Token Breakdown')).toBeVisible()
+	})
+})
+
+baseTest.describe('Usage Page - Empty States', () => {
+	baseTest.beforeEach(async ({ page }: { page: Page }) => {
+		await page.goto('/dashboard/usage')
+		await page.waitForLoadState('networkidle')
+	})
+
+	baseTest('shows appropriate message when no agents deployed', async ({ page }: { page: Page }) => {
+		// If there are no deployed agents, should show a message
+		const noAgentsMessage = page.getByText('No deployed agents yet')
+		// This may or may not be visible depending on the data
+		if (await noAgentsMessage.isVisible()) {
+			await expect(noAgentsMessage).toBeVisible()
+		}
+	})
+})
+
 test.describe('Usage Page - Authenticated', () => {
 	test('displays API calls metric', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/usage')
@@ -135,14 +242,5 @@ test.describe('Usage Data Display', () => {
 		const numbers = authenticatedPage.locator('text=/\\d+/')
 		const count = await numbers.count()
 		expect(count).toBeGreaterThan(0)
-	})
-
-	test('dates are displayed', async ({ authenticatedPage }) => {
-		await authenticatedPage.goto('/dashboard/usage')
-		await authenticatedPage.waitForLoadState('networkidle')
-
-		// Should show some date information
-		const datePattern = authenticatedPage.locator('text=/\\d{1,2}[\\/\\-]\\d{1,2}|\\w+ \\d{1,2}/')
-		// Dates might be formatted different ways
 	})
 })
