@@ -19,6 +19,7 @@ import {
 } from '@workspace/ui/components/dialog'
 import { Input } from '@workspace/ui/components/input'
 import { Label } from '@workspace/ui/components/label'
+import { ScrollArea } from '@workspace/ui/components/scroll-area'
 import {
 	Select,
 	SelectContent,
@@ -29,17 +30,19 @@ import {
 import { Skeleton } from '@workspace/ui/components/skeleton'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@workspace/ui/components/tabs'
 import { Textarea } from '@workspace/ui/components/textarea'
-import { Rocket, Trash2 } from 'lucide-react'
+import { Bot, Loader2, Rocket, Send, Trash2, User } from 'lucide-react'
 import { useParams, useRouter } from 'next/navigation'
-import { type ChangeEvent, useEffect, useState } from 'react'
+import { type ChangeEvent, type FormEvent, useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { AgentInstructionsEditor } from 'web-app/components/agent/agent-instructions-editor'
 import { ToolPicker } from 'web-app/components/agent/tool-picker'
+import { ToolCallList } from 'web-app/components/chat/tool-call-list'
 import { useWorkspace } from 'web-app/components/providers/workspace-provider'
 import {
 	AVAILABLE_MODELS,
 	useAgent,
 	useAgentUsage,
+	useChat,
 	useDeleteAgent,
 	useDeployAgent,
 	useTools,
@@ -91,7 +94,18 @@ export default function AgentBuilderPage() {
 	const [isDeleteOpen, setIsDeleteOpen] = useState(false)
 	const [hasChanges, setHasChanges] = useState(false)
 
+	// Chat/Playground state
+	const { messages, isStreaming, error: chatError, sendMessage, clearMessages } = useChat(agentId)
+	const [chatInput, setChatInput] = useState('')
+	const messagesEndRef = useRef<HTMLDivElement>(null)
+
 	const _tools = toolsData?.tools ?? []
+
+	// Auto-scroll to bottom when new messages arrive
+	// biome-ignore lint/correctness/useExhaustiveDependencies: intentionally scroll when messages change
+	useEffect(() => {
+		messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+	}, [messages.length])
 
 	// Initialize form with agent data
 	useEffect(() => {
@@ -162,6 +176,15 @@ export default function AgentBuilderPage() {
 		} catch (error) {
 			toast.error(error instanceof Error ? error.message : 'Failed to deploy agent')
 		}
+	}
+
+	const handleChatSubmit = async (e: FormEvent) => {
+		e.preventDefault()
+		if (!chatInput.trim() || isStreaming) return
+
+		const message = chatInput.trim()
+		setChatInput('')
+		await sendMessage(message)
 	}
 
 	const getStatusDisplay = (status: string) => {
@@ -241,6 +264,7 @@ export default function AgentBuilderPage() {
 					<TabsTrigger value="general">General</TabsTrigger>
 					<TabsTrigger value="prompt">Prompt</TabsTrigger>
 					<TabsTrigger value="tools">Tools</TabsTrigger>
+					<TabsTrigger value="playground">Playground</TabsTrigger>
 					<TabsTrigger value="analytics">Analytics</TabsTrigger>
 				</TabsList>
 
@@ -367,6 +391,129 @@ export default function AgentBuilderPage() {
 								onSelectionChange={setSelectedToolIds}
 								maxTools={20}
 							/>
+						</CardContent>
+					</Card>
+				</TabsContent>
+
+				<TabsContent value="playground" className="space-y-4">
+					<Card className="flex flex-col h-[600px]">
+						<CardHeader className="flex-shrink-0 flex flex-row items-center justify-between">
+							<div>
+								<CardTitle>Chat Playground</CardTitle>
+								<CardDescription>
+									Test your agent in real-time. Tool calls will be displayed as they execute.
+								</CardDescription>
+							</div>
+							<Button
+								variant="outline"
+								size="sm"
+								onClick={clearMessages}
+								disabled={messages.length === 0 || isStreaming}
+							>
+								Clear Chat
+							</Button>
+						</CardHeader>
+						<CardContent className="flex-1 flex flex-col min-h-0">
+							{/* Messages Area */}
+							<ScrollArea className="flex-1 pr-4 mb-4">
+								<div className="space-y-4">
+									{messages.length === 0 ? (
+										<div className="flex items-center justify-center h-full min-h-[200px] text-muted-foreground">
+											<div className="text-center">
+												<Bot className="h-12 w-12 mx-auto mb-3 opacity-50" />
+												<p>Start a conversation with your agent</p>
+												<p className="text-sm mt-1">
+													{instructions.trim()
+														? 'Your agent is ready to chat'
+														: 'Add a system prompt first for best results'}
+												</p>
+											</div>
+										</div>
+									) : (
+										messages.map((message) => (
+											<div
+												key={message.id}
+												className={`flex gap-3 ${
+													message.role === 'user' ? 'flex-row-reverse' : ''
+												}`}
+											>
+												<div
+													className={`flex-shrink-0 h-8 w-8 rounded-full flex items-center justify-center ${
+														message.role === 'user'
+															? 'bg-primary text-primary-foreground'
+															: 'bg-muted'
+													}`}
+												>
+													{message.role === 'user' ? (
+														<User className="h-4 w-4" />
+													) : (
+														<Bot className="h-4 w-4" />
+													)}
+												</div>
+												<div className={`flex-1 ${message.role === 'user' ? 'text-right' : ''}`}>
+													<div
+														className={`inline-block max-w-[80%] rounded-lg px-4 py-2 ${
+															message.role === 'user'
+																? 'bg-primary text-primary-foreground'
+																: 'bg-muted'
+														}`}
+													>
+														<p className="text-sm whitespace-pre-wrap">
+															{message.content ||
+																(isStreaming && message.role === 'assistant' ? '' : '')}
+														</p>
+													</div>
+													{/* Tool Calls Visualization */}
+													{message.role === 'assistant' && message.toolCalls && (
+														<div className="mt-2 text-left">
+															<ToolCallList toolCalls={message.toolCalls} />
+														</div>
+													)}
+												</div>
+											</div>
+										))
+									)}
+									{isStreaming &&
+										messages.length > 0 &&
+										!messages[messages.length - 1]?.content && (
+											<div className="flex gap-3">
+												<div className="flex-shrink-0 h-8 w-8 rounded-full bg-muted flex items-center justify-center">
+													<Bot className="h-4 w-4" />
+												</div>
+												<div className="flex items-center gap-2 text-muted-foreground">
+													<Loader2 className="h-4 w-4 animate-spin" />
+													<span className="text-sm">Thinking...</span>
+												</div>
+											</div>
+										)}
+									<div ref={messagesEndRef} />
+								</div>
+							</ScrollArea>
+
+							{/* Error Display */}
+							{chatError && (
+								<div className="mb-4 p-3 rounded-lg bg-destructive/10 text-destructive text-sm">
+									{chatError}
+								</div>
+							)}
+
+							{/* Input Area */}
+							<form onSubmit={handleChatSubmit} className="flex gap-2 flex-shrink-0">
+								<Input
+									value={chatInput}
+									onChange={(e: ChangeEvent<HTMLInputElement>) => setChatInput(e.target.value)}
+									placeholder="Type a message..."
+									disabled={isStreaming}
+									className="flex-1"
+								/>
+								<Button type="submit" disabled={!chatInput.trim() || isStreaming}>
+									{isStreaming ? (
+										<Loader2 className="h-4 w-4 animate-spin" />
+									) : (
+										<Send className="h-4 w-4" />
+									)}
+								</Button>
+							</form>
 						</CardContent>
 					</Card>
 				</TabsContent>
