@@ -2,7 +2,7 @@ import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
 import { and, eq } from 'drizzle-orm'
 import { agents, agentTools, deployments } from 'web-app/db/schema'
 import type { Database } from 'web-app/db/types'
-import { getCloudflareEnv, getDb } from '../db'
+import { getDb } from '../db'
 import { commonResponses, requireAdminAccess, requireWriteAccess } from '../helpers'
 import { authMiddleware, workspaceMiddleware } from '../middleware'
 import {
@@ -443,7 +443,6 @@ app.openapi(deployAgentRoute, async (c) => {
 	const { id } = c.req.valid('param')
 	const data = c.req.valid('json')
 	const db = await getDb(c)
-	const env = await getCloudflareEnv(c)
 	const user = c.get('user')
 	const workspace = c.get('workspace')
 	const role = c.get('workspaceRole')
@@ -459,34 +458,6 @@ app.openapi(deployAgentRoute, async (c) => {
 		return c.json({ error: 'Agent must have instructions before deployment' }, 400)
 	}
 
-	// Get Durable Object namespace
-	const HARE_AGENT = env.HARE_AGENT as DurableObjectNamespace
-
-	// Create Durable Object ID from agent ID (globally unique)
-	const durableObjectId = HARE_AGENT.idFromName(existing.id)
-	const durableObjectStub = HARE_AGENT.get(durableObjectId)
-
-	// Initialize Durable Object with agent configuration
-	const initResponse = await durableObjectStub.fetch('https://internal/initialize', {
-		method: 'POST',
-		headers: { 'Content-Type': 'application/json' },
-		body: JSON.stringify({
-			id: existing.id,
-			name: existing.name,
-			description: existing.description,
-			instructions: existing.instructions,
-			model: existing.model,
-			workspaceId: existing.workspaceId,
-			config: existing.config,
-		}),
-	})
-
-	if (!initResponse.ok) {
-		const error = await initResponse.json()
-		return c.json({ error: 'Failed to initialize Durable Object', details: error }, 500)
-	}
-
-	// Update agent status to 'deployed'
 	await db
 		.update(agents)
 		.set({
@@ -503,10 +474,7 @@ app.openapi(deployAgentRoute, async (c) => {
 			version,
 			status: 'active',
 			deployedBy: user.id,
-			metadata: {
-				durableObjectId: durableObjectId.toString(),
-				config: existing.config,
-			},
+			metadata: existing.config ? { config: existing.config } : undefined,
 		})
 		.returning()
 
@@ -514,46 +482,15 @@ app.openapi(deployAgentRoute, async (c) => {
 		return c.json({ error: 'Failed to create deployment' }, 500)
 	}
 
-	// Get agent endpoint URL
-	const baseUrl = c.req.url.split('/api')[0]
-	const agentEndpoint = `${baseUrl}/api/agents/${existing.id}/do`
-
 	return c.json(
 		{
 			id: deployment.id,
 			status: 'deployed' as const,
 			deployedAt: deployment.deployedAt.toISOString(),
 			version,
-			endpoint: agentEndpoint,
-			websocketEndpoint: agentEndpoint.replace('https://', 'wss://') + '/ws',
 		},
 		200,
 	)
-})
-
-// New route: interact with Durable Object agents
-app.post('/agents/:id/do/*', async (c) => {
-	const { id: agentId } = c.req.param()
-	const action = c.req.param('*') || 'chat'
-	const env = await getCloudflareEnv(c)
-
-	// Get Durable Object
-	const HARE_AGENT = env.HARE_AGENT as DurableObjectNamespace
-	const durableObjectId = HARE_AGENT.idFromName(agentId)
-	const durableObjectStub = HARE_AGENT.get(durableObjectId)
-
-	// Forward request to Durable Object
-	const targetUrl = `https://internal/${action}`
-	const response = await durableObjectStub.fetch(targetUrl, {
-		method: c.req.method,
-		headers: c.req.raw.headers,
-		body: c.req.raw.body,
-	})
-
-	return new Response(response.body, {
-		status: response.status,
-		headers: response.headers,
-	})
 })
 
 export default app

@@ -9,7 +9,7 @@
 
 Hare is a SaaS platform for creating, deploying, and managing AI agents on Cloudflare's global edge network. Just like its namesake, Hare is built for **speed** ⚡—delivering lightning-fast agent responses with sub-50ms cold starts from 300+ cities worldwide.
 
-Built using the **Cloudflare Agents SDK** with Durable Objects, Workers AI, D1, KV, and R2, Hare provides stateful, persistent AI agent instances with real-time WebSocket communication. Agents maintain conversation context across requests and can scale to millions of concurrent instances globally.
+Built as a **Cloudflare-native** platform using Workers AI, D1, KV, R2, and Vectorize, Hare eliminates the infrastructure complexity of traditional AI agent platforms. No more waiting for slow cold starts or dealing with complex deployment pipelines—your agents hop from development to production in seconds.
 
 ---
 
@@ -265,60 +265,42 @@ bun run preview
 
 ### 🏗️ System Overview
 
-Hare uses the **Cloudflare Agents SDK** with Durable Objects as the core architecture:
+The entire app runs as a single Next.js application deployed to Cloudflare Pages with `@opennextjs/cloudflare`:
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                  🐇 apps/web (Next.js 15)                       │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                 │
-│  User Request                                                    │
-│      │                                                           │
-│      ▼                                                           │
-│  ┌─────────────────┐                                            │
-│  │  Next.js Pages  │  (React Server Components)                 │
-│  └────────┬────────┘                                            │
-│           │                                                      │
-│           ▼                                                      │
-│  ┌─────────────────┐                                            │
-│  │  Hono API       │  (REST + WebSocket routing)                │
-│  └────────┬────────┘                                            │
-│           │                                                      │
-│           ▼                                                      │
-│  ┌──────────────────────────────────────────────┐               │
-│  │         Durable Object Namespace             │               │
-│  │  ┌────────────────────────────────────────┐  │               │
-│  │  │  HareAgent (Durable Object)           │  │               │
-│  │  │  • Persistent state                    │  │               │
-│  │  │  • Conversation history                │  │               │
-│  │  │  • WebSocket connections               │  │               │
-│  │  │  • SQLite per agent                    │  │               │
-│  │  │                                        │  │               │
-│  │  │  Calls Workers AI ──────────────────► │  │               │
-│  │  └────────────────────────────────────────┘  │               │
-│  │                                               │               │
-│  │  Other agent instances (millions scalable)...│               │
-│  └──────────────────────────────────────────────┘               │
-│           │                                                      │
-│           ▼                                                      │
-│  ┌──────────────────┐                                           │
-│  │  WebSocket       │  (Bi-directional real-time streaming)     │
-│  │  or HTTP         │                                           │
-│  └──────────────────┘                                           │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │                 ⚛️ React Frontend                        │   │
+│  │  • Dashboard pages (RSC + Client Components)             │   │
+│  │  • shadcn/ui components                                  │   │
+│  │  • Hono RPC client for type-safe API calls               │   │
+│  │  • TanStack Query for data fetching                      │   │
+│  └─────────────────────────────────────────────────────────┘   │
+│                              │                                  │
+│                              ▼                                  │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │           🔌 /api/[[...route]] (Hono)                    │   │
+│  │  • REST endpoints with OpenAPI/Scalar docs               │   │
+│  │  • Better Auth handlers                                  │   │
+│  │  • Zod validation                                        │   │
+│  │  • Type-safe RPC exports                                 │   │
+│  └─────────────────────────────────────────────────────────┘   │
+│                              │                                  │
+│                              ▼                                  │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │              ☁️ Cloudflare Services                      │   │
+│  │  • D1 (SQLite) via Drizzle ORM                          │   │
+│  │  • KV for sessions/cache                                 │   │
+│  │  • R2 for file storage                                   │   │
+│  │  • Vectorize for embeddings                              │   │
+│  │  • Workers AI for inference                              │   │
+│  └─────────────────────────────────────────────────────────┘   │
 │                                                                 │
-│  State: Per-agent Durable Object (isolated, persistent)        │
-│  Communication: WebSocket (real-time) + HTTP (REST)             │
-│  Agent Lifetime: Long-lived, maintains state across requests   │
 └─────────────────────────────────────────────────────────────────┘
 ```
-
-### 🎯 Key Features
-
-- **Stateful Agents**: Each agent is a persistent Durable Object instance
-- **Real-Time**: WebSocket support for bi-directional streaming
-- **Automatic State**: Conversation history managed automatically
-- **SQLite Per Agent**: Each agent has its own database
-- **Global Scale**: Millions of concurrent agent instances
 
 ### 🔌 Hono in Next.js
 

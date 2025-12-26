@@ -6,6 +6,3 @@ export const POST = handle(app)
 export const PUT = handle(app)
 export const PATCH = handle(app)
 export const DELETE = handle(app)
-
-// Export Durable Object for Cloudflare Workers
-export { HareAgent } from '@/lib/agents/durable'
