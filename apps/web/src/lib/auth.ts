@@ -25,6 +25,9 @@ export function createAuth(d1: D1Database) {
 		emailAndPassword: {
 			enabled: true,
 			autoSignIn: true,
+			// Minimum password length enforced at schema level
+			minPasswordLength: 8,
+			maxPasswordLength: 128,
 		},
 		socialProviders: {
 			...(isGoogleConfigured && {
@@ -48,7 +51,22 @@ export function createAuth(d1: D1Database) {
 				maxAge: 60 * 5, // 5 minutes
 			},
 		},
+		// Enhanced cookie security
+		advanced: {
+			cookiePrefix: '__Host-', // More secure cookie prefix (requires HTTPS)
+			crossSubDomainCookies: {
+				enabled: false, // Disable for better security
+			},
+			useSecureCookies: serverEnv.NODE_ENV === 'production', // Force secure cookies in production
+		},
+		// Security settings
 		trustedOrigins: [serverEnv.NEXT_PUBLIC_APP_URL],
+		// Rate limiting for auth endpoints
+		rateLimit: {
+			enabled: true,
+			window: 60, // 1 minute
+			max: 10, // 10 requests per minute per IP
+		},
 	})
 }
 

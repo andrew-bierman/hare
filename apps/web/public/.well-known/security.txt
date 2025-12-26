@@ -1,0 +1,36 @@
+Contact: mailto:security@example.com
+Expires: 2026-12-31T23:59:59.000Z
+Preferred-Languages: en
+Canonical: https://hare.run/.well-known/security.txt
+
+# Security Policy
+
+We take the security of Hare seriously. If you have discovered a security vulnerability in our system, we appreciate your help in disclosing it to us responsibly.
+
+## Reporting a Vulnerability
+
+Please report security vulnerabilities by emailing security@example.com
+
+Please include the following information:
+- Type of vulnerability
+- Full path or URL of affected component
+- Step-by-step instructions to reproduce the issue
+- Proof-of-concept or exploit code (if possible)
+- Impact of the vulnerability
+
+## What to Expect
+
+- We will acknowledge receipt of your vulnerability report within 48 hours
+- We will send a more detailed response within 5 business days
+- We will keep you informed of the progress towards resolving the vulnerability
+- We may ask for additional information or guidance
+
+## Responsible Disclosure
+
+We kindly ask that you:
+- Give us reasonable time to address the vulnerability before public disclosure
+- Make a good faith effort to avoid privacy violations, data destruction, and service disruption
+- Do not access or modify data that doesn't belong to you
+- Do not perform denial-of-service attacks
+
+Thank you for helping keep Hare and our users safe!

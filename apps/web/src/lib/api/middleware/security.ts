@@ -9,6 +9,15 @@ import { serverEnv } from 'web-app/lib/env/server'
  *
  * Note: unsafe-eval is required for Next.js in development mode.
  * In production, Next.js uses static optimization which doesn't require unsafe-eval.
+ *
+ * Security Headers Implemented:
+ * - Content Security Policy (CSP) - Prevents XSS attacks
+ * - Strict Transport Security (HSTS) - Forces HTTPS
+ * - X-Content-Type-Options - Prevents MIME sniffing
+ * - X-Frame-Options - Prevents clickjacking
+ * - X-XSS-Protection - Legacy XSS filter
+ * - Referrer Policy - Controls referrer information
+ * - Permissions Policy - Restricts browser features
  */
 export const securityHeadersMiddleware: MiddlewareHandler = secureHeaders({
 	// Content Security Policy
@@ -16,7 +25,7 @@ export const securityHeadersMiddleware: MiddlewareHandler = secureHeaders({
 		defaultSrc: ["'self'"],
 		scriptSrc: [
 			"'self'",
-			"'unsafe-inline'",
+			"'unsafe-inline'", // TODO: Replace with nonce-based CSP
 			...(serverEnv.NODE_ENV === 'development' ? ["'unsafe-eval'"] : []),
 		],
 		styleSrc: ["'self'", "'unsafe-inline'"], // Required for Tailwind
@@ -25,30 +34,43 @@ export const securityHeadersMiddleware: MiddlewareHandler = secureHeaders({
 		connectSrc: ["'self'", 'https://*.cloudflare.com'],
 		frameSrc: ["'none'"],
 		objectSrc: ["'none'"],
-		upgradeInsecureRequests: [],
+		baseUri: ["'self'"],
+		formAction: ["'self'"],
+		frameAncestors: ["'none'"], // Equivalent to X-Frame-Options: DENY
+		upgradeInsecureRequests: serverEnv.NODE_ENV === 'production' ? [] : undefined,
 	},
-	// Strict Transport Security
-	strictTransportSecurity: 'max-age=31536000; includeSubDomains',
-	// X-Content-Type-Options
+	// Strict Transport Security - Force HTTPS for 1 year
+	strictTransportSecurity: 'max-age=31536000; includeSubDomains; preload',
+	// X-Content-Type-Options - Prevent MIME sniffing
 	xContentTypeOptions: 'nosniff',
-	// X-Frame-Options
+	// X-Frame-Options - Prevent clickjacking
 	xFrameOptions: 'DENY',
 	// X-XSS-Protection (legacy, but doesn't hurt)
 	xXssProtection: '1; mode=block',
-	// Referrer Policy
+	// Referrer Policy - Don't leak referrer to external sites
 	referrerPolicy: 'strict-origin-when-cross-origin',
-	// Permissions Policy
+	// Permissions Policy - Restrict browser features
 	permissionsPolicy: {
 		camera: [],
 		microphone: [],
 		geolocation: [],
 		payment: [],
+		usb: [],
+		'display-capture': [],
+		magnetometer: [],
+		gyroscope: [],
+		accelerometer: [],
 	},
 })
 
 /**
  * CORS middleware for API routes
  * Allows requests from the configured app URL
+ *
+ * Security considerations:
+ * - Credentials are allowed (cookies, auth headers)
+ * - Origin validation ensures only trusted domains
+ * - Preflight caching reduces overhead
  */
 export const corsMiddleware = cors({
 	origin: (origin) => {
@@ -66,7 +88,7 @@ export const corsMiddleware = cors({
 	},
 	credentials: true,
 	allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-	allowHeaders: ['Content-Type', 'Authorization', 'X-Workspace-ID'],
+	allowHeaders: ['Content-Type', 'Authorization', 'X-Workspace-ID', 'X-API-Key', 'X-CSRF-Token'],
 	exposeHeaders: ['X-RateLimit-Limit', 'X-RateLimit-Remaining', 'X-RateLimit-Reset'],
 	maxAge: 86400, // 24 hours
 })

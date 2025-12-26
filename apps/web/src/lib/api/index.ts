@@ -6,6 +6,7 @@ import { requestId } from 'hono/request-id'
 import { secureHeaders } from 'hono/secure-headers'
 import { timing } from 'hono/timing'
 import { serverEnv } from 'web-app/lib/env/server'
+import { requestSizeLimit } from 'web-app/lib/security'
 import { CloudflareEnvError } from './db'
 import { corsMiddleware, securityHeadersMiddleware } from './middleware'
 import agentWs from './routes/agent-ws'
@@ -43,6 +44,7 @@ app.use('*', timing()) // Adds Server-Timing headers for performance monitoring
 app.use('*', secureHeaders()) // Security headers (X-Content-Type-Options, X-Frame-Options, etc.)
 app.use('*', corsMiddleware)
 app.use('*', securityHeadersMiddleware)
+app.use('*', requestSizeLimit()) // Protect against large request bodies
 
 // Mount routes - chain for type inference
 const routes = app
