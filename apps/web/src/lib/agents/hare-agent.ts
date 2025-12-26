@@ -613,7 +613,7 @@ export class HareAgent extends Agent<CloudflareEnv, HareAgentState> {
 		})
 	}
 
-	async runMaintenance(data: Record<string, unknown>): Promise<void> {
+	async runMaintenance(_data: Record<string, unknown>): Promise<void> {
 		// Clean up old messages (keep last 100)
 		if (this.state.messages.length > 100) {
 			this.setState({

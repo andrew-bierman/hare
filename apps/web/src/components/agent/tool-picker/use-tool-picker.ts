@@ -63,14 +63,16 @@ const TOOL_CATEGORY_MAP: Record<string, ToolCategory> = {
 
 function getToolCategory(tool: Tool): ToolCategory {
 	// Try to match by type first
-	if (TOOL_CATEGORY_MAP[tool.type]) {
-		return TOOL_CATEGORY_MAP[tool.type]
+	const typeCategory = TOOL_CATEGORY_MAP[tool.type]
+	if (typeCategory) {
+		return typeCategory
 	}
 
 	// Try to match by name (lowercase, remove spaces/dashes)
 	const normalizedName = tool.name.toLowerCase().replace(/[\s-]/g, '_')
-	if (TOOL_CATEGORY_MAP[normalizedName]) {
-		return TOOL_CATEGORY_MAP[normalizedName]
+	const nameCategory = TOOL_CATEGORY_MAP[normalizedName]
+	if (nameCategory) {
+		return nameCategory
 	}
 
 	// Default to utility for custom tools

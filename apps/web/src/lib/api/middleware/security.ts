@@ -59,10 +59,10 @@ export const corsMiddleware = cors({
 		]
 
 		// Allow requests with no origin (same-origin, curl, etc.)
-		if (!origin) return true
+		if (!origin) return allowedOrigins[0] ?? 'http://localhost:3000'
 
 		// Check if origin is in allowed list
-		return allowedOrigins.includes(origin) ? origin : allowedOrigins[0]
+		return allowedOrigins.includes(origin) ? origin : (allowedOrigins[0] ?? 'http://localhost:3000')
 	},
 	credentials: true,
 	allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],

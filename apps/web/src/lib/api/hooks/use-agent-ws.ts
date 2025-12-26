@@ -332,7 +332,7 @@ export function useAgentWebSocket(options: UseAgentWebSocketOptions): UseAgentWe
 			}
 			disconnect()
 		}
-	}, [agentId, userId, connect, disconnect])
+	}, [connect, disconnect])
 
 	return {
 		status,

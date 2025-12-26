@@ -140,7 +140,7 @@ test.describe('Playground UI Elements', () => {
 		await authenticatedPage.getByRole('button', { name: /create/i }).click()
 		await authenticatedPage.waitForURL(/\/dashboard\/agents\/[^/]+$/, { timeout: 10000 })
 
-		const agentUrl = authenticatedPage.url()
+		const _agentUrl = authenticatedPage.url()
 
 		const deployButton = authenticatedPage.getByRole('button', { name: /deploy/i })
 		if (await deployButton.isVisible({ timeout: 3000 })) {

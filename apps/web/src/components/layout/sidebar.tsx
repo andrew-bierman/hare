@@ -2,7 +2,7 @@
 
 import { Badge } from '@workspace/ui/components/badge'
 import { cn } from '@workspace/ui/lib/utils'
-import { Activity, BarChart3, Bot, Home, Rabbit, Settings, Sparkles, Wrench } from 'lucide-react'
+import { Activity, BarChart3, Bot, Home, Rabbit, Settings, Wrench } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { APP_CONFIG, DASHBOARD_CONTENT, FEATURES, NAV_ITEMS } from 'web-app/config'

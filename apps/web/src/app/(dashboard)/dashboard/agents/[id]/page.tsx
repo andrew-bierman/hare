@@ -9,7 +9,6 @@ import {
 	CardHeader,
 	CardTitle,
 } from '@workspace/ui/components/card'
-import { Checkbox } from '@workspace/ui/components/checkbox'
 import {
 	Dialog,
 	DialogContent,
@@ -39,7 +38,6 @@ import { ToolPicker } from 'web-app/components/agent/tool-picker'
 import { useWorkspace } from 'web-app/components/providers/workspace-provider'
 import {
 	AVAILABLE_MODELS,
-	type Tool,
 	useAgent,
 	useAgentUsage,
 	useDeleteAgent,
@@ -93,7 +91,7 @@ export default function AgentBuilderPage() {
 	const [isDeleteOpen, setIsDeleteOpen] = useState(false)
 	const [hasChanges, setHasChanges] = useState(false)
 
-	const tools = toolsData?.tools ?? []
+	const _tools = toolsData?.tools ?? []
 
 	// Initialize form with agent data
 	useEffect(() => {

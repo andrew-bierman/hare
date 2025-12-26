@@ -87,7 +87,9 @@ export default function UsagePage() {
 
 			<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
 				{isLoading
-					? [...Array(4)].map((_, i) => <StatCardSkeleton key={`usage-skeleton-${i}`} />)
+					? ['usage-stat-1', 'usage-stat-2', 'usage-stat-3', 'usage-stat-4'].map((id) => (
+							<StatCardSkeleton key={id} />
+						))
 					: stats.map((stat) => (
 							<Card key={stat.title}>
 								<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -149,8 +151,8 @@ export default function UsagePage() {
 					<CardContent>
 						{isLoading ? (
 							<div className="space-y-4">
-								{[...Array(3)].map((_, i) => (
-									<Skeleton key={i} className="h-12 w-full" />
+								{['usage-sk-1', 'usage-sk-2', 'usage-sk-3'].map((id) => (
+									<Skeleton key={id} className="h-12 w-full" />
 								))}
 							</div>
 						) : deployedAgents.length === 0 ? (
