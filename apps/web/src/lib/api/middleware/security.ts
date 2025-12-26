@@ -1,6 +1,7 @@
 import type { MiddlewareHandler } from 'hono'
 import { cors } from 'hono/cors'
 import { secureHeaders } from 'hono/secure-headers'
+import { serverEnv } from 'web-app/lib/env/server'
 
 /**
  * Security headers middleware
@@ -16,7 +17,7 @@ export const securityHeadersMiddleware: MiddlewareHandler = secureHeaders({
 		scriptSrc: [
 			"'self'",
 			"'unsafe-inline'",
-			...(process.env.NODE_ENV === 'development' ? ["'unsafe-eval'"] : []),
+			...(serverEnv.NODE_ENV === 'development' ? ["'unsafe-eval'"] : []),
 		],
 		styleSrc: ["'self'", "'unsafe-inline'"], // Required for Tailwind
 		imgSrc: ["'self'", 'data:', 'https:', 'blob:'],
@@ -52,7 +53,7 @@ export const securityHeadersMiddleware: MiddlewareHandler = secureHeaders({
 export const corsMiddleware = cors({
 	origin: (origin) => {
 		const allowedOrigins = [
-			process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
+			serverEnv.NEXT_PUBLIC_APP_URL,
 			'http://localhost:3000',
 			'http://localhost:8787',
 		]

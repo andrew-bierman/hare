@@ -2,6 +2,7 @@ import { betterAuth } from 'better-auth'
 import { drizzleAdapter } from 'better-auth/adapters/drizzle'
 import { createDb } from 'web-app/db'
 import * as schema from 'web-app/db/schema'
+import { serverEnv } from 'web-app/lib/env/server'
 
 // Auth instance - will be initialized with D1 binding at runtime
 export function createAuth(d1: D1Database) {
@@ -29,7 +30,7 @@ export function createAuth(d1: D1Database) {
 				maxAge: 60 * 5, // 5 minutes
 			},
 		},
-		trustedOrigins: [process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'],
+		trustedOrigins: [serverEnv.NEXT_PUBLIC_APP_URL],
 	})
 }
 

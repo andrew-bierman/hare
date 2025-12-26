@@ -5,6 +5,7 @@ import { logger } from 'hono/logger'
 import { requestId } from 'hono/request-id'
 import { secureHeaders } from 'hono/secure-headers'
 import { timing } from 'hono/timing'
+import { serverEnv } from 'web-app/lib/env/server'
 import { CloudflareEnvError } from './db'
 import { corsMiddleware, securityHeadersMiddleware } from './middleware'
 import agentWs from './routes/agent-ws'
@@ -57,14 +58,7 @@ const routes = app
 	.route('/mcp', mcp)
 	.route('/health', health)
 
-// Development: Show registered routes on startup
-if (process.env.NODE_ENV === 'development') {
-	console.log(`\n🚀 Hare API using ${getRouterName(app)} router`)
-	showRoutes(app, { verbose: true, colorize: true })
-	console.log('')
-}
-
-// OpenAPI documentation
+// OpenAPI documentation - must be registered before showRoutes
 app.doc('/openapi.json', {
 	openapi: '3.1.0',
 	info: {
@@ -107,6 +101,13 @@ app.get(
 		},
 	}),
 )
+
+// Development: Show registered routes on startup (after all routes are defined)
+if (serverEnv.NODE_ENV === 'development') {
+	console.log(`\n🚀 Hare API using ${getRouterName(app)} router`)
+	showRoutes(app, { verbose: true, colorize: true })
+	console.log('')
+}
 
 // Export the chained routes type for RPC client
 export type AppType = typeof routes
