@@ -41,6 +41,9 @@ interface CloudflareEnvWithSandbox extends CloudflareEnv {
  *
  * Note: Sandbox SDK is in Beta (as of 2025).
  * For environments without Sandbox SDK, fallback to in-Worker execution.
+ *
+ * SECURITY NOTE: These tools have restricted access and include rate limiting,
+ * code validation, and audit logging. Bash execution is disabled by default.
  */
 
 export interface SandboxConfig {
@@ -54,8 +57,136 @@ export interface SandboxConfig {
 
 const DEFAULT_CONFIG: SandboxConfig = {
 	timeout: 30000,
-	allowNetwork: true,
+	allowNetwork: false, // Disabled by default for security
 	workDir: '/workspace',
+}
+
+/**
+ * Security: Rate limiting configuration
+ */
+const RATE_LIMIT = {
+	maxExecutionsPerHour: 50,
+	maxCodeSizeBytes: 25_000, // 25KB max
+}
+
+/**
+ * In-memory rate limit tracking (per workspace)
+ * In production, use KV or Durable Objects for persistence
+ */
+const rateLimitCache = new Map<string, { count: number; resetAt: number }>()
+
+/**
+ * Check rate limit for a workspace
+ */
+function checkRateLimit(workspaceId: string): { allowed: boolean; remaining: number } {
+	const now = Date.now()
+	const hourMs = 60 * 60 * 1000
+	const entry = rateLimitCache.get(workspaceId)
+
+	if (!entry || now > entry.resetAt) {
+		rateLimitCache.set(workspaceId, { count: 1, resetAt: now + hourMs })
+		return { allowed: true, remaining: RATE_LIMIT.maxExecutionsPerHour - 1 }
+	}
+
+	if (entry.count >= RATE_LIMIT.maxExecutionsPerHour) {
+		return { allowed: false, remaining: 0 }
+	}
+
+	entry.count++
+	return { allowed: true, remaining: RATE_LIMIT.maxExecutionsPerHour - entry.count }
+}
+
+/**
+ * Extended dangerous patterns for code validation
+ */
+const DANGEROUS_PATTERNS = {
+	javascript: [
+		/\beval\s*\(/,
+		/new\s+Function\s*\(/,
+		/\bimport\s*\(/,
+		/\brequire\s*\(/,
+		/__proto__/,
+		/globalThis\s*\./,
+		/process\s*\./,
+		/child_process/,
+		/\bexec\s*\(/,
+		/\bspawn\s*\(/,
+		/\.constructor\s*\(/,
+		/Reflect\s*\./,
+		/Proxy\s*\(/,
+	],
+	python: [
+		/\bexec\s*\(/,
+		/\beval\s*\(/,
+		/\bcompile\s*\(/,
+		/__import__/,
+		/\bopen\s*\([^)]*['"][wa]/i, // file write mode
+		/subprocess/,
+		/\bos\.system/,
+		/\bos\.popen/,
+		/\bos\.exec/,
+		/socket\s*\(/,
+	],
+	bash: [
+		/curl\s/,
+		/wget\s/,
+		/nc\s/,
+		/ncat\s/,
+		/netcat\s/,
+		/\brm\s+-rf?\s+\//,
+		/>\s*\/etc\//,
+		/chmod\s.*777/,
+		/sudo\s/,
+		/su\s+-/,
+		/\|\s*sh\b/,
+		/\|\s*bash\b/,
+		/eval\s/,
+		/\$\(/,
+		/`[^`]+`/, // backtick command substitution
+	],
+}
+
+/**
+ * Validate code for dangerous patterns
+ */
+function validateCodeSafety(
+	code: string,
+	language: 'javascript' | 'python' | 'bash',
+): { safe: boolean; issues: string[] } {
+	const issues: string[] = []
+	const patterns = DANGEROUS_PATTERNS[language]
+
+	for (const pattern of patterns) {
+		if (pattern.test(code)) {
+			issues.push(`Blocked pattern detected: ${pattern.source.slice(0, 30)}...`)
+		}
+	}
+
+	if (code.length > RATE_LIMIT.maxCodeSizeBytes) {
+		issues.push(`Code exceeds maximum size of ${RATE_LIMIT.maxCodeSizeBytes} bytes`)
+	}
+
+	return { safe: issues.length === 0, issues }
+}
+
+/**
+ * Log sandbox execution for audit trail
+ */
+function logSandboxExecution(opts: {
+	workspaceId: string
+	language: string
+	codeLength: number
+	success: boolean
+	error?: string
+}) {
+	// In production, send to logging service (e.g., Logflare, Datadog)
+	console.log(
+		JSON.stringify({
+			type: 'sandbox_execution',
+			timestamp: new Date().toISOString(),
+			...opts,
+		}),
+	)
 }
 
 /**
@@ -70,6 +201,12 @@ function hasSandbox(env: CloudflareEnv): env is CloudflareEnvWithSandbox {
  *
  * When SANDBOX binding is available, uses true container isolation.
  * Otherwise, falls back to in-Worker sandboxed execution.
+ *
+ * Security measures:
+ * - Rate limiting per workspace
+ * - Dangerous pattern detection
+ * - Audit logging
+ * - Bash disabled by default (requires explicit opt-in)
  */
 export async function executeSandboxed<T = unknown>(
 	code: string,
@@ -79,19 +216,82 @@ export async function executeSandboxed<T = unknown>(
 ): Promise<ToolResult<T>> {
 	const cfg = { ...DEFAULT_CONFIG, ...config }
 
-	// If Cloudflare Sandbox is available, use it
-	if (hasSandbox(context.env)) {
-		return executeWithCloudfareSandbox(code, language, context, cfg)
+	// Security: Bash is disabled for safety - too many attack vectors
+	if (language === 'bash') {
+		logSandboxExecution({
+			workspaceId: context.workspaceId,
+			language,
+			codeLength: code.length,
+			success: false,
+			error: 'Bash execution disabled for security',
+		})
+		return failure('Bash execution is disabled for security. Use JavaScript or Python instead.')
 	}
 
-	// Fallback to in-Worker execution for JavaScript only
-	if (language === 'javascript') {
-		return executeInWorker(code, cfg)
+	// Security: Check rate limit
+	const rateLimit = checkRateLimit(context.workspaceId)
+	if (!rateLimit.allowed) {
+		logSandboxExecution({
+			workspaceId: context.workspaceId,
+			language,
+			codeLength: code.length,
+			success: false,
+			error: 'Rate limit exceeded',
+		})
+		return failure(
+			`Rate limit exceeded. Maximum ${RATE_LIMIT.maxExecutionsPerHour} executions per hour.`,
+		)
 	}
 
-	return failure(
-		`${language} execution requires Cloudflare Sandbox. Add SANDBOX binding to wrangler.toml.`,
-	)
+	// Security: Validate code for dangerous patterns
+	const validation = validateCodeSafety(code, language)
+	if (!validation.safe) {
+		logSandboxExecution({
+			workspaceId: context.workspaceId,
+			language,
+			codeLength: code.length,
+			success: false,
+			error: validation.issues.join(', '),
+		})
+		return failure(`Code validation failed: ${validation.issues.join('; ')}`)
+	}
+
+	try {
+		let result: ToolResult<T>
+
+		// If Cloudflare Sandbox is available, use it
+		if (hasSandbox(context.env)) {
+			result = await executeWithCloudfareSandbox(code, language, context, cfg)
+		} else if (language === 'javascript') {
+			// Fallback to in-Worker execution for JavaScript only
+			result = await executeInWorker(code, cfg)
+		} else {
+			result = failure(
+				`${language} execution requires Cloudflare Sandbox. Add SANDBOX binding to wrangler.toml.`,
+			)
+		}
+
+		// Log successful execution
+		logSandboxExecution({
+			workspaceId: context.workspaceId,
+			language,
+			codeLength: code.length,
+			success: result.success,
+			error: result.success ? undefined : result.error,
+		})
+
+		return result
+	} catch (error) {
+		const errorMsg = error instanceof Error ? error.message : 'Unknown error'
+		logSandboxExecution({
+			workspaceId: context.workspaceId,
+			language,
+			codeLength: code.length,
+			success: false,
+			error: errorMsg,
+		})
+		return failure(`Execution failed: ${errorMsg}`)
+	}
 }
 
 /**
@@ -220,6 +420,13 @@ async function executeInWorker<T>(code: string, config: SandboxConfig): Promise<
 
 /**
  * Code Execute Tool - Run code in Cloudflare Sandbox
+ *
+ * Security restrictions:
+ * - Bash execution is disabled
+ * - Rate limited to 50 executions per hour
+ * - Max code size 25KB
+ * - Dangerous patterns are blocked
+ * - All executions are logged
  */
 export const codeExecuteTool = createTool({
 	id: 'code_execute',
@@ -228,13 +435,14 @@ export const codeExecuteTool = createTool({
 **Supported Languages:**
 - JavaScript (Node.js)
 - Python 3
-- Bash/Shell
 
-**Features:**
-- Full Linux environment
-- Isolated container per execution
-- File system access within sandbox
-- Network access (configurable)
+**Security Restrictions:**
+- Bash/shell execution is disabled
+- Rate limited to ${RATE_LIMIT.maxExecutionsPerHour} executions per hour
+- Maximum code size: ${RATE_LIMIT.maxCodeSizeBytes / 1000}KB
+- Dangerous patterns (eval, subprocess, etc.) are blocked
+- Network access is disabled
+- All executions are logged for audit
 
 **Example (JavaScript):**
 \`\`\`javascript
@@ -250,14 +458,14 @@ data = [1, 2, 3, 4, 5]
 print(json.dumps({"sum": sum(data), "avg": sum(data)/len(data)}))
 \`\`\`
 
-**Limits:** 30s timeout, container isolation`,
+**Limits:** 30s timeout, container isolation, no network`,
 	inputSchema: z.object({
-		code: z.string().min(1).max(100_000).describe('Code to execute'),
+		code: z.string().min(1).max(RATE_LIMIT.maxCodeSizeBytes).describe('Code to execute (max 25KB)'),
 		language: z
-			.enum(['javascript', 'python', 'bash'])
+			.enum(['javascript', 'python'])
 			.default('javascript')
-			.describe('Programming language'),
-		timeout: z.number().min(1000).max(60000).optional().default(30000).describe('Timeout in ms'),
+			.describe('Programming language (bash is disabled for security)'),
+		timeout: z.number().min(1000).max(30000).optional().default(30000).describe('Timeout in ms'),
 	}),
 	execute: async (input, context) => {
 		return executeSandboxed(input.code, input.language, context, {
@@ -271,23 +479,28 @@ print(json.dumps({"sum": sum(data), "avg": sum(data)/len(data)}))
  */
 export const codeValidateTool = createTool({
 	id: 'code_validate',
-	description: 'Validate code before execution. Checks for syntax and potential issues.',
+	description: `Validate code before execution. Checks for syntax, dangerous patterns, and size limits.
+
+Validates against:
+- Dangerous patterns (eval, subprocess, shell commands, etc.)
+- Code size limits (${RATE_LIMIT.maxCodeSizeBytes / 1000}KB max)
+- Syntax errors (JavaScript only)
+- Potential infinite loops`,
 	inputSchema: z.object({
-		code: z.string().min(1).max(100_000).describe('Code to validate'),
-		language: z.enum(['javascript', 'python', 'bash']).default('javascript'),
+		code: z.string().min(1).max(RATE_LIMIT.maxCodeSizeBytes).describe('Code to validate'),
+		language: z.enum(['javascript', 'python']).default('javascript'),
 	}),
 	execute: async (input, _context) => {
 		const { code, language } = input
 
-		const issues: string[] = []
+		// Use the security validation function
+		const safetyCheck = validateCodeSafety(code, language)
+		const issues = [...safetyCheck.issues]
 
-		// Basic checks
-		if (code.length > 50000) issues.push('Code is very long (>50KB)')
-
-		// Language-specific checks
+		// Additional checks
 		if (language === 'javascript') {
 			if (/while\s*\(\s*true\s*\)/.test(code) && !/break/.test(code)) {
-				issues.push('Potential infinite loop')
+				issues.push('Potential infinite loop detected')
 			}
 			try {
 				new Function(code) // Syntax check
@@ -302,25 +515,59 @@ export const codeValidateTool = createTool({
 			language,
 			length: code.length,
 			lines: code.split('\n').length,
+			maxAllowedSize: RATE_LIMIT.maxCodeSizeBytes,
 		})
 	},
 })
 
 /**
  * File Operations Tool - Read/write files in sandbox
+ *
+ * Security: Rate limited and logged
  */
 export const sandboxFileTool = createTool({
 	id: 'sandbox_file',
-	description: 'Read or write files in the Cloudflare Sandbox container. Requires SANDBOX binding.',
+	description: `Read or write files in the Cloudflare Sandbox container.
+
+**Security:**
+- Rate limited to ${RATE_LIMIT.maxExecutionsPerHour} operations per hour
+- All operations are logged
+- Paths are restricted to sandbox workspace
+
+Requires SANDBOX binding.`,
 	inputSchema: z.object({
-		operation: z.enum(['read', 'write', 'list', 'delete']).describe('File operation'),
-		path: z.string().describe('File path in sandbox'),
-		content: z.string().optional().describe('Content for write operation'),
+		operation: z.enum(['read', 'write', 'list']).describe('File operation (delete disabled)'),
+		path: z
+			.string()
+			.refine((p) => !p.includes('..') && !p.startsWith('/'), {
+				message: 'Path must be relative and cannot contain ..',
+			})
+			.describe('Relative file path in sandbox workspace'),
+		content: z.string().max(RATE_LIMIT.maxCodeSizeBytes).optional().describe('Content for write'),
 	}),
 	execute: async (input, context) => {
+		// Security: Check rate limit
+		const rateLimit = checkRateLimit(context.workspaceId)
+		if (!rateLimit.allowed) {
+			return failure(
+				`Rate limit exceeded. Maximum ${RATE_LIMIT.maxExecutionsPerHour} operations per hour.`,
+			)
+		}
+
 		if (!hasSandbox(context.env)) {
 			return failure('Sandbox not available. Add SANDBOX binding to wrangler.toml.')
 		}
+
+		// Security: Log the operation
+		console.log(
+			JSON.stringify({
+				type: 'sandbox_file_operation',
+				timestamp: new Date().toISOString(),
+				workspaceId: context.workspaceId,
+				operation: input.operation,
+				path: input.path,
+			}),
+		)
 
 		try {
 			const envWithSandbox = context.env as CloudflareEnvWithSandbox
@@ -328,23 +575,22 @@ export const sandboxFileTool = createTool({
 				envWithSandbox.SANDBOX.idFromName(context.workspaceId),
 			)
 
+			// Ensure path is within workspace
+			const safePath = `/workspace/${input.path.replace(/^\/+/, '')}`
+
 			switch (input.operation) {
 				case 'read': {
-					const content = await sandbox.readFile(input.path)
+					const content = await sandbox.readFile(safePath)
 					return success({ path: input.path, content })
 				}
 				case 'write': {
 					if (!input.content) return failure('Content required for write')
-					await sandbox.writeFile(input.path, input.content)
+					await sandbox.writeFile(safePath, input.content)
 					return success({ path: input.path, written: true })
 				}
 				case 'list': {
-					const result = await sandbox.exec(`ls -la ${input.path}`)
+					const result = await sandbox.exec(`ls -la ${safePath}`)
 					return success({ path: input.path, listing: result.stdout })
-				}
-				case 'delete': {
-					await sandbox.exec(`rm -f ${input.path}`)
-					return success({ path: input.path, deleted: true })
 				}
 				default:
 					return failure('Unknown operation')
