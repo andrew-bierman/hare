@@ -58,7 +58,13 @@ export {
 export {
 	getIntegrationTools,
 	webhookTool,
+	// Zapier integration management
+	zapierDeleteTool,
+	zapierListTool,
+	zapierSaveTool,
+	zapierTestTool,
 	zapierTool,
+	zapierTriggerTool,
 } from './integrations'
 
 // ==========================================
@@ -269,6 +275,11 @@ export const SYSTEM_TOOL_IDS = [
 	'delay',
 	// Integrations (Zapier = single hub for externals)
 	'zapier',
+	'zapier_save',
+	'zapier_list',
+	'zapier_trigger',
+	'zapier_delete',
+	'zapier_test',
 	'webhook',
 	// AI (Workers AI - no external APIs)
 	'sentiment',
@@ -321,11 +332,11 @@ export function isSystemTool(toolId: string): toolId is SystemToolId {
 export const TOOL_COUNTS = {
 	cloudflare: 17, // KV(4), R2(5), SQL(3), HTTP(3), Search(2)
 	utility: 9,
-	integrations: 2, // Zapier (all externals) + generic webhook
+	integrations: 7, // Zapier (6: legacy + save/list/trigger/delete/test) + generic webhook
 	ai: 8,
 	data: 7,
 	sandbox: 3,
 	validation: 6,
 	transform: 5,
-	total: 57,
+	total: 62,
 } as const
