@@ -5,7 +5,7 @@ import { secureHeaders } from 'hono/secure-headers'
 /**
  * Security headers middleware
  * Adds security-related HTTP headers to all responses
- * 
+ *
  * Note: unsafe-eval is required for Next.js in development mode.
  * In production, Next.js uses static optimization which doesn't require unsafe-eval.
  */
@@ -13,7 +13,11 @@ export const securityHeadersMiddleware: MiddlewareHandler = secureHeaders({
 	// Content Security Policy
 	contentSecurityPolicy: {
 		defaultSrc: ["'self'"],
-		scriptSrc: ["'self'", "'unsafe-inline'", ...(process.env.NODE_ENV === 'development' ? ["'unsafe-eval'"] : [])],
+		scriptSrc: [
+			"'self'",
+			"'unsafe-inline'",
+			...(process.env.NODE_ENV === 'development' ? ["'unsafe-eval'"] : []),
+		],
 		styleSrc: ["'self'", "'unsafe-inline'"], // Required for Tailwind
 		imgSrc: ["'self'", 'data:', 'https:', 'blob:'],
 		fontSrc: ["'self'", 'data:'],
@@ -54,10 +58,10 @@ export const corsMiddleware = cors({
 		]
 
 		// Allow requests with no origin (same-origin, curl, etc.)
-		if (!origin) return true
+		if (!origin) return allowedOrigins[0] ?? 'http://localhost:3000'
 
 		// Check if origin is in allowed list
-		return allowedOrigins.includes(origin) ? origin : allowedOrigins[0]
+		return allowedOrigins.includes(origin) ? origin : (allowedOrigins[0] ?? 'http://localhost:3000')
 	},
 	credentials: true,
 	allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],

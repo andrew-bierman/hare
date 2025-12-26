@@ -2,9 +2,9 @@
 
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { GripVertical, X } from 'lucide-react'
 import { Button } from '@workspace/ui/components/button'
 import { cn } from '@workspace/ui/lib/utils'
+import { GripVertical, X } from 'lucide-react'
 import type { SortableToolItemProps } from './types'
 
 export function SortableToolItem({ tool, onRemove }: SortableToolItemProps) {
@@ -23,7 +23,7 @@ export function SortableToolItem({ tool, onRemove }: SortableToolItemProps) {
 			style={style}
 			className={cn(
 				'flex items-center gap-2 rounded-md border bg-background px-3 py-2 shadow-sm',
-				isDragging && 'z-50 scale-105 shadow-lg ring-2 ring-primary'
+				isDragging && 'z-50 scale-105 shadow-lg ring-2 ring-primary',
 			)}
 		>
 			<button

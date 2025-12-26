@@ -29,6 +29,7 @@ export function sanitizeHtml(input: string): string {
  */
 export function sanitizeUserInput(input: string): string {
 	// Remove control characters except newlines and tabs
+	// biome-ignore lint/suspicious/noControlCharactersInRegex: Intentional for sanitization
 	let sanitized = input.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '')
 
 	// Normalize whitespace
@@ -96,6 +97,7 @@ export function sanitizeFilename(filename: string): string {
 	sanitized = sanitized.replace(/[/\\]/g, '')
 
 	// Remove null bytes and other dangerous characters
+	// biome-ignore lint/suspicious/noControlCharactersInRegex: Intentional for sanitization
 	sanitized = sanitized.replace(/[\0\x00]/g, '')
 
 	// Remove any remaining path-like patterns
@@ -116,7 +118,7 @@ export function sanitizeFilename(filename: string): string {
  * Sanitize JSON input by parsing and stringifying
  * Removes any functions or undefined values
  */
-export function sanitizeJson<T = any>(input: string): T {
+export function sanitizeJson<T = unknown>(input: string): T {
 	try {
 		const parsed = JSON.parse(input)
 
@@ -181,8 +183,8 @@ export function validateAgentInstructions(instructions: string): {
  * Sanitize metadata object
  * Removes any potentially dangerous properties
  */
-export function sanitizeMetadata(metadata: Record<string, any>): Record<string, any> {
-	const sanitized: Record<string, any> = {}
+export function sanitizeMetadata(metadata: Record<string, unknown>): Record<string, unknown> {
+	const sanitized: Record<string, unknown> = {}
 
 	for (const [key, value] of Object.entries(metadata)) {
 		// Skip dangerous keys
@@ -192,7 +194,7 @@ export function sanitizeMetadata(metadata: Record<string, any>): Record<string, 
 
 		// Recursively sanitize nested objects
 		if (value && typeof value === 'object' && !Array.isArray(value)) {
-			sanitized[key] = sanitizeMetadata(value)
+			sanitized[key] = sanitizeMetadata(value as Record<string, unknown>)
 		} else if (typeof value === 'string') {
 			sanitized[key] = sanitizeUserInput(value)
 		} else if (typeof value === 'number' || typeof value === 'boolean' || value === null) {
@@ -200,7 +202,8 @@ export function sanitizeMetadata(metadata: Record<string, any>): Record<string, 
 		} else if (Array.isArray(value)) {
 			sanitized[key] = value.map((item) => {
 				if (typeof item === 'string') return sanitizeUserInput(item)
-				if (typeof item === 'object' && item !== null) return sanitizeMetadata(item)
+				if (typeof item === 'object' && item !== null)
+					return sanitizeMetadata(item as Record<string, unknown>)
 				return item
 			})
 		}
@@ -224,5 +227,5 @@ export function isSafeString(input: string, allowedPattern?: RegExp): boolean {
  */
 export function truncateString(input: string, maxLength: number): string {
 	if (input.length <= maxLength) return input
-	return input.substring(0, maxLength - 3) + '...'
+	return `${input.substring(0, maxLength - 3)}...`
 }

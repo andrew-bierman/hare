@@ -1,14 +1,14 @@
 'use client'
 
-import { useEffect } from 'react'
 import { Button } from '@workspace/ui/components/button'
 import { Skeleton } from '@workspace/ui/components/skeleton'
-import { useToolPicker } from './use-tool-picker'
-import { ToolCard } from './tool-card'
-import { ToolSearch } from './tool-search'
-import { ToolCategories } from './tool-categories'
+import { useEffect } from 'react'
 import { SelectedTools } from './selected-tools'
+import { ToolCard } from './tool-card'
+import { ToolCategories } from './tool-categories'
+import { ToolSearch } from './tool-search'
 import type { ToolPickerProps } from './types'
+import { useToolPicker } from './use-tool-picker'
 
 export function ToolPicker({
 	workspaceId,
@@ -54,8 +54,8 @@ export function ToolPicker({
 				</div>
 				<Skeleton className="h-10 w-full" />
 				<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-					{Array.from({ length: 6 }).map((_, i) => (
-						<Skeleton key={i} className="h-32" />
+					{['tp-sk-1', 'tp-sk-2', 'tp-sk-3', 'tp-sk-4', 'tp-sk-5', 'tp-sk-6'].map((id) => (
+						<Skeleton key={id} className="h-32" />
 					))}
 				</div>
 			</div>

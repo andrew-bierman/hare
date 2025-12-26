@@ -1,8 +1,8 @@
 // Auth tables
-export * from './auth'
 
 // Agent tables
 export * from './agents'
+export * from './auth'
 
 // Conversation tables
 export * from './conversations'

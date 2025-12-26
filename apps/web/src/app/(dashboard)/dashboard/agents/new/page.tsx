@@ -22,8 +22,8 @@ import { Textarea } from '@workspace/ui/components/textarea'
 import { useRouter } from 'next/navigation'
 import { type ChangeEvent, useState } from 'react'
 import { toast } from 'sonner'
-import { useWorkspace } from 'web-app/components/providers/workspace-provider'
 import { AgentInstructionsEditor } from 'web-app/components/agent/agent-instructions-editor'
+import { useWorkspace } from 'web-app/components/providers/workspace-provider'
 import { AVAILABLE_MODELS, type Tool, useCreateAgent, useTools } from 'web-app/lib/api/hooks'
 
 export default function NewAgentPage() {
@@ -150,7 +150,10 @@ export default function NewAgentPage() {
 									maxHeight="400px"
 								/>
 								<p className="text-xs text-muted-foreground">
-									Define how your agent should behave. Use Markdown formatting and template variables like {'{'}{'{'} user_name {'}'}{'}'}. This prompt will be sent with every conversation.
+									Define how your agent should behave. Use Markdown formatting and template
+									variables like {'{'}
+									{'{'} user_name {'}'}
+									{'}'}. This prompt will be sent with every conversation.
 								</p>
 							</div>
 						</CardContent>

@@ -1,11 +1,11 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
+import type { AnalyticsParams } from '../client'
 import { apiClient } from '../client'
-import type { AnalyticsParams, AnalyticsData } from '../client'
 
 // Re-export types for convenience
-export type { AnalyticsParams, AnalyticsData } from '../client'
+export type { AnalyticsData, AnalyticsParams } from '../client'
 
 export function useAnalytics(workspaceId: string | undefined, params?: AnalyticsParams) {
 	return useQuery({
