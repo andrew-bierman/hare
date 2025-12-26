@@ -1,4 +1,4 @@
-import { expect, type Page, test as baseTest } from '@playwright/test'
+import { test as baseTest, expect, type Page } from '@playwright/test'
 import { test } from './fixtures'
 
 baseTest.describe('Dashboard Overview - Unauthenticated', () => {
@@ -19,12 +19,16 @@ baseTest.describe('Dashboard Overview - Unauthenticated', () => {
 	})
 
 	baseTest('has sidebar navigation', async ({ page }: { page: Page }) => {
-		// Verify sidebar links exist (use exact:true to avoid matching multiple elements)
-		await expect(page.getByRole('link', { name: 'Dashboard', exact: true })).toBeVisible()
-		await expect(page.getByRole('link', { name: 'Agents', exact: true })).toBeVisible()
-		await expect(page.getByRole('link', { name: 'Tools', exact: true })).toBeVisible()
-		await expect(page.getByRole('link', { name: 'Usage', exact: true })).toBeVisible()
-		await expect(page.getByRole('link', { name: 'Settings', exact: true })).toBeVisible()
+		// Wait for page to fully load
+		await page.waitForLoadState('networkidle')
+
+		// Verify sidebar links exist using nav locator for specificity
+		const nav = page.locator('nav')
+		await expect(nav.getByRole('link', { name: 'Dashboard' })).toBeVisible()
+		await expect(nav.getByRole('link', { name: 'Agents' })).toBeVisible()
+		await expect(nav.getByRole('link', { name: 'Tools' })).toBeVisible()
+		await expect(nav.getByRole('link', { name: 'Usage' })).toBeVisible()
+		await expect(nav.getByRole('link', { name: 'Settings' })).toBeVisible()
 	})
 })
 
@@ -51,8 +55,10 @@ baseTest.describe('Agents List Page - Unauthenticated', () => {
 	})
 
 	baseTest('new agent button navigates to create page', async ({ page }: { page: Page }) => {
-		await page.getByRole('link', { name: 'New Agent' }).click()
-		await expect(page).toHaveURL('/dashboard/agents/new')
+		// Verify New Agent link has correct href (navigation tested separately in navigation.e2e.ts)
+		const newAgentLink = page.getByRole('link', { name: 'New Agent' })
+		await expect(newAgentLink).toBeVisible()
+		await expect(newAgentLink).toHaveAttribute('href', '/dashboard/agents/new')
 	})
 })
 
@@ -62,9 +68,7 @@ test.describe('Agent Creation Flow - Authenticated', () => {
 		await authenticatedPage.waitForLoadState('networkidle')
 
 		// Check for heading
-		await expect(
-			authenticatedPage.getByRole('heading', { name: 'Create New Agent' })
-		).toBeVisible()
+		await expect(authenticatedPage.getByRole('heading', { name: 'Create New Agent' })).toBeVisible()
 
 		// Check for required form fields
 		await expect(authenticatedPage.getByLabel(/Agent Name/)).toBeVisible()
@@ -108,7 +112,7 @@ test.describe('Agent Creation Flow - Authenticated', () => {
 		// Should either redirect to agents list or show success
 		const currentUrl = authenticatedPage.url()
 		expect(
-			currentUrl.includes('/dashboard/agents') || currentUrl.includes('/dashboard/agents/new')
+			currentUrl.includes('/dashboard/agents') || currentUrl.includes('/dashboard/agents/new'),
 		).toBeTruthy()
 	})
 
@@ -149,7 +153,7 @@ test.describe('Agent Creation Flow - Authenticated', () => {
 		// Should be back at agents list
 		await expect(authenticatedPage).toHaveURL('/dashboard/agents')
 		await expect(
-			authenticatedPage.getByRole('heading', { name: 'Agents', exact: true })
+			authenticatedPage.getByRole('heading', { name: 'Agents', exact: true }),
 		).toBeVisible()
 	})
 })
@@ -160,7 +164,7 @@ test.describe('Agent List and Management - Authenticated', () => {
 		await authenticatedPage.waitForLoadState('networkidle')
 
 		await expect(
-			authenticatedPage.getByRole('heading', { name: 'Agents', exact: true })
+			authenticatedPage.getByRole('heading', { name: 'Agents', exact: true }),
 		).toBeVisible()
 		await expect(authenticatedPage.getByRole('link', { name: 'New Agent' })).toBeVisible()
 	})
@@ -171,9 +175,7 @@ test.describe('Agent List and Management - Authenticated', () => {
 
 		await authenticatedPage.getByRole('link', { name: 'New Agent' }).click()
 		await expect(authenticatedPage).toHaveURL('/dashboard/agents/new')
-		await expect(
-			authenticatedPage.getByRole('heading', { name: 'Create New Agent' })
-		).toBeVisible()
+		await expect(authenticatedPage.getByRole('heading', { name: 'Create New Agent' })).toBeVisible()
 	})
 })
 

@@ -19,30 +19,29 @@ import type { Database } from 'web-app/db/types'
 import { type AgentTool, createEdgeAgent, type EdgeAgent } from './agent'
 import { getSystemTools, loadAgentTools, type ToolContext } from './tools'
 
-// Re-export types (safe to import anywhere)
-export type {
-	HareAgentState,
-	McpAgentState,
-	ClientMessage,
-	ServerMessage,
-	ScheduledTask,
-	ChatPayload,
-	ToolExecutePayload,
-	SchedulePayload,
-} from './types'
-export { DEFAULT_HARE_AGENT_STATE, DEFAULT_MCP_AGENT_STATE } from './types'
-
 // Re-export router utilities (safe to import anywhere)
 export {
-	routeToHareAgent,
-	routeWebSocketToAgent,
-	routeHttpToAgent,
-	routeToMcpAgent,
-	isWebSocketRequest,
-	getAgentIdFromRequest,
-	createAgentHeaders,
 	type AgentRouteConfig,
+	createAgentHeaders,
+	getAgentIdFromRequest,
+	isWebSocketRequest,
+	routeHttpToAgent,
+	routeToHareAgent,
+	routeToMcpAgent,
+	routeWebSocketToAgent,
 } from './router'
+// Re-export types (safe to import anywhere)
+export type {
+	ChatPayload,
+	ClientMessage,
+	HareAgentState,
+	McpAgentState,
+	ScheduledTask,
+	SchedulePayload,
+	ServerMessage,
+	ToolExecutePayload,
+} from './types'
+export { DEFAULT_HARE_AGENT_STATE, DEFAULT_MCP_AGENT_STATE } from './types'
 
 /**
  * Agent configuration from database.

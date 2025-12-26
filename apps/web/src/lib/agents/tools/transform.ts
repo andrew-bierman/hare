@@ -288,7 +288,11 @@ export const diffTool = createTool({
 					j--
 					oldLine--
 					newLine--
-				} else if (j > 0 && (i === 0 || (dpRow?.[j - 1] ?? 0) >= (dpPrevRow?.[j] ?? 0)) && bVal !== undefined) {
+				} else if (
+					j > 0 &&
+					(i === 0 || (dpRow?.[j - 1] ?? 0) >= (dpPrevRow?.[j] ?? 0)) &&
+					bVal !== undefined
+				) {
 					changes.unshift({
 						type: 'add',
 						value: bVal,

@@ -10,14 +10,30 @@
  * - Cookie management
  */
 
-// Response schemas and common responses
+// Accepts helpers - for content negotiation
 export {
-	commonResponses,
-	ErrorSchema,
-	IdParamSchema,
-	SuccessSchema,
-} from './responses'
-
+	acceptsContentType,
+	acceptsJson,
+	acceptsSSE,
+	getPreferredEncoding,
+	getPreferredFormat,
+	getPreferredLanguage,
+	type ResponseFormat,
+	type SupportedLanguage,
+} from './accepts'
+// Cookie helpers - for cookie management
+export {
+	CookieNames,
+	getAllCookies,
+	getCookieValue,
+	getSignedCookieValue,
+	getWorkspaceCookie,
+	removeCookie,
+	type SecureCookieOptions,
+	setSecureCookie,
+	setSignedSecureCookie,
+	setWorkspaceCookie,
+} from './cookie'
 // Permission helpers
 export {
 	ForbiddenError,
@@ -30,33 +46,14 @@ export {
 	requireOwner,
 	requireWriteAccess,
 } from './permissions'
+// Response schemas and common responses
+export {
+	commonResponses,
+	ErrorSchema,
+	IdParamSchema,
+	SuccessSchema,
+} from './responses'
 
 // Testing helpers are exported separately to avoid circular dependencies
 // Import directly from './testing' when needed in tests:
 // import { client, createTestClient } from 'web-app/lib/api/helpers/testing'
-
-// Accepts helpers - for content negotiation
-export {
-	getPreferredFormat,
-	getPreferredLanguage,
-	getPreferredEncoding,
-	acceptsContentType,
-	acceptsJson,
-	acceptsSSE,
-	type ResponseFormat,
-	type SupportedLanguage,
-} from './accepts'
-
-// Cookie helpers - for cookie management
-export {
-	getCookieValue,
-	getAllCookies,
-	setSecureCookie,
-	removeCookie,
-	getSignedCookieValue,
-	setSignedSecureCookie,
-	getWorkspaceCookie,
-	setWorkspaceCookie,
-	CookieNames,
-	type SecureCookieOptions,
-} from './cookie'

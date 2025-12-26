@@ -8,11 +8,7 @@
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
 import { and, eq } from 'drizzle-orm'
 import { agents, workspaceMembers } from 'web-app/db/schema'
-import {
-	isWebSocketRequest,
-	routeHttpToAgent,
-	routeWebSocketToAgent,
-} from 'web-app/lib/agents'
+import { isWebSocketRequest, routeHttpToAgent, routeWebSocketToAgent } from 'web-app/lib/agents'
 import { getCloudflareEnv, getDb } from '../db'
 import { optionalAuthMiddleware } from '../middleware'
 import { ErrorSchema, IdParamSchema } from '../schemas'
@@ -30,12 +26,7 @@ async function hasWorkspaceAccess(
 	const [membership] = await db
 		.select()
 		.from(workspaceMembers)
-		.where(
-			and(
-				eq(workspaceMembers.workspaceId, workspaceId),
-				eq(workspaceMembers.userId, userId),
-			),
-		)
+		.where(and(eq(workspaceMembers.workspaceId, workspaceId), eq(workspaceMembers.userId, userId)))
 	return !!membership
 }
 
@@ -50,12 +41,7 @@ async function hasWorkspaceWriteAccess(
 	const [membership] = await db
 		.select()
 		.from(workspaceMembers)
-		.where(
-			and(
-				eq(workspaceMembers.workspaceId, workspaceId),
-				eq(workspaceMembers.userId, userId),
-			),
-		)
+		.where(and(eq(workspaceMembers.workspaceId, workspaceId), eq(workspaceMembers.userId, userId)))
 	if (!membership) return false
 	// Viewers have read-only access
 	return membership.role !== 'viewer'
@@ -112,10 +98,12 @@ const agentStateRoute = createRoute({
 						name: z.string(),
 						instructions: z.string(),
 						model: z.string(),
-						messages: z.array(z.object({
-							role: z.enum(['user', 'assistant', 'system']),
-							content: z.string(),
-						})),
+						messages: z.array(
+							z.object({
+								role: z.enum(['user', 'assistant', 'system']),
+								content: z.string(),
+							}),
+						),
 						isProcessing: z.boolean(),
 						lastActivity: z.number(),
 						connectedUsers: z.array(z.string()),
@@ -208,14 +196,16 @@ const agentSchedulesRoute = createRoute({
 			content: {
 				'application/json': {
 					schema: z.object({
-						schedules: z.array(z.object({
-							id: z.string(),
-							type: z.enum(['one-time', 'recurring']),
-							executeAt: z.number().optional(),
-							cron: z.string().optional(),
-							action: z.string(),
-							payload: z.record(z.string(), z.unknown()).optional(),
-						})),
+						schedules: z.array(
+							z.object({
+								id: z.string(),
+								type: z.enum(['one-time', 'recurring']),
+								executeAt: z.number().optional(),
+								cron: z.string().optional(),
+								action: z.string(),
+								payload: z.record(z.string(), z.unknown()).optional(),
+							}),
+						),
 					}),
 				},
 			},
@@ -310,7 +300,7 @@ app.openapi(agentStateRoute, async (c) => {
 
 	// Get state from Durable Object
 	const response = await routeHttpToAgent({ request: c.req.raw, env, agentId, path: '/state' })
-	const state = await response.json() as {
+	const state = (await response.json()) as {
 		agentId: string
 		workspaceId: string
 		name: string
@@ -364,7 +354,12 @@ app.openapi(configureAgentRoute, async (c) => {
 		}),
 	})
 
-	const response = await routeHttpToAgent({ request: configRequest, env, agentId, path: '/configure' })
+	const response = await routeHttpToAgent({
+		request: configRequest,
+		env,
+		agentId,
+		path: '/configure',
+	})
 	const state = await response.json()
 
 	return c.json({ success: true, state }, 200)
@@ -394,7 +389,7 @@ app.openapi(agentSchedulesRoute, async (c) => {
 
 	// Get schedules from Durable Object
 	const response = await routeHttpToAgent({ request: c.req.raw, env, agentId, path: '/schedules' })
-	const result = await response.json() as {
+	const result = (await response.json()) as {
 		schedules: Array<{
 			id: string
 			type: 'one-time' | 'recurring'

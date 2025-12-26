@@ -1,4 +1,4 @@
-import { expect, type Page, test as baseTest } from '@playwright/test'
+import { test as baseTest, expect, type Page } from '@playwright/test'
 import { test } from './fixtures'
 
 /**
@@ -48,9 +48,7 @@ test.describe('Playground UI Elements', () => {
 
 		const agentName = `Input Test Agent ${Date.now()}`
 		await authenticatedPage.getByLabel(/Agent Name/i).fill(agentName)
-		await authenticatedPage
-			.getByLabel('System Prompt')
-			.fill('You are a test assistant.')
+		await authenticatedPage.getByLabel('System Prompt').fill('You are a test assistant.')
 		await authenticatedPage.getByRole('button', { name: /create/i }).click()
 		await authenticatedPage.waitForURL(/\/dashboard\/agents\/[^/]+$/, { timeout: 10000 })
 
@@ -79,9 +77,7 @@ test.describe('Playground UI Elements', () => {
 
 		const agentName = `Send Button Agent ${Date.now()}`
 		await authenticatedPage.getByLabel(/Agent Name/i).fill(agentName)
-		await authenticatedPage
-			.getByLabel('System Prompt')
-			.fill('You are a test assistant.')
+		await authenticatedPage.getByLabel('System Prompt').fill('You are a test assistant.')
 		await authenticatedPage.getByRole('button', { name: /create/i }).click()
 		await authenticatedPage.waitForURL(/\/dashboard\/agents\/[^/]+$/, { timeout: 10000 })
 
@@ -110,9 +106,7 @@ test.describe('Playground UI Elements', () => {
 
 		const agentName = `Clear Button Agent ${Date.now()}`
 		await authenticatedPage.getByLabel(/Agent Name/i).fill(agentName)
-		await authenticatedPage
-			.getByLabel('System Prompt')
-			.fill('You are a test assistant.')
+		await authenticatedPage.getByLabel('System Prompt').fill('You are a test assistant.')
 		await authenticatedPage.getByRole('button', { name: /create/i }).click()
 		await authenticatedPage.waitForURL(/\/dashboard\/agents\/[^/]+$/, { timeout: 10000 })
 
@@ -142,13 +136,11 @@ test.describe('Playground UI Elements', () => {
 
 		const agentName = `Back Button Agent ${Date.now()}`
 		await authenticatedPage.getByLabel(/Agent Name/i).fill(agentName)
-		await authenticatedPage
-			.getByLabel('System Prompt')
-			.fill('You are a test assistant.')
+		await authenticatedPage.getByLabel('System Prompt').fill('You are a test assistant.')
 		await authenticatedPage.getByRole('button', { name: /create/i }).click()
 		await authenticatedPage.waitForURL(/\/dashboard\/agents\/[^/]+$/, { timeout: 10000 })
 
-		const agentUrl = authenticatedPage.url()
+		const _agentUrl = authenticatedPage.url()
 
 		const deployButton = authenticatedPage.getByRole('button', { name: /deploy/i })
 		if (await deployButton.isVisible({ timeout: 3000 })) {
@@ -179,9 +171,7 @@ test.describe('Playground Chat Functionality', () => {
 
 		const agentName = `Suggestions Agent ${Date.now()}`
 		await authenticatedPage.getByLabel(/Agent Name/i).fill(agentName)
-		await authenticatedPage
-			.getByLabel('System Prompt')
-			.fill('You are a test assistant.')
+		await authenticatedPage.getByLabel('System Prompt').fill('You are a test assistant.')
 		await authenticatedPage.getByRole('button', { name: /create/i }).click()
 		await authenticatedPage.waitForURL(/\/dashboard\/agents\/[^/]+$/, { timeout: 10000 })
 
@@ -210,9 +200,7 @@ test.describe('Playground Chat Functionality', () => {
 
 		const agentName = `Type Message Agent ${Date.now()}`
 		await authenticatedPage.getByLabel(/Agent Name/i).fill(agentName)
-		await authenticatedPage
-			.getByLabel('System Prompt')
-			.fill('You are a test assistant.')
+		await authenticatedPage.getByLabel('System Prompt').fill('You are a test assistant.')
 		await authenticatedPage.getByRole('button', { name: /create/i }).click()
 		await authenticatedPage.waitForURL(/\/dashboard\/agents\/[^/]+$/, { timeout: 10000 })
 
@@ -241,9 +229,7 @@ test.describe('Playground Chat Functionality', () => {
 
 		const agentName = `Model Info Agent ${Date.now()}`
 		await authenticatedPage.getByLabel(/Agent Name/i).fill(agentName)
-		await authenticatedPage
-			.getByLabel('System Prompt')
-			.fill('You are a test assistant.')
+		await authenticatedPage.getByLabel('System Prompt').fill('You are a test assistant.')
 		await authenticatedPage.getByRole('button', { name: /create/i }).click()
 		await authenticatedPage.waitForURL(/\/dashboard\/agents\/[^/]+$/, { timeout: 10000 })
 
@@ -274,9 +260,7 @@ test.describe('Playground Navigation', () => {
 
 		const agentName = `Nav Test Agent ${Date.now()}`
 		await authenticatedPage.getByLabel(/Agent Name/i).fill(agentName)
-		await authenticatedPage
-			.getByLabel('System Prompt')
-			.fill('You are a test assistant.')
+		await authenticatedPage.getByLabel('System Prompt').fill('You are a test assistant.')
 		await authenticatedPage.getByRole('button', { name: /create/i }).click()
 		await authenticatedPage.waitForURL(/\/dashboard\/agents\/[^/]+$/, { timeout: 10000 })
 
@@ -296,7 +280,7 @@ test.describe('Playground Navigation', () => {
 				await authenticatedPage.waitForURL(/\/dashboard\/agents$/, { timeout: 5000 })
 
 				await expect(
-					authenticatedPage.getByRole('heading', { name: 'Agents', exact: true })
+					authenticatedPage.getByRole('heading', { name: 'Agents', exact: true }),
 				).toBeVisible()
 			}
 		}
@@ -308,9 +292,7 @@ test.describe('Playground Navigation', () => {
 
 		const agentName = `Settings Nav Agent ${Date.now()}`
 		await authenticatedPage.getByLabel(/Agent Name/i).fill(agentName)
-		await authenticatedPage
-			.getByLabel('System Prompt')
-			.fill('You are a test assistant.')
+		await authenticatedPage.getByLabel('System Prompt').fill('You are a test assistant.')
 		await authenticatedPage.getByRole('button', { name: /create/i }).click()
 		await authenticatedPage.waitForURL(/\/dashboard\/agents\/[^/]+$/, { timeout: 10000 })
 

@@ -32,9 +32,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
 						<h1 className="text-4xl font-bold text-white leading-tight whitespace-pre-line">
 							{layout.headline}
 						</h1>
-						<p className="text-lg text-white/80 max-w-md">
-							{layout.description}
-						</p>
+						<p className="text-lg text-white/80 max-w-md">{layout.description}</p>
 					</div>
 
 					<div className="text-sm text-white/60 flex items-center gap-2">

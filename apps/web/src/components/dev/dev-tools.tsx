@@ -23,8 +23,8 @@ import { useState } from 'react'
 import { toast } from 'sonner'
 import { useWorkspace } from 'web-app/components/providers/workspace-provider'
 import { DEV_CONFIG, DEV_TOOLS_CONTENT, FEATURES } from 'web-app/config'
-import { authClient } from 'web-app/lib/auth-client'
 import { useCreateAgent, useCreateWorkspace } from 'web-app/lib/api/hooks'
+import { authClient } from 'web-app/lib/auth-client'
 
 const { sections, agentNames, agentDescriptions, defaultInstructions } = DEV_TOOLS_CONTENT
 
@@ -231,7 +231,9 @@ export function DevTools() {
 
 					{/* Quick Create */}
 					<div className="space-y-2">
-						<p className="text-xs font-medium text-muted-foreground">{sections.quickCreate.title}</p>
+						<p className="text-xs font-medium text-muted-foreground">
+							{sections.quickCreate.title}
+						</p>
 						<div className="grid grid-cols-2 gap-2">
 							<Button
 								variant="outline"
@@ -278,12 +280,7 @@ export function DevTools() {
 								<Trash2 className="h-3 w-3 mr-1.5" />
 								{sections.cache.clear}
 							</Button>
-							<Button
-								variant="ghost"
-								size="sm"
-								className="h-8 text-xs"
-								onClick={handleCopySession}
-							>
+							<Button variant="ghost" size="sm" className="h-8 text-xs" onClick={handleCopySession}>
 								<Copy className="h-3 w-3" />
 							</Button>
 						</div>

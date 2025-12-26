@@ -201,9 +201,11 @@ export default function ToolsPage() {
 
 			{isLoading ? (
 				<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-					{[...Array(6)].map((_, i) => (
-						<ToolCardSkeleton key={`tool-skeleton-${i}`} />
-					))}
+					{['tool-sk-1', 'tool-sk-2', 'tool-sk-3', 'tool-sk-4', 'tool-sk-5', 'tool-sk-6'].map(
+						(id) => (
+							<ToolCardSkeleton key={id} />
+						),
+					)}
 				</div>
 			) : (
 				<>

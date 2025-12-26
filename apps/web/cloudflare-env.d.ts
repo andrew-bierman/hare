@@ -3,26 +3,26 @@
 /// <reference types="@cloudflare/workers-types" />
 
 // Type declaration for cloudflare:test module used by @cloudflare/vitest-pool-workers
-declare module "cloudflare:test" {
-  export const env: CloudflareEnv;
+declare module 'cloudflare:test' {
+	export const env: CloudflareEnv
 }
 
 interface CloudflareEnv {
-  KV: KVNamespace;
-  ENVIRONMENT: string;
-  BETTER_AUTH_SECRET: string;
-  BETTER_AUTH_URL: string;
-  NEXTJS_ENV: string;
-  R2: R2Bucket;
-  DB: D1Database;
-  WORKER_SELF_REFERENCE: Fetcher;
-  AI: Ai;
-  ASSETS: Fetcher;
-  // Durable Objects for CF Agents
-  HARE_AGENT: DurableObjectNamespace;
-  MCP_AGENT: DurableObjectNamespace;
-  // Rate Limiting bindings
-  RATE_LIMITER: RateLimit;
-  RATE_LIMITER_STRICT: RateLimit;
-  RATE_LIMITER_CHAT: RateLimit;
+	KV: KVNamespace
+	ENVIRONMENT: string
+	BETTER_AUTH_SECRET: string
+	BETTER_AUTH_URL: string
+	NEXTJS_ENV: string
+	R2: R2Bucket
+	DB: D1Database
+	WORKER_SELF_REFERENCE: Fetcher
+	AI: Ai
+	ASSETS: Fetcher
+	// Durable Objects for CF Agents
+	HARE_AGENT: DurableObjectNamespace
+	MCP_AGENT: DurableObjectNamespace
+	// Rate Limiters
+	RATE_LIMITER: import('@elithrar/workers-hono-rate-limit').RateLimitBinding
+	RATE_LIMITER_STRICT: import('@elithrar/workers-hono-rate-limit').RateLimitBinding
+	RATE_LIMITER_CHAT: import('@elithrar/workers-hono-rate-limit').RateLimitBinding
 }
