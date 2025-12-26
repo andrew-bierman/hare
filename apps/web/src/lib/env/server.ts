@@ -9,9 +9,15 @@ import { z } from 'zod'
  * DO NOT import this file in client-side code.
  */
 
+// Check if we're running in a test environment (vitest/workers pool)
+const isTestEnv =
+	process.env.VITEST === 'true' ||
+	process.env.NODE_ENV === 'test' ||
+	(typeof globalThis !== 'undefined' && (globalThis as Record<string, unknown>).__vitest_worker__)
+
 const serverEnvSchema = z.object({
-	NODE_ENV: z.enum(['development', 'production', 'test']),
-	NEXT_PUBLIC_APP_URL: z.string().url(),
+	NODE_ENV: z.enum(['development', 'production', 'test']).default(isTestEnv ? 'test' : 'development'),
+	NEXT_PUBLIC_APP_URL: z.string().url().default(isTestEnv ? 'http://localhost:3000' : ''),
 	ENABLE_AI_CHAT: z
 		.enum(['true', 'false'])
 		.default('true')
