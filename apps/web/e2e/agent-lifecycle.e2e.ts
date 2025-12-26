@@ -1,4 +1,4 @@
-import { expect, type Page, test as baseTest } from '@playwright/test'
+import { expect } from '@playwright/test'
 import { test } from './fixtures'
 
 /**
@@ -95,9 +95,7 @@ test.describe('Agent Editor', () => {
 
 		const agentName = `View Test Agent ${Date.now()}`
 		await authenticatedPage.getByLabel(/Agent Name/i).fill(agentName)
-		await authenticatedPage
-			.getByLabel('System Prompt')
-			.fill('You are a test assistant.')
+		await authenticatedPage.getByLabel('System Prompt').fill('You are a test assistant.')
 		await authenticatedPage.getByRole('button', { name: /create/i }).click()
 
 		await authenticatedPage.waitForURL(/\/dashboard\/agents\/[^/]+$/, { timeout: 10000 })
@@ -190,9 +188,9 @@ test.describe('Agent Deployment', () => {
 			await authenticatedPage.waitForTimeout(3000)
 
 			// Status should change to deployed/live
-			await expect(
-				authenticatedPage.getByText(/live|deployed/i).first()
-			).toBeVisible({ timeout: 5000 })
+			await expect(authenticatedPage.getByText(/live|deployed/i).first()).toBeVisible({
+				timeout: 5000,
+			})
 		}
 	})
 
@@ -340,9 +338,7 @@ test.describe('Agent Navigation', () => {
 		await authenticatedPage.getByRole('link', { name: /new agent/i }).click()
 		await authenticatedPage.waitForURL(/\/dashboard\/agents\/new/)
 
-		await expect(
-			authenticatedPage.getByRole('heading', { name: /create.*agent/i })
-		).toBeVisible()
+		await expect(authenticatedPage.getByRole('heading', { name: /create.*agent/i })).toBeVisible()
 	})
 
 	test('can navigate from agent detail to playground', async ({ authenticatedPage }) => {
@@ -352,9 +348,7 @@ test.describe('Agent Navigation', () => {
 
 		const agentName = `Playground Nav Agent ${Date.now()}`
 		await authenticatedPage.getByLabel(/Agent Name/i).fill(agentName)
-		await authenticatedPage
-			.getByLabel('System Prompt')
-			.fill('You are a test assistant.')
+		await authenticatedPage.getByLabel('System Prompt').fill('You are a test assistant.')
 		await authenticatedPage.getByRole('button', { name: /create/i }).click()
 
 		await authenticatedPage.waitForURL(/\/dashboard\/agents\/[^/]+$/, { timeout: 10000 })

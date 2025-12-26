@@ -1,4 +1,4 @@
-import { expect, type Page, test as baseTest } from '@playwright/test'
+import { test as baseTest, expect, type Page } from '@playwright/test'
 import { test } from './fixtures'
 
 /**
@@ -142,7 +142,7 @@ test.describe('Usage Data Display', () => {
 		await authenticatedPage.waitForLoadState('networkidle')
 
 		// Should show some date information
-		const datePattern = authenticatedPage.locator('text=/\\d{1,2}[\\/\\-]\\d{1,2}|\\w+ \\d{1,2}/')
+		const _datePattern = authenticatedPage.locator('text=/\\d{1,2}[\\/\\-]\\d{1,2}|\\w+ \\d{1,2}/')
 		// Dates might be formatted different ways
 	})
 })

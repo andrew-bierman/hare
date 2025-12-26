@@ -176,7 +176,11 @@ app.openapi(chatWithAgentRoute, async (c) => {
 	// Get or create conversation
 	const conversationId =
 		sessionId ||
-		(await memory.getOrCreateConversation({ agentId, userId, title: `Chat with ${agentConfig.name}` }))
+		(await memory.getOrCreateConversation({
+			agentId,
+			userId,
+			title: `Chat with ${agentConfig.name}`,
+		}))
 
 	// Create the edge agent
 	const agent = await createAgentFromConfig(agentConfig as AgentConfig, db, env, {
@@ -192,7 +196,12 @@ app.openapi(chatWithAgentRoute, async (c) => {
 	agentMessages.push({ role: 'user' as const, content: message })
 
 	// Save user message to memory
-	await memory.saveMessage({ conversationId, role: 'user', content: message, metadata: metadata as Record<string, unknown> })
+	await memory.saveMessage({
+		conversationId,
+		role: 'user',
+		content: message,
+		metadata: metadata as Record<string, unknown>,
+	})
 
 	// Stream the response
 	return streamSSE(c, async (stream) => {

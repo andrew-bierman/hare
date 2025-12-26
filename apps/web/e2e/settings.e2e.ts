@@ -1,4 +1,4 @@
-import { expect, type Page, test as baseTest } from '@playwright/test'
+import { test as baseTest, expect, type Page } from '@playwright/test'
 import { test } from './fixtures'
 
 /**
@@ -22,7 +22,7 @@ baseTest.describe('Settings Page - Unauthenticated', () => {
 })
 
 test.describe('Settings Page - Authenticated', () => {
-	test('displays user name in profile', async ({ authenticatedPage, testUser }) => {
+	test('displays user name in profile', async ({ authenticatedPage, testUser: _testUser }) => {
 		await authenticatedPage.goto('/dashboard/settings')
 		await authenticatedPage.waitForLoadState('networkidle')
 
@@ -35,7 +35,7 @@ test.describe('Settings Page - Authenticated', () => {
 		expect(nameValue.length).toBeGreaterThan(0)
 	})
 
-	test('displays user email in profile', async ({ authenticatedPage, testUser }) => {
+	test('displays user email in profile', async ({ authenticatedPage, testUser: _testUser }) => {
 		await authenticatedPage.goto('/dashboard/settings')
 		await authenticatedPage.waitForLoadState('networkidle')
 

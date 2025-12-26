@@ -19,7 +19,10 @@ export interface SerializedWorkspace {
 /**
  * Serialize a database workspace row to API response format.
  */
-export function serializeWorkspace(workspace: WorkspaceRow, role: WorkspaceRole): SerializedWorkspace {
+export function serializeWorkspace(
+	workspace: WorkspaceRow,
+	role: WorkspaceRole,
+): SerializedWorkspace {
 	return {
 		id: workspace.id,
 		name: workspace.name,

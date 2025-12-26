@@ -1,5 +1,5 @@
 import { testClient } from 'hono/testing'
-import { app, type AppType } from '../index'
+import { type AppType, app } from '../index'
 
 /**
  * Type-safe test client for the Hare API.
@@ -44,7 +44,7 @@ export function createMockRequest(
 		method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
 		body?: unknown
 		headers?: Record<string, string>
-	}
+	},
 ) {
 	const { method = 'GET', body, headers = {} } = options ?? {}
 

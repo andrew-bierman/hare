@@ -1,15 +1,15 @@
 import { OpenAPIHono } from '@hono/zod-openapi'
 import { apiReference } from '@scalar/hono-api-reference'
 import { cors } from 'hono/cors'
-import { showRoutes, getRouterName } from 'hono/dev'
+import { getRouterName, showRoutes } from 'hono/dev'
 import { logger } from 'hono/logger'
 import { requestId } from 'hono/request-id'
 import { secureHeaders } from 'hono/secure-headers'
 import { timing } from 'hono/timing'
 import { CloudflareEnvError } from './db'
+import agentWs from './routes/agent-ws'
 // Import route modules
 import agents from './routes/agents'
-import agentWs from './routes/agent-ws'
 import auth from './routes/auth'
 import chat from './routes/chat'
 import dev from './routes/dev'
@@ -77,7 +77,10 @@ app.doc('/openapi.json', {
 		{ name: 'Authentication', description: 'User authentication and session management' },
 		{ name: 'Workspaces', description: 'Workspace management' },
 		{ name: 'Agents', description: 'AI agent creation and deployment' },
-		{ name: 'Agent WebSocket', description: 'Real-time WebSocket connections to Cloudflare Agents' },
+		{
+			name: 'Agent WebSocket',
+			description: 'Real-time WebSocket connections to Cloudflare Agents',
+		},
 		{ name: 'Tools', description: 'Tool management for agents' },
 		{ name: 'Chat', description: 'Chat with deployed agents (SSE)' },
 		{ name: 'MCP', description: 'Model Context Protocol for external AI clients' },

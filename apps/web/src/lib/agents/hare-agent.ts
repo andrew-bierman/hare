@@ -19,14 +19,14 @@ import { z } from 'zod'
 import { createWorkersAIModel } from './providers/workers-ai'
 import { getSystemTools, type Tool, type ToolContext, type ToolResult } from './tools'
 import {
-	type HareAgentState,
-	type ClientMessage,
 	type ChatPayload,
-	type ToolExecutePayload,
-	type SchedulePayload,
-	type ScheduledTask,
-	type ServerMessage,
+	type ClientMessage,
 	DEFAULT_HARE_AGENT_STATE,
+	type HareAgentState,
+	type ScheduledTask,
+	type SchedulePayload,
+	type ServerMessage,
+	type ToolExecutePayload,
 } from './types'
 
 // Re-export types for convenience
@@ -60,21 +60,29 @@ const ConfigurePayloadSchema = z.object({
 	name: z.string().min(1).optional(),
 	instructions: z.string().optional(),
 	model: z.string().min(1).optional(),
-	messages: z.array(z.object({
-		role: z.enum(['user', 'assistant', 'system']),
-		content: z.string(),
-	})).optional(),
+	messages: z
+		.array(
+			z.object({
+				role: z.enum(['user', 'assistant', 'system']),
+				content: z.string(),
+			}),
+		)
+		.optional(),
 	isProcessing: z.boolean().optional(),
 	lastActivity: z.number().positive().optional(),
 	connectedUsers: z.array(z.string()).optional(),
-	scheduledTasks: z.array(z.object({
-		id: z.string(),
-		type: z.enum(['one-time', 'recurring']),
-		executeAt: z.number().optional(),
-		cron: z.string().optional(),
-		action: z.string(),
-		payload: z.record(z.string(), z.unknown()).optional(),
-	})).optional(),
+	scheduledTasks: z
+		.array(
+			z.object({
+				id: z.string(),
+				type: z.enum(['one-time', 'recurring']),
+				executeAt: z.number().optional(),
+				cron: z.string().optional(),
+				action: z.string(),
+				payload: z.record(z.string(), z.unknown()).optional(),
+			}),
+		)
+		.optional(),
 	status: z.enum(['idle', 'processing', 'error']).optional(),
 	lastError: z.string().optional(),
 })
@@ -207,7 +215,10 @@ export class HareAgent extends Agent<CloudflareEnv, HareAgentState> {
 				case 'execute_tool': {
 					const parseResult = ToolExecutePayloadSchema.safeParse(clientMessage.payload)
 					if (!parseResult.success) {
-						this.sendError(connection, `Invalid tool execution payload: ${parseResult.error.message}`)
+						this.sendError(
+							connection,
+							`Invalid tool execution payload: ${parseResult.error.message}`,
+						)
 						return
 					}
 					await this.handleToolExecution(connection, parseResult.data)
@@ -602,7 +613,7 @@ export class HareAgent extends Agent<CloudflareEnv, HareAgentState> {
 		})
 	}
 
-	async runMaintenance(data: Record<string, unknown>): Promise<void> {
+	async runMaintenance(_data: Record<string, unknown>): Promise<void> {
 		// Clean up old messages (keep last 100)
 		if (this.state.messages.length > 100) {
 			this.setState({

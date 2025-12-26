@@ -18,11 +18,7 @@ export const aiSearchTool = createTool({
 			.optional()
 			.default(true)
 			.describe('Optimize query for better retrieval'),
-		scoreThreshold: z
-			.number()
-			.optional()
-			.default(0.5)
-			.describe('Minimum relevance score (0-1)'),
+		scoreThreshold: z.number().optional().default(0.5).describe('Minimum relevance score (0-1)'),
 	}),
 	execute: async (params, context) => {
 		const ai = context.env.AI
@@ -32,7 +28,9 @@ export const aiSearchTool = createTool({
 
 		// Check if autorag method exists
 		if (!('autorag' in ai)) {
-			return failure('AI Search (AutoRAG) not configured. Set up AI Search in Cloudflare dashboard first.')
+			return failure(
+				'AI Search (AutoRAG) not configured. Set up AI Search in Cloudflare dashboard first.',
+			)
 		}
 
 		try {
@@ -85,10 +83,7 @@ export const aiSearchAnswerTool = createTool({
 	inputSchema: z.object({
 		query: z.string().describe('The question or search query'),
 		maxResults: z.number().optional().default(10).describe('Maximum context results (1-50)'),
-		systemPrompt: z
-			.string()
-			.optional()
-			.describe('Custom system prompt for the AI response'),
+		systemPrompt: z.string().optional().describe('Custom system prompt for the AI response'),
 	}),
 	execute: async (params, context) => {
 		const ai = context.env.AI
@@ -97,7 +92,9 @@ export const aiSearchAnswerTool = createTool({
 		}
 
 		if (!('autorag' in ai)) {
-			return failure('AI Search (AutoRAG) not configured. Set up AI Search in Cloudflare dashboard first.')
+			return failure(
+				'AI Search (AutoRAG) not configured. Set up AI Search in Cloudflare dashboard first.',
+			)
 		}
 
 		try {

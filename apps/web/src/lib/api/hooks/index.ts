@@ -27,6 +27,14 @@ export type {
 	Workspace,
 	WorkspaceRole,
 } from '../types'
+// WebSocket Agent hooks
+export {
+	type AgentMessage,
+	type ConnectionStatus,
+	type UseAgentWebSocketOptions,
+	type UseAgentWebSocketReturn,
+	useAgentWebSocket,
+} from './use-agent-ws'
 // Agent hooks
 export {
 	useAgent,
@@ -36,17 +44,8 @@ export {
 	useDeployAgent,
 	useUpdateAgent,
 } from './use-agents'
-
 // Chat hooks
 export { useChat } from './use-chat'
-// WebSocket Agent hooks
-export {
-	useAgentWebSocket,
-	type UseAgentWebSocketOptions,
-	type UseAgentWebSocketReturn,
-	type AgentMessage,
-	type ConnectionStatus,
-} from './use-agent-ws'
 // Tool hooks
 export {
 	TOOL_TYPES,

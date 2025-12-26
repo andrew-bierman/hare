@@ -21,11 +21,7 @@ export const APP_CONFIG = {
 	branding: {
 		icon: 'Rabbit',
 		tagline: 'Fast as a hare',
-		mottos: [
-			'Hop into production',
-			'Quick as a bunny',
-			'Built for speed - just like a hare',
-		],
+		mottos: ['Hop into production', 'Quick as a bunny', 'Built for speed - just like a hare'],
 	},
 } as const
 
@@ -349,7 +345,8 @@ export const AUTH_CONTENT = {
 	},
 	layout: {
 		headline: 'Build & Deploy\nAI Agents at the Edge',
-		description: 'The fastest way to create, deploy, and scale AI agents. Hop into production in seconds with Cloudflare Workers.',
+		description:
+			'The fastest way to create, deploy, and scale AI agents. Hop into production in seconds with Cloudflare Workers.',
 		footer: 'Built for speed - just like a hare',
 	},
 	fields: {
@@ -402,9 +399,24 @@ export const DASHBOARD_CONTENT = {
 			activeTools: { title: 'Active Tools', description: 'Available' },
 		},
 		quickActions: [
-			{ title: 'Create Agent', description: 'Build a new AI agent', icon: 'Bot', href: '/dashboard/agents/new' },
-			{ title: 'Manage Tools', description: 'Configure capabilities', icon: 'Wrench', href: '/dashboard/tools' },
-			{ title: 'View Usage', description: 'Monitor performance', icon: 'Activity', href: '/dashboard/usage' },
+			{
+				title: 'Create Agent',
+				description: 'Build a new AI agent',
+				icon: 'Bot',
+				href: '/dashboard/agents/new',
+			},
+			{
+				title: 'Manage Tools',
+				description: 'Configure capabilities',
+				icon: 'Wrench',
+				href: '/dashboard/tools',
+			},
+			{
+				title: 'View Usage',
+				description: 'Monitor performance',
+				icon: 'Activity',
+				href: '/dashboard/usage',
+			},
 		],
 	},
 	agents: {
@@ -476,7 +488,8 @@ export const DEV_TOOLS_CONTENT = {
 		'Your friendly neighborhood rabbit helper',
 		'Nibbles through tasks with ease',
 	],
-	defaultInstructions: 'You are a helpful AI assistant with a playful rabbit personality. Be quick, helpful, and add occasional rabbit puns.',
+	defaultInstructions:
+		'You are a helpful AI assistant with a playful rabbit personality. Be quick, helpful, and add occasional rabbit puns.',
 } as const
 
 // =============================================================================

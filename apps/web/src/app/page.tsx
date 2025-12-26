@@ -30,7 +30,20 @@ import { useAuth } from 'web-app/components/providers/auth-provider'
 import { APP_CONFIG, LANDING_PAGE, NAV_ITEMS, UI_TEXT } from 'web-app/config'
 
 // Icon mapping for dynamic rendering
-const ICONS = { Bot, Boxes, Cloud, Code, Globe, Layers, MessageSquare, Play, Shield, Terminal, Zap, GitBranch } as const
+const ICONS = {
+	Bot,
+	Boxes,
+	Cloud,
+	Code,
+	Globe,
+	Layers,
+	MessageSquare,
+	Play,
+	Shield,
+	Terminal,
+	Zap,
+	GitBranch,
+} as const
 
 export default function LandingPage() {
 	const { data: session, isPending } = useAuth()
@@ -45,7 +58,9 @@ export default function LandingPage() {
 						<div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-orange-500 to-amber-500 shadow-lg shadow-orange-500/25">
 							<Rabbit className="h-5 w-5 text-white" />
 						</div>
-						<span className="font-bold text-lg bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">{APP_CONFIG.name}</span>
+						<span className="font-bold text-lg bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">
+							{APP_CONFIG.name}
+						</span>
 					</Link>
 
 					<nav className="hidden md:flex items-center gap-6">
@@ -54,7 +69,9 @@ export default function LandingPage() {
 								key={item.href}
 								href={item.href}
 								className="text-sm text-muted-foreground hover:text-foreground"
-								{...('external' in item && item.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+								{...('external' in item && item.external
+									? { target: '_blank', rel: 'noopener noreferrer' }
+									: {})}
 							>
 								{item.label}
 							</Link>
@@ -90,13 +107,20 @@ export default function LandingPage() {
 			{/* Hero */}
 			<section className="px-4 py-12 sm:py-16 md:py-24 lg:py-32">
 				<div className="container max-w-4xl mx-auto text-center">
-					<Badge variant="secondary" className="mb-4 bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 border-orange-200 dark:border-orange-800">
+					<Badge
+						variant="secondary"
+						className="mb-4 bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 border-orange-200 dark:border-orange-800"
+					>
 						<Rabbit className="h-3 w-3 mr-1" />
 						{hero.badge}
 					</Badge>
 
 					<h1 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl lg:text-6xl">
-						{hero.title} <span className="bg-gradient-to-r from-orange-500 to-amber-500 bg-clip-text text-transparent">{hero.titleHighlight}</span> {hero.titleSuffix}
+						{hero.title}{' '}
+						<span className="bg-gradient-to-r from-orange-500 to-amber-500 bg-clip-text text-transparent">
+							{hero.titleHighlight}
+						</span>{' '}
+						{hero.titleSuffix}
 					</h1>
 
 					<p className="mt-4 text-base text-muted-foreground sm:text-lg md:text-xl max-w-2xl mx-auto">
@@ -106,13 +130,20 @@ export default function LandingPage() {
 					{/* CTA - stack on mobile */}
 					<div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center sm:gap-4">
 						<Link href="/sign-up" className="w-full sm:w-auto">
-							<Button size="lg" className="w-full sm:w-auto gap-2 h-12 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white shadow-lg shadow-orange-500/25">
+							<Button
+								size="lg"
+								className="w-full sm:w-auto gap-2 h-12 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white shadow-lg shadow-orange-500/25"
+							>
 								{hero.primaryCta}
 								<ArrowRight className="h-4 w-4" />
 							</Button>
 						</Link>
 						<Link href="/dashboard" className="w-full sm:w-auto">
-							<Button size="lg" variant="outline" className="w-full sm:w-auto gap-2 h-12 border-orange-300 hover:bg-orange-50 dark:border-orange-800 dark:hover:bg-orange-950">
+							<Button
+								size="lg"
+								variant="outline"
+								className="w-full sm:w-auto gap-2 h-12 border-orange-300 hover:bg-orange-50 dark:border-orange-800 dark:hover:bg-orange-950"
+							>
 								<Rabbit className="h-4 w-4" />
 								{hero.secondaryCta}
 							</Button>
@@ -190,7 +221,9 @@ export default function LandingPage() {
 						<Badge variant="outline" className="mb-3">
 							How it Works
 						</Badge>
-						<h2 className="text-2xl font-bold sm:text-3xl md:text-4xl">{steps.length} simple steps</h2>
+						<h2 className="text-2xl font-bold sm:text-3xl md:text-4xl">
+							{steps.length} simple steps
+						</h2>
 						<p className="mt-2 text-muted-foreground">Build your first agent in under 5 minutes.</p>
 					</div>
 
@@ -237,15 +270,15 @@ export default function LandingPage() {
 						<div className="flex justify-center mb-4">
 							<Rabbit className="h-12 w-12 text-white/90" />
 						</div>
-						<h2 className="text-xl font-bold sm:text-2xl md:text-3xl">
-							{cta.title}
-						</h2>
-						<p className="mt-3 text-white/80 text-sm sm:text-base">
-							{cta.description}
-						</p>
+						<h2 className="text-xl font-bold sm:text-2xl md:text-3xl">{cta.title}</h2>
+						<p className="mt-3 text-white/80 text-sm sm:text-base">{cta.description}</p>
 						<div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
 							<Link href="/sign-up" className="w-full sm:w-auto">
-								<Button size="lg" variant="secondary" className="w-full sm:w-auto gap-2 h-12 bg-white text-orange-600 hover:bg-orange-50">
+								<Button
+									size="lg"
+									variant="secondary"
+									className="w-full sm:w-auto gap-2 h-12 bg-white text-orange-600 hover:bg-orange-50"
+								>
 									{cta.primaryCta}
 									<ArrowRight className="h-4 w-4" />
 								</Button>
@@ -273,7 +306,9 @@ export default function LandingPage() {
 							<div className="flex h-6 w-6 items-center justify-center rounded bg-gradient-to-br from-orange-500 to-amber-500">
 								<Rabbit className="h-3.5 w-3.5 text-white" />
 							</div>
-							<span className="font-semibold bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">{APP_CONFIG.name}</span>
+							<span className="font-semibold bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">
+								{APP_CONFIG.name}
+							</span>
 						</div>
 						<nav className="flex flex-wrap justify-center gap-4 text-sm text-muted-foreground">
 							{NAV_ITEMS.footer.map((item) => (

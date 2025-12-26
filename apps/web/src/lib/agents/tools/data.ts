@@ -67,8 +67,8 @@ export const rssTool = createTool({
 						author?: string
 					}> = []
 
-					let match: RegExpExecArray | null
-					while ((match = entryRegex.exec(xml)) !== null && entries.length < limit) {
+					let match: RegExpExecArray | null = entryRegex.exec(xml)
+					while (match !== null && entries.length < limit) {
 						const entry = match[1] ?? ''
 						entries.push({
 							title: getCdataContent(getTagContent('title', entry) ?? ''),
@@ -80,6 +80,7 @@ export const rssTool = createTool({
 							}),
 							author: getTagContent('name', getTagContent('author', entry) ?? '') ?? undefined,
 						})
+						match = entryRegex.exec(xml)
 					}
 
 					return {
@@ -108,8 +109,8 @@ export const rssTool = createTool({
 						categories?: string[]
 					}> = []
 
-					let match: RegExpExecArray | null
-					while ((match = itemRegex.exec(xml)) !== null && items.length < limit) {
+					let match: RegExpExecArray | null = itemRegex.exec(xml)
+					while (match !== null && items.length < limit) {
 						const item = match[1] ?? ''
 
 						// Extract categories
@@ -137,6 +138,7 @@ export const rssTool = createTool({
 								getTagContent('author', item) ?? getTagContent('dc:creator', item) ?? undefined,
 							...(categories.length > 0 && { categories }),
 						})
+						match = itemRegex.exec(xml)
 					}
 
 					return {
