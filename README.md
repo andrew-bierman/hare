@@ -89,7 +89,6 @@ Hare provides a **visual builder** for AI agents that deploy instantly to Cloudf
 - **📜 Version Control** - Track changes, rollback to previous versions
 - **🔌 API Access** - REST API with streaming support
 - **👥 Team Collaboration** - Invite teammates, role-based access
-- **🎮 Real-time Playground** - Test agents in-browser with streaming responses
 - **📊 Usage Analytics** - Token tracking, latency monitoring, cost insights
 
 ### 🔮 Coming Soon
@@ -138,7 +137,6 @@ hare/
 │       │   │   ├── (auth)/           # Auth pages (sign-in, sign-up)
 │       │   │   ├── (dashboard)/      # Protected dashboard routes
 │       │   │   │   ├── agents/       # Agent management
-│       │   │   │   ├── playground/   # Test agents
 │       │   │   │   ├── settings/     # Workspace settings
 │       │   │   │   └── billing/      # Subscription management
 │       │   │   ├── (marketing)/      # Landing, pricing, docs
@@ -577,7 +575,6 @@ data: {"type": "done", "usage": {"tokensIn": 150, "tokensOut": 89}}
 | `/dashboard/agents` | Agent list and management |
 | `/dashboard/agents/new` | Create new agent |
 | `/dashboard/agents/[id]` | Agent builder / configuration |
-| `/dashboard/agents/[id]/playground` | Test agent with chat interface |
 | `/dashboard/agents/[id]/settings` | Agent settings |
 | `/dashboard/tools` | Tool library and management |
 | `/dashboard/settings` | Workspace settings |
@@ -1053,7 +1050,7 @@ Hare pricing is designed to be simple and predictable (no surprise bills! 💰):
 
 | Tier | Price | Agents | Messages/mo | Features |
 |------|-------|--------|-------------|----------|
-| **🆓 Free** | $0/mo | 3 | 1,000 | Playground, Community support, Core features |
+| **🆓 Free** | $0/mo | 3 | 1,000 | Community support, Core features |
 | **⚡ Pro** | $29/mo | 20 | 50,000 | Custom domains, Priority support, Advanced analytics |
 | **👥 Team** | $99/mo | Unlimited | 500,000 | Team seats, API priority, Usage analytics, SSO |
 | **🏢 Enterprise** | Custom | Unlimited | Custom | Everything + Audit logs, SLA, Dedicated support |
@@ -1072,11 +1069,11 @@ Hare pricing is designed to be simple and predictable (no surprise bills! 💰):
 
 | Priority | Item | Status | Difficulty |
 |----------|------|--------|------------|
-| 🥇 | Visual tool picker in agent builder | In Progress | `medium` |
-| 🥈 | Rich instructions editor (Monaco) | Up Next | `medium` |
-| 🥉 | Workers deployment pipeline | Up Next | `hard` |
-| 4️⃣ | Tool call visualization in playground | Planned | `easy` |
-| 5️⃣ | OAuth providers (Google, GitHub) | Planned | `medium` |
+| ✅ | Visual tool picker in agent builder | Complete | `medium` |
+| ✅ | Rich instructions editor (CodeMirror) | Complete | `medium` |
+| ✅ | Analytics dashboard with charts | Complete | `medium` |
+| 🥇 | OAuth providers (Google, GitHub) | Up Next | `medium` |
+| 🥈 | Workers deployment pipeline | Planned | `hard` |
 
 **Want to help?** Items marked `easy` are great for first-time contributors! See [How to Contribute](#-how-to-contribute) below.
 
@@ -1086,7 +1083,7 @@ Hare pricing is designed to be simple and predictable (no surprise bills! 💰):
 
 | Version | Codename | Target | Key Features |
 |---------|----------|--------|--------------|
-| `v0.1.0` | **Sprinter** | Phase 1 Complete | Agent builder, deployment, playground |
+| `v0.1.0` | **Sprinter** | Phase 1 Complete | Agent builder, deployment, API |
 | `v0.2.0` | **Dasher** | Phase 2 Complete | Billing, teams, analytics |
 | `v0.3.0` | **Racer** | Phase 3 Complete | Custom tools, workflows, webhooks |
 | `v1.0.0` | **Hare** | Production Ready | Enterprise features, SSO, SLA |
@@ -1156,14 +1153,13 @@ All core infrastructure is in place and production-ready:
 
 **In Progress:**
 
-- [ ] 🎮 **Agent Builder UI** (60% complete)
+- [x] 🎮 **Agent Builder UI** (90% complete)
   - [x] Agent list view with status indicators
   - [x] Agent detail page with configuration forms
   - [x] Model selector dropdown
-  - [ ] Rich instructions editor (Monaco/CodeMirror) `medium`
-  - [ ] Visual tool picker with drag-and-drop `medium` `help-wanted`
+  - [x] Rich instructions editor (CodeMirror)
+  - [x] Visual tool picker with drag-and-drop
   - [ ] Configuration validation and preview `easy` `good-first-issue`
-  - [ ] Agent testing interface `medium`
 - [ ] 🚀 **One-Click Deployment** (30% complete)
   - [x] Deployment tracking in database
   - [x] Agent serialization and config export
@@ -1171,37 +1167,23 @@ All core infrastructure is in place and production-ready:
   - [ ] Edge endpoint provisioning (URL generation) `medium`
   - [ ] Deployment rollback mechanism `medium`
   - [ ] Health checks and monitoring `easy` `good-first-issue`
-- [ ] 💬 **Chat Playground** (70% complete)
-  - [x] Streaming message rendering
-  - [x] Message history persistence
-  - [x] SSE event handling
-  - [ ] Tool call visualization `easy` `good-first-issue`
-  - [ ] Export conversation history `easy` `good-first-issue`
-  - [ ] Share playground sessions `medium`
-
 **Difficulty Legend:** `easy` = good for beginners | `medium` = some experience needed | `hard` = complex task
 
 **Next Steps** (Priority order):
-1. Complete visual tool picker in agent builder `help-wanted`
-2. Implement rich text editor for instructions (Monaco)
-3. Build deployment pipeline to Workers
-4. Add tool call UI in playground `good-first-issue`
-5. Add OAuth providers (Google, GitHub)
+1. Add OAuth providers (Google, GitHub)
+2. Build deployment pipeline to Workers
+3. Configuration validation and preview
 
 ---
 
-### 🏭 Phase 2: Production Ready (15% Complete)
+### 🏭 Phase 2: Production Ready (25% Complete)
 
 **Goal**: Make Hare production-ready with monitoring, billing, and team features.
 
-**Partially Complete:**
+**Complete:**
 
 - [x] 📊 **Usage Tracking** - Backend tracking for tokens and requests
-- [ ] 📈 **Analytics Dashboard** (20% complete)
-  - [x] Usage data collection
-  - [ ] Charts and visualizations
-  - [ ] Cost estimates
-  - [ ] Token usage by agent
+- [x] 📈 **Analytics Dashboard** - Charts, visualizations, cost estimates, token usage by agent
 
 **Planned:**
 
@@ -1343,7 +1325,7 @@ The roadmap above represents the planned direction, but we welcome community inp
 
 | Area | Examples | Difficulty |
 |------|----------|------------|
-| 🎨 **UI/UX** | Agent builder, playground polish | `easy` to `medium` |
+| 🎨 **UI/UX** | Agent builder polish, dashboard improvements | `easy` to `medium` |
 | 🧪 **Testing** | E2E tests, API tests, edge cases | `easy` to `medium` |
 | 📚 **Docs** | Tutorials, guides, API examples | `easy` |
 | 🛠️ **Tools** | GitHub, Linear, Notion integrations | `medium` |
@@ -1351,8 +1333,6 @@ The roadmap above represents the planned direction, but we welcome community inp
 | 🌍 **i18n** | Internationalization support | `medium` |
 
 **Looking for `good-first-issue`?** Check these items in Phase 1:
-- Tool call visualization in playground
-- Export conversation history
 - Configuration validation and preview
 - Health checks and monitoring
 
