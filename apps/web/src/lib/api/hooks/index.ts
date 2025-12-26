@@ -7,6 +7,7 @@
 export type { AIModel } from 'web-app/config'
 // Re-export AI models from config for convenience
 export { AI_MODELS, getModelById, getModelName } from 'web-app/config'
+
 // Re-export types
 export type {
 	Agent,
@@ -39,6 +40,7 @@ export {
 
 // Chat hooks
 export { useChat } from './use-chat'
+
 // WebSocket Agent hooks
 export {
 	useAgentWebSocket,
@@ -47,6 +49,7 @@ export {
 	type AgentMessage,
 	type ConnectionStatus,
 } from './use-agent-ws'
+
 // Tool hooks
 export {
 	TOOL_TYPES,
@@ -56,8 +59,23 @@ export {
 	useTools,
 	useUpdateTool,
 } from './use-tools'
+
 // Usage hooks
 export { useAgentUsage, useUsage, useUsageByAgent } from './use-usage'
+
+// Analytics hooks
+export { useAnalytics } from './use-analytics'
+
+// Re-export analytics types
+export type {
+	AnalyticsParams,
+	AnalyticsData,
+	TimeSeriesData,
+	AgentBreakdown,
+	ModelBreakdown,
+	AnalyticsSummary,
+} from '../client'
+
 // Workspace hooks
 export {
 	useCreateWorkspace,

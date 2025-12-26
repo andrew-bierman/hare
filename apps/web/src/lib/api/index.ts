@@ -9,16 +9,17 @@ import { timing } from "hono/timing";
 import { CloudflareEnvError } from "./db";
 import { securityHeadersMiddleware, corsMiddleware } from "./middleware";
 // Import route modules
-import agents from "./routes/agents";
-import agentWs from "./routes/agent-ws";
-import auth from "./routes/auth";
-import chat from "./routes/chat";
-import dev from "./routes/dev";
-import mcp from "./routes/mcp";
-import tools from "./routes/tools";
-import usage from "./routes/usage";
-import workspaces from "./routes/workspaces";
-import type { HonoEnv } from "./types";
+import agents from './routes/agents'
+import agentWs from './routes/agent-ws'
+import analytics from './routes/analytics'
+import auth from './routes/auth'
+import chat from './routes/chat'
+import dev from './routes/dev'
+import mcp from './routes/mcp'
+import tools from './routes/tools'
+import usage from './routes/usage'
+import workspaces from './routes/workspaces'
+import type { HonoEnv } from './types'
 
 // Create base app with proper Cloudflare bindings type
 const app = new OpenAPIHono<HonoEnv>().basePath("/api");
@@ -44,15 +45,16 @@ app.use("*", securityHeadersMiddleware);
 
 // Mount routes - chain for type inference
 const routes = app
-  .route("/agents", agents)
-  .route("/agent-ws", agentWs)
-  .route("/workspaces", workspaces)
-  .route("/tools", tools)
-  .route("/auth", auth)
-  .route("/chat", chat)
-  .route("/usage", usage)
-  .route("/dev", dev)
-  .route("/mcp", mcp);
+	.route('/agents', agents)
+	.route('/agent-ws', agentWs)
+	.route('/analytics', analytics)
+	.route('/workspaces', workspaces)
+	.route('/tools', tools)
+	.route('/auth', auth)
+	.route('/chat', chat)
+	.route('/usage', usage)
+	.route('/dev', dev)
+	.route('/mcp', mcp)
 
 // Development: Show registered routes on startup
 if (process.env.NODE_ENV === "development") {
@@ -62,39 +64,31 @@ if (process.env.NODE_ENV === "development") {
 }
 
 // OpenAPI documentation
-app.doc("/openapi.json", {
-  openapi: "3.1.0",
-  info: {
-    title: "Hare API",
-    version: "1.0.0",
-    description: "Build and deploy AI agents to the edge",
-  },
-  servers: [
-    {
-      url: "/api",
-      description: "API server",
-    },
-  ],
-  tags: [
-    {
-      name: "Authentication",
-      description: "User authentication and session management",
-    },
-    { name: "Workspaces", description: "Workspace management" },
-    { name: "Agents", description: "AI agent creation and deployment" },
-    {
-      name: "Agent WebSocket",
-      description: "Real-time WebSocket connections to Cloudflare Agents",
-    },
-    { name: "Tools", description: "Tool management for agents" },
-    { name: "Chat", description: "Chat with deployed agents (SSE)" },
-    {
-      name: "MCP",
-      description: "Model Context Protocol for external AI clients",
-    },
-    { name: "Usage", description: "Usage statistics and analytics" },
-  ],
-});
+app.doc('/openapi.json', {
+	openapi: '3.1.0',
+	info: {
+		title: 'Hare API',
+		version: '1.0.0',
+		description: 'Build and deploy AI agents to the edge',
+	},
+	servers: [
+		{
+			url: '/api',
+			description: 'API server',
+		},
+	],
+	tags: [
+		{ name: 'Authentication', description: 'User authentication and session management' },
+		{ name: 'Workspaces', description: 'Workspace management' },
+		{ name: 'Agents', description: 'AI agent creation and deployment' },
+		{ name: 'Agent WebSocket', description: 'Real-time WebSocket connections to Cloudflare Agents' },
+		{ name: 'Tools', description: 'Tool management for agents' },
+		{ name: 'Chat', description: 'Chat with deployed agents (SSE)' },
+		{ name: 'MCP', description: 'Model Context Protocol for external AI clients' },
+		{ name: 'Usage', description: 'Usage statistics and analytics' },
+		{ name: 'Analytics', description: 'Detailed analytics and visualizations' },
+	],
+})
 
 // Scalar API reference UI
 app.get(

@@ -12,11 +12,23 @@ function getErrorMessage(error: unknown, fallback: string): string {
 }
 
 // Explicit types matching the API schema
+export interface ToolCallData {
+	id: string
+	name: string
+	args: Record<string, unknown>
+	status: 'pending' | 'running' | 'completed' | 'error'
+	result?: unknown
+	error?: string
+	startedAt: string
+	completedAt?: string
+}
+
 export interface Message {
 	id: string
 	conversationId: string
 	role: 'user' | 'assistant' | 'system'
 	content: string
+	toolCalls?: ToolCallData[]
 	createdAt: string
 }
 
@@ -37,11 +49,16 @@ export interface ChatUsage {
 }
 
 export interface ChatStreamEvent {
-	type: 'text' | 'done' | 'error'
+	type: 'text' | 'tool_call' | 'tool_result' | 'done' | 'error'
 	content?: string
 	sessionId?: string
 	usage?: ChatUsage
 	message?: string
+	toolCallId?: string
+	toolName?: string
+	toolArgs?: Record<string, unknown>
+	toolResult?: unknown
+	isError?: boolean
 }
 
 async function fetchConversations(agentId: string): Promise<{ conversations: Conversation[] }> {
@@ -171,6 +188,41 @@ export function useChat(agentId: string | undefined) {
 										const lastMessage = updated[updated.length - 1]
 										if (lastMessage && lastMessage.role === 'assistant') {
 											lastMessage.content += event.content
+										}
+										return updated
+									})
+								} else if (event.type === 'tool_call') {
+									setMessages((prev) => {
+										const updated = [...prev]
+										const lastMessage = updated[updated.length - 1]
+										if (lastMessage?.role === 'assistant') {
+											const toolCall: ToolCallData = {
+												id: event.toolCallId || `tool-${Date.now()}`,
+												name: event.toolName || 'unknown',
+												args: event.toolArgs || {},
+												status: 'running',
+												startedAt: new Date().toISOString(),
+											}
+											lastMessage.toolCalls = [...(lastMessage.toolCalls || []), toolCall]
+										}
+										return updated
+									})
+								} else if (event.type === 'tool_result') {
+									setMessages((prev) => {
+										const updated = [...prev]
+										const lastMessage = updated[updated.length - 1]
+										if (lastMessage?.role === 'assistant' && lastMessage.toolCalls) {
+											const toolCall = lastMessage.toolCalls.find(
+												(tc) => tc.id === event.toolCallId
+											)
+											if (toolCall) {
+												toolCall.status = event.isError ? 'error' : 'completed'
+												toolCall.result = event.toolResult
+												if (event.isError) {
+													toolCall.error = String(event.toolResult)
+												}
+												toolCall.completedAt = new Date().toISOString()
+											}
 										}
 										return updated
 									})
