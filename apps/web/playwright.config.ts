@@ -33,5 +33,10 @@ export default defineConfig({
 		timeout: 120 * 1000,
 		// Ignore HTTPS certificate errors during tests
 		ignoreHTTPSErrors: true,
+		// Skip Cloudflare dev mode in CI to avoid wrangler authentication issues
+		env: {
+			...process.env,
+			SKIP_CF_DEV: process.env.CI ? 'true' : 'false',
+		},
 	},
 })

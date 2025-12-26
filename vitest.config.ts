@@ -21,7 +21,7 @@ export default defineWorkersConfig({
     ],
     poolOptions: {
       workers: {
-        wrangler: { configPath: "./apps/web/wrangler.jsonc" },
+        // Use miniflare in local-only mode (no remote Cloudflare resources)
         miniflare: {
           compatibilityDate: "2025-12-01",
           compatibilityFlags: ["nodejs_compat"],
@@ -32,7 +32,10 @@ export default defineWorkersConfig({
             NEXTJS_ENV: "test",
           },
           d1Databases: ["DB"],
+          kvNamespaces: ["KV"],
+          r2Buckets: ["R2"],
         },
+        singleWorker: true,
       },
     },
     coverage: {
