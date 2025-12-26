@@ -10,6 +10,11 @@ export default defineWorkersConfig({
   },
   test: {
     globals: true,
+    env: {
+      NODE_ENV: "test",
+      NEXT_PUBLIC_APP_URL: "http://localhost:3000",
+      NEXT_PUBLIC_API_URL: "http://localhost:3000",
+    },
     include: ["apps/**/*.test.ts", "packages/**/*.test.ts"],
     exclude: [
       "node_modules/**",
@@ -22,6 +27,8 @@ export default defineWorkersConfig({
     poolOptions: {
       workers: {
         // Use miniflare in local-only mode (no remote Cloudflare resources)
+        singleWorker: true,
+        isolatedStorage: true,
         miniflare: {
           compatibilityDate: "2025-12-01",
           compatibilityFlags: ["nodejs_compat"],
@@ -38,7 +45,6 @@ export default defineWorkersConfig({
           kvNamespaces: ["KV"],
           r2Buckets: ["R2"],
         },
-        singleWorker: true,
       },
     },
     coverage: {

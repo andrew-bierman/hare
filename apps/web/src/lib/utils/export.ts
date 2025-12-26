@@ -2,6 +2,24 @@
  * Export utilities for downloading data as CSV or JSON
  */
 
+/**
+ * Sanitize a value for CSV export to prevent formula injection.
+ * Excel and similar spreadsheet applications interpret cells starting with
+ * =, +, -, @ as formulas, which can be a security risk.
+ */
+function sanitizeCSVValue(value: unknown): string {
+	const str = String(value ?? '')
+
+	// Prevent formula injection by escaping values that start with dangerous characters
+	// Excel and similar tools interpret =, +, -, @ as formula starters
+	if (str.length > 0 && /^[=+\-@]/.test(str)) {
+		// Prefix with a single quote to treat as text
+		return `'${str}`
+	}
+
+	return str
+}
+
 export function exportToCSV(data: Record<string, unknown>[], filename: string) {
 	const firstRow = data[0]
 	if (!firstRow) return
@@ -9,7 +27,7 @@ export function exportToCSV(data: Record<string, unknown>[], filename: string) {
 	const headers = Object.keys(firstRow)
 	const csvContent = [
 		headers.join(','),
-		...data.map((row) => headers.map((h) => JSON.stringify(row[h] ?? '')).join(',')),
+		...data.map((row) => headers.map((h) => JSON.stringify(sanitizeCSVValue(row[h]))).join(',')),
 	].join('\n')
 
 	const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
