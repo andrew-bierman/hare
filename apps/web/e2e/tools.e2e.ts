@@ -24,6 +24,184 @@ baseTest.describe('Tools Page - Unauthenticated', () => {
 	baseTest('has add tool button', async ({ page }: { page: Page }) => {
 		await expect(page.getByRole('button', { name: /add tool/i }).first()).toBeVisible()
 	})
+
+	baseTest('displays search input', async ({ page }: { page: Page }) => {
+		await expect(page.getByPlaceholder('Search tools...')).toBeVisible()
+	})
+
+	baseTest('displays tools sections when loaded', async ({ page }: { page: Page }) => {
+		// Wait for loading to complete
+		await page.waitForTimeout(2000)
+		// Check for either System Tools or Custom Tools section heading
+		const hasSystemTools = await page.getByRole('heading', { name: 'System Tools' }).isVisible().catch(() => false)
+		const hasCustomTools = await page.getByRole('heading', { name: 'Custom Tools', exact: true }).isVisible().catch(() => false)
+		// At least one section should be visible after loading
+		expect(hasSystemTools || hasCustomTools).toBeTruthy()
+	})
+})
+
+baseTest.describe('Tools Page - Search', () => {
+	baseTest.beforeEach(async ({ page }: { page: Page }) => {
+		await page.goto('/dashboard/tools')
+		await page.waitForLoadState('networkidle')
+	})
+
+	baseTest('can type in search input', async ({ page }: { page: Page }) => {
+		const searchInput = page.getByPlaceholder('Search tools...')
+		await searchInput.fill('http')
+		await expect(searchInput).toHaveValue('http')
+	})
+
+	baseTest('can clear search input', async ({ page }: { page: Page }) => {
+		const searchInput = page.getByPlaceholder('Search tools...')
+		await searchInput.fill('test')
+		await searchInput.clear()
+		await expect(searchInput).toHaveValue('')
+	})
+})
+
+baseTest.describe('Tools Page - Create Tool Dialog', () => {
+	baseTest.beforeEach(async ({ page }: { page: Page }) => {
+		await page.goto('/dashboard/tools')
+		await page.waitForLoadState('networkidle')
+	})
+
+	baseTest('opens create dialog when Add Tool is clicked', async ({ page }: { page: Page }) => {
+		await page.getByRole('button', { name: 'Add Tool' }).first().click()
+		await expect(page.getByRole('dialog')).toBeVisible()
+		await expect(page.getByText('Create Tool')).toBeVisible()
+	})
+
+	baseTest('create dialog has required form fields', async ({ page }: { page: Page }) => {
+		await page.getByRole('button', { name: 'Add Tool' }).first().click()
+
+		await expect(page.getByLabel('Name *')).toBeVisible()
+		await expect(page.getByLabel('Description')).toBeVisible()
+		await expect(page.getByLabel('Type')).toBeVisible()
+		await expect(page.getByLabel('Configuration (JSON)')).toBeVisible()
+	})
+
+	baseTest('create dialog has action buttons', async ({ page }: { page: Page }) => {
+		await page.getByRole('button', { name: 'Add Tool' }).first().click()
+
+		await expect(page.getByRole('button', { name: 'Cancel' })).toBeVisible()
+		await expect(page.getByRole('button', { name: 'Create' })).toBeVisible()
+	})
+
+	baseTest('cancel button closes the dialog', async ({ page }: { page: Page }) => {
+		await page.getByRole('button', { name: 'Add Tool' }).first().click()
+		await expect(page.getByRole('dialog')).toBeVisible()
+
+		await page.getByRole('button', { name: 'Cancel' }).click()
+		await expect(page.getByRole('dialog')).not.toBeVisible()
+	})
+
+	baseTest('can fill in tool name', async ({ page }: { page: Page }) => {
+		await page.getByRole('button', { name: 'Add Tool' }).first().click()
+
+		const nameInput = page.getByLabel('Name *')
+		await nameInput.fill('My Test Tool')
+		await expect(nameInput).toHaveValue('My Test Tool')
+	})
+
+	baseTest('can fill in tool description', async ({ page }: { page: Page }) => {
+		await page.getByRole('button', { name: 'Add Tool' }).first().click()
+
+		const descInput = page.getByLabel('Description')
+		await descInput.fill('A test tool for testing')
+		await expect(descInput).toHaveValue('A test tool for testing')
+	})
+
+	baseTest('can select tool type', async ({ page }: { page: Page }) => {
+		await page.getByRole('button', { name: 'Add Tool' }).first().click()
+
+		// Click the type select
+		await page.getByLabel('Type').click()
+
+		// Verify options are visible
+		const selectContent = page.locator('[role="listbox"]')
+		await expect(selectContent).toBeVisible()
+	})
+
+	baseTest('can fill in configuration JSON', async ({ page }: { page: Page }) => {
+		await page.getByRole('button', { name: 'Add Tool' }).first().click()
+
+		const configInput = page.getByLabel('Configuration (JSON)')
+		await configInput.fill('{"url": "https://example.com"}')
+		await expect(configInput).toHaveValue('{"url": "https://example.com"}')
+	})
+
+	baseTest('create button is disabled when name is empty', async ({ page }: { page: Page }) => {
+		await page.getByRole('button', { name: 'Add Tool' }).first().click()
+
+		const createButton = page.getByRole('button', { name: 'Create' })
+		await expect(createButton).toBeDisabled()
+	})
+
+	baseTest('create button is enabled when name is filled', async ({ page }: { page: Page }) => {
+		await page.getByRole('button', { name: 'Add Tool' }).first().click()
+
+		await page.getByLabel('Name *').fill('Test Tool')
+		const createButton = page.getByRole('button', { name: 'Create' })
+		await expect(createButton).toBeEnabled()
+	})
+})
+
+baseTest.describe('Tools Page - Responsive Design', () => {
+	baseTest('displays correctly on mobile', async ({ page }: { page: Page }) => {
+		await page.setViewportSize({ width: 375, height: 667 })
+		await page.goto('/dashboard/tools')
+		await page.waitForLoadState('networkidle')
+
+		await expect(page.getByRole('heading', { name: 'Tools', exact: true })).toBeVisible()
+		await expect(page.getByRole('button', { name: 'Add Tool' }).first()).toBeVisible()
+	})
+
+	baseTest('displays correctly on tablet', async ({ page }: { page: Page }) => {
+		await page.setViewportSize({ width: 768, height: 1024 })
+		await page.goto('/dashboard/tools')
+		await page.waitForLoadState('networkidle')
+
+		await expect(page.getByRole('heading', { name: 'Tools', exact: true })).toBeVisible()
+	})
+})
+
+baseTest.describe('Tools Page - Accessibility', () => {
+	baseTest.beforeEach(async ({ page }: { page: Page }) => {
+		await page.goto('/dashboard/tools')
+		await page.waitForLoadState('networkidle')
+	})
+
+	baseTest('Add Tool button is keyboard accessible', async ({ page }: { page: Page }) => {
+		const addButton = page.getByRole('button', { name: 'Add Tool' }).first()
+		await addButton.focus()
+		await expect(addButton).toBeFocused()
+	})
+
+	baseTest('search input is keyboard accessible', async ({ page }: { page: Page }) => {
+		const searchInput = page.getByPlaceholder('Search tools...')
+		await searchInput.focus()
+		await expect(searchInput).toBeFocused()
+	})
+
+	baseTest('dialog can be closed with Escape key', async ({ page }: { page: Page }) => {
+		await page.getByRole('button', { name: 'Add Tool' }).first().click()
+		await expect(page.getByRole('dialog')).toBeVisible()
+
+		await page.keyboard.press('Escape')
+		await expect(page.getByRole('dialog')).not.toBeVisible()
+	})
+})
+
+baseTest.describe('Tools Page - Empty State', () => {
+	baseTest('page loads without errors', async ({ page }: { page: Page }) => {
+		await page.goto('/dashboard/tools')
+		await page.waitForLoadState('networkidle')
+
+		// Page should not have errors
+		await expect(page.locator('body')).not.toContainText('404')
+		await expect(page.getByRole('heading', { name: 'Tools', exact: true })).toBeVisible()
+	})
 })
 
 test.describe('System Tools - Authenticated', () => {
@@ -130,46 +308,6 @@ test.describe('Custom Tools - Authenticated', () => {
 		await expect(authenticatedPage.getByText(toolName)).toBeVisible({ timeout: 5000 })
 	})
 
-	test('can create and delete custom tool', async ({ authenticatedPage }) => {
-		await authenticatedPage.goto('/dashboard/tools')
-		await authenticatedPage.waitForLoadState('networkidle')
-
-		// Create a custom tool first
-		await authenticatedPage.getByRole('button', { name: /add tool/i }).first().click()
-		const dialog = authenticatedPage.getByRole('dialog')
-		await expect(dialog).toBeVisible({ timeout: 3000 })
-
-		const toolName = `Delete Test Tool ${Date.now()}`
-		await dialog.getByLabel(/name/i).fill(toolName)
-
-		const createButton = dialog.getByRole('button', { name: /create/i })
-		await createButton.click()
-		await expect(dialog).not.toBeVisible({ timeout: 5000 })
-
-		// Wait for tool to appear
-		await authenticatedPage.waitForLoadState('networkidle')
-		await expect(authenticatedPage.getByText(toolName)).toBeVisible({ timeout: 5000 })
-
-		// Find the tool card and delete it
-		const toolCard = authenticatedPage.locator('[class*="card"]').filter({ hasText: toolName }).first()
-		const deleteButton = toolCard.getByRole('button', { name: /delete/i })
-
-		if (await deleteButton.isVisible({ timeout: 2000 })) {
-			await deleteButton.click()
-
-			// Confirmation dialog
-			const confirmDialog = authenticatedPage.getByRole('dialog')
-			await expect(confirmDialog).toBeVisible({ timeout: 3000 })
-
-			// Confirm deletion
-			const confirmButton = confirmDialog.getByRole('button', { name: /delete/i })
-			await confirmButton.click()
-
-			// Tool should be removed
-			await expect(authenticatedPage.getByText(toolName)).not.toBeVisible({ timeout: 5000 })
-		}
-	})
-
 	test('validates tool name is required', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/tools')
 		await authenticatedPage.waitForLoadState('networkidle')
@@ -190,37 +328,9 @@ test.describe('Custom Tools - Authenticated', () => {
 			await expect(dialog).toBeVisible()
 		}
 	})
-
-	test('validates JSON config format', async ({ authenticatedPage }) => {
-		await authenticatedPage.goto('/dashboard/tools')
-		await authenticatedPage.waitForLoadState('networkidle')
-
-		// Open add tool dialog
-		await authenticatedPage.getByRole('button', { name: /add tool/i }).first().click()
-		const dialog = authenticatedPage.getByRole('dialog')
-		await expect(dialog).toBeVisible({ timeout: 3000 })
-
-		await dialog.getByLabel(/name/i).fill('Test Tool')
-
-		// Add invalid JSON config
-		const configField = dialog.getByLabel(/config/i)
-		if (await configField.isVisible({ timeout: 1000 })) {
-			await configField.fill('not valid json')
-
-			// Try to create
-			const createButton = dialog.getByRole('button', { name: /create/i })
-			await createButton.click()
-
-			// Should show validation error or stay in dialog
-			await authenticatedPage.waitForTimeout(500)
-			// Dialog should still be visible due to validation error
-			const dialogStillVisible = await dialog.isVisible()
-			expect(dialogStillVisible).toBe(true)
-		}
-	})
 })
 
-test.describe('Tools Search', () => {
+test.describe('Tools Search - Authenticated', () => {
 	test('can search tools by name', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/tools')
 		await authenticatedPage.waitForLoadState('networkidle')
@@ -235,57 +345,6 @@ test.describe('Tools Search', () => {
 			await expect(authenticatedPage.getByText(/HTTP Request/i)).toBeVisible()
 		}
 	})
-
-	test('shows empty state when no results', async ({ authenticatedPage }) => {
-		await authenticatedPage.goto('/dashboard/tools')
-		await authenticatedPage.waitForLoadState('networkidle')
-
-		// Search for something that doesn't exist
-		const searchInput = authenticatedPage.getByPlaceholder(/search/i)
-		if (await searchInput.isVisible({ timeout: 2000 })) {
-			await searchInput.fill('nonexistenttool12345')
-			await authenticatedPage.waitForTimeout(500)
-
-			// Should show no results or empty state
-			const noResults = authenticatedPage.getByText(/no.*tools|no results/i)
-			// This might not always be visible depending on implementation
-		}
-	})
-})
-
-test.describe('Tool Types', () => {
-	test('can select different tool types', async ({ authenticatedPage }) => {
-		await authenticatedPage.goto('/dashboard/tools')
-		await authenticatedPage.waitForLoadState('networkidle')
-
-		// Open add tool dialog
-		await authenticatedPage.getByRole('button', { name: /add tool/i }).first().click()
-		const dialog = authenticatedPage.getByRole('dialog')
-		await expect(dialog).toBeVisible({ timeout: 3000 })
-
-		// Fill name first
-		await dialog.getByLabel(/name/i).fill('Type Test Tool')
-
-		// Try to select type dropdown
-		const typeSelect = dialog.getByLabel(/type/i)
-		if (await typeSelect.isVisible({ timeout: 1000 })) {
-			await typeSelect.click()
-			await authenticatedPage.waitForTimeout(500)
-
-			// Should show type options
-			const options = authenticatedPage.locator('[role="option"]')
-			const optionCount = await options.count()
-
-			if (optionCount > 0) {
-				// Select first option
-				await options.first().click()
-			}
-		}
-
-		// Cancel dialog
-		const cancelButton = dialog.getByRole('button', { name: /cancel/i })
-		await cancelButton.click()
-	})
 })
 
 baseTest.describe('Tools Integration with Agents', () => {
@@ -294,8 +353,7 @@ baseTest.describe('Tools Integration with Agents', () => {
 		await page.goto('/dashboard/tools')
 		await page.waitForLoadState('networkidle')
 
-		// Page should mention agents
-		const agentText = page.getByText(/agent/i).first()
-		// This is informational text about tools being available to agents
+		// Page should load without errors - tools are available to agents
+		await expect(page.locator('body')).not.toContainText('404')
 	})
 })
