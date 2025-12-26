@@ -30,7 +30,8 @@ export const test = base.extend<{
 	testUser: { email: string; password: string; name: string }
 }>({
 	// Provide a unique test user for each test
-	testUser: async (_, use) => {
+	// biome-ignore lint/correctness/noEmptyPattern: Playwright fixture requires destructuring pattern
+	testUser: async ({}, use) => {
 		await use(generateTestUser())
 	},
 

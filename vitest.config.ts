@@ -8,6 +8,10 @@ export default defineWorkersConfig({
       "@workspace/ui": path.resolve(__dirname, "./packages/ui/src"),
     },
   },
+  define: {
+    "process.env.NODE_ENV": JSON.stringify("test"),
+    "process.env.NEXT_PUBLIC_APP_URL": JSON.stringify("http://localhost:3000"),
+  },
   test: {
     globals: true,
     include: ["apps/**/*.test.ts", "packages/**/*.test.ts"],
@@ -21,17 +25,21 @@ export default defineWorkersConfig({
     ],
     poolOptions: {
       workers: {
-        wrangler: { configPath: "./apps/web/wrangler.jsonc" },
+        singleWorker: true,
         miniflare: {
           compatibilityDate: "2025-12-01",
           compatibilityFlags: ["nodejs_compat"],
           bindings: {
             ENVIRONMENT: "test",
-            BETTER_AUTH_SECRET: "test-secret",
+            NODE_ENV: "test",
+            BETTER_AUTH_SECRET: "test-secret-must-be-at-least-32-characters-long",
             BETTER_AUTH_URL: "http://localhost:3000",
+            NEXT_PUBLIC_APP_URL: "http://localhost:3000",
             NEXTJS_ENV: "test",
           },
           d1Databases: ["DB"],
+          kvNamespaces: ["KV"],
+          r2Buckets: ["R2"],
         },
       },
     },

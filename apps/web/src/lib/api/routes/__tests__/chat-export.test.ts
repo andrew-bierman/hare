@@ -3,9 +3,9 @@ import { describe, expect, it } from 'vitest'
 import { app } from 'web-app/lib/api/index'
 
 describe('Chat Export API', () => {
-	describe('GET /api/conversations/{id}/export', () => {
+	describe('GET /api/chat/conversations/{id}/export', () => {
 		it('returns 401 for unauthenticated request', async () => {
-			const res = await app.request('/api/conversations/conv_test123/export', {}, env)
+			const res = await app.request('/api/chat/conversations/conv_test123/export', {}, env)
 			expect(res.status).toBe(401)
 
 			const json = (await res.json()) as { error: string }
@@ -14,7 +14,7 @@ describe('Chat Export API', () => {
 
 		it('returns 401 for unauthenticated request with format query', async () => {
 			const res = await app.request(
-				'/api/conversations/conv_test123/export?format=markdown',
+				'/api/chat/conversations/conv_test123/export?format=markdown',
 				{},
 				env,
 			)
@@ -23,7 +23,7 @@ describe('Chat Export API', () => {
 
 		it('returns 401 for unauthenticated request with includeMetadata query', async () => {
 			const res = await app.request(
-				'/api/conversations/conv_test123/export?format=json&includeMetadata=true',
+				'/api/chat/conversations/conv_test123/export?format=json&includeMetadata=true',
 				{},
 				env,
 			)
