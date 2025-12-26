@@ -1,5 +1,6 @@
 import { z } from 'zod'
-import { createTool, success, type ToolContext } from './types'
+import { parsePhoneNumber, type CountryCode } from 'libphonenumber-js'
+import { createTool, success, failure, type ToolContext } from './types'
 
 /**
  * Email Validation Tool
@@ -99,10 +100,11 @@ export const validateEmailTool = createTool({
 
 /**
  * Phone Number Validation Tool
+ * Uses libphonenumber-js for comprehensive international phone validation
  */
 export const validatePhoneTool = createTool({
 	id: 'validate_phone',
-	description: 'Validate and format phone numbers. Supports international formats.',
+	description: 'Validate and format phone numbers. Supports 200+ countries with proper formatting.',
 	inputSchema: z.object({
 		phone: z.string().describe('Phone number to validate'),
 		country: z
@@ -119,80 +121,55 @@ export const validatePhoneTool = createTool({
 	execute: async (params, _context) => {
 		const { phone, country, format } = params
 
-		// Remove all non-digit characters except leading +
-		const cleaned = phone.replace(/(?!^\+)[^\d]/g, '')
-		const digitsOnly = cleaned.replace(/\D/g, '')
-
 		const result: {
 			valid: boolean
 			original: string
 			formatted?: string
 			country?: string
+			countryCallingCode?: string
+			nationalNumber?: string
+			type?: string
 			errors: string[]
 		} = {
-			valid: true,
+			valid: false,
 			original: phone,
 			errors: [],
 		}
 
-		// Basic length validation
-		if (digitsOnly.length < 7) {
-			result.valid = false
-			result.errors.push('Phone number too short (min 7 digits)')
-		} else if (digitsOnly.length > 15) {
-			result.valid = false
-			result.errors.push('Phone number too long (max 15 digits)')
-		}
+		try {
+			const phoneNumber = parsePhoneNumber(phone, country.toUpperCase() as CountryCode)
 
-		// Country-specific validation
-		const countryRules: Record<string, { pattern: RegExp; format: (digits: string) => string }> = {
-			US: {
-				pattern: /^1?([2-9]\d{2})([2-9]\d{2})(\d{4})$/,
-				format: (d) => {
-					const match = d.match(/^1?(\d{3})(\d{3})(\d{4})$/)
-					if (!match?.[1] || !match[2] || !match[3]) return d
-					return format === 'e164'
-						? `+1${match[1]}${match[2]}${match[3]}`
-						: format === 'national'
-							? `(${match[1]}) ${match[2]}-${match[3]}`
-							: `+1 (${match[1]}) ${match[2]}-${match[3]}`
-				},
-			},
-			GB: {
-				pattern: /^(44)?([1-9]\d{9,10})$/,
-				format: (d) => {
-					const cleaned = d.replace(/^44/, '')
-					return format === 'e164' ? `+44${cleaned}` : `+44 ${cleaned}`
-				},
-			},
-			CA: {
-				pattern: /^1?([2-9]\d{2})([2-9]\d{2})(\d{4})$/,
-				format: (d) => {
-					const match = d.match(/^1?(\d{3})(\d{3})(\d{4})$/)
-					if (!match?.[1] || !match[2] || !match[3]) return d
-					return format === 'e164'
-						? `+1${match[1]}${match[2]}${match[3]}`
-						: `+1 (${match[1]}) ${match[2]}-${match[3]}`
-				},
-			},
-		}
+			if (phoneNumber && phoneNumber.isValid()) {
+				result.valid = true
+				result.country = phoneNumber.country
+				result.countryCallingCode = phoneNumber.countryCallingCode
+				result.nationalNumber = phoneNumber.nationalNumber
 
-		const rule = countryRules[country.toUpperCase()]
-		if (rule) {
-			result.country = country.toUpperCase()
-			if (!rule.pattern.test(digitsOnly)) {
-				result.valid = false
-				result.errors.push(`Invalid ${country} phone number format`)
+				// Get phone type if available
+				const phoneType = phoneNumber.getType()
+				if (phoneType) {
+					result.type = phoneType
+				}
+
+				// Format based on requested format
+				switch (format) {
+					case 'e164':
+						result.formatted = phoneNumber.format('E.164')
+						break
+					case 'national':
+						result.formatted = phoneNumber.format('NATIONAL')
+						break
+					case 'international':
+						result.formatted = phoneNumber.format('INTERNATIONAL')
+						break
+					default:
+						result.formatted = phoneNumber.format('E.164')
+				}
 			} else {
-				result.formatted = rule.format(digitsOnly)
+				result.errors.push('Invalid phone number format')
 			}
-		} else {
-			// Generic international format
-			if (cleaned.startsWith('+')) {
-				result.formatted = cleaned
-			} else {
-				result.formatted = format === 'e164' ? `+${digitsOnly}` : `+${digitsOnly}`
-			}
+		} catch (error) {
+			result.errors.push(error instanceof Error ? error.message : 'Failed to parse phone number')
 		}
 
 		return success(result)

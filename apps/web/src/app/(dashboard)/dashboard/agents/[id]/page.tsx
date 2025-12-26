@@ -35,6 +35,8 @@ import { useParams, useRouter } from 'next/navigation'
 import { type ChangeEvent, useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { useWorkspace } from 'web-app/components/providers/workspace-provider'
+import { AgentInstructionsEditor } from 'web-app/components/agent/agent-instructions-editor'
+import { ToolPicker } from 'web-app/components/agent/tool-picker'
 import {
 	AVAILABLE_MODELS,
 	type Tool,
@@ -116,12 +118,6 @@ export default function AgentBuilderPage() {
 			setHasChanges(changed)
 		}
 	}, [agent, name, description, model, instructions, selectedToolIds])
-
-	const handleToolToggle = (toolId: string) => {
-		setSelectedToolIds((prev: string[]) =>
-			prev.includes(toolId) ? prev.filter((id: string) => id !== toolId) : [...prev, toolId],
-		)
-	}
 
 	const handleSave = async () => {
 		try {
@@ -324,22 +320,6 @@ export default function AgentBuilderPage() {
 									</div>
 								</CardContent>
 							</Card>
-
-							<Card>
-								<CardHeader>
-									<CardTitle>Quick Actions</CardTitle>
-								</CardHeader>
-								<CardContent className="space-y-2">
-									<Button
-										variant="outline"
-										className="w-full"
-										onClick={() => router.push(`/dashboard/agents/${agentId}/playground`)}
-										disabled={agent.status !== 'deployed'}
-									>
-										Test in Playground
-									</Button>
-								</CardContent>
-							</Card>
 						</div>
 					</div>
 				</TabsContent>
@@ -348,18 +328,17 @@ export default function AgentBuilderPage() {
 					<Card>
 						<CardHeader>
 							<CardTitle>System Prompt</CardTitle>
-							<CardDescription>Define how your agent behaves and responds</CardDescription>
+							<CardDescription>
+								Define how your agent behaves and responds. Use Markdown formatting and template variables like {'{'}{'{'} user_name {'}'}{'}'}  for dynamic content.
+							</CardDescription>
 						</CardHeader>
 						<CardContent className="space-y-4">
 							<div className="space-y-2">
 								<Label htmlFor="system-prompt">System Prompt</Label>
-								<Textarea
-									id="system-prompt"
+								<AgentInstructionsEditor
 									value={instructions}
-									onChange={(e: ChangeEvent<HTMLTextAreaElement>) =>
-										setInstructions(e.target.value)
-									}
-									className="h-64 font-mono text-sm"
+									onChange={setInstructions}
+									disabled={updateAgent.isPending}
 									placeholder="You are a helpful assistant that..."
 								/>
 								<p className="text-xs text-muted-foreground">
@@ -374,37 +353,19 @@ export default function AgentBuilderPage() {
 				<TabsContent value="tools" className="space-y-4">
 					<Card>
 						<CardHeader>
-							<CardTitle>Available Tools</CardTitle>
-							<CardDescription>Enable tools to extend your agent's capabilities</CardDescription>
+							<CardTitle>Agent Tools</CardTitle>
+							<CardDescription>
+								Select and configure tools to extend your agent's capabilities.
+								Drag to reorder tool priority.
+							</CardDescription>
 						</CardHeader>
 						<CardContent>
-							{tools.length === 0 ? (
-								<p className="text-sm text-muted-foreground">No tools available.</p>
-							) : (
-								<div className="space-y-3">
-									{tools.map((tool: Tool) => (
-										<div key={tool.id} className="flex items-start space-x-3">
-											<Checkbox
-												id={tool.id}
-												checked={selectedToolIds.includes(tool.id)}
-												onCheckedChange={() => handleToolToggle(tool.id)}
-											/>
-											<div className="space-y-1">
-												<label
-													htmlFor={tool.id}
-													className="text-sm font-medium leading-none cursor-pointer"
-												>
-													{tool.name}
-													{tool.isSystem && (
-														<span className="ml-2 text-xs text-muted-foreground">(System)</span>
-													)}
-												</label>
-												<p className="text-xs text-muted-foreground">{tool.description}</p>
-											</div>
-										</div>
-									))}
-								</div>
-							)}
+							<ToolPicker
+								workspaceId={activeWorkspace?.id || ''}
+								selectedToolIds={selectedToolIds}
+								onSelectionChange={setSelectedToolIds}
+								maxTools={20}
+							/>
 						</CardContent>
 					</Card>
 				</TabsContent>

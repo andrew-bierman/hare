@@ -1,13 +1,15 @@
 import { z } from 'zod'
-import { createTool, failure, success, type ToolContext } from './types'
+import { marked } from 'marked'
+import QRCode from 'qrcode-svg'
+import { diffLines, diffWords, diffChars, type Change } from 'diff'
+import { createTool, success, failure, type ToolContext } from './types'
 
 /**
- * Markdown Tool - Parse and render Markdown
+ * Markdown Tool - Parse and render Markdown using marked library
  */
 export const markdownTool = createTool({
 	id: 'markdown',
-	description:
-		'Parse Markdown to HTML or extract structure (headings, links, images, code blocks).',
+	description: 'Parse Markdown to HTML or extract structure (headings, links, images, code blocks). Uses marked library with full GFM support.',
 	inputSchema: z.object({
 		operation: z
 			.enum([
@@ -22,84 +24,17 @@ export const markdownTool = createTool({
 		markdown: z.string().describe('Markdown content to process'),
 		options: z
 			.object({
-				sanitize: z.boolean().optional().default(true).describe('Sanitize HTML output'),
 				gfm: z.boolean().optional().default(true).describe('Use GitHub Flavored Markdown'),
+				breaks: z.boolean().optional().default(false).describe('Convert line breaks to <br>'),
 			})
 			.optional(),
 	}),
 	execute: async (params, _context) => {
 		const { operation, markdown, options } = params
-		const { sanitize: _sanitize = true, gfm = true } = options || {}
+		const { gfm = true, breaks = false } = options || {}
 
-		// Simple markdown parser
-		const escapeHtml = (text: string): string => {
-			return text
-				.replace(/&/g, '&amp;')
-				.replace(/</g, '&lt;')
-				.replace(/>/g, '&gt;')
-				.replace(/"/g, '&quot;')
-				.replace(/'/g, '&#39;')
-		}
-
-		const parseMarkdown = (md: string): string => {
-			let html = md
-
-			// Code blocks (must be first to prevent other parsing inside)
-			html = html.replace(/```(\w+)?\n([\s\S]*?)```/g, (_, lang, code) => {
-				return `<pre><code class="language-${lang || 'text'}">${escapeHtml(code.trim())}</code></pre>`
-			})
-
-			// Inline code
-			html = html.replace(/`([^`]+)`/g, '<code>$1</code>')
-
-			// Headers
-			html = html.replace(/^###### (.+)$/gm, '<h6>$1</h6>')
-			html = html.replace(/^##### (.+)$/gm, '<h5>$1</h5>')
-			html = html.replace(/^#### (.+)$/gm, '<h4>$1</h4>')
-			html = html.replace(/^### (.+)$/gm, '<h3>$1</h3>')
-			html = html.replace(/^## (.+)$/gm, '<h2>$1</h2>')
-			html = html.replace(/^# (.+)$/gm, '<h1>$1</h1>')
-
-			// Bold and italic
-			html = html.replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>')
-			html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-			html = html.replace(/\*(.+?)\*/g, '<em>$1</em>')
-			html = html.replace(/___(.+?)___/g, '<strong><em>$1</em></strong>')
-			html = html.replace(/__(.+?)__/g, '<strong>$1</strong>')
-			html = html.replace(/_(.+?)_/g, '<em>$1</em>')
-
-			// Strikethrough (GFM)
-			if (gfm) {
-				html = html.replace(/~~(.+?)~~/g, '<del>$1</del>')
-			}
-
-			// Links and images
-			html = html.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" />')
-			html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>')
-
-			// Blockquotes
-			html = html.replace(/^> (.+)$/gm, '<blockquote>$1</blockquote>')
-
-			// Horizontal rules
-			html = html.replace(/^(-{3,}|\*{3,}|_{3,})$/gm, '<hr />')
-
-			// Unordered lists
-			html = html.replace(/^\s*[-*+] (.+)$/gm, '<li>$1</li>')
-
-			// Ordered lists
-			html = html.replace(/^\s*\d+\. (.+)$/gm, '<li>$1</li>')
-
-			// Paragraphs (basic)
-			html = html.replace(/\n\n/g, '</p><p>')
-			if (!html.startsWith('<')) {
-				html = `<p>${html}</p>`
-			}
-
-			// Clean up empty paragraphs
-			html = html.replace(/<p>\s*<\/p>/g, '')
-
-			return html
-		}
+		// Configure marked
+		marked.setOptions({ gfm, breaks })
 
 		const extractHeadings = (md: string): Array<{ level: number; text: string }> => {
 			const headings: Array<{ level: number; text: string }> = []
@@ -154,7 +89,8 @@ export const markdownTool = createTool({
 
 		switch (operation) {
 			case 'toHtml':
-				return success({ html: parseMarkdown(markdown) })
+				const html = await marked.parse(markdown)
+				return success({ html })
 
 			case 'toText': {
 				// Strip all markdown syntax
@@ -200,148 +136,66 @@ export const markdownTool = createTool({
 })
 
 /**
- * Diff Tool - Compare texts and generate diffs
+ * Diff Tool - Compare texts and generate diffs using jsdiff library
  */
 export const diffTool = createTool({
 	id: 'diff',
-	description: 'Compare two texts and generate a diff. Shows additions, deletions, and changes.',
+	description: 'Compare two texts and generate a diff. Shows additions, deletions, and changes using battle-tested diff algorithms.',
 	inputSchema: z.object({
 		original: z.string().describe('Original text'),
 		modified: z.string().describe('Modified text'),
-		mode: z
-			.enum(['lines', 'words', 'chars'])
-			.optional()
-			.default('lines')
-			.describe('Comparison mode'),
-		context: z.number().optional().default(3).describe('Lines of context around changes'),
+		mode: z.enum(['lines', 'words', 'chars']).optional().default('lines').describe('Comparison mode'),
 	}),
 	execute: async (params, _context) => {
-		const { original, modified, mode, context: _contextLines } = params
+		const { original, modified, mode } = params
 
-		type Change = {
-			type: 'equal' | 'add' | 'delete'
-			value: string
-			lineNumber?: { old?: number; new?: number }
+		// Use the appropriate diff function based on mode
+		let changes: Change[]
+		switch (mode) {
+			case 'words':
+				changes = diffWords(original, modified)
+				break
+			case 'chars':
+				changes = diffChars(original, modified)
+				break
+			case 'lines':
+			default:
+				changes = diffLines(original, modified)
+				break
 		}
 
-		// Split based on mode
-		const split = (text: string): string[] => {
-			switch (mode) {
-				case 'lines':
-					return text.split('\n')
-				case 'words':
-					return text.split(/(\s+)/)
-				case 'chars':
-					return text.split('')
-				default:
-					return text.split('\n')
-			}
-		}
-
-		const originalParts = split(original)
-		const modifiedParts = split(modified)
-
-		// Simple LCS-based diff algorithm
-		const lcs = (a: string[], b: string[]): number[][] => {
-			const m = a.length
-			const n = b.length
-			const dp: number[][] = Array(m + 1)
-				.fill(null)
-				.map(() => Array<number>(n + 1).fill(0))
-
-			for (let i = 1; i <= m; i++) {
-				const dpRow = dp[i]
-				const dpPrevRow = dp[i - 1]
-				if (!dpRow || !dpPrevRow) continue
-
-				for (let j = 1; j <= n; j++) {
-					if (a[i - 1] === b[j - 1]) {
-						dpRow[j] = (dpPrevRow[j - 1] ?? 0) + 1
-					} else {
-						dpRow[j] = Math.max(dpPrevRow[j] ?? 0, dpRow[j - 1] ?? 0)
-					}
-				}
-			}
-			return dp
-		}
-
-		const backtrack = (dp: number[][], a: string[], b: string[]): Change[] => {
-			const changes: Change[] = []
-			let i = a.length
-			let j = b.length
-			let oldLine = a.length
-			let newLine = b.length
-
-			while (i > 0 || j > 0) {
-				const aVal = a[i - 1]
-				const bVal = b[j - 1]
-				const dpRow = dp[i]
-				const dpPrevRow = dp[i - 1]
-
-				if (i > 0 && j > 0 && aVal === bVal && aVal !== undefined) {
-					changes.unshift({
-						type: 'equal',
-						value: aVal,
-						lineNumber: mode === 'lines' ? { old: oldLine, new: newLine } : undefined,
-					})
-					i--
-					j--
-					oldLine--
-					newLine--
-				} else if (j > 0 && (i === 0 || (dpRow?.[j - 1] ?? 0) >= (dpPrevRow?.[j] ?? 0)) && bVal !== undefined) {
-					changes.unshift({
-						type: 'add',
-						value: bVal,
-						lineNumber: mode === 'lines' ? { new: newLine } : undefined,
-					})
-					j--
-					newLine--
-				} else if (i > 0 && aVal !== undefined) {
-					changes.unshift({
-						type: 'delete',
-						value: aVal,
-						lineNumber: mode === 'lines' ? { old: oldLine } : undefined,
-					})
-					i--
-					oldLine--
-				} else {
-					break // Safety exit
-				}
-			}
-			return changes
-		}
-
-		const dp = lcs(originalParts, modifiedParts)
-		const changes = backtrack(dp, originalParts, modifiedParts)
+		// Transform to our output format
+		const formattedChanges = changes.map((change) => ({
+			type: change.added ? 'add' : change.removed ? 'delete' : 'equal',
+			value: change.value,
+			count: change.count,
+		}))
 
 		// Generate unified diff format for lines mode
 		let unifiedDiff = ''
 		if (mode === 'lines') {
 			unifiedDiff = '--- original\n+++ modified\n'
 			for (const change of changes) {
-				switch (change.type) {
-					case 'equal':
-						unifiedDiff += ` ${change.value}\n`
-						break
-					case 'add':
-						unifiedDiff += `+${change.value}\n`
-						break
-					case 'delete':
-						unifiedDiff += `-${change.value}\n`
-						break
+				const prefix = change.added ? '+' : change.removed ? '-' : ' '
+				const lines = change.value.split('\n').filter((line, idx, arr) =>
+					// Don't add empty line at the end
+					!(idx === arr.length - 1 && line === '')
+				)
+				for (const line of lines) {
+					unifiedDiff += `${prefix}${line}\n`
 				}
 			}
 		}
 
 		// Statistics
 		const stats = {
-			additions: changes.filter((c) => c.type === 'add').length,
-			deletions: changes.filter((c) => c.type === 'delete').length,
-			unchanged: changes.filter((c) => c.type === 'equal').length,
+			additions: changes.filter((c) => c.added).reduce((sum, c) => sum + (c.count || 1), 0),
+			deletions: changes.filter((c) => c.removed).reduce((sum, c) => sum + (c.count || 1), 0),
+			unchanged: changes.filter((c) => !c.added && !c.removed).reduce((sum, c) => sum + (c.count || 1), 0),
 		}
 
 		return success({
-			changes,
+			changes: formattedChanges,
 			unifiedDiff: mode === 'lines' ? unifiedDiff : undefined,
 			stats,
 			mode,
@@ -350,12 +204,11 @@ export const diffTool = createTool({
 })
 
 /**
- * QR Code Tool - Generate QR codes as SVG
+ * QR Code Tool - Generate QR codes as SVG using qrcode-svg library
  */
 export const qrcodeTool = createTool({
 	id: 'qrcode',
-	description:
-		'Generate QR codes as SVG. Can encode URLs, text, vCards, WiFi credentials, and more.',
+	description: 'Generate valid, scannable QR codes as SVG. Can encode URLs, text, vCards, WiFi credentials, and more.',
 	inputSchema: z.object({
 		data: z.string().min(1).max(2000).describe('Data to encode in the QR code'),
 		type: z
@@ -364,11 +217,10 @@ export const qrcodeTool = createTool({
 			.default('text')
 			.describe('Data type'),
 		size: z.number().optional().default(200).describe('QR code size in pixels'),
-		errorCorrection: z
-			.enum(['L', 'M', 'Q', 'H'])
-			.optional()
-			.default('M')
-			.describe('Error correction level'),
+		errorCorrection: z.enum(['L', 'M', 'Q', 'H']).optional().default('M').describe('Error correction level'),
+		padding: z.number().optional().default(4).describe('Padding around QR code (in modules)'),
+		color: z.string().optional().default('#000000').describe('QR code color'),
+		background: z.string().optional().default('#ffffff').describe('Background color'),
 		// Type-specific options
 		wifiOptions: z
 			.object({
@@ -391,7 +243,7 @@ export const qrcodeTool = createTool({
 			.optional(),
 	}),
 	execute: async (params, _context) => {
-		const { data, type, size, errorCorrection, wifiOptions, vcardOptions } = params
+		const { data, type, size, errorCorrection, padding, color, background, wifiOptions, vcardOptions } = params
 
 		// Format data based on type
 		let formattedData = data
@@ -437,107 +289,34 @@ export const qrcodeTool = createTool({
 				break
 		}
 
-		// Simple QR code matrix generation (Reed-Solomon encoding simplified)
-		// For production, use a proper QR code library
-		const generateMatrix = (data: string, _ecLevel: string): boolean[][] => {
-			// This is a simplified placeholder - in production use a real QR library
-			const dataLength = data.length
-			const size = Math.max(21, Math.ceil(Math.sqrt(dataLength * 8)) + 8)
-			const matrix: boolean[][] = Array(size)
-				.fill(null)
-				.map(() => Array(size).fill(false))
-
-			// Add finder patterns
-			const addFinderPattern = (x: number, y: number) => {
-				for (let i = 0; i < 7; i++) {
-					for (let j = 0; j < 7; j++) {
-						const isOuter = i === 0 || i === 6 || j === 0 || j === 6
-						const isInner = i >= 2 && i <= 4 && j >= 2 && j <= 4
-						const row = matrix[y + i]
-						if (row) row[x + j] = isOuter || isInner
-					}
-				}
-			}
-
-			addFinderPattern(0, 0)
-			addFinderPattern(size - 7, 0)
-			addFinderPattern(0, size - 7)
-
-			// Add timing patterns
-			for (let i = 8; i < size - 8; i++) {
-				const row6 = matrix[6]
-				const rowI = matrix[i]
-				if (row6) row6[i] = i % 2 === 0
-				if (rowI) rowI[6] = i % 2 === 0
-			}
-
-			// Encode data (simplified - just fills remaining space)
-			let bitIndex = 0
-			const dataBits = Array.from(data).flatMap((char) => {
-				const code = char.charCodeAt(0)
-				return Array(8)
-					.fill(0)
-					.map((_, i) => (code >> (7 - i)) & 1)
+		try {
+			// Generate QR code using qrcode-svg library
+			const qr = new QRCode({
+				content: formattedData,
+				width: size,
+				height: size,
+				padding: padding,
+				color: color,
+				background: background,
+				ecl: errorCorrection,
 			})
 
-			for (let col = size - 1; col >= 0; col -= 2) {
-				if (col === 6) col--
-				for (
-					let row = col % 4 < 2 ? size - 1 : 0;
-					col % 4 < 2 ? row >= 0 : row < size;
-					col % 4 < 2 ? row-- : row++
-				) {
-					for (let c = 0; c < 2; c++) {
-						const x = col - c
-						if (matrix[row]?.[x] === undefined) continue
-						if (row < 9 && (x < 9 || x >= size - 8)) continue
-						if (row >= size - 8 && x < 9) continue
-						if (row === 6 || x === 6) continue
+			const svg = qr.svg()
 
-						const matrixRow = matrix[row]
-						const bit = dataBits[bitIndex]
-						if (matrixRow && bitIndex < dataBits.length && bit !== undefined) {
-							matrixRow[x] = bit === 1
-							bitIndex++
-						}
-					}
-				}
-			}
+			// Convert to base64 data URL
+			const base64 = btoa(svg)
+			const dataUrl = `data:image/svg+xml;base64,${base64}`
 
-			return matrix
+			return success({
+				svg,
+				dataUrl,
+				size,
+				type,
+				data: formattedData,
+			})
+		} catch (error) {
+			return failure(`QR code generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
 		}
-
-		const matrix = generateMatrix(formattedData, errorCorrection)
-		const moduleSize = size / matrix.length
-
-		// Generate SVG
-		let svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${size} ${size}" width="${size}" height="${size}">`
-		svg += `<rect width="100%" height="100%" fill="white"/>`
-
-		for (let y = 0; y < matrix.length; y++) {
-			const matrixRow = matrix[y]
-			if (!matrixRow) continue
-			for (let x = 0; x < matrixRow.length; x++) {
-				if (matrixRow[x]) {
-					svg += `<rect x="${x * moduleSize}" y="${y * moduleSize}" width="${moduleSize}" height="${moduleSize}" fill="black"/>`
-				}
-			}
-		}
-
-		svg += '</svg>'
-
-		// Convert to base64 data URL
-		const base64 = btoa(svg)
-		const dataUrl = `data:image/svg+xml;base64,${base64}`
-
-		return success({
-			svg,
-			dataUrl,
-			size,
-			type,
-			data: formattedData,
-			moduleCount: matrix.length,
-		})
 	},
 })
 

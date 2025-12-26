@@ -20,7 +20,6 @@ export const tools = sqliteTable('tools', {
 			'sql',
 			'kv',
 			'r2',
-			'vectorize',
 			'search',
 			// Utility
 			'datetime',
