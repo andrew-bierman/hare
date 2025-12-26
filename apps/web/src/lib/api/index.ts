@@ -7,9 +7,10 @@ import { secureHeaders } from 'hono/secure-headers'
 import { timing } from 'hono/timing'
 import { CloudflareEnvError } from './db'
 import { corsMiddleware, securityHeadersMiddleware } from './middleware'
-import agentWs from './routes/agent-ws'
 // Import route modules
 import agents from './routes/agents'
+import agentWs from './routes/agent-ws'
+import analytics from './routes/analytics'
 import auth from './routes/auth'
 import chat from './routes/chat'
 import dev from './routes/dev'
@@ -46,6 +47,7 @@ app.use('*', securityHeadersMiddleware)
 const routes = app
 	.route('/agents', agents)
 	.route('/agent-ws', agentWs)
+	.route('/analytics', analytics)
 	.route('/workspaces', workspaces)
 	.route('/tools', tools)
 	.route('/auth', auth)
@@ -77,27 +79,16 @@ app.doc('/openapi.json', {
 		},
 	],
 	tags: [
-		{
-			name: 'Authentication',
-			description: 'User authentication and session management',
-		},
+		{ name: 'Authentication', description: 'User authentication and session management' },
 		{ name: 'Workspaces', description: 'Workspace management' },
 		{ name: 'Agents', description: 'AI agent creation and deployment' },
-		{
-			name: 'Agent WebSocket',
-			description: 'Real-time WebSocket connections to Cloudflare Agents',
-		},
+		{ name: 'Agent WebSocket', description: 'Real-time WebSocket connections to Cloudflare Agents' },
 		{ name: 'Tools', description: 'Tool management for agents' },
 		{ name: 'Chat', description: 'Chat with deployed agents (SSE)' },
-		{
-			name: 'MCP',
-			description: 'Model Context Protocol for external AI clients',
-		},
+		{ name: 'MCP', description: 'Model Context Protocol for external AI clients' },
 		{ name: 'Usage', description: 'Usage statistics and analytics' },
-		{
-			name: 'Health',
-			description: 'System health checks and monitoring endpoints',
-		},
+		{ name: 'Analytics', description: 'Detailed analytics and visualizations' },
+		{ name: 'Health', description: 'System health checks and monitoring endpoints' },
 	],
 })
 

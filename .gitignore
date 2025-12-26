@@ -40,3 +40,7 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 # Playwright
 playwright-report
 test-results
+
+# Git worktrees (Crystal)
+/worktrees/
+/worktree-*/
