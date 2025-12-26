@@ -1,5 +1,7 @@
 export { InstructionsEditor } from './instructions-editor'
 export { useTokenCount } from './use-token-count'
 export { StatsFooter } from './stats-footer'
+export { Toolbar, applyMarkdownFormat } from './toolbar'
 export type { InstructionsEditorProps, TemplateVariable, EditorStats } from './types'
 export type { TokenCountResult } from './use-token-count'
+export type { ToolbarAction } from './toolbar'
