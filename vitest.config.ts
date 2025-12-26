@@ -27,8 +27,11 @@ export default defineWorkersConfig({
           compatibilityFlags: ["nodejs_compat"],
           bindings: {
             ENVIRONMENT: "test",
+            NODE_ENV: "test",
             BETTER_AUTH_SECRET: "test-secret",
             BETTER_AUTH_URL: "http://localhost:3000",
+            NEXT_PUBLIC_APP_URL: "http://localhost:3000",
+            NEXT_PUBLIC_API_URL: "http://localhost:3000",
             NEXTJS_ENV: "test",
           },
           d1Databases: ["DB"],
