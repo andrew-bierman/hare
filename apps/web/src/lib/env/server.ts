@@ -9,16 +9,17 @@ import { z } from 'zod'
  * DO NOT import this file in client-side code.
  */
 
-const booleanStringSchema = z
-	.enum(['true', 'false'])
-	.optional()
-	.transform((val) => val === 'true')
-
 const serverEnvSchema = z.object({
 	NODE_ENV: z.enum(['development', 'production', 'test']),
 	NEXT_PUBLIC_APP_URL: z.string().url(),
-	ENABLE_AI_CHAT: booleanStringSchema.default('true'),
-	AI_CHAT_BETA_MODE: booleanStringSchema.default('false'),
+	ENABLE_AI_CHAT: z
+		.enum(['true', 'false'])
+		.default('true')
+		.transform((val) => val === 'true'),
+	AI_CHAT_BETA_MODE: z
+		.enum(['true', 'false'])
+		.default('false')
+		.transform((val) => val === 'true'),
 	AI_CHAT_ALLOWED_EMAILS: z
 		.string()
 		.optional()
