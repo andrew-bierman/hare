@@ -484,6 +484,7 @@ All routes are defined in `apps/web/src/lib/api/` and mounted at `/api`.
 | `PATCH` | `/api/agents/:id` | Update agent |
 | `DELETE` | `/api/agents/:id` | Delete agent |
 | `POST` | `/api/agents/:id/deploy` | Deploy agent to edge |
+| `POST` | `/api/agents/validate` | Validate agent configuration |
 
 ### Chat Routes
 
@@ -1108,8 +1109,9 @@ Hare pricing is designed to be simple and predictable (no surprise bills! 💰):
 | ✅ | Cloudflare Agents SDK integration | Complete | `hard` |
 | ✅ | Health monitoring endpoints | Complete | `medium` |
 | ✅ | WebSocket real-time agent communication | Complete | `hard` |
-| 🥇 | OAuth providers (Google, GitHub) | Up Next | `medium` |
-| 🥈 | Workers deployment pipeline | Planned | `hard` |
+| ✅ | OAuth providers (Google, GitHub) | Complete | `medium` |
+| ✅ | Configuration validation and preview | Complete | `easy` |
+| 🥇 | Workers deployment pipeline | Up Next | `hard` |
 
 **Want to help?** Items marked `easy` are great for first-time contributors! See [How to Contribute](#-how-to-contribute) below.
 
@@ -1219,25 +1221,26 @@ All core infrastructure is in place and production-ready:
 
 **Remaining:**
 
-- [ ] 🔑 **OAuth Providers** (Up Next)
-  - [ ] Google OAuth integration `medium`
-  - [ ] GitHub OAuth integration `medium`
-- [ ] 🚀 **One-Click Deployment** (30% complete)
+- [x] 🔑 **OAuth Providers** (Complete)
+  - [x] Google OAuth integration
+  - [x] GitHub OAuth integration
+- [x] ✅ **Configuration Validation** (Complete)
+  - [x] POST /api/agents/validate endpoint
+  - [x] Field-level validation with errors and warnings
+  - [x] Configuration preview with resolved defaults
+  - [x] Token usage and cost estimation
+- [ ] 🚀 **One-Click Deployment** (35% complete)
   - [x] Deployment tracking in database
   - [x] Agent serialization and config export
   - [ ] Cloudflare Workers deployment via Wrangler API `hard`
   - [ ] Edge endpoint provisioning (URL generation) `medium`
   - [ ] Deployment rollback mechanism `medium`
-- [ ] ✅ **Configuration Validation** `easy` `good-first-issue`
-  - [ ] Validate agent config before save
-  - [ ] Preview mode for testing
 
 **Difficulty Legend:** `easy` = good for beginners | `medium` = some experience needed | `hard` = complex task
 
 **Next Steps** (Priority order):
-1. Add OAuth providers (Google, GitHub)
-2. Build deployment pipeline to Workers
-3. Configuration validation and preview
+1. Build deployment pipeline to Workers
+2. Edge endpoint provisioning (URL generation)
 
 ---
 
