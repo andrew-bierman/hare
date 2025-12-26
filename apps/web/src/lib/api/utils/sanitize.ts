@@ -64,19 +64,20 @@ export function sanitizeUrl(url: string): string {
 		return encodeURI(trimmed)
 	}
 
+	let parsed: URL
 	try {
-		const parsed = new URL(trimmed)
-
-		// Only allow safe protocols
-		const allowedProtocols = ['http:', 'https:', 'mailto:']
-		if (!allowedProtocols.includes(parsed.protocol)) {
-			throw new Error('Invalid URL protocol')
-		}
-
-		return parsed.toString()
+		parsed = new URL(trimmed)
 	} catch {
 		throw new Error('Invalid URL format')
 	}
+
+	// Only allow safe protocols
+	const allowedProtocols = ['http:', 'https:', 'mailto:']
+	if (!allowedProtocols.includes(parsed.protocol)) {
+		throw new Error('Invalid URL protocol')
+	}
+
+	return parsed.toString()
 }
 
 /**
@@ -101,6 +102,9 @@ export function sanitizeFilename(filename: string): string {
 	// Remove any remaining path-like patterns
 	sanitized = sanitized.replace(/\.\//g, '')
 	sanitized = sanitized.replace(/\.\\/g, '')
+
+	// Remove leading dots (security: prevent hidden files or path traversal remnants)
+	sanitized = sanitized.replace(/^\.+/, '')
 
 	// Trim and limit length
 	sanitized = sanitized.trim().substring(0, 255)
