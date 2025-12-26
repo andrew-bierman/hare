@@ -46,3 +46,54 @@ export const ConversationSchema = z
 		updatedAt: z.string().datetime().openapi({ example: '2024-12-01T00:00:00Z' }),
 	})
 	.openapi('Conversation')
+
+/**
+ * Export format enum for conversation exports.
+ */
+export const ExportFormatSchema = z
+	.enum(['json', 'markdown'])
+	.default('json')
+	.openapi({ example: 'json' })
+
+/**
+ * Export query parameters schema.
+ */
+export const ExportQuerySchema = z
+	.object({
+		format: ExportFormatSchema.optional(),
+		includeMetadata: z
+			.string()
+			.transform((v) => v === 'true')
+			.optional()
+			.openapi({ example: 'true', description: 'Include message metadata in export' }),
+	})
+	.openapi('ExportQuery')
+
+/**
+ * Exported message schema with optional metadata.
+ */
+export const ExportedMessageSchema = z
+	.object({
+		id: z.string(),
+		role: z.enum(['user', 'assistant', 'system', 'tool']),
+		content: z.string(),
+		createdAt: z.string().datetime(),
+		metadata: z.record(z.string(), z.unknown()).optional(),
+	})
+	.openapi('ExportedMessage')
+
+/**
+ * Full conversation export schema (JSON format).
+ */
+export const ConversationExportSchema = z
+	.object({
+		id: z.string(),
+		title: z.string(),
+		agentId: z.string(),
+		createdAt: z.string().datetime(),
+		updatedAt: z.string().datetime(),
+		messageCount: z.number(),
+		messages: z.array(ExportedMessageSchema),
+		exportedAt: z.string().datetime(),
+	})
+	.openapi('ConversationExport')
