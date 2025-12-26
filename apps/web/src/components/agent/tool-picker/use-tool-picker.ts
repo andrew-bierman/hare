@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import { useTools, type Tool } from 'web-app/lib/api/hooks'
+import { type Tool, useTools } from 'web-app/lib/api/hooks'
 import type { ToolCategory } from './types'
 
 const TOOL_CATEGORY_MAP: Record<string, ToolCategory> = {
@@ -83,7 +83,11 @@ interface UseToolPickerOptions {
 	maxTools?: number
 }
 
-export function useToolPicker({ workspaceId, initialSelectedIds, maxTools = 20 }: UseToolPickerOptions) {
+export function useToolPicker({
+	workspaceId,
+	initialSelectedIds,
+	maxTools = 20,
+}: UseToolPickerOptions) {
 	const { data: toolsData, isLoading } = useTools(workspaceId)
 	const [selectedToolIds, setSelectedToolIds] = useState<string[]>(initialSelectedIds)
 	const [searchQuery, setSearchQuery] = useState('')
@@ -107,7 +111,7 @@ export function useToolPicker({ workspaceId, initialSelectedIds, maxTools = 20 }
 				(tool) =>
 					tool.name.toLowerCase().includes(query) ||
 					tool.description.toLowerCase().includes(query) ||
-					tool.type.toLowerCase().includes(query)
+					tool.type.toLowerCase().includes(query),
 			)
 		}
 

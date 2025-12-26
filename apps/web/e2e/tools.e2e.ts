@@ -1,4 +1,4 @@
-import { expect, type Page, test as baseTest } from '@playwright/test'
+import { test as baseTest, expect, type Page } from '@playwright/test'
 import { test } from './fixtures'
 
 /**
@@ -32,7 +32,13 @@ test.describe('System Tools - Authenticated', () => {
 		await authenticatedPage.waitForLoadState('networkidle')
 
 		// Should show system tools
-		const systemToolNames = ['HTTP Request', 'Key-Value Store', 'Object Storage', 'SQL Query', 'Vector Search']
+		const systemToolNames = [
+			'HTTP Request',
+			'Key-Value Store',
+			'Object Storage',
+			'SQL Query',
+			'Vector Search',
+		]
 
 		for (const toolName of systemToolNames) {
 			// Check if at least some system tools are displayed
@@ -59,7 +65,10 @@ test.describe('System Tools - Authenticated', () => {
 
 		// System tools should not have delete buttons
 		// Find a system tool card
-		const systemCard = authenticatedPage.locator('[class*="card"]').filter({ hasText: 'System' }).first()
+		const systemCard = authenticatedPage
+			.locator('[class*="card"]')
+			.filter({ hasText: 'System' })
+			.first()
 
 		if (await systemCard.isVisible({ timeout: 2000 })) {
 			// Should not have a delete button
@@ -75,7 +84,10 @@ test.describe('Custom Tools - Authenticated', () => {
 		await authenticatedPage.waitForLoadState('networkidle')
 
 		// Click add tool button
-		await authenticatedPage.getByRole('button', { name: /add tool/i }).first().click()
+		await authenticatedPage
+			.getByRole('button', { name: /add tool/i })
+			.first()
+			.click()
 
 		// Dialog should open
 		const dialog = authenticatedPage.getByRole('dialog')
@@ -90,7 +102,10 @@ test.describe('Custom Tools - Authenticated', () => {
 		await authenticatedPage.waitForLoadState('networkidle')
 
 		// Open add tool dialog
-		await authenticatedPage.getByRole('button', { name: /add tool/i }).first().click()
+		await authenticatedPage
+			.getByRole('button', { name: /add tool/i })
+			.first()
+			.click()
 		const dialog = authenticatedPage.getByRole('dialog')
 		await expect(dialog).toBeVisible({ timeout: 3000 })
 
@@ -135,7 +150,10 @@ test.describe('Custom Tools - Authenticated', () => {
 		await authenticatedPage.waitForLoadState('networkidle')
 
 		// Create a custom tool first
-		await authenticatedPage.getByRole('button', { name: /add tool/i }).first().click()
+		await authenticatedPage
+			.getByRole('button', { name: /add tool/i })
+			.first()
+			.click()
 		const dialog = authenticatedPage.getByRole('dialog')
 		await expect(dialog).toBeVisible({ timeout: 3000 })
 
@@ -151,7 +169,10 @@ test.describe('Custom Tools - Authenticated', () => {
 		await expect(authenticatedPage.getByText(toolName)).toBeVisible({ timeout: 5000 })
 
 		// Find the tool card and delete it
-		const toolCard = authenticatedPage.locator('[class*="card"]').filter({ hasText: toolName }).first()
+		const toolCard = authenticatedPage
+			.locator('[class*="card"]')
+			.filter({ hasText: toolName })
+			.first()
 		const deleteButton = toolCard.getByRole('button', { name: /delete/i })
 
 		if (await deleteButton.isVisible({ timeout: 2000 })) {
@@ -175,7 +196,10 @@ test.describe('Custom Tools - Authenticated', () => {
 		await authenticatedPage.waitForLoadState('networkidle')
 
 		// Open add tool dialog
-		await authenticatedPage.getByRole('button', { name: /add tool/i }).first().click()
+		await authenticatedPage
+			.getByRole('button', { name: /add tool/i })
+			.first()
+			.click()
 		const dialog = authenticatedPage.getByRole('dialog')
 		await expect(dialog).toBeVisible({ timeout: 3000 })
 
@@ -196,7 +220,10 @@ test.describe('Custom Tools - Authenticated', () => {
 		await authenticatedPage.waitForLoadState('networkidle')
 
 		// Open add tool dialog
-		await authenticatedPage.getByRole('button', { name: /add tool/i }).first().click()
+		await authenticatedPage
+			.getByRole('button', { name: /add tool/i })
+			.first()
+			.click()
 		const dialog = authenticatedPage.getByRole('dialog')
 		await expect(dialog).toBeVisible({ timeout: 3000 })
 
@@ -259,7 +286,10 @@ test.describe('Tool Types', () => {
 		await authenticatedPage.waitForLoadState('networkidle')
 
 		// Open add tool dialog
-		await authenticatedPage.getByRole('button', { name: /add tool/i }).first().click()
+		await authenticatedPage
+			.getByRole('button', { name: /add tool/i })
+			.first()
+			.click()
 		const dialog = authenticatedPage.getByRole('dialog')
 		await expect(dialog).toBeVisible({ timeout: 3000 })
 

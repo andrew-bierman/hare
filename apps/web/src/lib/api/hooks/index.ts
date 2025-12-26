@@ -7,7 +7,15 @@
 export type { AIModel } from 'web-app/config'
 // Re-export AI models from config for convenience
 export { AI_MODELS, getModelById, getModelName } from 'web-app/config'
-
+// Re-export analytics types
+export type {
+	AgentBreakdown,
+	AnalyticsData,
+	AnalyticsParams,
+	AnalyticsSummary,
+	ModelBreakdown,
+	TimeSeriesData,
+} from '../client'
 // Re-export types
 export type {
 	Agent,
@@ -28,6 +36,14 @@ export type {
 	Workspace,
 	WorkspaceRole,
 } from '../types'
+// WebSocket Agent hooks
+export {
+	type AgentMessage,
+	type ConnectionStatus,
+	type UseAgentWebSocketOptions,
+	type UseAgentWebSocketReturn,
+	useAgentWebSocket,
+} from './use-agent-ws'
 // Agent hooks
 export {
 	useAgent,
@@ -37,19 +53,10 @@ export {
 	useDeployAgent,
 	useUpdateAgent,
 } from './use-agents'
-
+// Analytics hooks
+export { useAnalytics } from './use-analytics'
 // Chat hooks
 export { useChat } from './use-chat'
-
-// WebSocket Agent hooks
-export {
-	useAgentWebSocket,
-	type UseAgentWebSocketOptions,
-	type UseAgentWebSocketReturn,
-	type AgentMessage,
-	type ConnectionStatus,
-} from './use-agent-ws'
-
 // Tool hooks
 export {
 	TOOL_TYPES,
@@ -59,22 +66,8 @@ export {
 	useTools,
 	useUpdateTool,
 } from './use-tools'
-
 // Usage hooks
 export { useAgentUsage, useUsage, useUsageByAgent } from './use-usage'
-
-// Analytics hooks
-export { useAnalytics } from './use-analytics'
-
-// Re-export analytics types
-export type {
-	AnalyticsParams,
-	AnalyticsData,
-	TimeSeriesData,
-	AgentBreakdown,
-	ModelBreakdown,
-	AnalyticsSummary,
-} from '../client'
 
 // Workspace hooks
 export {

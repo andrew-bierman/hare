@@ -1,11 +1,12 @@
 import type { MiddlewareHandler } from 'hono'
 import { cors } from 'hono/cors'
 import { secureHeaders } from 'hono/secure-headers'
+import { serverEnv } from 'web-app/lib/env/server'
 
 /**
  * Security headers middleware
  * Adds security-related HTTP headers to all responses
- * 
+ *
  * Note: unsafe-eval is required for Next.js in development mode.
  * In production, Next.js uses static optimization which doesn't require unsafe-eval.
  */
@@ -13,7 +14,11 @@ export const securityHeadersMiddleware: MiddlewareHandler = secureHeaders({
 	// Content Security Policy
 	contentSecurityPolicy: {
 		defaultSrc: ["'self'"],
-		scriptSrc: ["'self'", "'unsafe-inline'", ...(process.env.NODE_ENV === 'development' ? ["'unsafe-eval'"] : [])],
+		scriptSrc: [
+			"'self'",
+			"'unsafe-inline'",
+			...(serverEnv.NODE_ENV === 'development' ? ["'unsafe-eval'"] : []),
+		],
 		styleSrc: ["'self'", "'unsafe-inline'"], // Required for Tailwind
 		imgSrc: ["'self'", 'data:', 'https:', 'blob:'],
 		fontSrc: ["'self'", 'data:'],
@@ -48,7 +53,7 @@ export const securityHeadersMiddleware: MiddlewareHandler = secureHeaders({
 export const corsMiddleware = cors({
 	origin: (origin) => {
 		const allowedOrigins = [
-			process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
+			serverEnv.NEXT_PUBLIC_APP_URL,
 			'http://localhost:3000',
 			'http://localhost:8787',
 		]

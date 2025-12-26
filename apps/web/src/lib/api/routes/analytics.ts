@@ -1,9 +1,9 @@
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
 import { and, eq, gte, lte, sql } from 'drizzle-orm'
+import { agents, usage } from 'web-app/db/schema'
 import { getDb } from '../db'
-import { ErrorSchema, UsageQuerySchema } from '../schemas'
-import { usage, agents } from 'web-app/db/schema'
 import { authMiddleware, workspaceMiddleware } from '../middleware'
+import { ErrorSchema, UsageQuerySchema } from '../schemas'
 import type { WorkspaceEnv } from '../types'
 
 // Define analytics response schemas
@@ -63,7 +63,8 @@ const getAnalyticsRoute = createRoute({
 	path: '/',
 	tags: ['Analytics'],
 	summary: 'Get comprehensive analytics data',
-	description: 'Retrieve detailed analytics including time series, agent breakdown, and model usage',
+	description:
+		'Retrieve detailed analytics including time series, agent breakdown, and model usage',
 	request: {
 		query: UsageQuerySchema.extend({
 			workspaceId: z.string().describe('Workspace ID'),
@@ -231,7 +232,7 @@ app.openapi(getAnalyticsRoute, async (c) => {
 				endDate: endDate || defaultEndDate,
 			},
 		},
-		200
+		200,
 	)
 })
 

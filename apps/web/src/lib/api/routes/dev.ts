@@ -1,5 +1,6 @@
 import { OpenAPIHono } from '@hono/zod-openapi'
 import { agents } from 'web-app/db/schema'
+import { serverEnv } from 'web-app/lib/env/server'
 import { getDb } from '../db'
 import { authMiddleware, workspaceMiddleware } from '../middleware'
 import type { WorkspaceEnv } from '../types'
@@ -69,8 +70,7 @@ Your name is "Hoppy" and you love helping users solve their problems.
 // Seed endpoint - only available in development
 app.post('/seed', authMiddleware, workspaceMiddleware, async (c) => {
 	// Check if we're in development
-	const isDev = process.env.NODE_ENV !== 'production'
-	if (!isDev) {
+	if (serverEnv.NODE_ENV === 'production') {
 		return c.json({ error: 'Seed endpoint only available in development' }, 403)
 	}
 

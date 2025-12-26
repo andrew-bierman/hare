@@ -1,7 +1,7 @@
 'use client'
 
-import { Search } from 'lucide-react'
 import { Input } from '@workspace/ui/components/input'
+import { Search } from 'lucide-react'
 import type { ToolSearchProps } from './types'
 
 export function ToolSearch({ value, onChange, placeholder = 'Search tools...' }: ToolSearchProps) {

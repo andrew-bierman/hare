@@ -1,16 +1,17 @@
-import { OpenAPIHono } from "@hono/zod-openapi";
-import { apiReference } from "@scalar/hono-api-reference";
-import { cors } from "hono/cors";
-import { showRoutes, getRouterName } from "hono/dev";
-import { logger } from "hono/logger";
-import { requestId } from "hono/request-id";
-import { secureHeaders } from "hono/secure-headers";
-import { timing } from "hono/timing";
-import { CloudflareEnvError } from "./db";
-import { securityHeadersMiddleware, corsMiddleware } from "./middleware";
+import { OpenAPIHono } from '@hono/zod-openapi'
+import { apiReference } from '@scalar/hono-api-reference'
+import { cors } from 'hono/cors'
+import { getRouterName, showRoutes } from 'hono/dev'
+import { logger } from 'hono/logger'
+import { requestId } from 'hono/request-id'
+import { secureHeaders } from 'hono/secure-headers'
+import { timing } from 'hono/timing'
+import { serverEnv } from 'web-app/lib/env/server'
+import { CloudflareEnvError } from './db'
+import { corsMiddleware, securityHeadersMiddleware } from './middleware'
+import agentWs from './routes/agent-ws'
 // Import route modules
 import agents from './routes/agents'
-import agentWs from './routes/agent-ws'
 import analytics from './routes/analytics'
 import auth from './routes/auth'
 import chat from './routes/chat'
@@ -22,26 +23,26 @@ import workspaces from './routes/workspaces'
 import type { HonoEnv } from './types'
 
 // Create base app with proper Cloudflare bindings type
-const app = new OpenAPIHono<HonoEnv>().basePath("/api");
+const app = new OpenAPIHono<HonoEnv>().basePath('/api')
 
 // Global error handler
 app.onError((error, c) => {
-  if (error instanceof CloudflareEnvError) {
-    console.error("CloudflareEnvError:", error.message);
-    return c.json({ error: "Service unavailable" }, 503);
-  }
+	if (error instanceof CloudflareEnvError) {
+		console.error('CloudflareEnvError:', error.message)
+		return c.json({ error: 'Service unavailable' }, 503)
+	}
 
-  console.error("Unhandled error:", error);
-  return c.json({ error: "Internal server error" }, 500);
-});
+	console.error('Unhandled error:', error)
+	return c.json({ error: 'Internal server error' }, 500)
+})
 
 // Middleware
-app.use("*", requestId()); // Adds X-Request-Id header for tracing
-app.use("*", logger()); // Request logging (uses requestId)
-app.use("*", timing()); // Adds Server-Timing headers for performance monitoring
-app.use("*", secureHeaders()); // Security headers (X-Content-Type-Options, X-Frame-Options, etc.)
-app.use("*", corsMiddleware);
-app.use("*", securityHeadersMiddleware);
+app.use('*', requestId()) // Adds X-Request-Id header for tracing
+app.use('*', logger()) // Request logging (uses requestId)
+app.use('*', timing()) // Adds Server-Timing headers for performance monitoring
+app.use('*', secureHeaders()) // Security headers (X-Content-Type-Options, X-Frame-Options, etc.)
+app.use('*', corsMiddleware)
+app.use('*', securityHeadersMiddleware)
 
 // Mount routes - chain for type inference
 const routes = app
@@ -57,10 +58,10 @@ const routes = app
 	.route('/mcp', mcp)
 
 // Development: Show registered routes on startup
-if (process.env.NODE_ENV === "development") {
-  console.log(`\n🚀 Hare API using ${getRouterName(app)} router`);
-  showRoutes(app, { verbose: true, colorize: true });
-  console.log("");
+if (serverEnv.NODE_ENV === 'development') {
+	console.log(`\n🚀 Hare API using ${getRouterName(app)} router`)
+	showRoutes(app, { verbose: true, colorize: true })
+	console.log('')
 }
 
 // OpenAPI documentation
@@ -81,7 +82,10 @@ app.doc('/openapi.json', {
 		{ name: 'Authentication', description: 'User authentication and session management' },
 		{ name: 'Workspaces', description: 'Workspace management' },
 		{ name: 'Agents', description: 'AI agent creation and deployment' },
-		{ name: 'Agent WebSocket', description: 'Real-time WebSocket connections to Cloudflare Agents' },
+		{
+			name: 'Agent WebSocket',
+			description: 'Real-time WebSocket connections to Cloudflare Agents',
+		},
 		{ name: 'Tools', description: 'Tool management for agents' },
 		{ name: 'Chat', description: 'Chat with deployed agents (SSE)' },
 		{ name: 'MCP', description: 'Model Context Protocol for external AI clients' },
@@ -92,26 +96,26 @@ app.doc('/openapi.json', {
 
 // Scalar API reference UI
 app.get(
-  "/docs",
-  apiReference({
-    theme: "kepler",
-    layout: "modern",
-    defaultHttpClient: {
-      targetKey: "js",
-      clientKey: "fetch",
-    },
-  }),
-);
+	'/docs',
+	apiReference({
+		theme: 'kepler',
+		layout: 'modern',
+		defaultHttpClient: {
+			targetKey: 'js',
+			clientKey: 'fetch',
+		},
+	}),
+)
 
 // Health check
-app.get("/health", (c) =>
-  c.json({
-    status: "ok",
-    timestamp: new Date().toISOString(),
-    version: "1.0.0",
-  }),
-);
+app.get('/health', (c) =>
+	c.json({
+		status: 'ok',
+		timestamp: new Date().toISOString(),
+		version: '1.0.0',
+	}),
+)
 
 // Export the chained routes type for RPC client
-export type AppType = typeof routes;
-export { app };
+export type AppType = typeof routes
+export { app }

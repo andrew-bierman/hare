@@ -1,5 +1,5 @@
-import { type APIRequestContext, expect, type Page, test as baseTest } from '@playwright/test'
-import { test, signUpViaUI } from './fixtures'
+import { type APIRequestContext, test as baseTest, expect, type Page } from '@playwright/test'
+import { signUpViaUI, test } from './fixtures'
 
 baseTest.describe('Authentication - Page Rendering', () => {
 	baseTest('should show sign-in page', async ({ page }: { page: Page }) => {
@@ -28,19 +28,18 @@ baseTest.describe('Authentication - Page Rendering', () => {
 		await expect(page.getByRole('button', { name: 'Sign In' })).toBeVisible()
 	})
 
-	baseTest('should have email, name, and password fields on sign-up', async ({
-		page,
-	}: {
-		page: Page
-	}) => {
-		await page.goto('/sign-up')
-		await page.waitForLoadState('networkidle')
-		await expect(page.getByLabel('Full Name')).toBeVisible()
-		await expect(page.getByLabel('Email')).toBeVisible()
-		await expect(page.getByLabel('Password', { exact: true })).toBeVisible()
-		await expect(page.getByLabel('Confirm Password')).toBeVisible()
-		await expect(page.getByRole('button', { name: 'Create Account' })).toBeVisible()
-	})
+	baseTest(
+		'should have email, name, and password fields on sign-up',
+		async ({ page }: { page: Page }) => {
+			await page.goto('/sign-up')
+			await page.waitForLoadState('networkidle')
+			await expect(page.getByLabel('Full Name')).toBeVisible()
+			await expect(page.getByLabel('Email')).toBeVisible()
+			await expect(page.getByLabel('Password', { exact: true })).toBeVisible()
+			await expect(page.getByLabel('Confirm Password')).toBeVisible()
+			await expect(page.getByRole('button', { name: 'Create Account' })).toBeVisible()
+		},
+	)
 
 	baseTest('should link between sign-in and sign-up pages', async ({ page }: { page: Page }) => {
 		await page.goto('/sign-in')
@@ -59,18 +58,17 @@ baseTest.describe('Authentication - Page Rendering', () => {
 		await expect(page).toHaveURL(/sign-in/)
 	})
 
-	baseTest('should show validation error for empty form submission', async ({
-		page,
-	}: {
-		page: Page
-	}) => {
-		await page.goto('/sign-in')
-		await page.waitForLoadState('networkidle')
-		await page.getByRole('button', { name: 'Sign In' }).click()
-		// HTML5 validation should prevent submission - email field should be focused
-		const emailInput = page.getByLabel('Email')
-		await expect(emailInput).toBeVisible()
-	})
+	baseTest(
+		'should show validation error for empty form submission',
+		async ({ page }: { page: Page }) => {
+			await page.goto('/sign-in')
+			await page.waitForLoadState('networkidle')
+			await page.getByRole('button', { name: 'Sign In' }).click()
+			// HTML5 validation should prevent submission - email field should be focused
+			const emailInput = page.getByLabel('Email')
+			await expect(emailInput).toBeVisible()
+		},
+	)
 })
 
 test.describe('Authentication - Sign Up Flow', () => {
@@ -180,7 +178,7 @@ test.describe('Authentication - Protected Routes', () => {
 		await authenticatedPage.goto('/dashboard/agents')
 		await expect(authenticatedPage).toHaveURL(/\/dashboard\/agents/)
 		await expect(
-			authenticatedPage.getByRole('heading', { name: 'Agents', exact: true })
+			authenticatedPage.getByRole('heading', { name: 'Agents', exact: true }),
 		).toBeVisible()
 	})
 
@@ -188,7 +186,7 @@ test.describe('Authentication - Protected Routes', () => {
 		await authenticatedPage.goto('/dashboard/tools')
 		await expect(authenticatedPage).toHaveURL(/\/dashboard\/tools/)
 		await expect(
-			authenticatedPage.getByRole('heading', { name: 'Tools', exact: true })
+			authenticatedPage.getByRole('heading', { name: 'Tools', exact: true }),
 		).toBeVisible()
 	})
 
@@ -200,39 +198,35 @@ test.describe('Authentication - Protected Routes', () => {
 })
 
 baseTest.describe('API Auth Endpoints', () => {
-	baseTest('should return 401 for unauthenticated workspace requests', async ({
-		request,
-	}: {
-		request: APIRequestContext
-	}) => {
-		const response = await request.get('/api/workspaces')
-		expect(response.status()).toBe(401)
-	})
+	baseTest(
+		'should return 401 for unauthenticated workspace requests',
+		async ({ request }: { request: APIRequestContext }) => {
+			const response = await request.get('/api/workspaces')
+			expect(response.status()).toBe(401)
+		},
+	)
 
-	baseTest('should return 401 for unauthenticated agent requests', async ({
-		request,
-	}: {
-		request: APIRequestContext
-	}) => {
-		const response = await request.get('/api/agents?workspaceId=test')
-		expect(response.status()).toBe(401)
-	})
+	baseTest(
+		'should return 401 for unauthenticated agent requests',
+		async ({ request }: { request: APIRequestContext }) => {
+			const response = await request.get('/api/agents?workspaceId=test')
+			expect(response.status()).toBe(401)
+		},
+	)
 
-	baseTest('should return 401 for unauthenticated tool requests', async ({
-		request,
-	}: {
-		request: APIRequestContext
-	}) => {
-		const response = await request.get('/api/tools?workspaceId=test')
-		expect(response.status()).toBe(401)
-	})
+	baseTest(
+		'should return 401 for unauthenticated tool requests',
+		async ({ request }: { request: APIRequestContext }) => {
+			const response = await request.get('/api/tools?workspaceId=test')
+			expect(response.status()).toBe(401)
+		},
+	)
 
-	baseTest('should return 401 for unauthenticated usage requests', async ({
-		request,
-	}: {
-		request: APIRequestContext
-	}) => {
-		const response = await request.get('/api/usage?workspaceId=test')
-		expect(response.status()).toBe(401)
-	})
+	baseTest(
+		'should return 401 for unauthenticated usage requests',
+		async ({ request }: { request: APIRequestContext }) => {
+			const response = await request.get('/api/usage?workspaceId=test')
+			expect(response.status()).toBe(401)
+		},
+	)
 })

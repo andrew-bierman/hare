@@ -1,5 +1,5 @@
-import { type APIRequestContext, test as base, expect, type Page } from '@playwright/test'
 import { createId } from '@paralleldrive/cuid2'
+import { type APIRequestContext, test as base, expect, type Page } from '@playwright/test'
 
 /**
  * Generate a unique test user for each test run to avoid conflicts.
@@ -61,9 +61,8 @@ export const test = base.extend<{
 				// Click and wait for either navigation or error
 				const [response] = await Promise.all([
 					page.waitForResponse(
-						(resp) =>
-							resp.url().includes('/api/auth') && resp.request().method() === 'POST',
-						{ timeout: 30000 }
+						(resp) => resp.url().includes('/api/auth') && resp.request().method() === 'POST',
+						{ timeout: 30000 },
 					),
 					submitButton.click(),
 				])
@@ -110,7 +109,12 @@ export const test = base.extend<{
 		// Check if we successfully navigated to dashboard
 		const currentUrl = page.url()
 		if (!currentUrl.includes('/dashboard')) {
-			throw lastError ?? new Error(`Failed to navigate to /dashboard after ${maxRetries} attempts. Final URL: ${currentUrl}`)
+			throw (
+				lastError ??
+				new Error(
+					`Failed to navigate to /dashboard after ${maxRetries} attempts. Final URL: ${currentUrl}`,
+				)
+			)
 		}
 
 		await use(page)
@@ -136,7 +140,7 @@ export { expect }
  */
 export async function createTestUser(
 	request: APIRequestContext,
-	user = TEST_USER
+	user = TEST_USER,
 ): Promise<{ success: boolean; response: unknown }> {
 	try {
 		const response = await request.post('/api/auth/sign-up/email', {
@@ -162,7 +166,7 @@ export async function createTestUser(
  */
 export async function signInTestUser(
 	request: APIRequestContext,
-	user = TEST_USER
+	user = TEST_USER,
 ): Promise<{ success: boolean; response: unknown }> {
 	try {
 		const response = await request.post('/api/auth/sign-in/email', {
@@ -185,10 +189,7 @@ export async function signInTestUser(
 /**
  * Helper to delete a test user via API (if endpoint exists).
  */
-export async function deleteTestUser(
-	request: APIRequestContext,
-	userId: string
-): Promise<void> {
+export async function deleteTestUser(request: APIRequestContext, userId: string): Promise<void> {
 	try {
 		await request.delete(`/api/users/${userId}`)
 	} catch {
@@ -199,10 +200,7 @@ export async function deleteTestUser(
 /**
  * Helper to sign in a user via the UI.
  */
-export async function signInViaUI(
-	page: Page,
-	user = TEST_USER
-): Promise<void> {
+export async function signInViaUI(page: Page, user = TEST_USER): Promise<void> {
 	await page.goto('/sign-in')
 	await page.waitForLoadState('networkidle')
 	await page.getByLabel('Email').waitFor({ state: 'visible', timeout: 10000 })
@@ -215,10 +213,7 @@ export async function signInViaUI(
 /**
  * Helper to sign up a user via the UI.
  */
-export async function signUpViaUI(
-	page: Page,
-	user = TEST_USER
-): Promise<void> {
+export async function signUpViaUI(page: Page, user = TEST_USER): Promise<void> {
 	await page.goto('/sign-up')
 	await page.waitForLoadState('networkidle')
 	await page.getByLabel('Full Name').waitFor({ state: 'visible', timeout: 10000 })

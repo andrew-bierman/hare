@@ -5,17 +5,6 @@
  * Organized by domain for better maintainability.
  */
 
-// Common schemas
-export {
-	ErrorSchema,
-	IdParamSchema,
-	JsonSchemaPropertySchema,
-	JsonSchemaSchema,
-	JsonValueSchema,
-	MetadataSchema,
-	SuccessSchema,
-} from './common'
-
 // Agent schemas
 export {
 	AgentConfigSchema,
@@ -26,24 +15,6 @@ export {
 	DeploymentSchema,
 	UpdateAgentSchema,
 } from './agents'
-
-// Workspace schemas
-export {
-	CreateWorkspaceSchema,
-	UpdateWorkspaceSchema,
-	WorkspaceRoleSchema,
-	WorkspaceSchema,
-} from './workspaces'
-
-// Tool schemas
-export {
-	CreateToolSchema,
-	ToolConfigSchema,
-	ToolSchema,
-	ToolTypeSchema,
-	UpdateToolSchema,
-} from './tools'
-
 // Auth schemas
 export {
 	AuthResponseSchema,
@@ -52,7 +23,6 @@ export {
 	SignUpSchema,
 	UserSchema,
 } from './auth'
-
 // Chat schemas
 export {
 	ChatRequestSchema,
@@ -60,7 +30,24 @@ export {
 	MessageRoleSchema,
 	MessageSchema,
 } from './chat'
-
+// Common schemas
+export {
+	ErrorSchema,
+	IdParamSchema,
+	JsonSchemaPropertySchema,
+	JsonSchemaSchema,
+	JsonValueSchema,
+	MetadataSchema,
+	SuccessSchema,
+} from './common'
+// Tool schemas
+export {
+	CreateToolSchema,
+	ToolConfigSchema,
+	ToolSchema,
+	ToolTypeSchema,
+	UpdateToolSchema,
+} from './tools'
 // Usage schemas
 export {
 	AgentUsageResponseSchema,
@@ -70,3 +57,10 @@ export {
 	UsageResponseSchema,
 	UsageStatsSchema,
 } from './usage'
+// Workspace schemas
+export {
+	CreateWorkspaceSchema,
+	UpdateWorkspaceSchema,
+	WorkspaceRoleSchema,
+	WorkspaceSchema,
+} from './workspaces'

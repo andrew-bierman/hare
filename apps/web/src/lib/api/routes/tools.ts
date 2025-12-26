@@ -1,7 +1,11 @@
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
 import { and, eq } from 'drizzle-orm'
 import { tools } from 'web-app/db/schema'
-import { getSystemToolById, isSystemToolId, SYSTEM_TOOLS } from 'web-app/lib/agents/tools/system-tools'
+import {
+	getSystemToolById,
+	isSystemToolId,
+	SYSTEM_TOOLS,
+} from 'web-app/lib/agents/tools/system-tools'
 import { getDb } from '../db'
 import { commonResponses, requireAdminAccess, requireWriteAccess } from '../helpers'
 import { authMiddleware, workspaceMiddleware } from '../middleware'
@@ -13,7 +17,7 @@ import {
 	ToolSchema,
 	UpdateToolSchema,
 } from '../schemas'
-import { serializeSystemTool, serializeTool, type SystemToolDefinition } from '../serializers'
+import { type SystemToolDefinition, serializeSystemTool, serializeTool } from '../serializers'
 import type { WorkspaceEnv } from '../types'
 
 // Define routes
@@ -259,10 +263,7 @@ app.openapi(createToolRoute, async (c) => {
 		return c.json({ error: 'Failed to create tool' }, 500)
 	}
 
-	return c.json(
-		serializeTool(tool, { inputSchema: data.inputSchema, code: data.code }),
-		201,
-	)
+	return c.json(serializeTool(tool, { inputSchema: data.inputSchema, code: data.code }), 201)
 })
 
 app.openapi(getToolRoute, async (c) => {
@@ -328,10 +329,7 @@ app.openapi(updateToolRoute, async (c) => {
 		return c.json({ error: 'Failed to update tool' }, 500)
 	}
 
-	return c.json(
-		serializeTool(tool, { inputSchema: data.inputSchema, code: data.code }),
-		200,
-	)
+	return c.json(serializeTool(tool, { inputSchema: data.inputSchema, code: data.code }), 200)
 })
 
 app.openapi(deleteToolRoute, async (c) => {

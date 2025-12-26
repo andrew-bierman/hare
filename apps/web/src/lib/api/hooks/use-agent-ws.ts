@@ -8,7 +8,7 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import type { HareAgentState, ServerMessage, ClientMessage } from 'web-app/lib/agents'
+import type { ClientMessage, HareAgentState, ServerMessage } from 'web-app/lib/agents'
 
 /**
  * Message in the chat.
@@ -67,7 +67,8 @@ export interface UseAgentWebSocketReturn {
  * Build WebSocket URL for agent connection.
  */
 function buildWebSocketUrl(agentId: string, userId?: string): string {
-	const protocol = typeof window !== 'undefined' && window.location.protocol === 'https:' ? 'wss:' : 'ws:'
+	const protocol =
+		typeof window !== 'undefined' && window.location.protocol === 'https:' ? 'wss:' : 'ws:'
 	const host = typeof window !== 'undefined' ? window.location.host : 'localhost:3000'
 	let url = `${protocol}//${host}/api/agent-ws/agents/${agentId}/ws`
 	if (userId) {
@@ -179,10 +180,7 @@ export function useAgentWebSocket(options: UseAgentWebSocketOptions): UseAgentWe
 							if (prev.length === 0) return prev
 							const lastMessage = prev[prev.length - 1]
 							if (lastMessage?.role !== 'assistant') return prev
-							return [
-								...prev.slice(0, -1),
-								{ ...lastMessage, content: finalText },
-							]
+							return [...prev.slice(0, -1), { ...lastMessage, content: finalText }]
 						})
 						setStreamingText('')
 						setIsProcessing(false)
@@ -242,40 +240,43 @@ export function useAgentWebSocket(options: UseAgentWebSocketOptions): UseAgentWe
 	/**
 	 * Send a chat message.
 	 */
-	const sendMessage = useCallback((content: string) => {
-		if (!content.trim()) return
+	const sendMessage = useCallback(
+		(content: string) => {
+			if (!content.trim()) return
 
-		// Add user message optimistically
-		const userMessage: AgentMessage = {
-			id: `user-${Date.now()}`,
-			role: 'user',
-			content,
-			createdAt: new Date().toISOString(),
-		}
-		setMessages((prev) => [...prev, userMessage])
+			// Add user message optimistically
+			const userMessage: AgentMessage = {
+				id: `user-${Date.now()}`,
+				role: 'user',
+				content,
+				createdAt: new Date().toISOString(),
+			}
+			setMessages((prev) => [...prev, userMessage])
 
-		// Add placeholder for assistant response
-		const assistantMessage: AgentMessage = {
-			id: `assistant-${Date.now()}`,
-			role: 'assistant',
-			content: '',
-			createdAt: new Date().toISOString(),
-		}
-		setMessages((prev) => [...prev, assistantMessage])
+			// Add placeholder for assistant response
+			const assistantMessage: AgentMessage = {
+				id: `assistant-${Date.now()}`,
+				role: 'assistant',
+				content: '',
+				createdAt: new Date().toISOString(),
+			}
+			setMessages((prev) => [...prev, assistantMessage])
 
-		setIsProcessing(true)
-		setStreamingText('')
-		setError(null)
+			setIsProcessing(true)
+			setStreamingText('')
+			setError(null)
 
-		// Send to agent
-		send({
-			type: 'chat',
-			payload: {
-				message: content,
-				userId: userId || 'anonymous',
-			},
-		})
-	}, [send, userId])
+			// Send to agent
+			send({
+				type: 'chat',
+				payload: {
+					message: content,
+					userId: userId || 'anonymous',
+				},
+			})
+		},
+		[send, userId],
+	)
 
 	/**
 	 * Request current state.
@@ -314,10 +315,7 @@ export function useAgentWebSocket(options: UseAgentWebSocketOptions): UseAgentWe
 				if (prev.length === 0) return prev
 				const lastMessage = prev[prev.length - 1]
 				if (lastMessage?.role !== 'assistant') return prev
-				return [
-					...prev.slice(0, -1),
-					{ ...lastMessage, content: streamingText },
-				]
+				return [...prev.slice(0, -1), { ...lastMessage, content: streamingText }]
 			})
 		}
 	}, [streamingText])

@@ -1,7 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
-import { ArrowDownToLine, BarChart3, Calendar, DollarSign, TrendingUp, Zap } from 'lucide-react'
+import { Button } from '@workspace/ui/components/button'
 import {
 	Card,
 	CardContent,
@@ -9,7 +8,12 @@ import {
 	CardHeader,
 	CardTitle,
 } from '@workspace/ui/components/card'
-import { Button } from '@workspace/ui/components/button'
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuTrigger,
+} from '@workspace/ui/components/dropdown-menu'
 import {
 	Select,
 	SelectContent,
@@ -17,32 +21,28 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from '@workspace/ui/components/select'
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuTrigger,
-} from '@workspace/ui/components/dropdown-menu'
 import { Skeleton } from '@workspace/ui/components/skeleton'
-import { useWorkspace } from 'web-app/components/providers/workspace-provider'
-import { useAnalytics, useAgents, type Agent } from 'web-app/lib/api/hooks'
-import { ChartContainer } from 'web-app/components/charts'
-import { exportToCSV, exportToJSON } from 'web-app/lib/utils/export'
+import { ArrowDownToLine, BarChart3, Calendar, DollarSign, TrendingUp, Zap } from 'lucide-react'
+import { useMemo, useState } from 'react'
 import {
-	LineChart,
-	Line,
-	BarChart,
 	Bar,
-	PieChart,
-	Pie,
+	BarChart,
+	CartesianGrid,
 	Cell,
+	Legend,
+	Line,
+	LineChart,
+	Pie,
+	PieChart,
+	ResponsiveContainer,
+	Tooltip,
 	XAxis,
 	YAxis,
-	CartesianGrid,
-	Tooltip,
-	Legend,
-	ResponsiveContainer,
 } from 'recharts'
+import { ChartContainer } from 'web-app/components/charts'
+import { useWorkspace } from 'web-app/components/providers/workspace-provider'
+import { type Agent, useAgents, useAnalytics } from 'web-app/lib/api/hooks'
+import { exportToCSV, exportToJSON } from 'web-app/lib/utils/export'
 
 const DATE_RANGES = [
 	{ value: '7d', label: 'Last 7 days' },
@@ -111,15 +111,12 @@ export default function AnalyticsPage() {
 		}
 	}, [dateRange])
 
-	const { data: analyticsData, isLoading: analyticsLoading } = useAnalytics(
-		activeWorkspace?.id,
-		{
-			startDate,
-			endDate,
-			agentId: selectedAgentId === 'all' ? undefined : selectedAgentId,
-			groupBy,
-		}
-	)
+	const { data: analyticsData, isLoading: analyticsLoading } = useAnalytics(activeWorkspace?.id, {
+		startDate,
+		endDate,
+		agentId: selectedAgentId === 'all' ? undefined : selectedAgentId,
+		groupBy,
+	})
 
 	const isLoading = workspaceLoading || analyticsLoading
 
@@ -191,9 +188,7 @@ export default function AnalyticsPage() {
 							</Button>
 						</DropdownMenuTrigger>
 						<DropdownMenuContent>
-							<DropdownMenuItem onClick={() => handleExport('csv')}>
-								Export as CSV
-							</DropdownMenuItem>
+							<DropdownMenuItem onClick={() => handleExport('csv')}>Export as CSV</DropdownMenuItem>
 							<DropdownMenuItem onClick={() => handleExport('json')}>
 								Export as JSON
 							</DropdownMenuItem>
@@ -276,7 +271,9 @@ export default function AnalyticsPage() {
 						<CartesianGrid strokeDasharray="3 3" />
 						<XAxis
 							dataKey="date"
-							tickFormatter={(value) => new Date(value).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+							tickFormatter={(value) =>
+								new Date(value).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+							}
 						/>
 						<YAxis />
 						<Tooltip
@@ -363,7 +360,9 @@ export default function AnalyticsPage() {
 						<CartesianGrid strokeDasharray="3 3" />
 						<XAxis
 							dataKey="date"
-							tickFormatter={(value) => new Date(value).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+							tickFormatter={(value) =>
+								new Date(value).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+							}
 						/>
 						<YAxis tickFormatter={(value) => `$${value.toFixed(2)}`} />
 						<Tooltip
@@ -394,7 +393,9 @@ export default function AnalyticsPage() {
 						<CartesianGrid strokeDasharray="3 3" />
 						<XAxis
 							dataKey="date"
-							tickFormatter={(value) => new Date(value).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+							tickFormatter={(value) =>
+								new Date(value).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+							}
 						/>
 						<YAxis />
 						<Tooltip

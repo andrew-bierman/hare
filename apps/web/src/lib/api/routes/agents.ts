@@ -277,11 +277,7 @@ async function getAgentToolIds(input: GetAgentToolIdsInput): Promise<string[]> {
 /**
  * Find an agent by ID and workspace, or return null.
  */
-async function findAgentByIdAndWorkspace(
-	db: Database,
-	id: string,
-	workspaceId: string,
-) {
+async function findAgentByIdAndWorkspace(db: Database, id: string, workspaceId: string) {
 	const [agent] = await db
 		.select()
 		.from(agents)
