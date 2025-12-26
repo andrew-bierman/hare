@@ -1,6 +1,9 @@
 'use client'
 
-import { InstructionsEditor, type InstructionsEditorProps } from '@workspace/ui'
+import {
+	InstructionsEditor,
+	type InstructionsEditorProps,
+} from '@workspace/ui/components/instructions-editor'
 import { AGENT_LIMITS } from 'web-app/config'
 
 interface AgentInstructionsEditorProps extends Omit<InstructionsEditorProps, 'maxLength'> {

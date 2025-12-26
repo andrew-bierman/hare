@@ -96,7 +96,10 @@ const ConfigurePayloadSchema = z.object({
  * - Tool execution
  * - Scheduled tasks
  */
-export class HareAgent extends Agent<CloudflareEnv, HareAgentState> {
+// Use Required to satisfy Agent's Env constraint
+type AgentEnv = Required<CloudflareEnv>
+
+export class HareAgent extends Agent<AgentEnv, HareAgentState> {
 	// Tools available to this agent
 	private tools: Map<string, Tool> = new Map()
 

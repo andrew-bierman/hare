@@ -18,7 +18,7 @@
 			"@workspace/ui/*": ["packages/ui/src/*"],
 			"@workspace/ui": ["packages/ui/src/index.ts"]
 		},
-		"types": ["node"]
+		"types": ["bun"]
 	},
 	"include": [
 		"apps/**/*.ts",

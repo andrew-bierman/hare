@@ -1,0 +1,60 @@
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "hare-e2e",
+	"main": "custom-worker.ts",
+	"compatibility_date": "2025-12-01",
+	"compatibility_flags": ["nodejs_compat"],
+
+	// Use local persistence for all bindings (no remote Cloudflare connection needed)
+	// This config is used for E2E tests in CI where we don't have CF credentials
+
+	// D1 Database - local only (no database_id = local persistence)
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "hare-db-e2e"
+		}
+	],
+
+	// KV Namespace - local only (no id = local persistence)
+	"kv_namespaces": [
+		{
+			"binding": "KV"
+		}
+	],
+
+	// R2 Bucket - local only (no bucket_name with ID = local persistence)
+	"r2_buckets": [
+		{
+			"binding": "R2",
+			"bucket_name": "hare-storage-e2e"
+		}
+	],
+
+	// Workers AI - local mock
+	"ai": {
+		"binding": "AI"
+	},
+
+	// Durable Objects for CF Agents - local only
+	"durable_objects": {
+		"bindings": [
+			{
+				"name": "HARE_AGENT",
+				"class_name": "HareAgent"
+			},
+			{
+				"name": "MCP_AGENT",
+				"class_name": "HareMcpAgent"
+			}
+		]
+	},
+
+	// Migrations for Durable Objects
+	"migrations": [
+		{
+			"tag": "v1",
+			"new_sqlite_classes": ["HareAgent", "HareMcpAgent"]
+		}
+	]
+}
