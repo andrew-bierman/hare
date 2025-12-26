@@ -81,6 +81,26 @@ export const DeployAgentSchema = z
 	.openapi('DeployAgent')
 
 /**
+ * Deployment endpoints schema.
+ */
+export const DeploymentEndpointsSchema = z
+	.object({
+		chat: z.string().url().openapi({
+			example: 'https://hare.app/api/agents/agent_abc123/chat',
+			description: 'HTTP endpoint for sending chat messages',
+		}),
+		websocket: z.string().url().openapi({
+			example: 'wss://hare.app/api/agents/agent_abc123/ws',
+			description: 'WebSocket endpoint for real-time chat',
+		}),
+		state: z.string().url().openapi({
+			example: 'https://hare.app/api/agents/agent_abc123/state',
+			description: 'Endpoint to retrieve agent state',
+		}),
+	})
+	.openapi('DeploymentEndpoints')
+
+/**
  * Deployment response schema.
  */
 export const DeploymentSchema = z
@@ -91,13 +111,10 @@ export const DeploymentSchema = z
 		}),
 		deployedAt: z.string().datetime().openapi({ example: '2024-12-01T00:00:00Z' }),
 		version: z.string().openapi({ example: '1.0.0' }),
-		url: z.string().url().optional().openapi({
-			example: 'https://hare.example.com/api/agents/agent_abc123/do',
-			description: 'HTTP endpoint URL for the deployed agent',
+		url: z.string().url().openapi({
+			example: 'https://hare.app/api/agents/agent_abc123',
+			description: 'Base URL for the deployed agent',
 		}),
-		wsUrl: z.string().optional().openapi({
-			example: 'wss://hare.example.com/api/agents/agent_abc123/ws',
-			description: 'WebSocket endpoint URL for real-time communication',
-		}),
+		endpoints: DeploymentEndpointsSchema,
 	})
 	.openapi('Deployment')

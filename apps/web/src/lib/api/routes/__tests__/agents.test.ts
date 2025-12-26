@@ -77,5 +77,22 @@ describe('Agents API', () => {
 			)
 			expect(res.status).toBe(401)
 		})
+
+		it('returns 401 for unauthenticated POST /api/agents/validate', async () => {
+			const res = await app.request(
+				'/api/agents/validate',
+				{
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({
+						name: 'Test Agent',
+						model: 'claude-3-5-sonnet-20241022',
+						instructions: 'You are a helpful assistant.',
+					}),
+				},
+				env,
+			)
+			expect(res.status).toBe(401)
+		})
 	})
 })

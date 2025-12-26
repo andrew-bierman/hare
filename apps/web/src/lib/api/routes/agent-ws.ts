@@ -403,4 +403,124 @@ app.openapi(agentSchedulesRoute, async (c) => {
 	return c.json(result, 200)
 })
 
+// Chat route for deployed agents
+const agentChatRoute = createRoute({
+	method: 'post',
+	path: '/agents/{id}/chat',
+	tags: ['Agent WebSocket'],
+	summary: 'Send message to agent',
+	description:
+		'Send a chat message to a deployed agent and receive a response. This is the HTTP endpoint for the agent chat.',
+	request: {
+		params: IdParamSchema,
+		body: {
+			content: {
+				'application/json': {
+					schema: z.object({
+						message: z.string().min(1).describe('The message to send to the agent'),
+						userId: z.string().optional().describe('Optional user ID for tracking'),
+						sessionId: z
+							.string()
+							.optional()
+							.describe('Optional session ID for conversation continuity'),
+						metadata: z.record(z.string(), z.unknown()).optional().describe('Optional metadata'),
+					}),
+				},
+			},
+		},
+	},
+	responses: {
+		200: {
+			description: 'Chat response',
+			content: {
+				'application/json': {
+					schema: z.object({
+						response: z.string(),
+						sessionId: z.string().optional(),
+					}),
+				},
+			},
+		},
+		400: {
+			description: 'Agent not deployed',
+			content: { 'application/json': { schema: ErrorSchema } },
+		},
+		403: {
+			description: 'Access denied',
+			content: { 'application/json': { schema: ErrorSchema } },
+		},
+		404: {
+			description: 'Agent not found',
+			content: { 'application/json': { schema: ErrorSchema } },
+		},
+		503: {
+			description: 'Service unavailable',
+			content: { 'application/json': { schema: ErrorSchema } },
+		},
+	},
+})
+
+// Chat handler - routes to Durable Object
+app.openapi(agentChatRoute, async (c) => {
+	const { id: agentId } = c.req.valid('param')
+	const body = c.req.valid('json')
+	const db = await getDb(c)
+	const env = await getCloudflareEnv(c)
+	const user = c.get('user')
+
+	// Verify agent exists and is deployed
+	const [agent] = await db.select().from(agents).where(eq(agents.id, agentId))
+
+	if (!agent) {
+		return c.json({ error: 'Agent not found' }, 404)
+	}
+
+	if (agent.status !== 'deployed') {
+		return c.json({ error: 'Agent not deployed' }, 400)
+	}
+
+	// Authorization: verify user has access to the agent's workspace
+	if (user?.id) {
+		const hasAccess = await hasWorkspaceAccess(db, user.id, agent.workspaceId)
+		if (!hasAccess) {
+			return c.json({ error: 'Unauthorized: no access to this workspace' }, 403)
+		}
+	}
+
+	// Create chat request for Durable Object
+	const chatRequest = new Request(new URL('/chat', c.req.url).toString(), {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json' },
+		body: JSON.stringify({
+			type: 'chat',
+			payload: {
+				message: body.message,
+				userId: body.userId || user?.id || 'anonymous',
+				sessionId: body.sessionId,
+				metadata: body.metadata,
+			},
+		}),
+	})
+
+	// Route to Durable Object
+	const response = await routeHttpToAgent({
+		request: chatRequest,
+		env,
+		agentId,
+		path: '/chat',
+	})
+
+	// Return the response from the Durable Object
+	if (!response.ok) {
+		const errorResult = (await response.json()) as { error: string }
+		if (response.status === 400) {
+			return c.json({ error: errorResult.error || 'Bad request' }, 400)
+		}
+		return c.json({ error: errorResult.error || 'Service unavailable' }, 503)
+	}
+
+	const result = (await response.json()) as { response: string; sessionId?: string }
+	return c.json(result, 200)
+})
+
 export default app
