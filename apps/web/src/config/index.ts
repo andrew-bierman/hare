@@ -3,6 +3,8 @@
  * All UI content, feature flags, and settings should be defined here
  */
 
+import { serverEnv } from 'web-app/lib/env/server'
+
 // =============================================================================
 // App Metadata & Branding
 // =============================================================================
@@ -31,7 +33,7 @@ export const APP_CONFIG = {
 
 export const FEATURES = {
 	/** Enable developer mode UI helpers */
-	devMode: process.env.NODE_ENV === 'development',
+	devMode: serverEnv.NODE_ENV === 'development',
 	/** Show beta badge in UI */
 	showBetaBadge: true,
 	/** Enable workspace switching */
@@ -41,9 +43,9 @@ export const FEATURES = {
 	/** Enable custom tools */
 	customTools: true,
 	/** Enable AI chat features (feature flag for beta) */
-	aiChat: process.env.ENABLE_AI_CHAT !== 'false', // Default enabled, can be disabled
+	aiChat: serverEnv.ENABLE_AI_CHAT,
 	/** Restrict AI chat to specific users (beta mode) */
-	aiChatBetaMode: process.env.AI_CHAT_BETA_MODE === 'true', // Default false
+	aiChatBetaMode: serverEnv.AI_CHAT_BETA_MODE,
 	/** Enable rate limiting */
 	rateLimiting: true,
 } as const
@@ -56,8 +58,7 @@ export const BETA_ACCESS = {
 	/** Enable beta access restrictions */
 	enabled: FEATURES.aiChatBetaMode,
 	/** Allowed user emails (comma-separated) */
-	allowedEmails:
-		process.env.AI_CHAT_ALLOWED_EMAILS?.split(',').map((e) => e.trim().toLowerCase()) || [],
+	allowedEmails: serverEnv.AI_CHAT_ALLOWED_EMAILS,
 } as const
 
 // =============================================================================
