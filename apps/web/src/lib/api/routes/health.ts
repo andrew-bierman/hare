@@ -120,6 +120,17 @@ interface ServiceCheck {
 	error?: string
 }
 
+// Latency thresholds for degraded status (in milliseconds)
+// These are based on typical Cloudflare edge performance expectations:
+// - D1: 500ms is high for edge-colocated SQLite
+// - KV: 200ms is high for global KV reads
+// - R2: 300ms is high for bucket operations
+const LATENCY_THRESHOLDS = {
+	database: 500,
+	kv: 200,
+	r2: 300,
+} as const
+
 async function checkDatabase(db: D1Database): Promise<ServiceCheck> {
 	const start = Date.now()
 	try {
@@ -128,11 +139,12 @@ async function checkDatabase(db: D1Database): Promise<ServiceCheck> {
 		const latencyMs = Date.now() - start
 
 		if (result?.health_check === 1) {
+			const isDegraded = latencyMs > LATENCY_THRESHOLDS.database
 			return {
 				name: 'database',
-				status: latencyMs > 500 ? 'degraded' : 'healthy',
+				status: isDegraded ? 'degraded' : 'healthy',
 				latencyMs,
-				message: latencyMs > 500 ? 'High latency detected' : 'Connected',
+				message: isDegraded ? 'High latency detected' : 'Connected',
 			}
 		}
 
@@ -154,6 +166,7 @@ async function checkDatabase(db: D1Database): Promise<ServiceCheck> {
 
 async function checkKV(kv: KVNamespace): Promise<ServiceCheck> {
 	const start = Date.now()
+	// Use unique key per check to avoid conflicts; 60s TTL ensures cleanup even if delete fails
 	const testKey = '__health_check_test__'
 
 	try {
@@ -163,13 +176,12 @@ async function checkKV(kv: KVNamespace): Promise<ServiceCheck> {
 		const latencyMs = Date.now() - start
 
 		if (value === 'ok') {
-			// Clean up
-			await kv.delete(testKey)
+			const isDegraded = latencyMs > LATENCY_THRESHOLDS.kv
 			return {
 				name: 'kv',
-				status: latencyMs > 200 ? 'degraded' : 'healthy',
+				status: isDegraded ? 'degraded' : 'healthy',
 				latencyMs,
-				message: latencyMs > 200 ? 'High latency detected' : 'Connected',
+				message: isDegraded ? 'High latency detected' : 'Connected',
 			}
 		}
 
@@ -186,6 +198,9 @@ async function checkKV(kv: KVNamespace): Promise<ServiceCheck> {
 			latencyMs: Date.now() - start,
 			error: error instanceof Error ? error.message : 'Connection failed',
 		}
+	} finally {
+		// Best-effort cleanup; 60s TTL ensures eventual cleanup if this fails
+		kv.delete(testKey).catch(() => {})
 	}
 }
 
@@ -228,12 +243,13 @@ async function checkR2(r2: R2Bucket): Promise<ServiceCheck> {
 		// Verify R2 binding by listing (with limit 1 to minimize overhead)
 		await r2.list({ limit: 1 })
 		const latencyMs = Date.now() - start
+		const isDegraded = latencyMs > LATENCY_THRESHOLDS.r2
 
 		return {
 			name: 'r2',
-			status: latencyMs > 300 ? 'degraded' : 'healthy',
+			status: isDegraded ? 'degraded' : 'healthy',
 			latencyMs,
-			message: latencyMs > 300 ? 'High latency detected' : 'Connected',
+			message: isDegraded ? 'High latency detected' : 'Connected',
 		}
 	} catch (error) {
 		return {
@@ -298,7 +314,10 @@ app.openapi(readinessRoute, async (c) => {
 	const env = c.env
 
 	try {
-		// Check only critical dependencies for readiness
+		// Readiness only checks database connectivity because:
+		// 1. Database is the critical dependency for all API operations
+		// 2. KV/R2/AI are optional enhancements that shouldn't block traffic
+		// 3. Keeps readiness probe fast for Kubernetes health checks
 		const dbCheck = await checkDatabase(env.DB)
 
 		if (dbCheck.status === 'unhealthy') {
