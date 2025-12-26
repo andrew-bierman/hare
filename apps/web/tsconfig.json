@@ -6,7 +6,7 @@
 			"web-app/*": ["./src/*"],
 			"@workspace/ui/*": ["../../packages/ui/src/*"]
 		},
-		"types": ["node"],
+		"types": ["bun"],
 		"plugins": [{ "name": "next" }]
 	},
 	"include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "cloudflare-env.d.ts"],

@@ -85,11 +85,14 @@ Hare provides a **visual builder** for AI agents that deploy instantly to Cloudf
 - **⚡ One-Click Deploy** - Agents run on 300+ edge locations worldwide (as fast as a hare!)
 - **🚀 Sub-50ms Latency** - Cloudflare Workers cold starts are nearly instant
 - **🧠 Built-in Memory** - Conversation history, semantic recall, working memory
-- **🛠️ Tool Library** - HTTP, SQL, KV, R2, Vectorize tools out of the box
+- **🛠️ Tool Library** - 57 built-in tools (HTTP, SQL, KV, R2, AI, validation, and more)
 - **📜 Version Control** - Track changes, rollback to previous versions
 - **🔌 API Access** - REST API with streaming support
 - **👥 Team Collaboration** - Invite teammates, role-based access
 - **📊 Usage Analytics** - Token tracking, latency monitoring, cost insights
+- **🔌 MCP Support** - Model Context Protocol for external AI clients (Claude Desktop, Cursor)
+- **🌐 WebSocket Real-time** - Live agent communication with state sync
+- **🏥 Health Monitoring** - Liveness/readiness probes for all services
 
 ### 🔮 Coming Soon
 
@@ -107,7 +110,9 @@ Hare provides a **visual builder** for AI agents that deploy instantly to Cloudf
 | Layer | Technology | Why |
 |-------|------------|-----|
 | **🤖 AI SDK** | [Vercel AI SDK](https://sdk.vercel.ai/) | Streaming, tool calling, edge-compatible |
+| **🐇 Agents** | [Cloudflare Agents SDK](https://developers.cloudflare.com/agents/) | Stateful agents with Durable Objects |
 | **⚡ Runtime** | Cloudflare Workers | Sub-50ms cold starts, global edge |
+| **🏠 State** | Durable Objects | Stateful agent instances with WebSocket |
 | **💾 Database** | Cloudflare D1 | Edge SQL, co-located with Workers |
 | **🔍 ORM** | Drizzle ORM | Type-safe, SQLite-compatible |
 | **⚡ Cache** | Cloudflare KV | Global key-value store |
@@ -120,7 +125,8 @@ Hare provides a **visual builder** for AI agents that deploy instantly to Cloudf
 | **🎨 UI** | shadcn/ui + Tailwind | Accessible, customizable components |
 | **🔌 API** | Hono | Lightweight, Workers-native framework |
 | **📚 API Docs** | Scalar | Beautiful OpenAPI documentation |
-| **🏃 Runtime** | Bun | Fast, native TypeScript runtime |
+| **🔗 MCP** | Model Context Protocol | External AI client integration |
+| **🏃 Runtime** | Bun 1.3.5 | Fast, native TypeScript runtime |
 
 ---
 
@@ -150,9 +156,14 @@ hare/
 │       │   │   └── providers/        # React context providers
 │       │   ├── lib/
 │       │   │   ├── api/              # Hono app + routes
-│       │   │   │   ├── routes/       # API route handlers
+│       │   │   │   ├── routes/       # API route handlers (11 modules)
 │       │   │   │   ├── middleware/   # Auth, workspace middleware
 │       │   │   │   └── hooks/        # React Query hooks
+│       │   │   ├── agents/           # Cloudflare Agents SDK
+│       │   │   │   ├── hare-agent.ts # Main agent (Durable Object)
+│       │   │   │   ├── mcp-agent.ts  # MCP server agent
+│       │   │   │   ├── tools/        # 57 tool implementations
+│       │   │   │   └── providers/    # LLM providers (Workers AI)
 │       │   │   ├── auth/             # Better Auth config
 │       │   │   └── client.ts         # Hono RPC client
 │       │   ├── db/                   # Database layer
@@ -189,7 +200,7 @@ The application is built as a **single Next.js application** deployed to Cloudfl
 
 ### 📋 Prerequisites
 
-- **[Bun](https://bun.sh)** >= 1.0 (recommended) or Node.js >= 20
+- **[Bun](https://bun.sh)** >= 1.3.5 (recommended) or Node.js >= 20
 - **[Wrangler](https://developers.cloudflare.com/workers/wrangler/)** >= 3.0 (Cloudflare CLI)
 - Cloudflare account (free tier works!)
 
@@ -491,6 +502,27 @@ All routes are defined in `apps/web/src/lib/api/` and mounted at `/api`.
 | `GET` | `/api/tools/:id` | Get tool |
 | `PATCH` | `/api/tools/:id` | Update tool |
 | `DELETE` | `/api/tools/:id` | Delete tool |
+
+### Health Routes
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/api/health` | Full system health status (DB, KV, R2, AI) |
+| `GET` | `/api/health/live` | Liveness probe (is service running?) |
+| `GET` | `/api/health/ready` | Readiness probe (can accept traffic?) |
+
+### Analytics Routes
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/api/analytics` | Get comprehensive analytics data |
+
+### MCP Routes
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/api/mcp/:workspaceId` | WebSocket upgrade for MCP connection |
+| `GET` | `/api/mcp/:workspaceId/info` | Get MCP server info and capabilities |
 
 ### Documentation
 
@@ -1061,7 +1093,7 @@ Hare pricing is designed to be simple and predictable (no surprise bills! 💰):
 
 ## Roadmap
 
-> **Where we are**: Hare has a solid foundation with full backend infrastructure, AI agent execution engine, and streaming chat capabilities. We're now focused on polishing the frontend experience and adding production features.
+> **Where we are**: Hare has a solid foundation with full backend infrastructure, AI agent execution engine, streaming chat, MCP support, and Cloudflare Agents SDK integration. We're now focused on polishing the frontend experience and adding production features.
 
 ### 🔥 Current Focus
 
@@ -1072,6 +1104,10 @@ Hare pricing is designed to be simple and predictable (no surprise bills! 💰):
 | ✅ | Visual tool picker in agent builder | Complete | `medium` |
 | ✅ | Rich instructions editor (CodeMirror) | Complete | `medium` |
 | ✅ | Analytics dashboard with charts | Complete | `medium` |
+| ✅ | MCP (Model Context Protocol) support | Complete | `hard` |
+| ✅ | Cloudflare Agents SDK integration | Complete | `hard` |
+| ✅ | Health monitoring endpoints | Complete | `medium` |
+| ✅ | WebSocket real-time agent communication | Complete | `hard` |
 | 🥇 | OAuth providers (Google, GitHub) | Up Next | `medium` |
 | 🥈 | Workers deployment pipeline | Planned | `hard` |
 
@@ -1083,21 +1119,21 @@ Hare pricing is designed to be simple and predictable (no surprise bills! 💰):
 
 | Version | Codename | Target | Key Features |
 |---------|----------|--------|--------------|
-| `v0.1.0` | **Sprinter** | Phase 1 Complete | Agent builder, deployment, API |
-| `v0.2.0` | **Dasher** | Phase 2 Complete | Billing, teams, analytics |
-| `v0.3.0` | **Racer** | Phase 3 Complete | Custom tools, workflows, webhooks |
-| `v1.0.0` | **Hare** | Production Ready | Enterprise features, SSO, SLA |
+| `v0.1.0` | **Sprinter** | ✅ Complete | Agent builder, 57 tools, streaming API |
+| `v0.2.0` | **Dasher** | 🚧 In Progress | MCP, Agents SDK, Analytics, Health checks |
+| `v0.3.0` | **Racer** | Planned | Billing, teams, custom tools, workflows |
+| `v1.0.0` | **Hare** | Planned | Enterprise features, SSO, SLA |
 
 ---
 
 ### 🎯 Progress Overview
 
 ```
-Foundation    ████████████████████ 100%  (Complete)
-Core Features █████████████░░░░░░░  65%  (In Progress)
-Production    ███░░░░░░░░░░░░░░░░░  15%  (Started)
-Advanced      ░░░░░░░░░░░░░░░░░░░░   0%  (Planned)
-Enterprise    ░░░░░░░░░░░░░░░░░░░░   0%  (Planned)
+Foundation    ████████████████████ 100%  ✅ Complete
+Core Features ████████████████░░░░  80%  🚧 In Progress
+Production    ████████░░░░░░░░░░░░  40%  🚧 Started
+Advanced      ██░░░░░░░░░░░░░░░░░░  10%  📋 Started
+Enterprise    ░░░░░░░░░░░░░░░░░░░░   0%  📋 Planned
 ```
 
 ---
@@ -1108,7 +1144,7 @@ Enterprise    ░░░░░░░░░░░░░░░░░░░░   0% 
 
 All core infrastructure is in place and production-ready:
 
-- [x] 🏗️ **Monorepo Setup** - Turborepo + Bun for blazing-fast builds
+- [x] 🏗️ **Monorepo Setup** - Turborepo + Bun 1.3.5 for blazing-fast builds
 - [x] ⚡ **Next.js 15 App** - Deployed to Cloudflare Pages with `@opennextjs/cloudflare`
 - [x] 💾 **Database Layer** - Complete D1 schema with Drizzle ORM
   - [x] Multi-tenant workspaces with role-based access
@@ -1117,14 +1153,14 @@ All core infrastructure is in place and production-ready:
   - [x] Conversation history and message storage
   - [x] Deployment tracking and usage metrics
 - [x] 🔌 **Type-Safe API** - Hono with OpenAPI + RPC client
-  - [x] 6 complete route modules: agents, workspaces, tools, chat, usage, auth
+  - [x] 11 complete route modules: agents, workspaces, tools, chat, usage, auth, analytics, health, mcp, agent-ws, dev
   - [x] Zod validation on all endpoints
   - [x] Middleware for auth and workspace context
   - [x] OpenAPI docs with Scalar UI at `/api/docs`
 - [x] 🤖 **AI Agent Engine** - Production-ready execution layer
   - [x] Vercel AI SDK integration for streaming
   - [x] Workers AI provider with model abstraction
-  - [x] 40+ built-in tools (KV, R2, Vectorize, HTTP, SQL, AI)
+  - [x] 57 built-in tools across 11 categories
   - [x] Memory system with conversation persistence
   - [x] Tool calling and result handling
 - [x] 🎨 **UI Foundation** - shadcn/ui component library integrated
@@ -1138,35 +1174,64 @@ All core infrastructure is in place and production-ready:
 
 ---
 
-### 🚧 Phase 1: Core Features (65% Complete)
+### ✅ Phase 1: Core Features (80% Complete)
 
 **Goal**: Get agents running on the edge with a polished user experience.
 
-**Currently Available:**
+**Complete:**
 
 - [x] 🔐 **Auth System** - Better Auth with email/password (OAuth ready)
 - [x] 💬 **Streaming Chat** - SSE-based chat with real-time responses
 - [x] 🧠 **Memory & Context** - Conversation history and working memory
-- [x] 🛠️ **Tool Library** - 40+ pre-built tools for agents
-- [x] 📊 **Basic Dashboard** - Pages for agents, settings, usage
+- [x] 🛠️ **Tool Library** - 57 pre-built tools across 11 categories:
+  - Cloudflare Native: KV, R2, SQL, HTTP, AI Search (17 tools)
+  - Utility: datetime, json, text, math, uuid, hash, base64, url, delay (9 tools)
+  - AI: sentiment, summarize, translate, image_generate, classify, NER, embedding, Q&A (8 tools)
+  - Data: RSS, scrape, regex, crypto, json_schema, csv, template (7 tools)
+  - Validation: email, phone, URL, credit card, IP, JSON (6 tools)
+  - Transform: markdown, diff, QR code, compression, color (5 tools)
+  - Sandbox: code_execute, code_validate, sandbox_file (3 tools)
+  - Integrations: Zapier, webhook (2 tools)
+- [x] 📊 **Dashboard** - Pages for agents, settings, usage
 - [x] ⚙️ **Agent Configuration** - Backend API for full agent CRUD
-
-**In Progress:**
-
-- [x] 🎮 **Agent Builder UI** (90% complete)
+- [x] 🎮 **Agent Builder UI**
   - [x] Agent list view with status indicators
   - [x] Agent detail page with configuration forms
   - [x] Model selector dropdown
   - [x] Rich instructions editor (CodeMirror)
   - [x] Visual tool picker with drag-and-drop
-  - [ ] Configuration validation and preview `easy` `good-first-issue`
+- [x] 🏥 **Health Monitoring**
+  - [x] System health endpoint with service checks (DB, KV, R2, AI)
+  - [x] Liveness probe for container orchestration
+  - [x] Readiness probe for traffic acceptance
+  - [x] Latency thresholds and degraded status detection
+- [x] 🐇 **Cloudflare Agents SDK Integration**
+  - [x] HareAgent Durable Object with stateful conversations
+  - [x] WebSocket support with hibernation
+  - [x] Real-time state synchronization
+  - [x] Scheduling and alarms (cron + one-time)
+  - [x] Tool execution within agent context
+- [x] 🔗 **MCP (Model Context Protocol)**
+  - [x] HareMcpAgent for external AI clients
+  - [x] WebSocket endpoint for Claude Desktop, Cursor, etc.
+  - [x] All 57 tools exposed via MCP
+  - [x] Workspace resources and context
+
+**Remaining:**
+
+- [ ] 🔑 **OAuth Providers** (Up Next)
+  - [ ] Google OAuth integration `medium`
+  - [ ] GitHub OAuth integration `medium`
 - [ ] 🚀 **One-Click Deployment** (30% complete)
   - [x] Deployment tracking in database
   - [x] Agent serialization and config export
   - [ ] Cloudflare Workers deployment via Wrangler API `hard`
   - [ ] Edge endpoint provisioning (URL generation) `medium`
   - [ ] Deployment rollback mechanism `medium`
-  - [ ] Health checks and monitoring `easy` `good-first-issue`
+- [ ] ✅ **Configuration Validation** `easy` `good-first-issue`
+  - [ ] Validate agent config before save
+  - [ ] Preview mode for testing
+
 **Difficulty Legend:** `easy` = good for beginners | `medium` = some experience needed | `hard` = complex task
 
 **Next Steps** (Priority order):
@@ -1176,7 +1241,7 @@ All core infrastructure is in place and production-ready:
 
 ---
 
-### 🏭 Phase 2: Production Ready (25% Complete)
+### 🏭 Phase 2: Production Ready (40% Complete)
 
 **Goal**: Make Hare production-ready with monitoring, billing, and team features.
 
@@ -1184,6 +1249,8 @@ All core infrastructure is in place and production-ready:
 
 - [x] 📊 **Usage Tracking** - Backend tracking for tokens and requests
 - [x] 📈 **Analytics Dashboard** - Charts, visualizations, cost estimates, token usage by agent
+- [x] 🚦 **Rate Limiting** - Configurable rate limiters (standard, strict, chat)
+- [x] 🛡️ **Security Headers** - CSP, HSTS, XSS protection, CORS
 
 **Planned:**
 
@@ -1215,20 +1282,27 @@ All core infrastructure is in place and production-ready:
 
 ---
 
-### 🚀 Phase 3: Advanced Features (Planned)
+### 🚀 Phase 3: Advanced Features (10% Started)
 
 **Goal**: Differentiate Hare with unique capabilities and enterprise features.
+
+**Started:**
+
+- [x] ⏰ **Scheduled Agents** (Backend complete, UI pending)
+  - [x] Cron-based execution via Durable Objects
+  - [x] One-time scheduled tasks
+  - [x] Task state tracking
+  - [ ] Trigger configuration UI `medium`
+  - [ ] Execution history view `easy`
+  - [ ] Failure notifications `medium`
+
+**Planned:**
 
 - [ ] 🔧 **Custom Tool Builder**
   - [ ] Visual HTTP tool configuration (no code)
   - [ ] TypeScript tool templates
   - [ ] Tool testing sandbox
   - [ ] Tool marketplace (share/discover)
-- [ ] ⏰ **Scheduled Agents**
-  - [ ] Cron-based execution
-  - [ ] Trigger configuration UI
-  - [ ] Execution history
-  - [ ] Failure notifications
 - [ ] 🔗 **Multi-Agent Workflows**
   - [ ] Visual workflow designer
   - [ ] Agent chaining and branching
@@ -1289,11 +1363,14 @@ Key architecture choices and the reasoning behind them:
 | Decision | Choice | Rationale |
 |----------|--------|-----------|
 | **Runtime** | Cloudflare Workers | Sub-50ms cold starts, global edge network, native AI bindings |
+| **Agents** | Cloudflare Agents SDK | Stateful agents with Durable Objects, WebSocket, scheduling |
+| **State** | Durable Objects | Persistent agent state, hibernation, real-time sync |
 | **Database** | D1 (SQLite) | Co-located with Workers, zero network latency, familiar SQL |
 | **ORM** | Drizzle | Type-safe, SQLite-compatible, excellent DX |
 | **API Framework** | Hono | Ultrafast, Workers-native, OpenAPI support, RPC client |
 | **Auth** | Better Auth | Open source, self-hosted, TypeScript-first |
 | **AI SDK** | Vercel AI SDK | Streaming primitives, tool calling, provider-agnostic |
+| **MCP** | Model Context Protocol | Standard for AI client integration (Claude, Cursor) |
 | **Frontend** | Next.js 15 | RSC, App Router, excellent Cloudflare Pages support |
 | **Styling** | Tailwind + shadcn/ui | Accessible, customizable, consistent design |
 | **Monorepo** | Turborepo + Bun | Fast builds, workspace management, native TS |
@@ -1305,6 +1382,8 @@ Key architecture choices and the reasoning behind them:
 - **Why not Clerk/Auth0?** Better Auth is self-hosted (no vendor lock-in) and free
 - **Why not tRPC?** Hono RPC provides similar type-safety with OpenAPI compatibility
 - **Why not Postgres?** D1 offers zero-latency from Workers; Postgres would add network hops
+- **Why Cloudflare Agents SDK?** Native Durable Object integration, WebSocket hibernation, built-in scheduling
+- **Why MCP?** Industry standard for AI tool sharing, works with Claude Desktop, Cursor, and more
 
 ---
 
@@ -1357,15 +1436,25 @@ We're tracking these metrics to measure progress:
 
 Ideas we're considering but haven't scheduled:
 
-- Voice agent support (Speech-to-Text + TTS)
-- Agent marketplace (discover and clone agents)
-- A/B testing for agent variations
-- Fine-tuning support for custom models
-- Agent analytics (user satisfaction, conversation quality)
-- Mobile app for agent management
-- Agent templates library (customer support, sales, etc.)
-- Integration with vector databases (Pinecone, Weaviate)
+**AI & Agents:**
+- Voice agent support (Speech-to-Text + TTS via Workers AI)
 - Multi-modal support (images, PDFs, videos)
+- Fine-tuning support for custom models
+- Agent templates library (customer support, sales, etc.)
+- A/B testing for agent variations
+- Agent analytics (user satisfaction, conversation quality)
+
+**Platform:**
+- Agent marketplace (discover and clone agents)
+- Tool marketplace via MCP
+- Mobile app for agent management
+- Integration with additional vector databases (Pinecone, Weaviate)
+- Bring your own LLM (OpenAI, Anthropic, etc.)
+
+**MCP Ecosystem:**
+- MCP prompts and prompt templates
+- MCP resource subscriptions
+- Cross-workspace tool sharing
 
 Have ideas? [Open an issue](https://github.com/andrew-bierman/hare/issues) to discuss! 💚
 
