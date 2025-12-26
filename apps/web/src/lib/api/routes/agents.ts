@@ -19,6 +19,11 @@ import {
 	UpdateAgentSchema,
 } from '../schemas'
 import { serializeAgent } from '../serializers'
+import {
+	deactivateDeployment,
+	getDeploymentHistory,
+	rollbackDeployment,
+} from '../services/deployment'
 import type { WorkspaceEnv } from '../types'
 import { validateAgentInstructions } from '../utils/sanitize'
 
@@ -211,7 +216,7 @@ const deployAgentRoute = createRoute({
 	path: '/{id}/deploy',
 	tags: ['Agents'],
 	summary: 'Deploy agent',
-	description: 'Deploy an agent to production',
+	description: 'Deploy an agent to production with endpoint URLs',
 	request: {
 		params: IdParamSchema,
 		query: z.object({
@@ -290,6 +295,118 @@ const getDeploymentRoute = createRoute({
 					schema: ErrorSchema,
 				},
 			},
+		},
+		...commonResponses,
+	},
+})
+
+const undeployAgentRoute = createRoute({
+	method: 'post',
+	path: '/{id}/undeploy',
+	tags: ['Agents'],
+	summary: 'Undeploy agent',
+	description: 'Remove an agent from production',
+	request: {
+		params: IdParamSchema,
+		query: z.object({
+			workspaceId: z.string().describe('Workspace ID'),
+		}),
+	},
+	responses: {
+		200: {
+			description: 'Agent undeployed successfully',
+			content: {
+				'application/json': {
+					schema: SuccessSchema,
+				},
+			},
+		},
+		403: {
+			description: 'Admin access required',
+			content: { 'application/json': { schema: ErrorSchema } },
+		},
+		404: {
+			description: 'Agent not found',
+			content: { 'application/json': { schema: ErrorSchema } },
+		},
+		...commonResponses,
+	},
+})
+
+const rollbackAgentRoute = createRoute({
+	method: 'post',
+	path: '/{id}/rollback',
+	tags: ['Agents'],
+	summary: 'Rollback agent deployment',
+	description: 'Rollback to a previous deployment version',
+	request: {
+		params: IdParamSchema,
+		query: z.object({
+			workspaceId: z.string().describe('Workspace ID'),
+		}),
+		body: {
+			content: {
+				'application/json': {
+					schema: z.object({
+						version: z.string().optional().describe('Target version to rollback to'),
+					}),
+				},
+			},
+		},
+	},
+	responses: {
+		200: {
+			description: 'Rollback successful',
+			content: {
+				'application/json': {
+					schema: z.object({
+						success: z.boolean(),
+						previousVersion: z.string().optional(),
+						currentVersion: z.string().optional(),
+						message: z.string(),
+					}),
+				},
+			},
+		},
+		403: {
+			description: 'Admin access required',
+			content: { 'application/json': { schema: ErrorSchema } },
+		},
+		404: {
+			description: 'Agent not found',
+			content: { 'application/json': { schema: ErrorSchema } },
+		},
+		...commonResponses,
+	},
+})
+
+const deploymentHistoryRoute = createRoute({
+	method: 'get',
+	path: '/{id}/deployments',
+	tags: ['Agents'],
+	summary: 'Get deployment history',
+	description: 'Get the deployment history for an agent',
+	request: {
+		params: IdParamSchema,
+		query: z.object({
+			workspaceId: z.string().describe('Workspace ID'),
+			limit: z.coerce.number().optional().default(10).describe('Maximum number of results'),
+		}),
+	},
+	responses: {
+		200: {
+			description: 'Deployment history',
+			content: {
+				'application/json': {
+					schema: z.object({
+						deployments: z.array(DeploymentSchema),
+					}),
+				},
+			},
+		},
+		404: {
+			description: 'Agent not found',
+			content: { 'application/json': { schema: ErrorSchema } },
 		},
 		...commonResponses,
 	},
@@ -714,6 +831,89 @@ app.openapi(getDeploymentRoute, async (c) => {
 				websocket: `${wsBaseUrl}/api/agents/${id}/ws`,
 				state: `${agentBaseUrl}/state`,
 			},
+		},
+		200,
+	)
+})
+
+app.openapi(undeployAgentRoute, async (c) => {
+	const { id } = c.req.valid('param')
+	const db = await getDb(c)
+	const workspace = c.get('workspace')
+	const role = c.get('workspaceRole')
+
+	requireAdminAccess(role)
+
+	const existing = await findAgentByIdAndWorkspace(db, id, workspace.id)
+	if (!existing) {
+		return c.json({ error: 'Agent not found' }, 404)
+	}
+
+	const result = await deactivateDeployment({ db, agentId: id })
+	return c.json(result, 200)
+})
+
+app.openapi(rollbackAgentRoute, async (c) => {
+	const { id } = c.req.valid('param')
+	const data = c.req.valid('json')
+	const db = await getDb(c)
+	const user = c.get('user')
+	const workspace = c.get('workspace')
+	const role = c.get('workspaceRole')
+
+	requireAdminAccess(role)
+
+	const existing = await findAgentByIdAndWorkspace(db, id, workspace.id)
+	if (!existing) {
+		return c.json({ error: 'Agent not found' }, 404)
+	}
+
+	const result = await rollbackDeployment({
+		db,
+		agentId: id,
+		targetVersion: data.version,
+		deployedBy: user.id,
+	})
+
+	return c.json(result, 200)
+})
+
+app.openapi(deploymentHistoryRoute, async (c) => {
+	const { id } = c.req.valid('param')
+	const { limit } = c.req.valid('query')
+	const db = await getDb(c)
+	const workspace = c.get('workspace')
+
+	const existing = await findAgentByIdAndWorkspace(db, id, workspace.id)
+	if (!existing) {
+		return c.json({ error: 'Agent not found' }, 404)
+	}
+
+	const history = await getDeploymentHistory({ db, agentId: id, limit })
+
+	// Generate URLs based on request origin
+	const requestUrl = new URL(c.req.url)
+	const baseUrl = `${requestUrl.protocol}//${requestUrl.host}`
+	const wsProtocol = requestUrl.protocol === 'https:' ? 'wss:' : 'ws:'
+	const wsBaseUrl = `${wsProtocol}//${requestUrl.host}`
+
+	return c.json(
+		{
+			deployments: history.map((d) => {
+				const agentBaseUrl = d.url || `${baseUrl}/api/agents/${id}`
+				return {
+					id: d.id,
+					status: d.status,
+					deployedAt: d.deployedAt.toISOString(),
+					version: d.version,
+					url: agentBaseUrl,
+					endpoints: {
+						chat: `${agentBaseUrl}/chat`,
+						websocket: `${wsBaseUrl}/api/agents/${id}/ws`,
+						state: `${agentBaseUrl}/state`,
+					},
+				}
+			}),
 		},
 		200,
 	)

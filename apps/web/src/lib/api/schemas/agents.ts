@@ -105,8 +105,10 @@ export const DeploymentEndpointsSchema = z
  */
 export const DeploymentSchema = z
 	.object({
-		id: z.string().openapi({ example: 'agent_abc123' }),
-		status: AgentStatusSchema,
+		id: z.string().openapi({ example: 'deploy_abc123' }),
+		status: z.enum(['deployed', 'active', 'pending', 'failed', 'inactive', 'rolled_back']).openapi({
+			example: 'deployed',
+		}),
 		deployedAt: z.string().datetime().openapi({ example: '2024-12-01T00:00:00Z' }),
 		version: z.string().openapi({ example: '1.0.0' }),
 		url: z.string().url().openapi({

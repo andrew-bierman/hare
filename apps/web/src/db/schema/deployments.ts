@@ -18,6 +18,7 @@ export const deployments = sqliteTable('deployments', {
 		buildTime?: number
 		commitHash?: string
 		config?: Record<string, unknown>
+		rollbackFrom?: string
 	}>(),
 	deployedBy: text('deployedBy')
 		.notNull()

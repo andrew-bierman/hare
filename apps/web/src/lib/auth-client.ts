@@ -6,3 +6,18 @@ export const authClient = createAuthClient({
 })
 
 export const { signIn, signUp, signOut, useSession, getSession } = authClient
+
+// Social sign-in helper functions
+export function signInWithGoogle() {
+	return signIn.social({
+		provider: 'google',
+		callbackURL: '/dashboard',
+	})
+}
+
+export function signInWithGitHub() {
+	return signIn.social({
+		provider: 'github',
+		callbackURL: '/dashboard',
+	})
+}

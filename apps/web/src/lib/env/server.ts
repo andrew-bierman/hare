@@ -35,6 +35,11 @@ const serverEnvSchema = z.object({
 		.string()
 		.optional()
 		.transform((val) => (val ? val.split(',').map((e) => e.trim().toLowerCase()) : [])),
+	// OAuth providers (optional)
+	GOOGLE_CLIENT_ID: z.string().optional(),
+	GOOGLE_CLIENT_SECRET: z.string().optional(),
+	GITHUB_CLIENT_ID: z.string().optional(),
+	GITHUB_CLIENT_SECRET: z.string().optional(),
 })
 
 function validateServerEnv() {
@@ -67,6 +72,10 @@ function validateServerEnv() {
 		ENABLE_AI_CHAT: getEnv('ENABLE_AI_CHAT'),
 		AI_CHAT_BETA_MODE: getEnv('AI_CHAT_BETA_MODE'),
 		AI_CHAT_ALLOWED_EMAILS: getEnv('AI_CHAT_ALLOWED_EMAILS'),
+		GOOGLE_CLIENT_ID: getEnv('GOOGLE_CLIENT_ID'),
+		GOOGLE_CLIENT_SECRET: getEnv('GOOGLE_CLIENT_SECRET'),
+		GITHUB_CLIENT_ID: getEnv('GITHUB_CLIENT_ID'),
+		GITHUB_CLIENT_SECRET: getEnv('GITHUB_CLIENT_SECRET'),
 	})
 
 	if (!result.success) {

@@ -112,6 +112,19 @@ async function del<T>(path: string, params?: Record<string, string | undefined>)
 }
 
 // =============================================================================
+// Auth API
+// =============================================================================
+
+export interface OAuthProviders {
+	google: boolean
+	github: boolean
+}
+
+export const auth = {
+	getProviders: () => get<{ providers: OAuthProviders }>('/api/auth/providers'),
+}
+
+// =============================================================================
 // Agents API
 // =============================================================================
 
@@ -264,6 +277,7 @@ export const analytics = {
 export const apiClient = {
 	agents,
 	analytics,
+	auth,
 	tools,
 	workspaces,
 	usage,
