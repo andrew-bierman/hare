@@ -13,6 +13,8 @@ jobs:
   dependency-audit:
     name: Dependency Security Audit
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -38,6 +40,8 @@ jobs:
   secret-scanning:
     name: Secret Scanning
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -86,6 +90,8 @@ jobs:
   security-tests:
     name: Security Unit Tests
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -107,6 +113,8 @@ jobs:
   security-headers-check:
     name: Security Headers Check
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     if: github.event_name == 'pull_request'
     steps:
       - name: Checkout code
@@ -145,6 +153,8 @@ jobs:
   summary:
     name: Security Audit Summary
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     needs: [dependency-audit, secret-scanning, codeql-analysis, security-tests, security-headers-check]
     if: always()
     steps:
