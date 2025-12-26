@@ -1,21 +1,21 @@
 'use client'
 
-import {
-	Layers,
-	HardDrive,
-	Database,
-	Globe,
-	Search,
-	Brain,
-	Wrench,
-	Plug,
-	FileCode,
-	Code,
-	CheckCircle,
-	RefreshCw,
-} from 'lucide-react'
 import { Button } from '@workspace/ui/components/button'
 import { cn } from '@workspace/ui/lib/utils'
+import {
+	Brain,
+	CheckCircle,
+	Code,
+	Database,
+	FileCode,
+	Globe,
+	HardDrive,
+	Layers,
+	Plug,
+	RefreshCw,
+	Search,
+	Wrench,
+} from 'lucide-react'
 import type { ToolCategoriesProps, ToolCategoryInfo } from './types'
 
 const CATEGORIES: ToolCategoryInfo[] = [
@@ -75,7 +75,7 @@ export function ToolCategories({
 								'ml-1 rounded-full px-2 py-0.5 text-xs',
 								isActive
 									? 'bg-primary-foreground/20 text-primary-foreground'
-									: 'bg-muted text-muted-foreground'
+									: 'bg-muted text-muted-foreground',
 							)}
 						>
 							{count}

@@ -1,15 +1,13 @@
 'use client'
 
-import { useState, useMemo } from 'react'
-import { ArrowDownToLine, BarChart3, Calendar, DollarSign, TrendingUp, Zap } from 'lucide-react'
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from '@workspace/ui/components/card'
 import { Button } from '@workspace/ui/components/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@workspace/ui/components/card'
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuTrigger,
+} from '@workspace/ui/components/dropdown-menu'
 import {
 	Select,
 	SelectContent,
@@ -17,32 +15,28 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from '@workspace/ui/components/select'
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuTrigger,
-} from '@workspace/ui/components/dropdown-menu'
 import { Skeleton } from '@workspace/ui/components/skeleton'
-import { useWorkspace } from 'web-app/components/providers/workspace-provider'
-import { useAnalytics, useAgents, type Agent } from 'web-app/lib/api/hooks'
-import { ChartContainer } from 'web-app/components/charts'
-import { exportToCSV, exportToJSON } from 'web-app/lib/utils/export'
+import { ArrowDownToLine, BarChart3, Calendar, DollarSign, TrendingUp, Zap } from 'lucide-react'
+import { useMemo, useState } from 'react'
 import {
-	LineChart,
-	Line,
-	BarChart,
 	Bar,
-	PieChart,
-	Pie,
+	BarChart,
+	CartesianGrid,
 	Cell,
+	Legend,
+	Line,
+	LineChart,
+	Pie,
+	PieChart,
+	ResponsiveContainer,
+	Tooltip,
 	XAxis,
 	YAxis,
-	CartesianGrid,
-	Tooltip,
-	Legend,
-	ResponsiveContainer,
 } from 'recharts'
+import { ChartContainer } from 'web-app/components/charts'
+import { useWorkspace } from 'web-app/components/providers/workspace-provider'
+import { type Agent, useAgents, useAnalytics } from 'web-app/lib/api/hooks'
+import { exportToCSV, exportToJSON } from 'web-app/lib/utils/export'
 
 const DATE_RANGES = [
 	{ value: '7d', label: 'Last 7 days' },
@@ -111,15 +105,12 @@ export default function AnalyticsPage() {
 		}
 	}, [dateRange])
 
-	const { data: analyticsData, isLoading: analyticsLoading } = useAnalytics(
-		activeWorkspace?.id,
-		{
-			startDate,
-			endDate,
-			agentId: selectedAgentId === 'all' ? undefined : selectedAgentId,
-			groupBy,
-		}
-	)
+	const { data: analyticsData, isLoading: analyticsLoading } = useAnalytics(activeWorkspace?.id, {
+		startDate,
+		endDate,
+		agentId: selectedAgentId === 'all' ? undefined : selectedAgentId,
+		groupBy,
+	})
 
 	const isLoading = workspaceLoading || analyticsLoading
 
@@ -141,7 +132,10 @@ export default function AnalyticsPage() {
 		if (!analyticsData) return
 
 		if (format === 'csv') {
-			exportToCSV(analyticsData.timeSeries, 'analytics-timeseries')
+			exportToCSV(
+				analyticsData.timeSeries as unknown as Record<string, unknown>[],
+				'analytics-timeseries',
+			)
 		} else {
 			exportToJSON(analyticsData, 'analytics')
 		}
@@ -191,9 +185,7 @@ export default function AnalyticsPage() {
 							</Button>
 						</DropdownMenuTrigger>
 						<DropdownMenuContent>
-							<DropdownMenuItem onClick={() => handleExport('csv')}>
-								Export as CSV
-							</DropdownMenuItem>
+							<DropdownMenuItem onClick={() => handleExport('csv')}>Export as CSV</DropdownMenuItem>
 							<DropdownMenuItem onClick={() => handleExport('json')}>
 								Export as JSON
 							</DropdownMenuItem>
@@ -249,7 +241,9 @@ export default function AnalyticsPage() {
 			{/* Summary Stats */}
 			<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
 				{isLoading
-					? [...Array(4)].map((_, i) => <StatCardSkeleton key={i} />)
+					? ['analytics-sk-1', 'analytics-sk-2', 'analytics-sk-3', 'analytics-sk-4'].map((id) => (
+							<StatCardSkeleton key={id} />
+						))
 					: stats.map((stat) => (
 							<Card key={stat.title}>
 								<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -276,12 +270,14 @@ export default function AnalyticsPage() {
 						<CartesianGrid strokeDasharray="3 3" />
 						<XAxis
 							dataKey="date"
-							tickFormatter={(value) => new Date(value).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+							tickFormatter={(value) =>
+								new Date(value).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+							}
 						/>
 						<YAxis />
 						<Tooltip
 							labelFormatter={(value) => new Date(value).toLocaleDateString()}
-							formatter={(value: number) => formatNumber(value)}
+							formatter={(value) => formatNumber(value as number)}
 						/>
 						<Legend />
 						<Line
@@ -315,7 +311,7 @@ export default function AnalyticsPage() {
 							<CartesianGrid strokeDasharray="3 3" />
 							<XAxis type="number" />
 							<YAxis dataKey="agentName" type="category" width={100} />
-							<Tooltip formatter={(value: number) => formatNumber(value)} />
+							<Tooltip formatter={(value) => formatNumber(value as number)} />
 							<Legend />
 							<Bar dataKey="inputTokens" stackId="a" fill={CHART_COLORS[0]} name="Input" />
 							<Bar dataKey="outputTokens" stackId="a" fill={CHART_COLORS[1]} name="Output" />
@@ -333,19 +329,24 @@ export default function AnalyticsPage() {
 					<ResponsiveContainer width="100%" height={300}>
 						<PieChart>
 							<Pie
-								data={analyticsData?.byModel}
+								data={analyticsData?.byModel as unknown as Record<string, unknown>[] | undefined}
 								dataKey="totalTokens"
 								nameKey="modelName"
 								cx="50%"
 								cy="50%"
 								outerRadius={80}
-								label={(entry) => `${entry.modelName}: ${formatNumber(entry.totalTokens)}`}
+								label={(entry) =>
+									`${(entry as unknown as Record<string, unknown>).modelName}: ${formatNumber((entry as unknown as Record<string, unknown>).totalTokens as number)}`
+								}
 							>
-								{analyticsData?.byModel.map((_, index) => (
-									<Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
+								{analyticsData?.byModel.map((model) => (
+									<Cell
+										key={model.modelName}
+										fill={CHART_COLORS[analyticsData.byModel.indexOf(model) % CHART_COLORS.length]}
+									/>
 								))}
 							</Pie>
-							<Tooltip formatter={(value: number) => formatNumber(value)} />
+							<Tooltip formatter={(value) => formatNumber(value as number)} />
 						</PieChart>
 					</ResponsiveContainer>
 				</ChartContainer>
@@ -363,12 +364,14 @@ export default function AnalyticsPage() {
 						<CartesianGrid strokeDasharray="3 3" />
 						<XAxis
 							dataKey="date"
-							tickFormatter={(value) => new Date(value).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+							tickFormatter={(value) =>
+								new Date(value).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+							}
 						/>
 						<YAxis tickFormatter={(value) => `$${value.toFixed(2)}`} />
 						<Tooltip
 							labelFormatter={(value) => new Date(value).toLocaleDateString()}
-							formatter={(value: number) => formatCurrency(value)}
+							formatter={(value) => formatCurrency(value as number)}
 						/>
 						<Legend />
 						<Line
@@ -394,12 +397,14 @@ export default function AnalyticsPage() {
 						<CartesianGrid strokeDasharray="3 3" />
 						<XAxis
 							dataKey="date"
-							tickFormatter={(value) => new Date(value).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+							tickFormatter={(value) =>
+								new Date(value).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+							}
 						/>
 						<YAxis />
 						<Tooltip
 							labelFormatter={(value) => new Date(value).toLocaleDateString()}
-							formatter={(value: number) => formatNumber(value)}
+							formatter={(value) => formatNumber(value as number)}
 						/>
 						<Legend />
 						<Bar dataKey="requests" fill={CHART_COLORS[2]} name="Requests" />

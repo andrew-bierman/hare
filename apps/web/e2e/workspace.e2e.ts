@@ -1,4 +1,4 @@
-import { expect, type Page, test as baseTest } from '@playwright/test'
+import { test as baseTest, expect, type Page } from '@playwright/test'
 import { test } from './fixtures'
 
 /**
@@ -12,7 +12,9 @@ test.describe('Workspace Switcher - Authenticated', () => {
 		await authenticatedPage.waitForLoadState('networkidle')
 
 		// Look for workspace switcher button
-		const workspaceSwitcher = authenticatedPage.locator('[data-testid="workspace-switcher"]').first()
+		const workspaceSwitcher = authenticatedPage
+			.locator('[data-testid="workspace-switcher"]')
+			.first()
 		// If no data-testid, look for the button in the sidebar
 		const sidebarButton = authenticatedPage.locator('aside button').first()
 
@@ -129,18 +131,17 @@ test.describe('Workspace Context', () => {
 })
 
 baseTest.describe('Workspace Access Control', () => {
-	baseTest('unauthenticated user cannot access workspace-specific features', async ({
-		page,
-	}: {
-		page: Page
-	}) => {
-		// Try to access workspace page directly
-		await page.goto('/dashboard')
-		await page.waitForLoadState('networkidle')
+	baseTest(
+		'unauthenticated user cannot access workspace-specific features',
+		async ({ page }: { page: Page }) => {
+			// Try to access workspace page directly
+			await page.goto('/dashboard')
+			await page.waitForLoadState('networkidle')
 
-		// Page should still load (middleware might allow it) but show limited content
-		// or redirect to login
-		const url = page.url()
-		expect(url.includes('/dashboard') || url.includes('/sign-in')).toBe(true)
-	})
+			// Page should still load (middleware might allow it) but show limited content
+			// or redirect to login
+			const url = page.url()
+			expect(url.includes('/dashboard') || url.includes('/sign-in')).toBe(true)
+		},
+	)
 })

@@ -1,7 +1,7 @@
 import { every } from 'hono/combine'
 import { authMiddleware, optionalAuthMiddleware } from './auth'
-import { workspaceMiddleware, requirePermission } from './workspace'
 import { apiRateLimiter, chatRateLimiter, strictRateLimiter } from './rate-limit'
+import { requirePermission, workspaceMiddleware } from './workspace'
 
 /**
  * Pre-combined middleware chains for common route patterns.
@@ -49,7 +49,12 @@ export const rateLimitedRoute = every(apiRateLimiter, authMiddleware, workspaceM
 /**
  * Strict rate-limited admin route (for sensitive operations like deploy)
  */
-export const strictAdminRoute = every(strictRateLimiter, authMiddleware, workspaceMiddleware, requirePermission('admin'))
+export const strictAdminRoute = every(
+	strictRateLimiter,
+	authMiddleware,
+	workspaceMiddleware,
+	requirePermission('admin'),
+)
 
 /**
  * Chat route with rate limiting (optional auth)

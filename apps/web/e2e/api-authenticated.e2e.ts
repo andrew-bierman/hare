@@ -1,5 +1,5 @@
-import { type APIRequestContext, expect, type Page, test as baseTest } from '@playwright/test'
-import { test, generateTestUser } from './fixtures'
+import { type APIRequestContext, test as baseTest, expect } from '@playwright/test'
+import { test } from './fixtures'
 
 /**
  * Comprehensive API tests for authenticated endpoints.
@@ -7,50 +7,45 @@ import { test, generateTestUser } from './fixtures'
  */
 
 baseTest.describe('API Authentication Requirements', () => {
-	baseTest('workspaces endpoint requires authentication', async ({
-		request,
-	}: {
-		request: APIRequestContext
-	}) => {
-		const response = await request.get('/api/workspaces')
-		expect(response.status()).toBe(401)
-	})
+	baseTest(
+		'workspaces endpoint requires authentication',
+		async ({ request }: { request: APIRequestContext }) => {
+			const response = await request.get('/api/workspaces')
+			expect(response.status()).toBe(401)
+		},
+	)
 
-	baseTest('agents endpoint requires authentication', async ({
-		request,
-	}: {
-		request: APIRequestContext
-	}) => {
-		const response = await request.get('/api/agents?workspaceId=test')
-		expect(response.status()).toBe(401)
-	})
+	baseTest(
+		'agents endpoint requires authentication',
+		async ({ request }: { request: APIRequestContext }) => {
+			const response = await request.get('/api/agents?workspaceId=test')
+			expect(response.status()).toBe(401)
+		},
+	)
 
-	baseTest('tools endpoint requires authentication', async ({
-		request,
-	}: {
-		request: APIRequestContext
-	}) => {
-		const response = await request.get('/api/tools?workspaceId=test')
-		expect(response.status()).toBe(401)
-	})
+	baseTest(
+		'tools endpoint requires authentication',
+		async ({ request }: { request: APIRequestContext }) => {
+			const response = await request.get('/api/tools?workspaceId=test')
+			expect(response.status()).toBe(401)
+		},
+	)
 
-	baseTest('usage endpoint requires authentication', async ({
-		request,
-	}: {
-		request: APIRequestContext
-	}) => {
-		const response = await request.get('/api/usage?workspaceId=test')
-		expect(response.status()).toBe(401)
-	})
+	baseTest(
+		'usage endpoint requires authentication',
+		async ({ request }: { request: APIRequestContext }) => {
+			const response = await request.get('/api/usage?workspaceId=test')
+			expect(response.status()).toBe(401)
+		},
+	)
 
-	baseTest('dev/seed endpoint requires authentication', async ({
-		request,
-	}: {
-		request: APIRequestContext
-	}) => {
-		const response = await request.post('/api/dev/seed')
-		expect(response.status()).toBe(401)
-	})
+	baseTest(
+		'dev/seed endpoint requires authentication',
+		async ({ request }: { request: APIRequestContext }) => {
+			const response = await request.post('/api/dev/seed')
+			expect(response.status()).toBe(401)
+		},
+	)
 })
 
 test.describe('Workspaces API - Authenticated', () => {
@@ -125,7 +120,7 @@ test.describe('Agents API - Authenticated', () => {
 					model: 'llama-3.3-70b',
 					instructions: 'You are a helpful test assistant.',
 				},
-			}
+			},
 		)
 
 		expect(createResponse.status()).toBe(201)
@@ -136,7 +131,7 @@ test.describe('Agents API - Authenticated', () => {
 
 		// Delete the agent
 		const deleteResponse = await authenticatedPage.request.delete(
-			`/api/agents/${agent.id}?workspaceId=${workspaceId}`
+			`/api/agents/${agent.id}?workspaceId=${workspaceId}`,
 		)
 		expect(deleteResponse.status()).toBe(200)
 	})
@@ -159,7 +154,7 @@ test.describe('Agents API - Authenticated', () => {
 					description: 'Original description',
 					model: 'llama-3.3-70b',
 				},
-			}
+			},
 		)
 		const agent = await createResponse.json()
 
@@ -171,7 +166,7 @@ test.describe('Agents API - Authenticated', () => {
 					description: 'Updated description',
 					instructions: 'Updated instructions for deployment',
 				},
-			}
+			},
 		)
 
 		expect(updateResponse.status()).toBe(200)
@@ -201,7 +196,7 @@ test.describe('Agents API - Authenticated', () => {
 					model: 'llama-3.3-70b',
 					instructions: 'You are a helpful assistant for testing deployments.',
 				},
-			}
+			},
 		)
 		const agent = await createResponse.json()
 
@@ -210,7 +205,7 @@ test.describe('Agents API - Authenticated', () => {
 			`/api/agents/${agent.id}/deploy?workspaceId=${workspaceId}`,
 			{
 				data: {},
-			}
+			},
 		)
 
 		expect(deployResponse.status()).toBe(200)
@@ -238,7 +233,7 @@ test.describe('Agents API - Authenticated', () => {
 					name: `No Instructions Agent ${Date.now()}`,
 					model: 'llama-3.3-70b',
 				},
-			}
+			},
 		)
 		const agent = await createResponse.json()
 
@@ -247,7 +242,7 @@ test.describe('Agents API - Authenticated', () => {
 			`/api/agents/${agent.id}/deploy?workspaceId=${workspaceId}`,
 			{
 				data: {},
-			}
+			},
 		)
 
 		expect(deployResponse.status()).toBe(400)
@@ -268,7 +263,7 @@ test.describe('Tools API - Authenticated', () => {
 		const workspaceId = workspaces[0]?.id
 
 		const response = await authenticatedPage.request.get(
-			`/api/tools?workspaceId=${workspaceId}&includeSystem=true`
+			`/api/tools?workspaceId=${workspaceId}&includeSystem=true`,
 		)
 		expect(response.status()).toBe(200)
 
@@ -276,7 +271,7 @@ test.describe('Tools API - Authenticated', () => {
 		expect(Array.isArray(tools)).toBe(true)
 
 		// Should have system tools
-		const systemTools = tools.filter((t: any) => t.id?.startsWith('system-'))
+		const systemTools = tools.filter((t: { id?: string }) => t.id?.startsWith('system-'))
 		expect(systemTools.length).toBeGreaterThan(0)
 	})
 
@@ -289,12 +284,12 @@ test.describe('Tools API - Authenticated', () => {
 		const workspaceId = workspaces[0]?.id
 
 		const response = await authenticatedPage.request.get(
-			`/api/tools?workspaceId=${workspaceId}&includeSystem=true`
+			`/api/tools?workspaceId=${workspaceId}&includeSystem=true`,
 		)
 		const tools = await response.json()
 
 		// Find HTTP system tool
-		const httpTool = tools.find((t: any) => t.id === 'system-http')
+		const httpTool = tools.find((t: { id?: string }) => t.id === 'system-http')
 		expect(httpTool).toBeDefined()
 		expect(httpTool.name).toBe('HTTP Request')
 		expect(httpTool.type).toBe('http')
@@ -318,7 +313,7 @@ test.describe('Tools API - Authenticated', () => {
 					type: 'http',
 					config: { url: 'https://api.example.com' },
 				},
-			}
+			},
 		)
 
 		expect(createResponse.status()).toBe(201)
@@ -328,7 +323,7 @@ test.describe('Tools API - Authenticated', () => {
 
 		// Delete the tool
 		const deleteResponse = await authenticatedPage.request.delete(
-			`/api/tools/${tool.id}?workspaceId=${workspaceId}`
+			`/api/tools/${tool.id}?workspaceId=${workspaceId}`,
 		)
 		expect(deleteResponse.status()).toBe(200)
 	})
@@ -343,7 +338,7 @@ test.describe('Tools API - Authenticated', () => {
 
 		// Try to delete a system tool
 		const deleteResponse = await authenticatedPage.request.delete(
-			`/api/tools/system-http?workspaceId=${workspaceId}`
+			`/api/tools/system-http?workspaceId=${workspaceId}`,
 		)
 		expect(deleteResponse.status()).toBe(400)
 	})

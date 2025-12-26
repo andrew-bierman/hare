@@ -1,8 +1,8 @@
 'use client'
 
-import { Check } from 'lucide-react'
 import { Badge } from '@workspace/ui/components/badge'
 import { cn } from '@workspace/ui/lib/utils'
+import { Check } from 'lucide-react'
 import type { ToolCardProps } from './types'
 
 const TOOL_TYPE_ICONS: Record<string, string> = {
@@ -18,24 +18,17 @@ export function ToolCard({ tool, isSelected, isDisabled, onToggle }: ToolCardPro
 	const icon = TOOL_TYPE_ICONS[tool.type] || '🔧'
 
 	return (
-		<div
+		<button
+			type="button"
 			className={cn(
-				'group relative cursor-pointer rounded-lg border p-4 transition-all duration-200',
+				'group relative w-full cursor-pointer rounded-lg border p-4 text-left transition-all duration-200',
 				'hover:border-primary/50 hover:bg-accent/50',
 				isSelected && 'border-primary bg-primary/5 ring-2 ring-primary/20',
-				isDisabled && !isSelected && 'cursor-not-allowed opacity-50'
+				isDisabled && !isSelected && 'cursor-not-allowed opacity-50',
 			)}
 			onClick={() => !isDisabled && onToggle()}
-			role="button"
-			tabIndex={0}
-			onKeyDown={(e) => {
-				if ((e.key === 'Enter' || e.key === ' ') && !isDisabled) {
-					e.preventDefault()
-					onToggle()
-				}
-			}}
 			aria-pressed={isSelected}
-			aria-disabled={isDisabled}
+			disabled={isDisabled && !isSelected}
 		>
 			{/* Selection indicator */}
 			{isSelected && (
@@ -66,6 +59,6 @@ export function ToolCard({ tool, isSelected, isDisabled, onToggle }: ToolCardPro
 					</div>
 				</div>
 			</div>
-		</div>
+		</button>
 	)
 }

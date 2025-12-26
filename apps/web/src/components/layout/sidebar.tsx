@@ -2,7 +2,7 @@
 
 import { Badge } from '@workspace/ui/components/badge'
 import { cn } from '@workspace/ui/lib/utils'
-import { Activity, BarChart3, Bot, Home, Rabbit, Settings, Sparkles, Wrench } from 'lucide-react'
+import { Activity, BarChart3, Bot, Home, Rabbit, Settings, Wrench } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { APP_CONFIG, DASHBOARD_CONTENT, FEATURES, NAV_ITEMS } from 'web-app/config'
@@ -32,9 +32,14 @@ export function Sidebar() {
 					<div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-orange-500 to-amber-500 shadow-lg shadow-orange-500/25">
 						<Rabbit className="h-5 w-5 text-white" />
 					</div>
-					<span className="font-bold text-lg bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">{APP_CONFIG.name}</span>
+					<span className="font-bold text-lg bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">
+						{APP_CONFIG.name}
+					</span>
 					{FEATURES.showBetaBadge && (
-						<Badge variant="secondary" className="text-[10px] px-1.5 bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400">
+						<Badge
+							variant="secondary"
+							className="text-[10px] px-1.5 bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400"
+						>
 							{APP_CONFIG.stage}
 						</Badge>
 					)}

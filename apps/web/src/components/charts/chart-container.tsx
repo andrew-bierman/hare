@@ -1,6 +1,12 @@
 'use client'
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@workspace/ui/components/card'
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardHeader,
+	CardTitle,
+} from '@workspace/ui/components/card'
 import { Skeleton } from '@workspace/ui/components/skeleton'
 import type { ReactNode } from 'react'
 

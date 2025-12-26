@@ -9,7 +9,6 @@ import {
 	CardHeader,
 	CardTitle,
 } from '@workspace/ui/components/card'
-import { Checkbox } from '@workspace/ui/components/checkbox'
 import {
 	Dialog,
 	DialogContent,
@@ -34,12 +33,11 @@ import { Rocket, Trash2 } from 'lucide-react'
 import { useParams, useRouter } from 'next/navigation'
 import { type ChangeEvent, useEffect, useState } from 'react'
 import { toast } from 'sonner'
-import { useWorkspace } from 'web-app/components/providers/workspace-provider'
 import { AgentInstructionsEditor } from 'web-app/components/agent/agent-instructions-editor'
 import { ToolPicker } from 'web-app/components/agent/tool-picker'
+import { useWorkspace } from 'web-app/components/providers/workspace-provider'
 import {
 	AVAILABLE_MODELS,
-	type Tool,
 	useAgent,
 	useAgentUsage,
 	useDeleteAgent,
@@ -93,7 +91,7 @@ export default function AgentBuilderPage() {
 	const [isDeleteOpen, setIsDeleteOpen] = useState(false)
 	const [hasChanges, setHasChanges] = useState(false)
 
-	const tools = toolsData?.tools ?? []
+	const _tools = toolsData?.tools ?? []
 
 	// Initialize form with agent data
 	useEffect(() => {
@@ -329,7 +327,10 @@ export default function AgentBuilderPage() {
 						<CardHeader>
 							<CardTitle>System Prompt</CardTitle>
 							<CardDescription>
-								Define how your agent behaves and responds. Use Markdown formatting and template variables like {'{'}{'{'} user_name {'}'}{'}'}  for dynamic content.
+								Define how your agent behaves and responds. Use Markdown formatting and template
+								variables like {'{'}
+								{'{'} user_name {'}'}
+								{'}'} for dynamic content.
 							</CardDescription>
 						</CardHeader>
 						<CardContent className="space-y-4">
@@ -355,8 +356,8 @@ export default function AgentBuilderPage() {
 						<CardHeader>
 							<CardTitle>Agent Tools</CardTitle>
 							<CardDescription>
-								Select and configure tools to extend your agent's capabilities.
-								Drag to reorder tool priority.
+								Select and configure tools to extend your agent's capabilities. Drag to reorder tool
+								priority.
 							</CardDescription>
 						</CardHeader>
 						<CardContent>

@@ -1,19 +1,19 @@
 'use client'
 
 import {
-	DndContext,
 	closestCenter,
+	DndContext,
+	type DragEndEvent,
 	KeyboardSensor,
 	PointerSensor,
 	useSensor,
 	useSensors,
-	type DragEndEvent,
 } from '@dnd-kit/core'
 import {
+	arrayMove,
+	horizontalListSortingStrategy,
 	SortableContext,
 	sortableKeyboardCoordinates,
-	horizontalListSortingStrategy,
-	arrayMove,
 } from '@dnd-kit/sortable'
 import { SortableToolItem } from './sortable-tool-item'
 import type { SelectedToolsProps } from './types'
@@ -23,7 +23,7 @@ export function SelectedTools({ tools, onRemove, onReorder }: SelectedToolsProps
 		useSensor(PointerSensor),
 		useSensor(KeyboardSensor, {
 			coordinateGetter: sortableKeyboardCoordinates,
-		})
+		}),
 	)
 
 	function handleDragEnd(event: DragEndEvent) {
@@ -41,7 +41,9 @@ export function SelectedTools({ tools, onRemove, onReorder }: SelectedToolsProps
 	if (tools.length === 0) {
 		return (
 			<div className="flex min-h-[80px] items-center justify-center rounded-lg border border-dashed bg-muted/30 p-4">
-				<p className="text-sm text-muted-foreground">No tools selected. Click on tools below to add them.</p>
+				<p className="text-sm text-muted-foreground">
+					No tools selected. Click on tools below to add them.
+				</p>
 			</div>
 		)
 	}

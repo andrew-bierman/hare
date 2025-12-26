@@ -1,7 +1,7 @@
 'use client'
 
-import { ToolCallBlock } from './tool-call-block'
 import type { ToolCallData } from 'web-app/lib/api/hooks/use-chat'
+import { ToolCallBlock } from './tool-call-block'
 
 interface ToolCallListProps {
 	toolCalls: ToolCallData[]

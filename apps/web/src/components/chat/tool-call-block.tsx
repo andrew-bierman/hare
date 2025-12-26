@@ -1,25 +1,25 @@
 'use client'
 
-import { useState } from 'react'
 import { Badge } from '@workspace/ui/components/badge'
 import { Button } from '@workspace/ui/components/button'
 import { Card, CardContent } from '@workspace/ui/components/card'
-import { Skeleton } from '@workspace/ui/components/skeleton'
 import {
 	Collapsible,
 	CollapsibleContent,
 	CollapsibleTrigger,
 } from '@workspace/ui/components/collapsible'
+import { Skeleton } from '@workspace/ui/components/skeleton'
 import {
+	CheckCircle2,
 	ChevronDown,
 	ChevronRight,
-	CheckCircle2,
-	XCircle,
-	Loader2,
-	Wrench,
 	Clock,
 	Code,
+	Loader2,
+	Wrench,
+	XCircle,
 } from 'lucide-react'
+import { useState } from 'react'
 import type { ToolCallData } from 'web-app/lib/api/hooks/use-chat'
 
 interface ToolCallBlockProps {
@@ -77,7 +77,8 @@ function StatusIcon({ status }: { status: ToolCallData['status'] }) {
 export function ToolCallBlock({ toolCall }: ToolCallBlockProps) {
 	const [isOpen, setIsOpen] = useState(false)
 	const category = getToolCategory(toolCall.name)
-	const categoryStyle = TOOL_CATEGORIES[category] || TOOL_CATEGORIES.default
+	const defaultStyle = { color: 'bg-gray-500/10 text-gray-600 border-gray-500/20', icon: 'wrench' }
+	const categoryStyle = TOOL_CATEGORIES[category] ?? defaultStyle
 
 	const duration =
 		toolCall.completedAt && toolCall.startedAt
@@ -90,11 +91,7 @@ export function ToolCallBlock({ toolCall }: ToolCallBlockProps) {
 				<CollapsibleTrigger asChild>
 					<div className="flex items-center gap-3 p-3 cursor-pointer hover:bg-muted/50 transition-colors rounded-t-lg">
 						<Button variant="ghost" size="icon" className="h-6 w-6 p-0">
-							{isOpen ? (
-								<ChevronDown className="h-4 w-4" />
-							) : (
-								<ChevronRight className="h-4 w-4" />
-							)}
+							{isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
 						</Button>
 
 						<div className="flex items-center gap-2 flex-1">
