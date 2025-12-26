@@ -31,8 +31,9 @@ export {
 	requireWriteAccess,
 } from './permissions'
 
-// Testing helpers - for type-safe API testing
-export { client, createTestClient, createMockRequest, type AppType } from './testing'
+// Testing helpers are exported separately to avoid circular dependencies
+// Import directly from './testing' when needed in tests:
+// import { client, createTestClient } from 'web-app/lib/api/helpers/testing'
 
 // Accepts helpers - for content negotiation
 export {

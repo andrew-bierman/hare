@@ -54,14 +54,7 @@ const routes = app
   .route("/dev", dev)
   .route("/mcp", mcp);
 
-// Development: Show registered routes on startup
-if (process.env.NODE_ENV === "development") {
-  console.log(`\n🚀 Hare API using ${getRouterName(app)} router`);
-  showRoutes(app, { verbose: true, colorize: true });
-  console.log("");
-}
-
-// OpenAPI documentation
+// OpenAPI documentation - must be registered before showRoutes
 app.doc("/openapi.json", {
   openapi: "3.1.0",
   info: {
@@ -117,6 +110,13 @@ app.get("/health", (c) =>
     version: "1.0.0",
   }),
 );
+
+// Development: Show registered routes on startup (after all routes are defined)
+if (process.env.NODE_ENV === "development") {
+  console.log(`\n🚀 Hare API using ${getRouterName(app)} router`);
+  showRoutes(app, { verbose: true, colorize: true });
+  console.log("");
+}
 
 // Export the chained routes type for RPC client
 export type AppType = typeof routes;
