@@ -1069,11 +1069,11 @@ Hare pricing is designed to be simple and predictable (no surprise bills! 💰):
 
 | Priority | Item | Status | Difficulty |
 |----------|------|--------|------------|
-| 🥇 | Visual tool picker in agent builder | In Progress | `medium` |
-| 🥈 | Rich instructions editor (Monaco) | Up Next | `medium` |
-| 🥉 | Workers deployment pipeline | Up Next | `hard` |
-| 4️⃣ | OAuth providers (Google, GitHub) | Planned | `medium` |
-| 5️⃣ | Analytics dashboard with charts | Planned | `medium` |
+| ✅ | Visual tool picker in agent builder | Complete | `medium` |
+| ✅ | Rich instructions editor (CodeMirror) | Complete | `medium` |
+| ✅ | Analytics dashboard with charts | Complete | `medium` |
+| 🥇 | OAuth providers (Google, GitHub) | Up Next | `medium` |
+| 🥈 | Workers deployment pipeline | Planned | `hard` |
 
 **Want to help?** Items marked `easy` are great for first-time contributors! See [How to Contribute](#-how-to-contribute) below.
 
@@ -1153,14 +1153,13 @@ All core infrastructure is in place and production-ready:
 
 **In Progress:**
 
-- [ ] 🎮 **Agent Builder UI** (60% complete)
+- [x] 🎮 **Agent Builder UI** (90% complete)
   - [x] Agent list view with status indicators
   - [x] Agent detail page with configuration forms
   - [x] Model selector dropdown
-  - [ ] Rich instructions editor (Monaco/CodeMirror) `medium`
-  - [ ] Visual tool picker with drag-and-drop `medium` `help-wanted`
+  - [x] Rich instructions editor (CodeMirror)
+  - [x] Visual tool picker with drag-and-drop
   - [ ] Configuration validation and preview `easy` `good-first-issue`
-  - [ ] Agent testing interface `medium`
 - [ ] 🚀 **One-Click Deployment** (30% complete)
   - [x] Deployment tracking in database
   - [x] Agent serialization and config export
@@ -1171,26 +1170,20 @@ All core infrastructure is in place and production-ready:
 **Difficulty Legend:** `easy` = good for beginners | `medium` = some experience needed | `hard` = complex task
 
 **Next Steps** (Priority order):
-1. Complete visual tool picker in agent builder `help-wanted`
-2. Implement rich text editor for instructions (Monaco)
-3. Build deployment pipeline to Workers
-4. Add OAuth providers (Google, GitHub)
-5. Analytics dashboard with charts
+1. Add OAuth providers (Google, GitHub)
+2. Build deployment pipeline to Workers
+3. Configuration validation and preview
 
 ---
 
-### 🏭 Phase 2: Production Ready (15% Complete)
+### 🏭 Phase 2: Production Ready (25% Complete)
 
 **Goal**: Make Hare production-ready with monitoring, billing, and team features.
 
-**Partially Complete:**
+**Complete:**
 
 - [x] 📊 **Usage Tracking** - Backend tracking for tokens and requests
-- [ ] 📈 **Analytics Dashboard** (20% complete)
-  - [x] Usage data collection
-  - [ ] Charts and visualizations
-  - [ ] Cost estimates
-  - [ ] Token usage by agent
+- [x] 📈 **Analytics Dashboard** - Charts, visualizations, cost estimates, token usage by agent
 
 **Planned:**
 
