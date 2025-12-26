@@ -1,8 +1,8 @@
 'use client'
 
-import { Check } from 'lucide-react'
 import { Badge } from '@workspace/ui/components/badge'
 import { cn } from '@workspace/ui/lib/utils'
+import { Check } from 'lucide-react'
 import type { ToolCardProps } from './types'
 
 const TOOL_TYPE_ICONS: Record<string, string> = {
@@ -23,7 +23,7 @@ export function ToolCard({ tool, isSelected, isDisabled, onToggle }: ToolCardPro
 				'group relative cursor-pointer rounded-lg border p-4 transition-all duration-200',
 				'hover:border-primary/50 hover:bg-accent/50',
 				isSelected && 'border-primary bg-primary/5 ring-2 ring-primary/20',
-				isDisabled && !isSelected && 'cursor-not-allowed opacity-50'
+				isDisabled && !isSelected && 'cursor-not-allowed opacity-50',
 			)}
 			onClick={() => !isDisabled && onToggle()}
 			role="button"

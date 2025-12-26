@@ -8,14 +8,17 @@
  * because it uses the 'agents/mcp' package which depends on 'cloudflare:workers'.
  */
 
-import { McpAgent } from 'agents/mcp'
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
+import { McpAgent } from 'agents/mcp'
 import { z } from 'zod'
 import { getSystemTools, type Tool, type ToolContext } from './tools'
-import { type McpAgentState, DEFAULT_MCP_AGENT_STATE } from './types'
+import { DEFAULT_MCP_AGENT_STATE, type McpAgentState } from './types'
 
 // Re-export types for convenience
 export type { McpAgentState }
+
+// Use Required to satisfy McpAgent's Env constraint
+type AgentEnv = Required<CloudflareEnv>
 
 /**
  * HareMcpAgent - Exposes Hare tools via Model Context Protocol.
@@ -23,7 +26,7 @@ export type { McpAgentState }
  * MCP allows external AI clients (Claude, Cursor, etc.) to use
  * Hare's tools in a standardized way.
  */
-export class HareMcpAgent extends McpAgent<CloudflareEnv, McpAgentState, Record<string, unknown>> {
+export class HareMcpAgent extends McpAgent<AgentEnv, McpAgentState, Record<string, unknown>> {
 	/** Server configuration required by McpAgent */
 	server = new McpServer({
 		name: 'hare-mcp',

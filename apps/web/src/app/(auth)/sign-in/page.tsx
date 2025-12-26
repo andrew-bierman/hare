@@ -54,7 +54,9 @@ export default function SignInPage() {
 					<div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-orange-500 to-amber-500 shadow-lg shadow-orange-500/25">
 						<Rabbit className="h-6 w-6 text-white" />
 					</div>
-					<span className="font-bold text-2xl bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">{APP_CONFIG.name}</span>
+					<span className="font-bold text-2xl bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">
+						{APP_CONFIG.name}
+					</span>
 				</Link>
 			</div>
 

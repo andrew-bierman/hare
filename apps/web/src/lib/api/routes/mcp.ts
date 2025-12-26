@@ -25,12 +25,7 @@ async function hasWorkspaceAccess(
 	const [membership] = await db
 		.select()
 		.from(workspaceMembers)
-		.where(
-			and(
-				eq(workspaceMembers.workspaceId, workspaceId),
-				eq(workspaceMembers.userId, userId),
-			),
-		)
+		.where(and(eq(workspaceMembers.workspaceId, workspaceId), eq(workspaceMembers.userId, userId)))
 	return !!membership
 }
 

@@ -1,4 +1,4 @@
-import { expect, type Page, test as baseTest } from '@playwright/test'
+import { test as baseTest, expect, type Page } from '@playwright/test'
 import { test } from './fixtures'
 
 /**

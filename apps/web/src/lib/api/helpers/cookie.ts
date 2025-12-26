@@ -1,5 +1,5 @@
-import { getCookie, getSignedCookie, setCookie, setSignedCookie, deleteCookie } from 'hono/cookie'
 import type { Context } from 'hono'
+import { deleteCookie, getCookie, getSignedCookie, setCookie, setSignedCookie } from 'hono/cookie'
 
 /**
  * Cookie helpers using Hono's cookie helper.
@@ -48,7 +48,12 @@ export function getAllCookies(c: Context): Record<string, string> {
 /**
  * Set a cookie with secure defaults.
  */
-export function setSecureCookie(c: Context, name: string, value: string, options?: SecureCookieOptions): void {
+export function setSecureCookie(
+	c: Context,
+	name: string,
+	value: string,
+	options?: SecureCookieOptions,
+): void {
 	const opts = { ...DEFAULT_COOKIE_OPTIONS, ...options }
 	setCookie(c, name, value, opts)
 }
@@ -67,7 +72,7 @@ export function removeCookie(c: Context, name: string, path = '/'): void {
 export async function getSignedCookieValue(
 	c: Context,
 	name: string,
-	secret: string
+	secret: string,
 ): Promise<string | undefined | false> {
 	return getSignedCookie(c, secret, name)
 }
@@ -81,7 +86,7 @@ export async function setSignedSecureCookie(
 	name: string,
 	value: string,
 	secret: string,
-	options?: SecureCookieOptions
+	options?: SecureCookieOptions,
 ): Promise<void> {
 	const opts = { ...DEFAULT_COOKIE_OPTIONS, ...options }
 	await setSignedCookie(c, name, value, secret, opts)

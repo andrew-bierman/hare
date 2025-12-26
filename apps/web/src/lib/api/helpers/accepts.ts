@@ -1,5 +1,5 @@
-import { accepts } from 'hono/accepts'
 import type { Context } from 'hono'
+import { accepts } from 'hono/accepts'
 
 /**
  * Content negotiation helpers using Hono's accepts helper.

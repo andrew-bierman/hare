@@ -213,7 +213,7 @@ export function useChat(agentId: string | undefined) {
 										const lastMessage = updated[updated.length - 1]
 										if (lastMessage?.role === 'assistant' && lastMessage.toolCalls) {
 											const toolCall = lastMessage.toolCalls.find(
-												(tc) => tc.id === event.toolCallId
+												(tc) => tc.id === event.toolCallId,
 											)
 											if (toolCall) {
 												toolCall.status = event.isError ? 'error' : 'completed'

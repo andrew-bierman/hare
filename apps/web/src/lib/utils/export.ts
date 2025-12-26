@@ -3,9 +3,10 @@
  */
 
 export function exportToCSV(data: Record<string, unknown>[], filename: string) {
-	if (!data.length) return
+	const firstRow = data[0]
+	if (!firstRow) return
 
-	const headers = Object.keys(data[0])
+	const headers = Object.keys(firstRow)
 	const csvContent = [
 		headers.join(','),
 		...data.map((row) => headers.map((h) => JSON.stringify(row[h] ?? '')).join(',')),

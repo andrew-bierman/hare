@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import { useTools, type Tool } from 'web-app/lib/api/hooks'
+import { type Tool, useTools } from 'web-app/lib/api/hooks'
 import type { ToolCategory } from './types'
 
 const TOOL_CATEGORY_MAP: Record<string, ToolCategory> = {
@@ -63,14 +63,16 @@ const TOOL_CATEGORY_MAP: Record<string, ToolCategory> = {
 
 function getToolCategory(tool: Tool): ToolCategory {
 	// Try to match by type first
-	if (TOOL_CATEGORY_MAP[tool.type]) {
-		return TOOL_CATEGORY_MAP[tool.type]
+	const categoryByType = TOOL_CATEGORY_MAP[tool.type]
+	if (categoryByType) {
+		return categoryByType
 	}
 
 	// Try to match by name (lowercase, remove spaces/dashes)
 	const normalizedName = tool.name.toLowerCase().replace(/[\s-]/g, '_')
-	if (TOOL_CATEGORY_MAP[normalizedName]) {
-		return TOOL_CATEGORY_MAP[normalizedName]
+	const categoryByName = TOOL_CATEGORY_MAP[normalizedName]
+	if (categoryByName) {
+		return categoryByName
 	}
 
 	// Default to utility for custom tools
@@ -83,7 +85,11 @@ interface UseToolPickerOptions {
 	maxTools?: number
 }
 
-export function useToolPicker({ workspaceId, initialSelectedIds, maxTools = 20 }: UseToolPickerOptions) {
+export function useToolPicker({
+	workspaceId,
+	initialSelectedIds,
+	maxTools = 20,
+}: UseToolPickerOptions) {
 	const { data: toolsData, isLoading } = useTools(workspaceId)
 	const [selectedToolIds, setSelectedToolIds] = useState<string[]>(initialSelectedIds)
 	const [searchQuery, setSearchQuery] = useState('')
@@ -107,7 +113,7 @@ export function useToolPicker({ workspaceId, initialSelectedIds, maxTools = 20 }
 				(tool) =>
 					tool.name.toLowerCase().includes(query) ||
 					tool.description.toLowerCase().includes(query) ||
-					tool.type.toLowerCase().includes(query)
+					tool.type.toLowerCase().includes(query),
 			)
 		}
 

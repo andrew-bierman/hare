@@ -10,5 +10,5 @@
 		"plugins": [{ "name": "next" }]
 	},
 	"include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "cloudflare-env.d.ts"],
-	"exclude": ["node_modules"]
+	"exclude": ["node_modules", "**/__tests__/**"]
 }

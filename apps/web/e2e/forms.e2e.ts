@@ -1,4 +1,4 @@
-import { expect, type Page, test as baseTest } from '@playwright/test'
+import { test as baseTest, expect, type Page } from '@playwright/test'
 import { test } from './fixtures'
 
 baseTest.describe('Agent Creation Form - Unauthenticated', () => {
@@ -53,8 +53,12 @@ test.describe('Agent Creation Form - Authenticated', () => {
 
 		// Verify values
 		await expect(authenticatedPage.getByLabel(/Agent Name/)).toHaveValue(agentName)
-		await expect(authenticatedPage.getByLabel('Description')).toHaveValue('A comprehensive test agent')
-		await expect(authenticatedPage.getByLabel('System Prompt')).toHaveValue('You are a helpful AI assistant.')
+		await expect(authenticatedPage.getByLabel('Description')).toHaveValue(
+			'A comprehensive test agent',
+		)
+		await expect(authenticatedPage.getByLabel('System Prompt')).toHaveValue(
+			'You are a helpful AI assistant.',
+		)
 	})
 
 	test('form fields persist after typing', async ({ authenticatedPage }) => {

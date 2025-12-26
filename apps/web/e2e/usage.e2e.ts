@@ -1,4 +1,4 @@
-import { expect, type Page, test as baseTest } from '@playwright/test'
+import { test as baseTest, expect, type Page } from '@playwright/test'
 import { test } from './fixtures'
 
 /**
@@ -121,14 +121,17 @@ baseTest.describe('Usage Page - Empty States', () => {
 		await page.waitForLoadState('networkidle')
 	})
 
-	baseTest('shows appropriate message when no agents deployed', async ({ page }: { page: Page }) => {
-		// If there are no deployed agents, should show a message
-		const noAgentsMessage = page.getByText('No deployed agents yet')
-		// This may or may not be visible depending on the data
-		if (await noAgentsMessage.isVisible()) {
-			await expect(noAgentsMessage).toBeVisible()
-		}
-	})
+	baseTest(
+		'shows appropriate message when no agents deployed',
+		async ({ page }: { page: Page }) => {
+			// If there are no deployed agents, should show a message
+			const noAgentsMessage = page.getByText('No deployed agents yet')
+			// This may or may not be visible depending on the data
+			if (await noAgentsMessage.isVisible()) {
+				await expect(noAgentsMessage).toBeVisible()
+			}
+		},
+	)
 })
 
 test.describe('Usage Page - Authenticated', () => {

@@ -150,9 +150,7 @@ export default function DashboardPage() {
 			<div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
 				<div>
 					<h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{content.title}</h1>
-					<p className="text-muted-foreground text-sm sm:text-base mt-1">
-						{content.subtitle}
-					</p>
+					<p className="text-muted-foreground text-sm sm:text-base mt-1">{content.subtitle}</p>
 				</div>
 				<Link href="/dashboard/agents/new" className="w-full sm:w-auto">
 					<Button className="w-full sm:w-auto gap-2 h-11">
@@ -225,7 +223,9 @@ export default function DashboardPage() {
 				<div className="flex items-center justify-between mb-4">
 					<div>
 						<h2 className="text-lg sm:text-xl font-semibold">{content.recentAgents.title}</h2>
-						<p className="text-xs sm:text-sm text-muted-foreground">{content.recentAgents.subtitle}</p>
+						<p className="text-xs sm:text-sm text-muted-foreground">
+							{content.recentAgents.subtitle}
+						</p>
 					</div>
 					{agents.length > 0 && (
 						<Link href="/dashboard/agents">
@@ -289,7 +289,9 @@ export default function DashboardPage() {
 										<div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
 											<div className="flex items-center gap-1 bg-muted/50 px-2 py-1 rounded-full">
 												<Wrench className="h-3 w-3" />
-												<span>{agent.toolIds?.length || 0} {UI_TEXT.tools}</span>
+												<span>
+													{agent.toolIds?.length || 0} {UI_TEXT.tools}
+												</span>
 											</div>
 											<div className="flex items-center gap-1 bg-muted/50 px-2 py-1 rounded-full">
 												<Clock className="h-3 w-3" />
