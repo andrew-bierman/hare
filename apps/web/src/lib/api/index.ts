@@ -14,6 +14,7 @@ import analytics from './routes/analytics'
 import auth from './routes/auth'
 import chat from './routes/chat'
 import dev from './routes/dev'
+import health from './routes/health'
 import mcp from './routes/mcp'
 import tools from './routes/tools'
 import usage from './routes/usage'
@@ -54,6 +55,7 @@ const routes = app
 	.route('/usage', usage)
 	.route('/dev', dev)
 	.route('/mcp', mcp)
+	.route('/health', health)
 
 // Development: Show registered routes on startup
 if (process.env.NODE_ENV === 'development') {
@@ -89,6 +91,7 @@ app.doc('/openapi.json', {
 		{ name: 'MCP', description: 'Model Context Protocol for external AI clients' },
 		{ name: 'Usage', description: 'Usage statistics and analytics' },
 		{ name: 'Analytics', description: 'Detailed analytics and visualizations' },
+		{ name: 'Health', description: 'System health checks and monitoring endpoints' },
 	],
 })
 
@@ -102,15 +105,6 @@ app.get(
 			targetKey: 'js',
 			clientKey: 'fetch',
 		},
-	}),
-)
-
-// Health check
-app.get('/health', (c) =>
-	c.json({
-		status: 'ok',
-		timestamp: new Date().toISOString(),
-		version: '1.0.0',
 	}),
 )
 
