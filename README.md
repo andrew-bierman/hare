@@ -173,7 +173,7 @@ hare/
 │   ├── e2e/                    # End-to-end tests (Playwright)
 │   └── typescript-config/      # Shared TypeScript configs
 │
-├── .env.example                # Environment template
+├── .env.local.example          # Environment template
 ├── package.json                # Root workspace config
 ├── bun.lockb                   # Bun lockfile
 ├── turbo.json                  # Turborepo configuration
@@ -206,9 +206,18 @@ cd hare
 bun install
 
 # Copy environment variables
-cp .env.example .env
-# Edit .env with your credentials
+cp .env.local.example .env.local
+# Edit .env.local with your credentials
 ```
+
+**💡 Environment File Management:**
+
+Hare uses an environment shim script to automatically generate app-specific environment files from a single root `.env.local` file. When you run `bun install`:
+
+- `.env.local` → `apps/web/.env.local` (for Next.js, with `NEXT_PUBLIC_` prefix)
+- `.env.local` → `apps/web/.dev.vars` (for Cloudflare Workers, server-side only)
+
+This ensures consistency across your monorepo and follows Cloudflare's convention of using `.dev.vars` for local development instead of `.env`.
 
 ### 🗄️ Database Setup
 
@@ -580,7 +589,21 @@ data: {"type": "done", "usage": {"tokensIn": 150, "tokensOut": 89}}
 
 ## Environment Variables
 
-Create a `.env` file based on `.env.example`:
+Hare uses a **monorepo environment shim** to manage environment variables across different apps. Create a `.env.local` file at the root based on `.env.local.example`, and the shim script will automatically generate app-specific files during `bun install`.
+
+### Setup
+
+```bash
+# Copy the example file
+cp .env.local.example .env.local
+
+# Edit with your credentials
+# The postinstall script will automatically generate:
+# - apps/web/.env.local (for Next.js)
+# - apps/web/.dev.vars (for Cloudflare Workers)
+```
+
+### Environment Variables Reference
 
 ```bash
 # ☁️ Cloudflare (for Drizzle migrations)
@@ -591,6 +614,11 @@ CLOUDFLARE_D1_DATABASE_ID=your_database_id
 # 🔐 Better Auth
 BETTER_AUTH_SECRET=your_secret_here  # Generate with: openssl rand -base64 32
 BETTER_AUTH_URL=http://localhost:3000
+
+# 🎛️ Feature Flags
+ENABLE_AI_CHAT=true                             # Global enable/disable for AI chat
+AI_CHAT_BETA_MODE=true                          # Restrict to specific users (beta)
+AI_CHAT_ALLOWED_EMAILS=user1@example.com,user2@example.com  # Allowed emails
 
 # 🔑 OAuth Providers (optional - for social login)
 GOOGLE_CLIENT_ID=your_google_client_id
@@ -606,11 +634,134 @@ STRIPE_WEBHOOK_SECRET=whsec_...
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
 
+### How It Works
+
+The environment shim script (`.github/scripts/env.ts`) runs automatically during `bun install` and:
+
+1. **Reads** the root `.env.local` file
+2. **Transforms** `PUBLIC_` prefixed variables to `NEXT_PUBLIC_` for Next.js
+3. **Generates** `apps/web/.env.local` with all variables (including `NEXT_PUBLIC_`)
+4. **Generates** `apps/web/.dev.vars` with only server-side variables (excludes `NEXT_PUBLIC_` and `PUBLIC_`)
+
+This approach:
+- ✅ Maintains a single source of truth for environment variables
+- ✅ Follows Cloudflare's convention of using `.dev.vars` for Workers
+- ✅ Automatically transforms variables for Next.js
+- ✅ Prevents accidental exposure of server-side secrets
+- ✅ Skips generation in CI environments
+
 **💡 Tips:**
-- Copy `.env.example` to `.env` to get started: `cp .env.example .env`
+- Copy `.env.local.example` to `.env.local` to get started: `cp .env.local.example .env.local`
 - Generate a secure auth secret: `openssl rand -base64 32`
 - Get your Cloudflare credentials from the [Cloudflare Dashboard](https://dash.cloudflare.com/)
 - OAuth credentials can be obtained from [Google Cloud Console](https://console.cloud.google.com/) and [GitHub Settings](https://github.com/settings/developers)
+- To manually regenerate environment files: `bun run .github/scripts/env.ts`
+
+---
+
+## Security Features
+
+Hare includes comprehensive security measures to protect your application and data:
+
+### 🎛️ Feature Flags
+
+Flexible feature control with optional user-specific access:
+
+- **Global Control**: Enable/disable AI chat features with `ENABLE_AI_CHAT` environment variable
+- **Beta Mode**: Set `AI_CHAT_BETA_MODE=true` to restrict access to specific users
+- **Email Allowlist**: Specify allowed users with `AI_CHAT_ALLOWED_EMAILS` (comma-separated)
+- **No Database Required**: All configuration via environment variables
+- **Perfect for Beta**: Enable feature for 4-5 users in production while testing
+- **Emergency Disable**: Set `ENABLE_AI_CHAT=false` to disable globally
+
+**Example Configuration:**
+```bash
+# Production beta: enable for specific users only
+ENABLE_AI_CHAT=true
+AI_CHAT_BETA_MODE=true
+AI_CHAT_ALLOWED_EMAILS=alice@company.com,bob@company.com,charlie@company.com
+
+# After beta: enable for everyone
+ENABLE_AI_CHAT=true
+AI_CHAT_BETA_MODE=false
+```
+
+### 🚦 Rate Limiting
+
+Protects against abuse with configurable rate limits:
+
+- **Per-User Limits**: 100 requests/hour and 50,000 tokens/hour per user (configurable)
+- **Time Windows**: Rolling 1-hour windows for rate limit tracking
+- **Response Headers**: `X-RateLimit-*` headers show remaining quota
+- **IP Tracking**: Records IP addresses and user agents for monitoring
+- **Automatic Cleanup**: Rate limit windows reset automatically
+
+### 🛡️ Security Headers
+
+All API responses include security headers:
+
+- **CSP**: Content Security Policy to prevent XSS attacks
+- **HSTS**: Strict Transport Security for HTTPS enforcement
+- **X-Frame-Options**: Prevents clickjacking attacks
+- **X-Content-Type-Options**: Prevents MIME sniffing
+- **Referrer Policy**: Controls referrer information
+- **Permissions Policy**: Restricts browser features
+
+### 🔐 CORS Configuration
+
+Secure cross-origin resource sharing:
+
+- **Allowed Origins**: Configurable via environment variables
+- **Credentials Support**: Allows cookies for authentication
+- **Method Restrictions**: Only allows necessary HTTP methods
+- **Header Control**: Exposes rate limit headers
+
+### 🧹 Input Sanitization
+
+Comprehensive input validation and sanitization:
+
+- **XSS Protection**: HTML entity encoding for user input
+- **Path Traversal Prevention**: Filename and URL sanitization
+- **SQL Injection**: All queries use parameterized statements (Drizzle ORM)
+- **Metadata Cleaning**: Removes dangerous object properties
+- **Content Validation**: Checks agent instructions for suspicious patterns
+
+### 🔍 Security Scanning
+
+Automated security checks:
+
+- **CodeQL Analysis**: Continuous security scanning (currently 0 issues)
+- **Dependency Scanning**: Regular checks for vulnerable packages
+- **TypeScript Strict Mode**: Catches potential issues at compile time
+
+### 📊 Audit Trail
+
+Track usage and access:
+
+- **Usage Tracking**: Records all API calls with metadata
+- **Last Access**: Tracks when beta users last used AI features
+- **IP and User Agent**: Logged for rate limiting and security monitoring
+
+### 🔑 API Key Management
+
+Secure API key system (in usage table):
+
+- **Hashed Storage**: Keys are hashed before storage
+- **Scoped Permissions**: Keys can be limited to specific agents/endpoints
+- **Expiration**: Optional expiration dates for temporary access
+- **Usage Tracking**: Last used timestamp for each key
+
+### 📝 Best Practices
+
+When deploying to production:
+
+1. **Control Features**: Use `ENABLE_AI_CHAT=false` to disable features during rollout
+2. **Use HTTPS**: Always use SSL/TLS certificates
+3. **Rotate Secrets**: Change `BETTER_AUTH_SECRET` regularly
+4. **Monitor Usage**: Check rate limit logs for suspicious activity
+5. **Update Dependencies**: Keep packages up to date
+6. **Configure CORS**: Set strict allowed origins
+7. **Review Logs**: Monitor error logs for security issues
 
 ---
 

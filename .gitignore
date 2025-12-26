@@ -21,6 +21,7 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 .env.test.local
 .env.production.local
 .env.local
+.dev.vars
 
 # caches
 .eslintcache
@@ -35,3 +36,11 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 
 # Turbo
 .turbo
+
+# Playwright
+playwright-report
+test-results
+
+# Git worktrees (Crystal)
+/worktrees/
+/worktree-*/

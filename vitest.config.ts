@@ -1,7 +1,7 @@
 import path from "node:path";
-import { defineConfig } from "vitest/config";
+import { defineWorkersConfig } from "@cloudflare/vitest-pool-workers/config";
 
-export default defineConfig({
+export default defineWorkersConfig({
   resolve: {
     alias: {
       "web-app": path.resolve(__dirname, "./apps/web/src"),
@@ -19,7 +19,22 @@ export default defineConfig({
       "**/e2e/**",
       "**/*.spec.ts",
     ],
-    environment: "node",
+    poolOptions: {
+      workers: {
+        wrangler: { configPath: "./apps/web/wrangler.jsonc" },
+        miniflare: {
+          compatibilityDate: "2025-12-01",
+          compatibilityFlags: ["nodejs_compat"],
+          bindings: {
+            ENVIRONMENT: "test",
+            BETTER_AUTH_SECRET: "test-secret",
+            BETTER_AUTH_URL: "http://localhost:3000",
+            NEXTJS_ENV: "test",
+          },
+          d1Databases: ["DB"],
+        },
+      },
+    },
     coverage: {
       provider: "v8",
       reporter: ["text", "json", "html", "lcov"],
