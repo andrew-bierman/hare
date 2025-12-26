@@ -180,6 +180,30 @@ function createUser(options: { name: string; email: string; role: string }) {}
 
 ---
 
+## Claude Code Work Directory
+
+All temporary work, drafts, logs, and session artifacts should be organized in the `.claude/work` directory:
+
+```
+.claude/work/
+├── <session-id>/           # One directory per session (use first 8 chars of conversation ID or timestamp-based ID like 20251226-143022)
+│   ├── notes.md            # Session notes, plans, observations
+│   ├── drafts/             # Draft files before finalizing
+│   ├── logs/               # Command output, test results
+│   └── artifacts/          # Generated files, exports, etc.
+└── shared/                 # Cross-session resources (templates, reference files)
+```
+
+**Session ID Format**: Use timestamp-based IDs like `YYYYMMDD-HHMMSS` (e.g., `20251226-143022`) for easy chronological sorting. Create a new session directory at the start of each conversation when work files are needed.
+
+**Guidelines**:
+- Create `.claude/work/<session-id>/` when you need to store any temporary files
+- Keep final/production files in their proper project locations, not in work directory
+- The `.claude/work/` directory should be gitignored
+- Clean up old session directories periodically (sessions older than 7 days can be removed)
+
+---
+
 ## Adding New Tools
 
 Tools are in `apps/web/src/lib/agents/tools/`. Use `createTool` for type safety:
