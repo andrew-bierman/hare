@@ -4,6 +4,10 @@ import { createDb } from 'web-app/db'
 import * as schema from 'web-app/db/schema'
 import { serverEnv } from 'web-app/lib/env/server'
 
+// Check if OAuth providers are configured
+const isGoogleConfigured = Boolean(serverEnv.GOOGLE_CLIENT_ID && serverEnv.GOOGLE_CLIENT_SECRET)
+const isGitHubConfigured = Boolean(serverEnv.GITHUB_CLIENT_ID && serverEnv.GITHUB_CLIENT_SECRET)
+
 // Auth instance - will be initialized with D1 binding at runtime
 export function createAuth(d1: D1Database) {
 	const db = createDb(d1)
@@ -22,6 +26,20 @@ export function createAuth(d1: D1Database) {
 			enabled: true,
 			autoSignIn: true,
 		},
+		socialProviders: {
+			...(isGoogleConfigured && {
+				google: {
+					clientId: serverEnv.GOOGLE_CLIENT_ID!,
+					clientSecret: serverEnv.GOOGLE_CLIENT_SECRET!,
+				},
+			}),
+			...(isGitHubConfigured && {
+				github: {
+					clientId: serverEnv.GITHUB_CLIENT_ID!,
+					clientSecret: serverEnv.GITHUB_CLIENT_SECRET!,
+				},
+			}),
+		},
 		session: {
 			expiresIn: 60 * 60 * 24 * 7, // 7 days
 			updateAge: 60 * 60 * 24, // 1 day
@@ -35,3 +53,9 @@ export function createAuth(d1: D1Database) {
 }
 
 export type Auth = ReturnType<typeof createAuth>
+
+// Export OAuth provider availability for client-side use
+export const oauthProviders = {
+	google: isGoogleConfigured,
+	github: isGitHubConfigured,
+}

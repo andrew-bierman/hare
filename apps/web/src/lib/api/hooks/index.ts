@@ -14,6 +14,7 @@ export type {
 	AnalyticsParams,
 	AnalyticsSummary,
 	ModelBreakdown,
+	OAuthProviders,
 	TimeSeriesData,
 } from '../client'
 // Re-export types
@@ -55,6 +56,8 @@ export {
 } from './use-agents'
 // Analytics hooks
 export { useAnalytics } from './use-analytics'
+// Auth hooks
+export { useOAuthProviders } from './use-auth'
 // Chat hooks
 export { useChat } from './use-chat'
 // Tool hooks

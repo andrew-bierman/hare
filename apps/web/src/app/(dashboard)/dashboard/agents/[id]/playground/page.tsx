@@ -4,12 +4,21 @@ import { Avatar, AvatarFallback } from '@workspace/ui/components/avatar'
 import { Badge } from '@workspace/ui/components/badge'
 import { Button } from '@workspace/ui/components/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@workspace/ui/components/card'
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuTrigger,
+} from '@workspace/ui/components/dropdown-menu'
 import { ScrollArea } from '@workspace/ui/components/scroll-area'
 import { Skeleton } from '@workspace/ui/components/skeleton'
 import { Textarea } from '@workspace/ui/components/textarea'
 import {
 	ArrowLeft,
 	Bot,
+	Download,
+	FileJson,
+	FileText,
 	Loader2,
 	MessageSquare,
 	Send,
@@ -20,7 +29,8 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
-import { type FormEvent, type KeyboardEvent, useEffect, useRef, useState } from 'react'
+import { type FormEvent, type KeyboardEvent, useCallback, useEffect, useRef, useState } from 'react'
+import { toast } from 'sonner'
 import { ToolCallList } from 'web-app/components/chat/tool-call-list'
 import { useWorkspace } from 'web-app/components/providers/workspace-provider'
 import { AVAILABLE_MODELS, useAgent, useChat } from 'web-app/lib/api/hooks'
@@ -82,7 +92,14 @@ export default function PlaygroundPage() {
 		isLoading: agentLoading,
 		error: agentError,
 	} = useAgent(agentId, activeWorkspace?.id)
-	const { messages, isStreaming, error: chatError, sendMessage, clearMessages } = useChat(agentId)
+	const {
+		messages,
+		isStreaming,
+		error: chatError,
+		sessionId,
+		sendMessage,
+		clearMessages,
+	} = useChat(agentId)
 
 	const [input, setInput] = useState('')
 	const scrollRef = useRef<HTMLDivElement>(null)
@@ -120,6 +137,52 @@ export default function PlaygroundPage() {
 			handleSubmit(e)
 		}
 	}
+
+	const handleExport = useCallback(
+		async (options: { format: 'json' | 'markdown'; includeMetadata?: boolean }) => {
+			if (!sessionId) {
+				toast.error('No conversation to export')
+				return
+			}
+
+			try {
+				const params = new URLSearchParams({
+					format: options.format,
+					...(options.includeMetadata && { includeMetadata: 'true' }),
+				})
+
+				const response = await fetch(
+					`/api/chat/conversations/${sessionId}/export?${params.toString()}`,
+				)
+
+				if (!response.ok) {
+					const errorData = (await response.json().catch(() => ({ error: 'Export failed' }))) as {
+						error?: string
+					}
+					throw new Error(errorData.error || 'Export failed')
+				}
+
+				const contentType = response.headers.get('content-type') || ''
+				const isMarkdown = contentType.includes('text/markdown')
+				const filename = `conversation-${sessionId.slice(0, 8)}-${new Date().toISOString().slice(0, 10)}.${isMarkdown ? 'md' : 'json'}`
+
+				const blob = await response.blob()
+				const url = URL.createObjectURL(blob)
+				const a = document.createElement('a')
+				a.href = url
+				a.download = filename
+				document.body.appendChild(a)
+				a.click()
+				document.body.removeChild(a)
+				URL.revokeObjectURL(url)
+
+				toast.success(`Conversation exported as ${isMarkdown ? 'Markdown' : 'JSON'}`)
+			} catch (error) {
+				toast.error(error instanceof Error ? error.message : 'Failed to export conversation')
+			}
+		},
+		[sessionId],
+	)
 
 	const getModelName = (modelId: string) => {
 		const model = AVAILABLE_MODELS.find((m) => m.id === modelId)
@@ -188,6 +251,35 @@ export default function PlaygroundPage() {
 							</div>
 						</div>
 						<div className="flex items-center gap-2">
+							<DropdownMenu>
+								<DropdownMenuTrigger asChild>
+									<Button
+										variant="outline"
+										size="sm"
+										disabled={!sessionId || isStreaming}
+										className="gap-1.5"
+									>
+										<Download className="h-3.5 w-3.5" />
+										Export
+									</Button>
+								</DropdownMenuTrigger>
+								<DropdownMenuContent align="end">
+									<DropdownMenuItem onClick={() => handleExport({ format: 'json' })}>
+										<FileJson className="mr-2 h-4 w-4" />
+										Export as JSON
+									</DropdownMenuItem>
+									<DropdownMenuItem onClick={() => handleExport({ format: 'markdown' })}>
+										<FileText className="mr-2 h-4 w-4" />
+										Export as Markdown
+									</DropdownMenuItem>
+									<DropdownMenuItem
+										onClick={() => handleExport({ format: 'json', includeMetadata: true })}
+									>
+										<FileJson className="mr-2 h-4 w-4" />
+										Export with metadata (JSON)
+									</DropdownMenuItem>
+								</DropdownMenuContent>
+							</DropdownMenu>
 							<Button
 								variant="outline"
 								size="sm"

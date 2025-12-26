@@ -29,13 +29,30 @@ import {
 import { Skeleton } from '@workspace/ui/components/skeleton'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@workspace/ui/components/tabs'
 import { Textarea } from '@workspace/ui/components/textarea'
-import { Rocket, Trash2 } from 'lucide-react'
+import {
+	AlertTriangle,
+	Brain,
+	CheckCircle,
+	Code,
+	Database,
+	FileCode,
+	Globe,
+	HardDrive,
+	Layers,
+	Plug,
+	RefreshCw,
+	Rocket,
+	Search,
+	Trash2,
+	Wrench,
+} from 'lucide-react'
 import { useParams, useRouter } from 'next/navigation'
-import { type ChangeEvent, useEffect, useState } from 'react'
+import { type ChangeEvent, useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
 import { AgentInstructionsEditor } from 'web-app/components/agent/agent-instructions-editor'
 import { ToolPicker } from 'web-app/components/agent/tool-picker'
 import { useWorkspace } from 'web-app/components/providers/workspace-provider'
+import { AGENT_LIMITS } from 'web-app/config'
 import {
 	AVAILABLE_MODELS,
 	useAgent,
@@ -45,6 +62,69 @@ import {
 	useTools,
 	useUpdateAgent,
 } from 'web-app/lib/api/hooks'
+import { z } from 'zod'
+
+// Validation schema for agent configuration
+const agentConfigSchema = z.object({
+	name: z
+		.string()
+		.min(2, 'Name must be at least 2 characters')
+		.max(
+			AGENT_LIMITS.nameMaxLength,
+			`Name must be at most ${AGENT_LIMITS.nameMaxLength} characters`,
+		),
+	description: z
+		.string()
+		.max(
+			AGENT_LIMITS.descriptionMaxLength,
+			`Description must be at most ${AGENT_LIMITS.descriptionMaxLength} characters`,
+		)
+		.optional()
+		.or(z.literal('')),
+	instructions: z
+		.string()
+		.min(10, 'Instructions must be at least 10 characters')
+		.max(
+			AGENT_LIMITS.instructionsMaxLength,
+			`Instructions must be at most ${AGENT_LIMITS.instructionsMaxLength} characters`,
+		),
+	model: z.string().min(1, 'Model is required'),
+})
+
+// Type for validation errors
+type ValidationErrors = {
+	name?: string
+	description?: string
+	instructions?: string
+	model?: string
+}
+
+// Type for validation warnings
+type ValidationWarnings = {
+	tools?: string
+}
+
+// Tool category icons mapping
+const CATEGORY_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
+	storage: HardDrive,
+	database: Database,
+	http: Globe,
+	search: Search,
+	ai: Brain,
+	utility: Wrench,
+	integrations: Plug,
+	data: FileCode,
+	sandbox: Code,
+	validation: CheckCircle,
+	transform: RefreshCw,
+	all: Layers,
+}
+
+// Helper function to estimate token count (rough approximation: ~4 chars per token)
+function estimateTokenCount(text: string): number {
+	if (!text) return 0
+	return Math.ceil(text.length / 4)
+}
 
 function LoadingSkeleton() {
 	return (
@@ -90,8 +170,10 @@ export default function AgentBuilderPage() {
 	const [selectedToolIds, setSelectedToolIds] = useState<string[]>([])
 	const [isDeleteOpen, setIsDeleteOpen] = useState(false)
 	const [hasChanges, setHasChanges] = useState(false)
+	const [validationErrors, setValidationErrors] = useState<ValidationErrors>({})
+	const [validationWarnings, setValidationWarnings] = useState<ValidationWarnings>({})
 
-	const _tools = toolsData?.tools ?? []
+	const tools = toolsData?.tools ?? []
 
 	// Initialize form with agent data
 	useEffect(() => {
@@ -116,6 +198,74 @@ export default function AgentBuilderPage() {
 			setHasChanges(changed)
 		}
 	}, [agent, name, description, model, instructions, selectedToolIds])
+
+	// Validate configuration in real-time
+	useEffect(() => {
+		const result = agentConfigSchema.safeParse({
+			name,
+			description,
+			instructions,
+			model,
+		})
+
+		if (!result.success) {
+			const errors: ValidationErrors = {}
+			for (const issue of result.error.issues) {
+				const field = issue.path[0] as keyof ValidationErrors
+				if (field) {
+					errors[field] = issue.message
+				}
+			}
+			setValidationErrors(errors)
+		} else {
+			setValidationErrors({})
+		}
+
+		// Check for warnings (tools)
+		const warnings: ValidationWarnings = {}
+		if (selectedToolIds.length === 0) {
+			warnings.tools = 'No tools selected. Your agent may have limited capabilities.'
+		}
+		setValidationWarnings(warnings)
+	}, [name, description, instructions, model, selectedToolIds])
+
+	// Check if model is valid
+	const isValidModel = useMemo(() => {
+		return AVAILABLE_MODELS.some((m) => m.id === model)
+	}, [model])
+
+	// Check if there are any validation errors
+	const hasValidationErrors = useMemo(() => {
+		return Object.keys(validationErrors).length > 0 || (!isValidModel && model !== '')
+	}, [validationErrors, isValidModel, model])
+
+	// Get selected tools with their details
+	const selectedTools = useMemo(() => {
+		return tools.filter((tool) => selectedToolIds.includes(tool.id))
+	}, [tools, selectedToolIds])
+
+	// Group selected tools by category/type
+	const toolsByCategory = useMemo(() => {
+		const grouped: Record<string, typeof tools> = {}
+		for (const tool of selectedTools) {
+			const category = tool.type || 'utility'
+			if (!grouped[category]) {
+				grouped[category] = []
+			}
+			grouped[category].push(tool)
+		}
+		return grouped
+	}, [selectedTools])
+
+	// Estimate token count for system prompt
+	const estimatedTokens = useMemo(() => {
+		return estimateTokenCount(instructions)
+	}, [instructions])
+
+	// Get model display name
+	const selectedModel = useMemo(() => {
+		return AVAILABLE_MODELS.find((m) => m.id === model)
+	}, [model])
 
 	const handleSave = async () => {
 		try {
@@ -230,7 +380,10 @@ export default function AgentBuilderPage() {
 						<Trash2 className="mr-2 h-4 w-4" />
 						Delete
 					</Button>
-					<Button onClick={handleSave} disabled={updateAgent.isPending || !hasChanges}>
+					<Button
+						onClick={handleSave}
+						disabled={updateAgent.isPending || !hasChanges || hasValidationErrors}
+					>
 						{updateAgent.isPending ? 'Saving...' : 'Save Changes'}
 					</Button>
 				</div>
@@ -241,6 +394,7 @@ export default function AgentBuilderPage() {
 					<TabsTrigger value="general">General</TabsTrigger>
 					<TabsTrigger value="prompt">Prompt</TabsTrigger>
 					<TabsTrigger value="tools">Tools</TabsTrigger>
+					<TabsTrigger value="preview">Preview</TabsTrigger>
 					<TabsTrigger value="analytics">Analytics</TabsTrigger>
 				</TabsList>
 
@@ -259,7 +413,11 @@ export default function AgentBuilderPage() {
 											id="name"
 											value={name}
 											onChange={(e: ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
+											className={validationErrors.name ? 'border-destructive' : ''}
 										/>
+										{validationErrors.name && (
+											<p className="text-sm text-destructive">{validationErrors.name}</p>
+										)}
 									</div>
 									<div className="space-y-2">
 										<Label htmlFor="description">Description</Label>
@@ -269,13 +427,23 @@ export default function AgentBuilderPage() {
 											onChange={(e: ChangeEvent<HTMLTextAreaElement>) =>
 												setDescription(e.target.value)
 											}
-											className="h-24"
+											className={`h-24 ${validationErrors.description ? 'border-destructive' : ''}`}
 										/>
+										{validationErrors.description && (
+											<p className="text-sm text-destructive">{validationErrors.description}</p>
+										)}
 									</div>
 									<div className="space-y-2">
 										<Label htmlFor="model">Model</Label>
 										<Select value={model} onValueChange={setModel}>
-											<SelectTrigger id="model">
+											<SelectTrigger
+												id="model"
+												className={
+													validationErrors.model || (!isValidModel && model !== '')
+														? 'border-destructive'
+														: ''
+												}
+											>
 												<SelectValue />
 											</SelectTrigger>
 											<SelectContent>
@@ -289,6 +457,14 @@ export default function AgentBuilderPage() {
 												))}
 											</SelectContent>
 										</Select>
+										{validationErrors.model && (
+											<p className="text-sm text-destructive">{validationErrors.model}</p>
+										)}
+										{!isValidModel && model !== '' && !validationErrors.model && (
+											<p className="text-sm text-destructive">
+												Selected model is not in the list of available models
+											</p>
+										)}
 									</div>
 								</CardContent>
 							</Card>
@@ -335,13 +511,21 @@ export default function AgentBuilderPage() {
 						</CardHeader>
 						<CardContent className="space-y-4">
 							<div className="space-y-2">
-								<Label htmlFor="system-prompt">System Prompt</Label>
+								<div className="flex items-center justify-between">
+									<Label htmlFor="system-prompt">System Prompt</Label>
+									<span className="text-xs text-muted-foreground">
+										~{estimatedTokens.toLocaleString()} tokens
+									</span>
+								</div>
 								<AgentInstructionsEditor
 									value={instructions}
 									onChange={setInstructions}
 									disabled={updateAgent.isPending}
 									placeholder="You are a helpful assistant that..."
 								/>
+								{validationErrors.instructions && (
+									<p className="text-sm text-destructive">{validationErrors.instructions}</p>
+								)}
 								<p className="text-xs text-muted-foreground">
 									This prompt will be sent with every conversation to guide the agent's behavior.
 									Required for deployment.
@@ -360,13 +544,162 @@ export default function AgentBuilderPage() {
 								priority.
 							</CardDescription>
 						</CardHeader>
-						<CardContent>
+						<CardContent className="space-y-4">
+							{validationWarnings.tools && (
+								<div className="flex items-center gap-2 rounded-md border border-yellow-200 bg-yellow-50 p-3 text-sm text-yellow-800 dark:border-yellow-800 dark:bg-yellow-950 dark:text-yellow-200">
+									<AlertTriangle className="h-4 w-4 flex-shrink-0" />
+									<span>{validationWarnings.tools}</span>
+								</div>
+							)}
 							<ToolPicker
 								workspaceId={activeWorkspace?.id || ''}
 								selectedToolIds={selectedToolIds}
 								onSelectionChange={setSelectedToolIds}
 								maxTools={20}
 							/>
+						</CardContent>
+					</Card>
+				</TabsContent>
+
+				<TabsContent value="preview" className="space-y-4">
+					<div className="grid gap-4 md:grid-cols-2">
+						{/* Configuration Summary */}
+						<Card>
+							<CardHeader>
+								<CardTitle>Configuration Summary</CardTitle>
+								<CardDescription>Overview of your agent configuration</CardDescription>
+							</CardHeader>
+							<CardContent className="space-y-4">
+								<div className="space-y-3">
+									<div className="flex justify-between items-start border-b pb-2">
+										<span className="text-sm text-muted-foreground">Name</span>
+										<span className="text-sm font-medium text-right max-w-[60%] truncate">
+											{name || '-'}
+										</span>
+									</div>
+									<div className="flex justify-between items-start border-b pb-2">
+										<span className="text-sm text-muted-foreground">Model</span>
+										<span className="text-sm font-medium text-right">
+											{selectedModel?.name || model || '-'}
+										</span>
+									</div>
+									<div className="flex justify-between items-start border-b pb-2">
+										<span className="text-sm text-muted-foreground">Status</span>
+										<Badge className={statusDisplay.className}>{statusDisplay.label}</Badge>
+									</div>
+									<div className="flex justify-between items-start border-b pb-2">
+										<span className="text-sm text-muted-foreground">Tools Selected</span>
+										<span className="text-sm font-medium">{selectedToolIds.length}</span>
+									</div>
+									<div className="flex justify-between items-start">
+										<span className="text-sm text-muted-foreground">Est. Prompt Tokens</span>
+										<span className="text-sm font-medium">~{estimatedTokens.toLocaleString()}</span>
+									</div>
+								</div>
+
+								{/* Validation Status */}
+								<div className="pt-4 border-t">
+									<h4 className="text-sm font-medium mb-2">Validation Status</h4>
+									{hasValidationErrors ? (
+										<div className="flex items-center gap-2 text-destructive">
+											<AlertTriangle className="h-4 w-4" />
+											<span className="text-sm">
+												{Object.keys(validationErrors).length} validation error(s)
+											</span>
+										</div>
+									) : (
+										<div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400">
+											<CheckCircle className="h-4 w-4" />
+											<span className="text-sm">Configuration is valid</span>
+										</div>
+									)}
+									{validationWarnings.tools && (
+										<div className="flex items-center gap-2 text-yellow-600 dark:text-yellow-400 mt-2">
+											<AlertTriangle className="h-4 w-4" />
+											<span className="text-sm">1 warning</span>
+										</div>
+									)}
+								</div>
+
+								{/* Description Preview */}
+								{description && (
+									<div className="pt-4 border-t">
+										<h4 className="text-sm font-medium mb-2">Description</h4>
+										<p className="text-sm text-muted-foreground line-clamp-3">{description}</p>
+									</div>
+								)}
+							</CardContent>
+						</Card>
+
+						{/* Selected Tools by Category */}
+						<Card>
+							<CardHeader>
+								<CardTitle>Selected Tools</CardTitle>
+								<CardDescription>
+									{selectedToolIds.length} tool{selectedToolIds.length !== 1 ? 's' : ''} selected
+								</CardDescription>
+							</CardHeader>
+							<CardContent>
+								{selectedToolIds.length === 0 ? (
+									<div className="flex flex-col items-center justify-center py-8 text-center">
+										<Wrench className="h-8 w-8 text-muted-foreground mb-2" />
+										<p className="text-sm text-muted-foreground">No tools selected</p>
+										<p className="text-xs text-muted-foreground mt-1">
+											Add tools in the Tools tab to extend your agent's capabilities
+										</p>
+									</div>
+								) : (
+									<div className="space-y-4">
+										{Object.entries(toolsByCategory).map(([category, categoryTools]) => {
+											const IconComponent = CATEGORY_ICONS[category] || Wrench
+											return (
+												<div key={category}>
+													<div className="flex items-center gap-2 mb-2">
+														<IconComponent className="h-4 w-4 text-muted-foreground" />
+														<span className="text-sm font-medium capitalize">{category}</span>
+														<Badge variant="secondary" className="text-xs">
+															{categoryTools.length}
+														</Badge>
+													</div>
+													<div className="flex flex-wrap gap-2 pl-6">
+														{categoryTools.map((tool) => (
+															<Badge key={tool.id} variant="outline" className="text-xs">
+																{tool.name}
+															</Badge>
+														))}
+													</div>
+												</div>
+											)
+										})}
+									</div>
+								)}
+							</CardContent>
+						</Card>
+					</div>
+
+					{/* System Prompt Preview */}
+					<Card>
+						<CardHeader>
+							<CardTitle>System Prompt Preview</CardTitle>
+							<CardDescription>
+								{instructions.length.toLocaleString()} characters | ~
+								{estimatedTokens.toLocaleString()} tokens
+							</CardDescription>
+						</CardHeader>
+						<CardContent>
+							{instructions ? (
+								<div className="rounded-md bg-muted p-4 max-h-64 overflow-y-auto">
+									<pre className="text-sm whitespace-pre-wrap font-mono">{instructions}</pre>
+								</div>
+							) : (
+								<div className="flex flex-col items-center justify-center py-8 text-center">
+									<FileCode className="h-8 w-8 text-muted-foreground mb-2" />
+									<p className="text-sm text-muted-foreground">No system prompt defined</p>
+									<p className="text-xs text-muted-foreground mt-1">
+										Add a system prompt in the Prompt tab to define your agent's behavior
+									</p>
+								</div>
+							)}
 						</CardContent>
 					</Card>
 				</TabsContent>
