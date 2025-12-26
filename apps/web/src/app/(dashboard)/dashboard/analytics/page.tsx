@@ -241,7 +241,9 @@ export default function AnalyticsPage() {
 			{/* Summary Stats */}
 			<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
 				{isLoading
-					? [...Array(4)].map((_, i) => <StatCardSkeleton key={i} />)
+					? ['analytics-sk-1', 'analytics-sk-2', 'analytics-sk-3', 'analytics-sk-4'].map((id) => (
+							<StatCardSkeleton key={id} />
+						))
 					: stats.map((stat) => (
 							<Card key={stat.title}>
 								<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -275,7 +277,7 @@ export default function AnalyticsPage() {
 						<YAxis />
 						<Tooltip
 							labelFormatter={(value) => new Date(value).toLocaleDateString()}
-							formatter={(value) => formatNumber(Number(value ?? 0))}
+							formatter={(value) => formatNumber(value as number)}
 						/>
 						<Legend />
 						<Line
@@ -309,7 +311,7 @@ export default function AnalyticsPage() {
 							<CartesianGrid strokeDasharray="3 3" />
 							<XAxis type="number" />
 							<YAxis dataKey="agentName" type="category" width={100} />
-							<Tooltip formatter={(value) => formatNumber(Number(value ?? 0))} />
+							<Tooltip formatter={(value) => formatNumber(value as number)} />
 							<Legend />
 							<Bar dataKey="inputTokens" stackId="a" fill={CHART_COLORS[0]} name="Input" />
 							<Bar dataKey="outputTokens" stackId="a" fill={CHART_COLORS[1]} name="Output" />
@@ -327,21 +329,24 @@ export default function AnalyticsPage() {
 					<ResponsiveContainer width="100%" height={300}>
 						<PieChart>
 							<Pie
-								data={analyticsData?.byModel as unknown as Array<Record<string, unknown>>}
+								data={analyticsData?.byModel as unknown as Record<string, unknown>[] | undefined}
 								dataKey="totalTokens"
 								nameKey="modelName"
 								cx="50%"
 								cy="50%"
 								outerRadius={80}
-								label={({ payload }) =>
-									`${payload?.modelName}: ${formatNumber(payload?.totalTokens ?? 0)}`
+								label={(entry) =>
+									`${(entry as unknown as Record<string, unknown>).modelName}: ${formatNumber((entry as unknown as Record<string, unknown>).totalTokens as number)}`
 								}
 							>
-								{analyticsData?.byModel.map((_, index) => (
-									<Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
+								{analyticsData?.byModel.map((model) => (
+									<Cell
+										key={model.modelName}
+										fill={CHART_COLORS[analyticsData.byModel.indexOf(model) % CHART_COLORS.length]}
+									/>
 								))}
 							</Pie>
-							<Tooltip formatter={(value) => formatNumber(Number(value ?? 0))} />
+							<Tooltip formatter={(value) => formatNumber(value as number)} />
 						</PieChart>
 					</ResponsiveContainer>
 				</ChartContainer>
@@ -366,7 +371,7 @@ export default function AnalyticsPage() {
 						<YAxis tickFormatter={(value) => `$${value.toFixed(2)}`} />
 						<Tooltip
 							labelFormatter={(value) => new Date(value).toLocaleDateString()}
-							formatter={(value) => formatCurrency(Number(value ?? 0))}
+							formatter={(value) => formatCurrency(value as number)}
 						/>
 						<Legend />
 						<Line
@@ -399,7 +404,7 @@ export default function AnalyticsPage() {
 						<YAxis />
 						<Tooltip
 							labelFormatter={(value) => new Date(value).toLocaleDateString()}
-							formatter={(value) => formatNumber(Number(value ?? 0))}
+							formatter={(value) => formatNumber(value as number)}
 						/>
 						<Legend />
 						<Bar dataKey="requests" fill={CHART_COLORS[2]} name="Requests" />

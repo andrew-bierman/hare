@@ -1,11 +1,12 @@
 import { hc } from 'hono/client'
+import { clientEnv } from 'web-app/lib/env/client'
 import type { AppType } from './api'
 
 /**
  * Type-safe Hono RPC client
  */
 export const client = hc<AppType>(
-	typeof window !== 'undefined' ? '' : process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
+	typeof window !== 'undefined' ? '' : clientEnv.NEXT_PUBLIC_APP_URL,
 )
 
 export type Client = typeof client

@@ -271,7 +271,7 @@ test.describe('Tools API - Authenticated', () => {
 		expect(Array.isArray(tools)).toBe(true)
 
 		// Should have system tools
-		const systemTools = tools.filter((t: any) => t.id?.startsWith('system-'))
+		const systemTools = tools.filter((t: { id?: string }) => t.id?.startsWith('system-'))
 		expect(systemTools.length).toBeGreaterThan(0)
 	})
 
@@ -289,7 +289,7 @@ test.describe('Tools API - Authenticated', () => {
 		const tools = await response.json()
 
 		// Find HTTP system tool
-		const httpTool = tools.find((t: any) => t.id === 'system-http')
+		const httpTool = tools.find((t: { id?: string }) => t.id === 'system-http')
 		expect(httpTool).toBeDefined()
 		expect(httpTool.name).toBe('HTTP Request')
 		expect(httpTool.type).toBe('http')

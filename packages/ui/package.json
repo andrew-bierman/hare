@@ -4,6 +4,7 @@
 	"private": true,
 	"type": "module",
 	"exports": {
+		".": "./src/index.ts",
 		"./globals.css": "./src/styles/globals.css",
 		"./postcss.config": "./postcss.config.mjs",
 		"./components/*": "./src/components/*.tsx",

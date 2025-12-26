@@ -7,8 +7,65 @@ import { type AgentConfig, createAgentFromConfig } from 'web-app/lib/agents'
 import { createMemoryStore, toAgentMessages } from 'web-app/lib/agents/memory'
 import { getCloudflareEnv, getDb } from '../db'
 import { aiChatFeatureMiddleware, authMiddleware, chatRateLimiter } from '../middleware'
-import { ChatRequestSchema, ConversationSchema, IdParamSchema, MessageSchema } from '../schemas'
+import {
+	ChatRequestSchema,
+	ConversationExportSchema,
+	ConversationSchema,
+	ExportQuerySchema,
+	IdParamSchema,
+	MessageSchema,
+} from '../schemas'
 import type { AuthEnv } from '../types'
+
+// =============================================================================
+// Export Helpers
+// =============================================================================
+
+/**
+ * Convert conversation messages to Markdown format.
+ */
+function formatAsMarkdown(options: {
+	title: string
+	messages: Array<{
+		role: string
+		content: string
+		createdAt: Date
+		metadata?: Record<string, unknown> | null
+	}>
+	includeMetadata: boolean
+	exportedAt: string
+}): string {
+	const { title, messages, includeMetadata, exportedAt } = options
+
+	const lines: string[] = [`# ${title}`, '', `*Exported at: ${exportedAt}*`, '', '---', '']
+
+	for (const msg of messages) {
+		const roleLabel = msg.role.charAt(0).toUpperCase() + msg.role.slice(1)
+		const timestamp = msg.createdAt.toISOString()
+
+		lines.push(`## ${roleLabel}`)
+		lines.push(`*${timestamp}*`)
+		lines.push('')
+		lines.push(msg.content)
+
+		if (includeMetadata && msg.metadata) {
+			lines.push('')
+			lines.push('<details>')
+			lines.push('<summary>Metadata</summary>')
+			lines.push('')
+			lines.push('```json')
+			lines.push(JSON.stringify(msg.metadata, null, 2))
+			lines.push('```')
+			lines.push('</details>')
+		}
+
+		lines.push('')
+		lines.push('---')
+		lines.push('')
+	}
+
+	return lines.join('\n')
+}
 
 // Define routes
 const chatWithAgentRoute = createRoute({
@@ -138,6 +195,52 @@ const getConversationMessagesRoute = createRoute({
 	},
 })
 
+const exportConversationRoute = createRoute({
+	method: 'get',
+	path: '/conversations/{id}/export',
+	tags: ['Chat'],
+	summary: 'Export conversation',
+	description:
+		'Export a conversation in JSON or Markdown format. Includes all messages with optional metadata.',
+	request: {
+		params: IdParamSchema,
+		query: ExportQuerySchema,
+	},
+	responses: {
+		200: {
+			description: 'Exported conversation',
+			content: {
+				'application/json': {
+					schema: ConversationExportSchema,
+				},
+				'text/markdown': {
+					schema: z.string(),
+				},
+			},
+		},
+		404: {
+			description: 'Conversation not found',
+			content: {
+				'application/json': {
+					schema: z.object({
+						error: z.string(),
+					}),
+				},
+			},
+		},
+		503: {
+			description: 'Service unavailable',
+			content: {
+				'application/json': {
+					schema: z.object({
+						error: z.string(),
+					}),
+				},
+			},
+		},
+	},
+})
+
 // Create app with proper typing (includes Bindings and Variables)
 const app = new OpenAPIHono<AuthEnv>()
 
@@ -149,9 +252,10 @@ app.use('/agents/:id/chat', authMiddleware)
 app.use('/agents/:id/chat', aiChatFeatureMiddleware)
 app.use('/agents/:id/chat', chatRateLimiter)
 
-// List conversations and get messages only need auth
+// List conversations, get messages, and export only need auth
 app.use('/agents/:id/conversations', authMiddleware)
 app.use('/conversations/:id/messages', authMiddleware)
+app.use('/conversations/:id/export', authMiddleware)
 
 // Chat with agent
 app.openapi(chatWithAgentRoute, async (c) => {
@@ -350,6 +454,73 @@ app.openapi(getConversationMessagesRoute, async (c) => {
 		}))
 
 	return c.json({ messages: messagesData }, 200)
+})
+
+// Export conversation
+app.openapi(exportConversationRoute, async (c) => {
+	const { id: conversationId } = c.req.valid('param')
+	const { format = 'json', includeMetadata = false } = c.req.valid('query')
+	const db = await getDb(c)
+
+	// Get conversation metadata
+	const [conversation] = await db
+		.select()
+		.from(conversations)
+		.where(eq(conversations.id, conversationId))
+
+	if (!conversation) {
+		return c.json({ error: 'Conversation not found' }, 404)
+	}
+
+	// Get all messages including tool messages for full export
+	const results = await db
+		.select()
+		.from(messages)
+		.where(eq(messages.conversationId, conversationId))
+
+	const exportedAt = new Date().toISOString()
+
+	// Format based on requested format
+	if (format === 'markdown') {
+		const markdown = formatAsMarkdown({
+			title: conversation.title || 'Untitled Conversation',
+			messages: results.map((msg) => ({
+				role: msg.role,
+				content: msg.content,
+				createdAt: msg.createdAt,
+				metadata: includeMetadata ? (msg.metadata as Record<string, unknown> | null) : null,
+			})),
+			includeMetadata,
+			exportedAt,
+		})
+
+		return c.text(markdown, 200, {
+			'Content-Type': 'text/markdown; charset=utf-8',
+			'Content-Disposition': `attachment; filename="conversation-${conversationId}.md"`,
+		})
+	}
+
+	// JSON format (default)
+	const exportData = {
+		id: conversation.id,
+		title: conversation.title || 'Untitled Conversation',
+		agentId: conversation.agentId,
+		createdAt: conversation.createdAt.toISOString(),
+		updatedAt: conversation.updatedAt.toISOString(),
+		messageCount: results.length,
+		messages: results.map((msg) => ({
+			id: msg.id,
+			role: msg.role as 'user' | 'assistant' | 'system' | 'tool',
+			content: msg.content,
+			createdAt: msg.createdAt.toISOString(),
+			...(includeMetadata && msg.metadata ? { metadata: msg.metadata } : {}),
+		})),
+		exportedAt,
+	}
+
+	return c.json(exportData, 200, {
+		'Content-Disposition': `attachment; filename="conversation-${conversationId}.json"`,
+	})
 })
 
 export default app

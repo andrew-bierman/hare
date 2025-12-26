@@ -2,6 +2,7 @@ import { betterAuth } from 'better-auth'
 import { drizzleAdapter } from 'better-auth/adapters/drizzle'
 import { createDb } from 'web-app/db'
 import * as schema from 'web-app/db/schema'
+import { serverEnv } from 'web-app/lib/env/server'
 
 // Auth instance - will be initialized with D1 binding at runtime
 export function createAuth(d1: D1Database) {
@@ -21,6 +22,18 @@ export function createAuth(d1: D1Database) {
 			enabled: true,
 			autoSignIn: true,
 		},
+		socialProviders: {
+			google: {
+				clientId: process.env.GOOGLE_CLIENT_ID || '',
+				clientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
+				enabled: !!(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET),
+			},
+			github: {
+				clientId: process.env.GITHUB_CLIENT_ID || '',
+				clientSecret: process.env.GITHUB_CLIENT_SECRET || '',
+				enabled: !!(process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET),
+			},
+		},
 		session: {
 			expiresIn: 60 * 60 * 24 * 7, // 7 days
 			updateAge: 60 * 60 * 24, // 1 day
@@ -29,7 +42,7 @@ export function createAuth(d1: D1Database) {
 				maxAge: 60 * 5, // 5 minutes
 			},
 		},
-		trustedOrigins: [process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'],
+		trustedOrigins: [serverEnv.NEXT_PUBLIC_APP_URL],
 	})
 }
 

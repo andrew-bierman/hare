@@ -6,65 +6,159 @@ import { createTool, failure, success, type ToolContext } from './types'
  */
 export const rssTool = createTool({
 	id: 'rss',
-	description: 'Fetch and parse RSS or Atom feeds to get the latest content from websites.',
+	description: 'Fetch and parse RSS or Atom feeds. Returns structured feed data with items.',
 	inputSchema: z.object({
-		url: z.string().url().describe('RSS/Atom feed URL'),
+		url: z.string().url().describe('URL of the RSS/Atom feed'),
 		limit: z.number().optional().default(10).describe('Maximum number of items to return'),
+		includeContent: z.boolean().optional().default(false).describe('Include full content of items'),
 	}),
 	execute: async (params, _context) => {
 		try {
-			const { url, limit } = params
+			const { url, limit, includeContent } = params
 
 			const response = await fetch(url, {
-				headers: { 'User-Agent': 'Hare-Agent/1.0' },
+				headers: {
+					'User-Agent': 'Hare-Agent/1.0 RSS Reader',
+					Accept: 'application/rss+xml, application/atom+xml, application/xml, text/xml',
+				},
 			})
 
 			if (!response.ok) {
-				return failure(`Failed to fetch feed: ${response.status}`)
+				return failure(`Failed to fetch feed: ${response.status} ${response.statusText}`)
 			}
 
-			const text = await response.text()
+			const xml = await response.text()
 
-			// Simple XML parsing for RSS/Atom feeds
-			const items: Array<{
-				title: string
-				link: string
-				description: string
-				pubDate: string
-			}> = []
+			// Simple XML parser for RSS/Atom
+			const parseXml = (_text: string) => {
+				const getTagContent = (tag: string, content: string): string | null => {
+					const regex = new RegExp(`<${tag}[^>]*>([\\s\\S]*?)</${tag}>`, 'i')
+					const match = content.match(regex)
+					return match?.[1]?.trim() ?? null
+				}
 
-			// RSS 2.0 format
-			const itemMatches = text.matchAll(/<item>([\s\S]*?)<\/item>/gi)
-			for (const match of itemMatches) {
-				if (items.length >= limit) break
-				const itemXml = match[1]
-				if (!itemXml) continue
-				const title = itemXml.match(/<title>(?:<!\[CDATA\[)?(.*?)(?:\]\]>)?<\/title>/i)?.[1] || ''
-				const link = itemXml.match(/<link>(?:<!\[CDATA\[)?(.*?)(?:\]\]>)?<\/link>/i)?.[1] || ''
-				const description =
-					itemXml.match(/<description>(?:<!\[CDATA\[)?(.*?)(?:\]\]>)?<\/description>/is)?.[1] || ''
-				const pubDate = itemXml.match(/<pubDate>(.*?)<\/pubDate>/i)?.[1] || ''
-				items.push({ title, link, description: description.slice(0, 500), pubDate })
-			}
+				const getCdataContent = (text: string): string => {
+					const cdataMatch = text.match(/<!\[CDATA\[([\s\S]*?)\]\]>/)
+					return cdataMatch?.[1] ?? text.replace(/<[^>]+>/g, '').trim()
+				}
 
-			// Atom format fallback
-			if (items.length === 0) {
-				const entryMatches = text.matchAll(/<entry>([\s\S]*?)<\/entry>/gi)
-				for (const match of entryMatches) {
-					if (items.length >= limit) break
-					const entryXml = match[1]
-					if (!entryXml) continue
-					const title = entryXml.match(/<title[^>]*>(.*?)<\/title>/i)?.[1] || ''
-					const link = entryXml.match(/<link[^>]*href="([^"]*)"[^>]*\/?>/i)?.[1] || ''
-					const description =
-						entryXml.match(/<(?:summary|content)[^>]*>(.*?)<\/(?:summary|content)>/is)?.[1] || ''
-					const pubDate =
-						entryXml.match(/<(?:published|updated)>(.*?)<\/(?:published|updated)>/i)?.[1] || ''
-					items.push({ title, link, description: description.slice(0, 500), pubDate })
+				const getAttr = (tag: string, attr: string, content: string): string | null => {
+					const regex = new RegExp(`<${tag}[^>]*${attr}=["']([^"']+)["']`, 'i')
+					const match = content.match(regex)
+					return match?.[1] ?? null
+				}
+
+				// Detect feed type
+				const isAtom = xml.includes('<feed') && xml.includes('xmlns="http://www.w3.org/2005/Atom"')
+
+				if (isAtom) {
+					// Parse Atom feed
+					const title = getTagContent('title', xml)
+					const link = getAttr('link', 'href', xml)
+					const updated = getTagContent('updated', xml)
+
+					const entryRegex = /<entry>([\s\S]*?)<\/entry>/gi
+					const entries: Array<{
+						title: string
+						link: string
+						published: string
+						summary: string
+						content?: string
+						author?: string
+					}> = []
+
+					let match: RegExpExecArray | null = entryRegex.exec(xml)
+					while (match !== null && entries.length < limit) {
+						const entry = match[1] ?? ''
+						entries.push({
+							title: getCdataContent(getTagContent('title', entry) ?? ''),
+							link: getAttr('link', 'href', entry) ?? getTagContent('id', entry) ?? '',
+							published: getTagContent('published', entry) ?? getTagContent('updated', entry) ?? '',
+							summary: getCdataContent(getTagContent('summary', entry) ?? ''),
+							...(includeContent && {
+								content: getCdataContent(getTagContent('content', entry) ?? ''),
+							}),
+							author: getTagContent('name', getTagContent('author', entry) ?? '') ?? undefined,
+						})
+						match = entryRegex.exec(xml)
+					}
+
+					return {
+						type: 'atom',
+						title: getCdataContent(title ?? ''),
+						link,
+						updated,
+						items: entries,
+					}
+				} else {
+					// Parse RSS 2.0 feed
+					const channel = getTagContent('channel', xml) || xml
+					const title = getTagContent('title', channel)
+					const link = getTagContent('link', channel)
+					const description = getTagContent('description', channel)
+					const lastBuildDate = getTagContent('lastBuildDate', channel)
+
+					const itemRegex = /<item>([\s\S]*?)<\/item>/gi
+					const items: Array<{
+						title: string
+						link: string
+						pubDate: string
+						description: string
+						content?: string
+						author?: string
+						categories?: string[]
+					}> = []
+
+					let match: RegExpExecArray | null = itemRegex.exec(xml)
+					while (match !== null && items.length < limit) {
+						const item = match[1] ?? ''
+
+						// Extract categories
+						const categories: string[] = []
+						const catRegex = /<category[^>]*>([^<]+)<\/category>/gi
+						for (const catMatch of item.matchAll(catRegex)) {
+							if (catMatch[1]) {
+								categories.push(getCdataContent(catMatch[1]))
+							}
+						}
+
+						items.push({
+							title: getCdataContent(getTagContent('title', item) ?? ''),
+							link: getTagContent('link', item) ?? getTagContent('guid', item) ?? '',
+							pubDate: getTagContent('pubDate', item) ?? '',
+							description: getCdataContent(getTagContent('description', item) ?? ''),
+							...(includeContent && {
+								content: getCdataContent(
+									getTagContent('content:encoded', item) ??
+										getTagContent('description', item) ??
+										'',
+								),
+							}),
+							author:
+								getTagContent('author', item) ?? getTagContent('dc:creator', item) ?? undefined,
+							...(categories.length > 0 && { categories }),
+						})
+						match = itemRegex.exec(xml)
+					}
+
+					return {
+						type: 'rss',
+						title: getCdataContent(title ?? ''),
+						link,
+						description: getCdataContent(description ?? ''),
+						lastBuildDate,
+						items,
+					}
 				}
 			}
 
-			return success({ items, count: items.length, feedUrl: url })
+			const feed = parseXml(xml)
+
+			return success({
+				...feed,
+				itemCount: feed.items.length,
+				fetchedAt: new Date().toISOString(),
+			})
 		} catch (error) {
 			return failure(`RSS error: ${error instanceof Error ? error.message : 'Unknown error'}`)
 		}
@@ -72,130 +166,344 @@ export const rssTool = createTool({
 })
 
 /**
- * Web Scrape Tool - Fetch and extract content from web pages.
+ * Web Scrape Tool - Extract content from web pages.
  */
 export const scrapeTool = createTool({
 	id: 'scrape',
-	description: 'Fetch a web page and extract text content, links, or metadata.',
+	description:
+		'Fetch a web page and extract text content. Can extract specific elements by CSS-like patterns or get clean text.',
 	inputSchema: z.object({
-		url: z.string().url().describe('URL to scrape'),
-		selector: z.string().optional().describe('CSS-like selector to extract specific content'),
+		url: z.string().url().describe('URL of the web page to scrape'),
 		extract: z
-			.enum(['text', 'links', 'images', 'meta', 'all'])
+			.enum(['text', 'links', 'images', 'headings', 'meta', 'all'])
 			.optional()
 			.default('text')
 			.describe('What to extract from the page'),
+		selector: z
+			.string()
+			.optional()
+			.describe('CSS-like selector pattern to extract specific content'),
+		maxLength: z.number().optional().default(10000).describe('Maximum content length to return'),
+		timeout: z.number().optional().default(10000).describe('Request timeout in milliseconds'),
 	}),
 	execute: async (params, _context) => {
 		try {
-			const { url, extract } = params
+			const { url, extract, selector, maxLength, timeout } = params
+
+			const controller = new AbortController()
+			const timeoutId = setTimeout(() => controller.abort(), timeout)
 
 			const response = await fetch(url, {
 				headers: {
 					'User-Agent': 'Mozilla/5.0 (compatible; Hare-Agent/1.0; +https://hare.dev)',
+					Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
 				},
+				signal: controller.signal,
 			})
 
+			clearTimeout(timeoutId)
+
 			if (!response.ok) {
-				return failure(`Failed to fetch page: ${response.status}`)
+				return failure(`Failed to fetch page: ${response.status} ${response.statusText}`)
 			}
 
 			const html = await response.text()
 
-			const result: Record<string, unknown> = { url }
-
-			if (extract === 'text' || extract === 'all') {
-				// Remove scripts, styles, and tags
+			// Helper functions for HTML parsing
+			const extractText = (html: string): string => {
+				// Remove scripts, styles, and comments
 				const text = html
 					.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
 					.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+					.replace(/<!--[\s\S]*?-->/g, '')
 					.replace(/<[^>]+>/g, ' ')
+					.replace(/&nbsp;/g, ' ')
+					.replace(/&amp;/g, '&')
+					.replace(/&lt;/g, '<')
+					.replace(/&gt;/g, '>')
+					.replace(/&quot;/g, '"')
+					.replace(/&#39;/g, "'")
 					.replace(/\s+/g, ' ')
 					.trim()
-				result.text = text.slice(0, 10000)
+
+				return text.slice(0, maxLength)
 			}
 
-			if (extract === 'links' || extract === 'all') {
-				const linkMatches = html.matchAll(/<a[^>]+href="([^"]+)"[^>]*>([^<]*)<\/a>/gi)
-				const links: Array<{ href: string; text: string }> = []
-				for (const match of linkMatches) {
-					if (links.length >= 50) break
-					const href = match[1] || ''
-					const text = match[2] || ''
-					if (href && !href.startsWith('#') && !href.startsWith('javascript:')) {
-						links.push({ href, text: text.trim() })
+			const extractLinks = (html: string): Array<{ text: string; href: string }> => {
+				const links: Array<{ text: string; href: string }> = []
+				const regex = /<a[^>]+href=["']([^"']+)["'][^>]*>([^<]*)<\/a>/gi
+				for (const match of html.matchAll(regex)) {
+					const href = match[1]
+					const text = match[2]?.trim()
+					if (href && text) {
+						links.push({ href, text })
 					}
 				}
-				result.links = links
+				return links.slice(0, 100)
 			}
 
-			if (extract === 'images' || extract === 'all') {
-				const imgMatches = html.matchAll(/<img[^>]+src="([^"]+)"[^>]*(?:alt="([^"]*)")?[^>]*\/?>/gi)
+			const extractImages = (html: string): Array<{ src: string; alt: string }> => {
 				const images: Array<{ src: string; alt: string }> = []
-				for (const match of imgMatches) {
-					if (images.length >= 30) break
-					images.push({ src: match[1] || '', alt: match[2] || '' })
+				const regex = /<img[^>]+src=["']([^"']+)["'][^>]*(?:alt=["']([^"']*)["'])?/gi
+				for (const match of html.matchAll(regex)) {
+					const src = match[1]
+					if (src) {
+						images.push({
+							src,
+							alt: match[2] ?? '',
+						})
+					}
 				}
-				result.images = images
+				return images.slice(0, 50)
 			}
 
-			if (extract === 'meta' || extract === 'all') {
-				const title = html.match(/<title[^>]*>([^<]*)<\/title>/i)?.[1] || ''
-				const description =
-					html.match(/<meta[^>]+name="description"[^>]+content="([^"]*)"/i)?.[1] || ''
-				result.meta = { title, description }
+			const extractHeadings = (html: string): Array<{ level: number; text: string }> => {
+				const headings: Array<{ level: number; text: string }> = []
+				const regex = /<h([1-6])[^>]*>([^<]*)<\/h[1-6]>/gi
+				for (const match of html.matchAll(regex)) {
+					const level = match[1]
+					const text = match[2]?.trim()
+					if (level && text) {
+						headings.push({
+							level: parseInt(level, 10),
+							text,
+						})
+					}
+				}
+				return headings
 			}
 
-			return success(result)
+			const extractMeta = (
+				html: string,
+			): {
+				title: string
+				description: string
+				keywords: string
+				ogTitle: string
+				ogDescription: string
+				ogImage: string
+			} => {
+				const getMetaContent = (name: string): string => {
+					const regex = new RegExp(
+						`<meta[^>]+(?:name|property)=["']${name}["'][^>]+content=["']([^"']+)["']`,
+						'i',
+					)
+					const match = html.match(regex)
+					return match?.[1] ?? ''
+				}
+
+				const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i)
+
+				return {
+					title: titleMatch?.[1]?.trim() ?? '',
+					description: getMetaContent('description'),
+					keywords: getMetaContent('keywords'),
+					ogTitle: getMetaContent('og:title'),
+					ogDescription: getMetaContent('og:description'),
+					ogImage: getMetaContent('og:image'),
+				}
+			}
+
+			const extractBySelector = (html: string, sel: string): string[] => {
+				// Simple selector support: tag, .class, #id
+				const results: string[] = []
+				let regex: RegExp
+
+				if (sel.startsWith('#')) {
+					// ID selector
+					const id = sel.slice(1)
+					regex = new RegExp(`<[^>]+id=["']${id}["'][^>]*>([\\s\\S]*?)</[^>]+>`, 'gi')
+				} else if (sel.startsWith('.')) {
+					// Class selector
+					const className = sel.slice(1)
+					regex = new RegExp(
+						`<[^>]+class=["'][^"']*${className}[^"']*["'][^>]*>([\\s\\S]*?)</[^>]+>`,
+						'gi',
+					)
+				} else {
+					// Tag selector
+					regex = new RegExp(`<${sel}[^>]*>([\\s\\S]*?)</${sel}>`, 'gi')
+				}
+
+				for (const match of html.matchAll(regex)) {
+					const content = match[1]
+					if (content) {
+						results.push(extractText(content))
+					}
+				}
+
+				return results.slice(0, 20)
+			}
+
+			let result: Record<string, unknown> = {}
+
+			if (selector) {
+				result = { selector, matches: extractBySelector(html, selector) }
+			} else {
+				switch (extract) {
+					case 'text':
+						result = { text: extractText(html) }
+						break
+					case 'links':
+						result = { links: extractLinks(html) }
+						break
+					case 'images':
+						result = { images: extractImages(html) }
+						break
+					case 'headings':
+						result = { headings: extractHeadings(html) }
+						break
+					case 'meta':
+						result = { meta: extractMeta(html) }
+						break
+					case 'all':
+						result = {
+							meta: extractMeta(html),
+							headings: extractHeadings(html),
+							text: extractText(html),
+							links: extractLinks(html).slice(0, 20),
+							images: extractImages(html).slice(0, 10),
+						}
+						break
+				}
+			}
+
+			return success({
+				url,
+				...result,
+				fetchedAt: new Date().toISOString(),
+			})
 		} catch (error) {
+			if (error instanceof Error && error.name === 'AbortError') {
+				return failure(`Request timed out after ${params.timeout}ms`)
+			}
 			return failure(`Scrape error: ${error instanceof Error ? error.message : 'Unknown error'}`)
 		}
 	},
 })
 
 /**
- * Regex Tool - Match and extract patterns from text.
+ * Regex Tool - Test, match, and replace using regular expressions.
  */
 export const regexTool = createTool({
 	id: 'regex',
-	description: 'Match, extract, or replace text using regular expressions.',
+	description:
+		'Work with regular expressions: test patterns, find matches, extract groups, or replace text.',
 	inputSchema: z.object({
-		operation: z.enum(['match', 'matchAll', 'replace', 'split', 'test']).describe('Operation'),
-		text: z.string().describe('Text to search'),
+		operation: z
+			.enum(['test', 'match', 'matchAll', 'replace', 'split', 'extract'])
+			.describe('Regex operation'),
+		text: z.string().describe('Text to operate on'),
 		pattern: z.string().describe('Regular expression pattern'),
-		flags: z.string().optional().default('g').describe('Regex flags (g, i, m, etc.)'),
+		flags: z.string().optional().default('g').describe('Regex flags (g, i, m, s, u)'),
 		replacement: z.string().optional().describe('Replacement string for replace operation'),
+		groupNames: z.array(z.string()).optional().describe('Names for captured groups in extract'),
 	}),
 	execute: async (params, _context) => {
 		try {
-			const { operation, text, pattern, flags, replacement } = params
+			const { operation, text, pattern, flags, replacement, groupNames } = params
 
-			const regex = new RegExp(pattern, flags)
+			// Validate and create regex
+			let regex: RegExp
+			try {
+				regex = new RegExp(pattern, flags)
+			} catch (e) {
+				return failure(`Invalid regex pattern: ${e instanceof Error ? e.message : 'Unknown error'}`)
+			}
 
 			switch (operation) {
+				case 'test': {
+					const matches = regex.test(text)
+					return success({
+						matches,
+						pattern,
+						flags,
+					})
+				}
+
 				case 'match': {
 					const match = text.match(regex)
-					return success({ match, found: !!match })
-				}
-				case 'matchAll': {
-					const matches = [
-						...text.matchAll(new RegExp(pattern, flags.includes('g') ? flags : `${flags}g`)),
-					]
 					return success({
-						matches: matches.map((m) => ({
-							match: m[0],
-							groups: m.slice(1),
-							index: m.index,
-						})),
+						match: match ? match[0] : null,
+						found: match !== null,
+						index: match?.index,
+						groups: match?.groups,
+					})
+				}
+
+				case 'matchAll': {
+					const matches: Array<{
+						match: string
+						index: number
+						groups: Record<string, string> | undefined
+					}> = []
+
+					// Ensure global flag for matchAll
+					const globalRegex = new RegExp(pattern, flags.includes('g') ? flags : `${flags}g`)
+
+					for (const match of text.matchAll(globalRegex)) {
+						matches.push({
+							match: match[0],
+							index: match.index || 0,
+							groups: match.groups,
+						})
+					}
+
+					return success({
+						matches,
 						count: matches.length,
 					})
 				}
-				case 'replace':
-					return success({ result: text.replace(regex, replacement || '') })
-				case 'split':
-					return success({ parts: text.split(regex) })
-				case 'test':
-					return success({ matches: regex.test(text) })
+
+				case 'replace': {
+					if (replacement === undefined) {
+						return failure('Replacement string required for replace operation')
+					}
+					const result = text.replace(regex, replacement)
+					return success({
+						result,
+						originalLength: text.length,
+						newLength: result.length,
+						changed: result !== text,
+					})
+				}
+
+				case 'split': {
+					const parts = text.split(regex)
+					return success({
+						parts,
+						count: parts.length,
+					})
+				}
+
+				case 'extract': {
+					// Extract all captured groups
+					const globalRegex = new RegExp(pattern, flags.includes('g') ? flags : `${flags}g`)
+					const extracted: Array<Record<string, string>> = []
+
+					for (const match of text.matchAll(globalRegex)) {
+						if (match.groups) {
+							extracted.push(match.groups)
+						} else if (match.length > 1) {
+							// Unnamed groups
+							const obj: Record<string, string> = {}
+							for (let i = 1; i < match.length; i++) {
+								const name = groupNames?.[i - 1] ?? `group${i}`
+								const value = match[i]
+								if (value !== undefined) {
+									obj[name] = value
+								}
+							}
+							extracted.push(obj)
+						}
+					}
+
+					return success({
+						extracted,
+						count: extracted.length,
+					})
+				}
+
 				default:
 					return failure(`Unknown operation: ${operation}`)
 			}
@@ -210,33 +518,21 @@ export const regexTool = createTool({
  */
 export const cryptoTool = createTool({
 	id: 'crypto',
-	description: 'Generate random values, encrypt/decrypt data using AES-GCM.',
+	description: 'Encrypt or decrypt data using AES-GCM. Generate secure random values.',
 	inputSchema: z.object({
-		operation: z.enum(['random', 'encrypt', 'decrypt', 'generateKey']).describe('Crypto operation'),
+		operation: z
+			.enum(['encrypt', 'decrypt', 'generateKey', 'randomBytes'])
+			.describe('Crypto operation'),
 		data: z.string().optional().describe('Data to encrypt/decrypt'),
-		key: z.string().optional().describe('Base64-encoded key for encrypt/decrypt'),
-		iv: z.string().optional().describe('Base64-encoded IV for decrypt'),
-		length: z.number().optional().default(32).describe('Length for random bytes'),
-		encoding: z.enum(['hex', 'base64']).optional().default('base64').describe('Output encoding'),
+		key: z.string().optional().describe('Base64-encoded encryption key (256-bit)'),
+		iv: z.string().optional().describe('Base64-encoded initialization vector (for decrypt)'),
+		bytes: z.number().optional().default(32).describe('Number of random bytes to generate'),
 	}),
 	execute: async (params, _context) => {
 		try {
-			const { operation, data, key, iv, length, encoding } = params
-
-			const toHex = (buffer: ArrayBuffer) =>
-				Array.from(new Uint8Array(buffer))
-					.map((b) => b.toString(16).padStart(2, '0'))
-					.join('')
-			const toBase64 = (buffer: ArrayBuffer) => btoa(String.fromCharCode(...new Uint8Array(buffer)))
-			const encode = (buffer: ArrayBuffer) =>
-				encoding === 'hex' ? toHex(buffer) : toBase64(buffer)
+			const { operation, data, key, iv, bytes } = params
 
 			switch (operation) {
-				case 'random': {
-					const bytes = new Uint8Array(length)
-					crypto.getRandomValues(bytes)
-					return success({ value: encode(bytes.buffer), length })
-				}
 				case 'generateKey': {
 					const cryptoKey = await crypto.subtle.generateKey(
 						{ name: 'AES-GCM', length: 256 },
@@ -244,41 +540,89 @@ export const cryptoTool = createTool({
 						['encrypt', 'decrypt'],
 					)
 					const exported = await crypto.subtle.exportKey('raw', cryptoKey)
-					return success({ key: toBase64(exported) })
+					const keyBase64 = btoa(String.fromCharCode(...new Uint8Array(exported)))
+
+					return success({
+						key: keyBase64,
+						algorithm: 'AES-GCM',
+						keyLength: 256,
+					})
 				}
+
+				case 'randomBytes': {
+					const randomData = new Uint8Array(bytes)
+					crypto.getRandomValues(randomData)
+					const hex = Array.from(randomData)
+						.map((b) => b.toString(16).padStart(2, '0'))
+						.join('')
+					const base64 = btoa(String.fromCharCode(...randomData))
+
+					return success({
+						hex,
+						base64,
+						bytes: randomData.length,
+					})
+				}
+
 				case 'encrypt': {
-					if (!data || !key) return failure('Data and key required for encryption')
+					if (!data) return failure('Data required for encryption')
+					if (!key) return failure('Key required for encryption')
+
 					const keyBytes = Uint8Array.from(atob(key), (c) => c.charCodeAt(0))
 					const cryptoKey = await crypto.subtle.importKey('raw', keyBytes, 'AES-GCM', false, [
 						'encrypt',
 					])
+
 					const ivBytes = new Uint8Array(12)
 					crypto.getRandomValues(ivBytes)
+
+					const encoder = new TextEncoder()
+					const dataBytes = encoder.encode(data)
+
 					const encrypted = await crypto.subtle.encrypt(
-						{ name: 'AES-GCM', iv: ivBytes },
-						cryptoKey,
-						new TextEncoder().encode(data),
-					)
-					return success({
-						encrypted: toBase64(encrypted),
-						iv: toBase64(ivBytes.buffer),
-					})
-				}
-				case 'decrypt': {
-					if (!data || !key || !iv) return failure('Data, key, and IV required for decryption')
-					const keyBytes = Uint8Array.from(atob(key), (c) => c.charCodeAt(0))
-					const ivBytes = Uint8Array.from(atob(iv), (c) => c.charCodeAt(0))
-					const dataBytes = Uint8Array.from(atob(data), (c) => c.charCodeAt(0))
-					const cryptoKey = await crypto.subtle.importKey('raw', keyBytes, 'AES-GCM', false, [
-						'decrypt',
-					])
-					const decrypted = await crypto.subtle.decrypt(
 						{ name: 'AES-GCM', iv: ivBytes },
 						cryptoKey,
 						dataBytes,
 					)
-					return success({ decrypted: new TextDecoder().decode(decrypted) })
+
+					const encryptedBase64 = btoa(String.fromCharCode(...new Uint8Array(encrypted)))
+					const ivBase64 = btoa(String.fromCharCode(...ivBytes))
+
+					return success({
+						encrypted: encryptedBase64,
+						iv: ivBase64,
+						algorithm: 'AES-GCM',
+					})
 				}
+
+				case 'decrypt': {
+					if (!data) return failure('Encrypted data required for decryption')
+					if (!key) return failure('Key required for decryption')
+					if (!iv) return failure('IV required for decryption')
+
+					const keyBytes = Uint8Array.from(atob(key), (c) => c.charCodeAt(0))
+					const cryptoKey = await crypto.subtle.importKey('raw', keyBytes, 'AES-GCM', false, [
+						'decrypt',
+					])
+
+					const ivBytes = Uint8Array.from(atob(iv), (c) => c.charCodeAt(0))
+					const encryptedBytes = Uint8Array.from(atob(data), (c) => c.charCodeAt(0))
+
+					const decrypted = await crypto.subtle.decrypt(
+						{ name: 'AES-GCM', iv: ivBytes },
+						cryptoKey,
+						encryptedBytes,
+					)
+
+					const decoder = new TextDecoder()
+					const decryptedText = decoder.decode(decrypted)
+
+					return success({
+						decrypted: decryptedText,
+						algorithm: 'AES-GCM',
+					})
+				}
+
 				default:
 					return failure(`Unknown operation: ${operation}`)
 			}
@@ -289,70 +633,152 @@ export const cryptoTool = createTool({
 })
 
 /**
- * JSON Schema Tool - Validate and generate JSON schemas.
+ * JSON Schema Validation Tool - Validate data against JSON Schema.
  */
 export const jsonSchemaTool = createTool({
 	id: 'json_schema',
-	description: 'Validate JSON data against a schema or generate a schema from sample data.',
+	description: 'Validate JSON data against a JSON Schema. Returns validation results and errors.',
 	inputSchema: z.object({
-		operation: z.enum(['validate', 'generate']).describe('Operation to perform'),
-		data: z.unknown().describe('JSON data to validate or generate schema from'),
-		schema: z.record(z.string(), z.unknown()).optional().describe('JSON Schema for validation'),
+		data: z.unknown().describe('Data to validate'),
+		schema: z
+			.object({
+				type: z.string().optional(),
+				properties: z.record(z.string(), z.unknown()).optional(),
+				required: z.array(z.string()).optional(),
+				items: z.unknown().optional(),
+				minLength: z.number().optional(),
+				maxLength: z.number().optional(),
+				minimum: z.number().optional(),
+				maximum: z.number().optional(),
+				pattern: z.string().optional(),
+				enum: z.array(z.unknown()).optional(),
+			})
+			.passthrough()
+			.describe('JSON Schema to validate against'),
 	}),
 	execute: async (params, _context) => {
 		try {
-			const { operation, data, schema } = params
+			const { data, schema } = params
 
-			if (operation === 'generate') {
-				const generateSchema = (value: unknown): Record<string, unknown> => {
-					if (value === null) return { type: 'null' }
-					if (Array.isArray(value)) {
-						if (value.length === 0) return { type: 'array', items: {} }
-						return { type: 'array', items: generateSchema(value[0]) }
+			const errors: Array<{ path: string; message: string }> = []
+
+			const validate = (
+				value: unknown,
+				schemaNode: Record<string, unknown>,
+				path: string = '',
+			): boolean => {
+				// Type validation
+				if (schemaNode.type) {
+					const expectedType = schemaNode.type as string
+					const actualType = Array.isArray(value) ? 'array' : value === null ? 'null' : typeof value
+
+					if (expectedType !== actualType) {
+						errors.push({
+							path: path || 'root',
+							message: `Expected ${expectedType}, got ${actualType}`,
+						})
+						return false
 					}
-					switch (typeof value) {
-						case 'string':
-							return { type: 'string' }
-						case 'number':
-							return Number.isInteger(value) ? { type: 'integer' } : { type: 'number' }
-						case 'boolean':
-							return { type: 'boolean' }
-						case 'object': {
-							const properties: Record<string, unknown> = {}
-							for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
-								properties[k] = generateSchema(v)
-							}
-							return { type: 'object', properties, required: Object.keys(properties) }
+				}
+
+				// Enum validation
+				if (schemaNode.enum) {
+					const enumValues = schemaNode.enum as unknown[]
+					if (!enumValues.includes(value)) {
+						errors.push({
+							path: path || 'root',
+							message: `Value must be one of: ${enumValues.join(', ')}`,
+						})
+						return false
+					}
+				}
+
+				// String validations
+				if (typeof value === 'string') {
+					if (
+						schemaNode.minLength !== undefined &&
+						value.length < (schemaNode.minLength as number)
+					) {
+						errors.push({ path, message: `String too short (min: ${schemaNode.minLength})` })
+					}
+					if (
+						schemaNode.maxLength !== undefined &&
+						value.length > (schemaNode.maxLength as number)
+					) {
+						errors.push({ path, message: `String too long (max: ${schemaNode.maxLength})` })
+					}
+					if (schemaNode.pattern) {
+						const regex = new RegExp(schemaNode.pattern as string)
+						if (!regex.test(value)) {
+							errors.push({ path, message: `String does not match pattern: ${schemaNode.pattern}` })
 						}
-						default:
-							return {}
 					}
 				}
-				return success({ schema: generateSchema(data) })
-			}
 
-			if (operation === 'validate') {
-				if (!schema) return failure('Schema required for validation')
-				// Simple validation - check type matches
-				const validate = (value: unknown, sch: Record<string, unknown>): boolean => {
-					const type = sch.type as string
-					if (type === 'null') return value === null
-					if (type === 'string') return typeof value === 'string'
-					if (type === 'number' || type === 'integer') return typeof value === 'number'
-					if (type === 'boolean') return typeof value === 'boolean'
-					if (type === 'array') return Array.isArray(value)
-					if (type === 'object')
-						return typeof value === 'object' && value !== null && !Array.isArray(value)
-					return true
+				// Number validations
+				if (typeof value === 'number') {
+					if (schemaNode.minimum !== undefined && value < (schemaNode.minimum as number)) {
+						errors.push({ path, message: `Number too small (min: ${schemaNode.minimum})` })
+					}
+					if (schemaNode.maximum !== undefined && value > (schemaNode.maximum as number)) {
+						errors.push({ path, message: `Number too large (max: ${schemaNode.maximum})` })
+					}
 				}
-				const valid = validate(data, schema)
-				return success({ valid, data, schema })
+
+				// Object validations
+				if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+					const obj = value as Record<string, unknown>
+
+					// Required properties
+					if (schemaNode.required) {
+						for (const req of schemaNode.required as string[]) {
+							if (!(req in obj)) {
+								errors.push({
+									path: path ? `${path}.${req}` : req,
+									message: 'Required property missing',
+								})
+							}
+						}
+					}
+
+					// Property validation
+					if (schemaNode.properties) {
+						const props = schemaNode.properties as Record<string, unknown>
+						for (const [key, propSchema] of Object.entries(props)) {
+							if (key in obj) {
+								validate(
+									obj[key],
+									propSchema as Record<string, unknown>,
+									path ? `${path}.${key}` : key,
+								)
+							}
+						}
+					}
+				}
+
+				// Array validations
+				if (Array.isArray(value)) {
+					if (schemaNode.items) {
+						const itemSchema = schemaNode.items as Record<string, unknown>
+						value.forEach((item, index) => {
+							validate(item, itemSchema, `${path}[${index}]`)
+						})
+					}
+				}
+
+				return errors.length === 0
 			}
 
-			return failure(`Unknown operation: ${operation}`)
+			const isValid = validate(data, schema)
+
+			return success({
+				valid: isValid,
+				errors: isValid ? [] : errors,
+				errorCount: errors.length,
+			})
 		} catch (error) {
 			return failure(
-				`JSON Schema error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+				`Schema validation error: ${error instanceof Error ? error.message : 'Unknown error'}`,
 			)
 		}
 	},
@@ -363,85 +789,141 @@ export const jsonSchemaTool = createTool({
  */
 export const csvTool = createTool({
 	id: 'csv',
-	description: 'Parse CSV text to JSON or convert JSON to CSV format.',
+	description: 'Parse CSV text to JSON or convert JSON arrays to CSV format.',
 	inputSchema: z.object({
-		operation: z.enum(['parse', 'stringify']).describe('Operation to perform'),
-		data: z.unknown().describe('CSV string to parse or array to stringify'),
-		headers: z.boolean().optional().default(true).describe('First row contains headers'),
-		delimiter: z.string().optional().default(',').describe('Field delimiter'),
+		operation: z.enum(['parse', 'stringify']).describe('CSV operation'),
+		data: z
+			.union([z.string(), z.array(z.record(z.string(), z.unknown()))])
+			.describe('CSV string to parse or array of objects to stringify'),
+		options: z
+			.object({
+				delimiter: z.string().optional().default(','),
+				headers: z.boolean().optional().default(true),
+				customHeaders: z.array(z.string()).optional(),
+				skipEmptyLines: z.boolean().optional().default(true),
+			})
+			.optional(),
 	}),
 	execute: async (params, _context) => {
 		try {
-			const { operation, data, headers, delimiter } = params
+			const { operation, data, options } = params
+			const {
+				delimiter = ',',
+				headers = true,
+				customHeaders,
+				skipEmptyLines = true,
+			} = options || {}
 
 			if (operation === 'parse') {
-				if (typeof data !== 'string') return failure('CSV data must be a string')
-				const lines = data.split('\n').filter((l) => l.trim())
-				if (lines.length === 0) return success({ rows: [], count: 0 })
+				if (typeof data !== 'string') {
+					return failure('Parse requires a CSV string')
+				}
 
-				const parseLine = (line: string) => {
+				const lines = data.split(/\r?\n/).filter((line) => !skipEmptyLines || line.trim())
+				if (lines.length === 0) {
+					return success({ data: [], rowCount: 0 })
+				}
+
+				const parseRow = (row: string): string[] => {
 					const result: string[] = []
 					let current = ''
 					let inQuotes = false
-					for (const char of line) {
-						if (char === '"') {
-							inQuotes = !inQuotes
-						} else if (char === delimiter && !inQuotes) {
-							result.push(current.trim())
-							current = ''
+
+					for (let i = 0; i < row.length; i++) {
+						const char = row[i]
+						const nextChar = row[i + 1]
+
+						if (inQuotes) {
+							if (char === '"' && nextChar === '"') {
+								current += '"'
+								i++
+							} else if (char === '"') {
+								inQuotes = false
+							} else {
+								current += char
+							}
 						} else {
-							current += char
+							if (char === '"') {
+								inQuotes = true
+							} else if (char === delimiter) {
+								result.push(current)
+								current = ''
+							} else {
+								current += char
+							}
 						}
 					}
-					result.push(current.trim())
+					result.push(current)
 					return result
 				}
 
-				if (headers && lines.length > 0) {
-					const headerRow = parseLine(lines[0] || '')
-					const rows = lines.slice(1).map((line) => {
-						const values = parseLine(line)
-						const row: Record<string, string> = {}
-						headerRow.forEach((h, i) => {
-							row[h] = values[i] || ''
-						})
-						return row
-					})
-					return success({ rows, headers: headerRow, count: rows.length })
+				let headerRow: string[]
+				let dataLines: string[]
+
+				const firstLine = lines[0] ?? ''
+
+				if (headers) {
+					headerRow = customHeaders ?? parseRow(firstLine)
+					dataLines = lines.slice(1)
+				} else if (customHeaders) {
+					headerRow = customHeaders
+					dataLines = lines
+				} else {
+					// Generate default headers
+					const firstRow = parseRow(firstLine)
+					headerRow = firstRow.map((_, i) => `column${i + 1}`)
+					dataLines = lines
 				}
 
-				const rows = lines.map(parseLine)
-				return success({ rows, count: rows.length })
+				const parsed = dataLines.map((line) => {
+					const values = parseRow(line)
+					const obj: Record<string, string> = {}
+					headerRow.forEach((header, i) => {
+						obj[header] = values[i] || ''
+					})
+					return obj
+				})
+
+				return success({
+					data: parsed,
+					headers: headerRow,
+					rowCount: parsed.length,
+				})
 			}
 
 			if (operation === 'stringify') {
-				if (!Array.isArray(data)) return failure('Data must be an array')
-				if (data.length === 0) return success({ csv: '', count: 0 })
+				if (!Array.isArray(data)) {
+					return failure('Stringify requires an array of objects')
+				}
 
-				const escapeField = (field: unknown) => {
-					const str = String(field ?? '')
+				if (data.length === 0) {
+					return success({ csv: '', rowCount: 0 })
+				}
+
+				const escapeValue = (val: unknown): string => {
+					const str = String(val ?? '')
 					if (str.includes(delimiter) || str.includes('"') || str.includes('\n')) {
 						return `"${str.replace(/"/g, '""')}"`
 					}
 					return str
 				}
 
-				const firstRow = data[0]
-				if (typeof firstRow === 'object' && firstRow !== null && !Array.isArray(firstRow)) {
-					const keys = Object.keys(firstRow)
-					const lines = [
-						keys.map(escapeField).join(delimiter),
-						...data.map((row) =>
-							keys.map((k) => escapeField((row as Record<string, unknown>)[k])).join(delimiter),
-						),
-					]
-					return success({ csv: lines.join('\n'), count: data.length })
-				}
+				const headerRow = customHeaders || Object.keys(data[0] as object)
+				const rows = [
+					...(headers ? [headerRow.join(delimiter)] : []),
+					...data.map((row) => {
+						const obj = row as Record<string, unknown>
+						return headerRow.map((h) => escapeValue(obj[h])).join(delimiter)
+					}),
+				]
 
-				const lines = data.map((row) =>
-					Array.isArray(row) ? row.map(escapeField).join(delimiter) : escapeField(row),
-				)
-				return success({ csv: lines.join('\n'), count: data.length })
+				const csv = rows.join('\n')
+
+				return success({
+					csv,
+					headers: headerRow,
+					rowCount: data.length,
+				})
 			}
 
 			return failure(`Unknown operation: ${operation}`)
@@ -452,36 +934,75 @@ export const csvTool = createTool({
 })
 
 /**
- * Template Tool - Simple string templating.
+ * Template Tool - Render templates with variable substitution.
  */
 export const templateTool = createTool({
 	id: 'template',
-	description: 'Render templates with variable substitution using {{variable}} syntax.',
+	description:
+		'Render templates with variable substitution. Supports Mustache-like {{variable}} syntax.',
 	inputSchema: z.object({
 		template: z.string().describe('Template string with {{variable}} placeholders'),
 		variables: z.record(z.string(), z.unknown()).describe('Variables to substitute'),
-		strict: z.boolean().optional().default(false).describe('Fail if variables are missing'),
+		options: z
+			.object({
+				missingBehavior: z.enum(['empty', 'keep', 'error']).optional().default('empty'),
+				escapeHtml: z.boolean().optional().default(false),
+			})
+			.optional(),
 	}),
 	execute: async (params, _context) => {
 		try {
-			const { template, variables, strict } = params
+			const { template, variables, options } = params
+			const { missingBehavior = 'empty', escapeHtml = false } = options || {}
 
-			const missing: string[] = []
-			const result = template.replace(/\{\{(\w+)\}\}/g, (match, key) => {
-				if (key in variables) {
-					return String(variables[key] ?? '')
-				}
-				if (strict) {
-					missing.push(key)
-				}
-				return match
-			})
-
-			if (strict && missing.length > 0) {
-				return failure(`Missing variables: ${missing.join(', ')}`)
+			const escapeHtmlFn = (str: string): string => {
+				return str
+					.replace(/&/g, '&amp;')
+					.replace(/</g, '&lt;')
+					.replace(/>/g, '&gt;')
+					.replace(/"/g, '&quot;')
+					.replace(/'/g, '&#39;')
 			}
 
-			return success({ result, variablesUsed: Object.keys(variables) })
+			const getNestedValue = (obj: Record<string, unknown>, path: string): unknown => {
+				return path.split('.').reduce((current, key) => {
+					if (current && typeof current === 'object' && key in current) {
+						return (current as Record<string, unknown>)[key]
+					}
+					return undefined
+				}, obj as unknown)
+			}
+
+			const missingVars: string[] = []
+
+			const result = template.replace(/\{\{([^}]+)\}\}/g, (match, varName: string) => {
+				const trimmedName = varName.trim()
+				const value = getNestedValue(variables, trimmedName)
+
+				if (value === undefined) {
+					missingVars.push(trimmedName)
+					switch (missingBehavior) {
+						case 'keep':
+							return match
+						case 'error':
+							throw new Error(`Missing variable: ${trimmedName}`)
+						default:
+							return ''
+					}
+				}
+
+				let strValue = String(value)
+				if (escapeHtml) {
+					strValue = escapeHtmlFn(strValue)
+				}
+				return strValue
+			})
+
+			return success({
+				result,
+				missingVariables: missingVars,
+				variableCount: Object.keys(variables).length,
+			})
 		} catch (error) {
 			return failure(`Template error: ${error instanceof Error ? error.message : 'Unknown error'}`)
 		}

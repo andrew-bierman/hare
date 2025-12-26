@@ -2,12 +2,16 @@ import type { NextConfig } from 'next'
 
 // Enable calling `getCloudflareContext()` in `next dev`.
 // Must be called before config export per opennextjs-cloudflare docs.
-if (process.env.NODE_ENV === 'development') {
-	import('@opennextjs/cloudflare').then(({ initOpenNextCloudflareForDev }) => {
-		initOpenNextCloudflareForDev({
-			persist: { path: '.wrangler/state/v3' },
+if (process.env.NODE_ENV === 'development' && process.env.SKIP_CF_DEV !== 'true') {
+	import('@opennextjs/cloudflare')
+		.then(({ initOpenNextCloudflareForDev }) => {
+			initOpenNextCloudflareForDev({
+				persist: { path: '.wrangler/state/v3' },
+			})
 		})
-	})
+		.catch((err) => {
+			console.warn('Cloudflare dev mode not available:', err.message)
+		})
 }
 
 const nextConfig: NextConfig = {

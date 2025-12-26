@@ -1,5 +1,6 @@
 import type { Context } from 'hono'
 import { deleteCookie, getCookie, getSignedCookie, setCookie, setSignedCookie } from 'hono/cookie'
+import { serverEnv } from 'web-app/lib/env/server'
 
 /**
  * Cookie helpers using Hono's cookie helper.
@@ -27,7 +28,7 @@ const DEFAULT_COOKIE_OPTIONS: SecureCookieOptions = {
 	maxAge: 60 * 60 * 24 * 7, // 7 days
 	path: '/',
 	httpOnly: true,
-	secure: process.env.NODE_ENV === 'production',
+	secure: serverEnv.NODE_ENV === 'production',
 	sameSite: 'lax',
 }
 

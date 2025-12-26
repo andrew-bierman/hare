@@ -26,7 +26,11 @@ export {
 // Chat schemas
 export {
 	ChatRequestSchema,
+	ConversationExportSchema,
 	ConversationSchema,
+	ExportedMessageSchema,
+	ExportFormatSchema,
+	ExportQuerySchema,
 	MessageRoleSchema,
 	MessageSchema,
 } from './chat'

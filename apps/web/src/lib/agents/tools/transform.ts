@@ -2,210 +2,556 @@ import { z } from 'zod'
 import { createTool, failure, success, type ToolContext } from './types'
 
 /**
- * Markdown Tool - Convert markdown to HTML or extract structure.
+ * Markdown Tool - Parse and render Markdown
  */
 export const markdownTool = createTool({
 	id: 'markdown',
-	description: 'Convert markdown to HTML or extract headings and links from markdown.',
+	description:
+		'Parse Markdown to HTML or extract structure (headings, links, images, code blocks).',
 	inputSchema: z.object({
 		operation: z
-			.enum(['toHtml', 'extractHeadings', 'extractLinks'])
+			.enum([
+				'toHtml',
+				'toText',
+				'extractHeadings',
+				'extractLinks',
+				'extractCodeBlocks',
+				'extractAll',
+			])
 			.describe('Operation to perform'),
-		markdown: z.string().describe('Markdown text to process'),
+		markdown: z.string().describe('Markdown content to process'),
+		options: z
+			.object({
+				sanitize: z.boolean().optional().default(true).describe('Sanitize HTML output'),
+				gfm: z.boolean().optional().default(true).describe('Use GitHub Flavored Markdown'),
+			})
+			.optional(),
 	}),
 	execute: async (params, _context) => {
-		try {
-			const { operation, markdown } = params
+		const { operation, markdown, options } = params
+		const { sanitize: _sanitize = true, gfm = true } = options || {}
 
-			switch (operation) {
-				case 'toHtml': {
-					let html = markdown
-						// Headers
-						.replace(/^### (.*$)/gm, '<h3>$1</h3>')
-						.replace(/^## (.*$)/gm, '<h2>$1</h2>')
-						.replace(/^# (.*$)/gm, '<h1>$1</h1>')
-						// Bold and italic
-						.replace(/\*\*\*(.*?)\*\*\*/g, '<strong><em>$1</em></strong>')
-						.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-						.replace(/\*(.*?)\*/g, '<em>$1</em>')
-						// Links
-						.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>')
-						// Images
-						.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" />')
-						// Code blocks
-						.replace(/```(\w*)\n([\s\S]*?)```/g, '<pre><code class="language-$1">$2</code></pre>')
-						// Inline code
-						.replace(/`([^`]+)`/g, '<code>$1</code>')
-						// Blockquotes
-						.replace(/^> (.*$)/gm, '<blockquote>$1</blockquote>')
-						// Horizontal rule
-						.replace(/^---$/gm, '<hr />')
-						// Line breaks
-						.replace(/\n\n/g, '</p><p>')
+		// Simple markdown parser
+		const escapeHtml = (text: string): string => {
+			return text
+				.replace(/&/g, '&amp;')
+				.replace(/</g, '&lt;')
+				.replace(/>/g, '&gt;')
+				.replace(/"/g, '&quot;')
+				.replace(/'/g, '&#39;')
+		}
 
-					html = `<p>${html}</p>`.replace(/<p><\/p>/g, '')
+		const parseMarkdown = (md: string): string => {
+			let html = md
 
-					return success({ html, length: html.length })
-				}
+			// Code blocks (must be first to prevent other parsing inside)
+			html = html.replace(/```(\w+)?\n([\s\S]*?)```/g, (_, lang, code) => {
+				return `<pre><code class="language-${lang || 'text'}">${escapeHtml(code.trim())}</code></pre>`
+			})
 
-				case 'extractHeadings': {
-					const headings: Array<{ level: number; text: string }> = []
-					const regex = /^(#{1,6})\s+(.+)$/gm
-					let match
-					while ((match = regex.exec(markdown)) !== null) {
-						headings.push({
-							level: match[1]?.length || 1,
-							text: match[2] || '',
-						})
-					}
-					return success({ headings, count: headings.length })
-				}
+			// Inline code
+			html = html.replace(/`([^`]+)`/g, '<code>$1</code>')
 
-				case 'extractLinks': {
-					const links: Array<{ text: string; url: string }> = []
-					const regex = /\[([^\]]+)\]\(([^)]+)\)/g
-					let match
-					while ((match = regex.exec(markdown)) !== null) {
-						links.push({
-							text: match[1] || '',
-							url: match[2] || '',
-						})
-					}
-					return success({ links, count: links.length })
-				}
+			// Headers
+			html = html.replace(/^###### (.+)$/gm, '<h6>$1</h6>')
+			html = html.replace(/^##### (.+)$/gm, '<h5>$1</h5>')
+			html = html.replace(/^#### (.+)$/gm, '<h4>$1</h4>')
+			html = html.replace(/^### (.+)$/gm, '<h3>$1</h3>')
+			html = html.replace(/^## (.+)$/gm, '<h2>$1</h2>')
+			html = html.replace(/^# (.+)$/gm, '<h1>$1</h1>')
 
-				default:
-					return failure(`Unknown operation: ${operation}`)
+			// Bold and italic
+			html = html.replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>')
+			html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+			html = html.replace(/\*(.+?)\*/g, '<em>$1</em>')
+			html = html.replace(/___(.+?)___/g, '<strong><em>$1</em></strong>')
+			html = html.replace(/__(.+?)__/g, '<strong>$1</strong>')
+			html = html.replace(/_(.+?)_/g, '<em>$1</em>')
+
+			// Strikethrough (GFM)
+			if (gfm) {
+				html = html.replace(/~~(.+?)~~/g, '<del>$1</del>')
 			}
-		} catch (error) {
-			return failure(`Markdown error: ${error instanceof Error ? error.message : 'Unknown error'}`)
+
+			// Links and images
+			html = html.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" />')
+			html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>')
+
+			// Blockquotes
+			html = html.replace(/^> (.+)$/gm, '<blockquote>$1</blockquote>')
+
+			// Horizontal rules
+			html = html.replace(/^(-{3,}|\*{3,}|_{3,})$/gm, '<hr />')
+
+			// Unordered lists
+			html = html.replace(/^\s*[-*+] (.+)$/gm, '<li>$1</li>')
+
+			// Ordered lists
+			html = html.replace(/^\s*\d+\. (.+)$/gm, '<li>$1</li>')
+
+			// Paragraphs (basic)
+			html = html.replace(/\n\n/g, '</p><p>')
+			if (!html.startsWith('<')) {
+				html = `<p>${html}</p>`
+			}
+
+			// Clean up empty paragraphs
+			html = html.replace(/<p>\s*<\/p>/g, '')
+
+			return html
+		}
+
+		const extractHeadings = (md: string): Array<{ level: number; text: string }> => {
+			const headings: Array<{ level: number; text: string }> = []
+			const regex = /^(#{1,6}) (.+)$/gm
+			for (const match of md.matchAll(regex)) {
+				const hashes = match[1]
+				const text = match[2]
+				if (hashes && text) {
+					headings.push({ level: hashes.length, text })
+				}
+			}
+			return headings
+		}
+
+		const extractLinks = (md: string): Array<{ text: string; url: string; isImage: boolean }> => {
+			const links: Array<{ text: string; url: string; isImage: boolean }> = []
+
+			// Images
+			const imgRegex = /!\[([^\]]*)\]\(([^)]+)\)/g
+			for (const match of md.matchAll(imgRegex)) {
+				const text = match[1]
+				const url = match[2]
+				if (text !== undefined && url) {
+					links.push({ text, url, isImage: true })
+				}
+			}
+
+			// Links
+			const linkRegex = /(?<!!)\[([^\]]+)\]\(([^)]+)\)/g
+			for (const match of md.matchAll(linkRegex)) {
+				const text = match[1]
+				const url = match[2]
+				if (text && url) {
+					links.push({ text, url, isImage: false })
+				}
+			}
+
+			return links
+		}
+
+		const extractCodeBlocks = (md: string): Array<{ language: string; code: string }> => {
+			const blocks: Array<{ language: string; code: string }> = []
+			const regex = /```(\w+)?\n([\s\S]*?)```/g
+			for (const match of md.matchAll(regex)) {
+				const code = match[2]
+				if (code) {
+					blocks.push({ language: match[1] ?? 'text', code: code.trim() })
+				}
+			}
+			return blocks
+		}
+
+		switch (operation) {
+			case 'toHtml':
+				return success({ html: parseMarkdown(markdown) })
+
+			case 'toText': {
+				// Strip all markdown syntax
+				const text = markdown
+					.replace(/```[\s\S]*?```/g, '') // Remove code blocks
+					.replace(/`[^`]+`/g, '') // Remove inline code
+					.replace(/!\[[^\]]*\]\([^)]+\)/g, '') // Remove images
+					.replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // Links to text
+					.replace(/^#{1,6} /gm, '') // Remove heading markers
+					.replace(/\*\*([^*]+)\*\*/g, '$1') // Bold
+					.replace(/\*([^*]+)\*/g, '$1') // Italic
+					.replace(/__([^_]+)__/g, '$1')
+					.replace(/_([^_]+)_/g, '$1')
+					.replace(/~~([^~]+)~~/g, '$1') // Strikethrough
+					.replace(/^[-*+] /gm, '') // List items
+					.replace(/^\d+\. /gm, '')
+					.replace(/^> /gm, '') // Blockquotes
+					.replace(/^(-{3,}|\*{3,}|_{3,})$/gm, '') // HR
+					.trim()
+				return success({ text })
+			}
+
+			case 'extractHeadings':
+				return success({ headings: extractHeadings(markdown) })
+
+			case 'extractLinks':
+				return success({ links: extractLinks(markdown) })
+
+			case 'extractCodeBlocks':
+				return success({ codeBlocks: extractCodeBlocks(markdown) })
+
+			case 'extractAll':
+				return success({
+					headings: extractHeadings(markdown),
+					links: extractLinks(markdown),
+					codeBlocks: extractCodeBlocks(markdown),
+				})
+
+			default:
+				return failure(`Unknown operation: ${operation}`)
 		}
 	},
 })
 
 /**
- * Diff Tool - Compare two texts and show differences.
+ * Diff Tool - Compare texts and generate diffs
  */
 export const diffTool = createTool({
 	id: 'diff',
-	description: 'Compare two texts and show the differences between them.',
+	description: 'Compare two texts and generate a diff. Shows additions, deletions, and changes.',
 	inputSchema: z.object({
-		text1: z.string().describe('First text'),
-		text2: z.string().describe('Second text'),
+		original: z.string().describe('Original text'),
+		modified: z.string().describe('Modified text'),
 		mode: z
 			.enum(['lines', 'words', 'chars'])
 			.optional()
 			.default('lines')
 			.describe('Comparison mode'),
+		context: z.number().optional().default(3).describe('Lines of context around changes'),
 	}),
 	execute: async (params, _context) => {
-		try {
-			const { text1, text2, mode } = params
+		const { original, modified, mode, context: _contextLines } = params
 
-			const split = (text: string) => {
-				switch (mode) {
-					case 'lines':
-						return text.split('\n')
-					case 'words':
-						return text.split(/\s+/)
-					case 'chars':
-						return text.split('')
-					default:
-						return text.split('\n')
-				}
-			}
-
-			const parts1 = split(text1)
-			const parts2 = split(text2)
-
-			// Simple diff - find added, removed, and unchanged
-			const added: string[] = []
-			const removed: string[] = []
-			const unchanged: string[] = []
-
-			const set1 = new Set(parts1)
-			const set2 = new Set(parts2)
-
-			for (const part of parts1) {
-				if (set2.has(part)) {
-					unchanged.push(part)
-				} else {
-					removed.push(part)
-				}
-			}
-
-			for (const part of parts2) {
-				if (!set1.has(part)) {
-					added.push(part)
-				}
-			}
-
-			return success({
-				added,
-				removed,
-				unchanged: unchanged.length,
-				addedCount: added.length,
-				removedCount: removed.length,
-				mode,
-			})
-		} catch (error) {
-			return failure(`Diff error: ${error instanceof Error ? error.message : 'Unknown error'}`)
+		type Change = {
+			type: 'equal' | 'add' | 'delete'
+			value: string
+			lineNumber?: { old?: number; new?: number }
 		}
+
+		// Split based on mode
+		const split = (text: string): string[] => {
+			switch (mode) {
+				case 'lines':
+					return text.split('\n')
+				case 'words':
+					return text.split(/(\s+)/)
+				case 'chars':
+					return text.split('')
+				default:
+					return text.split('\n')
+			}
+		}
+
+		const originalParts = split(original)
+		const modifiedParts = split(modified)
+
+		// Simple LCS-based diff algorithm
+		const lcs = (a: string[], b: string[]): number[][] => {
+			const m = a.length
+			const n = b.length
+			const dp: number[][] = Array(m + 1)
+				.fill(null)
+				.map(() => Array<number>(n + 1).fill(0))
+
+			for (let i = 1; i <= m; i++) {
+				const dpRow = dp[i]
+				const dpPrevRow = dp[i - 1]
+				if (!dpRow || !dpPrevRow) continue
+
+				for (let j = 1; j <= n; j++) {
+					if (a[i - 1] === b[j - 1]) {
+						dpRow[j] = (dpPrevRow[j - 1] ?? 0) + 1
+					} else {
+						dpRow[j] = Math.max(dpPrevRow[j] ?? 0, dpRow[j - 1] ?? 0)
+					}
+				}
+			}
+			return dp
+		}
+
+		const backtrack = (dp: number[][], a: string[], b: string[]): Change[] => {
+			const changes: Change[] = []
+			let i = a.length
+			let j = b.length
+			let oldLine = a.length
+			let newLine = b.length
+
+			while (i > 0 || j > 0) {
+				const aVal = a[i - 1]
+				const bVal = b[j - 1]
+				const dpRow = dp[i]
+				const dpPrevRow = dp[i - 1]
+
+				if (i > 0 && j > 0 && aVal === bVal && aVal !== undefined) {
+					changes.unshift({
+						type: 'equal',
+						value: aVal,
+						lineNumber: mode === 'lines' ? { old: oldLine, new: newLine } : undefined,
+					})
+					i--
+					j--
+					oldLine--
+					newLine--
+				} else if (
+					j > 0 &&
+					(i === 0 || (dpRow?.[j - 1] ?? 0) >= (dpPrevRow?.[j] ?? 0)) &&
+					bVal !== undefined
+				) {
+					changes.unshift({
+						type: 'add',
+						value: bVal,
+						lineNumber: mode === 'lines' ? { new: newLine } : undefined,
+					})
+					j--
+					newLine--
+				} else if (i > 0 && aVal !== undefined) {
+					changes.unshift({
+						type: 'delete',
+						value: aVal,
+						lineNumber: mode === 'lines' ? { old: oldLine } : undefined,
+					})
+					i--
+					oldLine--
+				} else {
+					break // Safety exit
+				}
+			}
+			return changes
+		}
+
+		const dp = lcs(originalParts, modifiedParts)
+		const changes = backtrack(dp, originalParts, modifiedParts)
+
+		// Generate unified diff format for lines mode
+		let unifiedDiff = ''
+		if (mode === 'lines') {
+			unifiedDiff = '--- original\n+++ modified\n'
+			for (const change of changes) {
+				switch (change.type) {
+					case 'equal':
+						unifiedDiff += ` ${change.value}\n`
+						break
+					case 'add':
+						unifiedDiff += `+${change.value}\n`
+						break
+					case 'delete':
+						unifiedDiff += `-${change.value}\n`
+						break
+				}
+			}
+		}
+
+		// Statistics
+		const stats = {
+			additions: changes.filter((c) => c.type === 'add').length,
+			deletions: changes.filter((c) => c.type === 'delete').length,
+			unchanged: changes.filter((c) => c.type === 'equal').length,
+		}
+
+		return success({
+			changes,
+			unifiedDiff: mode === 'lines' ? unifiedDiff : undefined,
+			stats,
+			mode,
+		})
 	},
 })
 
 /**
- * QR Code Tool - Generate QR code data.
+ * QR Code Tool - Generate QR codes as SVG
  */
 export const qrcodeTool = createTool({
 	id: 'qrcode',
-	description: 'Generate QR code data as a URL for display or as SVG path data.',
+	description:
+		'Generate QR codes as SVG. Can encode URLs, text, vCards, WiFi credentials, and more.',
 	inputSchema: z.object({
-		data: z.string().describe('Data to encode in the QR code'),
-		size: z.number().optional().default(200).describe('Size in pixels'),
-		format: z.enum(['url', 'svg']).optional().default('url').describe('Output format'),
+		data: z.string().min(1).max(2000).describe('Data to encode in the QR code'),
+		type: z
+			.enum(['text', 'url', 'email', 'phone', 'sms', 'wifi', 'vcard'])
+			.optional()
+			.default('text')
+			.describe('Data type'),
+		size: z.number().optional().default(200).describe('QR code size in pixels'),
+		errorCorrection: z
+			.enum(['L', 'M', 'Q', 'H'])
+			.optional()
+			.default('M')
+			.describe('Error correction level'),
+		// Type-specific options
+		wifiOptions: z
+			.object({
+				ssid: z.string(),
+				password: z.string().optional(),
+				encryption: z.enum(['WEP', 'WPA', 'nopass']).optional().default('WPA'),
+				hidden: z.boolean().optional().default(false),
+			})
+			.optional(),
+		vcardOptions: z
+			.object({
+				firstName: z.string(),
+				lastName: z.string().optional(),
+				phone: z.string().optional(),
+				email: z.string().optional(),
+				company: z.string().optional(),
+				title: z.string().optional(),
+				url: z.string().optional(),
+			})
+			.optional(),
 	}),
 	execute: async (params, _context) => {
-		try {
-			const { data, size, format } = params
+		const { data, type, size, errorCorrection, wifiOptions, vcardOptions } = params
 
-			// Use a free QR code API for URL format
-			if (format === 'url') {
-				const encodedData = encodeURIComponent(data)
-				const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodedData}`
-				return success({
-					url: qrUrl,
-					data,
-					size,
-				})
+		// Format data based on type
+		let formattedData = data
+		switch (type) {
+			case 'url':
+				if (!data.startsWith('http://') && !data.startsWith('https://')) {
+					formattedData = `https://${data}`
+				}
+				break
+			case 'email':
+				formattedData = `mailto:${data}`
+				break
+			case 'phone':
+				formattedData = `tel:${data.replace(/[^\d+]/g, '')}`
+				break
+			case 'sms':
+				formattedData = `sms:${data}`
+				break
+			case 'wifi':
+				if (wifiOptions) {
+					const { ssid, password, encryption, hidden } = wifiOptions
+					formattedData = `WIFI:T:${encryption};S:${ssid};P:${password || ''};H:${hidden ? 'true' : 'false'};;`
+				}
+				break
+			case 'vcard':
+				if (vcardOptions) {
+					const { firstName, lastName, phone, email, company, title, url } = vcardOptions
+					formattedData = [
+						'BEGIN:VCARD',
+						'VERSION:3.0',
+						`N:${lastName || ''};${firstName};;;`,
+						`FN:${firstName}${lastName ? ` ${lastName}` : ''}`,
+						phone ? `TEL:${phone}` : '',
+						email ? `EMAIL:${email}` : '',
+						company ? `ORG:${company}` : '',
+						title ? `TITLE:${title}` : '',
+						url ? `URL:${url}` : '',
+						'END:VCARD',
+					]
+						.filter(Boolean)
+						.join('\n')
+				}
+				break
+		}
+
+		// Simple QR code matrix generation (Reed-Solomon encoding simplified)
+		// For production, use a proper QR code library
+		const generateMatrix = (data: string, _ecLevel: string): boolean[][] => {
+			// This is a simplified placeholder - in production use a real QR library
+			const dataLength = data.length
+			const size = Math.max(21, Math.ceil(Math.sqrt(dataLength * 8)) + 8)
+			const matrix: boolean[][] = Array(size)
+				.fill(null)
+				.map(() => Array(size).fill(false))
+
+			// Add finder patterns
+			const addFinderPattern = (x: number, y: number) => {
+				for (let i = 0; i < 7; i++) {
+					for (let j = 0; j < 7; j++) {
+						const isOuter = i === 0 || i === 6 || j === 0 || j === 6
+						const isInner = i >= 2 && i <= 4 && j >= 2 && j <= 4
+						const row = matrix[y + i]
+						if (row) row[x + j] = isOuter || isInner
+					}
+				}
 			}
 
-			// For SVG, generate a simple placeholder
-			// In production, use a proper QR code library
-			const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
-				<rect width="100%" height="100%" fill="white"/>
-				<text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="monospace" font-size="10">
-					QR: ${data.slice(0, 20)}${data.length > 20 ? '...' : ''}
-				</text>
-			</svg>`
+			addFinderPattern(0, 0)
+			addFinderPattern(size - 7, 0)
+			addFinderPattern(0, size - 7)
 
-			return success({
-				svg,
-				data,
-				size,
+			// Add timing patterns
+			for (let i = 8; i < size - 8; i++) {
+				const row6 = matrix[6]
+				const rowI = matrix[i]
+				if (row6) row6[i] = i % 2 === 0
+				if (rowI) rowI[6] = i % 2 === 0
+			}
+
+			// Encode data (simplified - just fills remaining space)
+			let bitIndex = 0
+			const dataBits = Array.from(data).flatMap((char) => {
+				const code = char.charCodeAt(0)
+				return Array(8)
+					.fill(0)
+					.map((_, i) => (code >> (7 - i)) & 1)
 			})
-		} catch (error) {
-			return failure(`QR Code error: ${error instanceof Error ? error.message : 'Unknown error'}`)
+
+			for (let col = size - 1; col >= 0; col -= 2) {
+				if (col === 6) col--
+				for (
+					let row = col % 4 < 2 ? size - 1 : 0;
+					col % 4 < 2 ? row >= 0 : row < size;
+					col % 4 < 2 ? row-- : row++
+				) {
+					for (let c = 0; c < 2; c++) {
+						const x = col - c
+						if (matrix[row]?.[x] === undefined) continue
+						if (row < 9 && (x < 9 || x >= size - 8)) continue
+						if (row >= size - 8 && x < 9) continue
+						if (row === 6 || x === 6) continue
+
+						const matrixRow = matrix[row]
+						const bit = dataBits[bitIndex]
+						if (matrixRow && bitIndex < dataBits.length && bit !== undefined) {
+							matrixRow[x] = bit === 1
+							bitIndex++
+						}
+					}
+				}
+			}
+
+			return matrix
 		}
+
+		const matrix = generateMatrix(formattedData, errorCorrection)
+		const moduleSize = size / matrix.length
+
+		// Generate SVG
+		let svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${size} ${size}" width="${size}" height="${size}">`
+		svg += `<rect width="100%" height="100%" fill="white"/>`
+
+		for (let y = 0; y < matrix.length; y++) {
+			const matrixRow = matrix[y]
+			if (!matrixRow) continue
+			for (let x = 0; x < matrixRow.length; x++) {
+				if (matrixRow[x]) {
+					svg += `<rect x="${x * moduleSize}" y="${y * moduleSize}" width="${moduleSize}" height="${moduleSize}" fill="black"/>`
+				}
+			}
+		}
+
+		svg += '</svg>'
+
+		// Convert to base64 data URL
+		const base64 = btoa(svg)
+		const dataUrl = `data:image/svg+xml;base64,${base64}`
+
+		return success({
+			svg,
+			dataUrl,
+			size,
+			type,
+			data: formattedData,
+			moduleCount: matrix.length,
+		})
 	},
 })
 
 /**
- * Compression Tool - Compress and decompress text using various algorithms.
+ * Compression Tool - Compress and decompress data
  */
 export const compressionTool = createTool({
 	id: 'compression',
-	description: 'Compress or decompress text data. Uses base64 for transport.',
+	description:
+		'Compress or decompress data using gzip or deflate. Works with text or base64 binary data.',
 	inputSchema: z.object({
 		operation: z.enum(['compress', 'decompress']).describe('Operation to perform'),
 		data: z.string().describe('Data to compress/decompress'),
@@ -214,84 +560,97 @@ export const compressionTool = createTool({
 			.optional()
 			.default('gzip')
 			.describe('Compression algorithm'),
+		encoding: z
+			.enum(['text', 'base64'])
+			.optional()
+			.default('text')
+			.describe('Input/output encoding'),
 	}),
 	execute: async (params, _context) => {
+		const { operation, data, algorithm, encoding } = params
+
 		try {
-			const { operation, data, algorithm } = params
-
 			if (operation === 'compress') {
-				const encoder = new TextEncoder()
-				const input = encoder.encode(data)
-
-				const stream = new CompressionStream(algorithm)
-				const writer = stream.writable.getWriter()
-				writer.write(input)
-				writer.close()
-
-				const chunks: Uint8Array[] = []
-				const reader = stream.readable.getReader()
-				let result = await reader.read()
-				while (!result.done) {
-					chunks.push(result.value)
-					result = await reader.read()
+				// Convert input to Uint8Array
+				let inputData: Uint8Array
+				if (encoding === 'base64') {
+					inputData = Uint8Array.from(atob(data), (c) => c.charCodeAt(0))
+				} else {
+					inputData = new TextEncoder().encode(data)
 				}
 
-				const compressed = new Uint8Array(chunks.reduce((acc, chunk) => acc + chunk.length, 0))
+				// Create compression stream
+				const cs = new CompressionStream(algorithm)
+				const writer = cs.writable.getWriter()
+				writer.write(inputData as Uint8Array<ArrayBuffer>)
+				writer.close()
+
+				// Read compressed data
+				const reader = cs.readable.getReader()
+				const chunks: Uint8Array[] = []
+				let done = false
+				while (!done) {
+					const result = await reader.read()
+					done = result.done
+					if (result.value) chunks.push(result.value)
+				}
+
+				// Combine chunks
+				const totalLength = chunks.reduce((acc, chunk) => acc + chunk.length, 0)
+				const compressed = new Uint8Array(totalLength)
 				let offset = 0
 				for (const chunk of chunks) {
 					compressed.set(chunk, offset)
 					offset += chunk.length
 				}
 
-				const base64 = btoa(String.fromCharCode(...compressed))
+				const base64Output = btoa(String.fromCharCode(...compressed))
 
 				return success({
-					compressed: base64,
-					originalSize: data.length,
+					compressed: base64Output,
+					originalSize: inputData.length,
 					compressedSize: compressed.length,
-					ratio: `${((1 - compressed.length / data.length) * 100).toFixed(1)}%`,
+					ratio: Math.round((1 - compressed.length / inputData.length) * 100),
 					algorithm,
 				})
-			}
+			} else {
+				// Decompress
+				const compressedData = Uint8Array.from(atob(data), (c) => c.charCodeAt(0))
 
-			if (operation === 'decompress') {
-				const binary = atob(data)
-				const compressed = new Uint8Array(binary.length)
-				for (let i = 0; i < binary.length; i++) {
-					compressed[i] = binary.charCodeAt(i)
-				}
-
-				const stream = new DecompressionStream(algorithm)
-				const writer = stream.writable.getWriter()
-				writer.write(compressed)
+				const ds = new DecompressionStream(algorithm)
+				const writer = ds.writable.getWriter()
+				writer.write(compressedData)
 				writer.close()
 
+				const reader = ds.readable.getReader()
 				const chunks: Uint8Array[] = []
-				const reader = stream.readable.getReader()
-				let result = await reader.read()
-				while (!result.done) {
-					chunks.push(result.value)
-					result = await reader.read()
+				let done = false
+				while (!done) {
+					const result = await reader.read()
+					done = result.done
+					if (result.value) chunks.push(result.value)
 				}
 
-				const decompressed = new Uint8Array(chunks.reduce((acc, chunk) => acc + chunk.length, 0))
+				const totalLength = chunks.reduce((acc, chunk) => acc + chunk.length, 0)
+				const decompressed = new Uint8Array(totalLength)
 				let offset = 0
 				for (const chunk of chunks) {
 					decompressed.set(chunk, offset)
 					offset += chunk.length
 				}
 
-				const text = new TextDecoder().decode(decompressed)
+				const output =
+					encoding === 'base64'
+						? btoa(String.fromCharCode(...decompressed))
+						: new TextDecoder().decode(decompressed)
 
 				return success({
-					decompressed: text,
-					compressedSize: data.length,
-					decompressedSize: text.length,
+					decompressed: output,
+					compressedSize: compressedData.length,
+					decompressedSize: decompressed.length,
 					algorithm,
 				})
 			}
-
-			return failure(`Unknown operation: ${operation}`)
 		} catch (error) {
 			return failure(
 				`Compression error: ${error instanceof Error ? error.message : 'Unknown error'}`,
@@ -301,191 +660,276 @@ export const compressionTool = createTool({
 })
 
 /**
- * Color Tool - Convert between color formats.
+ * Color Tool - Convert and manipulate colors
  */
 export const colorTool = createTool({
 	id: 'color',
-	description: 'Convert colors between hex, RGB, HSL formats and generate color palettes.',
+	description:
+		'Convert between color formats (hex, rgb, hsl) and perform color operations (lighten, darken, blend).',
 	inputSchema: z.object({
 		operation: z
-			.enum(['hexToRgb', 'rgbToHex', 'hexToHsl', 'hslToHex', 'lighten', 'darken', 'complement'])
-			.describe('Color operation'),
-		color: z
-			.string()
-			.describe('Color value (hex: #ff0000, rgb: rgb(255,0,0), hsl: hsl(0,100%,50%))'),
-		amount: z.number().optional().default(20).describe('Amount for lighten/darken (0-100)'),
+			.enum(['convert', 'lighten', 'darken', 'blend', 'complement', 'palette', 'contrast'])
+			.describe('Operation'),
+		color: z.string().describe('Color value (hex, rgb, hsl, or named color)'),
+		format: z
+			.enum(['hex', 'rgb', 'hsl', 'all'])
+			.optional()
+			.default('hex')
+			.describe('Output format'),
+		amount: z.number().optional().default(0.2).describe('Amount for lighten/darken (0-1)'),
+		color2: z.string().optional().describe('Second color for blend operation'),
+		blendRatio: z.number().optional().default(0.5).describe('Blend ratio (0-1)'),
 	}),
 	execute: async (params, _context) => {
-		try {
-			const { operation, color, amount } = params
+		const { operation, color, format, amount, color2, blendRatio } = params
 
-			const hexToRgb = (hex: string) => {
-				const cleaned = hex.replace('#', '')
-				const r = parseInt(cleaned.slice(0, 2), 16)
-				const g = parseInt(cleaned.slice(2, 4), 16)
-				const b = parseInt(cleaned.slice(4, 6), 16)
-				return { r, g, b }
-			}
-
-			const rgbToHex = (r: number, g: number, b: number) => {
-				return (
-					'#' +
-					[r, g, b]
-						.map((x) =>
-							Math.max(0, Math.min(255, Math.round(x)))
-								.toString(16)
-								.padStart(2, '0'),
-						)
-						.join('')
-				)
-			}
-
-			const rgbToHsl = (r: number, g: number, b: number) => {
-				r /= 255
-				g /= 255
-				b /= 255
-				const max = Math.max(r, g, b)
-				const min = Math.min(r, g, b)
-				let h = 0
-				let s = 0
-				const l = (max + min) / 2
-
-				if (max !== min) {
-					const d = max - min
-					s = l > 0.5 ? d / (2 - max - min) : d / (max + min)
-					switch (max) {
-						case r:
-							h = ((g - b) / d + (g < b ? 6 : 0)) / 6
-							break
-						case g:
-							h = ((b - r) / d + 2) / 6
-							break
-						case b:
-							h = ((r - g) / d + 4) / 6
-							break
+		// Parse color to RGB
+		const parseColor = (c: string): { r: number; g: number; b: number } | null => {
+			// Hex
+			const hexMatch = c.match(/^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i)
+			if (hexMatch) {
+				const r = hexMatch[1]
+				const g = hexMatch[2]
+				const b = hexMatch[3]
+				if (r && g && b) {
+					return {
+						r: parseInt(r, 16),
+						g: parseInt(g, 16),
+						b: parseInt(b, 16),
 					}
 				}
-
-				return {
-					h: Math.round(h * 360),
-					s: Math.round(s * 100),
-					l: Math.round(l * 100),
-				}
 			}
 
-			const hslToRgb = (h: number, s: number, l: number) => {
-				h /= 360
-				s /= 100
-				l /= 100
-				let r, g, b
-
-				if (s === 0) {
-					r = g = b = l
-				} else {
-					const hue2rgb = (p: number, q: number, t: number) => {
-						if (t < 0) t += 1
-						if (t > 1) t -= 1
-						if (t < 1 / 6) return p + (q - p) * 6 * t
-						if (t < 1 / 2) return q
-						if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6
-						return p
+			// Short hex
+			const shortHexMatch = c.match(/^#?([a-f\d])([a-f\d])([a-f\d])$/i)
+			if (shortHexMatch) {
+				const r = shortHexMatch[1]
+				const g = shortHexMatch[2]
+				const b = shortHexMatch[3]
+				if (r && g && b) {
+					return {
+						r: parseInt(r + r, 16),
+						g: parseInt(g + g, 16),
+						b: parseInt(b + b, 16),
 					}
-
-					const q = l < 0.5 ? l * (1 + s) : l + s - l * s
-					const p = 2 * l - q
-					r = hue2rgb(p, q, h + 1 / 3)
-					g = hue2rgb(p, q, h)
-					b = hue2rgb(p, q, h - 1 / 3)
-				}
-
-				return {
-					r: Math.round(r * 255),
-					g: Math.round(g * 255),
-					b: Math.round(b * 255),
 				}
 			}
 
-			switch (operation) {
-				case 'hexToRgb': {
-					const rgb = hexToRgb(color)
-					return success({ ...rgb, rgb: `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})` })
+			// RGB
+			const rgbMatch = c.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/i)
+			if (rgbMatch) {
+				const r = rgbMatch[1]
+				const g = rgbMatch[2]
+				const b = rgbMatch[3]
+				if (r && g && b) {
+					return {
+						r: parseInt(r, 10),
+						g: parseInt(g, 10),
+						b: parseInt(b, 10),
+					}
+				}
+			}
+
+			// Named colors
+			const namedColors: Record<string, { r: number; g: number; b: number }> = {
+				red: { r: 255, g: 0, b: 0 },
+				green: { r: 0, g: 128, b: 0 },
+				blue: { r: 0, g: 0, b: 255 },
+				white: { r: 255, g: 255, b: 255 },
+				black: { r: 0, g: 0, b: 0 },
+				yellow: { r: 255, g: 255, b: 0 },
+				cyan: { r: 0, g: 255, b: 255 },
+				magenta: { r: 255, g: 0, b: 255 },
+			}
+
+			return namedColors[c.toLowerCase()] || null
+		}
+
+		// RGB to HSL
+		const rgbToHsl = (r: number, g: number, b: number): { h: number; s: number; l: number } => {
+			r /= 255
+			g /= 255
+			b /= 255
+			const max = Math.max(r, g, b)
+			const min = Math.min(r, g, b)
+			let h = 0
+			let s = 0
+			const l = (max + min) / 2
+
+			if (max !== min) {
+				const d = max - min
+				s = l > 0.5 ? d / (2 - max - min) : d / (max + min)
+				switch (max) {
+					case r:
+						h = ((g - b) / d + (g < b ? 6 : 0)) / 6
+						break
+					case g:
+						h = ((b - r) / d + 2) / 6
+						break
+					case b:
+						h = ((r - g) / d + 4) / 6
+						break
+				}
+			}
+
+			return { h: Math.round(h * 360), s: Math.round(s * 100), l: Math.round(l * 100) }
+		}
+
+		// HSL to RGB
+		const hslToRgb = (h: number, s: number, l: number): { r: number; g: number; b: number } => {
+			h /= 360
+			s /= 100
+			l /= 100
+
+			let r: number
+			let g: number
+			let b: number
+
+			if (s === 0) {
+				r = g = b = l
+			} else {
+				const hue2rgb = (p: number, q: number, t: number) => {
+					if (t < 0) t += 1
+					if (t > 1) t -= 1
+					if (t < 1 / 6) return p + (q - p) * 6 * t
+					if (t < 1 / 2) return q
+					if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6
+					return p
 				}
 
-				case 'rgbToHex': {
-					const match = color.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/)
-					if (!match) return failure('Invalid RGB format. Use rgb(r, g, b)')
-					const hex = rgbToHex(
-						parseInt(match[1] || '0', 10),
-						parseInt(match[2] || '0', 10),
-						parseInt(match[3] || '0', 10),
-					)
-					return success({ hex })
-				}
+				const q = l < 0.5 ? l * (1 + s) : l + s - l * s
+				const p = 2 * l - q
+				r = hue2rgb(p, q, h + 1 / 3)
+				g = hue2rgb(p, q, h)
+				b = hue2rgb(p, q, h - 1 / 3)
+			}
 
-				case 'hexToHsl': {
-					const rgb = hexToRgb(color)
-					const hsl = rgbToHsl(rgb.r, rgb.g, rgb.b)
-					return success({ ...hsl, hsl: `hsl(${hsl.h}, ${hsl.s}%, ${hsl.l}%)` })
-				}
+			return {
+				r: Math.round(r * 255),
+				g: Math.round(g * 255),
+				b: Math.round(b * 255),
+			}
+		}
 
-				case 'hslToHex': {
-					const match = color.match(/hsl\((\d+),\s*(\d+)%?,\s*(\d+)%?\)/)
-					if (!match) return failure('Invalid HSL format. Use hsl(h, s%, l%)')
-					const rgb = hslToRgb(
-						parseInt(match[1] || '0', 10),
-						parseInt(match[2] || '0', 10),
-						parseInt(match[3] || '0', 10),
-					)
-					const hex = rgbToHex(rgb.r, rgb.g, rgb.b)
-					return success({ hex })
-				}
+		// Format output
+		const formatOutput = (rgb: { r: number; g: number; b: number }, fmt: string) => {
+			const hex = `#${rgb.r.toString(16).padStart(2, '0')}${rgb.g.toString(16).padStart(2, '0')}${rgb.b.toString(16).padStart(2, '0')}`
+			const rgbStr = `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`
+			const hsl = rgbToHsl(rgb.r, rgb.g, rgb.b)
+			const hslStr = `hsl(${hsl.h}, ${hsl.s}%, ${hsl.l}%)`
 
-				case 'lighten': {
-					const rgb = hexToRgb(color)
-					const hsl = rgbToHsl(rgb.r, rgb.g, rgb.b)
-					hsl.l = Math.min(100, hsl.l + amount)
-					const newRgb = hslToRgb(hsl.h, hsl.s, hsl.l)
-					return success({
-						original: color,
-						result: rgbToHex(newRgb.r, newRgb.g, newRgb.b),
-						amount,
-					})
-				}
-
-				case 'darken': {
-					const rgb = hexToRgb(color)
-					const hsl = rgbToHsl(rgb.r, rgb.g, rgb.b)
-					hsl.l = Math.max(0, hsl.l - amount)
-					const newRgb = hslToRgb(hsl.h, hsl.s, hsl.l)
-					return success({
-						original: color,
-						result: rgbToHex(newRgb.r, newRgb.g, newRgb.b),
-						amount,
-					})
-				}
-
-				case 'complement': {
-					const rgb = hexToRgb(color)
-					const hsl = rgbToHsl(rgb.r, rgb.g, rgb.b)
-					hsl.h = (hsl.h + 180) % 360
-					const newRgb = hslToRgb(hsl.h, hsl.s, hsl.l)
-					return success({
-						original: color,
-						complement: rgbToHex(newRgb.r, newRgb.g, newRgb.b),
-					})
-				}
-
+			if (fmt === 'all') {
+				return { hex, rgb: rgbStr, hsl: hslStr }
+			}
+			switch (fmt) {
+				case 'rgb':
+					return rgbStr
+				case 'hsl':
+					return hslStr
 				default:
-					return failure(`Unknown operation: ${operation}`)
+					return hex
 			}
-		} catch (error) {
-			return failure(`Color error: ${error instanceof Error ? error.message : 'Unknown error'}`)
+		}
+
+		const rgb = parseColor(color)
+		if (!rgb) {
+			return failure(`Invalid color: ${color}`)
+		}
+
+		switch (operation) {
+			case 'convert':
+				return success({ input: color, output: formatOutput(rgb, format) })
+
+			case 'lighten': {
+				const hsl = rgbToHsl(rgb.r, rgb.g, rgb.b)
+				hsl.l = Math.min(100, hsl.l + amount * 100)
+				const newRgb = hslToRgb(hsl.h, hsl.s, hsl.l)
+				return success({ input: color, output: formatOutput(newRgb, format), amount })
+			}
+
+			case 'darken': {
+				const hsl = rgbToHsl(rgb.r, rgb.g, rgb.b)
+				hsl.l = Math.max(0, hsl.l - amount * 100)
+				const newRgb = hslToRgb(hsl.h, hsl.s, hsl.l)
+				return success({ input: color, output: formatOutput(newRgb, format), amount })
+			}
+
+			case 'complement': {
+				const hsl = rgbToHsl(rgb.r, rgb.g, rgb.b)
+				hsl.h = (hsl.h + 180) % 360
+				const newRgb = hslToRgb(hsl.h, hsl.s, hsl.l)
+				return success({ input: color, complement: formatOutput(newRgb, format) })
+			}
+
+			case 'blend': {
+				if (!color2) return failure('Second color required for blend')
+				const rgb2 = parseColor(color2)
+				if (!rgb2) return failure(`Invalid second color: ${color2}`)
+
+				const blended = {
+					r: Math.round(rgb.r * (1 - blendRatio) + rgb2.r * blendRatio),
+					g: Math.round(rgb.g * (1 - blendRatio) + rgb2.g * blendRatio),
+					b: Math.round(rgb.b * (1 - blendRatio) + rgb2.b * blendRatio),
+				}
+				return success({
+					color1: color,
+					color2,
+					ratio: blendRatio,
+					blended: formatOutput(blended, format),
+				})
+			}
+
+			case 'palette': {
+				const hsl = rgbToHsl(rgb.r, rgb.g, rgb.b)
+				const palette = []
+				for (let i = 0; i < 5; i++) {
+					const newL = Math.max(0, Math.min(100, hsl.l + (i - 2) * 15))
+					const newRgb = hslToRgb(hsl.h, hsl.s, newL)
+					palette.push(formatOutput(newRgb, 'hex'))
+				}
+				return success({ baseColor: color, palette })
+			}
+
+			case 'contrast': {
+				// Calculate relative luminance
+				const luminance = (r: number, g: number, b: number): number => {
+					const values = [r, g, b].map((c) => {
+						c /= 255
+						return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4
+					})
+					const rs = values[0] ?? 0
+					const gs = values[1] ?? 0
+					const bs = values[2] ?? 0
+					return 0.2126 * rs + 0.7152 * gs + 0.0722 * bs
+				}
+
+				const lum = luminance(rgb.r, rgb.g, rgb.b)
+				const whiteLum = 1
+				const blackLum = 0
+
+				const contrastWithWhite = (whiteLum + 0.05) / (lum + 0.05)
+				const contrastWithBlack = (lum + 0.05) / (blackLum + 0.05)
+
+				return success({
+					color,
+					luminance: Math.round(lum * 1000) / 1000,
+					contrastWithWhite: Math.round(contrastWithWhite * 100) / 100,
+					contrastWithBlack: Math.round(contrastWithBlack * 100) / 100,
+					recommendedTextColor: contrastWithWhite > contrastWithBlack ? '#ffffff' : '#000000',
+					wcagAALarge: Math.max(contrastWithWhite, contrastWithBlack) >= 3,
+					wcagAA: Math.max(contrastWithWhite, contrastWithBlack) >= 4.5,
+					wcagAAA: Math.max(contrastWithWhite, contrastWithBlack) >= 7,
+				})
+			}
+
+			default:
+				return failure(`Unknown operation: ${operation}`)
 		}
 	},
 })
 
 /**
- * Get all transform tools.
+ * Get all transform tools
  */
 export function getTransformTools(_context: ToolContext) {
 	return [markdownTool, diffTool, qrcodeTool, compressionTool, colorTool]

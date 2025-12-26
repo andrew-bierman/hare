@@ -54,8 +54,8 @@ export function ToolPicker({
 				</div>
 				<Skeleton className="h-10 w-full" />
 				<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-					{Array.from({ length: 6 }).map((_, i) => (
-						<Skeleton key={i} className="h-32" />
+					{['tp-sk-1', 'tp-sk-2', 'tp-sk-3', 'tp-sk-4', 'tp-sk-5', 'tp-sk-6'].map((id) => (
+						<Skeleton key={id} className="h-32" />
 					))}
 				</div>
 			</div>

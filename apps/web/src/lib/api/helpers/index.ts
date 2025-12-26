@@ -53,5 +53,7 @@ export {
 	IdParamSchema,
 	SuccessSchema,
 } from './responses'
-// Testing helpers - for type-safe API testing
-export { type AppType, client, createMockRequest, createTestClient } from './testing'
+
+// Testing helpers are exported separately to avoid circular dependencies
+// Import directly from './testing' when needed in tests:
+// import { client, createTestClient } from 'web-app/lib/api/helpers/testing'

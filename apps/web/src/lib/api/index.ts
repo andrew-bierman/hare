@@ -5,6 +5,7 @@ import { logger } from 'hono/logger'
 import { requestId } from 'hono/request-id'
 import { secureHeaders } from 'hono/secure-headers'
 import { timing } from 'hono/timing'
+import { serverEnv } from 'web-app/lib/env/server'
 import { CloudflareEnvError } from './db'
 import { corsMiddleware, securityHeadersMiddleware } from './middleware'
 import agentWs from './routes/agent-ws'
@@ -14,6 +15,7 @@ import analytics from './routes/analytics'
 import auth from './routes/auth'
 import chat from './routes/chat'
 import dev from './routes/dev'
+import health from './routes/health'
 import mcp from './routes/mcp'
 import tools from './routes/tools'
 import usage from './routes/usage'
@@ -54,15 +56,9 @@ const routes = app
 	.route('/usage', usage)
 	.route('/dev', dev)
 	.route('/mcp', mcp)
+	.route('/health', health)
 
-// Development: Show registered routes on startup
-if (process.env.NODE_ENV === 'development') {
-	console.log(`\n🚀 Hare API using ${getRouterName(app)} router`)
-	showRoutes(app, { verbose: true, colorize: true })
-	console.log('')
-}
-
-// OpenAPI documentation
+// OpenAPI documentation - must be registered before showRoutes
 app.doc('/openapi.json', {
 	openapi: '3.1.0',
 	info: {
@@ -89,6 +85,7 @@ app.doc('/openapi.json', {
 		{ name: 'MCP', description: 'Model Context Protocol for external AI clients' },
 		{ name: 'Usage', description: 'Usage statistics and analytics' },
 		{ name: 'Analytics', description: 'Detailed analytics and visualizations' },
+		{ name: 'Health', description: 'System health checks and monitoring endpoints' },
 	],
 })
 
@@ -105,14 +102,12 @@ app.get(
 	}),
 )
 
-// Health check
-app.get('/health', (c) =>
-	c.json({
-		status: 'ok',
-		timestamp: new Date().toISOString(),
-		version: '1.0.0',
-	}),
-)
+// Development: Show registered routes on startup (after all routes are defined)
+if (serverEnv.NODE_ENV === 'development') {
+	console.log(`\n🚀 Hare API using ${getRouterName(app)} router`)
+	showRoutes(app, { verbose: true, colorize: true })
+	console.log('')
+}
 
 // Export the chained routes type for RPC client
 export type AppType = typeof routes

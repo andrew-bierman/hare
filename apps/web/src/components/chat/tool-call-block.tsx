@@ -77,10 +77,8 @@ function StatusIcon({ status }: { status: ToolCallData['status'] }) {
 export function ToolCallBlock({ toolCall }: ToolCallBlockProps) {
 	const [isOpen, setIsOpen] = useState(false)
 	const category = getToolCategory(toolCall.name)
-	const categoryStyle = TOOL_CATEGORIES[category] ?? TOOL_CATEGORIES.default ?? {
-		color: 'bg-gray-500/10 text-gray-600 border-gray-500/20',
-		icon: 'wrench',
-	}
+	const defaultStyle = { color: 'bg-gray-500/10 text-gray-600 border-gray-500/20', icon: 'wrench' }
+	const categoryStyle = TOOL_CATEGORIES[category] ?? defaultStyle
 
 	const duration =
 		toolCall.completedAt && toolCall.startedAt
