@@ -85,9 +85,19 @@ export const DeployAgentSchema = z
  */
 export const DeploymentSchema = z
 	.object({
-		id: z.string().openapi({ example: 'agent_abc123' }),
-		status: AgentStatusSchema,
+		id: z.string().openapi({ example: 'deploy_abc123' }),
+		status: z.enum(['deployed', 'active', 'pending', 'failed', 'inactive', 'rolled_back']).openapi({
+			example: 'deployed',
+		}),
 		deployedAt: z.string().datetime().openapi({ example: '2024-12-01T00:00:00Z' }),
 		version: z.string().openapi({ example: '1.0.0' }),
+		url: z.string().url().optional().openapi({
+			example: 'https://hare.example.com/api/agents/agent_abc123/do',
+			description: 'HTTP endpoint URL for the deployed agent',
+		}),
+		wsUrl: z.string().optional().openapi({
+			example: 'wss://hare.example.com/api/agents/agent_abc123/ws',
+			description: 'WebSocket endpoint URL for real-time communication',
+		}),
 	})
 	.openapi('Deployment')

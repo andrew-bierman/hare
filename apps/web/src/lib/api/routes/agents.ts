@@ -1,6 +1,6 @@
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
 import { and, eq } from 'drizzle-orm'
-import { agents, agentTools, deployments } from 'web-app/db/schema'
+import { agents, agentTools } from 'web-app/db/schema'
 import type { Database } from 'web-app/db/types'
 import { getDb } from '../db'
 import { commonResponses, requireAdminAccess, requireWriteAccess } from '../helpers'
@@ -16,6 +16,12 @@ import {
 	UpdateAgentSchema,
 } from '../schemas'
 import { serializeAgent } from '../serializers'
+import {
+	createDeployment,
+	deactivateDeployment,
+	getDeploymentHistory,
+	rollbackDeployment,
+} from '../services/deployment'
 import type { WorkspaceEnv } from '../types'
 
 // Define routes
@@ -207,7 +213,7 @@ const deployAgentRoute = createRoute({
 	path: '/{id}/deploy',
 	tags: ['Agents'],
 	summary: 'Deploy agent',
-	description: 'Deploy an agent to production',
+	description: 'Deploy an agent to production with endpoint URLs',
 	request: {
 		params: IdParamSchema,
 		query: z.object({
@@ -248,6 +254,118 @@ const deployAgentRoute = createRoute({
 		},
 		500: {
 			description: 'Failed to create deployment',
+			content: { 'application/json': { schema: ErrorSchema } },
+		},
+		...commonResponses,
+	},
+})
+
+const undeployAgentRoute = createRoute({
+	method: 'post',
+	path: '/{id}/undeploy',
+	tags: ['Agents'],
+	summary: 'Undeploy agent',
+	description: 'Remove an agent from production',
+	request: {
+		params: IdParamSchema,
+		query: z.object({
+			workspaceId: z.string().describe('Workspace ID'),
+		}),
+	},
+	responses: {
+		200: {
+			description: 'Agent undeployed successfully',
+			content: {
+				'application/json': {
+					schema: SuccessSchema,
+				},
+			},
+		},
+		403: {
+			description: 'Admin access required',
+			content: { 'application/json': { schema: ErrorSchema } },
+		},
+		404: {
+			description: 'Agent not found',
+			content: { 'application/json': { schema: ErrorSchema } },
+		},
+		...commonResponses,
+	},
+})
+
+const rollbackAgentRoute = createRoute({
+	method: 'post',
+	path: '/{id}/rollback',
+	tags: ['Agents'],
+	summary: 'Rollback agent deployment',
+	description: 'Rollback to a previous deployment version',
+	request: {
+		params: IdParamSchema,
+		query: z.object({
+			workspaceId: z.string().describe('Workspace ID'),
+		}),
+		body: {
+			content: {
+				'application/json': {
+					schema: z.object({
+						version: z.string().optional().describe('Target version to rollback to'),
+					}),
+				},
+			},
+		},
+	},
+	responses: {
+		200: {
+			description: 'Rollback successful',
+			content: {
+				'application/json': {
+					schema: z.object({
+						success: z.boolean(),
+						previousVersion: z.string().optional(),
+						currentVersion: z.string().optional(),
+						message: z.string(),
+					}),
+				},
+			},
+		},
+		403: {
+			description: 'Admin access required',
+			content: { 'application/json': { schema: ErrorSchema } },
+		},
+		404: {
+			description: 'Agent not found',
+			content: { 'application/json': { schema: ErrorSchema } },
+		},
+		...commonResponses,
+	},
+})
+
+const deploymentHistoryRoute = createRoute({
+	method: 'get',
+	path: '/{id}/deployments',
+	tags: ['Agents'],
+	summary: 'Get deployment history',
+	description: 'Get the deployment history for an agent',
+	request: {
+		params: IdParamSchema,
+		query: z.object({
+			workspaceId: z.string().describe('Workspace ID'),
+			limit: z.coerce.number().optional().default(10).describe('Maximum number of results'),
+		}),
+	},
+	responses: {
+		200: {
+			description: 'Deployment history',
+			content: {
+				'application/json': {
+					schema: z.object({
+						deployments: z.array(DeploymentSchema),
+					}),
+				},
+			},
+		},
+		404: {
+			description: 'Agent not found',
 			content: { 'application/json': { schema: ErrorSchema } },
 		},
 		...commonResponses,
@@ -454,36 +572,101 @@ app.openapi(deployAgentRoute, async (c) => {
 		return c.json({ error: 'Agent must have instructions before deployment' }, 400)
 	}
 
-	await db
-		.update(agents)
-		.set({
-			status: 'deployed',
-			updatedAt: new Date(),
+	try {
+		const deployment = await createDeployment({
+			db,
+			config: {
+				agentId: id,
+				version: data.version || '1.0.0',
+				deployedBy: user.id,
+			},
+			agentConfig: existing.config as Record<string, unknown> | undefined,
 		})
-		.where(eq(agents.id, id))
 
-	const version = data.version || '1.0.0'
-	const [deployment] = await db
-		.insert(deployments)
-		.values({
-			agentId: id,
-			version,
-			status: 'active',
-			deployedBy: user.id,
-			metadata: existing.config ? { config: existing.config } : undefined,
-		})
-		.returning()
-
-	if (!deployment) {
-		return c.json({ error: 'Failed to create deployment' }, 500)
+		return c.json(
+			{
+				id: deployment.id,
+				status: 'deployed' as const,
+				deployedAt: deployment.deployedAt.toISOString(),
+				version: deployment.version,
+				url: deployment.url,
+				wsUrl: deployment.wsUrl,
+			},
+			200,
+		)
+	} catch (error) {
+		return c.json(
+			{ error: error instanceof Error ? error.message : 'Failed to create deployment' },
+			500,
+		)
 	}
+})
+
+app.openapi(undeployAgentRoute, async (c) => {
+	const { id } = c.req.valid('param')
+	const db = await getDb(c)
+	const workspace = c.get('workspace')
+	const role = c.get('workspaceRole')
+
+	requireAdminAccess(role)
+
+	const existing = await findAgentByIdAndWorkspace(db, id, workspace.id)
+	if (!existing) {
+		return c.json({ error: 'Agent not found' }, 404)
+	}
+
+	const result = await deactivateDeployment({ db, agentId: id })
+	return c.json(result, 200)
+})
+
+app.openapi(rollbackAgentRoute, async (c) => {
+	const { id } = c.req.valid('param')
+	const data = c.req.valid('json')
+	const db = await getDb(c)
+	const user = c.get('user')
+	const workspace = c.get('workspace')
+	const role = c.get('workspaceRole')
+
+	requireAdminAccess(role)
+
+	const existing = await findAgentByIdAndWorkspace(db, id, workspace.id)
+	if (!existing) {
+		return c.json({ error: 'Agent not found' }, 404)
+	}
+
+	const result = await rollbackDeployment({
+		db,
+		agentId: id,
+		targetVersion: data.version,
+		deployedBy: user.id,
+	})
+
+	return c.json(result, 200)
+})
+
+app.openapi(deploymentHistoryRoute, async (c) => {
+	const { id } = c.req.valid('param')
+	const { limit } = c.req.valid('query')
+	const db = await getDb(c)
+	const workspace = c.get('workspace')
+
+	const existing = await findAgentByIdAndWorkspace(db, id, workspace.id)
+	if (!existing) {
+		return c.json({ error: 'Agent not found' }, 404)
+	}
+
+	const history = await getDeploymentHistory({ db, agentId: id, limit })
 
 	return c.json(
 		{
-			id: deployment.id,
-			status: 'deployed' as const,
-			deployedAt: deployment.deployedAt.toISOString(),
-			version,
+			deployments: history.map((d) => ({
+				id: d.id,
+				status: d.status,
+				deployedAt: d.deployedAt.toISOString(),
+				version: d.version,
+				url: d.url,
+				wsUrl: d.wsUrl,
+			})),
 		},
 		200,
 	)
