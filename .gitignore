@@ -44,3 +44,6 @@ test-results
 # Git worktrees (Crystal)
 /worktrees/
 /worktree-*/
+
+# Claude Code work directory
+.claude/work/
