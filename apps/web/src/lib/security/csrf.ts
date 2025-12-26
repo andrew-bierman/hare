@@ -5,6 +5,7 @@
 
 import type { Context } from 'hono'
 import { getCookie, setCookie } from 'hono/cookie'
+import { timingSafeEqual } from './encryption'
 import type { HonoEnv } from '../api/types'
 
 /**
@@ -65,26 +66,8 @@ export function validateCsrfToken(c: Context<HonoEnv>): boolean {
 		return false
 	}
 
-	// Constant-time comparison to prevent timing attacks
+	// Use timing-safe comparison from encryption module
 	return timingSafeEqual(cookieToken, headerToken)
-}
-
-/**
- * Timing-safe string comparison
- * Prevents timing attacks by ensuring comparison takes constant time
- */
-function timingSafeEqual(a: string, b: string): boolean {
-	if (a.length !== b.length) {
-		// To prevent early return timing leak, still do comparison
-		b = a
-	}
-
-	let result = 0
-	for (let i = 0; i < a.length; i++) {
-		result |= a.charCodeAt(i) ^ b.charCodeAt(i)
-	}
-
-	return result === 0
 }
 
 /**

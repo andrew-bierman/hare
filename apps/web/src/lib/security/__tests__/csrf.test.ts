@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { generateCsrfToken, timingSafeEqual } from '../csrf'
+import { generateCsrfToken } from '../csrf'
+import { timingSafeEqual } from '../encryption'
 
 describe('CSRF Protection', () => {
 	describe('generateCsrfToken', () => {

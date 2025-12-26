@@ -4,12 +4,14 @@ Preferred-Languages: en
 Canonical: https://hare.run/.well-known/security.txt
 
 # Security Policy
+# NOTE: Update security@example.com with your actual security contact email before deployment
 
 We take the security of Hare seriously. If you have discovered a security vulnerability in our system, we appreciate your help in disclosing it to us responsibly.
 
 ## Reporting a Vulnerability
 
 Please report security vulnerabilities by emailing security@example.com
+(Update this email address before deploying to production)
 
 Please include the following information:
 - Type of vulnerability

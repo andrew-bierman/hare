@@ -217,9 +217,16 @@ export function calculatePasswordEntropy(password: string): number {
 /**
  * Check if password has been compromised in known data breaches
  * In production, integrate with Have I Been Pwned API or similar
+ *
+ * TODO: Implement integration with Have I Been Pwned API
+ * Use k-anonymity model to protect privacy:
+ * 1. Hash the password with SHA-1
+ * 2. Send first 5 characters of hash to API
+ * 3. Receive list of hash suffixes that match
+ * 4. Compare locally to determine if password is breached
+ * API: https://haveibeenpwned.com/API/v3#PwnedPasswords
  */
 export async function checkPasswordBreach(_password: string): Promise<boolean> {
-	// TODO: Integrate with Have I Been Pwned API
 	// For now, return false (not breached)
 	// Implementation should use k-anonymity model to protect privacy
 	return false
