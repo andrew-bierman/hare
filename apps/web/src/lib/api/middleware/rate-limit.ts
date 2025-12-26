@@ -1,116 +1,98 @@
-import type { MiddlewareHandler } from 'hono'
-import type { HonoEnv } from '../types'
-
-interface RateLimitEntry {
-	count: number
-	resetAt: number
-}
-
-interface RateLimitOptions {
-	/** Time window in milliseconds (default: 60000 = 1 minute) */
-	windowMs?: number
-	/** Maximum requests per window (default: 100) */
-	limit?: number
-	/** Key generator function - defaults to IP-based */
-	keyGenerator?: (c: Parameters<MiddlewareHandler>[0]) => string
-	/** Custom message for rate limit exceeded */
-	message?: string
-}
-
-// In-memory store for rate limiting
-// Note: For distributed deployments, consider using Cloudflare KV or Durable Objects
-const rateLimitStore = new Map<string, RateLimitEntry>()
-
-// Cleanup old entries periodically
-let lastCleanup = Date.now()
-const CLEANUP_INTERVAL = 60000 // 1 minute
-
-function cleanup() {
-	const now = Date.now()
-	if (now - lastCleanup < CLEANUP_INTERVAL) return
-
-	lastCleanup = now
-	for (const [key, entry] of rateLimitStore) {
-		if (entry.resetAt < now) {
-			rateLimitStore.delete(key)
-		}
-	}
-}
+import type { Context, MiddlewareHandler, Next } from "hono";
+import {
+  rateLimit,
+  type RateLimitBinding,
+  type RateLimitKeyFunc,
+} from "@elithrar/workers-hono-rate-limit";
+import type { HonoEnv } from "../types";
 
 /**
- * Rate limiting middleware.
- * Uses in-memory store by default - suitable for single-instance deployments.
- * For distributed rate limiting, integrate with Cloudflare KV or Durable Objects.
+ * Get a rate limit key based on user ID (preferred) or IP address (fallback).
+ * Using user ID is more reliable than IP for authenticated routes.
  */
-export function rateLimiter(options: RateLimitOptions = {}): MiddlewareHandler<HonoEnv> {
-	const {
-		windowMs = 60000,
-		limit = 100,
-		keyGenerator = (c) => {
-			// Try to get real IP from Cloudflare headers
-			const cfConnectingIp = c.req.header('cf-connecting-ip')
-			const xForwardedFor = c.req.header('x-forwarded-for')
-			const xRealIp = c.req.header('x-real-ip')
-			return cfConnectingIp || xForwardedFor?.split(',')[0]?.trim() || xRealIp || 'unknown'
-		},
-		message = 'Too many requests, please try again later',
-	} = options
+const getUserOrIpKey: RateLimitKeyFunc = (c: Context): string => {
+  // Try to get user ID from context (set by auth middleware)
+  const user = c.get("user");
+  if (user?.id) {
+    return `user:${user.id}`;
+  }
 
-	return async (c, next) => {
-		cleanup()
+  // Fallback to IP-based limiting for unauthenticated requests
+  const cfConnectingIp = c.req.header("cf-connecting-ip");
+  const xForwardedFor = c.req.header("x-forwarded-for");
+  const xRealIp = c.req.header("x-real-ip");
+  const ip =
+    cfConnectingIp ||
+    xForwardedFor?.split(",")[0]?.trim() ||
+    xRealIp ||
+    "unknown";
 
-		const key = keyGenerator(c)
-		const now = Date.now()
+  return `ip:${ip}`;
+};
 
-		let entry = rateLimitStore.get(key)
+/**
+ * Get a rate limit key based on API key (for external API access).
+ */
+const getApiKeyOrIpKey: RateLimitKeyFunc = (c: Context): string => {
+  // Try to get API key from context (set by apiKey middleware)
+  const apiKey = c.get("apiKey");
+  if (apiKey?.id) {
+    return `apikey:${apiKey.id}`;
+  }
 
-		if (!entry || entry.resetAt < now) {
-			entry = { count: 0, resetAt: now + windowMs }
-			rateLimitStore.set(key, entry)
-		}
+  // Fallback to IP
+  const cfConnectingIp = c.req.header("cf-connecting-ip");
+  const xForwardedFor = c.req.header("x-forwarded-for");
+  const ip =
+    cfConnectingIp || xForwardedFor?.split(",")[0]?.trim() || "unknown";
 
-		entry.count++
+  return `ip:${ip}`;
+};
 
-		// Set rate limit headers
-		const remaining = Math.max(0, limit - entry.count)
-		const reset = Math.ceil(entry.resetAt / 1000)
-
-		c.header('X-RateLimit-Limit', limit.toString())
-		c.header('X-RateLimit-Remaining', remaining.toString())
-		c.header('X-RateLimit-Reset', reset.toString())
-
-		if (entry.count > limit) {
-			c.header('Retry-After', Math.ceil((entry.resetAt - now) / 1000).toString())
-			return c.json({ error: message }, 429)
-		}
-
-		await next()
-	}
+/**
+ * Create a rate limiting middleware using Cloudflare's native rate limiting.
+ * Uses the specified binding and key generator function.
+ */
+function createRateLimiter(
+  getBinding: (c: Context<HonoEnv>) => RateLimitBinding,
+  keyFunc: RateLimitKeyFunc = getUserOrIpKey,
+): MiddlewareHandler<HonoEnv> {
+  return async (c: Context<HonoEnv>, next: Next) => {
+    const binding = getBinding(c);
+    return rateLimit(binding, keyFunc)(c, next);
+  };
 }
 
 /**
- * Stricter rate limiter for sensitive operations (deploy, auth, etc.)
+ * General API rate limiter (100 requests per minute).
+ * Use for standard API endpoints.
  */
-export const strictRateLimiter = rateLimiter({
-	windowMs: 60000, // 1 minute
-	limit: 10, // 10 requests per minute
-	message: 'Rate limit exceeded for sensitive operation',
-})
+export const apiRateLimiter: MiddlewareHandler<HonoEnv> = createRateLimiter(
+  (c) => c.env.RATE_LIMITER,
+  getUserOrIpKey,
+);
 
 /**
- * Rate limiter for chat/AI endpoints (more generous but still limited)
+ * Strict rate limiter for sensitive operations (10 requests per minute).
+ * Use for auth, deploy, and other sensitive endpoints.
  */
-export const chatRateLimiter = rateLimiter({
-	windowMs: 60000, // 1 minute
-	limit: 30, // 30 requests per minute
-	message: 'Chat rate limit exceeded, please slow down',
-})
+export const strictRateLimiter: MiddlewareHandler<HonoEnv> = createRateLimiter(
+  (c) => c.env.RATE_LIMITER_STRICT,
+  getUserOrIpKey,
+);
 
 /**
- * Rate limiter for general API endpoints
+ * Chat rate limiter (30 requests per minute).
+ * Use for AI chat endpoints.
  */
-export const apiRateLimiter = rateLimiter({
-	windowMs: 60000, // 1 minute
-	limit: 100, // 100 requests per minute
-	message: 'API rate limit exceeded',
-})
+export const chatRateLimiter: MiddlewareHandler<HonoEnv> = createRateLimiter(
+  (c) => c.env.RATE_LIMITER_CHAT,
+  getUserOrIpKey,
+);
+
+/**
+ * Rate limiter for external API access via API keys.
+ * Uses API key as the limiting key.
+ */
+export const externalApiRateLimiter: MiddlewareHandler<HonoEnv> =
+  createRateLimiter((c) => c.env.RATE_LIMITER, getApiKeyOrIpKey);
