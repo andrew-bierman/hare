@@ -38,12 +38,35 @@ const serverEnvSchema = z.object({
 })
 
 function validateServerEnv() {
+	// Get environment value with support for Cloudflare Workers/Miniflare
+	const getEnv = (key: string): string | undefined => {
+		try {
+			const value = process?.env?.[key]
+			// Return only valid string values
+			if (typeof value === 'string' && value.length > 0) {
+				return value
+			}
+		} catch {
+			// process.env access may fail in some environments
+		}
+		return undefined
+	}
+
+	// Determine NODE_ENV - in Cloudflare Workers test environment, default to 'test'
+	const nodeEnvRaw = getEnv('NODE_ENV')
+	const validNodeEnvs = ['development', 'production', 'test']
+	const nodeEnv = validNodeEnvs.includes(nodeEnvRaw || '') ? nodeEnvRaw : 'test'
+
+	// Get app URL - use test default if NODE_ENV is test and URL is not set
+	const appUrl =
+		getEnv('NEXT_PUBLIC_APP_URL') || (nodeEnv === 'test' ? 'http://localhost:3000' : undefined)
+
 	const result = serverEnvSchema.safeParse({
-		NODE_ENV: process.env.NODE_ENV,
-		NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
-		ENABLE_AI_CHAT: process.env.ENABLE_AI_CHAT,
-		AI_CHAT_BETA_MODE: process.env.AI_CHAT_BETA_MODE,
-		AI_CHAT_ALLOWED_EMAILS: process.env.AI_CHAT_ALLOWED_EMAILS,
+		NODE_ENV: nodeEnv,
+		NEXT_PUBLIC_APP_URL: appUrl,
+		ENABLE_AI_CHAT: getEnv('ENABLE_AI_CHAT'),
+		AI_CHAT_BETA_MODE: getEnv('AI_CHAT_BETA_MODE'),
+		AI_CHAT_ALLOWED_EMAILS: getEnv('AI_CHAT_ALLOWED_EMAILS'),
 	})
 
 	if (!result.success) {
