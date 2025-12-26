@@ -2,13 +2,13 @@
 
 import { Badge } from '@workspace/ui/components/badge'
 import { cn } from '@workspace/ui/lib/utils'
-import { Activity, Bot, Home, Rabbit, Settings, Wrench } from 'lucide-react'
+import { Activity, BarChart3, Bot, Home, Rabbit, Settings, Wrench } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { APP_CONFIG, DASHBOARD_CONTENT, FEATURES, NAV_ITEMS } from 'web-app/config'
 import { WorkspaceSwitcher } from './workspace-switcher'
 
-const ICONS = { Home, Bot, Wrench, Activity, Settings } as const
+const ICONS = { Home, Bot, Wrench, Activity, Settings, BarChart3 } as const
 
 const routes = NAV_ITEMS.dashboard.map((item) => ({
 	label: item.label,

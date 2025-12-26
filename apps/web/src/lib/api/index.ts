@@ -1,15 +1,16 @@
 import { OpenAPIHono } from '@hono/zod-openapi'
 import { apiReference } from '@scalar/hono-api-reference'
-import { cors } from 'hono/cors'
 import { getRouterName, showRoutes } from 'hono/dev'
 import { logger } from 'hono/logger'
 import { requestId } from 'hono/request-id'
 import { secureHeaders } from 'hono/secure-headers'
 import { timing } from 'hono/timing'
 import { CloudflareEnvError } from './db'
+import { corsMiddleware, securityHeadersMiddleware } from './middleware'
 import agentWs from './routes/agent-ws'
 // Import route modules
 import agents from './routes/agents'
+import analytics from './routes/analytics'
 import auth from './routes/auth'
 import chat from './routes/chat'
 import dev from './routes/dev'
@@ -38,12 +39,14 @@ app.use('*', requestId()) // Adds X-Request-Id header for tracing
 app.use('*', logger()) // Request logging (uses requestId)
 app.use('*', timing()) // Adds Server-Timing headers for performance monitoring
 app.use('*', secureHeaders()) // Security headers (X-Content-Type-Options, X-Frame-Options, etc.)
-app.use('*', cors())
+app.use('*', corsMiddleware)
+app.use('*', securityHeadersMiddleware)
 
 // Mount routes - chain for type inference
 const routes = app
 	.route('/agents', agents)
 	.route('/agent-ws', agentWs)
+	.route('/analytics', analytics)
 	.route('/workspaces', workspaces)
 	.route('/tools', tools)
 	.route('/auth', auth)
@@ -85,6 +88,7 @@ app.doc('/openapi.json', {
 		{ name: 'Chat', description: 'Chat with deployed agents (SSE)' },
 		{ name: 'MCP', description: 'Model Context Protocol for external AI clients' },
 		{ name: 'Usage', description: 'Usage statistics and analytics' },
+		{ name: 'Analytics', description: 'Detailed analytics and visualizations' },
 	],
 })
 

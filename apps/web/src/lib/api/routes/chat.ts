@@ -6,9 +6,9 @@ import { agents, conversations, messages, usage } from 'web-app/db/schema'
 import { type AgentConfig, createAgentFromConfig } from 'web-app/lib/agents'
 import { createMemoryStore, toAgentMessages } from 'web-app/lib/agents/memory'
 import { getCloudflareEnv, getDb } from '../db'
-import { optionalAuthMiddleware } from '../middleware'
+import { aiChatFeatureMiddleware, authMiddleware, chatRateLimiter } from '../middleware'
 import { ChatRequestSchema, ConversationSchema, IdParamSchema, MessageSchema } from '../schemas'
-import type { OptionalAuthEnv } from '../types'
+import type { AuthEnv } from '../types'
 
 // Define routes
 const chatWithAgentRoute = createRoute({
@@ -139,10 +139,19 @@ const getConversationMessagesRoute = createRoute({
 })
 
 // Create app with proper typing (includes Bindings and Variables)
-const app = new OpenAPIHono<OptionalAuthEnv>()
+const app = new OpenAPIHono<AuthEnv>()
 
-// Apply optional auth middleware - chat can work with or without auth
-app.use('*', optionalAuthMiddleware)
+// Apply middleware stack for chat endpoint
+// 1. Require authentication
+// 2. Check if AI chat feature is enabled (feature flag)
+// 3. Enforce rate limiting
+app.use('/agents/:id/chat', authMiddleware)
+app.use('/agents/:id/chat', aiChatFeatureMiddleware)
+app.use('/agents/:id/chat', chatRateLimiter)
+
+// List conversations and get messages only need auth
+app.use('/agents/:id/conversations', authMiddleware)
+app.use('/conversations/:id/messages', authMiddleware)
 
 // Chat with agent
 app.openapi(chatWithAgentRoute, async (c) => {
@@ -153,7 +162,7 @@ app.openapi(chatWithAgentRoute, async (c) => {
 
 	// Get user from auth context (may be undefined for API key auth)
 	const user = c.get('user')
-	const userId = user?.id || 'anonymous'
+	const userId = user.id
 
 	if (!env.AI) {
 		return c.json({ error: 'AI service not available' }, 503)
@@ -189,7 +198,10 @@ app.openapi(chatWithAgentRoute, async (c) => {
 	})
 
 	// Load conversation history
-	const historyMessages = await memory.getMessages({ conversationId, limit: 20 })
+	const historyMessages = await memory.getMessages({
+		conversationId,
+		limit: 20,
+	})
 	const agentMessages: CoreMessage[] = toAgentMessages(historyMessages)
 
 	// Add the new user message

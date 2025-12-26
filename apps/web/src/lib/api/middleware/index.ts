@@ -14,6 +14,23 @@ export type {
 	WorkspaceRole,
 	WorkspaceVariables,
 } from '../types'
-export { apiKeyMiddleware, generateApiKey, hasAgentAccess, hasScope } from './api-key'
+export {
+	apiKeyMiddleware,
+	generateApiKey,
+	hasAgentAccess,
+	hasScope,
+} from './api-key'
 export { authMiddleware, optionalAuthMiddleware } from './auth'
-export { hasPermission, requirePermission, workspaceMiddleware } from './workspace'
+export { aiChatFeatureMiddleware } from './beta-access'
+export {
+	apiRateLimiter,
+	chatRateLimiter,
+	externalApiRateLimiter,
+	strictRateLimiter,
+} from './rate-limit'
+export { corsMiddleware, securityHeadersMiddleware } from './security'
+export {
+	hasPermission,
+	requirePermission,
+	workspaceMiddleware,
+} from './workspace'

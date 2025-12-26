@@ -40,6 +40,24 @@ export const FEATURES = {
 	analytics: true,
 	/** Enable custom tools */
 	customTools: true,
+	/** Enable AI chat features (feature flag for beta) */
+	aiChat: process.env.ENABLE_AI_CHAT !== 'false', // Default enabled, can be disabled
+	/** Restrict AI chat to specific users (beta mode) */
+	aiChatBetaMode: process.env.AI_CHAT_BETA_MODE === 'true', // Default false
+	/** Enable rate limiting */
+	rateLimiting: true,
+} as const
+
+// =============================================================================
+// Beta Access
+// =============================================================================
+
+export const BETA_ACCESS = {
+	/** Enable beta access restrictions */
+	enabled: FEATURES.aiChatBetaMode,
+	/** Allowed user emails (comma-separated) */
+	allowedEmails:
+		process.env.AI_CHAT_ALLOWED_EMAILS?.split(',').map((e) => e.trim().toLowerCase()) || [],
 } as const
 
 // =============================================================================
@@ -352,7 +370,10 @@ export const AUTH_CONTENT = {
 	fields: {
 		email: { label: 'Email', placeholder: 'you@example.com' },
 		password: { label: 'Password', placeholder: 'Enter your password' },
-		confirmPassword: { label: 'Confirm Password', placeholder: 'Confirm your password' },
+		confirmPassword: {
+			label: 'Confirm Password',
+			placeholder: 'Confirm your password',
+		},
 		name: { label: 'Full Name', placeholder: 'John Doe' },
 	},
 	validation: {
@@ -546,6 +567,7 @@ export const NAV_ITEMS = {
 		{ label: 'Dashboard', href: '/dashboard', icon: 'Home' },
 		{ label: 'Agents', href: '/dashboard/agents', icon: 'Bot' },
 		{ label: 'Tools', href: '/dashboard/tools', icon: 'Wrench' },
+		{ label: 'Analytics', href: '/dashboard/analytics', icon: 'BarChart3' },
 		{ label: 'Usage', href: '/dashboard/usage', icon: 'Activity' },
 		{ label: 'Settings', href: '/dashboard/settings', icon: 'Settings' },
 	],
@@ -621,6 +643,7 @@ export const DEV_CONFIG = {
 
 export type AppConfig = typeof APP_CONFIG
 export type Features = typeof FEATURES
+export type BetaAccess = typeof BETA_ACCESS
 export type LandingPage = typeof LANDING_PAGE
 export type NavItems = typeof NAV_ITEMS
 export type ErrorMessages = typeof ERROR_MESSAGES

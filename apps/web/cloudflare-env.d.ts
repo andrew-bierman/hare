@@ -21,4 +21,8 @@ interface CloudflareEnv {
 	// Durable Objects for CF Agents
 	HARE_AGENT: DurableObjectNamespace
 	MCP_AGENT: DurableObjectNamespace
+	// Rate Limiters
+	RATE_LIMITER: import('@elithrar/workers-hono-rate-limit').RateLimitBinding
+	RATE_LIMITER_STRICT: import('@elithrar/workers-hono-rate-limit').RateLimitBinding
+	RATE_LIMITER_CHAT: import('@elithrar/workers-hono-rate-limit').RateLimitBinding
 }
