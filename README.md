@@ -483,8 +483,19 @@ All routes are defined in `apps/web/src/lib/api/` and mounted at `/api`.
 | `GET` | `/api/agents/:id` | Get agent |
 | `PATCH` | `/api/agents/:id` | Update agent |
 | `DELETE` | `/api/agents/:id` | Delete agent |
-| `POST` | `/api/agents/:id/deploy` | Deploy agent to edge |
+| `POST` | `/api/agents/:id/deploy` | Deploy agent to edge (returns endpoints) |
+| `GET` | `/api/agents/:id/deployment` | Get deployment info and endpoints |
 | `POST` | `/api/agents/validate` | Validate agent configuration |
+
+### Agent WebSocket/Chat Routes
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/api/agents/:id/ws` | WebSocket connection to agent |
+| `POST` | `/api/agents/:id/chat` | HTTP chat with agent (via Durable Object) |
+| `GET` | `/api/agents/:id/state` | Get agent state |
+| `POST` | `/api/agents/:id/configure` | Configure agent Durable Object |
+| `GET` | `/api/agents/:id/schedules` | Get scheduled tasks |
 
 ### Chat Routes
 
@@ -1111,7 +1122,8 @@ Hare pricing is designed to be simple and predictable (no surprise bills! 💰):
 | ✅ | WebSocket real-time agent communication | Complete | `hard` |
 | ✅ | OAuth providers (Google, GitHub) | Complete | `medium` |
 | ✅ | Configuration validation and preview | Complete | `easy` |
-| 🥇 | Workers deployment pipeline | Up Next | `hard` |
+| ✅ | Workers deployment pipeline | Complete | `hard` |
+| 🥇 | Embed chat widget | Up Next | `medium` |
 
 **Want to help?** Items marked `easy` are great for first-time contributors! See [How to Contribute](#-how-to-contribute) below.
 
@@ -1132,8 +1144,8 @@ Hare pricing is designed to be simple and predictable (no surprise bills! 💰):
 
 ```
 Foundation    ████████████████████ 100%  ✅ Complete
-Core Features ████████████████░░░░  80%  🚧 In Progress
-Production    ████████░░░░░░░░░░░░  40%  🚧 Started
+Core Features █████████████████░░░  85%  🚧 In Progress
+Production    ██████████░░░░░░░░░░  50%  🚧 In Progress
 Advanced      ██░░░░░░░░░░░░░░░░░░  10%  📋 Started
 Enterprise    ░░░░░░░░░░░░░░░░░░░░   0%  📋 Planned
 ```
@@ -1176,7 +1188,7 @@ All core infrastructure is in place and production-ready:
 
 ---
 
-### ✅ Phase 1: Core Features (80% Complete)
+### ✅ Phase 1: Core Features (95% Complete)
 
 **Goal**: Get agents running on the edge with a polished user experience.
 
@@ -1229,18 +1241,20 @@ All core infrastructure is in place and production-ready:
   - [x] Field-level validation with errors and warnings
   - [x] Configuration preview with resolved defaults
   - [x] Token usage and cost estimation
-- [ ] 🚀 **One-Click Deployment** (35% complete)
+- [x] 🚀 **One-Click Deployment** (90% complete)
   - [x] Deployment tracking in database
   - [x] Agent serialization and config export
-  - [ ] Cloudflare Workers deployment via Wrangler API `hard`
-  - [ ] Edge endpoint provisioning (URL generation) `medium`
+  - [x] Durable Object configuration on deploy
+  - [x] Edge endpoint provisioning (URL generation)
+  - [x] GET /api/agents/:id/deployment endpoint
+  - [x] POST /api/agents/:id/chat HTTP endpoint
   - [ ] Deployment rollback mechanism `medium`
 
 **Difficulty Legend:** `easy` = good for beginners | `medium` = some experience needed | `hard` = complex task
 
 **Next Steps** (Priority order):
-1. Build deployment pipeline to Workers
-2. Edge endpoint provisioning (URL generation)
+1. Add deployment rollback mechanism
+2. Embed chat widget for websites
 
 ---
 

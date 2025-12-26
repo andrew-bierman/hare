@@ -3,7 +3,8 @@ import { and, eq } from 'drizzle-orm'
 import { AGENT_LIMITS, AI_MODELS, getModelById } from 'web-app/config'
 import { agents, agentTools, deployments, tools as toolsTable } from 'web-app/db/schema'
 import type { Database } from 'web-app/db/types'
-import { getDb } from '../db'
+import { routeHttpToAgent } from 'web-app/lib/agents'
+import { getCloudflareEnv, getDb } from '../db'
 import { commonResponses, requireAdminAccess, requireWriteAccess } from '../helpers'
 import { authMiddleware, workspaceMiddleware } from '../middleware'
 import {
@@ -252,6 +253,43 @@ const deployAgentRoute = createRoute({
 		500: {
 			description: 'Failed to create deployment',
 			content: { 'application/json': { schema: ErrorSchema } },
+		},
+		...commonResponses,
+	},
+})
+
+const getDeploymentRoute = createRoute({
+	method: 'get',
+	path: '/{id}/deployment',
+	tags: ['Agents'],
+	summary: 'Get deployment info',
+	description: 'Get deployment information and endpoints for a deployed agent',
+	request: {
+		params: IdParamSchema,
+		query: z.object({
+			workspaceId: z.string().describe('Workspace ID'),
+		}),
+	},
+	responses: {
+		200: {
+			description: 'Deployment information',
+			content: {
+				'application/json': {
+					schema: DeploymentSchema,
+				},
+			},
+		},
+		400: {
+			description: 'Agent not deployed',
+			content: { 'application/json': { schema: ErrorSchema } },
+		},
+		404: {
+			description: 'Agent or deployment not found',
+			content: {
+				'application/json': {
+					schema: ErrorSchema,
+				},
+			},
 		},
 		...commonResponses,
 	},
@@ -532,6 +570,7 @@ app.openapi(deployAgentRoute, async (c) => {
 	const { id } = c.req.valid('param')
 	const data = c.req.valid('json')
 	const db = await getDb(c)
+	const env = await getCloudflareEnv(c)
 	const user = c.get('user')
 	const workspace = c.get('workspace')
 	const role = c.get('workspaceRole')
@@ -547,6 +586,40 @@ app.openapi(deployAgentRoute, async (c) => {
 		return c.json({ error: 'Agent must have instructions before deployment' }, 400)
 	}
 
+	// Generate deployment URL based on request origin
+	const requestUrl = new URL(c.req.url)
+	const baseUrl = `${requestUrl.protocol}//${requestUrl.host}`
+	const agentBaseUrl = `${baseUrl}/api/agents/${id}`
+
+	// Configure the Durable Object with agent settings
+	const configRequest = new Request(`${agentBaseUrl}/configure`, {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json' },
+		body: JSON.stringify({
+			agentId: id,
+			workspaceId: workspace.id,
+			name: existing.name,
+			instructions: existing.instructions,
+			model: existing.model,
+		}),
+	})
+
+	try {
+		const configResponse = await routeHttpToAgent({
+			request: configRequest,
+			env,
+			agentId: id,
+			path: '/configure',
+		})
+
+		if (!configResponse.ok) {
+			console.error('Failed to configure Durable Object:', await configResponse.text())
+		}
+	} catch (error) {
+		console.error('Error configuring Durable Object:', error)
+		// Continue with deployment even if DO config fails - it will be configured on first access
+	}
+
 	await db
 		.update(agents)
 		.set({
@@ -556,12 +629,18 @@ app.openapi(deployAgentRoute, async (c) => {
 		.where(eq(agents.id, id))
 
 	const version = data.version || '1.0.0'
+
+	// Generate WebSocket URL (wss for https, ws for http)
+	const wsProtocol = requestUrl.protocol === 'https:' ? 'wss:' : 'ws:'
+	const wsBaseUrl = `${wsProtocol}//${requestUrl.host}`
+
 	const [deployment] = await db
 		.insert(deployments)
 		.values({
 			agentId: id,
 			version,
 			status: 'active',
+			url: agentBaseUrl,
 			deployedBy: user.id,
 			metadata: existing.config ? { config: existing.config } : undefined,
 		})
@@ -577,6 +656,64 @@ app.openapi(deployAgentRoute, async (c) => {
 			status: 'deployed' as const,
 			deployedAt: deployment.deployedAt.toISOString(),
 			version,
+			url: agentBaseUrl,
+			endpoints: {
+				chat: `${agentBaseUrl}/chat`,
+				websocket: `${wsBaseUrl}/api/agents/${id}/ws`,
+				state: `${agentBaseUrl}/state`,
+			},
+		},
+		200,
+	)
+})
+
+app.openapi(getDeploymentRoute, async (c) => {
+	const { id } = c.req.valid('param')
+	const db = await getDb(c)
+	const workspace = c.get('workspace')
+
+	const existing = await findAgentByIdAndWorkspace(db, id, workspace.id)
+	if (!existing) {
+		return c.json({ error: 'Agent not found' }, 404)
+	}
+
+	if (existing.status !== 'deployed') {
+		return c.json({ error: 'Agent is not deployed' }, 400)
+	}
+
+	// Get the latest deployment for this agent
+	const [deployment] = await db
+		.select()
+		.from(deployments)
+		.where(eq(deployments.agentId, id))
+		.orderBy(deployments.deployedAt)
+		.limit(1)
+
+	if (!deployment) {
+		return c.json({ error: 'Deployment not found' }, 404)
+	}
+
+	// Generate URLs based on request origin
+	const requestUrl = new URL(c.req.url)
+	const baseUrl = `${requestUrl.protocol}//${requestUrl.host}`
+	const agentBaseUrl = deployment.url || `${baseUrl}/api/agents/${id}`
+
+	// Generate WebSocket URL (wss for https, ws for http)
+	const wsProtocol = requestUrl.protocol === 'https:' ? 'wss:' : 'ws:'
+	const wsBaseUrl = `${wsProtocol}//${requestUrl.host}`
+
+	return c.json(
+		{
+			id: deployment.id,
+			status: 'deployed' as const,
+			deployedAt: deployment.deployedAt.toISOString(),
+			version: deployment.version,
+			url: agentBaseUrl,
+			endpoints: {
+				chat: `${agentBaseUrl}/chat`,
+				websocket: `${wsBaseUrl}/api/agents/${id}/ws`,
+				state: `${agentBaseUrl}/state`,
+			},
 		},
 		200,
 	)
