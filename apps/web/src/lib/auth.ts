@@ -27,7 +27,6 @@ export function createAuth(d1: D1Database) {
 			autoSignIn: true,
 		},
 		socialProviders: {
-<<<<<<< HEAD
 			...(isGoogleConfigured && {
 				google: {
 					clientId: serverEnv.GOOGLE_CLIENT_ID!,
@@ -40,18 +39,6 @@ export function createAuth(d1: D1Database) {
 					clientSecret: serverEnv.GITHUB_CLIENT_SECRET!,
 				},
 			}),
-=======
-			google: {
-				clientId: process.env.GOOGLE_CLIENT_ID || '',
-				clientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
-				enabled: !!(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET),
-			},
-			github: {
-				clientId: process.env.GITHUB_CLIENT_ID || '',
-				clientSecret: process.env.GITHUB_CLIENT_SECRET || '',
-				enabled: !!(process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET),
-			},
->>>>>>> origin/main
 		},
 		session: {
 			expiresIn: 60 * 60 * 24 * 7, // 7 days
