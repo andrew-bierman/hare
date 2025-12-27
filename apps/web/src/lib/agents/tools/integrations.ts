@@ -69,7 +69,10 @@ Once saved, trigger it anytime with just the name - no URL needed!`,
 			.string()
 			.min(1)
 			.max(50)
-			.regex(/^[a-z0-9-]+$/, 'Use lowercase letters, numbers, and hyphens only')
+			.regex(
+				/^[a-z0-9]+(-[a-z0-9]+)*$/,
+				'Use lowercase letters, numbers, and hyphens (must start/end with alphanumeric)',
+			)
 			.describe('Friendly name for this integration (e.g., "notify-slack", "create-task")'),
 		webhookUrl: z.string().url().describe('Zapier webhook URL (https://hooks.zapier.com/...)'),
 		description: z.string().max(500).describe('What does this integration do?'),
@@ -87,23 +90,30 @@ Once saved, trigger it anytime with just the name - no URL needed!`,
 		try {
 			const { name, webhookUrl, description, defaultData } = params
 
-			if (!webhookUrl.includes('hooks.zapier.com')) {
+			// Validate webhook URL hostname to prevent bypass attacks
+			let parsedUrl: URL
+			try {
+				parsedUrl = new URL(webhookUrl)
+			} catch {
+				return failure('Invalid URL format. Zapier webhooks must be from hooks.zapier.com')
+			}
+
+			if (parsedUrl.hostname !== 'hooks.zapier.com') {
 				return failure('Invalid URL. Zapier webhooks must be from hooks.zapier.com')
 			}
 
 			const key = integrationKey(context.workspaceId, name)
 
-			// Check if already exists
-			const existing = await kv.get(key, 'json')
+			// Check if already exists and preserve stats on update
+			const existing = (await kv.get(key, 'json')) as SavedZapierIntegration | null
 			const integration: SavedZapierIntegration = {
 				name: name.toLowerCase(),
 				webhookUrl,
 				description,
 				defaultData,
-				createdAt: existing
-					? (existing as SavedZapierIntegration).createdAt
-					: new Date().toISOString(),
-				triggerCount: existing ? (existing as SavedZapierIntegration).triggerCount : 0,
+				createdAt: existing?.createdAt ?? new Date().toISOString(),
+				lastTriggeredAt: existing?.lastTriggeredAt,
+				triggerCount: existing?.triggerCount ?? 0,
 			}
 
 			await kv.put(key, JSON.stringify(integration))
@@ -171,13 +181,17 @@ Shows name, description, and usage stats for each saved integration.`,
 				}
 			}
 
+			const truncated = result.list_complete === false
 			return success({
 				integrations,
 				count: integrations.length,
+				truncated,
 				message:
 					integrations.length === 0
 						? 'No integrations saved yet. Use zapier_save to add one!'
-						: `Found ${integrations.length} integration(s)`,
+						: truncated
+							? `Found ${integrations.length} integration(s) (more available, results truncated)`
+							: `Found ${integrations.length} integration(s)`,
 			})
 		} catch (error) {
 			return failure(`Failed to list: ${error instanceof Error ? error.message : 'Unknown error'}`)
@@ -254,7 +268,15 @@ If the saved integration has defaultData, it will be merged (your data takes pre
 				return failure('Provide either a name (for saved integration) or webhookUrl')
 			}
 
-			if (!webhookUrl.includes('hooks.zapier.com')) {
+			// Validate webhook URL hostname to prevent bypass attacks
+			let parsedUrl: URL
+			try {
+				parsedUrl = new URL(webhookUrl)
+			} catch {
+				return failure('Invalid URL format. Zapier webhooks must be from hooks.zapier.com')
+			}
+
+			if (parsedUrl.hostname !== 'hooks.zapier.com') {
 				return failure('Invalid URL. Zapier webhooks must be from hooks.zapier.com')
 			}
 
@@ -290,6 +312,8 @@ If the saved integration has defaultData, it will be merged (your data takes pre
 			const responseData = await response.json().catch(() => response.text())
 
 			// Update trigger stats if using saved integration
+			// Note: Stats are best-effort approximate. Concurrent triggers may result in
+			// slightly inaccurate counts since KV doesn't support atomic increments.
 			if (savedIntegration && kv && name) {
 				const key = integrationKey(context.workspaceId, name)
 				savedIntegration.triggerCount += 1
@@ -454,8 +478,16 @@ Connect to 6,000+ apps through Zapier webhooks.`,
 		try {
 			const { webhookUrl, data, waitForResponse } = params
 
-			if (!webhookUrl.includes('hooks.zapier.com')) {
-				return failure('Invalid URL. Zapier webhooks start with https://hooks.zapier.com/')
+			// Validate webhook URL hostname to prevent bypass attacks
+			let parsedUrl: URL
+			try {
+				parsedUrl = new URL(webhookUrl)
+			} catch {
+				return failure('Invalid URL format. Zapier webhooks must be from hooks.zapier.com')
+			}
+
+			if (parsedUrl.hostname !== 'hooks.zapier.com') {
+				return failure('Invalid URL. Zapier webhooks must be from hooks.zapier.com')
 			}
 
 			const controller = new AbortController()
