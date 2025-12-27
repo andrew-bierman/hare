@@ -9,7 +9,7 @@ import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
 import { and, eq } from 'drizzle-orm'
 import { workspaceMembers } from 'web-app/db/schema'
 import { isWebSocketRequest, routeToMcpAgent } from 'web-app/lib/agents'
-import { getCloudflareEnv, getDb } from '../db'
+import { type Database, getCloudflareEnv, getDb } from '../db'
 import { optionalAuthMiddleware } from '../middleware'
 import { ErrorSchema } from '../schemas'
 import type { OptionalAuthEnv } from '../types'
@@ -18,7 +18,7 @@ import type { OptionalAuthEnv } from '../types'
  * Check if a user has access to a workspace.
  */
 async function hasWorkspaceAccess(
-	db: ReturnType<typeof import('../db').getDb> extends Promise<infer T> ? T : never,
+	db: Database,
 	userId: string,
 	workspaceId: string,
 ): Promise<boolean> {
