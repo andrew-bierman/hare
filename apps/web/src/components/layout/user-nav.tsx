@@ -1,4 +1,5 @@
 import { Link, useNavigate } from '@tanstack/react-router'
+import { useQueryClient } from '@tanstack/react-query'
 import { Avatar, AvatarFallback, AvatarImage } from '@workspace/ui/components/avatar'
 import { Button } from '@workspace/ui/components/button'
 import {
@@ -16,6 +17,7 @@ import { authClient } from 'web-app/lib/auth-client'
 export function UserNav() {
 	const { data: session } = useAuth()
 	const navigate = useNavigate()
+	const queryClient = useQueryClient()
 
 	const user = session?.user
 
@@ -36,6 +38,7 @@ export function UserNav() {
 
 	const handleSignOut = async () => {
 		await authClient.signOut()
+		queryClient.clear()
 		navigate({ to: '/' })
 	}
 
