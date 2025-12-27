@@ -185,14 +185,22 @@ const deleteWorkspaceRoute = createRoute({
 })
 
 /**
+ * Input for getting user workspace role.
+ */
+interface GetUserWorkspaceRoleInput {
+	userId: string
+	workspaceId: string
+	db: Database
+}
+
+/**
  * Get user's role in a workspace.
  * Returns null if user has no access.
  */
 async function getUserWorkspaceRole(
-	userId: string,
-	workspaceId: string,
-	db: Database,
+	input: GetUserWorkspaceRoleInput,
 ): Promise<WorkspaceRole | null> {
+	const { userId, workspaceId, db } = input
 	const [workspace] = await db.select().from(workspaces).where(eq(workspaces.id, workspaceId))
 
 	if (!workspace) return null
@@ -304,7 +312,7 @@ app.openapi(getWorkspaceRoute, async (c) => {
 		return c.json({ error: 'Workspace not found' }, 404)
 	}
 
-	const role = await getUserWorkspaceRole(user.id, id, db)
+	const role = await getUserWorkspaceRole({ userId: user.id, workspaceId: id, db })
 	if (!role) {
 		return c.json({ error: 'Access denied' }, 403)
 	}
@@ -318,7 +326,7 @@ app.openapi(updateWorkspaceRoute, async (c) => {
 	const db = await getDb(c)
 	const user = c.get('user')
 
-	const role = await getUserWorkspaceRole(user.id, id, db)
+	const role = await getUserWorkspaceRole({ userId: user.id, workspaceId: id, db })
 	if (!role) {
 		return c.json({ error: 'Workspace not found' }, 404)
 	}
