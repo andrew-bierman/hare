@@ -5,8 +5,8 @@
 
 import type { Context } from 'hono'
 import { getCookie, setCookie } from 'hono/cookie'
-import { timingSafeEqual } from './encryption'
 import type { HonoEnv } from '../api/types'
+import { timingSafeEqual } from './encryption'
 
 /**
  * CSRF token configuration

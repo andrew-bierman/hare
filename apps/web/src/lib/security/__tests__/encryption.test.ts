@@ -1,11 +1,5 @@
-import { describe, it, expect } from 'vitest'
-import {
-	encryptData,
-	decryptData,
-	hashData,
-	generateSecret,
-	timingSafeEqual,
-} from '../encryption'
+import { describe, expect, it } from 'vitest'
+import { decryptData, encryptData, generateSecret, hashData, timingSafeEqual } from '../encryption'
 
 describe('encryptData and decryptData', () => {
 	const testSecret = 'test-encryption-key-32-chars-ok!'
@@ -61,7 +55,7 @@ describe('encryptData and decryptData', () => {
 		const encrypted = await encryptData(data, testSecret)
 
 		// Tamper with the ciphertext
-		const tampered = encrypted.slice(0, -5) + 'XXXXX'
+		const tampered = `${encrypted.slice(0, -5)}XXXXX`
 
 		await expect(decryptData(tampered, testSecret)).rejects.toThrow()
 	})

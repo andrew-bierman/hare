@@ -36,7 +36,9 @@ export interface RequestSizeLimitOptions {
  * Middleware to limit request body size
  * Prevents DoS attacks via large payloads
  */
-export function requestSizeLimit(options: RequestSizeLimitOptions = {}): MiddlewareHandler<HonoEnv> {
+export function requestSizeLimit(
+	options: RequestSizeLimitOptions = {},
+): MiddlewareHandler<HonoEnv> {
 	const limits = {
 		json: options.maxJsonSize ?? SIZE_LIMITS.json,
 		text: options.maxTextSize ?? SIZE_LIMITS.text,
@@ -98,7 +100,9 @@ export function requireContentType(allowedTypes: string[]): MiddlewareHandler<Ho
 				)
 			}
 
-			const isAllowed = allowedTypes.some((type) => contentType.toLowerCase().includes(type.toLowerCase()))
+			const isAllowed = allowedTypes.some((type) =>
+				contentType.toLowerCase().includes(type.toLowerCase()),
+			)
 
 			if (!isAllowed) {
 				return c.json(
@@ -151,7 +155,10 @@ export function validateJsonBody(): MiddlewareHandler<HonoEnv> {
 	return async (c: Context<HonoEnv>, next: () => Promise<void>) => {
 		const contentType = c.req.header('content-type')
 
-		if (contentType?.includes('application/json') && ['POST', 'PUT', 'PATCH'].includes(c.req.method)) {
+		if (
+			contentType?.includes('application/json') &&
+			['POST', 'PUT', 'PATCH'].includes(c.req.method)
+		) {
 			try {
 				// Attempt to parse body - this validates JSON structure
 				await c.req.json()
@@ -174,19 +181,21 @@ export function validateJsonBody(): MiddlewareHandler<HonoEnv> {
  * Combined request validation middleware
  * Applies multiple security checks
  */
-export function requestValidation(options: RequestSizeLimitOptions = {}): MiddlewareHandler<HonoEnv> {
+export function requestValidation(
+	options: RequestSizeLimitOptions = {},
+): MiddlewareHandler<HonoEnv> {
 	const sizeLimit = requestSizeLimit(options)
 	const dangerousHeaders = blockDangerousHeaders()
 
 	return async (c: Context<HonoEnv>, next: () => Promise<void>) => {
 		// Check size limits
-		const sizeLimitResult = await new Promise<Response | void>((resolve) => {
+		const sizeLimitResult = await new Promise<Response | undefined>((resolve) => {
 			sizeLimit(c, () => Promise.resolve()).then(() => resolve())
 		})
 		if (sizeLimitResult) return sizeLimitResult
 
 		// Check dangerous headers
-		const headersResult = await new Promise<Response | void>((resolve) => {
+		const headersResult = await new Promise<Response | undefined>((resolve) => {
 			dangerousHeaders(c, () => Promise.resolve()).then(() => resolve())
 		})
 		if (headersResult) return headersResult

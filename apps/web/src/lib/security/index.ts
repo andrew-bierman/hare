@@ -3,54 +3,51 @@
  * Provides comprehensive security utilities for the Hare platform
  */
 
-// Password validation
-export {
-	validatePassword,
-	calculatePasswordEntropy,
-	generateSecurePassword,
-	type PasswordValidationResult,
-	type PasswordValidationOptions,
-} from './password'
-
-// Encryption utilities
-export {
-	encryptData,
-	decryptData,
-	hashData,
-	generateSecret,
-	timingSafeEqual,
-} from './encryption'
-
-// CSRF protection
-export {
-	generateCsrfToken,
-	getCsrfToken,
-	validateCsrfToken,
-	csrfProtection,
-	setCsrfCookie,
-} from './csrf'
-
 // Audit logging
 export {
-	logAuthEvent,
-	logApiKeyEvent,
-	logSecurityEvent,
-	logDataEvent,
-	createRequestAuditLogger,
+	type ApiKeyEventParams,
 	type AuditEventType,
 	type AuditLogEntry,
 	type AuthEventParams,
-	type ApiKeyEventParams,
-	type SecurityEventParams,
+	createRequestAuditLogger,
 	type DataEventParams,
+	logApiKeyEvent,
+	logAuthEvent,
+	logDataEvent,
+	logSecurityEvent,
+	type SecurityEventParams,
 } from './audit'
+// CSRF protection
+export {
+	csrfProtection,
+	generateCsrfToken,
+	getCsrfToken,
+	setCsrfCookie,
+	validateCsrfToken,
+} from './csrf'
+// Encryption utilities
+export {
+	decryptData,
+	encryptData,
+	generateSecret,
+	hashData,
+	timingSafeEqual,
+} from './encryption'
+// Password validation
+export {
+	calculatePasswordEntropy,
+	generateSecurePassword,
+	type PasswordValidationOptions,
+	type PasswordValidationResult,
+	validatePassword,
+} from './password'
 
 // Request validation
 export {
-	requestSizeLimit,
-	requireContentType,
 	blockDangerousHeaders,
-	validateJsonBody,
-	requestValidation,
 	type RequestSizeLimitOptions,
+	requestSizeLimit,
+	requestValidation,
+	requireContentType,
+	validateJsonBody,
 } from './request-validation'

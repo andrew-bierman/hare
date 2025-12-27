@@ -1,9 +1,5 @@
-import { describe, it, expect } from 'vitest'
-import {
-	validatePassword,
-	calculatePasswordEntropy,
-	generateSecurePassword,
-} from '../password'
+import { describe, expect, it } from 'vitest'
+import { calculatePasswordEntropy, generateSecurePassword, validatePassword } from '../password'
 
 describe('validatePassword', () => {
 	describe('length requirements', () => {
@@ -20,7 +16,7 @@ describe('validatePassword', () => {
 		})
 
 		it('should reject passwords longer than 128 characters', () => {
-			const longPassword = 'Aa1!' + 'a'.repeat(126)
+			const longPassword = `Aa1!${'a'.repeat(126)}`
 			const result = validatePassword(longPassword)
 			expect(result.valid).toBe(false)
 			expect(result.errors).toContain('Password must not exceed 128 characters')
@@ -56,7 +52,7 @@ describe('validatePassword', () => {
 			const result = validatePassword('Abcd12345678')
 			expect(result.valid).toBe(false)
 			expect(result.errors).toContain(
-				'Password must contain at least one special character (!@#$%^&* etc.)'
+				'Password must contain at least one special character (!@#$%^&* etc.)',
 			)
 		})
 
@@ -81,7 +77,7 @@ describe('validatePassword', () => {
 					requireSpecial: false,
 				})
 				expect(result.errors).toContain(
-					'This password is too common. Please choose a more unique password'
+					'This password is too common. Please choose a more unique password',
 				)
 			}
 		})
@@ -93,7 +89,7 @@ describe('validatePassword', () => {
 				requireSpecial: false,
 			})
 			expect(result.errors).toContain(
-				'This password is too common. Please choose a more unique password'
+				'This password is too common. Please choose a more unique password',
 			)
 		})
 	})
@@ -102,28 +98,28 @@ describe('validatePassword', () => {
 		it('should detect sequential numbers', () => {
 			const result = validatePassword('Test123!@#')
 			expect(result.errors).toContain(
-				'Password should not contain sequential characters (e.g., 123, abc)'
+				'Password should not contain sequential characters (e.g., 123, abc)',
 			)
 		})
 
 		it('should detect sequential letters', () => {
 			const result = validatePassword('Testabc!1@')
 			expect(result.errors).toContain(
-				'Password should not contain sequential characters (e.g., 123, abc)'
+				'Password should not contain sequential characters (e.g., 123, abc)',
 			)
 		})
 
 		it('should detect reverse sequences', () => {
 			const result = validatePassword('Test321!@#')
 			expect(result.errors).toContain(
-				'Password should not contain sequential characters (e.g., 123, abc)'
+				'Password should not contain sequential characters (e.g., 123, abc)',
 			)
 		})
 
 		it('should detect keyboard patterns', () => {
 			const result = validatePassword('Testqwe!1@')
 			expect(result.errors).toContain(
-				'Password should not contain sequential characters (e.g., 123, abc)'
+				'Password should not contain sequential characters (e.g., 123, abc)',
 			)
 		})
 	})
@@ -154,12 +150,7 @@ describe('validatePassword', () => {
 
 	describe('valid passwords', () => {
 		it('should accept strong passwords', () => {
-			const validPasswords = [
-				'MyP@ssw0rd!',
-				'Str0ng#Pass',
-				'C0mplex!ty$',
-				'Secure_2024!',
-			]
+			const validPasswords = ['MyP@ssw0rd!', 'Str0ng#Pass', 'C0mplex!ty$', 'Secure_2024!']
 
 			for (const pwd of validPasswords) {
 				const result = validatePassword(pwd)
