@@ -21,11 +21,11 @@
 		"types": ["bun"]
 	},
 	"include": [
-		"apps/**/*.ts",
-		"apps/**/*.tsx",
+		"apps/web/**/*.ts",
+		"apps/web/**/*.tsx",
 		"packages/**/*.ts",
 		"packages/**/*.tsx",
 		"apps/web/cloudflare-env.d.ts"
 	],
-	"exclude": ["node_modules", ".next", "dist"]
+	"exclude": ["node_modules", ".next", "dist", "apps/tauri"]
 }
