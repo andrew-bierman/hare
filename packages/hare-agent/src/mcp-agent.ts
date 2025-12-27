@@ -11,7 +11,7 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { McpAgent } from 'agents/mcp'
 import { zodToJsonSchema } from 'zod-to-json-schema'
-import { type AnyTool, type HareEnv, type ToolContext, getSystemTools } from '@hare/tools'
+import { type HareEnv, type ToolContext, getSystemTools, ToolRegistry } from '@hare/tools'
 import { DEFAULT_MCP_AGENT_STATE, type McpAgentState } from './types'
 
 // Re-export types for convenience
@@ -57,7 +57,7 @@ export class HareMcpAgent<TEnv extends McpAgentEnv = McpAgentEnv> extends McpAge
 	})
 
 	/** Available tools */
-	private hareTools: Map<string, AnyTool> = new Map()
+	private toolRegistry: ToolRegistry = new ToolRegistry()
 
 	/**
 	 * Initial state.
@@ -71,11 +71,7 @@ export class HareMcpAgent<TEnv extends McpAgentEnv = McpAgentEnv> extends McpAge
 		// Load system tools with a default context for initialization
 		const initContext = this.createToolContext()
 		const systemTools = getSystemTools(initContext)
-
-		// Register each tool with MCP server
-		for (const tool of systemTools) {
-			this.hareTools.set(tool.id, tool)
-		}
+		this.toolRegistry.registerAll(systemTools)
 	}
 
 	/**
@@ -84,7 +80,7 @@ export class HareMcpAgent<TEnv extends McpAgentEnv = McpAgentEnv> extends McpAge
 	 */
 	async init(): Promise<void> {
 		// Register tools with MCP
-		for (const [toolId, tool] of this.hareTools) {
+		for (const tool of this.toolRegistry.list()) {
 			// Convert Zod schema to JSON Schema for MCP
 			// Cast to any because zod-to-json-schema types are built for Zod v3
 			// but the actual runtime behavior works fine with Zod v4
@@ -94,10 +90,11 @@ export class HareMcpAgent<TEnv extends McpAgentEnv = McpAgentEnv> extends McpAge
 			})
 
 			// Register tool with MCP - create fresh context for each execution
+			const toolId = tool.id
 			this.server.tool(toolId, tool.description, inputSchema, async (params: unknown) => {
 				// Create fresh context with current workspaceId for each tool execution
 				const executionContext = this.createToolContext()
-				const result = await tool.call(params, executionContext)
+				const result = await this.toolRegistry.execute(toolId, params, executionContext)
 
 				if (result.success) {
 					return {

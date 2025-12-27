@@ -16,7 +16,7 @@ import { Agent, type Connection, type ConnectionContext, type WSMessage } from '
 import type { CoreMessage } from 'ai'
 import { streamText } from 'ai'
 import { z } from 'zod'
-import { type AnyTool, type HareEnv, type ToolContext, type ToolResult, getSystemTools } from '@hare/tools'
+import { type HareEnv, type ToolContext, type ToolResult, getSystemTools, ToolRegistry } from '@hare/tools'
 import { createWorkersAIModel } from './providers/workers-ai'
 import {
 	type ChatPayload,
@@ -123,7 +123,7 @@ export class HareAgent<TEnv extends HareAgentEnv = HareAgentEnv> extends Agent<
 	HareAgentState
 > {
 	// Tools available to this agent
-	protected tools: Map<string, AnyTool> = new Map()
+	protected toolRegistry: ToolRegistry = new ToolRegistry()
 
 	// Track connection to userId mapping for cleanup
 	private connectionUserMap: Map<Connection, string> = new Map()
@@ -140,9 +140,7 @@ export class HareAgent<TEnv extends HareAgentEnv = HareAgentEnv> extends Agent<
 		// Load system tools
 		const context = this.createToolContext()
 		const systemTools = getSystemTools(context)
-		for (const tool of systemTools) {
-			this.tools.set(tool.id, tool)
-		}
+		this.toolRegistry.registerAll(systemTools)
 	}
 
 	/**
@@ -514,8 +512,7 @@ export class HareAgent<TEnv extends HareAgentEnv = HareAgentEnv> extends Agent<
 	): Promise<void> {
 		const { toolId, params } = payload
 
-		const tool = this.tools.get(toolId)
-		if (!tool) {
+		if (!this.toolRegistry.has(toolId)) {
 			this.sendError(connection, `Tool not found: ${toolId}`)
 			return
 		}
@@ -529,7 +526,7 @@ export class HareAgent<TEnv extends HareAgentEnv = HareAgentEnv> extends Agent<
 
 		try {
 			const context = this.createToolContext()
-			const result = await tool.call(params, context)
+			const result = await this.toolRegistry.execute(toolId, params, context)
 
 			this.sendToConnection(connection, {
 				type: 'tool_result',
@@ -653,12 +650,13 @@ export class HareAgent<TEnv extends HareAgentEnv = HareAgentEnv> extends Agent<
 	private buildSystemPrompt(): string {
 		const parts: string[] = [this.state.instructions]
 
-		if (this.tools.size > 0) {
+		const tools = this.toolRegistry.list()
+		if (tools.length > 0) {
 			parts.push('\n\n## Available Tools\n')
 			parts.push('You have access to the following tools:\n')
 
-			for (const [id, tool] of this.tools) {
-				parts.push(`- **${id}**: ${tool.description}`)
+			for (const tool of tools) {
+				parts.push(`- **${tool.id}**: ${tool.description}`)
 			}
 
 			parts.push('\nTo use a tool, describe what you want to do and the system will execute it.')

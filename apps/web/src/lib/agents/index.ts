@@ -102,7 +102,7 @@ export {
 export { loadAgentTools } from './tools/factory'
 
 import { type AgentTool, createEdgeAgent, type EdgeAgent } from '@hare/agent'
-import { getSystemTools, type ToolContext } from '@hare/tools'
+import { getSystemTools, type ToolContext, createRegistry } from '@hare/tools'
 // Agent configuration interface (extends SDK types with DB fields)
 import type { Database } from 'web-app/db/types'
 
@@ -163,13 +163,16 @@ export async function createAgentFromConfig(
 	// Get system tools if requested
 	const systemTools = includeSystemTools ? getSystemTools(toolContext) : []
 
+	// Create registry with all tools
+	const registry = createRegistry([...dbTools, ...systemTools])
+
 	// Convert to AgentTool format
-	const agentTools: AgentTool[] = [...dbTools, ...systemTools].map((tool) => ({
+	const agentTools: AgentTool[] = registry.list().map((tool) => ({
 		id: tool.id,
 		description: tool.description,
 		inputSchema: {},
 		execute: async (params) => {
-			const result = await tool.call(params, toolContext)
+			const result = await registry.execute(tool.id, params, toolContext)
 			if (result.success) {
 				return result.data
 			}

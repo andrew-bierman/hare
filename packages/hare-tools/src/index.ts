@@ -22,9 +22,11 @@
 
 // Core types and utilities
 export {
+	createRegistry,
 	createTool,
 	failure,
 	success,
+	ToolRegistry,
 	type AnyTool,
 	type HareEnv,
 	type Tool,
