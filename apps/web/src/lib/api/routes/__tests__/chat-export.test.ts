@@ -1,6 +1,12 @@
 import { env } from 'cloudflare:test'
-import { describe, expect, it } from 'vitest'
+import { beforeAll, describe, expect, it } from 'vitest'
 import { app } from 'web-app/lib/api/index'
+import { applyMigrations } from './setup'
+
+// Apply D1 migrations before tests
+beforeAll(async () => {
+	await applyMigrations(env.DB)
+})
 
 describe('Chat Export API', () => {
 	describe('GET /api/chat/conversations/{id}/export', () => {

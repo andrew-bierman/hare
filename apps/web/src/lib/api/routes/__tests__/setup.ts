@@ -1,4 +1,57 @@
-// Test setup for API routes
-// Note: These tests check authentication which should return 401 immediately
-// No actual Cloudflare bindings are needed for these particular tests
+/**
+ * Test setup for API routes
+ *
+ * Applies D1 migrations before tests run.
+ * This is required because the auth middleware queries the database.
+ */
 
+/**
+ * Individual SQL statements for setting up test database.
+ * Using an array of statements instead of a multiline string for better D1 compatibility.
+ */
+const MIGRATION_STATEMENTS = [
+	// Users table (required for auth)
+	`CREATE TABLE IF NOT EXISTS "user" ("id" text PRIMARY KEY NOT NULL, "name" text NOT NULL, "email" text NOT NULL, "emailVerified" integer DEFAULT false NOT NULL, "image" text, "createdAt" integer NOT NULL, "updatedAt" integer NOT NULL)`,
+
+	// Sessions table (required for auth)
+	`CREATE TABLE IF NOT EXISTS "session" ("id" text PRIMARY KEY NOT NULL, "expiresAt" integer NOT NULL, "token" text NOT NULL, "createdAt" integer NOT NULL, "updatedAt" integer NOT NULL, "ipAddress" text, "userAgent" text, "userId" text NOT NULL)`,
+
+	// Accounts table (required for OAuth)
+	`CREATE TABLE IF NOT EXISTS "account" ("id" text PRIMARY KEY NOT NULL, "accountId" text NOT NULL, "providerId" text NOT NULL, "userId" text NOT NULL, "accessToken" text, "refreshToken" text, "idToken" text, "accessTokenExpiresAt" integer, "refreshTokenExpiresAt" integer, "scope" text, "password" text, "createdAt" integer NOT NULL, "updatedAt" integer NOT NULL)`,
+
+	// Verification table (required for auth)
+	`CREATE TABLE IF NOT EXISTS "verification" ("id" text PRIMARY KEY NOT NULL, "identifier" text NOT NULL, "value" text NOT NULL, "expiresAt" integer NOT NULL, "createdAt" integer NOT NULL, "updatedAt" integer NOT NULL)`,
+
+	// Workspaces table
+	`CREATE TABLE IF NOT EXISTS "workspaces" ("id" text PRIMARY KEY NOT NULL, "name" text NOT NULL, "slug" text NOT NULL, "description" text, "ownerId" text NOT NULL, "stripeCustomerId" text, "stripeSubscriptionId" text, "planId" text DEFAULT 'free', "currentPeriodEnd" integer, "createdAt" integer NOT NULL, "updatedAt" integer NOT NULL)`,
+
+	// Workspace members table
+	`CREATE TABLE IF NOT EXISTS "workspace_members" ("id" text PRIMARY KEY NOT NULL, "workspaceId" text NOT NULL, "userId" text NOT NULL, "role" text DEFAULT 'member' NOT NULL, "createdAt" integer NOT NULL, "updatedAt" integer NOT NULL)`,
+
+	// Agents table
+	`CREATE TABLE IF NOT EXISTS "agents" ("id" text PRIMARY KEY NOT NULL, "workspaceId" text NOT NULL, "name" text NOT NULL, "description" text, "instructions" text, "model" text DEFAULT 'llama-3.3-70b' NOT NULL, "status" text DEFAULT 'draft' NOT NULL, "config" text, "createdBy" text NOT NULL, "createdAt" integer NOT NULL, "updatedAt" integer NOT NULL)`,
+
+	// Tools table
+	`CREATE TABLE IF NOT EXISTS "tools" ("id" text PRIMARY KEY NOT NULL, "workspaceId" text NOT NULL, "name" text NOT NULL, "description" text, "type" text NOT NULL, "config" text, "inputSchema" text, "createdBy" text NOT NULL, "createdAt" integer NOT NULL, "updatedAt" integer NOT NULL)`,
+
+	// API Keys table
+	`CREATE TABLE IF NOT EXISTS "api_keys" ("id" text PRIMARY KEY NOT NULL, "workspaceId" text NOT NULL, "name" text NOT NULL, "key" text NOT NULL, "hashedKey" text NOT NULL, "prefix" text NOT NULL, "lastUsedAt" integer, "expiresAt" integer, "permissions" text, "createdBy" text NOT NULL, "createdAt" integer NOT NULL, "updatedAt" integer NOT NULL)`,
+
+	// Usage table
+	`CREATE TABLE IF NOT EXISTS "usage" ("id" text PRIMARY KEY NOT NULL, "workspaceId" text NOT NULL, "agentId" text, "userId" text, "type" text NOT NULL, "inputTokens" integer DEFAULT 0, "outputTokens" integer DEFAULT 0, "totalTokens" integer DEFAULT 0, "cost" integer DEFAULT 0, "metadata" text, "createdAt" integer NOT NULL)`,
+
+	// Conversations table
+	`CREATE TABLE IF NOT EXISTS "conversations" ("id" text PRIMARY KEY NOT NULL, "workspaceId" text NOT NULL, "agentId" text NOT NULL, "userId" text NOT NULL, "title" text, "createdAt" integer NOT NULL, "updatedAt" integer NOT NULL)`,
+
+	// Messages table
+	`CREATE TABLE IF NOT EXISTS "messages" ("id" text PRIMARY KEY NOT NULL, "conversationId" text NOT NULL, "role" text NOT NULL, "content" text NOT NULL, "metadata" text, "createdAt" integer NOT NULL)`,
+]
+
+/**
+ * Apply migrations to the D1 database.
+ * Uses batch() with prepared statements for D1 compatibility.
+ */
+export async function applyMigrations(db: D1Database): Promise<void> {
+	const statements = MIGRATION_STATEMENTS.map((sql) => db.prepare(sql))
+	await db.batch(statements)
+}

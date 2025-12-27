@@ -44,6 +44,7 @@ export default defineWorkersConfig({
             NEXTJS_ENV: "test",
           },
           d1Databases: ["DB"],
+          d1Persist: false,
           kvNamespaces: ["KV"],
           r2Buckets: ["R2"],
         },
