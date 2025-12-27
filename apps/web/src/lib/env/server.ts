@@ -16,8 +16,13 @@ const isTestEnv =
 	(typeof globalThis !== 'undefined' && (globalThis as Record<string, unknown>).__vitest_worker__)
 
 const serverEnvSchema = z.object({
-	NODE_ENV: z.enum(['development', 'production', 'test']).default(isTestEnv ? 'test' : 'development'),
-	NEXT_PUBLIC_APP_URL: z.string().url().default(isTestEnv ? 'http://localhost:3000' : ''),
+	NODE_ENV: z
+		.enum(['development', 'production', 'test'])
+		.default(isTestEnv ? 'test' : 'development'),
+	NEXT_PUBLIC_APP_URL: z
+		.string()
+		.url()
+		.default(isTestEnv ? 'http://localhost:3000' : ''),
 	ENABLE_AI_CHAT: z
 		.enum(['true', 'false'])
 		.default('true')

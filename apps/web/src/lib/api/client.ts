@@ -2,6 +2,7 @@
  * Type-safe API Client
  *
  * Simple fetch wrapper with proper error handling.
+ * Supports configurable API base URL for desktop (Tauri) builds.
  */
 
 import type {
@@ -16,6 +17,27 @@ import type {
 	UsageSummary,
 	Workspace,
 } from './types'
+
+// =============================================================================
+// API Base URL Configuration
+// =============================================================================
+
+/**
+ * Get the API base URL.
+ * - In browser (web): uses window.location.origin (same-origin API)
+ * - In Tauri/desktop: uses NEXT_PUBLIC_API_URL env var (remote API)
+ */
+function getApiBaseUrl(): string {
+	// Check for explicit API URL (required for Tauri desktop builds)
+	if (process.env.NEXT_PUBLIC_API_URL) {
+		return process.env.NEXT_PUBLIC_API_URL
+	}
+	// Default to same-origin for web deployments
+	if (typeof window !== 'undefined') {
+		return window.location.origin
+	}
+	return ''
+}
 
 // =============================================================================
 // Error Handling
@@ -56,7 +78,7 @@ async function handleResponse<T>(response: Response): Promise<T> {
 // =============================================================================
 
 function buildUrl(path: string, params?: Record<string, string | undefined>): string {
-	const url = new URL(path, window.location.origin)
+	const url = new URL(path, getApiBaseUrl())
 	if (params) {
 		for (const [key, value] of Object.entries(params)) {
 			if (value !== undefined) {

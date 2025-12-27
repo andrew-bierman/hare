@@ -11,6 +11,17 @@ function getErrorMessage(error: unknown, fallback: string): string {
 	return fallback
 }
 
+// Get API base URL (supports Tauri desktop builds)
+function getApiBaseUrl(): string {
+	if (process.env.NEXT_PUBLIC_API_URL) {
+		return process.env.NEXT_PUBLIC_API_URL
+	}
+	if (typeof window !== 'undefined') {
+		return window.location.origin
+	}
+	return ''
+}
+
 // Explicit types matching the API schema
 export interface ToolCallData {
 	id: string
@@ -62,7 +73,7 @@ export interface ChatStreamEvent {
 }
 
 async function fetchConversations(agentId: string): Promise<{ conversations: Conversation[] }> {
-	const response = await fetch(`/api/chat/agents/${agentId}/conversations`)
+	const response = await fetch(`${getApiBaseUrl()}/api/chat/agents/${agentId}/conversations`)
 	if (!response.ok) {
 		let error: unknown = null
 		try {
@@ -77,7 +88,9 @@ async function fetchConversations(agentId: string): Promise<{ conversations: Con
 }
 
 async function fetchMessages(conversationId: string): Promise<{ messages: Message[] }> {
-	const response = await fetch(`/api/chat/conversations/${conversationId}/messages`)
+	const response = await fetch(
+		`${getApiBaseUrl()}/api/chat/conversations/${conversationId}/messages`,
+	)
 	if (!response.ok) {
 		let error: unknown = null
 		try {
@@ -141,7 +154,7 @@ export function useChat(agentId: string | undefined) {
 			setMessages((prev) => [...prev, assistantMessage])
 
 			try {
-				const response = await fetch(`/api/chat/agents/${agentId}/chat`, {
+				const response = await fetch(`${getApiBaseUrl()}/api/chat/agents/${agentId}/chat`, {
 					method: 'POST',
 					headers: { 'Content-Type': 'application/json' },
 					body: JSON.stringify({

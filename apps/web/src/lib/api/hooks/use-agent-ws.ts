@@ -64,12 +64,28 @@ export interface UseAgentWebSocketReturn {
 }
 
 /**
- * Build WebSocket URL for agent connection.
+ * Get the base URL for WebSocket connections.
+ * Supports Tauri desktop builds via NEXT_PUBLIC_API_URL.
  */
-function buildWebSocketUrl(agentId: string, userId?: string): string {
+function getWebSocketBaseUrl(): { protocol: string; host: string } {
+	// Check for explicit API URL (for Tauri desktop builds)
+	if (process.env.NEXT_PUBLIC_API_URL) {
+		const url = new URL(process.env.NEXT_PUBLIC_API_URL)
+		const protocol = url.protocol === 'https:' ? 'wss:' : 'ws:'
+		return { protocol, host: url.host }
+	}
+	// Default to same-origin for web deployments
 	const protocol =
 		typeof window !== 'undefined' && window.location.protocol === 'https:' ? 'wss:' : 'ws:'
 	const host = typeof window !== 'undefined' ? window.location.host : 'localhost:3000'
+	return { protocol, host }
+}
+
+/**
+ * Build WebSocket URL for agent connection.
+ */
+function buildWebSocketUrl(agentId: string, userId?: string): string {
+	const { protocol, host } = getWebSocketBaseUrl()
 	let url = `${protocol}//${host}/api/agent-ws/agents/${agentId}/ws`
 	if (userId) {
 		url += `?userId=${encodeURIComponent(userId)}`
