@@ -3,6 +3,7 @@ import { drizzleAdapter } from 'better-auth/adapters/drizzle'
 import { createDb } from 'web-app/db'
 import * as schema from 'web-app/db/schema'
 import { serverEnv } from 'web-app/lib/env/server'
+import { validatePassword } from './security/password'
 
 // Check if OAuth providers are configured
 const isGoogleConfigured = Boolean(serverEnv.GOOGLE_CLIENT_ID && serverEnv.GOOGLE_CLIENT_SECRET)
@@ -66,6 +67,24 @@ export function createAuth(d1: D1Database) {
 			enabled: true,
 			window: 60, // 1 minute
 			max: 10, // 10 requests per minute per IP
+		},
+		// Better Auth hooks for password validation
+		hooks: {
+			before: [
+				{
+					matcher: (ctx) => ctx.path === '/sign-up/email',
+					handler: async (ctx) => {
+						const body = ctx.body as { password?: string }
+						if (body.password) {
+							const validation = validatePassword(body.password)
+							if (!validation.valid) {
+								throw new Error(validation.errors.join('. '))
+							}
+						}
+						return ctx
+					},
+				},
+			],
 		},
 	})
 }
