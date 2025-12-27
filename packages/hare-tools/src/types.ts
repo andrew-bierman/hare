@@ -39,7 +39,7 @@ export type ToolResult<T = unknown> = {
  * console.log(tool?.id, tool?.description)
  *
  * // Execute via registry (validates input)
- * const result = await registry.execute('kv_get', { key: 'foo' }, context)
+ * const result = await registry.execute({ id: 'kv_get', params: { key: 'foo' }, context })
  * ```
  */
 export interface AnyTool {
@@ -131,7 +131,7 @@ type InternalTool = Tool<any, any>
  * const tool = registry.get('kv_get')
  *
  * // Execute with validation
- * const result = await registry.execute('kv_get', { key: 'foo' }, context)
+ * const result = await registry.execute({ id: 'kv_get', params: { key: 'foo' }, context })
  *
  * // List all tools
  * const allTools = registry.list()
@@ -195,11 +195,12 @@ export class ToolRegistry {
 	 * Validates params against the tool's Zod schema before execution.
 	 * Returns a failure result if the tool is not found or validation fails.
 	 */
-	async execute(
-		id: string,
-		params: unknown,
-		context: ToolContext<HareEnv>,
-	): Promise<ToolResult<unknown>> {
+	async execute(options: {
+		id: string
+		params: unknown
+		context: ToolContext<HareEnv>
+	}): Promise<ToolResult<unknown>> {
+		const { id, params, context } = options
 		const tool = this.tools.get(id)
 		if (!tool) {
 			return { success: false, error: `Tool '${id}' not found` }

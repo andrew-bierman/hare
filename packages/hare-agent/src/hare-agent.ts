@@ -526,7 +526,7 @@ export class HareAgent<TEnv extends HareAgentEnv = HareAgentEnv> extends Agent<
 
 		try {
 			const context = this.createToolContext()
-			const result = await this.toolRegistry.execute(toolId, params, context)
+			const result = await this.toolRegistry.execute({ id: toolId, params, context })
 
 			this.sendToConnection(connection, {
 				type: 'tool_result',

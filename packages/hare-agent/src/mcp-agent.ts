@@ -94,7 +94,7 @@ export class HareMcpAgent<TEnv extends McpAgentEnv = McpAgentEnv> extends McpAge
 			this.server.tool(toolId, tool.description, inputSchema, async (params: unknown) => {
 				// Create fresh context with current workspaceId for each tool execution
 				const executionContext = this.createToolContext()
-				const result = await this.toolRegistry.execute(toolId, params, executionContext)
+				const result = await this.toolRegistry.execute({ id: toolId, params, context: executionContext })
 
 				if (result.success) {
 					return {

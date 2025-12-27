@@ -172,7 +172,7 @@ export async function createAgentFromConfig(
 		description: tool.description,
 		inputSchema: {},
 		execute: async (params) => {
-			const result = await registry.execute(tool.id, params, toolContext)
+			const result = await registry.execute({ id: tool.id, params, context: toolContext })
 			if (result.success) {
 				return result.data
 			}
