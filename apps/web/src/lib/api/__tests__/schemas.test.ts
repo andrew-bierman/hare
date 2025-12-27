@@ -17,7 +17,7 @@ describe('API Schemas', () => {
 		it('validates a valid agent creation request', () => {
 			const validAgent = {
 				name: 'Test Agent',
-				model: 'llama-3.3-70b-instruct',
+				model: '@cf/meta/llama-3.3-70b-instruct-fp8-fast',
 				instructions: 'You are a helpful assistant.',
 			}
 			const result = CreateAgentSchema.safeParse(validAgent)
@@ -27,7 +27,7 @@ describe('API Schemas', () => {
 		it('rejects empty name', () => {
 			const invalidAgent = {
 				name: '',
-				model: 'llama-3.3-70b-instruct',
+				model: '@cf/meta/llama-3.3-70b-instruct-fp8-fast',
 				instructions: 'You are a helpful assistant.',
 			}
 			const result = CreateAgentSchema.safeParse(invalidAgent)
@@ -37,7 +37,7 @@ describe('API Schemas', () => {
 		it('rejects name longer than 100 characters', () => {
 			const invalidAgent = {
 				name: 'a'.repeat(101),
-				model: 'llama-3.3-70b-instruct',
+				model: '@cf/meta/llama-3.3-70b-instruct-fp8-fast',
 				instructions: 'You are a helpful assistant.',
 			}
 			const result = CreateAgentSchema.safeParse(invalidAgent)
@@ -47,7 +47,7 @@ describe('API Schemas', () => {
 		it('rejects empty instructions', () => {
 			const invalidAgent = {
 				name: 'Test Agent',
-				model: 'llama-3.3-70b-instruct',
+				model: '@cf/meta/llama-3.3-70b-instruct-fp8-fast',
 				instructions: '',
 			}
 			const result = CreateAgentSchema.safeParse(invalidAgent)
@@ -57,7 +57,7 @@ describe('API Schemas', () => {
 		it('accepts optional fields', () => {
 			const validAgent = {
 				name: 'Test Agent',
-				model: 'llama-3.3-70b-instruct',
+				model: '@cf/meta/llama-3.3-70b-instruct-fp8-fast',
 				instructions: 'You are a helpful assistant.',
 				description: 'A test agent',
 				config: { temperature: 0.7 },

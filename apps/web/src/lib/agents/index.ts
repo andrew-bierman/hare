@@ -1,5 +1,8 @@
 /**
- * Hare AI Agent System
+ * Hare AI Agent System - Hosted Platform Entry Point
+ *
+ * Re-exports from @hare/agent and @hare/tools packages,
+ * plus hosted-only functionality for the web platform.
  *
  * Built on Cloudflare Agents SDK for:
  * - Durable Object-backed state persistence
@@ -7,31 +10,18 @@
  * - Real-time state synchronization
  * - Scheduling and alarms
  * - Model Context Protocol (MCP) support
- *
- * NOTE: The actual agent classes (HareAgent, HareMcpAgent) are NOT exported here
- * because they import from 'agents' which uses 'cloudflare:workers' - a Workers-only module.
- * Those classes should only be imported in:
- * - open-next.config.ts (for Cloudflare Workers deployment)
- * - worker.ts (for local development reference)
  */
 
-import type { Database } from 'web-app/db/types'
-import { type AgentTool, createEdgeAgent, type EdgeAgent } from './agent'
-import { getSystemTools, loadAgentTools, type ToolContext } from './tools'
+// ==========================================
+// RE-EXPORT FROM @hare/agent
+// ==========================================
 
-// Re-export router utilities (safe to import anywhere)
-export {
-	type AgentRouteConfig,
-	createAgentHeaders,
-	getAgentIdFromRequest,
-	isWebSocketRequest,
-	routeHttpToAgent,
-	routeToHareAgent,
-	routeToMcpAgent,
-	routeWebSocketToAgent,
-} from './router'
-// Re-export types (safe to import anywhere)
+// Types (safe to import anywhere)
 export type {
+	AgentOptions,
+	AgentRouteConfig,
+	AgentStreamResponse,
+	AgentTool,
 	ChatPayload,
 	ClientMessage,
 	HareAgentState,
@@ -40,8 +30,81 @@ export type {
 	SchedulePayload,
 	ServerMessage,
 	ToolExecutePayload,
-} from './types'
-export { DEFAULT_HARE_AGENT_STATE, DEFAULT_MCP_AGENT_STATE } from './types'
+} from '@hare/agent'
+// Edge Agent (universal)
+// Router utilities (universal)
+// Workers AI Provider
+export {
+	createAgentHeaders,
+	createEdgeAgent,
+	createWorkersAIModel,
+	DEFAULT_HARE_AGENT_STATE,
+	DEFAULT_MCP_AGENT_STATE,
+	EdgeAgent,
+	EMBEDDING_MODELS,
+	generateEmbedding,
+	generateEmbeddings,
+	getAgentIdFromRequest,
+	getAvailableModels,
+	getWorkersAIModelId,
+	isWebSocketRequest,
+	routeHttpToAgent,
+	routeToHareAgent,
+	routeToMcpAgent,
+	routeWebSocketToAgent,
+	WORKERS_AI_MODELS,
+} from '@hare/agent'
+
+// ==========================================
+// RE-EXPORT FROM @hare/tools
+// ==========================================
+
+export type {
+	SystemToolId,
+	Tool,
+	ToolCategory,
+	ToolConfig,
+	ToolContext,
+	ToolResult,
+	ToolType,
+} from '@hare/tools'
+// Individual tool getters
+export {
+	createTool,
+	failure,
+	getAITools,
+	getDataTools,
+	getHTTPTools,
+	getIntegrationTools,
+	getKVTools,
+	getMemoryTools,
+	getR2Tools,
+	getSandboxTools,
+	getSearchTools,
+	getSQLTools,
+	getSystemTools,
+	getSystemToolsMap,
+	getToolsByCategory,
+	getTransformTools,
+	getUtilityTools,
+	getValidationTools,
+	isSystemTool,
+	SYSTEM_TOOL_IDS,
+	success,
+	TOOL_COUNTS,
+} from '@hare/tools'
+
+// ==========================================
+// HOSTED-ONLY FUNCTIONALITY
+// ==========================================
+
+// Tool factory for loading from database
+export { loadAgentTools } from './tools/factory'
+
+import { type AgentTool, createEdgeAgent, type EdgeAgent } from '@hare/agent'
+import { getSystemTools, type ToolContext, createRegistry } from '@hare/tools'
+// Agent configuration interface (extends SDK types with DB fields)
+import type { Database } from 'web-app/db/types'
 
 /**
  * Agent configuration from database.
@@ -64,9 +127,15 @@ export interface AgentConfig {
 }
 
 /**
- * Options for creating an agent.
+ * Input for creating an agent from config.
  */
-export interface CreateAgentOptions {
+export interface CreateAgentFromConfigInput {
+	/** Agent configuration from database */
+	agentConfig: AgentConfig
+	/** Database instance */
+	db: Database
+	/** Cloudflare environment */
+	env: CloudflareEnv
 	/** Include system tools (KV, R2, Vectorize, etc.) */
 	includeSystemTools?: boolean
 	/** User ID for tool context */
@@ -76,13 +145,11 @@ export interface CreateAgentOptions {
 /**
  * Create an Edge-compatible Agent from a database configuration.
  */
-export async function createAgentFromConfig(
-	agentConfig: AgentConfig,
-	db: Database,
-	env: CloudflareEnv,
-	options: CreateAgentOptions,
-): Promise<EdgeAgent> {
-	const { includeSystemTools = true, userId } = options
+export async function createAgentFromConfig(input: CreateAgentFromConfigInput): Promise<EdgeAgent> {
+	const { agentConfig, db, env, includeSystemTools = true, userId } = input
+
+	// Import loadAgentTools dynamically to avoid circular deps
+	const { loadAgentTools } = await import('./tools/factory')
 
 	// Create tool context
 	const toolContext: ToolContext = {
@@ -97,13 +164,16 @@ export async function createAgentFromConfig(
 	// Get system tools if requested
 	const systemTools = includeSystemTools ? getSystemTools(toolContext) : []
 
+	// Create registry with all tools
+	const registry = createRegistry([...dbTools, ...systemTools])
+
 	// Convert to AgentTool format
-	const agentTools: AgentTool[] = [...dbTools, ...systemTools].map((tool) => ({
+	const agentTools: AgentTool[] = registry.list().map((tool) => ({
 		id: tool.id,
 		description: tool.description,
 		inputSchema: {},
 		execute: async (params) => {
-			const result = await tool.execute(params, toolContext)
+			const result = await registry.execute({ id: tool.id, params, context: toolContext })
 			if (result.success) {
 				return result.data
 			}
@@ -153,15 +223,26 @@ function buildInstructions(config: AgentConfig, tools: AgentTool[]): string {
 }
 
 /**
+ * Input for creating a simple agent.
+ */
+export interface CreateSimpleAgentInput {
+	/** Agent name */
+	name: string
+	/** Agent instructions */
+	instructions: string
+	/** Model to use */
+	model: string
+	/** Cloudflare environment */
+	env: CloudflareEnv
+	/** Optional tools */
+	tools?: AgentTool[]
+}
+
+/**
  * Create a simple agent without database tools.
  */
-export function createSimpleAgent(
-	name: string,
-	instructions: string,
-	model: string,
-	env: CloudflareEnv,
-	tools: AgentTool[] = [],
-): EdgeAgent {
+export function createSimpleAgent(input: CreateSimpleAgentInput): EdgeAgent {
+	const { name, instructions, model, env, tools = [] } = input
 	return createEdgeAgent({
 		name,
 		instructions,
@@ -170,16 +251,3 @@ export function createSimpleAgent(
 		tools,
 	})
 }
-
-export type { AgentTool, EdgeAgent } from './agent'
-export { createEdgeAgent } from './agent'
-export {
-	createWorkersAIModel,
-	generateEmbedding,
-	generateEmbeddings,
-	getAvailableModels,
-	getWorkersAIModelId,
-} from './providers/workers-ai'
-// Re-export types and utilities
-export type { Tool, ToolConfig, ToolContext, ToolResult } from './tools'
-export * from './tools'

@@ -565,9 +565,19 @@ async function getAgentToolIds(input: GetAgentToolIdsInput): Promise<string[]> {
 }
 
 /**
+ * Input for finding an agent by ID and workspace.
+ */
+interface FindAgentByIdAndWorkspaceInput {
+	db: Database
+	id: string
+	workspaceId: string
+}
+
+/**
  * Find an agent by ID and workspace, or return null.
  */
-async function findAgentByIdAndWorkspace(db: Database, id: string, workspaceId: string) {
+async function findAgentByIdAndWorkspace(input: FindAgentByIdAndWorkspaceInput) {
+	const { db, id, workspaceId } = input
 	const [agent] = await db
 		.select()
 		.from(agents)
@@ -645,7 +655,7 @@ app.openapi(getAgentRoute, async (c) => {
 	const db = await getDb(c)
 	const workspace = c.get('workspace')
 
-	const agent = await findAgentByIdAndWorkspace(db, id, workspace.id)
+	const agent = await findAgentByIdAndWorkspace({ db, id, workspaceId: workspace.id })
 	if (!agent) {
 		return c.json({ error: 'Agent not found' }, 404)
 	}
@@ -663,7 +673,7 @@ app.openapi(updateAgentRoute, async (c) => {
 
 	requireWriteAccess(role)
 
-	const existing = await findAgentByIdAndWorkspace(db, id, workspace.id)
+	const existing = await findAgentByIdAndWorkspace({ db, id, workspaceId: workspace.id })
 	if (!existing) {
 		return c.json({ error: 'Agent not found' }, 404)
 	}
@@ -736,7 +746,7 @@ app.openapi(deployAgentRoute, async (c) => {
 
 	requireAdminAccess(role)
 
-	const existing = await findAgentByIdAndWorkspace(db, id, workspace.id)
+	const existing = await findAgentByIdAndWorkspace({ db, id, workspaceId: workspace.id })
 	if (!existing) {
 		return c.json({ error: 'Agent not found' }, 404)
 	}
@@ -831,7 +841,7 @@ app.openapi(getDeploymentRoute, async (c) => {
 	const db = await getDb(c)
 	const workspace = c.get('workspace')
 
-	const existing = await findAgentByIdAndWorkspace(db, id, workspace.id)
+	const existing = await findAgentByIdAndWorkspace({ db, id, workspaceId: workspace.id })
 	if (!existing) {
 		return c.json({ error: 'Agent not found' }, 404)
 	}
@@ -886,7 +896,7 @@ app.openapi(undeployAgentRoute, async (c) => {
 
 	requireAdminAccess(role)
 
-	const existing = await findAgentByIdAndWorkspace(db, id, workspace.id)
+	const existing = await findAgentByIdAndWorkspace({ db, id, workspaceId: workspace.id })
 	if (!existing) {
 		return c.json({ error: 'Agent not found' }, 404)
 	}
@@ -905,7 +915,7 @@ app.openapi(rollbackAgentRoute, async (c) => {
 
 	requireAdminAccess(role)
 
-	const existing = await findAgentByIdAndWorkspace(db, id, workspace.id)
+	const existing = await findAgentByIdAndWorkspace({ db, id, workspaceId: workspace.id })
 	if (!existing) {
 		return c.json({ error: 'Agent not found' }, 404)
 	}
@@ -926,7 +936,7 @@ app.openapi(deploymentHistoryRoute, async (c) => {
 	const db = await getDb(c)
 	const workspace = c.get('workspace')
 
-	const existing = await findAgentByIdAndWorkspace(db, id, workspace.id)
+	const existing = await findAgentByIdAndWorkspace({ db, id, workspaceId: workspace.id })
 	if (!existing) {
 		return c.json({ error: 'Agent not found' }, 404)
 	}
@@ -1233,7 +1243,7 @@ app.openapi(previewAgentRoute, async (c) => {
 	const workspace = c.get('workspace')
 
 	// Find the agent
-	const agent = await findAgentByIdAndWorkspace(db, id, workspace.id)
+	const agent = await findAgentByIdAndWorkspace({ db, id, workspaceId: workspace.id })
 	if (!agent) {
 		return c.json({ error: 'Agent not found' }, 404)
 	}

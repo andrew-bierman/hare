@@ -12,7 +12,7 @@ interface CloudflareEnv {
 	ENVIRONMENT: string
 	BETTER_AUTH_SECRET: string
 	BETTER_AUTH_URL: string
-	NEXTJS_ENV: string
+	NODE_ENV?: string
 	R2: R2Bucket
 	DB: D1Database
 	WORKER_SELF_REFERENCE: Fetcher
@@ -31,5 +31,5 @@ interface CloudflareEnv {
 	STRIPE_SECRET_KEY: string
 	STRIPE_WEBHOOK_SECRET: string
 	// App URL for redirects
-	NEXT_PUBLIC_APP_URL?: string
+	APP_URL?: string
 }

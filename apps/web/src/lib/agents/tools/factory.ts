@@ -1,9 +1,15 @@
+import {
+	type AnyTool,
+	createTool,
+	failure,
+	httpRequestTool,
+	type ToolConfig,
+	type ToolContext,
+} from '@hare/tools'
 import { eq } from 'drizzle-orm'
 import { agentTools, tools as toolsTable } from 'web-app/db/schema'
 import type { Database } from 'web-app/db/types'
 import { z } from 'zod'
-import { httpRequestTool } from './http'
-import { createTool, failure, type Tool, type ToolConfig, type ToolContext } from './types'
 
 /**
  * Build a Zod schema from a JSON Schema-like configuration.
@@ -32,7 +38,7 @@ export interface LoadAgentToolsInput {
 /**
  * Load tools attached to an agent from the database.
  */
-export async function loadAgentTools(input: LoadAgentToolsInput): Promise<Tool[]> {
+export async function loadAgentTools(input: LoadAgentToolsInput): Promise<AnyTool[]> {
 	const { agentId, db, context } = input
 	// Get tool IDs attached to this agent
 	const attachedTools = await db
@@ -54,13 +60,13 @@ export async function loadAgentTools(input: LoadAgentToolsInput): Promise<Tool[]
 	// Convert to executable tools
 	return attachedConfigs
 		.map((config) => createToolFromConfig(config as ToolConfig, context))
-		.filter((t): t is Tool => t !== null)
+		.filter((t): t is AnyTool => t !== null)
 }
 
 /**
  * Create an executable tool from a database configuration.
  */
-function createToolFromConfig(config: ToolConfig, context: ToolContext): Tool | null {
+function createToolFromConfig(config: ToolConfig, context: ToolContext): AnyTool | null {
 	switch (config.type) {
 		case 'http':
 			return createHTTPToolFromConfig(config, context)
@@ -75,7 +81,7 @@ function createToolFromConfig(config: ToolConfig, context: ToolContext): Tool | 
 /**
  * Create an HTTP tool from configuration.
  */
-function createHTTPToolFromConfig(config: ToolConfig, _context: ToolContext): Tool {
+function createHTTPToolFromConfig(config: ToolConfig, _context: ToolContext): AnyTool {
 	const toolConfig = config.config as {
 		url?: string
 		method?: string
@@ -107,7 +113,7 @@ function createHTTPToolFromConfig(config: ToolConfig, _context: ToolContext): To
  * Currently, custom tools will return an error indicating they need to be
  * executed in a Cloudflare Worker or similar isolated environment.
  */
-function createCustomToolFromConfig(config: ToolConfig, _context: ToolContext): Tool {
+function createCustomToolFromConfig(config: ToolConfig, _context: ToolContext): AnyTool {
 	// Use the tool's own input schema, not a misleading HTTP fallback
 	const inputSchema = buildInputSchema(config.inputSchema)
 
