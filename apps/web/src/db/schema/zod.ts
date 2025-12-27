@@ -18,6 +18,7 @@ import { conversations, messages } from './conversations'
 import { deployments } from './deployments'
 import { agentTools, tools } from './tools'
 import { apiKeys, usage } from './usage'
+import { WEBHOOK_EVENT_TYPES, WEBHOOK_STATUSES, webhookLogs, webhooks } from './webhooks'
 import { workspaceMembers, workspaces } from './workspaces'
 
 // =============================================================================
@@ -264,3 +265,47 @@ export const insertApiKeySchema = createInsertSchema(apiKeys, {
 
 export type SelectApiKey = z.infer<typeof selectApiKeySchema>
 export type InsertApiKey = z.infer<typeof insertApiKeySchema>
+
+// =============================================================================
+// WEBHOOK SCHEMAS
+// =============================================================================
+
+/** Webhook event type schema */
+export const WebhookEventTypeSchema = z.enum(WEBHOOK_EVENT_TYPES)
+
+export type WebhookEventTypeZod = z.infer<typeof WebhookEventTypeSchema>
+
+/** Webhook status schema */
+export const WebhookStatusSchema = z.enum(WEBHOOK_STATUSES)
+
+export type WebhookStatusZod = z.infer<typeof WebhookStatusSchema>
+
+/** Schema for selecting webhooks from the database */
+export const selectWebhookSchema = createSelectSchema(webhooks, {
+	events: z.array(WebhookEventTypeSchema),
+})
+/** Schema for inserting webhooks into the database */
+export const insertWebhookSchema = createInsertSchema(webhooks, {
+	url: z.string().url(),
+	events: z.array(WebhookEventTypeSchema).min(1),
+})
+
+export type SelectWebhook = z.infer<typeof selectWebhookSchema>
+export type InsertWebhook = z.infer<typeof insertWebhookSchema>
+
+/** Webhook log payload schema */
+export const WebhookLogPayloadSchema = z.record(z.string(), z.unknown())
+
+export type WebhookLogPayload = z.infer<typeof WebhookLogPayloadSchema>
+
+/** Schema for selecting webhook logs from the database */
+export const selectWebhookLogSchema = createSelectSchema(webhookLogs, {
+	payload: WebhookLogPayloadSchema,
+})
+/** Schema for inserting webhook logs into the database */
+export const insertWebhookLogSchema = createInsertSchema(webhookLogs, {
+	payload: WebhookLogPayloadSchema,
+})
+
+export type SelectWebhookLog = z.infer<typeof selectWebhookLogSchema>
+export type InsertWebhookLog = z.infer<typeof insertWebhookLogSchema>

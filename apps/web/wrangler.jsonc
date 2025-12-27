@@ -49,6 +49,14 @@
     "binding": "AI",
   },
 
+  // Vectorize for vector memory / semantic search
+  "vectorize": [
+    {
+      "binding": "VECTORIZE",
+      "index_name": "hare-memory",
+    },
+  ],
+
   // Durable Objects for CF Agents
   "durable_objects": {
     "bindings": [

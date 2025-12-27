@@ -1,9 +1,11 @@
 'use client'
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import type { AgentPreviewInput, AgentPreviewResponse } from '../client'
 import { apiClient } from '../client'
 import type { CreateAgentInput, UpdateAgentInput } from '../types'
 
+export type { AgentPreviewInput, AgentPreviewResponse, ValidationIssue } from '../client'
 // Re-export types for convenience
 export type { Agent, CreateAgentInput, UpdateAgentInput } from '../types'
 
@@ -64,5 +66,41 @@ export function useDeployAgent(workspaceId: string | undefined) {
 			queryClient.invalidateQueries({ queryKey: ['agents', workspaceId] })
 			queryClient.invalidateQueries({ queryKey: ['agents', workspaceId, id] })
 		},
+	})
+}
+
+/**
+ * Hook to preview/validate agent configuration
+ * Returns server-side validation with detailed errors and warnings
+ */
+export function useAgentPreview(options: {
+	agentId: string | undefined
+	workspaceId: string | undefined
+}) {
+	const { agentId, workspaceId } = options
+	return useMutation({
+		mutationFn: (overrides?: AgentPreviewInput) =>
+			apiClient.agents.preview(agentId!, workspaceId!, overrides),
+	})
+}
+
+/**
+ * Hook to get agent preview with auto-refresh on field changes
+ * Useful for real-time validation in the agent builder
+ */
+export function useAgentPreviewQuery(options: {
+	agentId: string | undefined
+	workspaceId: string | undefined
+	overrides?: AgentPreviewInput
+	enabled?: boolean
+}) {
+	const { agentId, workspaceId, overrides, enabled = true } = options
+
+	return useQuery<AgentPreviewResponse>({
+		queryKey: ['agent-preview', workspaceId, agentId, overrides],
+		queryFn: () => apiClient.agents.preview(agentId!, workspaceId!, overrides),
+		enabled: enabled && !!agentId && !!workspaceId,
+		staleTime: 30000, // 30 seconds - prevent too many requests
+		refetchOnWindowFocus: false,
 	})
 }

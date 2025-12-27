@@ -138,6 +138,12 @@ export {
 } from './transform'
 
 // ==========================================
+// MEMORY TOOLS (Vectorize)
+// ==========================================
+
+export { getMemoryTools, recallMemoryTool, storeMemoryTool } from './memory'
+
+// ==========================================
 // TOOL AGGREGATION
 // ==========================================
 
@@ -146,6 +152,7 @@ import { getDataTools } from './data'
 import { getHTTPTools } from './http'
 import { getIntegrationTools } from './integrations'
 import { getKVTools } from './kv'
+import { getMemoryTools } from './memory'
 import { getR2Tools } from './r2'
 import { getSandboxTools } from './sandbox'
 import { getSearchTools } from './search'
@@ -170,6 +177,7 @@ export type ToolCategory =
 	| 'sandbox'
 	| 'validation'
 	| 'transform'
+	| 'memory'
 	| 'all'
 
 /**
@@ -198,6 +206,8 @@ export function getSystemTools(context: ToolContext): Tool[] {
 		...getValidationTools(context),
 		// Transform tools
 		...getTransformTools(context),
+		// Memory tools (Vectorize)
+		...getMemoryTools(context),
 	]
 }
 
@@ -228,6 +238,8 @@ export function getToolsByCategory(category: ToolCategory, context: ToolContext)
 			return getValidationTools(context)
 		case 'transform':
 			return getTransformTools(context)
+		case 'memory':
+			return getMemoryTools(context)
 		default:
 			return getSystemTools(context)
 	}
@@ -315,6 +327,9 @@ export const SYSTEM_TOOL_IDS = [
 	'qrcode',
 	'compression',
 	'color',
+	// Memory (Vectorize)
+	'recall_memory',
+	'store_memory',
 ] as const
 
 export type SystemToolId = (typeof SYSTEM_TOOL_IDS)[number]
@@ -338,5 +353,6 @@ export const TOOL_COUNTS = {
 	sandbox: 3,
 	validation: 6,
 	transform: 5,
-	total: 62,
+	memory: 2, // recall_memory, store_memory
+	total: 64,
 } as const

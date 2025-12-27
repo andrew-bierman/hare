@@ -1,13 +1,23 @@
 'use client'
 
 import { createContext, type ReactNode, useCallback, useContext, useEffect, useState } from 'react'
-import { useCreateWorkspace, useWorkspaces, type Workspace } from 'web-app/lib/api/hooks'
+import {
+	useCreateWorkspace,
+	useWorkspaces,
+	type Workspace,
+	type WorkspaceRole,
+} from 'web-app/lib/api/hooks'
 import { useAuth } from './auth-provider'
 
+interface WorkspaceWithRole extends Workspace {
+	role?: WorkspaceRole
+}
+
 interface WorkspaceContextValue {
-	workspaces: Workspace[]
-	activeWorkspace: Workspace | null
-	setActiveWorkspace: (workspace: Workspace) => void
+	workspaces: WorkspaceWithRole[]
+	activeWorkspace: WorkspaceWithRole | null
+	workspaceRole: WorkspaceRole | undefined
+	setActiveWorkspace: (workspace: WorkspaceWithRole) => void
 	isLoading: boolean
 	error: Error | null
 }
@@ -20,12 +30,12 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
 	const { data: session } = useAuth()
 	const { data, isLoading, error } = useWorkspaces()
 	const createWorkspace = useCreateWorkspace()
-	const [activeWorkspace, setActiveWorkspaceState] = useState<Workspace | null>(null)
+	const [activeWorkspace, setActiveWorkspaceState] = useState<WorkspaceWithRole | null>(null)
 
-	const workspaces: Workspace[] = data?.workspaces ?? []
+	const workspaces: WorkspaceWithRole[] = data?.workspaces ?? []
 
 	// Set active workspace with persistence
-	const setActiveWorkspace = useCallback((workspace: Workspace) => {
+	const setActiveWorkspace = useCallback((workspace: WorkspaceWithRole) => {
 		setActiveWorkspaceState(workspace)
 		if (typeof window !== 'undefined') {
 			localStorage.setItem(ACTIVE_WORKSPACE_KEY, workspace.id)
@@ -64,6 +74,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
 			value={{
 				workspaces,
 				activeWorkspace,
+				workspaceRole: activeWorkspace?.role,
 				setActiveWorkspace,
 				isLoading,
 				error: error as Error | null,

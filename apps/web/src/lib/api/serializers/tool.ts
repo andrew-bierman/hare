@@ -38,12 +38,20 @@ export function serializeTool(
 		code?: string
 	} = {},
 ): SerializedTool {
+	// Use inputSchema from database if available, fallback to options, then empty object
+	const dbInputSchema = (tool as ToolRow & { inputSchema?: unknown }).inputSchema as
+		| { type: 'object'; properties?: InputSchema }
+		| null
+		| undefined
+	// Convert from database format (with type: 'object' wrapper) to API format (just properties)
+	const inputSchema = options.inputSchema || dbInputSchema?.properties || {}
+
 	return {
 		id: tool.id,
 		name: tool.name,
 		description: tool.description || '',
 		type: mapToolType(tool.type),
-		inputSchema: options.inputSchema || {},
+		inputSchema,
 		config: tool.config as SerializedTool['config'],
 		code: options.code,
 		isSystem: false,
