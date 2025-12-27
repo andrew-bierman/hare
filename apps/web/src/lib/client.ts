@@ -6,7 +6,7 @@ import type { AppType } from './api'
  * Type-safe Hono RPC client
  */
 export const client = hc<AppType>(
-	typeof window !== 'undefined' ? '' : clientEnv.NEXT_PUBLIC_APP_URL,
+	typeof window !== 'undefined' ? '' : clientEnv.VITE_APP_URL,
 )
 
 export type Client = typeof client

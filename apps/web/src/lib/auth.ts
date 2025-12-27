@@ -48,7 +48,7 @@ export function createAuth(d1: D1Database) {
 				maxAge: 60 * 5, // 5 minutes
 			},
 		},
-		trustedOrigins: [serverEnv.NEXT_PUBLIC_APP_URL],
+		trustedOrigins: [serverEnv.APP_URL],
 	})
 }
 

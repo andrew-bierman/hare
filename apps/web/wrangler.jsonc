@@ -1,15 +1,9 @@
 {
 	"$schema": "node_modules/wrangler/config-schema.json",
 	"name": "hare",
-	"main": "custom-worker.ts",
+	"main": "./src/server.ts",
 	"compatibility_date": "2025-12-01",
 	"compatibility_flags": ["nodejs_compat"],
-
-  // Assets for static files
-  "assets": {
-    "binding": "ASSETS",
-    "directory": ".open-next/assets",
-  },
 
   // Self-reference for caching
   "services": [

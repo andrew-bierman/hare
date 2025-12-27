@@ -1,5 +1,5 @@
-'use client'
-
+import { Link, useNavigate } from '@tanstack/react-router'
+import { useQueryClient } from '@tanstack/react-query'
 import { Avatar, AvatarFallback, AvatarImage } from '@workspace/ui/components/avatar'
 import { Button } from '@workspace/ui/components/button'
 import {
@@ -11,14 +11,13 @@ import {
 	DropdownMenuTrigger,
 } from '@workspace/ui/components/dropdown-menu'
 import { LogOut, Settings, User } from 'lucide-react'
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import { useAuth } from 'web-app/components/providers/auth-provider'
 import { authClient } from 'web-app/lib/auth-client'
 
 export function UserNav() {
 	const { data: session } = useAuth()
-	const router = useRouter()
+	const navigate = useNavigate()
+	const queryClient = useQueryClient()
 
 	const user = session?.user
 
@@ -39,19 +38,19 @@ export function UserNav() {
 
 	const handleSignOut = async () => {
 		await authClient.signOut()
-		router.push('/')
-		router.refresh()
+		queryClient.clear()
+		navigate({ to: '/' })
 	}
 
 	if (!user) {
 		return (
 			<div className="flex items-center gap-2">
-				<Link href="/sign-in">
+				<Link to="/sign-in">
 					<Button variant="ghost" size="sm">
 						Sign In
 					</Button>
 				</Link>
-				<Link href="/sign-up">
+				<Link to="/sign-up">
 					<Button size="sm">Get Started</Button>
 				</Link>
 			</div>
@@ -77,13 +76,13 @@ export function UserNav() {
 				</DropdownMenuLabel>
 				<DropdownMenuSeparator />
 				<DropdownMenuItem asChild>
-					<Link href="/dashboard/settings">
+					<Link to="/dashboard/settings">
 						<User className="mr-2 h-4 w-4" />
 						<span>Profile</span>
 					</Link>
 				</DropdownMenuItem>
 				<DropdownMenuItem asChild>
-					<Link href="/dashboard/settings">
+					<Link to="/dashboard/settings">
 						<Settings className="mr-2 h-4 w-4" />
 						<span>Settings</span>
 					</Link>

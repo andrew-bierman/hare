@@ -1,10 +1,7 @@
-'use client'
-
+import { Link, useLocation } from '@tanstack/react-router'
 import { Badge } from '@workspace/ui/components/badge'
 import { cn } from '@workspace/ui/lib/utils'
 import { Activity, BarChart3, Bot, Home, Rabbit, Settings, Wrench } from 'lucide-react'
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
 import { APP_CONFIG, DASHBOARD_CONTENT, FEATURES, NAV_ITEMS } from 'web-app/config'
 import { WorkspaceSwitcher } from './workspace-switcher'
 
@@ -17,7 +14,8 @@ const routes = NAV_ITEMS.dashboard.map((item) => ({
 }))
 
 export function Sidebar() {
-	const pathname = usePathname()
+	const location = useLocation()
+	const pathname = location.pathname
 
 	const isActive = (href: string) => {
 		if (href === '/dashboard') return pathname === href
@@ -28,7 +26,7 @@ export function Sidebar() {
 		<div className="flex flex-col h-full bg-background border-r">
 			{/* Logo */}
 			<div className="p-4 border-b">
-				<Link href="/dashboard" className="flex items-center gap-2">
+				<Link to="/dashboard" className="flex items-center gap-2">
 					<div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-orange-500 to-amber-500 shadow-lg shadow-orange-500/25">
 						<Rabbit className="h-5 w-5 text-white" />
 					</div>
@@ -59,7 +57,7 @@ export function Sidebar() {
 						return (
 							<Link
 								key={route.href}
-								href={route.href}
+								to={route.href}
 								className={cn(
 									'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium min-h-[44px] transition-colors',
 									active
@@ -77,12 +75,12 @@ export function Sidebar() {
 
 			{/* Help */}
 			<div className="p-3 border-t">
-				<Link
+				<a
 					href={APP_CONFIG.docs}
 					className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-muted hover:text-foreground min-h-[44px]"
 				>
 					<span>{DASHBOARD_CONTENT.sidebar.docsLink}</span>
-				</Link>
+				</a>
 			</div>
 		</div>
 	)
