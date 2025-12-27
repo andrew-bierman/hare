@@ -64,9 +64,15 @@ export interface AgentConfig {
 }
 
 /**
- * Options for creating an agent.
+ * Input for creating an agent from config.
  */
-export interface CreateAgentOptions {
+export interface CreateAgentFromConfigInput {
+	/** Agent configuration from database */
+	agentConfig: AgentConfig
+	/** Database instance */
+	db: Database
+	/** Cloudflare environment */
+	env: CloudflareEnv
 	/** Include system tools (KV, R2, Vectorize, etc.) */
 	includeSystemTools?: boolean
 	/** User ID for tool context */
@@ -76,13 +82,8 @@ export interface CreateAgentOptions {
 /**
  * Create an Edge-compatible Agent from a database configuration.
  */
-export async function createAgentFromConfig(
-	agentConfig: AgentConfig,
-	db: Database,
-	env: CloudflareEnv,
-	options: CreateAgentOptions,
-): Promise<EdgeAgent> {
-	const { includeSystemTools = true, userId } = options
+export async function createAgentFromConfig(input: CreateAgentFromConfigInput): Promise<EdgeAgent> {
+	const { agentConfig, db, env, includeSystemTools = true, userId } = input
 
 	// Create tool context
 	const toolContext: ToolContext = {
@@ -153,15 +154,26 @@ function buildInstructions(config: AgentConfig, tools: AgentTool[]): string {
 }
 
 /**
+ * Input for creating a simple agent.
+ */
+export interface CreateSimpleAgentInput {
+	/** Agent name */
+	name: string
+	/** Agent instructions */
+	instructions: string
+	/** Model to use */
+	model: string
+	/** Cloudflare environment */
+	env: CloudflareEnv
+	/** Optional tools */
+	tools?: AgentTool[]
+}
+
+/**
  * Create a simple agent without database tools.
  */
-export function createSimpleAgent(
-	name: string,
-	instructions: string,
-	model: string,
-	env: CloudflareEnv,
-	tools: AgentTool[] = [],
-): EdgeAgent {
+export function createSimpleAgent(input: CreateSimpleAgentInput): EdgeAgent {
+	const { name, instructions, model, env, tools = [] } = input
 	return createEdgeAgent({
 		name,
 		instructions,

@@ -296,7 +296,10 @@ app.openapi(chatWithAgentRoute, async (c) => {
 		}))
 
 	// Create the edge agent
-	const agent = await createAgentFromConfig(agentConfig as AgentConfig, db, env, {
+	const agent = await createAgentFromConfig({
+		agentConfig: agentConfig as AgentConfig,
+		db,
+		env,
 		userId,
 		includeSystemTools: true,
 	})

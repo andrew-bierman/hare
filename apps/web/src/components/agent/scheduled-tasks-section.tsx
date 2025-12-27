@@ -157,12 +157,15 @@ export function ScheduledTasksSection({ agentId, workspaceId }: ScheduledTasksSe
 	const [action, setAction] = useState('')
 	const [reminderMessage, setReminderMessage] = useState('')
 
-	const { data: schedulesData, isLoading: schedulesLoading } = useSchedules(agentId, workspaceId)
-	const { data: executionsData, isLoading: executionsLoading } = useAgentExecutions(
+	const { data: schedulesData, isLoading: schedulesLoading } = useSchedules({
 		agentId,
 		workspaceId,
-		{ limit: 10 },
-	)
+	})
+	const { data: executionsData, isLoading: executionsLoading } = useAgentExecutions({
+		agentId,
+		workspaceId,
+		params: { limit: 10 },
+	})
 
 	const createSchedule = useCreateSchedule(agentId, workspaceId)
 	const updateSchedule = useUpdateSchedule(agentId, workspaceId)
