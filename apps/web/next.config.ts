@@ -1,15 +1,8 @@
 import type { NextConfig } from 'next'
 
-// Check if building for desktop (Tauri) - use static export
-const isDesktopBuild = process.env.TAURI_BUILD === 'true'
-
 // Enable calling `getCloudflareContext()` in `next dev`.
 // Must be called before config export per opennextjs-cloudflare docs.
-if (
-	process.env.NODE_ENV === 'development' &&
-	process.env.SKIP_CF_DEV !== 'true' &&
-	!isDesktopBuild
-) {
+if (process.env.NODE_ENV === 'development' && process.env.SKIP_CF_DEV !== 'true') {
 	import('@opennextjs/cloudflare')
 		.then(({ initOpenNextCloudflareForDev }) => {
 			initOpenNextCloudflareForDev({
@@ -22,8 +15,8 @@ if (
 }
 
 const nextConfig: NextConfig = {
-	// Use 'export' for Tauri desktop builds, 'standalone' for Cloudflare
-	output: isDesktopBuild ? 'export' : 'standalone',
+	// Required for OpenNext/Cloudflare deployment
+	output: 'standalone',
 	// Webpack configuration for Edge runtime compatibility
 	webpack: (
 		config: Record<string, unknown> & { resolve: { fallback?: Record<string, boolean> } },

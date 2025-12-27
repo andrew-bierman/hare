@@ -73,8 +73,7 @@ function LoadingSkeleton() {
 export default function AgentBuilderPage() {
 	const params = useParams()
 	const router = useRouter()
-	const slug = params.slug as string[]
-	const agentId = slug?.[0] ?? ''
+	const agentId = params.id as string
 
 	const { activeWorkspace } = useWorkspace()
 	const { data: agent, isLoading, error } = useAgent(agentId, activeWorkspace?.id)

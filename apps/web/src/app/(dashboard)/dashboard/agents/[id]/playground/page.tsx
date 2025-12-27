@@ -75,8 +75,7 @@ function EmptyState() {
 
 export default function PlaygroundPage() {
 	const params = useParams()
-	const slug = params.slug as string[]
-	const agentId = slug?.[0] ?? ''
+	const agentId = params.id as string
 	const { activeWorkspace } = useWorkspace()
 	const {
 		data: agent,

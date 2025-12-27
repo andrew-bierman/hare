@@ -4,10 +4,10 @@
 	"version": "0.1.0",
 	"identifier": "com.hare.desktop",
 	"build": {
-		"beforeDevCommand": "cd ../web && SKIP_CF_DEV=true bun run dev",
-		"devUrl": "http://localhost:3000",
-		"beforeBuildCommand": "cd ../web && TAURI_BUILD=true bun run build",
-		"frontendDist": "../web/out"
+		"beforeDevCommand": "bun run dev",
+		"devUrl": "http://localhost:1420",
+		"beforeBuildCommand": "bun run build",
+		"frontendDist": "../dist"
 	},
 	"app": {
 		"withGlobalTauri": false,
