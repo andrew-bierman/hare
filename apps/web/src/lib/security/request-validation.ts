@@ -190,13 +190,13 @@ export function requestValidation(
 	return async (c: Context<HonoEnv>, next: () => Promise<void>) => {
 		// Check size limits
 		const sizeLimitResult = await new Promise<Response | undefined>((resolve) => {
-			sizeLimit(c, () => Promise.resolve()).then(() => resolve())
+			sizeLimit(c, () => Promise.resolve()).then(() => resolve(undefined))
 		})
 		if (sizeLimitResult) return sizeLimitResult
 
 		// Check dangerous headers
 		const headersResult = await new Promise<Response | undefined>((resolve) => {
-			dangerousHeaders(c, () => Promise.resolve()).then(() => resolve())
+			dangerousHeaders(c, () => Promise.resolve()).then(() => resolve(undefined))
 		})
 		if (headersResult) return headersResult
 
