@@ -1,4 +1,3 @@
-import { getCloudflareContext } from '@opennextjs/cloudflare'
 import type { Context } from 'hono'
 import { createDb, type Database } from 'web-app/db/client'
 
@@ -13,79 +12,34 @@ export class CloudflareEnvError extends Error {
 }
 
 /**
- * Get D1 database binding from Cloudflare context.
- * Throws CloudflareEnvError if D1 is not available.
+ * Get D1 database binding from Hono context.
+ * In TanStack Start on Cloudflare, env is passed through the request context to Hono.
  */
-export async function getD1(c: { env: unknown }): Promise<D1Database> {
-	// First try Hono context (for wrangler dev / production worker)
+export function getD1(c: { env: unknown }): D1Database {
 	const honoEnv = c.env as CloudflareEnv | undefined
 	if (honoEnv?.DB) {
 		return honoEnv.DB
 	}
 
-	// Try sync mode (for edge runtime with initOpenNextCloudflareForDev)
-	try {
-		const { env } = getCloudflareContext()
-		if (env.DB) {
-			return env.DB
-		}
-	} catch {
-		// Sync mode not available, continue to async
-	}
-
-	// Try async mode (for Node.js runtime)
-	try {
-		const { env } = await getCloudflareContext({ async: true })
-		if (env.DB) {
-			return env.DB
-		}
-	} catch {
-		// Async mode not available either
-	}
-
 	throw new CloudflareEnvError(
-		'D1 database binding not available. Ensure DB is configured in wrangler.toml.',
+		'D1 database binding not available. Ensure DB is configured in wrangler.jsonc.',
 	)
 }
 
 /**
- * Get database instance from Cloudflare context.
- * Throws CloudflareEnvError if database is not available.
+ * Get database instance from Hono context.
  */
-export async function getDb(c: Context): Promise<Database> {
-	const d1 = await getD1(c)
-	return createDb(d1)
+export function getDb(c: Context): Database {
+	return createDb(getD1(c))
 }
 
 /**
  * Get the full Cloudflare environment with all bindings.
- * Throws CloudflareEnvError if environment is not available.
  */
-export async function getCloudflareEnv(c: Context): Promise<CloudflareEnv> {
-	// First try Hono context
+export function getCloudflareEnv(c: Context): CloudflareEnv {
 	const honoEnv = c.env as CloudflareEnv | undefined
 	if (honoEnv?.DB) {
 		return honoEnv
-	}
-
-	// Try sync mode (for edge runtime)
-	try {
-		const { env } = getCloudflareContext()
-		if (env.DB) {
-			return env
-		}
-	} catch {
-		// Sync mode not available
-	}
-
-	// Try async mode (for Node.js runtime)
-	try {
-		const { env } = await getCloudflareContext({ async: true })
-		if (env.DB) {
-			return env
-		}
-	} catch {
-		// Async mode not available
 	}
 
 	throw new CloudflareEnvError(
