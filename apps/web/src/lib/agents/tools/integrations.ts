@@ -208,10 +208,7 @@ If the saved integration has defaultData, it will be merged (your data takes pre
 - Trigger by name: { name: "notify-slack", data: { message: "Hello!" } }
 - Trigger by URL: { webhookUrl: "https://hooks.zapier.com/...", data: { ... } }`,
 	inputSchema: z.object({
-		name: z
-			.string()
-			.optional()
-			.describe('Name of a saved integration (e.g., "notify-slack")'),
+		name: z.string().optional().describe('Name of a saved integration (e.g., "notify-slack")'),
 		webhookUrl: z
 			.string()
 			.url()
