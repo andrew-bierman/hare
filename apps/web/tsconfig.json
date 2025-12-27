@@ -1,14 +1,17 @@
 {
-	"extends": "@workspace/typescript-config/nextjs.json",
+	"extends": "@workspace/typescript-config/base.json",
 	"compilerOptions": {
 		"baseUrl": ".",
 		"paths": {
 			"web-app/*": ["./src/*"],
 			"@workspace/ui/*": ["../../packages/ui/src/*"]
 		},
-		"types": ["bun"],
-		"plugins": [{ "name": "next" }]
+		"types": ["bun", "vite/client"],
+		"module": "ESNext",
+		"moduleResolution": "Bundler",
+		"jsx": "react-jsx",
+		"noEmit": true
 	},
-	"include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "cloudflare-env.d.ts"],
-	"exclude": ["node_modules"]
+	"include": ["**/*.ts", "**/*.tsx", "cloudflare-env.d.ts"],
+	"exclude": ["node_modules", ".output"]
 }

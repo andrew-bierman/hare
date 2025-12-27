@@ -54,8 +54,8 @@ export interface RollbackResult {
  */
 function getBaseUrl(): string {
 	// Use configured app URL if available
-	if (serverEnv.NEXT_PUBLIC_APP_URL) {
-		return serverEnv.NEXT_PUBLIC_APP_URL
+	if (serverEnv.APP_URL) {
+		return serverEnv.APP_URL
 	}
 
 	// Fallback for local development

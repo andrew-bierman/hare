@@ -15,13 +15,19 @@ export type {
 } from '../types'
 
 /**
+ * Input for useSchedules hook.
+ */
+export interface UseSchedulesInput {
+	agentId: string | undefined
+	workspaceId: string | undefined
+	params?: ScheduleListParams
+}
+
+/**
  * Hook to list schedules for an agent
  */
-export function useSchedules(
-	agentId: string | undefined,
-	workspaceId: string | undefined,
-	params?: ScheduleListParams,
-) {
+export function useSchedules(input: UseSchedulesInput) {
+	const { agentId, workspaceId, params } = input
 	return useQuery({
 		queryKey: ['schedules', workspaceId, agentId, params?.status],
 		queryFn: () => apiClient.schedules.list(agentId!, workspaceId!, params),
@@ -30,13 +36,19 @@ export function useSchedules(
 }
 
 /**
+ * Input for useSchedule hook.
+ */
+export interface UseScheduleInput {
+	agentId: string | undefined
+	scheduleId: string | undefined
+	workspaceId: string | undefined
+}
+
+/**
  * Hook to get a single schedule
  */
-export function useSchedule(
-	agentId: string | undefined,
-	scheduleId: string | undefined,
-	workspaceId: string | undefined,
-) {
+export function useSchedule(input: UseScheduleInput) {
+	const { agentId, scheduleId, workspaceId } = input
 	return useQuery({
 		queryKey: ['schedules', workspaceId, agentId, scheduleId],
 		queryFn: () => apiClient.schedules.get(agentId!, scheduleId!, workspaceId!),
@@ -88,14 +100,20 @@ export function useDeleteSchedule(agentId: string | undefined, workspaceId: stri
 }
 
 /**
+ * Input for useScheduleExecutions hook.
+ */
+export interface UseScheduleExecutionsInput {
+	agentId: string | undefined
+	scheduleId: string | undefined
+	workspaceId: string | undefined
+	params?: ExecutionHistoryParams
+}
+
+/**
  * Hook to get execution history for a schedule
  */
-export function useScheduleExecutions(
-	agentId: string | undefined,
-	scheduleId: string | undefined,
-	workspaceId: string | undefined,
-	params?: ExecutionHistoryParams,
-) {
+export function useScheduleExecutions(input: UseScheduleExecutionsInput) {
+	const { agentId, scheduleId, workspaceId, params } = input
 	return useQuery({
 		queryKey: ['executions', workspaceId, agentId, scheduleId, params?.limit, params?.offset],
 		queryFn: () => apiClient.schedules.getExecutions(agentId!, scheduleId!, workspaceId!, params),
@@ -104,13 +122,19 @@ export function useScheduleExecutions(
 }
 
 /**
+ * Input for useAgentExecutions hook.
+ */
+export interface UseAgentExecutionsInput {
+	agentId: string | undefined
+	workspaceId: string | undefined
+	params?: ExecutionHistoryParams
+}
+
+/**
  * Hook to get all executions for an agent
  */
-export function useAgentExecutions(
-	agentId: string | undefined,
-	workspaceId: string | undefined,
-	params?: ExecutionHistoryParams,
-) {
+export function useAgentExecutions(input: UseAgentExecutionsInput) {
+	const { agentId, workspaceId, params } = input
 	return useQuery({
 		queryKey: ['executions', workspaceId, agentId, 'all', params?.limit, params?.offset],
 		queryFn: () => apiClient.schedules.getAgentExecutions(agentId!, workspaceId!, params),
