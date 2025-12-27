@@ -78,7 +78,7 @@ function getAgentId(c: Context<HonoEnv>): string | null {
 	// Try path params (e.g., /api/agents/:id)
 	const path = c.req.path
 	const agentMatch = path.match(/\/agents\/([^/]+)/)
-	if (agentMatch) return agentMatch[1]
+	if (agentMatch?.[1]) return agentMatch[1]
 
 	// Try query params
 	const agentId = c.req.query('agentId')
@@ -298,7 +298,7 @@ export async function getLogStats(env: CloudflareEnv, params: LogQueryParams): P
 		stats.requestsByStatus[log.status] = (stats.requestsByStatus[log.status] || 0) + 1
 
 		// Group by day
-		const day = log.timestamp.split('T')[0]
+		const day = log.timestamp.split('T')[0] ?? 'unknown'
 		if (!byDay[day]) {
 			byDay[day] = { requests: 0, latency: 0, errors: 0 }
 		}
