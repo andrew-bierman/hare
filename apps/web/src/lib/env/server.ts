@@ -23,15 +23,16 @@ const serverEnvSchema = z.object({
 		.string()
 		.url()
 		.default(isTestEnv ? 'http://localhost:3000' : ''),
-	ENABLE_AI_CHAT: z
+	// Feature flags
+	FEATURE_AI_CHAT: z
 		.enum(['true', 'false'])
 		.default('true')
 		.transform((val) => val === 'true'),
-	AI_CHAT_BETA_MODE: z
+	FEATURE_AI_CHAT_BETA_MODE: z
 		.enum(['true', 'false'])
 		.default('false')
 		.transform((val) => val === 'true'),
-	AI_CHAT_ALLOWED_EMAILS: z
+	FEATURE_AI_CHAT_ALLOWED_EMAILS: z
 		.string()
 		.optional()
 		.transform((val) => (val ? val.split(',').map((e) => e.trim().toLowerCase()) : [])),
@@ -69,9 +70,9 @@ function validateServerEnv() {
 	const result = serverEnvSchema.safeParse({
 		NODE_ENV: nodeEnv,
 		NEXT_PUBLIC_APP_URL: appUrl,
-		ENABLE_AI_CHAT: getEnv('ENABLE_AI_CHAT'),
-		AI_CHAT_BETA_MODE: getEnv('AI_CHAT_BETA_MODE'),
-		AI_CHAT_ALLOWED_EMAILS: getEnv('AI_CHAT_ALLOWED_EMAILS'),
+		FEATURE_AI_CHAT: getEnv('FEATURE_AI_CHAT'),
+		FEATURE_AI_CHAT_BETA_MODE: getEnv('FEATURE_AI_CHAT_BETA_MODE'),
+		FEATURE_AI_CHAT_ALLOWED_EMAILS: getEnv('FEATURE_AI_CHAT_ALLOWED_EMAILS'),
 		GOOGLE_CLIENT_ID: getEnv('GOOGLE_CLIENT_ID'),
 		GOOGLE_CLIENT_SECRET: getEnv('GOOGLE_CLIENT_SECRET'),
 		GITHUB_CLIENT_ID: getEnv('GITHUB_CLIENT_ID'),
