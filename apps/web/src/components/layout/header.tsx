@@ -1,9 +1,7 @@
-'use client'
-
+import { Link } from '@tanstack/react-router'
 import { Button } from '@workspace/ui/components/button'
 import { Input } from '@workspace/ui/components/input'
 import { Bell, Menu, Rabbit, Search } from 'lucide-react'
-import Link from 'next/link'
 import { APP_CONFIG, DASHBOARD_CONTENT } from 'web-app/config'
 import { UserNav } from './user-nav'
 
@@ -18,7 +16,7 @@ export function Header() {
 					</Button>
 
 					{/* Mobile logo */}
-					<Link href="/dashboard" className="flex items-center gap-2 md:hidden">
+					<Link to="/dashboard" className="flex items-center gap-2 md:hidden">
 						<div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-orange-500 to-amber-500">
 							<Rabbit className="h-4 w-4 text-white" />
 						</div>
