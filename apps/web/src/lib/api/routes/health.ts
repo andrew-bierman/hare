@@ -293,10 +293,34 @@ app.openapi(healthRoute, async (c) => {
 
 	// Run all health checks in parallel
 	const serviceChecks = await Promise.all([
-		env?.DB ? checkDatabase(env.DB) : Promise.resolve({ name: 'database', status: 'unhealthy' as const, error: 'DB binding not available' }),
-		env?.KV ? checkKV(env.KV) : Promise.resolve({ name: 'kv', status: 'unhealthy' as const, error: 'KV binding not available' }),
-		env?.AI ? checkWorkersAI(env.AI) : Promise.resolve({ name: 'workers_ai', status: 'unhealthy' as const, error: 'AI binding not available' }),
-		env?.R2 ? checkR2(env.R2) : Promise.resolve({ name: 'r2', status: 'unhealthy' as const, error: 'R2 binding not available' }),
+		env?.DB
+			? checkDatabase(env.DB)
+			: Promise.resolve({
+					name: 'database',
+					status: 'unhealthy' as const,
+					error: 'DB binding not available',
+				}),
+		env?.KV
+			? checkKV(env.KV)
+			: Promise.resolve({
+					name: 'kv',
+					status: 'unhealthy' as const,
+					error: 'KV binding not available',
+				}),
+		env?.AI
+			? checkWorkersAI(env.AI)
+			: Promise.resolve({
+					name: 'workers_ai',
+					status: 'unhealthy' as const,
+					error: 'AI binding not available',
+				}),
+		env?.R2
+			? checkR2(env.R2)
+			: Promise.resolve({
+					name: 'r2',
+					status: 'unhealthy' as const,
+					error: 'R2 binding not available',
+				}),
 	])
 
 	const overallStatus = determineOverallStatus(serviceChecks)
