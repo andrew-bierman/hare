@@ -146,7 +146,7 @@ function getStripe(env: CloudflareEnv): Stripe {
 function getAppUrl(env: CloudflareEnv): string {
 	// In production, use the configured app URL
 	// Fall back to localhost for development
-	return env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+	return env.APP_URL || 'http://localhost:3000'
 }
 
 // =============================================================================

@@ -1,6 +1,5 @@
-'use client'
-
 import { useQueryClient } from '@tanstack/react-query'
+import { useNavigate } from '@tanstack/react-router'
 import { Badge } from '@workspace/ui/components/badge'
 import { Button } from '@workspace/ui/components/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@workspace/ui/components/card'
@@ -18,7 +17,6 @@ import {
 	UserPlus,
 	X,
 } from 'lucide-react'
-import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { useWorkspace } from 'web-app/components/providers/workspace-provider'
@@ -33,7 +31,7 @@ export function DevTools() {
 	const [isMinimized, setIsMinimized] = useState(false)
 	const [isSigningUp, setIsSigningUp] = useState(false)
 	const queryClient = useQueryClient()
-	const router = useRouter()
+	const navigate = useNavigate()
 
 	const { activeWorkspace } = useWorkspace()
 	const createAgent = useCreateAgent(activeWorkspace?.id)
@@ -58,7 +56,6 @@ export function DevTools() {
 			} else {
 				toast.success('Signed in as test user')
 				queryClient.invalidateQueries()
-				router.refresh()
 			}
 		} catch (error) {
 			toast.error(`Sign in failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
@@ -70,7 +67,6 @@ export function DevTools() {
 			await authClient.signOut()
 			toast.success('Signed out')
 			queryClient.invalidateQueries()
-			router.refresh()
 		} catch (_error) {
 			toast.error('Sign out failed')
 		}
@@ -90,8 +86,7 @@ export function DevTools() {
 			} else {
 				toast.success(`Created & signed in as test${timestamp}@example.com`)
 				queryClient.invalidateQueries()
-				router.refresh()
-				router.push('/dashboard')
+				navigate({ to: '/dashboard' })
 			}
 		} catch (error) {
 			toast.error(`Sign up failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
@@ -113,7 +108,7 @@ export function DevTools() {
 				instructions: defaultInstructions,
 			})
 			toast.success(`Created agent: ${agent.name}`)
-			router.push(`/dashboard/agents/${agent.id}`)
+			navigate({ to: '/dashboard/agents/$id', params: { id: agent.id } })
 		} catch (_error) {
 			toast.error('Failed to create agent')
 		}

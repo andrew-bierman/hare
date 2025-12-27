@@ -269,7 +269,10 @@ app.openapi(embedChatRoute, async (c) => {
 		}))
 
 	// Create agent
-	const agentInstance = await createAgentFromConfig(agent as AgentConfig, db, env, {
+	const agentInstance = await createAgentFromConfig({
+		agentConfig: agent as AgentConfig,
+		db,
+		env,
 		userId,
 		includeSystemTools: true,
 	})

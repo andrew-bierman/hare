@@ -53,7 +53,7 @@ export const securityHeadersMiddleware: MiddlewareHandler = secureHeaders({
 export const corsMiddleware = cors({
 	origin: (origin) => {
 		const allowedOrigins = [
-			serverEnv.NEXT_PUBLIC_APP_URL,
+			serverEnv.APP_URL,
 			'http://localhost:3000',
 			'http://localhost:8787',
 		]

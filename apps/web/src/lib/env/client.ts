@@ -1,30 +1,49 @@
 import { z } from 'zod'
 
 /**
- * Client-side environment variables (NEXT_PUBLIC_*)
+ * Client-side environment variables (VITE_*)
  *
  * These are available in browser code and validated at import time.
- * Only NEXT_PUBLIC_* variables are accessible in the browser.
+ * Only VITE_* variables are accessible in the browser via import.meta.env
  */
 
 const clientEnvSchema = z.object({
-	NEXT_PUBLIC_APP_URL: z.string().url(),
+	VITE_APP_URL: z.string().url().optional(),
 })
 
 function validateClientEnv() {
-	const result = clientEnvSchema.safeParse({
-		NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
-	})
+	// In Vite, use import.meta.env for client env vars
+	const envVars =
+		typeof import.meta !== 'undefined' && import.meta.env
+			? {
+					VITE_APP_URL: import.meta.env.VITE_APP_URL,
+				}
+			: {
+					VITE_APP_URL: undefined,
+				}
+
+	const result = clientEnvSchema.safeParse(envVars)
 
 	if (!result.success) {
 		console.error('Invalid client environment variables:')
 		console.error(result.error.flatten().fieldErrors)
-		throw new Error('Invalid client environment variables')
+		// Don't throw in development/build - just use defaults
 	}
 
-	return result.data
+	return {
+		VITE_APP_URL: result.data?.VITE_APP_URL || getDefaultAppUrl(),
+	}
+}
+
+function getDefaultAppUrl(): string {
+	if (typeof window !== 'undefined') {
+		return window.location.origin
+	}
+	return 'http://localhost:3000'
 }
 
 export const clientEnv = validateClientEnv()
 
-export type ClientEnv = z.infer<typeof clientEnvSchema>
+export type ClientEnv = {
+	VITE_APP_URL: string
+}
