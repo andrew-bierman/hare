@@ -529,7 +529,7 @@ export class HareAgent<TEnv extends HareAgentEnv = HareAgentEnv> extends Agent<
 
 		try {
 			const context = this.createToolContext()
-			const result = await tool.execute(params, context)
+			const result = await tool.call(params, context)
 
 			this.sendToConnection(connection, {
 				type: 'tool_result',

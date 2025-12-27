@@ -169,7 +169,7 @@ export async function createAgentFromConfig(
 		description: tool.description,
 		inputSchema: {},
 		execute: async (params) => {
-			const result = await tool.execute(params, toolContext)
+			const result = await tool.call(params, toolContext)
 			if (result.success) {
 				return result.data
 			}
