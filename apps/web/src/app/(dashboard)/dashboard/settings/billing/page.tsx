@@ -15,7 +15,7 @@ import { Separator } from '@workspace/ui/components/separator'
 import { Skeleton } from '@workspace/ui/components/skeleton'
 import { Check, CreditCard, ExternalLink, Sparkles, Zap } from 'lucide-react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { useWorkspace } from 'web-app/components/providers/workspace-provider'
 import {
@@ -25,7 +25,29 @@ import {
 	usePlans,
 } from 'web-app/lib/api/hooks/use-billing'
 
+function BillingPageLoading() {
+	return (
+		<div className="flex-1 space-y-6 p-8 pt-6">
+			<Skeleton className="h-9 w-32" />
+			<div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+				<Skeleton className="h-80" />
+				<Skeleton className="h-80" />
+				<Skeleton className="h-80" />
+				<Skeleton className="h-80" />
+			</div>
+		</div>
+	)
+}
+
 export default function BillingPage() {
+	return (
+		<Suspense fallback={<BillingPageLoading />}>
+			<BillingPageContent />
+		</Suspense>
+	)
+}
+
+function BillingPageContent() {
 	const router = useRouter()
 	const searchParams = useSearchParams()
 	const { activeWorkspace } = useWorkspace()
