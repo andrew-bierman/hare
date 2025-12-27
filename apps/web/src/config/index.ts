@@ -43,9 +43,9 @@ export const FEATURES = {
 	/** Enable custom tools */
 	customTools: true,
 	/** Enable AI chat features (feature flag for beta) */
-	aiChat: serverEnv.ENABLE_AI_CHAT,
+	aiChat: serverEnv.FEATURE_AI_CHAT,
 	/** Restrict AI chat to specific users (beta mode) */
-	aiChatBetaMode: serverEnv.AI_CHAT_BETA_MODE,
+	aiChatBetaMode: serverEnv.FEATURE_AI_CHAT_BETA_MODE,
 	/** Enable rate limiting */
 	rateLimiting: true,
 } as const
@@ -58,7 +58,7 @@ export const BETA_ACCESS = {
 	/** Enable beta access restrictions */
 	enabled: FEATURES.aiChatBetaMode,
 	/** Allowed user emails (comma-separated) */
-	allowedEmails: serverEnv.AI_CHAT_ALLOWED_EMAILS,
+	allowedEmails: serverEnv.FEATURE_AI_CHAT_ALLOWED_EMAILS,
 } as const
 
 // =============================================================================
