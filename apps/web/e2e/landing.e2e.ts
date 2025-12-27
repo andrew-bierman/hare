@@ -116,11 +116,11 @@ test.describe('Landing Page - How it Works Section', () => {
 	})
 
 	test('displays how it works heading', async ({ page }: { page: Page }) => {
-		await expect(page.getByRole('heading', { name: '4 simple steps' })).toBeVisible()
+		await expect(page.getByRole('heading', { name: '3 simple steps' })).toBeVisible()
 	})
 
 	test('displays all steps', async ({ page }: { page: Page }) => {
-		const steps = ['Define', 'Add Tools', 'Test', 'Deploy']
+		const steps = ['Define', 'Add Tools', 'Deploy']
 		for (const step of steps) {
 			await expect(page.getByText(step, { exact: true }).first()).toBeVisible()
 		}
