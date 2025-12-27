@@ -1,10 +1,11 @@
 'use client'
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { apiClient } from '../client'
+import { apiClient, type ToolTestRequest } from '../client'
 import type { CreateToolInput, ToolType } from '../types'
 
 // Re-export types for convenience
+export type { HttpToolConfig, InputSchema, InputSchemaProperty, ToolTestResult } from '../client'
 export type { CreateToolInput, Tool, ToolType } from '../types'
 
 export function useTools(workspaceId: string | undefined) {
@@ -52,6 +53,25 @@ export function useDeleteTool(workspaceId: string | undefined) {
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['tools', workspaceId] })
 		},
+	})
+}
+
+/**
+ * Test an HTTP tool configuration before saving.
+ */
+export function useTestTool(workspaceId: string | undefined) {
+	return useMutation({
+		mutationFn: (data: ToolTestRequest) => apiClient.tools.test(workspaceId!, data),
+	})
+}
+
+/**
+ * Test an existing HTTP tool with test input.
+ */
+export function useTestExistingTool(workspaceId: string | undefined) {
+	return useMutation({
+		mutationFn: ({ id, testInput }: { id: string; testInput?: Record<string, unknown> }) =>
+			apiClient.tools.testExisting(id, workspaceId!, testInput),
 	})
 }
 

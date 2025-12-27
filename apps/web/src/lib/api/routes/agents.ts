@@ -8,8 +8,12 @@ import { getCloudflareEnv, getDb } from '../db'
 import { commonResponses, requireAdminAccess, requireWriteAccess } from '../helpers'
 import { authMiddleware, workspaceMiddleware } from '../middleware'
 import {
+	AGENT_VALIDATION,
 	AgentConfigSchema,
+	AgentPreviewInputSchema,
+	AgentPreviewResponseSchema,
 	AgentSchema,
+	ALLOWED_MODEL_IDS,
 	CreateAgentSchema,
 	DeployAgentSchema,
 	DeploymentSchema,
@@ -18,6 +22,7 @@ import {
 	SuccessSchema,
 	UpdateAgentSchema,
 } from '../schemas'
+import type { AllowedModelId } from '../schemas/agents'
 import { serializeAgent } from '../serializers'
 import {
 	deactivateDeployment,
@@ -401,6 +406,43 @@ const deploymentHistoryRoute = createRoute({
 					schema: z.object({
 						deployments: z.array(DeploymentSchema),
 					}),
+				},
+			},
+		},
+		404: {
+			description: 'Agent not found',
+			content: { 'application/json': { schema: ErrorSchema } },
+		},
+		...commonResponses,
+	},
+})
+
+const previewAgentRoute = createRoute({
+	method: 'post',
+	path: '/{id}/preview',
+	tags: ['Agents'],
+	summary: 'Preview agent configuration',
+	description:
+		'Validates agent configuration with optional overrides and returns detailed feedback for deployment readiness',
+	request: {
+		params: IdParamSchema,
+		query: z.object({
+			workspaceId: z.string().describe('Workspace ID'),
+		}),
+		body: {
+			content: {
+				'application/json': {
+					schema: AgentPreviewInputSchema,
+				},
+			},
+		},
+	},
+	responses: {
+		200: {
+			description: 'Preview results with validation status',
+			content: {
+				'application/json': {
+					schema: AgentPreviewResponseSchema,
 				},
 			},
 		},
@@ -1162,6 +1204,297 @@ app.openapi(validateConfigRoute, async (c) => {
 			},
 			config: effectiveConfig,
 			toolCount: toolIds.length,
+			toolsValid,
+			instructionsLength,
+			estimatedTokens,
+			readyForDeployment: isValid && instructionsLength > 0,
+		}
+	}
+
+	return c.json(
+		{
+			valid: isValid,
+			errors,
+			warnings,
+			preview,
+		},
+		200,
+	)
+})
+
+// =============================================================================
+// Preview Route Handler (per-agent validation with overrides)
+// =============================================================================
+
+app.openapi(previewAgentRoute, async (c) => {
+	const { id } = c.req.valid('param')
+	const overrides = c.req.valid('json')
+	const db = await getDb(c)
+	const workspace = c.get('workspace')
+
+	// Find the agent
+	const agent = await findAgentByIdAndWorkspace(db, id, workspace.id)
+	if (!agent) {
+		return c.json({ error: 'Agent not found' }, 404)
+	}
+
+	// Merge agent data with overrides
+	const effectiveName = overrides.name ?? agent.name
+	const effectiveDescription = overrides.description ?? agent.description
+	const effectiveModel = overrides.model ?? agent.model
+	const effectiveInstructions = overrides.instructions ?? agent.instructions
+	const effectiveConfig = {
+		...((agent.config as Record<string, unknown>) || {}),
+		...(overrides.config || {}),
+	}
+	const effectiveToolIds = overrides.toolIds ?? (await getAgentToolIds({ agentId: agent.id, db }))
+
+	const errors: Array<{ field: string; type: 'error'; message: string }> = []
+	const warnings: Array<{ field: string; type: 'warning'; message: string }> = []
+
+	// Validate name
+	if (!effectiveName || effectiveName.length < AGENT_VALIDATION.name.min) {
+		errors.push({
+			field: 'name',
+			type: 'error',
+			message: `Name must be at least ${AGENT_VALIDATION.name.min} character`,
+		})
+	} else if (effectiveName.length > AGENT_VALIDATION.name.max) {
+		errors.push({
+			field: 'name',
+			type: 'error',
+			message: `Name must be at most ${AGENT_VALIDATION.name.max} characters`,
+		})
+	}
+
+	// Validate description
+	if (effectiveDescription && effectiveDescription.length > AGENT_VALIDATION.description.max) {
+		warnings.push({
+			field: 'description',
+			type: 'warning',
+			message: `Description exceeds recommended length of ${AGENT_VALIDATION.description.max} characters`,
+		})
+	}
+
+	// Validate model
+	let modelInfo = null
+	if (effectiveModel) {
+		// Check against allowed models
+		if (!ALLOWED_MODEL_IDS.includes(effectiveModel as AllowedModelId)) {
+			errors.push({
+				field: 'model',
+				type: 'error',
+				message: `Invalid model: "${effectiveModel}". Must be one of: ${ALLOWED_MODEL_IDS.join(', ')}`,
+			})
+		} else {
+			modelInfo = getModelById(effectiveModel)
+			if (modelInfo && !modelInfo.supportsTools && effectiveToolIds.length > 0) {
+				warnings.push({
+					field: 'model',
+					type: 'warning',
+					message: `Model ${modelInfo.name} does not support tool calling. Tools will be ignored.`,
+				})
+			}
+		}
+	} else {
+		errors.push({
+			field: 'model',
+			type: 'error',
+			message: 'Model is required',
+		})
+	}
+
+	// Validate instructions
+	let instructionsLength = 0
+	let estimatedTokens = 0
+	if (effectiveInstructions) {
+		instructionsLength = effectiveInstructions.length
+
+		if (instructionsLength === 0) {
+			errors.push({
+				field: 'instructions',
+				type: 'error',
+				message: 'Instructions are required for deployment',
+			})
+		} else if (instructionsLength > AGENT_VALIDATION.instructions.max) {
+			errors.push({
+				field: 'instructions',
+				type: 'error',
+				message: `Instructions exceed maximum length of ${AGENT_VALIDATION.instructions.max} characters`,
+			})
+		}
+
+		// Rough token estimation (approx 4 chars per token)
+		estimatedTokens = Math.ceil(instructionsLength / 4)
+
+		// Check context window if model is known
+		if (modelInfo && estimatedTokens > modelInfo.contextWindow * 0.5) {
+			warnings.push({
+				field: 'instructions',
+				type: 'warning',
+				message: `Instructions may use more than 50% of the model's context window (${modelInfo.contextWindow} tokens)`,
+			})
+		}
+
+		// Validate instructions content
+		const instructionValidation = validateAgentInstructions(effectiveInstructions)
+		if (!instructionValidation.valid) {
+			for (const issue of instructionValidation.issues) {
+				warnings.push({
+					field: 'instructions',
+					type: 'warning',
+					message: issue,
+				})
+			}
+		}
+	} else {
+		errors.push({
+			field: 'instructions',
+			type: 'error',
+			message: 'Instructions are required',
+		})
+	}
+
+	// Validate config parameters
+	const temperature =
+		typeof effectiveConfig.temperature === 'number' ? effectiveConfig.temperature : undefined
+	const maxTokens =
+		typeof effectiveConfig.maxTokens === 'number' ? effectiveConfig.maxTokens : undefined
+	const topP = typeof effectiveConfig.topP === 'number' ? effectiveConfig.topP : undefined
+	const topK = typeof effectiveConfig.topK === 'number' ? effectiveConfig.topK : undefined
+
+	if (temperature !== undefined) {
+		if (
+			temperature < AGENT_VALIDATION.config.temperature.min ||
+			temperature > AGENT_VALIDATION.config.temperature.max
+		) {
+			errors.push({
+				field: 'config.temperature',
+				type: 'error',
+				message: `Temperature must be between ${AGENT_VALIDATION.config.temperature.min} and ${AGENT_VALIDATION.config.temperature.max}`,
+			})
+		}
+		if (temperature > 1.5) {
+			warnings.push({
+				field: 'config.temperature',
+				type: 'warning',
+				message: 'High temperature (>1.5) may produce inconsistent results',
+			})
+		}
+	}
+
+	if (maxTokens !== undefined) {
+		if (!Number.isInteger(maxTokens) || maxTokens < AGENT_VALIDATION.config.maxTokens.min) {
+			errors.push({
+				field: 'config.maxTokens',
+				type: 'error',
+				message: `Max tokens must be a positive integer (min ${AGENT_VALIDATION.config.maxTokens.min})`,
+			})
+		} else if (maxTokens > AGENT_VALIDATION.config.maxTokens.max) {
+			errors.push({
+				field: 'config.maxTokens',
+				type: 'error',
+				message: `Max tokens must be at most ${AGENT_VALIDATION.config.maxTokens.max}`,
+			})
+		} else if (modelInfo && maxTokens > modelInfo.maxOutputTokens) {
+			errors.push({
+				field: 'config.maxTokens',
+				type: 'error',
+				message: `Max tokens (${maxTokens}) exceeds model limit (${modelInfo.maxOutputTokens})`,
+			})
+		}
+	}
+
+	// Validate tools
+	let toolsValid = true
+
+	if (effectiveToolIds.length > AGENT_VALIDATION.maxToolsPerAgent) {
+		errors.push({
+			field: 'toolIds',
+			type: 'error',
+			message: `Too many tools. Maximum is ${AGENT_VALIDATION.maxToolsPerAgent}`,
+		})
+		toolsValid = false
+	}
+
+	// Check custom tools exist (system tools start with 'system-')
+	const customToolIds = effectiveToolIds.filter((id) => !id.startsWith('system-'))
+	if (customToolIds.length > 0) {
+		const existingTools = await db
+			.select({ id: toolsTable.id })
+			.from(toolsTable)
+			.where(eq(toolsTable.workspaceId, workspace.id))
+
+		const existingToolIds = new Set(existingTools.map((t) => t.id))
+		const missingTools = customToolIds.filter((id) => !existingToolIds.has(id))
+
+		if (missingTools.length > 0) {
+			errors.push({
+				field: 'toolIds',
+				type: 'error',
+				message: `Unknown tools: ${missingTools.join(', ')}`,
+			})
+			toolsValid = false
+		}
+	}
+
+	// Build response
+	const hasErrors = errors.length > 0
+	const isValid = !hasErrors
+
+	// Build preview
+	type AgentPreview = {
+		name: string
+		description: string | null
+		model: {
+			id: string
+			name: string
+			provider: string
+			contextWindow: number
+			maxOutputTokens: number
+			supportsTools: boolean
+			estimatedCostPer1KTokens: number
+		}
+		config: {
+			temperature: number
+			maxTokens: number
+			topP?: number
+			topK?: number
+		}
+		toolCount: number
+		toolsValid: boolean
+		instructionsLength: number
+		estimatedTokens: number
+		readyForDeployment: boolean
+	}
+
+	let preview: AgentPreview | undefined
+	if (effectiveName && modelInfo) {
+		const resolvedConfig = {
+			temperature: temperature ?? 0.7,
+			maxTokens: maxTokens ?? 4096,
+			...(topP !== undefined && { topP }),
+			...(topK !== undefined && { topK }),
+		}
+
+		// Estimate cost (per 1K tokens, average of input/output)
+		const avgCostPer1M = (modelInfo.inputCostPer1M + modelInfo.outputCostPer1M) / 2
+		const estimatedCostPer1KTokens = avgCostPer1M / 1000
+
+		preview = {
+			name: effectiveName,
+			description: effectiveDescription ?? null,
+			model: {
+				id: modelInfo.id,
+				name: modelInfo.name,
+				provider: modelInfo.provider,
+				contextWindow: modelInfo.contextWindow,
+				maxOutputTokens: modelInfo.maxOutputTokens,
+				supportsTools: modelInfo.supportsTools,
+				estimatedCostPer1KTokens,
+			},
+			config: resolvedConfig,
+			toolCount: effectiveToolIds.length,
 			toolsValid,
 			instructionsLength,
 			estimatedTokens,

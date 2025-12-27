@@ -7,18 +7,26 @@ import { secureHeaders } from 'hono/secure-headers'
 import { timing } from 'hono/timing'
 import { serverEnv } from 'web-app/lib/env/server'
 import { CloudflareEnvError } from './db'
-import { corsMiddleware, securityHeadersMiddleware } from './middleware'
+import { corsMiddleware, loggingMiddleware, securityHeadersMiddleware } from './middleware'
 import agentWs from './routes/agent-ws'
 // Import route modules
 import agents from './routes/agents'
 import analytics from './routes/analytics'
+import apiKeysRoutes from './routes/api-keys'
 import auth from './routes/auth'
+import billing from './routes/billing'
 import chat from './routes/chat'
 import dev from './routes/dev'
+import embed from './routes/embed'
 import health from './routes/health'
+import logs from './routes/logs'
 import mcp from './routes/mcp'
+import memory from './routes/memory'
+import schedules from './routes/schedules'
 import tools from './routes/tools'
 import usage from './routes/usage'
+import webhooksRoutes from './routes/webhooks'
+import workspaceMembers from './routes/workspace-members'
 import workspaces from './routes/workspaces'
 import type { HonoEnv } from './types'
 
@@ -43,13 +51,20 @@ app.use('*', timing()) // Adds Server-Timing headers for performance monitoring
 app.use('*', secureHeaders()) // Security headers (X-Content-Type-Options, X-Frame-Options, etc.)
 app.use('*', corsMiddleware)
 app.use('*', securityHeadersMiddleware)
+app.use('*', loggingMiddleware) // Request logging to KV for observability
 
 // Mount routes - chain for type inference
 const routes = app
 	.route('/agents', agents)
+	.route('/agents', schedules)
+	.route('/agents', memory)
+	.route('/agents', webhooksRoutes)
 	.route('/agent-ws', agentWs)
 	.route('/analytics', analytics)
+	.route('/api-keys', apiKeysRoutes)
+	.route('/billing', billing)
 	.route('/workspaces', workspaces)
+	.route('/workspaces', workspaceMembers)
 	.route('/tools', tools)
 	.route('/auth', auth)
 	.route('/chat', chat)
@@ -57,6 +72,8 @@ const routes = app
 	.route('/dev', dev)
 	.route('/mcp', mcp)
 	.route('/health', health)
+	.route('/logs', logs)
+	.route('/embed', embed)
 
 // OpenAPI documentation - must be registered before showRoutes
 app.doc('/openapi.json', {
@@ -80,12 +97,18 @@ app.doc('/openapi.json', {
 			name: 'Agent WebSocket',
 			description: 'Real-time WebSocket connections to Cloudflare Agents',
 		},
+		{ name: 'API Keys', description: 'API key management for programmatic access' },
+		{ name: 'Billing', description: 'Subscription and payment management' },
+		{ name: 'Schedules', description: 'Scheduled task management for agents' },
+		{ name: 'Webhooks', description: 'Webhook management for agent event notifications' },
 		{ name: 'Tools', description: 'Tool management for agents' },
 		{ name: 'Chat', description: 'Chat with deployed agents (SSE)' },
 		{ name: 'MCP', description: 'Model Context Protocol for external AI clients' },
 		{ name: 'Usage', description: 'Usage statistics and analytics' },
 		{ name: 'Analytics', description: 'Detailed analytics and visualizations' },
 		{ name: 'Health', description: 'System health checks and monitoring endpoints' },
+		{ name: 'Logs', description: 'Request logging and observability' },
+		{ name: 'Embed', description: 'Embeddable chat widget endpoints' },
 	],
 })
 

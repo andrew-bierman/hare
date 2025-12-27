@@ -1,18 +1,109 @@
 import { z } from '@hono/zod-openapi'
 
+// =============================================================================
+// Validation Constants
+// =============================================================================
+
+/**
+ * Agent validation limits - must match AGENT_LIMITS in config
+ */
+export const AGENT_VALIDATION = {
+	name: {
+		min: 1,
+		max: 100,
+	},
+	description: {
+		max: 500,
+	},
+	instructions: {
+		min: 1,
+		max: 10000,
+	},
+	config: {
+		temperature: {
+			min: 0,
+			max: 2,
+		},
+		maxTokens: {
+			min: 1,
+			max: 128000,
+		},
+		topP: {
+			min: 0,
+			max: 1,
+		},
+		topK: {
+			min: 0,
+		},
+	},
+	maxToolsPerAgent: 20,
+} as const
+
+/**
+ * Allowed AI model IDs for validation
+ * These match the models defined in config/index.ts
+ */
+export const ALLOWED_MODEL_IDS = [
+	// Anthropic models
+	'claude-3-5-sonnet-20241022',
+	'claude-3-5-haiku-20241022',
+	'claude-3-opus-20240229',
+	// OpenAI models
+	'gpt-4o',
+	'gpt-4o-mini',
+	// Workers AI models
+	'@cf/meta/llama-3.3-70b-instruct-fp8-fast',
+	'@cf/meta/llama-3.1-8b-instruct',
+	'@cf/mistral/mistral-7b-instruct-v0.2',
+	'@cf/qwen/qwen1.5-14b-chat-awq',
+	'@cf/google/gemma-7b-it',
+] as const
+
+export type AllowedModelId = (typeof ALLOWED_MODEL_IDS)[number]
+
+// =============================================================================
+// Agent Configuration Schema
+// =============================================================================
+
 /**
  * Agent configuration schema for model parameters.
  */
 export const AgentConfigSchema = z
 	.object({
-		temperature: z.number().min(0).max(2).optional().openapi({ example: 0.7 }),
-		maxTokens: z.number().min(1).max(100000).optional().openapi({ example: 4096 }),
-		topP: z.number().min(0).max(1).optional().openapi({ example: 0.9 }),
-		topK: z.number().min(0).optional().openapi({ example: 40 }),
-		stopSequences: z
-			.array(z.string())
+		temperature: z
+			.number()
+			.min(AGENT_VALIDATION.config.temperature.min, 'Temperature must be at least 0')
+			.max(AGENT_VALIDATION.config.temperature.max, 'Temperature must be at most 2')
 			.optional()
-			.openapi({ example: ['END'] }),
+			.openapi({
+				example: 0.7,
+				description: 'Model temperature (0-2). Higher values = more creative.',
+			}),
+		maxTokens: z
+			.number()
+			.int('Max tokens must be an integer')
+			.positive('Max tokens must be positive')
+			.min(AGENT_VALIDATION.config.maxTokens.min, 'Max tokens must be at least 1')
+			.max(AGENT_VALIDATION.config.maxTokens.max, 'Max tokens must be at most 128000')
+			.optional()
+			.openapi({ example: 4096, description: 'Maximum output tokens (1-128000).' }),
+		topP: z
+			.number()
+			.min(AGENT_VALIDATION.config.topP.min, 'Top-P must be at least 0')
+			.max(AGENT_VALIDATION.config.topP.max, 'Top-P must be at most 1')
+			.optional()
+			.openapi({ example: 0.9, description: 'Nucleus sampling threshold (0-1).' }),
+		topK: z
+			.number()
+			.int('Top-K must be an integer')
+			.min(AGENT_VALIDATION.config.topK.min, 'Top-K must be at least 0')
+			.optional()
+			.openapi({ example: 40, description: 'Top-K sampling (0+).' }),
+		stopSequences: z
+			.array(z.string().max(100, 'Stop sequence must be at most 100 characters'))
+			.max(10, 'Maximum 10 stop sequences allowed')
+			.optional()
+			.openapi({ example: ['END'], description: 'Sequences that stop generation.' }),
 	})
 	.openapi('AgentConfig')
 
@@ -46,27 +137,111 @@ export const AgentSchema = z
 	.openapi('Agent')
 
 /**
+ * Model ID schema with validation against allowed models
+ */
+export const ModelIdSchema = z
+	.string()
+	.min(1, 'Model is required')
+	.refine((id) => ALLOWED_MODEL_IDS.includes(id as AllowedModelId), {
+		message: `Invalid model. Must be one of: ${ALLOWED_MODEL_IDS.join(', ')}`,
+	})
+	.openapi({ example: '@cf/meta/llama-3.3-70b-instruct-fp8-fast' })
+
+/**
  * Schema for creating a new agent.
+ * All fields have strict validation rules.
  */
 export const CreateAgentSchema = z
 	.object({
-		name: z.string().min(1).max(100).openapi({ example: 'My Agent' }),
-		description: z.string().optional().openapi({ example: 'A helpful assistant' }),
-		model: z.string().openapi({ example: 'llama-3.3-70b-instruct' }),
-		instructions: z.string().min(1).openapi({ example: 'You are a helpful assistant.' }),
+		name: z
+			.string()
+			.min(AGENT_VALIDATION.name.min, 'Name is required')
+			.max(
+				AGENT_VALIDATION.name.max,
+				`Name must be at most ${AGENT_VALIDATION.name.max} characters`,
+			)
+			.trim()
+			.openapi({ example: 'My Agent', description: 'Agent display name (1-100 chars)' }),
+		description: z
+			.string()
+			.max(
+				AGENT_VALIDATION.description.max,
+				`Description must be at most ${AGENT_VALIDATION.description.max} characters`,
+			)
+			.optional()
+			.openapi({
+				example: 'A helpful assistant',
+				description: 'Agent description (max 500 chars)',
+			}),
+		model: ModelIdSchema,
+		instructions: z
+			.string()
+			.min(AGENT_VALIDATION.instructions.min, 'Instructions are required')
+			.max(
+				AGENT_VALIDATION.instructions.max,
+				`Instructions must be at most ${AGENT_VALIDATION.instructions.max} characters`,
+			)
+			.openapi({
+				example: 'You are a helpful assistant.',
+				description: 'System prompt/instructions (1-10000 chars)',
+			}),
 		config: AgentConfigSchema.optional(),
 		toolIds: z
 			.array(z.string())
+			.max(
+				AGENT_VALIDATION.maxToolsPerAgent,
+				`Maximum ${AGENT_VALIDATION.maxToolsPerAgent} tools allowed`,
+			)
 			.optional()
-			.openapi({ example: ['tool_http'] }),
+			.openapi({ example: ['tool_http'], description: 'Tool IDs to attach (max 20)' }),
 	})
 	.openapi('CreateAgent')
 
 /**
  * Schema for updating an agent.
+ * All fields are optional but follow the same validation rules when provided.
  */
-export const UpdateAgentSchema = CreateAgentSchema.partial()
-	.extend({
+export const UpdateAgentSchema = z
+	.object({
+		name: z
+			.string()
+			.min(AGENT_VALIDATION.name.min, 'Name cannot be empty')
+			.max(
+				AGENT_VALIDATION.name.max,
+				`Name must be at most ${AGENT_VALIDATION.name.max} characters`,
+			)
+			.trim()
+			.optional(),
+		description: z
+			.string()
+			.max(
+				AGENT_VALIDATION.description.max,
+				`Description must be at most ${AGENT_VALIDATION.description.max} characters`,
+			)
+			.optional(),
+		model: z
+			.string()
+			.min(1, 'Model cannot be empty')
+			.refine((id) => ALLOWED_MODEL_IDS.includes(id as AllowedModelId), {
+				message: `Invalid model. Must be one of: ${ALLOWED_MODEL_IDS.join(', ')}`,
+			})
+			.optional(),
+		instructions: z
+			.string()
+			.min(AGENT_VALIDATION.instructions.min, 'Instructions cannot be empty')
+			.max(
+				AGENT_VALIDATION.instructions.max,
+				`Instructions must be at most ${AGENT_VALIDATION.instructions.max} characters`,
+			)
+			.optional(),
+		config: AgentConfigSchema.optional(),
+		toolIds: z
+			.array(z.string())
+			.max(
+				AGENT_VALIDATION.maxToolsPerAgent,
+				`Maximum ${AGENT_VALIDATION.maxToolsPerAgent} tools allowed`,
+			)
+			.optional(),
 		status: AgentStatusSchema.optional(),
 	})
 	.openapi('UpdateAgent')
@@ -118,3 +293,90 @@ export const DeploymentSchema = z
 		endpoints: DeploymentEndpointsSchema,
 	})
 	.openapi('Deployment')
+
+// =============================================================================
+// Preview/Validation Schemas
+// =============================================================================
+
+/**
+ * Validation issue schema for errors and warnings
+ */
+export const ValidationIssueSchema = z
+	.object({
+		field: z.string().describe('Field that has the issue'),
+		type: z.enum(['error', 'warning']).describe('Issue severity'),
+		message: z.string().describe('Issue description'),
+	})
+	.openapi('ValidationIssue')
+
+/**
+ * Model information for preview
+ */
+export const ModelPreviewSchema = z
+	.object({
+		id: z.string().describe('Model ID'),
+		name: z.string().describe('Human-readable model name'),
+		provider: z.string().describe('Model provider'),
+		contextWindow: z.number().describe('Maximum context window size'),
+		maxOutputTokens: z.number().describe('Maximum output tokens'),
+		supportsTools: z.boolean().describe('Whether model supports tool calling'),
+		estimatedCostPer1KTokens: z.number().describe('Estimated cost per 1K tokens'),
+	})
+	.openapi('ModelPreview')
+
+/**
+ * Effective configuration with defaults applied
+ */
+export const ConfigPreviewSchema = z
+	.object({
+		temperature: z.number().describe('Effective temperature'),
+		maxTokens: z.number().describe('Effective max tokens'),
+		topP: z.number().optional().describe('Effective top-p if set'),
+		topK: z.number().optional().describe('Effective top-k if set'),
+	})
+	.openapi('ConfigPreview')
+
+/**
+ * Full preview of agent configuration
+ */
+export const AgentPreviewSchema = z
+	.object({
+		name: z.string().describe('Agent name'),
+		description: z.string().nullable().describe('Agent description'),
+		model: ModelPreviewSchema.describe('Resolved model information'),
+		config: ConfigPreviewSchema.describe('Effective configuration with defaults'),
+		toolCount: z.number().describe('Number of tools attached'),
+		toolsValid: z.boolean().describe('Whether all tools are valid'),
+		instructionsLength: z.number().describe('Length of instructions'),
+		estimatedTokens: z.number().describe('Estimated instruction token count'),
+		readyForDeployment: z.boolean().describe('Whether agent can be deployed'),
+	})
+	.openapi('AgentPreview')
+
+/**
+ * Response schema for agent preview/validation endpoint
+ */
+export const AgentPreviewResponseSchema = z
+	.object({
+		valid: z.boolean().describe('Whether the configuration is valid for deployment'),
+		errors: z.array(ValidationIssueSchema).describe('Blocking errors that must be fixed'),
+		warnings: z.array(ValidationIssueSchema).describe('Non-blocking warnings'),
+		preview: AgentPreviewSchema.optional().describe(
+			'Preview of the resolved configuration (only if no critical errors)',
+		),
+	})
+	.openapi('AgentPreviewResponse')
+
+/**
+ * Input schema for preview endpoint - allows overriding agent fields
+ */
+export const AgentPreviewInputSchema = z
+	.object({
+		name: z.string().optional().describe('Override agent name'),
+		description: z.string().optional().describe('Override agent description'),
+		model: z.string().optional().describe('Override model ID'),
+		instructions: z.string().optional().describe('Override agent instructions'),
+		config: AgentConfigSchema.optional().describe('Override model configuration'),
+		toolIds: z.array(z.string()).optional().describe('Override tool IDs'),
+	})
+	.openapi('AgentPreviewInput')
