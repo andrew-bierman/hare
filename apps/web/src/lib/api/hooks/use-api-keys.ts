@@ -1,10 +1,10 @@
 'use client'
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { apiKeys, type CreateApiKeyInput, type UpdateApiKeyInput } from '../client'
+import { apiKeys, type CreateApiKeyInput, type UpdateApiKeyInput } from '@hare/api/client'
 
 // Re-export types for convenience
-export type { ApiKey, ApiKeyWithSecret, CreateApiKeyInput, UpdateApiKeyInput } from '../client'
+export type { ApiKey, ApiKeyWithSecret, CreateApiKeyInput, UpdateApiKeyInput } from '@hare/api/client'
 
 /**
  * Fetch all API keys for a workspace.

@@ -7,7 +7,7 @@
 export type { AIModel } from 'web-app/config'
 // Re-export AI models from config for convenience
 export { AI_MODELS, getModelById, getModelName } from 'web-app/config'
-// Re-export analytics types
+// Re-export analytics types from client (client.ts is in the package now)
 export type {
 	AgentBreakdown,
 	AnalyticsData,
@@ -16,7 +16,7 @@ export type {
 	ModelBreakdown,
 	OAuthProviders,
 	TimeSeriesData,
-} from '../client'
+} from '@hare/api/client'
 // Re-export types from @hare/api
 export type {
 	Agent,

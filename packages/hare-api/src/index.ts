@@ -1,3 +1,20 @@
+/**
+ * @hare/api - Hono API for Hare AI agents platform
+ *
+ * This package provides the complete API for the Hare platform,
+ * built on Hono with OpenAPI support.
+ *
+ * @example
+ * ```ts
+ * import { app } from '@hare/api'
+ *
+ * // Use in Cloudflare Workers
+ * export default {
+ *   fetch: app.fetch
+ * }
+ * ```
+ */
+
 import { OpenAPIHono } from '@hono/zod-openapi'
 import { apiReference } from '@scalar/hono-api-reference'
 import { getRouterName, showRoutes } from 'hono/dev'
@@ -29,6 +46,10 @@ import webhooksRoutes from './routes/webhooks'
 import workspaceMembers from './routes/workspace-members'
 import workspaces from './routes/workspaces'
 import type { HonoEnv } from './types'
+
+// =============================================================================
+// APP CREATION
+// =============================================================================
 
 // Create base app with proper Cloudflare bindings type
 const app = new OpenAPIHono<HonoEnv>().basePath('/api')
@@ -132,24 +153,89 @@ if (serverEnv.NODE_ENV === 'development') {
 	console.log('')
 }
 
-// Export the chained routes type for RPC client
-export type AppType = typeof routes
+// =============================================================================
+// EXPORTS
+// =============================================================================
+
+// Main app export
 export { app }
 
+// Type for RPC client
+export type AppType = typeof routes
+
 // Re-export types
-export * from './types'
+export type {
+	Agent,
+	AgentConfig,
+	AgentStatus,
+	AgentUsage,
+	ApiError,
+	ApiKeyEnv,
+	ApiKeyInfo,
+	ApiKeyVariables,
+	ApiSuccess,
+	AuthEnv,
+	AuthSession,
+	AuthUser,
+	AuthVariables,
+	ChatMessage,
+	ChatRequest,
+	ChatStreamEvent,
+	CreateAgentInput,
+	CreateScheduleInput,
+	CreateToolInput,
+	CreateWorkspaceInput,
+	ExecutionResult,
+	ExecutionStatus,
+	HonoEnv,
+	InvitationStatus,
+	MemberRole,
+	MessageRole,
+	OptionalAuthEnv,
+	Schedule,
+	ScheduleExecution,
+	ScheduleStatus,
+	ScheduleType,
+	SendInvitationInput,
+	Tool,
+	ToolType,
+	UpdateAgentInput,
+	UpdateMemberRoleInput,
+	UpdateScheduleInput,
+	UsageSummary,
+	Workspace,
+	WorkspaceEnv,
+	WorkspaceInfo,
+	WorkspaceMember,
+	WorkspaceInvitation,
+	WorkspaceRole,
+	WorkspaceVariables,
+} from './types'
+
+// Re-export type guards
+export { isMessageRole, isWorkspaceRole } from './types'
 
 // Re-export schemas
 export * from './schemas'
 
 // Re-export middleware
-export * from './middleware'
+export {
+	apiKeyMiddleware,
+	authMiddleware,
+	corsMiddleware,
+	generateApiKey,
+	hasAgentAccess,
+	hasPermission,
+	hasScope,
+	loggingMiddleware,
+	optionalAuthMiddleware,
+	requirePermission,
+	securityHeadersMiddleware,
+	workspaceMiddleware,
+} from './middleware'
 
 // Re-export helpers
-export * from './helpers'
-
-// Re-export serializers
-export * from './serializers'
+export { acceptsJson, acceptsSSE } from './helpers'
 
 // Re-export db utilities
-export { getD1, getDb, getCloudflareEnv, CloudflareEnvError } from './db'
+export { CloudflareEnvError, getCloudflareEnv, getD1, getDb } from './db'

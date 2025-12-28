@@ -1,9 +1,9 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
-import { apiClient } from '../client'
+import { apiClient } from '@hare/api/client'
 
-export type { OAuthProviders } from '../client'
+export type { OAuthProviders } from '@hare/api/client'
 
 export function useOAuthProviders() {
 	return useQuery({

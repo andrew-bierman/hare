@@ -1,12 +1,12 @@
 /**
- * API Re-exports
+ * API module re-exports from @hare/api package.
  *
- * This module re-exports the API from @hare/api package.
- * The API implementation has been moved to packages/api for better code organization.
+ * The actual API implementation lives in packages/hare-api.
+ * This file provides backward compatibility for existing imports.
  */
 
 // Re-export everything from @hare/api
 export * from '@hare/api'
 
-// Also export the app directly for backwards compatibility
+// Re-export the app (for backward compatibility with existing imports)
 export { app, type AppType } from '@hare/api'
