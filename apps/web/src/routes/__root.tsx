@@ -2,6 +2,7 @@ import { Outlet, createRootRoute, HeadContent, Scripts } from '@tanstack/react-r
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { Toaster } from '@workspace/ui/components/sonner'
+import { AuthProvider } from 'web-app/components/providers/auth-provider'
 import '@workspace/ui/styles/globals.css'
 
 export const queryClient = new QueryClient({
@@ -37,8 +38,10 @@ function RootLayout() {
 			</head>
 			<body className="font-sans antialiased">
 				<QueryClientProvider client={queryClient}>
-					<Outlet />
-					<Toaster />
+					<AuthProvider>
+						<Outlet />
+						<Toaster />
+					</AuthProvider>
 					<ReactQueryDevtools initialIsOpen={false} />
 				</QueryClientProvider>
 				<Scripts />
