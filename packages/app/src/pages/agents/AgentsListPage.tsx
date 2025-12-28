@@ -10,7 +10,8 @@ import { Tabs, TabsList, TabsTrigger } from '@workspace/ui/components/tabs'
 import { Bot, Clock, Plus, Search, Settings, Wrench } from 'lucide-react'
 import { type ChangeEvent, useState } from 'react'
 import { useWorkspace } from '../../app/providers'
-import { type Agent, useAgents } from '../../entities/agent'
+import type { Agent } from '../../shared/api/types'
+import { useAgents } from '../../shared/api/hooks'
 import { AVAILABLE_MODELS } from '../../shared/config'
 
 function AgentCardSkeleton() {

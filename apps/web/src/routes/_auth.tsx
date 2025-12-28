@@ -1,8 +1,8 @@
+import { signIn, signInWithGitHub, signInWithGoogle } from '@hare/auth/client'
 import { SignInActionsProvider } from '@hare/app/features'
+import { APP_CONFIG, AUTH_CONTENT } from '@hare/config'
 import { createFileRoute, Link, Outlet } from '@tanstack/react-router'
 import { Rabbit } from 'lucide-react'
-import { APP_CONFIG, AUTH_CONTENT } from 'web-app/config'
-import { signIn, signInWithGitHub, signInWithGoogle } from 'web-app/lib/auth-client'
 
 const { layout } = AUTH_CONTENT
 

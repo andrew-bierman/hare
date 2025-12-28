@@ -7,7 +7,7 @@ import {
 	type UpdateApiKeyInput,
 } from '@hare/api/client'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { apiKeyKeys } from 'web-app/lib/tanstack/query-keys'
+import { apiKeyKeys } from '@hare/app/shared'
 
 // Re-export types for convenience
 export type {

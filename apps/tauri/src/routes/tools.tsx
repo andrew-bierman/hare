@@ -1,4 +1,4 @@
-import { ToolsPage } from '@hare/app/pages'
+import { ToolsPage, useTools } from '@hare/app'
 import { createFileRoute, Link } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/tools')({
@@ -17,6 +17,7 @@ function ToolsPageWrapper() {
 				newTool: '/tools', // TODO: Add /tools/new route
 				toolDetail: (_id) => `/tools`, // TODO: Add /tools/$id route
 			}}
+			useTools={useTools}
 		/>
 	)
 }

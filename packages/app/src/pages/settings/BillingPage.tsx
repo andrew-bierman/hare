@@ -18,7 +18,8 @@ import { Check, CreditCard, ExternalLink, Sparkles, Zap } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { useWorkspace } from '../../app/providers'
-import { useBillingStatus, useCreateCheckout, useCreatePortal, usePlans } from '../../features/billing'
+import { useBillingStatus, useCreateCheckout, useCreatePortal, usePlans } from '../../shared/api/hooks'
+import type { BillingPlan } from '../../shared/api/client'
 
 export interface BillingPageProps {
 	searchParams?: {
@@ -197,7 +198,7 @@ export function BillingPage({ searchParams }: BillingPageProps) {
 
 			{/* Pricing Plans */}
 			<div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-				{plansData?.plans.map((plan) => {
+				{plansData?.plans.map((plan: BillingPlan) => {
 					const isCurrentPlan = plan.id === currentPlanId
 					const isPopular = plan.id === 'pro'
 

@@ -1,61 +1,37 @@
-import { betterAuth } from 'better-auth'
-import { drizzleAdapter } from 'better-auth/adapters/drizzle'
-import { createDb } from 'web-app/db'
-import * as schema from 'web-app/db/schema'
+import {
+	type Auth,
+	type AuthServerEnv,
+	type CreateAuthOptions,
+	createAuth as createAuthBase,
+	getOAuthProviders,
+} from '@hare/auth/server'
 import { serverEnv } from 'web-app/lib/env/server'
 
-// Check if OAuth providers are configured
-const isGoogleConfigured = Boolean(serverEnv.GOOGLE_CLIENT_ID && serverEnv.GOOGLE_CLIENT_SECRET)
-const isGitHubConfigured = Boolean(serverEnv.GITHUB_CLIENT_ID && serverEnv.GITHUB_CLIENT_SECRET)
+// Re-export types from @hare/auth
+export type { Auth, AuthServerEnv, CreateAuthOptions }
 
-// Auth instance - will be initialized with D1 binding at runtime
-export function createAuth(d1: D1Database) {
-	const db = createDb(d1)
-
-	return betterAuth({
-		database: drizzleAdapter(db, {
-			provider: 'sqlite',
-			schema: {
-				user: schema.users,
-				session: schema.sessions,
-				account: schema.accounts,
-				verification: schema.verifications,
-			},
-		}),
-		emailAndPassword: {
-			enabled: true,
-			autoSignIn: true,
+/**
+ * Create auth instance with D1 database.
+ * Uses environment variables from serverEnv for OAuth configuration.
+ */
+export function createAuth(d1: D1Database): Auth {
+	return createAuthBase({
+		d1,
+		env: {
+			APP_URL: serverEnv.APP_URL,
+			GOOGLE_CLIENT_ID: serverEnv.GOOGLE_CLIENT_ID,
+			GOOGLE_CLIENT_SECRET: serverEnv.GOOGLE_CLIENT_SECRET,
+			GITHUB_CLIENT_ID: serverEnv.GITHUB_CLIENT_ID,
+			GITHUB_CLIENT_SECRET: serverEnv.GITHUB_CLIENT_SECRET,
 		},
-		socialProviders: {
-			...(isGoogleConfigured && {
-				google: {
-					clientId: serverEnv.GOOGLE_CLIENT_ID!,
-					clientSecret: serverEnv.GOOGLE_CLIENT_SECRET!,
-				},
-			}),
-			...(isGitHubConfigured && {
-				github: {
-					clientId: serverEnv.GITHUB_CLIENT_ID!,
-					clientSecret: serverEnv.GITHUB_CLIENT_SECRET!,
-				},
-			}),
-		},
-		session: {
-			expiresIn: 60 * 60 * 24 * 7, // 7 days
-			updateAge: 60 * 60 * 24, // 1 day
-			cookieCache: {
-				enabled: true,
-				maxAge: 60 * 5, // 5 minutes
-			},
-		},
-		trustedOrigins: [serverEnv.APP_URL],
 	})
 }
 
-export type Auth = ReturnType<typeof createAuth>
-
 // Export OAuth provider availability for client-side use
-export const oauthProviders = {
-	google: isGoogleConfigured,
-	github: isGitHubConfigured,
-}
+export const oauthProviders = getOAuthProviders({
+	APP_URL: serverEnv.APP_URL,
+	GOOGLE_CLIENT_ID: serverEnv.GOOGLE_CLIENT_ID,
+	GOOGLE_CLIENT_SECRET: serverEnv.GOOGLE_CLIENT_SECRET,
+	GITHUB_CLIENT_ID: serverEnv.GITHUB_CLIENT_ID,
+	GITHUB_CLIENT_SECRET: serverEnv.GITHUB_CLIENT_SECRET,
+})

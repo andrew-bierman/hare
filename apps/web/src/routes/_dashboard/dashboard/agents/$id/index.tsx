@@ -1,3 +1,8 @@
+import { AGENT_LIMITS, AI_MODELS } from '@hare/config'
+import { AgentInstructionsEditor } from '@hare/app/widgets/agent-builder'
+import { MemoryViewer } from '@hare/app/widgets/memory-viewer'
+import { ScheduledTasksSection } from '@hare/app/widgets/scheduled-tasks'
+import { ToolPicker } from '@hare/app/widgets/tool-picker'
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { Badge } from '@workspace/ui/components/badge'
 import { Button } from '@workspace/ui/components/button'
@@ -48,12 +53,7 @@ import {
 } from 'lucide-react'
 import { type ChangeEvent, useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
-import { AgentInstructionsEditor } from 'web-app/components/agent/agent-instructions-editor'
-import { MemoryViewer } from 'web-app/components/agent/memory-viewer'
-import { ScheduledTasksSection } from 'web-app/components/agent/scheduled-tasks-section'
-import { ToolPicker } from 'web-app/components/agent/tool-picker'
-import { useWorkspace } from 'web-app/components/providers/workspace-provider'
-import { AGENT_LIMITS, AI_MODELS } from 'web-app/config'
+import { useWorkspace } from 'web-app/app'
 import {
 	useAgent,
 	useAgentPreviewQuery,
@@ -64,7 +64,7 @@ import {
 	useUpdateAgent,
 	type ValidationIssue,
 } from 'web-app/lib/api/hooks'
-import { useDebouncedValue } from 'web-app/lib/hooks/use-debounce'
+import { useDebouncedValue } from '@hare/app/shared'
 import { z } from 'zod'
 
 export const Route = createFileRoute('/_dashboard/dashboard/agents/$id/')({

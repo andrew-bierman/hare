@@ -1,6 +1,8 @@
 import type { z } from '@hono/zod-openapi'
 import type { InferSelectModel } from 'drizzle-orm'
 import type { tools } from 'web-app/db/schema'
+import type { AnyTool } from '@hare/tools'
+import { zodToJsonSchema } from 'zod-to-json-schema'
 import type { ToolSchema, ToolTypeSchema } from '../schemas'
 
 type ToolRow = InferSelectModel<typeof tools>
@@ -83,4 +85,153 @@ export function serializeSystemTool(tool: SystemToolDefinition): SerializedTool 
 		createdAt: now,
 		updatedAt: now,
 	}
+}
+
+/**
+ * Map of tool ID prefixes/patterns to their ToolType categories.
+ * Used by getToolTypeFromId to determine the correct type for API responses.
+ */
+const TOOL_TYPE_MAP: Record<string, ToolType> = {
+	// Cloudflare native
+	kv_get: 'kv' as ToolType,
+	kv_put: 'kv' as ToolType,
+	kv_delete: 'kv' as ToolType,
+	kv_list: 'kv' as ToolType,
+	r2_get: 'r2' as ToolType,
+	r2_put: 'r2' as ToolType,
+	r2_delete: 'r2' as ToolType,
+	r2_list: 'r2' as ToolType,
+	r2_head: 'r2' as ToolType,
+	sql_query: 'sql' as ToolType,
+	sql_execute: 'sql' as ToolType,
+	sql_batch: 'sql' as ToolType,
+	http_request: 'http' as ToolType,
+	http_get: 'http' as ToolType,
+	http_post: 'http' as ToolType,
+	ai_search: 'search' as ToolType,
+	ai_search_answer: 'search' as ToolType,
+	// Memory tools -> custom type since they don't have a dedicated category
+	recall_memory: 'custom' as ToolType,
+	store_memory: 'custom' as ToolType,
+	// Integrations
+	zapier: 'zapier' as ToolType,
+	webhook: 'webhook' as ToolType,
+}
+
+/**
+ * Get the tool type from a tool ID.
+ * Maps tool IDs to their category types for API responses.
+ */
+function getToolTypeFromId(toolId: string): ToolType {
+	// Check explicit mapping first
+	if (toolId in TOOL_TYPE_MAP) {
+		return TOOL_TYPE_MAP[toolId]
+	}
+	// For most tools, the ID matches the type (datetime, json, text, sentiment, etc.)
+	return toolId as ToolType
+}
+
+/**
+ * Convert a Zod schema to a simplified input schema for API response.
+ * Extracts properties from the JSON Schema.
+ * Falls back to empty schema on error to prevent tool serialization failures.
+ */
+function zodSchemaToInputSchema(zodSchema: unknown, toolId?: string): InputSchema {
+	try {
+		// biome-ignore lint/suspicious/noExplicitAny: zod-to-json-schema types differ between Zod versions
+		const jsonSchema = zodToJsonSchema(zodSchema as any, { $refStrategy: 'none' })
+		// Extract properties from the JSON Schema
+		if (
+			typeof jsonSchema === 'object' &&
+			jsonSchema !== null &&
+			'properties' in jsonSchema &&
+			typeof jsonSchema.properties === 'object'
+		) {
+			const result: InputSchema = {}
+			for (const [key, value] of Object.entries(jsonSchema.properties || {})) {
+				if (typeof value === 'object' && value !== null) {
+					const prop = value as Record<string, unknown>
+					result[key] = {
+						type: (prop.type as string) || 'string',
+						description: prop.description as string | undefined,
+						enum: prop.enum as string[] | undefined,
+						optional: !(
+							'required' in jsonSchema &&
+							Array.isArray(jsonSchema.required) &&
+							jsonSchema.required.includes(key)
+						),
+					}
+				}
+			}
+			return result
+		}
+		return {}
+	} catch (error) {
+		// Log schema conversion failures to help debug tool definition issues
+		console.error(`[tool-serializer] Failed to convert schema for tool "${toolId || 'unknown'}":`, error)
+		return {}
+	}
+}
+
+/**
+ * Map of lowercase words to their proper acronym form.
+ * Used by generateToolName to properly capitalize known acronyms.
+ */
+const ACRONYM_MAP: Record<string, string> = {
+	kv: 'KV',
+	r2: 'R2',
+	ai: 'AI',
+	ner: 'NER',
+	sql: 'SQL',
+	http: 'HTTP',
+	url: 'URL',
+	json: 'JSON',
+	csv: 'CSV',
+	rss: 'RSS',
+	qr: 'QR',
+	ip: 'IP',
+	uuid: 'UUID',
+}
+
+/**
+ * Generate a human-readable name from a tool ID.
+ * Handles known acronyms (e.g., "ai_search" -> "AI Search").
+ */
+function generateToolName(toolId: string): string {
+	return toolId
+		.split('_')
+		.map((word) => {
+			const lower = word.toLowerCase()
+			if (lower in ACRONYM_MAP) {
+				return ACRONYM_MAP[lower]
+			}
+			return word.charAt(0).toUpperCase() + word.slice(1)
+		})
+		.join(' ')
+}
+
+/**
+ * Serialize a @hare/tools tool to API response format.
+ * Converts Zod schemas to JSON Schema for the API.
+ */
+export function serializeHareTool(tool: AnyTool): SerializedTool {
+	const now = new Date().toISOString()
+	return {
+		id: tool.id,
+		name: generateToolName(tool.id),
+		description: tool.description,
+		type: getToolTypeFromId(tool.id),
+		inputSchema: zodSchemaToInputSchema(tool.inputSchema, tool.id),
+		config: undefined,
+		isSystem: true,
+		createdAt: now,
+		updatedAt: now,
+	}
+}
+
+/**
+ * Serialize multiple @hare/tools tools to API response format.
+ */
+export function serializeHareTools(tools: AnyTool[]): SerializedTool[] {
+	return tools.map(serializeHareTool)
 }

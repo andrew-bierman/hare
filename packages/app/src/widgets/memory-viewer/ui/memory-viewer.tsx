@@ -52,7 +52,7 @@ import {
 	useMemories,
 	useSearchMemories,
 	useUpdateMemory,
-} from '../../../features/memory'
+} from '../../../shared/api/hooks'
 
 export interface MemoryViewerProps {
 	agentId: string

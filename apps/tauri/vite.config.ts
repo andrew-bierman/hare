@@ -24,16 +24,12 @@ export default defineConfig({
 			// @hare/app package aliases
 			'@hare/app/pages': path.join(appPackagePath, 'pages/index.ts'),
 			'@hare/app/app': path.join(appPackagePath, 'app/index.ts'),
-			'@hare/app/entities': path.join(appPackagePath, 'entities/index.ts'),
-			'@hare/app/features': path.join(appPackagePath, 'features/index.ts'),
 			'@hare/app/widgets': path.join(appPackagePath, 'widgets/index.ts'),
 			'@hare/app/shared': path.join(appPackagePath, 'shared/index.ts'),
 			// FSD path aliases for @hare/app internal imports
 			'@app': path.join(appPackagePath, 'app'),
 			'@pages': path.join(appPackagePath, 'pages'),
 			'@widgets': path.join(appPackagePath, 'widgets'),
-			'@features': path.join(appPackagePath, 'features'),
-			'@entities': path.join(appPackagePath, 'entities'),
 			'@shared': path.join(appPackagePath, 'shared'),
 			// UI package aliases
 			'@workspace/ui/': `${path.resolve(__dirname, '../../packages/ui/src')}/`,

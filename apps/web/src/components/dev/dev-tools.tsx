@@ -1,3 +1,5 @@
+import { authClient } from '@hare/auth/client'
+import { DEV_CONFIG, DEV_TOOLS_CONTENT, FEATURES } from '@hare/config'
 import { useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
 import { Badge } from '@workspace/ui/components/badge'
@@ -19,10 +21,8 @@ import {
 } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
-import { useWorkspace } from '@hare/app/app'
-import { useCreateAgent, useCreateWorkspace } from '@hare/app/entities'
-import { DEV_CONFIG, DEV_TOOLS_CONTENT, FEATURES } from 'web-app/config'
-import { authClient } from 'web-app/lib/auth-client'
+import { useWorkspace } from 'web-app/app'
+import { useCreateAgent, useCreateWorkspace } from 'web-app/lib/api/hooks'
 
 const { sections, agentNames, agentDescriptions, defaultInstructions } = DEV_TOOLS_CONTENT
 

@@ -1,11 +1,28 @@
 /**
  * Auth Feature
  *
- * Authentication functionality including OAuth providers.
- * Also provides AuthProvider and useAuth for session management.
+ * Authentication context and actions for sign-in, sign-out, etc.
  */
 
-export * from './api/hooks'
-export * from './context'
-export * from './actions'
+// Context and hooks
+export {
+	AuthProvider,
+	useAuth,
+	useAuthActions,
+	type AuthActions,
+	type AuthContextValue,
+	type AuthProviderProps,
+	type Session,
+} from './context'
+
+// Sign-in actions
+export {
+	SignInActionsProvider,
+	useSignInActions,
+	type SignInActions,
+	type SignInActionsProviderProps,
+	type SignInResult,
+} from './actions'
+
+// UI Components
 export { SignOutButton } from './ui/SignOutButton'

@@ -1,7 +1,8 @@
 /**
- * Pages Index
+ * Pages Layer
  *
- * Re-exports all page components from subdirectories.
+ * Page-level UI components.
+ * Following Feature-Sliced Design, pages compose widgets and features.
  */
 
 // Dashboard pages
