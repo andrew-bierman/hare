@@ -1,17 +1,6 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { createRootRoute, HeadContent, Outlet, Scripts } from '@tanstack/react-router'
-import { Toaster } from '@workspace/ui/components/sonner'
 import '@workspace/ui/styles/globals.css'
-
-export const queryClient = new QueryClient({
-	defaultOptions: {
-		queries: {
-			staleTime: 60 * 1000,
-			refetchOnWindowFocus: false,
-		},
-	},
-})
+import { Providers } from 'web-app/components/providers/providers'
 
 export const Route = createRootRoute({
 	head: () => ({
@@ -36,11 +25,9 @@ function RootLayout() {
 				<HeadContent />
 			</head>
 			<body className="font-sans antialiased">
-				<QueryClientProvider client={queryClient}>
+				<Providers>
 					<Outlet />
-					<Toaster />
-					<ReactQueryDevtools initialIsOpen={false} />
-				</QueryClientProvider>
+				</Providers>
 				<Scripts />
 			</body>
 		</html>

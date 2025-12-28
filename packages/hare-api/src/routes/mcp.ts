@@ -128,6 +128,10 @@ const mcpToolsRoute = createRoute({
 				},
 			},
 		},
+		403: {
+			description: 'Unauthorized',
+			content: { 'application/json': { schema: ErrorSchema } },
+		},
 	},
 })
 
@@ -163,6 +167,14 @@ const mcpToolExecuteRoute = createRoute({
 					}),
 				},
 			},
+		},
+		400: {
+			description: 'Invalid tool parameters',
+			content: { 'application/json': { schema: ErrorSchema } },
+		},
+		403: {
+			description: 'Unauthorized',
+			content: { 'application/json': { schema: ErrorSchema } },
 		},
 		404: {
 			description: 'Tool not found',
@@ -322,7 +334,7 @@ app.openapi(mcpToolsRoute, async (c) => {
 		description: tool.description,
 	}))
 
-	return c.json({ tools })
+	return c.json({ tools }, 200)
 })
 
 // MCP tool execute (HTTP)
@@ -348,13 +360,13 @@ app.openapi(mcpToolExecuteRoute, async (c) => {
 	const params = await c.req.json()
 	const parseResult = tool.inputSchema.safeParse(params)
 	if (!parseResult.success) {
-		return c.json({ error: 'Invalid tool parameters', details: parseResult.error.errors }, 400)
+		return c.json({ error: 'Invalid tool parameters', details: parseResult.error.issues }, 400)
 	}
 
 	const context = await createToolContext(c, workspaceId)
 	const result = await tool.execute(parseResult.data, context)
 
-	return c.json(result)
+	return c.json({ success: result.success, data: result.data, error: result.error }, 200)
 })
 
 // MCP JSON-RPC (HTTP)
