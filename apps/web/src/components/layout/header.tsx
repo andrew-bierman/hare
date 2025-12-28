@@ -1,4 +1,4 @@
-import { APP_CONFIG, DASHBOARD_CONTENT } from '@hare/app/shared/config'
+import { APP_CONFIG, DASHBOARD_CONTENT } from '@hare/config'
 import { UserNav } from '@hare/app/widgets/user-nav'
 import { Link } from '@tanstack/react-router'
 import { Button } from '@workspace/ui/components/button'

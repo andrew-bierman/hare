@@ -8,7 +8,7 @@ export * from './DashboardPage'
 export * from './dashboard-home'
 
 // Router-agnostic page components (use renderLink prop)
-// Export with "Generic" suffix to avoid conflicts with router-specific pages
-export { AgentsPage as GenericAgentsPage, type AgentsPageProps } from './agents-page'
-export { ToolsPage as GenericToolsPage, type ToolsPageProps } from './tools-page'
-export { SettingsPage as GenericSettingsPage, type SettingsPageProps } from './settings-page'
+// These are the proper exports for use with any router
+export { AgentsPage, type AgentsPageProps } from './agents-page'
+export { ToolsPage, type ToolsPageProps } from './tools-page'
+export { SettingsPage, type SettingsPageProps } from './settings-page'
