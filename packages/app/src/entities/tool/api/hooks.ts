@@ -1,8 +1,8 @@
 'use client'
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { apiClient, type ToolTestRequest, type ToolTestResult } from '@shared/api'
-import type { CreateToolInput, Tool } from '@shared/api'
+import { apiClient, type ToolTestRequest, type ToolTestResult } from '../../../shared/api'
+import type { CreateToolInput, Tool } from '../../../shared/api'
 
 // Types are available from @shared/api, don't re-export to avoid duplicates
 

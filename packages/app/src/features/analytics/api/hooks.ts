@@ -1,7 +1,7 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
-import { apiClient, type AnalyticsParams, type UsageParams } from '@shared/api'
+import { apiClient, type AnalyticsParams, type UsageParams } from '../../../shared/api'
 
 // Types are available from @shared/api, don't re-export to avoid duplicates
 

@@ -1,18 +1,6 @@
-import { AgentsPage } from '@hare/app/pages'
-import { createFileRoute, Link } from '@tanstack/react-router'
+import { AgentsListPage } from '@hare/app/pages'
+import { createFileRoute } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/_dashboard/dashboard/agents/')({
-	component: AgentsPageWrapper,
+	component: AgentsListPage,
 })
-
-function AgentsPageWrapper() {
-	return (
-		<AgentsPage
-			renderLink={({ to, children, className }) => (
-				<Link to={to} className={className}>
-					{children}
-				</Link>
-			)}
-		/>
-	)
-}

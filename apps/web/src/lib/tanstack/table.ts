@@ -7,22 +7,22 @@
  */
 
 import {
-	useReactTable,
+	type ColumnDef,
+	type ColumnFiltersState,
+	flexRender,
 	getCoreRowModel,
-	getSortedRowModel,
 	getFilteredRowModel,
 	getPaginationRowModel,
-	type ColumnDef,
-	type SortingState,
-	type ColumnFiltersState,
+	getSortedRowModel,
 	type PaginationState,
-	type VisibilityState,
-	type RowSelectionState,
-	type Table,
 	type Row,
-	flexRender,
+	type RowSelectionState,
+	type SortingState,
+	type Table,
+	useReactTable,
+	type VisibilityState,
 } from '@tanstack/react-table'
-import { useState, useMemo } from 'react'
+import { useMemo, useState } from 'react'
 
 /**
  * Re-export commonly used table utilities
@@ -161,7 +161,7 @@ export function useDataTable<TData>(options: UseDataTableOptions<TData>) {
 	const selectedRows = useMemo(() => {
 		if (!enableRowSelection) return []
 		return table.getFilteredSelectedRowModel().rows.map((row) => row.original)
-	}, [table, enableRowSelection, rowSelection])
+	}, [table, enableRowSelection])
 
 	const pageCount = table.getPageCount()
 	const currentPage = table.getState().pagination.pageIndex + 1

@@ -14,6 +14,7 @@ export { APP_CONFIG, BETA_ACCESS, FEATURES, type AppConfig, type BetaAccess, typ
 // AI Models
 export {
 	AI_MODELS,
+	AVAILABLE_MODELS,
 	DEFAULT_MODEL_ID,
 	getModelById,
 	getModelName,

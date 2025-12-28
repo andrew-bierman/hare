@@ -108,3 +108,6 @@ export function getModelName(id: string): string {
 	return getModelById(id)?.name ?? id
 }
 
+// Alias for backwards compatibility
+export const AVAILABLE_MODELS = AI_MODELS
+

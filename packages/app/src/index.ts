@@ -19,8 +19,8 @@
 // App layer - Application providers and setup
 export * from './app'
 
-// Pages layer - Page components (route-specific, kept in apps/web)
-// export * from './pages'
+// Pages layer - Page components
+export * from './pages'
 
 // Widgets layer - Self-contained UI blocks
 export * from './widgets'

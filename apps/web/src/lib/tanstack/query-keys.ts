@@ -30,8 +30,7 @@ export const workspaceKeys = {
 	details: () => [...workspaceKeys.all, 'detail'] as const,
 	detail: (id: string) => [...workspaceKeys.details(), id] as const,
 	members: (workspaceId: string) => [...workspaceKeys.all, 'members', workspaceId] as const,
-	invitations: (workspaceId: string) =>
-		[...workspaceKeys.all, 'invitations', workspaceId] as const,
+	invitations: (workspaceId: string) => [...workspaceKeys.all, 'invitations', workspaceId] as const,
 }
 
 /**
@@ -131,8 +130,7 @@ export const scheduleKeys = {
 		[...scheduleKeys.lists(), agentId, workspaceId] as const,
 	details: () => [...scheduleKeys.all, 'detail'] as const,
 	detail: (id: string) => [...scheduleKeys.details(), id] as const,
-	executions: (scheduleId: string) =>
-		[...scheduleKeys.all, 'executions', scheduleId] as const,
+	executions: (scheduleId: string) => [...scheduleKeys.all, 'executions', scheduleId] as const,
 }
 
 /**

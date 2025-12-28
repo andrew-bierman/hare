@@ -244,7 +244,9 @@ export function DashboardHome({ renderLink, routes }: DashboardHomeProps) {
 												<action.icon className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
 											</div>
 											<div className="flex-1 min-w-0">
-												<h3 className="font-semibold text-sm sm:text-base">{action.title}</h3>
+												<h3 className="font-semibold text-sm sm:text-base truncate">
+													{action.title}
+												</h3>
 												<p className="text-xs sm:text-sm text-muted-foreground truncate">
 													{action.description}
 												</p>

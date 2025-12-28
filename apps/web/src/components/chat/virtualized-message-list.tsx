@@ -4,10 +4,10 @@
  * Efficiently renders large conversation message lists using TanStack Virtual.
  */
 
-import { useRef, useEffect, useCallback } from 'react'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { cn } from '@workspace/ui/lib/utils'
-import { Bot, User, Loader2 } from 'lucide-react'
+import { Bot, Loader2, User } from 'lucide-react'
+import { useCallback, useEffect, useRef } from 'react'
 
 interface Message {
 	id: string
@@ -86,7 +86,7 @@ export function VirtualizedMessageList({
 					content: streamingContent,
 					createdAt: new Date().toISOString(),
 				},
-		  ]
+			]
 		: messages
 
 	const virtualizer = useVirtualizer({
@@ -130,15 +130,10 @@ export function VirtualizedMessageList({
 		if (allMessages.length > 0) {
 			virtualizer.scrollToIndex(allMessages.length - 1, { align: 'end' })
 		}
-	}, [])
+	}, [allMessages.length, virtualizer.scrollToIndex])
 
 	return (
-		<div
-			ref={parentRef}
-			className="overflow-auto"
-			style={{ height }}
-			onScroll={handleScroll}
-		>
+		<div ref={parentRef} className="overflow-auto" style={{ height }} onScroll={handleScroll}>
 			{/* Loading more indicator */}
 			{isLoadingMore && (
 				<div className="flex items-center justify-center py-4">
@@ -187,10 +182,7 @@ export function VirtualizedMessageList({
 									transform: `translateY(${virtualItem.start}px)`,
 								}}
 							>
-								<MessageBubble
-									message={message}
-									isStreaming={isStreamingMessage}
-								/>
+								<MessageBubble message={message} isStreaming={isStreamingMessage} />
 							</div>
 						)
 					})}
@@ -204,9 +196,18 @@ export function VirtualizedMessageList({
 						<Bot className="h-4 w-4 text-primary" />
 					</div>
 					<div className="flex gap-1">
-						<span className="h-2 w-2 animate-bounce rounded-full bg-muted-foreground" style={{ animationDelay: '0ms' }} />
-						<span className="h-2 w-2 animate-bounce rounded-full bg-muted-foreground" style={{ animationDelay: '150ms' }} />
-						<span className="h-2 w-2 animate-bounce rounded-full bg-muted-foreground" style={{ animationDelay: '300ms' }} />
+						<span
+							className="h-2 w-2 animate-bounce rounded-full bg-muted-foreground"
+							style={{ animationDelay: '0ms' }}
+						/>
+						<span
+							className="h-2 w-2 animate-bounce rounded-full bg-muted-foreground"
+							style={{ animationDelay: '150ms' }}
+						/>
+						<span
+							className="h-2 w-2 animate-bounce rounded-full bg-muted-foreground"
+							style={{ animationDelay: '300ms' }}
+						/>
 					</div>
 				</div>
 			)}
@@ -237,12 +238,7 @@ function MessageBubble({ message, isStreaming }: MessageBubbleProps) {
 	}
 
 	return (
-		<div
-			className={cn(
-				'flex gap-3 px-4 py-3',
-				isUser ? 'flex-row-reverse' : 'flex-row',
-			)}
-		>
+		<div className={cn('flex gap-3 px-4 py-3', isUser ? 'flex-row-reverse' : 'flex-row')}>
 			{/* Avatar */}
 			<div
 				className={cn(
@@ -257,9 +253,7 @@ function MessageBubble({ message, isStreaming }: MessageBubbleProps) {
 			<div
 				className={cn(
 					'max-w-[80%] rounded-2xl px-4 py-2',
-					isUser
-						? 'bg-primary text-primary-foreground'
-						: 'bg-muted',
+					isUser ? 'bg-primary text-primary-foreground' : 'bg-muted',
 					isStreaming && 'animate-pulse',
 				)}
 			>

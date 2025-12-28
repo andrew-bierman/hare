@@ -36,7 +36,7 @@ export default defineConfig({
 			'@entities': path.join(appPackagePath, 'entities'),
 			'@shared': path.join(appPackagePath, 'shared'),
 			// UI package aliases
-			'@workspace/ui/': path.resolve(__dirname, '../../packages/ui/src') + '/',
+			'@workspace/ui/': `${path.resolve(__dirname, '../../packages/ui/src')}/`,
 			'@workspace/ui': path.resolve(__dirname, '../../packages/ui/src/index.ts'),
 		},
 	},

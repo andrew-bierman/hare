@@ -35,11 +35,10 @@ const SHARED_PAGES: Record<string, SharedPageConfig> = {
 			agentDetail: '(id) => `/agents/${id}`',
 		},
 	},
-	NewAgentPage: {
-		import: "import { NewAgentPage } from '@hare/app/pages'",
+	AgentCreatePage: {
+		import: "import { AgentCreatePage } from '@hare/app/pages'",
 		routeProps: {},
-		// NewAgentPage uses callbacks (onSuccess, onCancel) instead of routes for navigation
-		useNavigateCallbacks: true,
+		// AgentCreatePage doesn't need route props - uses internal navigation
 	},
 	ToolsPage: {
 		import: "import { ToolsPage } from '@hare/app/pages'",
