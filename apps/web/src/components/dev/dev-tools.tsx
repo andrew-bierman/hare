@@ -1,4 +1,5 @@
 import { useCreateAgentMutation, useCreateWorkspaceMutation } from '@hare/app/shared/api'
+import { authClient } from '@hare/auth/client'
 import { DEV_CONFIG, DEV_TOOLS_CONTENT, FEATURES } from '@hare/config'
 import { useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
@@ -22,7 +23,6 @@ import {
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { useWorkspace } from 'web-app/app'
-import { authClient } from '@hare/auth/client'
 
 const { sections, agentNames, agentDescriptions, defaultInstructions } = DEV_TOOLS_CONTENT
 

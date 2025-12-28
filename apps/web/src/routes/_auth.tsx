@@ -1,8 +1,19 @@
+import { signIn, signInWithGitHub, signInWithGoogle } from '@hare/auth/client'
+import { SignInActionsProvider } from '@hare/app/features'
 import { APP_CONFIG, AUTH_CONTENT } from '@hare/config'
 import { createFileRoute, Link, Outlet } from '@tanstack/react-router'
 import { Rabbit } from 'lucide-react'
 
 const { layout } = AUTH_CONTENT
+
+// Provide auth actions to child pages (SignInPage needs these)
+const signInActions = {
+	signIn: {
+		email: signIn.email,
+	},
+	signInWithGoogle,
+	signInWithGitHub,
+}
 
 export const Route = createFileRoute('/_auth')({
 	component: AuthLayout,
@@ -10,7 +21,8 @@ export const Route = createFileRoute('/_auth')({
 
 function AuthLayout() {
 	return (
-		<div className="min-h-screen flex bg-background">
+		<SignInActionsProvider actions={signInActions}>
+			<div className="min-h-screen flex bg-background">
 			{/* Left side - branding */}
 			<div className="hidden lg:flex lg:w-1/2 relative overflow-hidden">
 				{/* Background gradient - rabbit/hare themed warm colors */}
@@ -51,6 +63,7 @@ function AuthLayout() {
 					<Outlet />
 				</div>
 			</div>
-		</div>
+			</div>
+		</SignInActionsProvider>
 	)
 }
