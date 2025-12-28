@@ -223,7 +223,7 @@ async function clearMemories(options: {
 /**
  * Fetch memories for an agent.
  */
-export function useMemories(options: {
+export function useMemoriesQuery(options: {
 	agentId: string
 	workspaceId?: string
 	limit?: number
@@ -248,7 +248,7 @@ export function useMemories(options: {
 /**
  * Create a new memory.
  */
-export function useCreateMemory(options: { agentId: string; workspaceId?: string }) {
+export function useCreateMemoryMutation(options: { agentId: string; workspaceId?: string }) {
 	const { agentId, workspaceId } = options
 	const queryClient = useQueryClient()
 
@@ -270,7 +270,7 @@ export function useCreateMemory(options: { agentId: string; workspaceId?: string
 /**
  * Search memories.
  */
-export function useSearchMemories(options: { agentId: string; workspaceId?: string }) {
+export function useSearchMemoriesMutation(options: { agentId: string; workspaceId?: string }) {
 	const { agentId, workspaceId } = options
 
 	return useMutation({
@@ -286,7 +286,7 @@ export function useSearchMemories(options: { agentId: string; workspaceId?: stri
 /**
  * Update a memory.
  */
-export function useUpdateMemory(options: { agentId: string; workspaceId?: string }) {
+export function useUpdateMemoryMutation(options: { agentId: string; workspaceId?: string }) {
 	const { agentId, workspaceId } = options
 	const queryClient = useQueryClient()
 
@@ -309,7 +309,7 @@ export function useUpdateMemory(options: { agentId: string; workspaceId?: string
 /**
  * Delete a memory.
  */
-export function useDeleteMemory(options: { agentId: string; workspaceId?: string }) {
+export function useDeleteMemoryMutation(options: { agentId: string; workspaceId?: string }) {
 	const { agentId, workspaceId } = options
 	const queryClient = useQueryClient()
 
@@ -331,7 +331,7 @@ export function useDeleteMemory(options: { agentId: string; workspaceId?: string
 /**
  * Clear all memories for an agent.
  */
-export function useClearMemories(options: { agentId: string; workspaceId?: string }) {
+export function useClearMemoriesMutation(options: { agentId: string; workspaceId?: string }) {
 	const { agentId, workspaceId } = options
 	const queryClient = useQueryClient()
 

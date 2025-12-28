@@ -5,7 +5,7 @@ import type { AnalyticsParams } from '../client'
 import { apiClient } from '../client'
 import { analyticsKeys } from './query-keys'
 
-export function useAnalytics(workspaceId: string | undefined, params?: AnalyticsParams) {
+export function useAnalyticsQuery(workspaceId: string | undefined, params?: AnalyticsParams) {
 	return useQuery({
 		queryKey: analyticsKeys.overview(workspaceId ?? '', params?.startDate),
 		queryFn: () => apiClient.analytics.get(workspaceId!, params),

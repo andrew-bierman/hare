@@ -1,3 +1,4 @@
+import { useAgentQuery } from '@hare/app/shared/api'
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { Badge } from '@hare/ui/components/badge'
 import { Button } from '@hare/ui/components/button'
@@ -48,7 +49,6 @@ import {
 import { type ChangeEvent, useCallback, useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { useWorkspace } from 'web-app/app'
-import { useAgent } from 'web-app/lib/api/hooks'
 
 export const Route = createFileRoute('/_dashboard/dashboard/agents/$id/webhooks')({
 	component: WebhooksPage,
@@ -524,7 +524,7 @@ function WebhooksPage() {
 		data: agent,
 		isLoading: agentLoading,
 		error: agentError,
-	} = useAgent(agentId, activeWorkspace?.id)
+	} = useAgentQuery(agentId, activeWorkspace?.id)
 
 	const [webhooks, setWebhooks] = useState<Webhook[]>([])
 	const [loading, setLoading] = useState(true)

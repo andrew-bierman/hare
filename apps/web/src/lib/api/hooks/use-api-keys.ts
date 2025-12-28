@@ -20,7 +20,7 @@ export type {
 /**
  * Fetch all API keys for a workspace.
  */
-export function useApiKeys(workspaceId: string | undefined) {
+export function useApiKeysQuery(workspaceId: string | undefined) {
 	return useQuery({
 		queryKey: apiKeyKeys.list(workspaceId ?? ''),
 		queryFn: () => apiKeys.list(workspaceId!),
@@ -31,7 +31,7 @@ export function useApiKeys(workspaceId: string | undefined) {
 /**
  * Fetch a single API key by ID.
  */
-export function useApiKey(id: string | undefined, workspaceId: string | undefined) {
+export function useApiKeyQuery(id: string | undefined, workspaceId: string | undefined) {
 	return useQuery({
 		queryKey: apiKeyKeys.detail(workspaceId ?? '', id ?? ''),
 		queryFn: () => apiKeys.get(id!, workspaceId!),
@@ -43,7 +43,7 @@ export function useApiKey(id: string | undefined, workspaceId: string | undefine
  * Create a new API key.
  * Returns the full key value only on creation - make sure to show it to the user!
  */
-export function useCreateApiKey(workspaceId: string | undefined) {
+export function useCreateApiKeyMutation(workspaceId: string | undefined) {
 	const queryClient = useQueryClient()
 	return useMutation({
 		mutationFn: (data: CreateApiKeyInput) => apiKeys.create(workspaceId!, data),
@@ -56,7 +56,7 @@ export function useCreateApiKey(workspaceId: string | undefined) {
 /**
  * Update an existing API key.
  */
-export function useUpdateApiKey(workspaceId: string | undefined) {
+export function useUpdateApiKeyMutation(workspaceId: string | undefined) {
 	const queryClient = useQueryClient()
 	return useMutation({
 		mutationFn: ({ id, data }: { id: string; data: UpdateApiKeyInput }) =>
@@ -71,7 +71,7 @@ export function useUpdateApiKey(workspaceId: string | undefined) {
 /**
  * Delete/revoke an API key.
  */
-export function useDeleteApiKey(workspaceId: string | undefined) {
+export function useDeleteApiKeyMutation(workspaceId: string | undefined) {
 	const queryClient = useQueryClient()
 	return useMutation({
 		mutationFn: (id: string) => apiKeys.delete(id, workspaceId!),

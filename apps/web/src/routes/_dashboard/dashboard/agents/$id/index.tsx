@@ -1,3 +1,14 @@
+import {
+	type Tool,
+	useAgentPreviewQuery,
+	useAgentQuery,
+	useAgentUsageQuery,
+	useDeleteAgentMutation,
+	useDeployAgentMutation,
+	useToolsQuery,
+	useUpdateAgentMutation,
+	type ValidationIssue,
+} from '@hare/app/shared/api'
 import { AGENT_LIMITS, AI_MODELS } from '@hare/config'
 import { AgentInstructionsEditor } from '@hare/app/widgets/agent-builder'
 import { MemoryViewer } from '@hare/app/widgets/memory-viewer'
@@ -54,16 +65,6 @@ import {
 import { type ChangeEvent, useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
 import { useWorkspace } from 'web-app/app'
-import {
-	useAgent,
-	useAgentPreviewQuery,
-	useAgentUsage,
-	useDeleteAgent,
-	useDeployAgent,
-	useTools,
-	useUpdateAgent,
-	type ValidationIssue,
-} from 'web-app/lib/api/hooks'
 import { useDebouncedValue } from '@hare/app/shared'
 import { z } from 'zod'
 
@@ -187,12 +188,12 @@ function AgentBuilderPage() {
 	const navigate = useNavigate()
 
 	const { activeWorkspace } = useWorkspace()
-	const { data: agent, isLoading, error } = useAgent(agentId, activeWorkspace?.id)
-	const { data: toolsData } = useTools(activeWorkspace?.id)
-	const { data: usageData } = useAgentUsage(agentId, activeWorkspace?.id)
-	const updateAgent = useUpdateAgent(activeWorkspace?.id)
-	const deleteAgent = useDeleteAgent(activeWorkspace?.id)
-	const deployAgent = useDeployAgent(activeWorkspace?.id)
+	const { data: agent, isLoading, error } = useAgentQuery(agentId, activeWorkspace?.id)
+	const { data: toolsData } = useToolsQuery(activeWorkspace?.id)
+	const { data: usageData } = useAgentUsageQuery(agentId, activeWorkspace?.id)
+	const updateAgent = useUpdateAgentMutation(activeWorkspace?.id)
+	const deleteAgent = useDeleteAgentMutation(activeWorkspace?.id)
+	const deployAgent = useDeployAgentMutation(activeWorkspace?.id)
 
 	const [name, setName] = useState('')
 	const [description, setDescription] = useState('')

@@ -15,7 +15,6 @@ import {
 	SortableContext,
 	sortableKeyboardCoordinates,
 } from '@dnd-kit/sortable'
-import type { Tool } from '../../../shared/api'
 import { SortableToolItem } from './sortable-tool-item'
 import type { SelectedToolsProps } from './types'
 
@@ -31,11 +30,11 @@ export function SelectedTools({ tools, onRemove, onReorder }: SelectedToolsProps
 		const { active, over } = event
 
 		if (over && active.id !== over.id) {
-			const oldIndex = tools.findIndex((tool: Tool) => tool.id === active.id)
-			const newIndex = tools.findIndex((tool: Tool) => tool.id === over.id)
+			const oldIndex = tools.findIndex((tool) => tool.id === active.id)
+			const newIndex = tools.findIndex((tool) => tool.id === over.id)
 
 			const newOrder = arrayMove(tools, oldIndex, newIndex)
-			onReorder(newOrder.map((tool: Tool) => tool.id))
+			onReorder(newOrder.map((tool) => tool.id))
 		}
 	}
 

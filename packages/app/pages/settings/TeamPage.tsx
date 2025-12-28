@@ -36,12 +36,12 @@ import { toast } from 'sonner'
 import { useAuth } from '../../features/auth'
 import { useWorkspace } from '../../app/providers'
 import {
-	useRemoveMember,
-	useRevokeInvitation,
-	useSendInvitation,
-	useUpdateMemberRole,
-	useWorkspaceInvitations,
-	useWorkspaceMembers,
+	useRemoveMemberMutation,
+	useRevokeInvitationMutation,
+	useSendInvitationMutation,
+	useUpdateMemberRoleMutation,
+	useWorkspaceInvitationsQuery,
+	useWorkspaceMembersQuery,
 } from '../../shared/api/hooks'
 import type {
 	MemberRole,
@@ -234,7 +234,7 @@ function InviteForm({ workspaceId, onSuccess }: { workspaceId: string; onSuccess
 	const [role, setRole] = useState<MemberRole>('member')
 	const [isOpen, setIsOpen] = useState(false)
 
-	const sendInvitation = useSendInvitation()
+	const sendInvitation = useSendInvitationMutation()
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault()
@@ -325,17 +325,17 @@ export function TeamPage() {
 		data: membersData,
 		isLoading: membersLoading,
 		refetch: refetchMembers,
-	} = useWorkspaceMembers(activeWorkspace?.id)
+	} = useWorkspaceMembersQuery(activeWorkspace?.id)
 
 	const {
 		data: invitationsData,
 		isLoading: invitationsLoading,
 		refetch: refetchInvitations,
-	} = useWorkspaceInvitations(activeWorkspace?.id)
+	} = useWorkspaceInvitationsQuery(activeWorkspace?.id)
 
-	const removeMember = useRemoveMember()
-	const updateMemberRole = useUpdateMemberRole()
-	const revokeInvitation = useRevokeInvitation()
+	const removeMember = useRemoveMemberMutation()
+	const updateMemberRole = useUpdateMemberRoleMutation()
+	const revokeInvitation = useRevokeInvitationMutation()
 
 	const canManageTeam = workspaceRole === 'owner' || workspaceRole === 'admin'
 
@@ -399,9 +399,7 @@ export function TeamPage() {
 
 	const members = membersData?.members || []
 	const invitations = invitationsData?.invitations || []
-	const pendingInvitations = invitations.filter(
-		(inv: WorkspaceInvitation) => inv.status === 'pending',
-	)
+	const pendingInvitations = invitations.filter((inv) => inv.status === 'pending')
 
 	return (
 		<div className="flex-1 space-y-6 p-8 pt-6">
@@ -432,7 +430,7 @@ export function TeamPage() {
 						{members.length === 0 ? (
 							<p className="text-center text-muted-foreground py-8">No members found</p>
 						) : (
-							members.map((member: WorkspaceMember) => (
+							members.map((member) => (
 								<MemberCard
 									key={member.id}
 									member={member}
@@ -470,7 +468,7 @@ export function TeamPage() {
 							) : pendingInvitations.length === 0 ? (
 								<p className="text-center text-muted-foreground py-8">No pending invitations</p>
 							) : (
-								pendingInvitations.map((invitation: WorkspaceInvitation) => (
+								pendingInvitations.map((invitation) => (
 									<InvitationCard
 										key={invitation.id}
 										invitation={invitation}

@@ -19,7 +19,7 @@ import {
 import { useWorkspace } from '../../app/providers'
 import { AVAILABLE_MODELS, DASHBOARD_CONTENT, UI_TEXT } from '../../shared/config'
 import type { Agent } from '../../shared/api/types'
-import { useAgents, useUsage } from '../../shared/api/hooks'
+import { useAgentsQuery, useUsageQuery } from '../../shared/api/hooks'
 
 const { home: content } = DASHBOARD_CONTENT
 
@@ -61,8 +61,8 @@ function AgentCardSkeleton() {
 
 export function DashboardPage() {
 	const { activeWorkspace, isLoading: workspaceLoading } = useWorkspace()
-	const { data: agentsData, isLoading: agentsLoading } = useAgents(activeWorkspace?.id)
-	const { data: usageData, isLoading: usageLoading } = useUsage(activeWorkspace?.id)
+	const { data: agentsData, isLoading: agentsLoading } = useAgentsQuery(activeWorkspace?.id)
+	const { data: usageData, isLoading: usageLoading } = useUsageQuery(activeWorkspace?.id)
 
 	const agents: Agent[] = agentsData?.agents ?? []
 	const deployedAgents = agents.filter((a) => a.status === 'deployed')

@@ -16,7 +16,7 @@ import { Skeleton } from '@hare/ui/components/skeleton'
 import { Code, Database, Globe, HardDrive, Plus, Search, Trash2, Wrench } from 'lucide-react'
 import { type ChangeEvent, useState } from 'react'
 import type { Tool, ToolType } from '../../shared/api/types'
-import { useTools } from '../../shared/api/hooks'
+import { useToolsQuery } from '../../shared/api/hooks'
 import { CreateToolDialog, DeleteToolDialog } from '../../features/create-tool'
 import { useWorkspace } from '../../app/providers'
 
@@ -68,7 +68,7 @@ function EmptyState({ onAdd }: { onAdd: () => void }) {
 
 export function ToolsListPage() {
 	const { activeWorkspace } = useWorkspace()
-	const { data, isLoading, error } = useTools(activeWorkspace?.id)
+	const { data, isLoading, error } = useToolsQuery(activeWorkspace?.id)
 
 	const [search, setSearch] = useState('')
 	const [isCreateOpen, setIsCreateOpen] = useState(false)
@@ -141,7 +141,7 @@ export function ToolsListPage() {
 						<div className="space-y-4">
 							<h3 className="text-lg font-semibold">System Tools</h3>
 							<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-								{systemTools.map((tool: Tool) => {
+								{systemTools.map((tool) => {
 									const Icon = TOOL_ICONS[tool.type] || Wrench
 									return (
 										<Card key={tool.id} className="flex flex-col">
@@ -180,7 +180,7 @@ export function ToolsListPage() {
 							<EmptyState onAdd={() => setIsCreateOpen(true)} />
 						) : (
 							<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-								{customTools.map((tool: Tool) => {
+								{customTools.map((tool) => {
 									const Icon = TOOL_ICONS[tool.type] || Wrench
 									return (
 										<Card key={tool.id} className="flex flex-col">

@@ -1,3 +1,4 @@
+import { useOAuthProvidersQuery } from '@hare/app/shared/api'
 import { APP_CONFIG, AUTH_CONTENT } from '@hare/config'
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { Button } from '@hare/ui/components/button'
@@ -7,7 +8,6 @@ import { Label } from '@hare/ui/components/label'
 import { ArrowRight, Github, Loader2, Rabbit } from 'lucide-react'
 import { type ChangeEvent, type FormEvent, useState } from 'react'
 import { toast } from 'sonner'
-import { useOAuthProviders } from 'web-app/lib/api/hooks'
 import { signInWithGitHub, signInWithGoogle, signUp } from '@hare/auth/client'
 
 const { signUp: content, fields, validation } = AUTH_CONTENT
@@ -43,7 +43,7 @@ function SignUpPage() {
 	const [email, setEmail] = useState('')
 	const [password, setPassword] = useState('')
 	const [confirmPassword, setConfirmPassword] = useState('')
-	const { data: providers, isLoading: isProvidersLoading } = useOAuthProviders()
+	const { data: providers, isLoading: isProvidersLoading } = useOAuthProvidersQuery()
 
 	const hasOAuthProviders = providers?.google || providers?.github
 

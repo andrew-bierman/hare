@@ -10,7 +10,7 @@ import {
 	DialogTitle,
 } from '@hare/ui/components/dialog'
 import { toast } from 'sonner'
-import { useDeleteTool } from '../../../shared/api/hooks'
+import { useDeleteToolMutation } from '../../../shared/api/hooks'
 
 interface DeleteToolDialogProps {
 	workspaceId: string | undefined
@@ -25,7 +25,7 @@ export function DeleteToolDialog({
 	toolName,
 	onOpenChange,
 }: DeleteToolDialogProps) {
-	const deleteTool = useDeleteTool(workspaceId)
+	const deleteTool = useDeleteToolMutation(workspaceId)
 
 	const handleDelete = async () => {
 		if (!toolId) return
