@@ -10,7 +10,12 @@ import type {
 } from '@hare/api'
 
 // Re-export types for convenience
-export type { MemberRole, SendInvitationInput, WorkspaceInvitation, WorkspaceMember }
+export type {
+	MemberRole,
+	SendInvitationInput,
+	WorkspaceInvitation,
+	WorkspaceMember,
+} from '@hare/api'
 
 /**
  * Hook to fetch workspace members
