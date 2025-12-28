@@ -102,7 +102,7 @@ export {
 export { loadAgentTools } from './tools/factory'
 
 import { type AgentTool, createEdgeAgent, type EdgeAgent } from '@hare/agent'
-import { getSystemTools, type ToolContext, createRegistry } from '@hare/tools'
+import { createRegistry, getSystemTools, type ToolContext } from '@hare/tools'
 // Agent configuration interface (extends SDK types with DB fields)
 import type { Database } from 'web-app/db/types'
 

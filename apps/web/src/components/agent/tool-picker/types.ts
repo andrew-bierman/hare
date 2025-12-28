@@ -1,4 +1,4 @@
-import type { Tool } from 'web-app/lib/api/types'
+import type { Tool } from '@hare/api'
 
 export type ToolCategory =
 	| 'all'

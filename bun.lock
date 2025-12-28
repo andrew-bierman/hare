@@ -31,6 +31,7 @@
         "@dnd-kit/utilities": "^3.2.2",
         "@elithrar/workers-hono-rate-limit": "^0.5.1",
         "@hare/agent": "workspace:*",
+        "@hare/api": "workspace:*",
         "@hare/tools": "workspace:*",
         "@hono/zod-openapi": "^1.2.0",
         "@hono/zod-validator": "^0.7.6",
@@ -134,6 +135,34 @@
         "@modelcontextprotocol/sdk": "^1.0.0",
         "agents": "^0.0.67",
         "ai": "^5.0.0",
+        "zod": "^4.0.0",
+      },
+    },
+    "packages/hare-api": {
+      "name": "@hare/api",
+      "version": "0.1.0",
+      "dependencies": {
+        "@elithrar/workers-hono-rate-limit": "^0.5.1",
+        "@scalar/hono-api-reference": "^0.9.30",
+      },
+      "devDependencies": {
+        "@cloudflare/workers-types": "^4.20251224.0",
+        "@hono/zod-openapi": "^1.2.0",
+        "@paralleldrive/cuid2": "^2.3.1",
+        "ai": "^5.0.116",
+        "drizzle-orm": "^0.45.1",
+        "hono": "^4.11.3",
+        "stripe": "^20.1.0",
+        "typescript": "^5.7.0",
+        "zod": "^4.2.1",
+      },
+      "peerDependencies": {
+        "@hono/zod-openapi": "^1.2.0",
+        "@paralleldrive/cuid2": "^2.0.0",
+        "ai": "^5.0.0",
+        "drizzle-orm": "^0.45.0",
+        "hono": "^4.0.0",
+        "stripe": "^20.0.0",
         "zod": "^4.0.0",
       },
     },
@@ -321,7 +350,7 @@
 
     "@cloudflare/workerd-windows-64": ["@cloudflare/workerd-windows-64@1.20251217.0", "", { "os": "win32", "cpu": "x64" }, "sha512-rP6USX+7ctynz3AtmKi+EvlLP3Xdr1ETrSdcnv693/I5QdUwBxq4yE1Lj6CV7GJizX6opXKYg8QMq0Q4eB9zRQ=="],
 
-    "@cloudflare/workers-types": ["@cloudflare/workers-types@4.20251225.0", "", {}, "sha512-ZZl0cNLFcsBRFKtMftKWOsfAybUYSeiTMzpQV1NlTVlByHAs1rGQt45Jw/qz8LrfHoq9PGTieSj9W350Gi4Pvg=="],
+    "@cloudflare/workers-types": ["@cloudflare/workers-types@4.20251228.0", "", {}, "sha512-lzE1IjLn5TiStPD5+sGZsPSY9sSFSSIujOWb5f6JMnDWkyNzdZOaEVFvx0sw5ztaWWQjK22hjYW7rgb+OFscjg=="],
 
     "@codemirror/autocomplete": ["@codemirror/autocomplete@6.20.0", "", { "dependencies": { "@codemirror/language": "^6.0.0", "@codemirror/state": "^6.0.0", "@codemirror/view": "^6.17.0", "@lezer/common": "^1.0.0" } }, "sha512-bOwvTOIJcG5FVo5gUUupiwYh8MioPLQ4UcqbcRf7UQ98X90tCa9E1kZ3Z7tqwpZxYyOvh1YTYbmZE9RTfTp5hg=="],
 
@@ -466,6 +495,8 @@
     "@floating-ui/utils": ["@floating-ui/utils@0.2.10", "", {}, "sha512-aGTxbpbg8/b5JfU1HXSrbH3wXZuLPJcNEcZQFMxLs3oSzgtVu6nFPkbbGGUvBcUjKV2YyB9Wxxabo+HEH9tcRQ=="],
 
     "@hare/agent": ["@hare/agent@workspace:packages/hare-agent"],
+
+    "@hare/api": ["@hare/api@workspace:packages/hare-api"],
 
     "@hare/app": ["@hare/app@workspace:packages/app"],
 

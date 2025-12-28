@@ -1,16 +1,21 @@
 'use client'
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { apiClient } from '../client'
+import { apiClient } from '@hare/api/client'
 import type {
 	MemberRole,
 	SendInvitationInput,
 	WorkspaceInvitation,
 	WorkspaceMember,
-} from '../types'
+} from '@hare/api'
 
 // Re-export types for convenience
-export type { MemberRole, SendInvitationInput, WorkspaceInvitation, WorkspaceMember }
+export type {
+	MemberRole,
+	SendInvitationInput,
+	WorkspaceInvitation,
+	WorkspaceMember,
+} from '@hare/api'
 
 /**
  * Hook to fetch workspace members

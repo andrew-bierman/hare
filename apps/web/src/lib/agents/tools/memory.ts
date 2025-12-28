@@ -5,7 +5,7 @@
  * Enables agents to store and recall information semantically.
  */
 
-import { searchMemory, storeMemoryWithEmbedding } from 'web-app/lib/api/services/vector-memory'
+import { searchMemory, storeMemoryWithEmbedding } from '@hare/api/services'
 import { z } from 'zod'
 import { createTool, failure, success, type ToolContext } from './types'
 
