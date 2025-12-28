@@ -74,12 +74,14 @@ export interface PaymentHistoryResponse {
 // Hooks
 // =============================================================================
 
+import { billingKeys } from 'web-app/lib/tanstack/query-keys'
+
 /**
  * Fetch available billing plans
  */
 export function usePlans(workspaceId: string | undefined) {
 	return useQuery({
-		queryKey: ['billing', 'plans', workspaceId],
+		queryKey: billingKeys.plans(),
 		queryFn: () => apiClient.billing.getPlans(workspaceId!),
 		enabled: !!workspaceId,
 	})
@@ -90,7 +92,7 @@ export function usePlans(workspaceId: string | undefined) {
  */
 export function useBillingStatus(workspaceId: string | undefined) {
 	return useQuery({
-		queryKey: ['billing', 'status', workspaceId],
+		queryKey: billingKeys.status(workspaceId ?? ''),
 		queryFn: () => apiClient.billing.getStatus(workspaceId!),
 		enabled: !!workspaceId,
 	})
@@ -105,7 +107,7 @@ export function usePaymentHistory(options: {
 	startingAfter?: string
 }) {
 	return useQuery({
-		queryKey: ['billing', 'history', options.workspaceId, options.limit, options.startingAfter],
+		queryKey: billingKeys.invoices(options.workspaceId ?? ''),
 		queryFn: () =>
 			apiClient.billing.getHistory(options.workspaceId!, {
 				limit: options.limit,
@@ -130,8 +132,8 @@ export function useCreateCheckout() {
 			}),
 		onSuccess: (_, { workspaceId }) => {
 			// Invalidate billing queries after checkout
-			queryClient.invalidateQueries({ queryKey: ['billing', 'status', workspaceId] })
-			queryClient.invalidateQueries({ queryKey: ['billing', 'plans', workspaceId] })
+			queryClient.invalidateQueries({ queryKey: billingKeys.status(workspaceId) })
+			queryClient.invalidateQueries({ queryKey: billingKeys.plans() })
 		},
 	})
 }
