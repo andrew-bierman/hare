@@ -43,7 +43,7 @@ const AVAILABLE_CHECKS: CheckConfig[] = [
 	{
 		id: 'lint',
 		name: 'Lint',
-		command: 'bun run lint',
+		command: 'bun run lint:fix',
 		description: 'Run Biome linting',
 	},
 	{
