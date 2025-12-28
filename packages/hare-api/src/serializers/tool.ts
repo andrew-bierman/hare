@@ -88,27 +88,55 @@ export function serializeSystemTool(tool: SystemToolDefinition): SerializedTool 
 }
 
 /**
+ * Map of tool ID prefixes/patterns to their ToolType categories.
+ * Used by getToolTypeFromId to determine the correct type for API responses.
+ */
+const TOOL_TYPE_MAP: Record<string, ToolType> = {
+	// Cloudflare native
+	kv_get: 'kv' as ToolType,
+	kv_put: 'kv' as ToolType,
+	kv_delete: 'kv' as ToolType,
+	kv_list: 'kv' as ToolType,
+	r2_get: 'r2' as ToolType,
+	r2_put: 'r2' as ToolType,
+	r2_delete: 'r2' as ToolType,
+	r2_list: 'r2' as ToolType,
+	r2_head: 'r2' as ToolType,
+	sql_query: 'sql' as ToolType,
+	sql_execute: 'sql' as ToolType,
+	sql_batch: 'sql' as ToolType,
+	http_request: 'http' as ToolType,
+	http_get: 'http' as ToolType,
+	http_post: 'http' as ToolType,
+	ai_search: 'search' as ToolType,
+	ai_search_answer: 'search' as ToolType,
+	// Memory tools -> custom type since they don't have a dedicated category
+	recall_memory: 'custom' as ToolType,
+	store_memory: 'custom' as ToolType,
+	// Integrations
+	zapier: 'zapier' as ToolType,
+	webhook: 'webhook' as ToolType,
+}
+
+/**
  * Get the tool type from a tool ID.
- * Maps tool IDs to their category types.
+ * Maps tool IDs to their category types for API responses.
  */
 function getToolTypeFromId(toolId: string): ToolType {
-	// Map tool IDs to their types based on prefix/pattern
-	if (toolId.startsWith('kv_')) return 'kv' as ToolType
-	if (toolId.startsWith('r2_')) return 'r2' as ToolType
-	if (toolId.startsWith('sql_')) return 'sql' as ToolType
-	if (toolId.startsWith('http_') || toolId === 'http_request') return 'http' as ToolType
-	if (toolId.startsWith('ai_search')) return 'search' as ToolType
-	if (toolId.startsWith('validate_')) return toolId as ToolType
-	if (toolId.startsWith('code_') || toolId === 'sandbox_file') return toolId as ToolType
-	// For other tools, the ID is typically the type
+	// Check explicit mapping first
+	if (toolId in TOOL_TYPE_MAP) {
+		return TOOL_TYPE_MAP[toolId]
+	}
+	// For most tools, the ID matches the type (datetime, json, text, sentiment, etc.)
 	return toolId as ToolType
 }
 
 /**
  * Convert a Zod schema to a simplified input schema for API response.
  * Extracts properties from the JSON Schema.
+ * Falls back to empty schema on error to prevent tool serialization failures.
  */
-function zodSchemaToInputSchema(zodSchema: unknown): InputSchema {
+function zodSchemaToInputSchema(zodSchema: unknown, toolId?: string): InputSchema {
 	try {
 		// biome-ignore lint/suspicious/noExplicitAny: zod-to-json-schema types differ between Zod versions
 		const jsonSchema = zodToJsonSchema(zodSchema as any, { $refStrategy: 'none' })
@@ -138,18 +166,47 @@ function zodSchemaToInputSchema(zodSchema: unknown): InputSchema {
 			return result
 		}
 		return {}
-	} catch {
+	} catch (error) {
+		// Log schema conversion failures to help debug tool definition issues
+		console.error(`[tool-serializer] Failed to convert schema for tool "${toolId || 'unknown'}":`, error)
 		return {}
 	}
 }
 
 /**
+ * Map of lowercase words to their proper acronym form.
+ * Used by generateToolName to properly capitalize known acronyms.
+ */
+const ACRONYM_MAP: Record<string, string> = {
+	kv: 'KV',
+	r2: 'R2',
+	ai: 'AI',
+	ner: 'NER',
+	sql: 'SQL',
+	http: 'HTTP',
+	url: 'URL',
+	json: 'JSON',
+	csv: 'CSV',
+	rss: 'RSS',
+	qr: 'QR',
+	ip: 'IP',
+	uuid: 'UUID',
+}
+
+/**
  * Generate a human-readable name from a tool ID.
+ * Handles known acronyms (e.g., "ai_search" -> "AI Search").
  */
 function generateToolName(toolId: string): string {
 	return toolId
 		.split('_')
-		.map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+		.map((word) => {
+			const lower = word.toLowerCase()
+			if (lower in ACRONYM_MAP) {
+				return ACRONYM_MAP[lower]
+			}
+			return word.charAt(0).toUpperCase() + word.slice(1)
+		})
 		.join(' ')
 }
 
@@ -164,7 +221,7 @@ export function serializeHareTool(tool: AnyTool): SerializedTool {
 		name: generateToolName(tool.id),
 		description: tool.description,
 		type: getToolTypeFromId(tool.id),
-		inputSchema: zodSchemaToInputSchema(tool.inputSchema),
+		inputSchema: zodSchemaToInputSchema(tool.inputSchema, tool.id),
 		config: undefined,
 		isSystem: true,
 		createdAt: now,

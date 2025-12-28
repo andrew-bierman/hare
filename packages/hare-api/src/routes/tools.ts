@@ -1,7 +1,13 @@
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
 import { and, eq } from 'drizzle-orm'
 import { tools } from 'web-app/db/schema'
-import { getSystemTools, isSystemTool, type HareEnv, type ToolContext } from '@hare/tools'
+import {
+	getSystemTools,
+	getSystemToolsMap,
+	isSystemTool,
+	type HareEnv,
+	type ToolContext,
+} from '@hare/tools'
 import { getDb } from '../db'
 import { commonResponses, requireAdminAccess, requireWriteAccess } from '../helpers'
 import { authMiddleware, workspaceMiddleware } from '../middleware'
@@ -423,11 +429,11 @@ app.openapi(getToolRoute, async (c) => {
 	const db = await getDb(c)
 	const workspace = c.get('workspace')
 
-	// Check for system tool first
+	// Check for system tool first - use Map for O(1) lookup
 	if (isSystemTool(id)) {
 		const context = createMinimalToolContext()
-		const hareTools = getSystemTools(context)
-		const systemTool = hareTools.find((t) => t.id === id)
+		const toolsMap = getSystemToolsMap(context)
+		const systemTool = toolsMap.get(id)
 		if (systemTool) {
 			return c.json(serializeHareTool(systemTool), 200)
 		}
