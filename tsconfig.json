@@ -16,7 +16,12 @@
 		"paths": {
 			"web-app/*": ["apps/web/src/*"],
 			"@workspace/ui/*": ["packages/ui/src/*"],
-			"@workspace/ui": ["packages/ui/src/index.ts"]
+			"@workspace/ui": ["packages/ui/src/index.ts"],
+			"@hare/tools": ["packages/hare-tools/src/index.ts"],
+			"@hare/tools/*": ["packages/hare-tools/src/*"],
+			"@hare/agent": ["packages/hare-agent/src/index.ts"],
+			"@hare/agent/*": ["packages/hare-agent/src/*"],
+			"@hare/cli": ["packages/hare-cli/src/index.ts"]
 		},
 		"types": ["bun"]
 	},

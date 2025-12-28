@@ -25,10 +25,13 @@ export const securityHeadersMiddleware: MiddlewareHandler = secureHeaders({
 		connectSrc: ["'self'", 'https://*.cloudflare.com'],
 		frameSrc: ["'none'"],
 		objectSrc: ["'none'"],
+		baseUri: ["'self'"], // Prevent base tag hijacking
+		formAction: ["'self'"], // Restrict form submissions
+		frameAncestors: ["'none'"], // Prevent clickjacking (CSP version of X-Frame-Options)
 		upgradeInsecureRequests: [],
 	},
-	// Strict Transport Security
-	strictTransportSecurity: 'max-age=31536000; includeSubDomains',
+	// Strict Transport Security with preload
+	strictTransportSecurity: 'max-age=31536000; includeSubDomains; preload',
 	// X-Content-Type-Options
 	xContentTypeOptions: 'nosniff',
 	// X-Frame-Options
@@ -37,12 +40,17 @@ export const securityHeadersMiddleware: MiddlewareHandler = secureHeaders({
 	xXssProtection: '1; mode=block',
 	// Referrer Policy
 	referrerPolicy: 'strict-origin-when-cross-origin',
-	// Permissions Policy
+	// Permissions Policy - expanded restrictions
 	permissionsPolicy: {
 		camera: [],
 		microphone: [],
 		geolocation: [],
 		payment: [],
+		usb: [],
+		bluetooth: [],
+		magnetometer: [],
+		gyroscope: [],
+		accelerometer: [],
 	},
 })
 
@@ -66,7 +74,7 @@ export const corsMiddleware = cors({
 	},
 	credentials: true,
 	allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-	allowHeaders: ['Content-Type', 'Authorization', 'X-Workspace-ID'],
+	allowHeaders: ['Content-Type', 'Authorization', 'X-Workspace-ID', 'X-CSRF-Token', 'X-API-Key'],
 	exposeHeaders: ['X-RateLimit-Limit', 'X-RateLimit-Remaining', 'X-RateLimit-Reset'],
 	maxAge: 86400, // 24 hours
 })

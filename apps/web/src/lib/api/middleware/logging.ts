@@ -166,7 +166,13 @@ export async function loggingMiddleware(
 			}
 
 			// Store log asynchronously (don't block response)
-			c.executionCtx?.waitUntil(storeLog(c.env, log))
+			// Note: executionCtx may not be available in test environments
+			try {
+				c.executionCtx?.waitUntil(storeLog(c.env, log))
+			} catch {
+				// In test environment without ExecutionContext, skip logging
+				// to avoid isolated storage issues with Vitest
+			}
 		}
 	}
 
