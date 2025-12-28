@@ -1,4 +1,17 @@
 import { z } from 'zod'
+import {
+	AI_TEXT_MAX_LENGTH_MEDIUM,
+	AI_TEXT_MAX_LENGTH_SHORT,
+	IMAGE_GENERATION_DEFAULT_GUIDANCE,
+	IMAGE_GENERATION_DEFAULT_SIZE,
+	IMAGE_GENERATION_DEFAULT_STEPS,
+	IMAGE_GENERATION_MAX_GUIDANCE,
+	IMAGE_GENERATION_MAX_SIZE,
+	IMAGE_GENERATION_MAX_STEPS,
+	IMAGE_GENERATION_MIN_GUIDANCE,
+	IMAGE_GENERATION_MIN_SIZE,
+	IMAGE_GENERATION_MIN_STEPS,
+} from './constants'
 import { createTool, failure, success, type ToolContext } from './types'
 
 // Zod schemas for AI response validation
@@ -65,7 +78,7 @@ export const sentimentTool = createTool({
 	description:
 		'Analyze the sentiment of text. Returns positive, negative, or neutral classification with confidence scores.',
 	inputSchema: z.object({
-		text: z.string().min(1).max(5000).describe('Text to analyze for sentiment'),
+		text: z.string().min(1).max(AI_TEXT_MAX_LENGTH_SHORT).describe('Text to analyze for sentiment'),
 		detailed: z.boolean().optional().default(false).describe('Return detailed emotion breakdown'),
 	}),
 	execute: async (params, context) => {
@@ -178,7 +191,7 @@ export const translateTool = createTool({
 	id: 'translate',
 	description: 'Translate text from one language to another. Supports many common languages.',
 	inputSchema: z.object({
-		text: z.string().min(1).max(10000).describe('Text to translate'),
+		text: z.string().min(1).max(AI_TEXT_MAX_LENGTH_MEDIUM).describe('Text to translate'),
 		targetLanguage: z
 			.string()
 			.describe(
@@ -232,20 +245,52 @@ export const imageGenerateTool = createTool({
 	inputSchema: z.object({
 		prompt: z.string().min(1).max(1000).describe('Description of the image to generate'),
 		negativePrompt: z.string().optional().describe('Things to avoid in the image'),
-		width: z.number().optional().default(512).describe('Image width (256-1024)'),
-		height: z.number().optional().default(512).describe('Image height (256-1024)'),
-		steps: z.number().optional().default(20).describe('Number of diffusion steps (1-50)'),
-		guidance: z.number().optional().default(7.5).describe('Guidance scale (1-20)'),
+		width: z
+			.number()
+			.optional()
+			.default(IMAGE_GENERATION_DEFAULT_SIZE)
+			.describe(`Image width (${IMAGE_GENERATION_MIN_SIZE}-${IMAGE_GENERATION_MAX_SIZE})`),
+		height: z
+			.number()
+			.optional()
+			.default(IMAGE_GENERATION_DEFAULT_SIZE)
+			.describe(`Image height (${IMAGE_GENERATION_MIN_SIZE}-${IMAGE_GENERATION_MAX_SIZE})`),
+		steps: z
+			.number()
+			.optional()
+			.default(IMAGE_GENERATION_DEFAULT_STEPS)
+			.describe(
+				`Number of diffusion steps (${IMAGE_GENERATION_MIN_STEPS}-${IMAGE_GENERATION_MAX_STEPS})`,
+			),
+		guidance: z
+			.number()
+			.optional()
+			.default(IMAGE_GENERATION_DEFAULT_GUIDANCE)
+			.describe(
+				`Guidance scale (${IMAGE_GENERATION_MIN_GUIDANCE}-${IMAGE_GENERATION_MAX_GUIDANCE})`,
+			),
 	}),
 	execute: async (params, context) => {
 		try {
 			const { prompt, negativePrompt, width, height, steps, guidance } = params
 
 			// Validate dimensions
-			const validWidth = Math.min(Math.max(width, 256), 1024)
-			const validHeight = Math.min(Math.max(height, 256), 1024)
-			const validSteps = Math.min(Math.max(steps, 1), 50)
-			const validGuidance = Math.min(Math.max(guidance, 1), 20)
+			const validWidth = Math.min(
+				Math.max(width, IMAGE_GENERATION_MIN_SIZE),
+				IMAGE_GENERATION_MAX_SIZE,
+			)
+			const validHeight = Math.min(
+				Math.max(height, IMAGE_GENERATION_MIN_SIZE),
+				IMAGE_GENERATION_MAX_SIZE,
+			)
+			const validSteps = Math.min(
+				Math.max(steps, IMAGE_GENERATION_MIN_STEPS),
+				IMAGE_GENERATION_MAX_STEPS,
+			)
+			const validGuidance = Math.min(
+				Math.max(guidance, IMAGE_GENERATION_MIN_GUIDANCE),
+				IMAGE_GENERATION_MAX_GUIDANCE,
+			)
 
 			const response = await context.env.AI.run(AI_MODELS.IMAGE_GENERATION, {
 				prompt,
@@ -307,7 +352,7 @@ export const classifyTool = createTool({
 	description:
 		'Classify text into custom categories. Useful for routing, tagging, or categorizing content.',
 	inputSchema: z.object({
-		text: z.string().min(1).max(5000).describe('Text to classify'),
+		text: z.string().min(1).max(AI_TEXT_MAX_LENGTH_SHORT).describe('Text to classify'),
 		categories: z.array(z.string()).min(2).max(20).describe('List of possible categories'),
 		multiLabel: z
 			.boolean()
@@ -378,7 +423,7 @@ export const nerTool = createTool({
 	description:
 		'Extract named entities from text such as people, organizations, locations, dates, and more.',
 	inputSchema: z.object({
-		text: z.string().min(1).max(10000).describe('Text to analyze for entities'),
+		text: z.string().min(1).max(AI_TEXT_MAX_LENGTH_MEDIUM).describe('Text to analyze for entities'),
 		entityTypes: z
 			.array(EntityTypeSchema)
 			.optional()

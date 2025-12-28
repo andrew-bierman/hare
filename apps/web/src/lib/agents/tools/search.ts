@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { AUTORAG_INSTANCE_NAME, SEARCH_DEFAULT_MAX_RESULTS } from './constants'
 import { createTool, failure, success, type ToolContext } from './types'
 
 /**
@@ -12,7 +13,11 @@ export const aiSearchTool = createTool({
 		'Search through indexed documents and data using AI-powered semantic search. Returns relevant results from your workspace knowledge base.',
 	inputSchema: z.object({
 		query: z.string().describe('The search query'),
-		maxResults: z.number().optional().default(10).describe('Maximum number of results (1-50)'),
+		maxResults: z
+			.number()
+			.optional()
+			.default(SEARCH_DEFAULT_MAX_RESULTS)
+			.describe('Maximum number of results (1-50)'),
 		rewriteQuery: z
 			.boolean()
 			.optional()
@@ -36,7 +41,9 @@ export const aiSearchTool = createTool({
 		try {
 			// Get the AutoRAG instance - uses the configured instance name
 			// The instance name should match what's set up in Cloudflare dashboard
-			const autorag = (ai as Ai & { autorag: (name: string) => AutoRAG }).autorag('hare-search')
+			const autorag = (ai as Ai & { autorag: (name: string) => AutoRAG }).autorag(
+				AUTORAG_INSTANCE_NAME,
+			)
 
 			const results = await autorag.search({
 				query: params.query,
@@ -82,7 +89,11 @@ export const aiSearchAnswerTool = createTool({
 		'Search through indexed documents and generate an AI answer based on the retrieved context. Best for question-answering. Only searches your workspace data.',
 	inputSchema: z.object({
 		query: z.string().describe('The question or search query'),
-		maxResults: z.number().optional().default(10).describe('Maximum context results (1-50)'),
+		maxResults: z
+			.number()
+			.optional()
+			.default(SEARCH_DEFAULT_MAX_RESULTS)
+			.describe('Maximum context results (1-50)'),
 		systemPrompt: z.string().optional().describe('Custom system prompt for the AI response'),
 	}),
 	execute: async (params, context) => {
@@ -98,7 +109,9 @@ export const aiSearchAnswerTool = createTool({
 		}
 
 		try {
-			const autorag = (ai as Ai & { autorag: (name: string) => AutoRAG }).autorag('hare-search')
+			const autorag = (ai as Ai & { autorag: (name: string) => AutoRAG }).autorag(
+				AUTORAG_INSTANCE_NAME,
+			)
 
 			const response = await autorag.aiSearch({
 				query: params.query,

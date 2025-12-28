@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { CONTENT_TYPE_JSON, HTTP_DEFAULT_TIMEOUT_MS, HTTP_USER_AGENT } from './constants'
 import { createTool, failure, success, type ToolContext } from './types'
 
 /**
@@ -17,7 +18,11 @@ export const httpRequestTool = createTool({
 			.describe('HTTP method'),
 		headers: z.record(z.string(), z.string()).optional().describe('Additional headers to include'),
 		body: z.string().optional().describe('Request body (for POST, PUT, PATCH)'),
-		timeout: z.number().optional().default(30000).describe('Request timeout in milliseconds'),
+		timeout: z
+			.number()
+			.optional()
+			.default(HTTP_DEFAULT_TIMEOUT_MS)
+			.describe('Request timeout in milliseconds'),
 	}),
 	execute: async (params, _context) => {
 		try {
@@ -27,7 +32,7 @@ export const httpRequestTool = createTool({
 			const requestInit: RequestInit = {
 				method: params.method,
 				headers: {
-					'User-Agent': 'Hare-Agent/1.0',
+					'User-Agent': HTTP_USER_AGENT,
 					...params.headers,
 				},
 				signal: controller.signal,
@@ -37,7 +42,7 @@ export const httpRequestTool = createTool({
 				requestInit.body = params.body
 				// Auto-set content-type if not provided
 				if (!params.headers?.['Content-Type'] && !params.headers?.['content-type']) {
-					;(requestInit.headers as Record<string, string>)['Content-Type'] = 'application/json'
+					;(requestInit.headers as Record<string, string>)['Content-Type'] = CONTENT_TYPE_JSON
 				}
 			}
 
@@ -82,7 +87,10 @@ export const httpGetTool = createTool({
 		headers: z.record(z.string(), z.string()).optional().describe('Additional headers'),
 	}),
 	execute: async (params, context) => {
-		return httpRequestTool.execute({ ...params, method: 'GET', timeout: 30000 }, context)
+		return httpRequestTool.execute(
+			{ ...params, method: 'GET', timeout: HTTP_DEFAULT_TIMEOUT_MS },
+			context,
+		)
 	},
 })
 
@@ -105,7 +113,7 @@ export const httpPostTool = createTool({
 				method: 'POST',
 				body,
 				headers: params.headers,
-				timeout: 30000,
+				timeout: HTTP_DEFAULT_TIMEOUT_MS,
 			},
 			context,
 		)

@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { KV_LIST_DEFAULT_LIMIT, WORKSPACE_PREFIX } from './constants'
 import { createTool, failure, success, type ToolContext } from './types'
 
 /**
@@ -10,14 +11,14 @@ function scopedKey(workspaceId: string, key: string): string {
 	if (key.includes('..') || key.startsWith('/')) {
 		throw new Error('Invalid key: path traversal not allowed')
 	}
-	return `ws/${workspaceId}/${key}`
+	return `${WORKSPACE_PREFIX}${workspaceId}/${key}`
 }
 
 /**
  * Strip workspace prefix from key for display.
  */
 function unscopedKey(workspaceId: string, fullKey: string): string {
-	const prefix = `ws/${workspaceId}/`
+	const prefix = `${WORKSPACE_PREFIX}${workspaceId}/`
 	return fullKey.startsWith(prefix) ? fullKey.slice(prefix.length) : fullKey
 }
 
@@ -141,7 +142,11 @@ export const kvListTool = createTool({
 	description: 'List keys in Cloudflare KV storage with optional prefix filtering.',
 	inputSchema: z.object({
 		prefix: z.string().optional().describe('Filter keys by prefix'),
-		limit: z.number().optional().default(100).describe('Maximum number of keys to return'),
+		limit: z
+			.number()
+			.optional()
+			.default(KV_LIST_DEFAULT_LIMIT)
+			.describe('Maximum number of keys to return'),
 		cursor: z.string().optional().describe('Cursor for pagination'),
 	}),
 	execute: async (params, context) => {
@@ -152,10 +157,10 @@ export const kvListTool = createTool({
 
 		try {
 			// Always scope to workspace, optionally with additional user prefix
-			const workspacePrefix = `ws/${context.workspaceId}/`
+			const workspacePrefixPath = `${WORKSPACE_PREFIX}${context.workspaceId}/`
 			const fullPrefix = params.prefix
 				? scopedKey(context.workspaceId, params.prefix)
-				: workspacePrefix
+				: workspacePrefixPath
 
 			const options: KVNamespaceListOptions = {
 				limit: params.limit,
