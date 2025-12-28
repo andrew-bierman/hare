@@ -37,9 +37,8 @@
 		"test:watch": "vitest",
 		"test:ui": "vitest --ui",
 		"test:unit": "vitest run --filter unit",
-		"test:workers": "vitest run --config vitest.workers.config.ts",
 		"test:coverage": "vitest run --coverage",
-		"test:e2e": "playwright test",
+		"test:e2e": "bun run --cwd apps/web test",
 		"cf:typegen": "bun run --cwd apps/web cf-typegen",
 		"clean": "rm -rf node_modules apps/*/node_modules packages/*/node_modules apps/*/.next apps/*/.open-next",
 		"clean:cache": "rm -rf apps/*/.next apps/*/.open-next .turbo",
@@ -58,8 +57,5 @@
 		"vitest": "^3.2.4",
 		"wrangler": "^4.56.0"
 	},
-	"dependencies": {
-		"@tanstack/react-table": "^8.21.3",
-		"@tanstack/react-virtual": "^3.13.13"
-	}
+	"dependencies": {}
 }
