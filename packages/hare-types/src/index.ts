@@ -5,16 +5,29 @@
  * This package is the single source of truth for all shared types.
  */
 
-// Agent types
+// Agent types (all derived from Zod schemas)
 export {
-	type HareAgentState,
+	// Schemas
+	ScheduledTaskSchema,
+	HareAgentStateSchema,
+	ChatPayloadSchema,
+	ToolExecutePayloadSchema,
+	SchedulePayloadSchema,
+	ConfigurePayloadSchema,
+	ClientMessageSchema,
+	ServerMessageSchema,
+	McpAgentStateSchema,
+	// Types (inferred from schemas)
 	type ScheduledTask,
-	type ClientMessage,
+	type HareAgentState,
 	type ChatPayload,
 	type ToolExecutePayload,
 	type SchedulePayload,
+	type ConfigurePayload,
+	type ClientMessage,
 	type ServerMessage,
 	type McpAgentState,
+	// Defaults
 	DEFAULT_HARE_AGENT_STATE,
 	DEFAULT_MCP_AGENT_STATE,
 } from './agent'
@@ -46,6 +59,7 @@ export {
 	AuthVariablesSchema,
 	type AuthVariables,
 	ApiKeyPermissionsSchema,
+	type ApiKeyPermissions,
 	ApiKeyInfoSchema,
 	type ApiKeyInfo,
 	ApiKeyVariablesSchema,

@@ -3,105 +3,134 @@
  *
  * Type definitions for Hare Agents that can be safely imported
  * in any environment (Next.js, Workers, etc.)
+ *
+ * All types are derived from Zod schemas for runtime validation.
  */
 
 import type { CoreMessage } from 'ai'
+import { z } from 'zod'
 
-/**
- * Agent state that is persisted and synced with clients.
- */
-export interface HareAgentState {
+// =============================================================================
+// Scheduled Task
+// =============================================================================
+
+export const ScheduledTaskSchema = z.object({
+	id: z.string(),
+	type: z.enum(['one-time', 'recurring']),
+	executeAt: z.number().optional(),
+	cron: z.string().optional(),
+	action: z.string(),
+	payload: z.record(z.string(), z.unknown()).optional(),
+})
+
+export type ScheduledTask = z.infer<typeof ScheduledTaskSchema>
+
+// =============================================================================
+// Agent State
+// =============================================================================
+
+export const HareAgentStateSchema = z.object({
 	/** Agent configuration ID */
-	agentId: string
+	agentId: z.string(),
 	/** Workspace ID */
-	workspaceId: string
+	workspaceId: z.string(),
 	/** Agent name */
-	name: string
+	name: z.string(),
 	/** Agent instructions/system prompt */
-	instructions: string
+	instructions: z.string(),
 	/** Model to use */
-	model: string
-	/** Conversation history */
-	messages: CoreMessage[]
+	model: z.string(),
+	/** Conversation history - CoreMessage from AI SDK */
+	messages: z.custom<CoreMessage[]>((val) => Array.isArray(val)),
 	/** Whether the agent is currently processing */
-	isProcessing: boolean
+	isProcessing: z.boolean(),
 	/** Last activity timestamp */
-	lastActivity: number
+	lastActivity: z.number(),
 	/** Connected user IDs */
-	connectedUsers: string[]
+	connectedUsers: z.array(z.string()),
 	/** Scheduled tasks */
-	scheduledTasks: ScheduledTask[]
+	scheduledTasks: z.array(ScheduledTaskSchema),
 	/** Agent status */
-	status: 'idle' | 'processing' | 'error'
+	status: z.enum(['idle', 'processing', 'error']),
 	/** Last error if any */
-	lastError?: string
-}
+	lastError: z.string().optional(),
+})
 
-/**
- * Scheduled task definition.
- */
-export interface ScheduledTask {
-	id: string
-	type: 'one-time' | 'recurring'
-	executeAt?: number
-	cron?: string
-	action: string
-	payload?: Record<string, unknown>
-}
+export type HareAgentState = z.infer<typeof HareAgentStateSchema>
 
-/**
- * Message sent from client to agent.
- */
-export interface ClientMessage {
-	type: 'chat' | 'configure' | 'execute_tool' | 'get_state' | 'schedule'
-	payload: unknown
-}
+// =============================================================================
+// Client Messages (Client -> Agent)
+// =============================================================================
 
-/**
- * Chat message payload.
- */
-export interface ChatPayload {
-	message: string
-	userId: string
-	sessionId?: string
-	metadata?: Record<string, unknown>
-}
+export const ChatPayloadSchema = z.object({
+	message: z.string(),
+	userId: z.string(),
+	sessionId: z.string().optional(),
+	metadata: z.record(z.string(), z.unknown()).optional(),
+})
 
-/**
- * Tool execution payload.
- */
-export interface ToolExecutePayload {
-	toolId: string
-	params: Record<string, unknown>
-}
+export type ChatPayload = z.infer<typeof ChatPayloadSchema>
 
-/**
- * Schedule payload.
- */
-export interface SchedulePayload {
-	action: string
-	executeAt?: number
-	cron?: string
-	payload?: Record<string, unknown>
-}
+export const ToolExecutePayloadSchema = z.object({
+	toolId: z.string(),
+	params: z.record(z.string(), z.unknown()),
+})
 
-/**
- * Server message sent to clients.
- */
-export interface ServerMessage {
-	type: 'text' | 'tool_call' | 'tool_result' | 'state_update' | 'error' | 'done'
-	data: unknown
-	timestamp: number
-}
+export type ToolExecutePayload = z.infer<typeof ToolExecutePayloadSchema>
 
-/**
- * MCP Agent state.
- */
-export interface McpAgentState {
-	workspaceId: string
-	connectedClients: number
-	lastActivity: number
-}
+export const SchedulePayloadSchema = z.object({
+	action: z.string(),
+	executeAt: z.number().optional(),
+	cron: z.string().optional(),
+	payload: z.record(z.string(), z.unknown()).optional(),
+})
+
+export type SchedulePayload = z.infer<typeof SchedulePayloadSchema>
+
+export const ConfigurePayloadSchema = z.object({
+	name: z.string().optional(),
+	instructions: z.string().optional(),
+	model: z.string().optional(),
+})
+
+export type ConfigurePayload = z.infer<typeof ConfigurePayloadSchema>
+
+// Client message - simple schema matching existing usage
+export const ClientMessageSchema = z.object({
+	type: z.enum(['chat', 'configure', 'execute_tool', 'get_state', 'schedule']),
+	payload: z.unknown(),
+})
+
+export type ClientMessage = z.infer<typeof ClientMessageSchema>
+
+// =============================================================================
+// Server Messages (Agent -> Client)
+// =============================================================================
+
+// Server message - simple schema matching existing usage
+export const ServerMessageSchema = z.object({
+	type: z.enum(['text', 'tool_call', 'tool_result', 'state_update', 'error', 'done']),
+	data: z.unknown(),
+	timestamp: z.number(),
+})
+
+export type ServerMessage = z.infer<typeof ServerMessageSchema>
+
+// =============================================================================
+// MCP Agent State
+// =============================================================================
+
+export const McpAgentStateSchema = z.object({
+	workspaceId: z.string(),
+	connectedClients: z.number(),
+	lastActivity: z.number(),
+})
+
+export type McpAgentState = z.infer<typeof McpAgentStateSchema>
+
+// =============================================================================
+// Default States
+// =============================================================================
 
 /**
  * Default initial state for HareAgent.
