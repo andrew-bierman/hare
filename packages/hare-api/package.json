@@ -64,6 +64,7 @@
 	"dependencies": {
 		"@elithrar/workers-hono-rate-limit": "^0.5.1",
 		"@hare/auth": "workspace:*",
+		"@hare/config": "workspace:*",
 		"@scalar/hono-api-reference": "^0.9.30"
 	},
 	"devDependencies": {

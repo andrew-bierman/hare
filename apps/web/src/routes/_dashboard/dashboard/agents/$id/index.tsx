@@ -55,7 +55,7 @@ import {
 import { type ChangeEvent, useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
 import { useWorkspace } from 'web-app/components/providers/workspace-provider'
-import { AGENT_LIMITS, AI_MODELS } from 'web-app/config'
+import { AGENT_LIMITS, AI_MODELS } from '@hare/app/shared'
 import {
 	useAgent,
 	useAgentPreviewQuery,
@@ -66,7 +66,7 @@ import {
 	useUpdateAgent,
 	type ValidationIssue,
 } from 'web-app/lib/api/hooks'
-import { useDebouncedValue } from 'web-app/lib/hooks/use-debounce'
+import { useDebouncedValue } from '@hare/app/shared'
 import { z } from 'zod'
 
 export const Route = createFileRoute('/_dashboard/dashboard/agents/$id/')({

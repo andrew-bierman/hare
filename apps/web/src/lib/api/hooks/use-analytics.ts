@@ -3,7 +3,7 @@
 import type { AnalyticsParams } from '@hare/api/client'
 import { apiClient } from '@hare/api/client'
 import { useQuery } from '@tanstack/react-query'
-import { analyticsKeys } from 'web-app/lib/tanstack/query-keys'
+import { analyticsKeys } from '@hare/app/shared'
 
 // Re-export types for convenience
 export type { AnalyticsData, AnalyticsParams } from '@hare/api/client'

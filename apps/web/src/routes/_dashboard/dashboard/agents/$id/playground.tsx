@@ -30,7 +30,7 @@ import {
 import { type FormEvent, type KeyboardEvent, useCallback, useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { useWorkspace } from 'web-app/components/providers/workspace-provider'
-import { getModelName } from 'web-app/config'
+import { getModelName } from '@hare/app/shared'
 import { useAgent, useChat } from 'web-app/lib/api/hooks'
 
 export const Route = createFileRoute('/_dashboard/dashboard/agents/$id/playground')({

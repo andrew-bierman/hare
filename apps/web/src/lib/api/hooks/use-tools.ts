@@ -3,7 +3,7 @@
 import type { CreateToolInput, Tool, ToolType } from '@hare/api'
 import { apiClient, type ToolTestRequest } from '@hare/api/client'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { toolKeys } from 'web-app/lib/tanstack/query-keys'
+import { toolKeys } from '@hare/app/shared'
 
 // Re-export types for convenience
 export type { CreateToolInput, Tool, ToolType } from '@hare/api'

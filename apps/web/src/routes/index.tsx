@@ -25,7 +25,7 @@ import {
 	Zap,
 } from 'lucide-react'
 import { useAuth } from 'web-app/components/providers/auth-provider'
-import { APP_CONFIG, LANDING_PAGE, NAV_ITEMS, UI_TEXT } from 'web-app/config'
+import { APP_CONFIG, LANDING_PAGE, NAV_ITEMS, UI_TEXT } from '@hare/app/shared'
 
 export const Route = createFileRoute('/')({
 	component: LandingPage,

@@ -20,9 +20,9 @@ import {
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { useWorkspace } from 'web-app/components/providers/workspace-provider'
-import { DEV_CONFIG, DEV_TOOLS_CONTENT, FEATURES } from 'web-app/config'
+import { DEV_CONFIG, DEV_TOOLS_CONTENT, FEATURES } from '@hare/app/shared'
 import { useCreateAgent, useCreateWorkspace } from 'web-app/lib/api/hooks'
-import { authClient } from 'web-app/lib/auth-client'
+import { authClient } from '@hare/auth/client'
 
 const { sections, agentNames, agentDescriptions, defaultInstructions } = DEV_TOOLS_CONTENT
 

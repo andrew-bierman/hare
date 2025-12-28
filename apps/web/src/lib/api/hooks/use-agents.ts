@@ -4,7 +4,7 @@ import type { Agent, CreateAgentInput, UpdateAgentInput } from '@hare/api'
 import type { AgentPreviewInput, AgentPreviewResponse } from '@hare/api/client'
 import { apiClient } from '@hare/api/client'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { agentKeys } from 'web-app/lib/tanstack/query-keys'
+import { agentKeys } from '@hare/app/shared'
 
 // Re-export types for convenience
 export type { Agent, CreateAgentInput, UpdateAgentInput } from '@hare/api'

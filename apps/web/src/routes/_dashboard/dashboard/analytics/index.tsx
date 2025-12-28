@@ -35,7 +35,7 @@ import {
 } from 'recharts'
 import { useWorkspace } from 'web-app/components/providers/workspace-provider'
 import { type Agent, useAgents, useAnalytics } from 'web-app/lib/api/hooks'
-import { exportToCSV, exportToJSON } from 'web-app/lib/utils/export'
+import { exportToCSV, exportToJSON } from '@hare/app/shared'
 
 export const Route = createFileRoute('/_dashboard/dashboard/analytics/')({
 	component: AnalyticsPage,

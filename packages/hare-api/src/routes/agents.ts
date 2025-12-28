@@ -1,6 +1,6 @@
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
 import { and, eq } from 'drizzle-orm'
-import { AGENT_LIMITS, AI_MODELS, getModelById } from 'web-app/config'
+import { AGENT_LIMITS, AI_MODELS, getModelById } from '@hare/config'
 import { agents, agentTools, deployments, tools as toolsTable } from 'web-app/db/schema'
 import type { Database } from 'web-app/db/types'
 import { routeHttpToAgent } from 'web-app/lib/agents'

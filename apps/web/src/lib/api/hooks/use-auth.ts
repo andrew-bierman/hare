@@ -2,7 +2,7 @@
 
 import { apiClient } from '@hare/api/client'
 import { useQuery } from '@tanstack/react-query'
-import { authKeys } from 'web-app/lib/tanstack/query-keys'
+import { authKeys } from '@hare/app/shared'
 
 export type { OAuthProviders } from '@hare/api/client'
 

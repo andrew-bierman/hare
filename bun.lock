@@ -4,10 +4,6 @@
   "workspaces": {
     "": {
       "name": "hare",
-      "dependencies": {
-        "@tanstack/react-table": "^8.21.3",
-        "@tanstack/react-virtual": "^3.13.13",
-      },
       "devDependencies": {
         "@biomejs/biome": "^2.3.10",
         "@cloudflare/vitest-pool-workers": "^0.11.1",
@@ -68,6 +64,7 @@
         "@hare/agent": "workspace:*",
         "@hare/api": "workspace:*",
         "@hare/auth": "workspace:*",
+        "@hare/config": "workspace:*",
         "@hare/tools": "workspace:*",
         "@hono/zod-openapi": "^1.2.0",
         "@hono/zod-validator": "^0.7.6",
@@ -139,6 +136,7 @@
         "@dnd-kit/sortable": "^10.0.0",
         "@dnd-kit/utilities": "^3.2.2",
         "@hare/api": "workspace:*",
+        "@hare/config": "workspace:*",
         "@tanstack/react-form": "^0.41.2",
         "@tanstack/react-query": "^5.90.12",
         "@tanstack/react-query-devtools": "^5.91.1",
@@ -149,7 +147,7 @@
         "lucide-react": "^0.562.0",
         "react": "19.2.3",
         "react-dom": "19.2.3",
-        "sonner": "^2.0.3",
+        "sonner": "^2.0.7",
         "zod": "^4.2.1",
       },
       "devDependencies": {
@@ -192,6 +190,7 @@
       "dependencies": {
         "@elithrar/workers-hono-rate-limit": "^0.5.1",
         "@hare/auth": "workspace:*",
+        "@hare/config": "workspace:*",
         "@scalar/hono-api-reference": "^0.9.30",
       },
       "devDependencies": {
@@ -240,6 +239,17 @@
       "devDependencies": {
         "@types/node": "^22.0.0",
         "typescript": "^5.7.0",
+      },
+    },
+    "packages/hare-config": {
+      "name": "@hare/config",
+      "version": "0.1.0",
+      "dependencies": {
+        "zod": "^4.2.1",
+      },
+      "devDependencies": {
+        "@workspace/typescript-config": "workspace:*",
+        "typescript": "^5",
       },
     },
     "packages/hare-db": {
@@ -596,6 +606,8 @@
     "@hare/auth": ["@hare/auth@workspace:packages/hare-auth"],
 
     "@hare/cli": ["@hare/cli@workspace:packages/hare-cli"],
+
+    "@hare/config": ["@hare/config@workspace:packages/hare-config"],
 
     "@hare/db": ["@hare/db@workspace:packages/hare-db"],
 

@@ -23,6 +23,7 @@
 		"@dnd-kit/sortable": "^10.0.0",
 		"@dnd-kit/utilities": "^3.2.2",
 		"@hare/api": "workspace:*",
+		"@hare/config": "workspace:*",
 		"@tanstack/react-form": "^0.41.2",
 		"@tanstack/react-query": "^5.90.12",
 		"@tanstack/react-query-devtools": "^5.91.1",

@@ -1,8 +1,6 @@
 /**
  * Utility functions
  *
- * Re-export all utilities from @hare/app package.
- * This file exists for backward compatibility.
+ * Re-exports from @hare/app shared utilities.
  */
-
 export { exportToCSV, exportToJSON, generateUniqueSlug, nameToSlug } from '@hare/app/shared'

@@ -6,9 +6,9 @@ import { Label } from '@workspace/ui/components/label'
 import { ArrowRight, Github, Loader2, Rabbit } from 'lucide-react'
 import { type ChangeEvent, type FormEvent, useState } from 'react'
 import { toast } from 'sonner'
-import { APP_CONFIG, AUTH_CONTENT } from 'web-app/config'
+import { APP_CONFIG, AUTH_CONTENT } from '@hare/app/shared'
 import { useOAuthProviders } from 'web-app/lib/api/hooks'
-import { signInWithGitHub, signInWithGoogle, signUp } from 'web-app/lib/auth-client'
+import { signInWithGitHub, signInWithGoogle, signUp } from '@hare/auth/client'
 
 const { signUp: content, fields, validation } = AUTH_CONTENT
 
