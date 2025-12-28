@@ -13,7 +13,7 @@
  */
 
 import { run as ncuRun } from 'npm-check-updates'
-import { readFile } from 'node:fs/promises'
+import fs from 'fs-extra'
 import { join } from 'node:path'
 
 const ROOT = join(import.meta.dir, '..')
@@ -58,7 +58,7 @@ async function getUpgrades(options: {
 			})) as Record<string, string>
 
 			// Get current versions
-			const pkgContent = await readFile(join(wsPath, 'package.json'), 'utf-8')
+			const pkgContent = await fs.readFile(join(wsPath, 'package.json'), 'utf-8')
 			const pkg: PackageJson = JSON.parse(pkgContent)
 			const allDeps = { ...pkg.dependencies, ...pkg.devDependencies, ...pkg.peerDependencies }
 
@@ -169,7 +169,7 @@ async function syncVersions(): Promise<void> {
 	for (const cwd of WORKSPACE_PATHS) {
 		const location = cwd.replace(ROOT, '.') || '.'
 		try {
-			const content = await readFile(join(cwd, 'package.json'), 'utf-8')
+			const content = await fs.readFile(join(cwd, 'package.json'), 'utf-8')
 			const pkg: PackageJson = JSON.parse(content)
 
 			for (const deps of [pkg.dependencies, pkg.devDependencies, pkg.peerDependencies]) {
