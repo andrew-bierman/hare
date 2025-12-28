@@ -60,11 +60,7 @@ export const securityHeadersMiddleware: MiddlewareHandler = secureHeaders({
  */
 export const corsMiddleware = cors({
 	origin: (origin) => {
-		const allowedOrigins = [
-			serverEnv.APP_URL,
-			'http://localhost:3000',
-			'http://localhost:8787',
-		]
+		const allowedOrigins = [serverEnv.APP_URL, 'http://localhost:3000', 'http://localhost:8787']
 
 		// Allow requests with no origin (same-origin, curl, etc.)
 		if (!origin) return allowedOrigins[0] ?? 'http://localhost:3000'

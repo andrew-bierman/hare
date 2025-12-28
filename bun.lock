@@ -23,6 +23,7 @@
       "name": "hare-tauri",
       "version": "0.1.0",
       "dependencies": {
+        "@hare/app": "workspace:*",
         "@tanstack/react-query": "^5.90.12",
         "@tanstack/react-router": "^1.120.3",
         "@workspace/ui": "workspace:*",

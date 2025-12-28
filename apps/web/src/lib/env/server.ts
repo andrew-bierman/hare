@@ -14,7 +14,8 @@ const isTestEnv =
 	typeof process !== 'undefined' &&
 	(process.env?.VITEST === 'true' ||
 		process.env?.NODE_ENV === 'test' ||
-		(typeof globalThis !== 'undefined' && (globalThis as Record<string, unknown>).__vitest_worker__))
+		(typeof globalThis !== 'undefined' &&
+			(globalThis as Record<string, unknown>).__vitest_worker__))
 
 const serverEnvSchema = z.object({
 	NODE_ENV: z
