@@ -13,6 +13,7 @@ import { Route as ToolsRouteImport } from './routes/tools'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as AgentsRouteImport } from './routes/agents'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AgentsNewRouteImport } from './routes/agents.new'
 
 const ToolsRoute = ToolsRouteImport.update({
   id: '/tools',
@@ -34,37 +35,45 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AgentsNewRoute = AgentsNewRouteImport.update({
+  id: '/new',
+  path: '/new',
+  getParentRoute: () => AgentsRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/agents': typeof AgentsRoute
+  '/agents': typeof AgentsRouteWithChildren
   '/settings': typeof SettingsRoute
   '/tools': typeof ToolsRoute
+  '/agents/new': typeof AgentsNewRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/agents': typeof AgentsRoute
+  '/agents': typeof AgentsRouteWithChildren
   '/settings': typeof SettingsRoute
   '/tools': typeof ToolsRoute
+  '/agents/new': typeof AgentsNewRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/agents': typeof AgentsRoute
+  '/agents': typeof AgentsRouteWithChildren
   '/settings': typeof SettingsRoute
   '/tools': typeof ToolsRoute
+  '/agents/new': typeof AgentsNewRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/agents' | '/settings' | '/tools'
+  fullPaths: '/' | '/agents' | '/settings' | '/tools' | '/agents/new'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/agents' | '/settings' | '/tools'
-  id: '__root__' | '/' | '/agents' | '/settings' | '/tools'
+  to: '/' | '/agents' | '/settings' | '/tools' | '/agents/new'
+  id: '__root__' | '/' | '/agents' | '/settings' | '/tools' | '/agents/new'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AgentsRoute: typeof AgentsRoute
+  AgentsRoute: typeof AgentsRouteWithChildren
   SettingsRoute: typeof SettingsRoute
   ToolsRoute: typeof ToolsRoute
 }
@@ -99,12 +108,30 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/agents/new': {
+      id: '/agents/new'
+      path: '/new'
+      fullPath: '/agents/new'
+      preLoaderRoute: typeof AgentsNewRouteImport
+      parentRoute: typeof AgentsRoute
+    }
   }
 }
 
+interface AgentsRouteChildren {
+  AgentsNewRoute: typeof AgentsNewRoute
+}
+
+const AgentsRouteChildren: AgentsRouteChildren = {
+  AgentsNewRoute: AgentsNewRoute,
+}
+
+const AgentsRouteWithChildren =
+  AgentsRoute._addFileChildren(AgentsRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AgentsRoute: AgentsRoute,
+  AgentsRoute: AgentsRouteWithChildren,
   SettingsRoute: SettingsRoute,
   ToolsRoute: ToolsRoute,
 }

@@ -14,7 +14,7 @@ import { LogOut, Settings, User } from 'lucide-react'
 import { useAuth, useAuthActions } from '../../../features/auth'
 
 export interface UserNavProps {
-	Link: React.ComponentType<{ to: string; children: React.ReactNode }>
+	Link: React.ComponentType<{ to: string; children: React.ReactNode; className?: string }>
 	onSignOut?: () => void
 }
 

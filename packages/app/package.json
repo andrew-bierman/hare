@@ -6,6 +6,7 @@
 	"exports": {
 		"./app": "./src/app/index.ts",
 		"./app/*": "./src/app/*/index.ts",
+		"./providers": "./src/app/providers/index.ts",
 		"./pages": "./src/pages/index.ts",
 		"./pages/*": "./src/pages/*/index.ts",
 		"./widgets": "./src/widgets/index.ts",
