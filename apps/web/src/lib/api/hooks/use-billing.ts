@@ -74,7 +74,7 @@ export interface PaymentHistoryResponse {
 // Hooks
 // =============================================================================
 
-import { billingKeys } from 'web-app/lib/tanstack/query-keys'
+import { billingKeys } from '@hare/app/shared'
 
 /**
  * Fetch available billing plans

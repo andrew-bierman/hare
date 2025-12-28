@@ -24,6 +24,8 @@
 		"@hare/agent": "workspace:*",
 		"@hare/api": "workspace:*",
 		"@hare/app": "workspace:*",
+		"@hare/auth": "workspace:*",
+		"@hare/config": "workspace:*",
 		"@hare/tools": "workspace:*",
 		"@ai-sdk/provider": "^2.0.0",
 		"@ai-sdk/provider-utils": "^3.0.19",
