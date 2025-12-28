@@ -11,6 +11,7 @@ export type ModelProvider = 'anthropic' | 'openai' | 'workers-ai'
 export interface AIModel {
 	id: string
 	name: string
+	description: string
 	provider: ModelProvider
 	contextWindow: number
 	maxOutputTokens: number
@@ -26,6 +27,7 @@ export const AI_MODELS: AIModel[] = [
 	{
 		id: 'claude-3-5-sonnet-20241022',
 		name: 'Claude 3.5 Sonnet',
+		description: 'Best balance of speed and capability',
 		provider: 'anthropic',
 		contextWindow: 200000,
 		maxOutputTokens: 8192,
@@ -37,6 +39,7 @@ export const AI_MODELS: AIModel[] = [
 	{
 		id: 'claude-3-5-haiku-20241022',
 		name: 'Claude 3.5 Haiku',
+		description: 'Fast and efficient',
 		provider: 'anthropic',
 		contextWindow: 200000,
 		maxOutputTokens: 8192,
@@ -48,6 +51,7 @@ export const AI_MODELS: AIModel[] = [
 	{
 		id: 'claude-3-opus-20240229',
 		name: 'Claude 3 Opus',
+		description: 'Most capable reasoning',
 		provider: 'anthropic',
 		contextWindow: 200000,
 		maxOutputTokens: 4096,
@@ -59,6 +63,7 @@ export const AI_MODELS: AIModel[] = [
 	{
 		id: 'gpt-4o',
 		name: 'GPT-4o',
+		description: 'Multimodal flagship model',
 		provider: 'openai',
 		contextWindow: 128000,
 		maxOutputTokens: 16384,
@@ -70,6 +75,7 @@ export const AI_MODELS: AIModel[] = [
 	{
 		id: 'gpt-4o-mini',
 		name: 'GPT-4o Mini',
+		description: 'Fast and cost-effective',
 		provider: 'openai',
 		contextWindow: 128000,
 		maxOutputTokens: 16384,
@@ -81,6 +87,7 @@ export const AI_MODELS: AIModel[] = [
 	{
 		id: '@cf/meta/llama-3.3-70b-instruct-fp8-fast',
 		name: 'Llama 3.3 70B',
+		description: 'Most capable open model',
 		provider: 'workers-ai',
 		contextWindow: 8192,
 		maxOutputTokens: 2048,
@@ -101,23 +108,3 @@ export function getModelName(id: string): string {
 	return getModelById(id)?.name ?? id
 }
 
-// Legacy export for backwards compatibility
-export const AVAILABLE_MODELS = [
-	{
-		id: '@cf/meta/llama-3.3-70b-instruct-fp8-fast',
-		name: 'Llama 3.3 70B',
-		description: 'Most capable open model',
-	},
-	{ id: '@cf/meta/llama-3.1-8b-instruct', name: 'Llama 3.1 8B', description: 'Fast and efficient' },
-	{
-		id: '@cf/mistral/mistral-7b-instruct-v0.2',
-		name: 'Mistral 7B',
-		description: 'Excellent reasoning',
-	},
-	{
-		id: '@cf/qwen/qwen1.5-14b-chat-awq',
-		name: 'Qwen 1.5 14B',
-		description: 'Multilingual support',
-	},
-	{ id: '@cf/google/gemma-7b-it', name: 'Gemma 7B', description: 'Google open model' },
-] as const

@@ -1,6 +1,6 @@
 import { env } from 'cloudflare:test'
 import { describe, expect, it } from 'vitest'
-import { app } from 'web-app/lib/api/index'
+import { app } from '@hare/api'
 
 // Types for health response
 interface ServiceCheck {

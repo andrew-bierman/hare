@@ -15,8 +15,8 @@ import {
 	Wrench,
 } from 'lucide-react'
 import { useWorkspace } from 'web-app/components/providers/workspace-provider'
-import { DASHBOARD_CONTENT, UI_TEXT } from 'web-app/config'
-import { type Agent, AVAILABLE_MODELS, useAgents, useUsage } from 'web-app/lib/api/hooks'
+import { DASHBOARD_CONTENT, getModelName, UI_TEXT } from 'web-app/config'
+import { type Agent, useAgents, useUsage } from 'web-app/lib/api/hooks'
 
 export const Route = createFileRoute('/_dashboard/dashboard/')({
 	component: DashboardPage,
@@ -77,10 +77,6 @@ function DashboardPage() {
 		return num.toString()
 	}
 
-	const getModelName = (modelId: string) => {
-		const model = AVAILABLE_MODELS.find((m) => m.id === modelId)
-		return model?.name || modelId
-	}
 
 	const stats = [
 		{

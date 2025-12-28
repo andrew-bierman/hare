@@ -4,7 +4,7 @@
  */
 
 import type { Context, MiddlewareHandler } from 'hono'
-import type { HonoEnv } from '../api/types'
+import type { HonoEnv } from '@hare/api'
 
 /**
  * Default size limits for different content types

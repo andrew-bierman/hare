@@ -318,7 +318,7 @@ The API is built with Hono and mounted in a Next.js catch-all route for maximum 
 ```typescript
 // apps/web/src/app/api/[[...route]]/route.ts
 import { handle } from 'hono/vercel'
-import { app } from '@/lib/api'
+import { app } from '@hare/api'
 
 export const GET = handle(app)
 export const POST = handle(app)
@@ -333,7 +333,7 @@ Type-safe API calls from React components (no manual fetch calls needed!):
 ```typescript
 // apps/web/src/lib/client.ts
 import { hc } from 'hono/client'
-import type { AppType } from '@/lib/api'
+import type { AppType } from '@hare/api'
 
 export const client = hc<AppType>('/api')
 
