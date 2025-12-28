@@ -1,7 +1,6 @@
 import { createFileRoute, Outlet } from '@tanstack/react-router'
 import { Header } from 'web-app/components/layout/header'
 import { Sidebar } from 'web-app/components/layout/sidebar'
-import { AuthProvider } from 'web-app/components/providers/auth-provider'
 import { WorkspaceProvider } from 'web-app/components/providers/workspace-provider'
 
 export const Route = createFileRoute('/_dashboard')({
@@ -10,23 +9,21 @@ export const Route = createFileRoute('/_dashboard')({
 
 function DashboardLayout() {
 	return (
-		<AuthProvider>
-			<WorkspaceProvider>
-				<div className="h-screen flex bg-background">
-					{/* Sidebar */}
-					<div className="hidden md:flex md:w-72 md:flex-col md:fixed md:inset-y-0 z-50">
-						<Sidebar />
-					</div>
-
-					{/* Main content */}
-					<main className="md:pl-72 flex-1 flex flex-col min-h-screen">
-						<Header />
-						<div className="flex-1 overflow-y-auto bg-muted/20">
-							<Outlet />
-						</div>
-					</main>
+		<WorkspaceProvider>
+			<div className="h-screen flex bg-background">
+				{/* Sidebar */}
+				<div className="hidden md:flex md:w-72 md:flex-col md:fixed md:inset-y-0 z-50">
+					<Sidebar />
 				</div>
-			</WorkspaceProvider>
-		</AuthProvider>
+
+				{/* Main content */}
+				<main className="md:pl-72 flex-1 flex flex-col min-h-screen">
+					<Header />
+					<div className="flex-1 overflow-y-auto bg-muted/20">
+						<Outlet />
+					</div>
+				</main>
+			</div>
+		</WorkspaceProvider>
 	)
 }
