@@ -3,7 +3,7 @@
 import type { CreateWorkspaceInput, Workspace } from '@hare/api'
 import { apiClient } from '@hare/api/client'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { workspaceKeys } from 'web-app/lib/tanstack/query-keys'
+import { workspaceKeys } from '@hare/app/shared'
 
 // Re-export types for convenience
 export type { CreateWorkspaceInput, Workspace } from '@hare/api'

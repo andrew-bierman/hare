@@ -63,11 +63,14 @@
 	},
 	"dependencies": {
 		"@elithrar/workers-hono-rate-limit": "^0.5.1",
-		"@scalar/hono-api-reference": "^0.9.30"
+		"@hare/auth": "workspace:*",
+		"@hare/config": "workspace:*",
+		"@hare/tools": "workspace:*",
+		"@scalar/hono-api-reference": "^0.9.30",
+		"zod-to-json-schema": "^3.25.0"
 	},
 	"devDependencies": {
 		"@cloudflare/workers-types": "^4.20251224.0",
-		"@hare/app": "workspace:*",
 		"@hono/zod-openapi": "^1.2.0",
 		"@paralleldrive/cuid2": "^2.3.1",
 		"ai": "^5.0.116",

@@ -1,5 +1,6 @@
 import { useAgentQuery, useChat } from '@hare/app/shared/api'
-import { getModelName } from '@hare/app/shared/config'
+import { getModelName } from '@hare/config'
+import { ToolCallList } from '@hare/app/widgets/chat-interface'
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { Avatar, AvatarFallback } from '@workspace/ui/components/avatar'
 import { Badge } from '@workspace/ui/components/badge'
@@ -30,8 +31,7 @@ import {
 } from 'lucide-react'
 import { type FormEvent, type KeyboardEvent, useCallback, useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
-import { ToolCallList } from 'web-app/components/chat/tool-call-list'
-import { useWorkspace } from 'web-app/components/providers/workspace-provider'
+import { useWorkspace } from 'web-app/app'
 
 export const Route = createFileRoute('/_dashboard/dashboard/agents/$id/playground')({
 	component: PlaygroundPage,

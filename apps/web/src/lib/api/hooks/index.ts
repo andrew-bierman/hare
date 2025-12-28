@@ -1,42 +1,15 @@
 /**
  * API Hooks
  *
- * Re-export all hooks from a single entry point.
+ * Re-export all hooks from @hare/app package.
+ * This file exists for backward compatibility.
  */
 
-// Re-export types from @hare/api
-export type {
-	Agent,
-	AgentConfig,
-	AgentStatus,
-	AgentUsage,
-	ApiError,
-	ChatMessage,
-	ChatRequest,
-	ChatStreamEvent,
-	CreateAgentInput,
-	CreateToolInput,
-	CreateWorkspaceInput,
-	Tool,
-	ToolType,
-	UpdateAgentInput,
-	UsageSummary,
-	Workspace,
-	WorkspaceRole,
-} from '@hare/api'
-// Re-export analytics types from client (client.ts is in the package now)
-export type {
-	AgentBreakdown,
-	AnalyticsData,
-	AnalyticsParams,
-	AnalyticsSummary,
-	ModelBreakdown,
-	OAuthProviders,
-	TimeSeriesData,
-} from '@hare/api/client'
-export type { AIModel } from '@hare/app/shared/config'
+// Re-export everything from @hare/app's shared API hooks
+export * from '@hare/app/shared/api'
+
 // Re-export AI models from config for convenience
-export { AI_MODELS, getModelById, getModelName } from '@hare/app/shared/config'
+export { AI_MODELS, getModelById, getModelName, type AIModel } from '@hare/config'
 // WebSocket Agent hooks
 export {
 	type AgentMessage,

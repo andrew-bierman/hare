@@ -1,9 +1,9 @@
 import { APP_CONFIG, DASHBOARD_CONTENT } from '@hare/app/shared/config'
+import { UserNav } from '@hare/app/widgets/user-nav'
 import { Link } from '@tanstack/react-router'
 import { Button } from '@workspace/ui/components/button'
 import { Input } from '@workspace/ui/components/input'
 import { Bell, Menu, Rabbit, Search } from 'lucide-react'
-import { UserNav } from './user-nav'
 
 export function Header() {
 	return (
@@ -61,7 +61,7 @@ export function Header() {
 					</Button>
 
 					{/* User */}
-					<UserNav />
+					<UserNav Link={Link} />
 				</div>
 			</div>
 		</header>
