@@ -21,6 +21,8 @@
 			"@hare/tools/*": ["packages/hare-tools/src/*"],
 			"@hare/agent": ["packages/hare-agent/src/index.ts"],
 			"@hare/agent/*": ["packages/hare-agent/src/*"],
+			"@hare/api": ["packages/api/src/index.ts"],
+			"@hare/api/*": ["packages/api/src/*"],
 			"@hare/cli": ["packages/hare-cli/src/index.ts"]
 		},
 		"types": ["bun"]

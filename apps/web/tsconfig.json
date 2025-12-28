@@ -4,7 +4,9 @@
 		"baseUrl": ".",
 		"paths": {
 			"web-app/*": ["./src/*"],
-			"@workspace/ui/*": ["../../packages/ui/src/*"]
+			"@workspace/ui/*": ["../../packages/ui/src/*"],
+			"@hare/api": ["../../packages/api/src/index.ts"],
+			"@hare/api/*": ["../../packages/api/src/*"]
 		},
 		"types": ["bun", "vite/client"],
 		"module": "ESNext",

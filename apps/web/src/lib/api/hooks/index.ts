@@ -17,7 +17,7 @@ export type {
 	OAuthProviders,
 	TimeSeriesData,
 } from '../client'
-// Re-export types
+// Re-export types from @hare/api
 export type {
 	Agent,
 	AgentConfig,
@@ -36,7 +36,7 @@ export type {
 	UsageSummary,
 	Workspace,
 	WorkspaceRole,
-} from '../types'
+} from '@hare/api'
 // WebSocket Agent hooks
 export {
 	type AgentMessage,

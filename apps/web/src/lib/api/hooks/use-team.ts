@@ -7,7 +7,7 @@ import type {
 	SendInvitationInput,
 	WorkspaceInvitation,
 	WorkspaceMember,
-} from '../types'
+} from '@hare/api'
 
 // Re-export types for convenience
 export type { MemberRole, SendInvitationInput, WorkspaceInvitation, WorkspaceMember }

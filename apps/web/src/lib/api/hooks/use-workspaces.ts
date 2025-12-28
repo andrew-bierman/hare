@@ -2,10 +2,10 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { apiClient } from '../client'
-import type { CreateWorkspaceInput } from '../types'
+import type { CreateWorkspaceInput } from '@hare/api'
 
 // Re-export types for convenience
-export type { CreateWorkspaceInput, Workspace } from '../types'
+export type { CreateWorkspaceInput, Workspace } from '@hare/api'
 
 export function useWorkspaces() {
 	return useQuery({
