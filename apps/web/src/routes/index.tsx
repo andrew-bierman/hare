@@ -312,9 +312,13 @@ function LandingPage() {
 								{APP_CONFIG.name}
 							</span>
 						</div>
-						<nav className="flex flex-wrap justify-center gap-4 text-sm text-muted-foreground">
+						<nav className="flex flex-wrap justify-center gap-2 sm:gap-4 text-sm text-muted-foreground">
 							{NAV_ITEMS.footer.map((item) => (
-								<a key={item.href} href={item.href} className="hover:text-orange-600">
+								<a
+									key={item.href}
+									href={item.href}
+									className="hover:text-orange-600 px-2 min-h-[44px] flex items-center"
+								>
 									{item.label}
 								</a>
 							))}
