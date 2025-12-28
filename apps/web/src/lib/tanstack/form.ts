@@ -7,7 +7,7 @@
  * @see https://tanstack.com/form/latest/docs/overview
  */
 
-import { useForm, type FormApi } from '@tanstack/react-form'
+import { type FormApi, useForm } from '@tanstack/react-form'
 import { zodValidator } from '@tanstack/zod-form-adapter'
 
 /**
@@ -19,18 +19,18 @@ export type { FormApi }
 /**
  * Field error display helper
  */
-export function getFieldError(
-	field: { state: { meta: { errors?: string[] } } },
-): string | undefined {
+export function getFieldError(field: {
+	state: { meta: { errors?: string[] } }
+}): string | undefined {
 	return field.state.meta.errors?.[0]
 }
 
 /**
  * Check if a field has been touched and has errors
  */
-export function shouldShowError(
-	field: { state: { meta: { isTouched: boolean; errors?: string[] } } },
-): boolean {
+export function shouldShowError(field: {
+	state: { meta: { isTouched: boolean; errors?: string[] } }
+}): boolean {
 	return field.state.meta.isTouched && (field.state.meta.errors?.length ?? 0) > 0
 }
 

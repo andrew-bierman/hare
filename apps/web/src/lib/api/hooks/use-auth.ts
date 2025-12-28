@@ -1,7 +1,7 @@
 'use client'
 
-import { useQuery } from '@tanstack/react-query'
 import { apiClient } from '@hare/api/client'
+import { useQuery } from '@tanstack/react-query'
 import { authKeys } from 'web-app/lib/tanstack/query-keys'
 
 export type { OAuthProviders } from '@hare/api/client'

@@ -4,20 +4,35 @@
  * Reusable data table built on TanStack Table with sorting, filtering, and pagination.
  */
 
-import { useState } from 'react'
 import {
-	useReactTable,
+	type ColumnDef,
+	type ColumnFiltersState,
+	flexRender,
 	getCoreRowModel,
-	getSortedRowModel,
 	getFilteredRowModel,
 	getPaginationRowModel,
-	flexRender,
-	type ColumnDef,
-	type SortingState,
-	type ColumnFiltersState,
-	type VisibilityState,
+	getSortedRowModel,
 	type RowSelectionState,
+	type SortingState,
+	useReactTable,
+	type VisibilityState,
 } from '@tanstack/react-table'
+import { Button } from '@workspace/ui/components/button'
+import { Checkbox } from '@workspace/ui/components/checkbox'
+import {
+	DropdownMenu,
+	DropdownMenuCheckboxItem,
+	DropdownMenuContent,
+	DropdownMenuTrigger,
+} from '@workspace/ui/components/dropdown-menu'
+import { Input } from '@workspace/ui/components/input'
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from '@workspace/ui/components/select'
 import {
 	Table,
 	TableBody,
@@ -26,34 +41,19 @@ import {
 	TableHeader,
 	TableRow,
 } from '@workspace/ui/components/table'
-import { Button } from '@workspace/ui/components/button'
-import { Input } from '@workspace/ui/components/input'
+import { cn } from '@workspace/ui/lib/utils'
 import {
-	DropdownMenu,
-	DropdownMenuCheckboxItem,
-	DropdownMenuContent,
-	DropdownMenuTrigger,
-} from '@workspace/ui/components/dropdown-menu'
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from '@workspace/ui/components/select'
-import { Checkbox } from '@workspace/ui/components/checkbox'
-import {
+	ArrowDown,
+	ArrowUp,
+	ArrowUpDown,
 	ChevronLeft,
 	ChevronRight,
 	ChevronsLeft,
 	ChevronsRight,
-	ArrowUpDown,
-	ArrowUp,
-	ArrowDown,
-	Settings2,
 	Search,
+	Settings2,
 } from 'lucide-react'
-import { cn } from '@workspace/ui/lib/utils'
+import { useState } from 'react'
 
 interface DataTableProps<TData, TValue> {
 	/** Column definitions */
@@ -152,7 +152,7 @@ export function DataTable<TData, TValue>({
 					enableHiding: false,
 				},
 				...columns,
-		  ]
+			]
 		: columns
 
 	const table = useReactTable({
@@ -175,7 +175,7 @@ export function DataTable<TData, TValue>({
 			if (onSelectionChange) {
 				const selectedRows = Object.keys(newSelection)
 					.filter((key) => newSelection[key])
-					.map((key) => data[parseInt(key)])
+					.map((key) => data[parseInt(key, 10)])
 				onSelectionChange(selectedRows)
 			}
 		},
@@ -205,7 +205,7 @@ export function DataTable<TData, TValue>({
 							placeholder={searchPlaceholder}
 							value={
 								searchColumn
-									? (table.getColumn(searchColumn)?.getFilterValue() as string) ?? ''
+									? ((table.getColumn(searchColumn)?.getFilterValue() as string) ?? '')
 									: globalFilter
 							}
 							onChange={(event) => {
@@ -264,26 +264,26 @@ export function DataTable<TData, TValue>({
 							<TableRow key={headerGroup.id}>
 								{headerGroup.headers.map((header) => (
 									<TableHead key={header.id} className="whitespace-nowrap">
-										{header.isPlaceholder ? null : (
-											<div
-												className={cn(
-													'flex items-center gap-2',
-													header.column.getCanSort() && 'cursor-pointer select-none',
-												)}
+										{header.isPlaceholder ? null : header.column.getCanSort() ? (
+											<button
+												type="button"
+												className={cn('flex items-center gap-2 cursor-pointer select-none')}
 												onClick={header.column.getToggleSortingHandler()}
 											>
 												{flexRender(header.column.columnDef.header, header.getContext())}
-												{header.column.getCanSort() && (
-													<span className="text-muted-foreground">
-														{header.column.getIsSorted() === 'desc' ? (
-															<ArrowDown className="h-4 w-4" />
-														) : header.column.getIsSorted() === 'asc' ? (
-															<ArrowUp className="h-4 w-4" />
-														) : (
-															<ArrowUpDown className="h-4 w-4" />
-														)}
-													</span>
-												)}
+												<span className="text-muted-foreground">
+													{header.column.getIsSorted() === 'desc' ? (
+														<ArrowDown className="h-4 w-4" />
+													) : header.column.getIsSorted() === 'asc' ? (
+														<ArrowUp className="h-4 w-4" />
+													) : (
+														<ArrowUpDown className="h-4 w-4" />
+													)}
+												</span>
+											</button>
+										) : (
+											<div className="flex items-center gap-2">
+												{flexRender(header.column.columnDef.header, header.getContext())}
 											</div>
 										)}
 									</TableHead>
@@ -294,10 +294,7 @@ export function DataTable<TData, TValue>({
 					<TableBody>
 						{table.getRowModel().rows?.length ? (
 							table.getRowModel().rows.map((row) => (
-								<TableRow
-									key={row.id}
-									data-state={row.getIsSelected() && 'selected'}
-								>
+								<TableRow key={row.id} data-state={row.getIsSelected() && 'selected'}>
 									{row.getVisibleCells().map((cell) => (
 										<TableCell key={cell.id}>
 											{flexRender(cell.column.columnDef.cell, cell.getContext())}

@@ -1,9 +1,9 @@
 'use client'
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type { Agent, CreateAgentInput, UpdateAgentInput } from '@hare/api'
 import type { AgentPreviewInput, AgentPreviewResponse } from '@hare/api/client'
 import { apiClient } from '@hare/api/client'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { agentKeys } from 'web-app/lib/tanstack/query-keys'
 
 // Re-export types for convenience
@@ -74,9 +74,7 @@ export function useUpdateAgent(workspaceId: string | undefined) {
 			await queryClient.cancelQueries({ queryKey: agentKeys.detail(workspaceId ?? '', id) })
 
 			// Snapshot the previous value
-			const previousAgent = queryClient.getQueryData<Agent>(
-				agentKeys.detail(workspaceId ?? '', id),
-			)
+			const previousAgent = queryClient.getQueryData<Agent>(agentKeys.detail(workspaceId ?? '', id))
 
 			// Optimistically update the cache
 			if (previousAgent) {
@@ -92,10 +90,7 @@ export function useUpdateAgent(workspaceId: string | undefined) {
 		// On error, rollback to the previous value
 		onError: (_err, { id }, context) => {
 			if (context?.previousAgent) {
-				queryClient.setQueryData(
-					agentKeys.detail(workspaceId ?? '', id),
-					context.previousAgent,
-				)
+				queryClient.setQueryData(agentKeys.detail(workspaceId ?? '', id), context.previousAgent)
 			}
 		},
 		// Always refetch after success or error

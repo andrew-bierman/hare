@@ -4,12 +4,20 @@
  * Page-level components for routing.
  * Following Feature-Sliced Design, this layer contains full page components.
  *
- * These are framework-agnostic page components that can be used by any app.
- * Each app wraps them with their own route definitions.
+ * Routes in apps/web import these pages and render them.
  */
 
+// Auth pages
+export * from './auth'
+
+// Tools pages
+export * from './tools'
+
+// Settings pages
+export * from './settings'
+
+// Agents pages
+export * from './agents'
+
 // Dashboard pages
-export { DashboardHome, type DashboardHomeProps } from './dashboard/dashboard-home'
-export { AgentsPage, type AgentsPageProps } from './dashboard/agents-page'
-export { ToolsPage, type ToolsPageProps } from './dashboard/tools-page'
-export { SettingsPage, type SettingsPageProps } from './dashboard/settings-page'
+export * from './dashboard'

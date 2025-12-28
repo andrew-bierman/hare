@@ -4,18 +4,30 @@
  * Business domain entities for the application.
  * Following Feature-Sliced Design, this layer contains:
  * - Agent: AI agent configuration and management
- * - Workspace: Workspace/team management
- * - Tool: Agent tool definitions
- * - User: User accounts and profiles (via auth)
- * - Schedule: Scheduled agent tasks
  * - ApiKey: API key management
+ * - Tool: Agent tool definitions
+ * - Usage: Usage statistics
+ * - User: User accounts and profiles
+ * - Workspace: Workspace/team management
+ *
+ * Note: Analytics, Billing, Conversation, and Schedule are in the features layer
+ * as they contain user-facing functionality rather than pure data models.
  */
 
 // Agent entity
 export * from './agent'
 
-// Workspace entity
-export * from './workspace'
+// API Key entity
+export * from './api-key'
 
 // Tool entity
 export * from './tool'
+
+// Usage entity
+export * from './usage'
+
+// User entity
+export * from './user'
+
+// Workspace entity
+export * from './workspace'

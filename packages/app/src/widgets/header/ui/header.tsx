@@ -3,7 +3,7 @@
 import { Button } from '@workspace/ui/components/button'
 import { Input } from '@workspace/ui/components/input'
 import { Bell, Menu, Rabbit, Search } from 'lucide-react'
-import { APP_CONFIG, DASHBOARD_CONTENT } from '@shared/config'
+import { APP_CONFIG, DASHBOARD_CONTENT } from '../../../shared/config'
 
 export interface HeaderProps {
 	Link: React.ComponentType<{ to: string; className?: string; children: React.ReactNode }>

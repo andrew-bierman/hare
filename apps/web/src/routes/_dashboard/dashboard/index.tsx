@@ -1,18 +1,6 @@
-import { DashboardHome } from '@hare/app/pages'
-import { createFileRoute, Link } from '@tanstack/react-router'
+import { DashboardPage } from '@hare/app/pages'
+import { createFileRoute } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/_dashboard/dashboard/')({
-	component: DashboardPageWrapper,
+	component: DashboardPage,
 })
-
-function DashboardPageWrapper() {
-	return (
-		<DashboardHome
-			renderLink={({ to, children, className }) => (
-				<Link to={to} className={className}>
-					{children}
-				</Link>
-			)}
-		/>
-	)
-}
