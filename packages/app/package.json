@@ -1,0 +1,39 @@
+{
+	"name": "@hare/app",
+	"version": "0.1.0",
+	"private": true,
+	"type": "module",
+	"exports": {
+		"./app": "./src/app/index.ts",
+		"./app/*": "./src/app/*/index.ts",
+		"./pages": "./src/pages/index.ts",
+		"./pages/*": "./src/pages/*/index.ts",
+		"./widgets": "./src/widgets/index.ts",
+		"./widgets/*": "./src/widgets/*/index.ts",
+		"./features": "./src/features/index.ts",
+		"./features/*": "./src/features/*/index.ts",
+		"./entities": "./src/entities/index.ts",
+		"./entities/*": "./src/entities/*/index.ts",
+		"./shared": "./src/shared/index.ts",
+		"./shared/*": "./src/shared/*/index.ts"
+	},
+	"dependencies": {
+		"@tanstack/react-query": "^5.90.12",
+		"@tanstack/react-query-devtools": "^5.91.1",
+		"@workspace/ui": "workspace:*",
+		"lucide-react": "^0.562.0",
+		"react": "19.2.3",
+		"react-dom": "19.2.3",
+		"zod": "^4.2.1"
+	},
+	"devDependencies": {
+		"@types/react": "^19",
+		"@types/react-dom": "^19",
+		"@workspace/typescript-config": "workspace:*",
+		"typescript": "^5"
+	},
+	"peerDependencies": {
+		"@tanstack/react-router": "^1.120.5",
+		"hono": "^4.11.3"
+	}
+}
