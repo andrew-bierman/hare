@@ -1,6 +1,8 @@
 import type { z } from '@hono/zod-openapi'
 import type { InferSelectModel } from 'drizzle-orm'
 import type { tools } from 'web-app/db/schema'
+import type { AnyTool } from '@hare/tools'
+import { zodToJsonSchema } from 'zod-to-json-schema'
 import type { ToolSchema, ToolTypeSchema } from '../schemas'
 
 type ToolRow = InferSelectModel<typeof tools>
@@ -83,4 +85,96 @@ export function serializeSystemTool(tool: SystemToolDefinition): SerializedTool 
 		createdAt: now,
 		updatedAt: now,
 	}
+}
+
+/**
+ * Get the tool type from a tool ID.
+ * Maps tool IDs to their category types.
+ */
+function getToolTypeFromId(toolId: string): ToolType {
+	// Map tool IDs to their types based on prefix/pattern
+	if (toolId.startsWith('kv_')) return 'kv' as ToolType
+	if (toolId.startsWith('r2_')) return 'r2' as ToolType
+	if (toolId.startsWith('sql_')) return 'sql' as ToolType
+	if (toolId.startsWith('http_') || toolId === 'http_request') return 'http' as ToolType
+	if (toolId.startsWith('ai_search')) return 'search' as ToolType
+	if (toolId.startsWith('validate_')) return toolId as ToolType
+	if (toolId.startsWith('code_') || toolId === 'sandbox_file') return toolId as ToolType
+	// For other tools, the ID is typically the type
+	return toolId as ToolType
+}
+
+/**
+ * Convert a Zod schema to a simplified input schema for API response.
+ * Extracts properties from the JSON Schema.
+ */
+function zodSchemaToInputSchema(zodSchema: unknown): InputSchema {
+	try {
+		// biome-ignore lint/suspicious/noExplicitAny: zod-to-json-schema types differ between Zod versions
+		const jsonSchema = zodToJsonSchema(zodSchema as any, { $refStrategy: 'none' })
+		// Extract properties from the JSON Schema
+		if (
+			typeof jsonSchema === 'object' &&
+			jsonSchema !== null &&
+			'properties' in jsonSchema &&
+			typeof jsonSchema.properties === 'object'
+		) {
+			const result: InputSchema = {}
+			for (const [key, value] of Object.entries(jsonSchema.properties || {})) {
+				if (typeof value === 'object' && value !== null) {
+					const prop = value as Record<string, unknown>
+					result[key] = {
+						type: (prop.type as string) || 'string',
+						description: prop.description as string | undefined,
+						enum: prop.enum as string[] | undefined,
+						optional: !(
+							'required' in jsonSchema &&
+							Array.isArray(jsonSchema.required) &&
+							jsonSchema.required.includes(key)
+						),
+					}
+				}
+			}
+			return result
+		}
+		return {}
+	} catch {
+		return {}
+	}
+}
+
+/**
+ * Generate a human-readable name from a tool ID.
+ */
+function generateToolName(toolId: string): string {
+	return toolId
+		.split('_')
+		.map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+		.join(' ')
+}
+
+/**
+ * Serialize a @hare/tools tool to API response format.
+ * Converts Zod schemas to JSON Schema for the API.
+ */
+export function serializeHareTool(tool: AnyTool): SerializedTool {
+	const now = new Date().toISOString()
+	return {
+		id: tool.id,
+		name: generateToolName(tool.id),
+		description: tool.description,
+		type: getToolTypeFromId(tool.id),
+		inputSchema: zodSchemaToInputSchema(tool.inputSchema),
+		config: undefined,
+		isSystem: true,
+		createdAt: now,
+		updatedAt: now,
+	}
+}
+
+/**
+ * Serialize multiple @hare/tools tools to API response format.
+ */
+export function serializeHareTools(tools: AnyTool[]): SerializedTool[] {
+	return tools.map(serializeHareTool)
 }
