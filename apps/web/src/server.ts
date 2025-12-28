@@ -7,8 +7,8 @@
  * - Exports Durable Object classes for Cloudflare Workers
  */
 
+import { app } from '@hare/api'
 import tanstackHandler from '@tanstack/react-start/server-entry'
-import { app } from './lib/api'
 
 // Combined fetch handler
 const handler: ExportedHandler<CloudflareEnv> = {

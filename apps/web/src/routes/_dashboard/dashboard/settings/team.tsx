@@ -45,7 +45,7 @@ import {
 	type WorkspaceInvitation,
 	type WorkspaceMember,
 } from 'web-app/lib/api/hooks'
-import type { WorkspaceRole } from 'web-app/lib/api/types'
+import type { WorkspaceRole } from '@hare/api'
 
 export const Route = createFileRoute('/_dashboard/dashboard/settings/team')({
 	component: TeamSettingsPage,

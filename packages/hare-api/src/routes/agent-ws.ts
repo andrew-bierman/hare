@@ -9,7 +9,7 @@ import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
 import { and, eq } from 'drizzle-orm'
 import { agents, workspaceMembers } from 'web-app/db/schema'
 import { isWebSocketRequest, routeHttpToAgent, routeWebSocketToAgent } from 'web-app/lib/agents'
-import { getCloudflareEnv, getDb } from '../db'
+import { type Database, getCloudflareEnv, getDb } from '../db'
 import { optionalAuthMiddleware } from '../middleware'
 import { ErrorSchema, IdParamSchema } from '../schemas'
 import type { OptionalAuthEnv } from '../types'
@@ -19,7 +19,7 @@ import type { OptionalAuthEnv } from '../types'
  * Returns true if the user is a member of the workspace.
  */
 async function hasWorkspaceAccess(
-	db: ReturnType<typeof import('../db').getDb> extends Promise<infer T> ? T : never,
+	db: Database,
 	userId: string,
 	workspaceId: string,
 ): Promise<boolean> {
@@ -34,7 +34,7 @@ async function hasWorkspaceAccess(
  * Check if a user has write access to a workspace (owner, admin, or member).
  */
 async function hasWorkspaceWriteAccess(
-	db: ReturnType<typeof import('../db').getDb> extends Promise<infer T> ? T : never,
+	db: Database,
 	userId: string,
 	workspaceId: string,
 ): Promise<boolean> {
