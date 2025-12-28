@@ -2,9 +2,17 @@ import { createFileRoute, Outlet } from '@tanstack/react-router'
 import { Header } from 'web-app/components/layout/header'
 import { Sidebar } from 'web-app/components/layout/sidebar'
 import { WorkspaceProvider } from 'web-app/components/providers/workspace-provider'
+import {
+	DashboardErrorComponent,
+	DashboardNotFound,
+	DashboardPendingComponent,
+} from 'web-app/components/router'
 
 export const Route = createFileRoute('/_dashboard')({
 	component: DashboardLayout,
+	errorComponent: DashboardErrorComponent,
+	notFoundComponent: DashboardNotFound,
+	pendingComponent: DashboardPendingComponent,
 })
 
 function DashboardLayout() {
