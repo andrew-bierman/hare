@@ -21,7 +21,17 @@ import {
 import { Textarea } from '@workspace/ui/components/textarea'
 import { type ChangeEvent, useState } from 'react'
 import { toast } from 'sonner'
-import { TOOL_TYPES, type ToolType, useCreateTool } from 'web-app/entities/tool'
+import { useCreateTool } from '@entities/tool'
+
+const TOOL_TYPES = [
+	{ value: 'http', label: 'HTTP', description: 'Call external APIs' },
+	{ value: 'sql', label: 'SQL', description: 'Query databases' },
+	{ value: 'kv', label: 'KV Store', description: 'Key-value storage' },
+	{ value: 'r2', label: 'R2 Storage', description: 'Object storage' },
+	{ value: 'custom', label: 'Custom', description: 'Custom tool logic' },
+] as const
+
+type ToolType = (typeof TOOL_TYPES)[number]['value']
 
 interface CreateToolDialogProps {
 	workspaceId: string | undefined

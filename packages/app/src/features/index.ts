@@ -9,6 +9,7 @@
  * - billing: Subscription and payment management
  * - team: Workspace team management
  * - schedules: Scheduled task management
+ * - create-tool: Tool creation and deletion
  */
 
 // Auth feature
@@ -28,3 +29,6 @@ export * from './team'
 
 // Schedules feature
 export * from './schedules'
+
+// Create Tool feature
+export * from './create-tool'
