@@ -24,12 +24,8 @@ baseTest.describe('Tools Page - Unauthenticated', () => {
 	})
 
 	baseTest('page has content', async ({ page }: { page: Page }) => {
-		// Wait for loading to complete
-		await page.waitForTimeout(1000)
-		// Page should have either tools section or some content
-		const pageContent = await page.locator('body').textContent()
-		expect(pageContent).toBeTruthy()
-		// Should not show 404
+		// Wait for page to load and verify no 404
+		await expect(page.getByRole('heading', { name: 'Tools', exact: true })).toBeVisible()
 		await expect(page.locator('body')).not.toContainText('404')
 	})
 })

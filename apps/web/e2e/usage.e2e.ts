@@ -12,10 +12,7 @@ baseTest.describe('Usage Page - Unauthenticated', () => {
 	})
 
 	baseTest('displays stat cards', async ({ page }: { page: Page }) => {
-		// Wait for loading to complete
-		await page.waitForTimeout(1000)
-
-		// Check for stat card titles
+		// Wait for stat cards to load
 		await expect(page.getByText('Total API Calls')).toBeVisible()
 		await expect(page.getByText('Total Tokens')).toBeVisible()
 		await expect(page.getByText('Active Agents')).toBeVisible()
@@ -45,8 +42,8 @@ baseTest.describe('Usage Page - Stat Cards', () => {
 	baseTest.beforeEach(async ({ page }: { page: Page }) => {
 		await page.goto('/dashboard/usage')
 		await page.waitForLoadState('networkidle')
-		// Wait for loading to complete
-		await page.waitForTimeout(1000)
+		// Wait for stat cards to load
+		await expect(page.getByText('Total API Calls')).toBeVisible()
 	})
 
 	baseTest('total api calls card shows billing period description', async ({
@@ -66,7 +63,8 @@ baseTest.describe('Usage Page - Token Breakdown', () => {
 	baseTest.beforeEach(async ({ page }: { page: Page }) => {
 		await page.goto('/dashboard/usage')
 		await page.waitForLoadState('networkidle')
-		await page.waitForTimeout(1000)
+		// Wait for token breakdown section to load
+		await expect(page.getByText('Token Breakdown')).toBeVisible()
 	})
 
 	baseTest('shows input tokens section', async ({ page }: { page: Page }) => {
@@ -84,7 +82,8 @@ baseTest.describe('Usage Page - Usage by Agent', () => {
 	baseTest.beforeEach(async ({ page }: { page: Page }) => {
 		await page.goto('/dashboard/usage')
 		await page.waitForLoadState('networkidle')
-		await page.waitForTimeout(1000)
+		// Wait for usage by agent section to load
+		await expect(page.getByText('Usage by Agent')).toBeVisible()
 	})
 
 	baseTest('shows empty state when no deployed agents', async ({ page }: { page: Page }) => {

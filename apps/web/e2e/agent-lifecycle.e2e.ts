@@ -31,8 +31,10 @@ baseTest.describe('Agent Lifecycle - Agents List Page', () => {
 	})
 
 	baseTest('shows empty state when no agents', async ({ page }: { page: Page }) => {
-		// Wait for loading to complete
-		await page.waitForTimeout(1000)
+		// Wait for page content to load (either agents list or empty state)
+		await expect(
+			page.getByText('Create your first agent').or(page.locator('[class*="card"]').first()),
+		).toBeVisible()
 
 		// Either shows agents list or empty state
 		const emptyState = page.getByText('Create your first agent')
@@ -129,8 +131,8 @@ baseTest.describe('Agent Lifecycle - Model Selection', () => {
 		const modelSelect = page.getByLabel('Model *')
 		await modelSelect.click()
 
-		// Wait for dropdown to open
-		await page.waitForTimeout(300)
+		// Wait for dropdown options to become visible
+		await expect(page.locator('[role="option"]').first()).toBeVisible()
 
 		// Should show model options
 		const options = page.locator('[role="option"]')
@@ -204,14 +206,8 @@ test.describe('Agent Lifecycle - Authenticated User Flow', () => {
 		await expect(createButton).toBeEnabled()
 		await createButton.click()
 
-		// Wait for navigation or success
-		await authenticatedPage.waitForTimeout(2000)
-
-		// Should navigate to agent detail or stay on form with success
-		const currentUrl = authenticatedPage.url()
-		expect(
-			currentUrl.includes('/dashboard/agents/') || currentUrl.includes('/dashboard/agents/new'),
-		).toBeTruthy()
+		// Wait for navigation to agent detail page or success toast
+		await expect(authenticatedPage).toHaveURL(/\/dashboard\/agents/)
 	})
 
 	test('authenticated user can search agents', async ({ authenticatedPage }) => {
