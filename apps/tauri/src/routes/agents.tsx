@@ -14,7 +14,7 @@ function AgentsPageWrapper() {
 				</Link>
 			)}
 			routes={{
-				newAgent: '/agents', // TODO: Add /agents/new route
+				newAgent: '/agents/new',
 				agentDetail: (_id) => `/agents`, // TODO: Add /agents/$id route
 			}}
 		/>

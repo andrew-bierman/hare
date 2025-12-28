@@ -18,6 +18,7 @@
 		"upload": "bun run --cwd apps/web upload",
 		"tauri:dev": "bun run --cwd apps/tauri tauri:dev",
 		"tauri:build": "bun run --cwd apps/tauri tauri:build",
+		"tauri:sync-routes": "bun run scripts/sync-tauri-routes.ts",
 		"lint": "biome lint .",
 		"lint:fix": "biome lint --write .",
 		"format": "biome format --write .",

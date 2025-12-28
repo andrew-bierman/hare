@@ -11,5 +11,6 @@
 // Dashboard pages
 export { DashboardHome, type DashboardHomeProps } from './dashboard/dashboard-home'
 export { AgentsPage, type AgentsPageProps } from './dashboard/agents-page'
+export { NewAgentPage, type NewAgentPageProps } from './dashboard/new-agent-page'
 export { ToolsPage, type ToolsPageProps } from './dashboard/tools-page'
 export { SettingsPage, type SettingsPageProps } from './dashboard/settings-page'
