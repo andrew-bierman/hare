@@ -1,6 +1,6 @@
 import { Header, Sidebar, UserNav, WorkspaceSwitcher } from '@hare/app/widgets'
 import { createFileRoute, Link, Outlet, useLocation } from '@tanstack/react-router'
-import { WorkspaceProvider } from 'web-app/components/providers/workspace-provider'
+import { WorkspaceProvider } from 'web-app/app'
 import {
 	DashboardErrorComponent,
 	DashboardNotFound,
@@ -15,8 +15,7 @@ export const Route = createFileRoute('/_dashboard')({
 })
 
 function DashboardLayout() {
-	const location = useLocation()
-	const pathname = location.pathname
+	const { pathname } = useLocation()
 
 	return (
 		<WorkspaceProvider>

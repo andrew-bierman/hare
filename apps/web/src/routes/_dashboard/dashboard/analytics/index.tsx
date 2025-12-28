@@ -33,7 +33,7 @@ import {
 	XAxis,
 	YAxis,
 } from 'recharts'
-import { useWorkspace } from 'web-app/components/providers/workspace-provider'
+import { useWorkspace } from 'web-app/app'
 import { type Agent, useAgents, useAnalytics } from 'web-app/lib/api/hooks'
 import { exportToCSV, exportToJSON } from '@hare/app/shared'
 

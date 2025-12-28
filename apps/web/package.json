@@ -23,6 +23,7 @@
 	"dependencies": {
 		"@hare/agent": "workspace:*",
 		"@hare/api": "workspace:*",
+		"@hare/app": "workspace:*",
 		"@hare/auth": "workspace:*",
 		"@hare/config": "workspace:*",
 		"@hare/tools": "workspace:*",

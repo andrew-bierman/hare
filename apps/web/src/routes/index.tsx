@@ -25,7 +25,7 @@ import {
 	Terminal,
 	Zap,
 } from 'lucide-react'
-import { useAuth } from 'web-app/components/providers/auth-provider'
+import { useAuth } from 'web-app/app'
 
 export const Route = createFileRoute('/')({
 	component: LandingPage,
