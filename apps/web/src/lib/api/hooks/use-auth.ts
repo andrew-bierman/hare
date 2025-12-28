@@ -1,7 +1,8 @@
 'use client'
 
-import { apiClient } from '@hare/api/client'
 import { useQuery } from '@tanstack/react-query'
+import { apiClient } from '@hare/api/client'
+import { authKeys } from 'web-app/lib/tanstack/query-keys'
 
 export type { OAuthProviders } from '@hare/api/client'
 
@@ -10,7 +11,7 @@ const AUTH_PROVIDER_CACHE_TTL_MS = 1000 * 60 * 60
 
 export function useOAuthProviders() {
 	return useQuery({
-		queryKey: ['auth', 'providers'],
+		queryKey: authKeys.providers(),
 		queryFn: async () => {
 			const result = await apiClient.auth.getProviders()
 			return result.providers

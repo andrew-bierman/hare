@@ -16,6 +16,8 @@
 		"preview": "bun run --cwd apps/web preview",
 		"deploy": "bun run --cwd apps/web deploy",
 		"upload": "bun run --cwd apps/web upload",
+		"tauri:dev": "bun run --cwd apps/tauri tauri:dev",
+		"tauri:build": "bun run --cwd apps/tauri tauri:build",
 		"lint": "biome lint .",
 		"lint:fix": "biome lint --write .",
 		"format": "biome format --write .",
@@ -54,5 +56,9 @@
 		"typescript": "^5.9.3",
 		"vitest": "^3.2.4",
 		"wrangler": "^4.56.0"
+	},
+	"dependencies": {
+		"@tanstack/react-table": "^8.21.3",
+		"@tanstack/react-virtual": "^3.13.13"
 	}
 }
