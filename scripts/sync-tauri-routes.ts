@@ -1,17 +1,20 @@
 #!/usr/bin/env bun
 /**
- * Sync Routes from Web to Tauri
+ * Sync Web to Tauri
  *
- * This script analyzes web routes and generates corresponding Tauri route wrappers.
- * It detects routes using shared @hare/app/pages components and creates thin wrappers.
+ * Syncs routes, config, and other files from web app to Tauri.
+ * Tauri is essentially web in SPA mode with adjusted imports.
  *
  * Usage:
- *   bun run scripts/sync-tauri-routes.ts [--dry-run] [--verbose] [--force]
+ *   bun run scripts/sync-tauri-routes.ts [--dry-run] [--verbose] [--force] [--routes] [--config] [--all]
  *
  * Options:
  *   --dry-run   Preview changes without writing files
  *   --verbose   Show detailed output
- *   --force     Overwrite existing Tauri routes
+ *   --force     Overwrite existing files
+ *   --routes    Sync routes only
+ *   --config    Sync vite config aliases only
+ *   --all       Sync everything (default)
  */
 
 import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from 'fs'

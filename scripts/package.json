@@ -6,7 +6,8 @@
 	"scripts": {
 		"env": "bun run env.ts",
 		"checks": "bun run checks.ts",
-		"deps": "bun run deps.ts"
+		"deps": "bun run deps.ts",
+		"sync-tauri": "bun run sync-tauri.ts"
 	},
 	"dependencies": {
 		"fs-extra": "^11.2.0",
