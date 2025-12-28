@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { Radix, Timeouts, ValidationLimits } from './constants'
 import { createTool, success, type ToolContext } from './types'
 
 /**
@@ -71,13 +72,13 @@ export const validateEmailTool = createTool({
 			}
 
 			// Length checks
-			if (result.localPart.length > 64) {
+			if (result.localPart.length > ValidationLimits.EMAIL_LOCAL_PART_MAX) {
 				result.valid = false
-				result.errors.push('Local part too long (max 64 characters)')
+				result.errors.push(`Local part too long (max ${ValidationLimits.EMAIL_LOCAL_PART_MAX} characters)`)
 			}
-			if (result.domain.length > 255) {
+			if (result.domain.length > ValidationLimits.EMAIL_DOMAIN_MAX) {
 				result.valid = false
-				result.errors.push('Domain too long (max 255 characters)')
+				result.errors.push(`Domain too long (max ${ValidationLimits.EMAIL_DOMAIN_MAX} characters)`)
 			}
 
 			// Check domain has at least one dot
@@ -136,12 +137,12 @@ export const validatePhoneTool = createTool({
 		}
 
 		// Basic length validation
-		if (digitsOnly.length < 7) {
+		if (digitsOnly.length < ValidationLimits.PHONE_MIN_DIGITS) {
 			result.valid = false
-			result.errors.push('Phone number too short (min 7 digits)')
-		} else if (digitsOnly.length > 15) {
+			result.errors.push(`Phone number too short (min ${ValidationLimits.PHONE_MIN_DIGITS} digits)`)
+		} else if (digitsOnly.length > ValidationLimits.PHONE_MAX_DIGITS) {
 			result.valid = false
-			result.errors.push('Phone number too long (max 15 digits)')
+			result.errors.push(`Phone number too long (max ${ValidationLimits.PHONE_MAX_DIGITS} digits)`)
 		}
 
 		// Country-specific validation
@@ -218,7 +219,11 @@ export const validateUrlTool = createTool({
 			.optional()
 			.default(false)
 			.describe('Check if URL is reachable (HEAD request)'),
-		timeout: z.number().optional().default(5000).describe('Timeout for reachability check'),
+		timeout: z
+			.number()
+			.optional()
+			.default(Timeouts.URL_REACHABILITY)
+			.describe('Timeout for reachability check'),
 	}),
 	execute: async (params, _context) => {
 		const { url, allowedProtocols, checkReachable, timeout } = params
@@ -376,7 +381,7 @@ export const validateCreditCardTool = createTool({
 		for (let i = cleaned.length - 1; i >= 0; i--) {
 			const char = cleaned[i]
 			if (!char) continue
-			let digit = parseInt(char, 10)
+			let digit = parseInt(char, Radix.DECIMAL)
 
 			if (isEven) {
 				digit *= 2
@@ -599,7 +604,7 @@ export const validateJsonTool = createTool({
 				const posMatch = error.message.match(/position (\d+)/)
 				const posStr = posMatch?.[1]
 				if (posStr) {
-					const pos = parseInt(posStr, 10)
+					const pos = parseInt(posStr, Radix.DECIMAL)
 					const lines = json.substring(0, pos).split('\n')
 					const lastLine = lines[lines.length - 1]
 					result.position = {
