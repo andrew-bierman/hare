@@ -1,8 +1,8 @@
 /**
- * API Schemas - Re-export from organized modules
+ * API Schemas - Re-export from @hare/api
  *
- * @deprecated Import from 'web-app/lib/api/schemas' directory instead
+ * @deprecated Import from '@hare/api' or '@hare/api/schemas' instead
  * This file exists for backwards compatibility.
  */
 
-export * from './schemas/index'
+export * from '@hare/api/schemas'

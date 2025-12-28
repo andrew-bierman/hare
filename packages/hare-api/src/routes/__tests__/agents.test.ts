@@ -1,12 +1,11 @@
 import { env } from 'cloudflare:test'
 import { beforeAll, describe, expect, it } from 'vitest'
 import { app } from 'web-app/lib/api/index'
+import { applyMigrations } from './setup'
 
 // Apply D1 migrations before tests
-// NOTE: File system access doesn't work in Cloudflare Workers test environment
-// These tests only check authentication which doesn't require migrations
 beforeAll(async () => {
-	// Migration loading skipped - tests only verify auth responses
+	await applyMigrations(env.DB)
 })
 
 describe('Agents API', () => {
@@ -27,7 +26,7 @@ describe('Agents API', () => {
 					headers: { 'Content-Type': 'application/json' },
 					body: JSON.stringify({
 						name: 'Test Agent',
-						model: 'llama-3.3-70b-instruct',
+						model: '@cf/meta/llama-3.3-70b-instruct-fp8-fast',
 						instructions: 'You are a helpful assistant.',
 					}),
 				},

@@ -1,13 +1,13 @@
 'use client'
 
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { apiClient } from '@hare/api/client'
 import type {
 	MemberRole,
 	SendInvitationInput,
 	WorkspaceInvitation,
 	WorkspaceMember,
 } from '@hare/api'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { apiClient } from '../client'
 
 // Re-export types for convenience
 export type {

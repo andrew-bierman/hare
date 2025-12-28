@@ -1,0 +1,22 @@
+{
+	"extends": "@workspace/typescript-config/react-library.json",
+	"compilerOptions": {
+		"baseUrl": ".",
+		"paths": {
+			"@app/*": ["./src/app/*"],
+			"@pages/*": ["./src/pages/*"],
+			"@widgets/*": ["./src/widgets/*"],
+			"@features/*": ["./src/features/*"],
+			"@entities/*": ["./src/entities/*"],
+			"@shared/*": ["./src/shared/*"],
+			"@workspace/ui/*": ["../ui/src/*"],
+			"@workspace/ui": ["../ui/src/index.ts"]
+		},
+		"module": "ESNext",
+		"moduleResolution": "Bundler",
+		"jsx": "react-jsx",
+		"noEmit": true
+	},
+	"include": ["src/**/*.ts", "src/**/*.tsx"],
+	"exclude": ["node_modules", "dist"]
+}

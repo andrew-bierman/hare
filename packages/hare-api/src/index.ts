@@ -1,3 +1,20 @@
+/**
+ * @hare/api - Hono API for Hare AI agents platform
+ *
+ * This package provides the complete API for the Hare platform,
+ * built on Hono with OpenAPI support.
+ *
+ * @example
+ * ```ts
+ * import { app } from '@hare/api'
+ *
+ * // Use in Cloudflare Workers
+ * export default {
+ *   fetch: app.fetch
+ * }
+ * ```
+ */
+
 import { OpenAPIHono } from '@hono/zod-openapi'
 import { apiReference } from '@scalar/hono-api-reference'
 import { getRouterName, showRoutes } from 'hono/dev'
@@ -29,6 +46,10 @@ import webhooksRoutes from './routes/webhooks'
 import workspaceMembers from './routes/workspace-members'
 import workspaces from './routes/workspaces'
 import type { HonoEnv } from './types'
+
+// =============================================================================
+// APP CREATION
+// =============================================================================
 
 // Create base app with proper Cloudflare bindings type
 const app = new OpenAPIHono<HonoEnv>().basePath('/api')
@@ -132,107 +153,89 @@ if (serverEnv.NODE_ENV === 'development') {
 	console.log('')
 }
 
-// Export the chained routes type for RPC client
-export type AppType = typeof routes
+// =============================================================================
+// EXPORTS
+// =============================================================================
+
+// Main app export
 export { app }
 
-// Re-export types for client consumption
+// Type for RPC client
+export type AppType = typeof routes
+
+// Re-export types
 export type {
-	// Hono environment types
-	HonoEnv,
-	AuthEnv,
-	WorkspaceEnv,
-	ApiKeyEnv,
-	OptionalAuthEnv,
-	AuthUser,
-	AuthSession,
-	AuthVariables,
-	ApiKeyInfo,
-	ApiKeyVariables,
-	WorkspaceInfo,
-	WorkspaceVariables,
-	// Enums
-	WorkspaceRole,
-	MessageRole,
-	AgentStatus,
-	ScheduleType,
-	ScheduleStatus,
-	ExecutionStatus,
-	MemberRole,
-	InvitationStatus,
-	// Domain types
 	Agent,
 	AgentConfig,
-	CreateAgentInput,
-	UpdateAgentInput,
-	Tool,
-	ToolType,
-	CreateToolInput,
-	Workspace,
-	CreateWorkspaceInput,
-	UsageSummary,
+	AgentStatus,
 	AgentUsage,
+	ApiError,
+	ApiKeyEnv,
+	ApiKeyInfo,
+	ApiKeyVariables,
+	ApiSuccess,
+	AuthEnv,
+	AuthSession,
+	AuthUser,
+	AuthVariables,
 	ChatMessage,
 	ChatRequest,
 	ChatStreamEvent,
-	Schedule,
+	CreateAgentInput,
 	CreateScheduleInput,
-	UpdateScheduleInput,
-	ScheduleExecution,
+	CreateToolInput,
+	CreateWorkspaceInput,
 	ExecutionResult,
+	ExecutionStatus,
+	HonoEnv,
+	InvitationStatus,
+	MemberRole,
+	MessageRole,
+	OptionalAuthEnv,
+	Schedule,
+	ScheduleExecution,
+	ScheduleStatus,
+	ScheduleType,
+	SendInvitationInput,
+	Tool,
+	ToolType,
+	UpdateAgentInput,
+	UpdateMemberRoleInput,
+	UpdateScheduleInput,
+	UsageSummary,
+	Workspace,
+	WorkspaceEnv,
+	WorkspaceInfo,
 	WorkspaceMember,
 	WorkspaceInvitation,
-	SendInvitationInput,
-	UpdateMemberRoleInput,
-	ApiError,
-	ApiSuccess,
+	WorkspaceRole,
+	WorkspaceVariables,
 } from './types'
 
-// Re-export schemas for runtime validation
+// Re-export type guards
+export { isMessageRole, isWorkspaceRole } from './types'
+
+// Re-export schemas
+export * from './schemas'
+
+// Re-export middleware
 export {
-	AuthUserSchema,
-	AuthSessionSchema,
-	AuthVariablesSchema,
-	ApiKeyInfoSchema,
-	ApiKeyVariablesSchema,
-	ApiKeyPermissionsSchema,
-	WorkspaceInfoSchema,
-	WorkspaceRoleSchema,
-	MessageRoleSchema,
-	AgentStatusSchema,
-	AgentConfigSchema,
-	AgentSchema,
-	CreateAgentInputSchema,
-	UpdateAgentInputSchema,
-	ToolTypeSchema,
-	ToolSchema,
-	CreateToolInputSchema,
-	WorkspaceSchema,
-	CreateWorkspaceInputSchema,
-	UsageSummarySchema,
-	AgentUsageSchema,
-	ChatMessageSchema,
-	ChatRequestSchema,
-	ChatStreamEventSchema,
-	ScheduleTypeSchema,
-	ScheduleStatusSchema,
-	ExecutionStatusSchema,
-	ScheduleSchema,
-	CreateScheduleInputSchema,
-	UpdateScheduleInputSchema,
-	ExecutionResultSchema,
-	ScheduleExecutionSchema,
-	MemberRoleSchema,
-	InvitationStatusSchema,
-	WorkspaceMemberSchema,
-	WorkspaceInvitationSchema,
-	SendInvitationInputSchema,
-	UpdateMemberRoleInputSchema,
-	ApiErrorSchema,
-	ApiSuccessSchema,
-	// Validation helpers
-	isWorkspaceRole,
-	assertWorkspaceRole,
-	isMessageRole,
-	assertMessageRole,
-} from './types'
+	apiKeyMiddleware,
+	authMiddleware,
+	corsMiddleware,
+	generateApiKey,
+	hasAgentAccess,
+	hasPermission,
+	hasScope,
+	loggingMiddleware,
+	optionalAuthMiddleware,
+	requirePermission,
+	securityHeadersMiddleware,
+	workspaceMiddleware,
+} from './middleware'
+
+// Re-export helpers
+export { acceptsJson, acceptsSSE } from './helpers'
+
+// Re-export db utilities
+export { CloudflareEnvError, getCloudflareEnv, getD1, getDb } from './db'

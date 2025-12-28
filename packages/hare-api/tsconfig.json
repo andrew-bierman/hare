@@ -1,15 +1,8 @@
 {
-	"extends": "@workspace/typescript-config/base.json",
+	"extends": "../../tsconfig.json",
 	"compilerOptions": {
-		"baseUrl": ".",
-		"paths": {
-			"web-app/*": ["../../apps/web/src/*"]
-		},
-		"types": ["@cloudflare/workers-types"],
-		"module": "ESNext",
-		"moduleResolution": "Bundler",
-		"noEmit": true
+		"types": ["@cloudflare/workers-types"]
 	},
 	"include": ["src/**/*.ts"],
-	"exclude": ["node_modules"]
+	"exclude": ["node_modules", "dist"]
 }

@@ -1,7 +1,7 @@
 {
 	"name": "@hare/api",
 	"version": "0.1.0",
-	"description": "Hare API - Hono-based API for AI agent platform",
+	"description": "Hono API for Hare AI agents platform",
 	"type": "module",
 	"main": "./src/index.ts",
 	"types": "./src/index.ts",
@@ -10,9 +10,29 @@
 			"types": "./src/index.ts",
 			"import": "./src/index.ts"
 		},
-		"./services/vector-memory": {
-			"types": "./src/services/vector-memory.ts",
-			"import": "./src/services/vector-memory.ts"
+		"./client": {
+			"types": "./src/client.ts",
+			"import": "./src/client.ts"
+		},
+		"./types": {
+			"types": "./src/types.ts",
+			"import": "./src/types.ts"
+		},
+		"./schemas": {
+			"types": "./src/schemas/index.ts",
+			"import": "./src/schemas/index.ts"
+		},
+		"./middleware": {
+			"types": "./src/middleware/index.ts",
+			"import": "./src/middleware/index.ts"
+		},
+		"./routes": {
+			"types": "./src/routes/index.ts",
+			"import": "./src/routes/index.ts"
+		},
+		"./helpers": {
+			"types": "./src/helpers/index.ts",
+			"import": "./src/helpers/index.ts"
 		},
 		"./services": {
 			"types": "./src/services/index.ts",
@@ -24,24 +44,31 @@
 		"README.md"
 	],
 	"keywords": [
-		"hare",
-		"api",
-		"hono",
 		"cloudflare",
-		"workers"
+		"workers",
+		"hono",
+		"api",
+		"ai",
+		"agent"
 	],
 	"license": "MIT",
 	"peerDependencies": {
+		"@hono/zod-openapi": "^1.2.0",
+		"@paralleldrive/cuid2": "^2.0.0",
+		"ai": "^5.0.0",
+		"drizzle-orm": "^0.45.0",
 		"hono": "^4.0.0",
+		"stripe": "^20.0.0",
 		"zod": "^4.0.0"
 	},
-	"devDependencies": {
-		"@cloudflare/workers-types": "^4.20251225.0",
+	"dependencies": {
 		"@elithrar/workers-hono-rate-limit": "^0.5.1",
+		"@scalar/hono-api-reference": "^0.9.30"
+	},
+	"devDependencies": {
+		"@cloudflare/workers-types": "^4.20251224.0",
 		"@hono/zod-openapi": "^1.2.0",
 		"@paralleldrive/cuid2": "^2.3.1",
-		"@scalar/hono-api-reference": "^0.9.30",
-		"@workspace/typescript-config": "workspace:*",
 		"ai": "^5.0.116",
 		"drizzle-orm": "^0.45.1",
 		"hono": "^4.11.3",

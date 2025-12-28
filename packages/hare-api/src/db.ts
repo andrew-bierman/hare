@@ -1,6 +1,9 @@
 import type { Context } from 'hono'
 import { createDb, type Database } from 'web-app/db/client'
 
+// Re-export Database type for routes
+export type { Database }
+
 /**
  * Error thrown when Cloudflare environment is not available.
  */

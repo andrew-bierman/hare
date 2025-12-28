@@ -2,12 +2,13 @@
 
 import type { CreateAgentInput, UpdateAgentInput } from '@hare/api'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import type { AgentPreviewInput, AgentPreviewResponse } from '../client'
-import { apiClient } from '../client'
+import type { AgentPreviewInput, AgentPreviewResponse } from '@hare/api/client'
+import { apiClient } from '@hare/api/client'
+import type { CreateAgentInput, UpdateAgentInput } from '@hare/api'
 
+export type { AgentPreviewInput, AgentPreviewResponse, ValidationIssue } from '@hare/api/client'
 // Re-export types for convenience
 export type { Agent, CreateAgentInput, UpdateAgentInput } from '@hare/api'
-export type { AgentPreviewInput, AgentPreviewResponse, ValidationIssue } from '../client'
 
 export function useAgents(workspaceId: string | undefined) {
 	return useQuery({
