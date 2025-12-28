@@ -30,7 +30,7 @@
 		"@hare/db": "workspace:*"
 	},
 	"devDependencies": {
-		"@workspace/typescript-config": "workspace:*",
+		"@hare/typescript-config": "workspace:*",
 		"better-auth": "^1.4.9",
 		"typescript": "^5"
 	}
