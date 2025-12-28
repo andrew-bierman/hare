@@ -77,7 +77,6 @@ function DashboardPage() {
 		return num.toString()
 	}
 
-
 	const stats = [
 		{
 			title: content.stats.totalAgents.title,

@@ -83,7 +83,6 @@ function AgentsPage() {
 	const deployedCount = agents.filter((a) => a.status === 'deployed').length
 	const draftCount = agents.filter((a) => a.status === 'draft').length
 
-
 	const getStatusBadge = (status: string) => {
 		switch (status) {
 			case 'deployed':
