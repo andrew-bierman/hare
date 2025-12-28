@@ -39,16 +39,18 @@
     },
   ],
 
-  // Workers AI
+  // Workers AI (remote: true suppresses local dev warning)
   "ai": {
     "binding": "AI",
+    "remote": true,
   },
 
-  // Vectorize for vector memory / semantic search
+  // Vectorize for vector memory / semantic search (remote: true suppresses local dev warning)
   "vectorize": [
     {
       "binding": "VECTORIZE",
       "index_name": "hare-memory",
+      "remote": true,
     },
   ],
 
