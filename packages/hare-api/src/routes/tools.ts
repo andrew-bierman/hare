@@ -2,10 +2,12 @@ import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
 import { and, eq } from 'drizzle-orm'
 import { tools } from 'web-app/db/schema'
 import {
-	getSystemToolById,
-	isSystemToolId,
-	SYSTEM_TOOLS,
-} from 'web-app/lib/agents/tools/system-tools'
+	getSystemTools,
+	getSystemToolsMap,
+	isSystemTool,
+	type HareEnv,
+	type ToolContext,
+} from '@hare/tools'
 import { getDb } from '../db'
 import { commonResponses, requireAdminAccess, requireWriteAccess } from '../helpers'
 import { authMiddleware, workspaceMiddleware } from '../middleware'
@@ -17,7 +19,7 @@ import {
 	ToolSchema,
 	UpdateToolSchema,
 } from '../schemas'
-import { type SystemToolDefinition, serializeSystemTool, serializeTool } from '../serializers'
+import { serializeHareTool, serializeHareTools, serializeTool } from '../serializers'
 import {
 	HttpToolConfigSchema,
 	InputSchemaSchema,
@@ -343,6 +345,25 @@ const app = new OpenAPIHono<WorkspaceEnv>()
 app.use('*', authMiddleware)
 app.use('*', workspaceMiddleware)
 
+/**
+ * Create a minimal tool context for serialization purposes.
+ *
+ * This context is safe to use with empty env bindings because:
+ * - Tool instantiation only captures static metadata (id, description, inputSchema)
+ * - Cloudflare bindings (AI, KV, R2, D1, VECTORIZE) are only accessed during execute()
+ * - We never call tool.execute() when serializing for API responses
+ *
+ * The workspaceId/userId are set to 'system' since these are system tool definitions,
+ * not user-specific tool instances.
+ */
+function createMinimalToolContext(): ToolContext {
+	return {
+		env: {} as HareEnv,
+		workspaceId: 'system',
+		userId: 'system',
+	}
+}
+
 // Register routes
 app.openapi(listToolsRoute, async (c) => {
 	const { includeSystem } = c.req.valid('query')
@@ -354,9 +375,12 @@ app.openapi(listToolsRoute, async (c) => {
 	const customToolsData = customTools.map((tool) => serializeTool(tool))
 
 	// Include system tools if requested
-	const systemToolsData = includeSystem
-		? SYSTEM_TOOLS.map((t) => serializeSystemTool(t as SystemToolDefinition))
-		: []
+	let systemToolsData: ReturnType<typeof serializeHareTools> = []
+	if (includeSystem) {
+		const context = createMinimalToolContext()
+		const hareTools = getSystemTools(context)
+		systemToolsData = serializeHareTools(hareTools)
+	}
 
 	return c.json({ tools: [...systemToolsData, ...customToolsData] }, 200)
 })
@@ -415,10 +439,14 @@ app.openapi(getToolRoute, async (c) => {
 	const db = await getDb(c)
 	const workspace = c.get('workspace')
 
-	// Check for system tool first
-	const systemTool = getSystemToolById(id)
-	if (systemTool) {
-		return c.json(serializeSystemTool(systemTool as SystemToolDefinition), 200)
+	// Check for system tool first - use Map for O(1) lookup
+	if (isSystemTool(id)) {
+		const context = createMinimalToolContext()
+		const toolsMap = getSystemToolsMap(context)
+		const systemTool = toolsMap.get(id)
+		if (systemTool) {
+			return c.json(serializeHareTool(systemTool), 200)
+		}
 	}
 
 	// Get custom tool from database
@@ -442,7 +470,7 @@ app.openapi(updateToolRoute, async (c) => {
 	const role = c.get('workspaceRole')
 
 	// Check if trying to modify system tool
-	if (isSystemToolId(id)) {
+	if (isSystemTool(id)) {
 		return c.json({ error: 'Cannot modify system tools' }, 400)
 	}
 
@@ -504,7 +532,7 @@ app.openapi(deleteToolRoute, async (c) => {
 	const role = c.get('workspaceRole')
 
 	// Check if trying to delete system tool
-	if (isSystemToolId(id)) {
+	if (isSystemTool(id)) {
 		return c.json({ error: 'Cannot delete system tools' }, 400)
 	}
 

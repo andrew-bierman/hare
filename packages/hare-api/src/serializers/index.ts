@@ -10,6 +10,8 @@ export {
 	mapToolType,
 	type SerializedTool,
 	type SystemToolDefinition,
+	serializeHareTool,
+	serializeHareTools,
 	serializeSystemTool,
 	serializeTool,
 	type ToolType,

@@ -1,6 +1,5 @@
-import { AgentsPage } from '@hare/app/pages'
+import { AgentsPage, useAgents } from '@hare/app'
 import { createFileRoute, Link } from '@tanstack/react-router'
-import { useAgents } from '../lib/hooks'
 
 export const Route = createFileRoute('/agents')({
 	component: AgentsPageWrapper,
