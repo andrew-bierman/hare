@@ -1,0 +1,19 @@
+{
+	"extends": "@workspace/typescript-config/base.json",
+	"compilerOptions": {
+		"baseUrl": ".",
+		"paths": {
+			"web-app/*": ["./src/*"],
+			"@workspace/ui/*": ["../../packages/ui/src/*"],
+			"@hare/api": ["../../packages/hare-api/src/index.ts"],
+			"@hare/api/*": ["../../packages/hare-api/src/*"]
+		},
+		"types": ["bun", "vite/client"],
+		"module": "ESNext",
+		"moduleResolution": "Bundler",
+		"jsx": "react-jsx",
+		"noEmit": true
+	},
+	"include": ["**/*.ts", "**/*.tsx", "cloudflare-env.d.ts"],
+	"exclude": ["node_modules", ".output"]
+}
