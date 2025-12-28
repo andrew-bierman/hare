@@ -10,7 +10,7 @@ export const Route = createFileRoute('/_dashboard')({
 function DashboardLayout() {
 	return (
 		<WorkspaceProvider>
-			<div className="h-screen flex bg-background">
+			<div className="h-screen flex bg-background overflow-x-hidden">
 				{/* Sidebar */}
 				<div className="hidden md:flex md:w-72 md:flex-col md:fixed md:inset-y-0 z-50">
 					<Sidebar />
