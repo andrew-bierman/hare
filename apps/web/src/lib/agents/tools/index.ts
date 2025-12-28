@@ -63,7 +63,6 @@ export {
 	zapierListTool,
 	zapierSaveTool,
 	zapierTestTool,
-	zapierTool,
 	zapierTriggerTool,
 } from './integrations'
 
@@ -304,7 +303,6 @@ export const SYSTEM_TOOL_IDS = [
 	'url',
 	'delay',
 	// Integrations (Zapier = single hub for externals)
-	'zapier',
 	'zapier_save',
 	'zapier_list',
 	'zapier_trigger',

@@ -4,19 +4,6 @@
  * Re-export all hooks from a single entry point.
  */
 
-export type { AIModel } from 'web-app/config'
-// Re-export AI models from config for convenience
-export { AI_MODELS, getModelById, getModelName } from 'web-app/config'
-// Re-export analytics types from client (client.ts is in the package now)
-export type {
-	AgentBreakdown,
-	AnalyticsData,
-	AnalyticsParams,
-	AnalyticsSummary,
-	ModelBreakdown,
-	OAuthProviders,
-	TimeSeriesData,
-} from '@hare/api/client'
 // Re-export types from @hare/api
 export type {
 	Agent,
@@ -37,6 +24,19 @@ export type {
 	Workspace,
 	WorkspaceRole,
 } from '@hare/api'
+// Re-export analytics types from client (client.ts is in the package now)
+export type {
+	AgentBreakdown,
+	AnalyticsData,
+	AnalyticsParams,
+	AnalyticsSummary,
+	ModelBreakdown,
+	OAuthProviders,
+	TimeSeriesData,
+} from '@hare/api/client'
+export type { AIModel } from 'web-app/config'
+// Re-export AI models from config for convenience
+export { AI_MODELS, getModelById, getModelName } from 'web-app/config'
 // WebSocket Agent hooks
 export {
 	type AgentMessage,
@@ -173,24 +173,3 @@ export {
 	useWorkspace,
 	useWorkspaces,
 } from './use-workspaces'
-
-// Legacy export for backwards compatibility
-export const AVAILABLE_MODELS = [
-	{
-		id: '@cf/meta/llama-3.3-70b-instruct-fp8-fast',
-		name: 'Llama 3.3 70B',
-		description: 'Most capable open model',
-	},
-	{ id: '@cf/meta/llama-3.1-8b-instruct', name: 'Llama 3.1 8B', description: 'Fast and efficient' },
-	{
-		id: '@cf/mistral/mistral-7b-instruct-v0.2',
-		name: 'Mistral 7B',
-		description: 'Excellent reasoning',
-	},
-	{
-		id: '@cf/qwen/qwen1.5-14b-chat-awq',
-		name: 'Qwen 1.5 14B',
-		description: 'Multilingual support',
-	},
-	{ id: '@cf/google/gemma-7b-it', name: 'Gemma 7B', description: 'Google open model' },
-] as const

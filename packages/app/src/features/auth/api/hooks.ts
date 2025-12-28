@@ -3,7 +3,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { apiClient, type OAuthProviders } from '@shared/api'
 
-export type { OAuthProviders } from '@shared/api'
+// Types are available from @shared/api, don't re-export to avoid duplicates
 
 export function useOAuthProviders() {
 	return useQuery({

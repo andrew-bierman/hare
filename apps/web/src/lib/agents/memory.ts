@@ -3,7 +3,6 @@ import type { CoreMessage } from 'ai'
 import { and, desc, eq, like } from 'drizzle-orm'
 import { conversations, messages } from 'web-app/db/schema'
 import type { Database, MessageMetadata } from 'web-app/db/types'
-import { isMessageRole, type MessageRole } from '@hare/api'
 
 export type { MessageRole }
 

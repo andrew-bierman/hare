@@ -74,7 +74,9 @@ export const validateEmailTool = createTool({
 			// Length checks
 			if (result.localPart.length > ValidationLimits.EMAIL_LOCAL_PART_MAX) {
 				result.valid = false
-				result.errors.push(`Local part too long (max ${ValidationLimits.EMAIL_LOCAL_PART_MAX} characters)`)
+				result.errors.push(
+					`Local part too long (max ${ValidationLimits.EMAIL_LOCAL_PART_MAX} characters)`,
+				)
 			}
 			if (result.domain.length > ValidationLimits.EMAIL_DOMAIN_MAX) {
 				result.valid = false

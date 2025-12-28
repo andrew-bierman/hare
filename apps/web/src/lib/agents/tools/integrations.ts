@@ -462,86 +462,6 @@ The Zap will receive the test data - check Zapier's task history to confirm.`,
 })
 
 // ==========================================
-// Legacy Zapier Tool (backwards compatible)
-// ==========================================
-
-/**
- * Original simple Zapier tool - kept for backwards compatibility.
- * For new usage, prefer zapier_trigger with saved integrations.
- */
-export const zapierTool = createTool({
-	id: 'zapier',
-	description: `[Legacy] Direct Zapier webhook trigger - for quick one-off triggers.
-
-For recurring integrations, use zapier_save + zapier_trigger instead.
-
-Connect to 6,000+ apps through Zapier webhooks.`,
-	inputSchema: z.object({
-		webhookUrl: z.string().url().describe('Zapier webhook URL (https://hooks.zapier.com/...)'),
-		data: z.record(z.string(), z.unknown()).describe('Data to send (available in your Zap)'),
-		waitForResponse: z
-			.boolean()
-			.optional()
-			.default(false)
-			.describe('Wait for Zap response (requires Webhooks by Zapier premium)'),
-	}),
-	execute: async (params, context) => {
-		try {
-			const { webhookUrl, data, waitForResponse } = params
-
-			// Validate webhook URL hostname to prevent bypass attacks
-			let parsedUrl: URL
-			try {
-				parsedUrl = new URL(webhookUrl)
-			} catch {
-				return failure(
-					`Invalid URL format. Zapier webhooks must be from ${ZapierConfig.WEBHOOK_HOSTNAME}`,
-				)
-			}
-
-			if (parsedUrl.hostname !== ZapierConfig.WEBHOOK_HOSTNAME) {
-				return failure(`Invalid URL. Zapier webhooks must be from ${ZapierConfig.WEBHOOK_HOSTNAME}`)
-			}
-
-			const controller = new AbortController()
-			const timeoutId = setTimeout(
-				() => controller.abort(),
-				waitForResponse ? Timeouts.ZAPIER_WAIT : Timeouts.ZAPIER_DEFAULT,
-			)
-
-			const response = await fetch(webhookUrl, {
-				method: 'POST',
-				headers: { 'Content-Type': ContentTypes.JSON, 'User-Agent': UserAgents.DEFAULT },
-				body: JSON.stringify({
-					...data,
-					_hare: { workspaceId: context.workspaceId, timestamp: new Date().toISOString() },
-				}),
-				signal: controller.signal,
-			})
-
-			clearTimeout(timeoutId)
-
-			if (!response.ok) {
-				return failure(`Zapier error: ${response.status} ${response.statusText}`)
-			}
-
-			const responseData = await response.json().catch(() => response.text())
-
-			return success({
-				triggered: true,
-				status: response.status,
-				response: waitForResponse ? responseData : 'Triggered successfully',
-			})
-		} catch (error) {
-			if (error instanceof Error && error.name === 'AbortError') {
-				return failure('Request timed out')
-			}
-			return failure(`Error: ${error instanceof Error ? error.message : 'Unknown'}`)
-		}
-	},
-})
-
-// ==========================================
 // Generic Webhook Tool
 // ==========================================
 
@@ -629,8 +549,6 @@ export function getIntegrationTools(_context: ToolContext) {
 		zapierTriggerTool,
 		zapierDeleteTool,
 		zapierTestTool,
-		// Legacy direct trigger (backwards compatible)
-		zapierTool,
 		// Generic webhook
 		webhookTool,
 	]

@@ -254,9 +254,7 @@ export const imageGenerateTool = createTool({
 			.number()
 			.optional()
 			.default(ImageGeneration.DEFAULT_GUIDANCE)
-			.describe(
-				`Guidance scale (${ImageGeneration.MIN_GUIDANCE}-${ImageGeneration.MAX_GUIDANCE})`,
-			),
+			.describe(`Guidance scale (${ImageGeneration.MIN_GUIDANCE}-${ImageGeneration.MAX_GUIDANCE})`),
 	}),
 	execute: async (params, context) => {
 		try {

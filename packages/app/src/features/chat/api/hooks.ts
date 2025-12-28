@@ -48,7 +48,7 @@ export interface ChatUsage {
 	latencyMs: number
 }
 
-export interface ChatStreamEvent {
+export interface ChatStreamEventData {
 	type: 'text' | 'tool_call' | 'tool_result' | 'done' | 'error'
 	content?: string
 	sessionId?: string
@@ -175,7 +175,7 @@ export function useChat(agentId: string | undefined) {
 					for (const line of lines) {
 						if (line.startsWith('data: ')) {
 							try {
-								const event: ChatStreamEvent = JSON.parse(line.slice(6))
+								const event: ChatStreamEventData = JSON.parse(line.slice(6))
 
 								if (event.type === 'text' && event.content) {
 									setMessages((prev) => {

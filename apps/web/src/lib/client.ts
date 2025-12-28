@@ -1,6 +1,6 @@
+import type { AppType } from '@hare/api'
 import { hc } from 'hono/client'
 import { clientEnv } from 'web-app/lib/env/client'
-import type { AppType } from './api'
 
 /**
  * Type-safe Hono RPC client

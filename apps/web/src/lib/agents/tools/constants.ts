@@ -194,4 +194,3 @@ export const Radix = {
 	/** Hexadecimal radix for toString */
 	HEX: 16,
 } as const
-

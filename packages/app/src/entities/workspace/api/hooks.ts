@@ -20,7 +20,7 @@ export function useWorkspaces() {
 	})
 }
 
-export function useWorkspace(id: string | undefined) {
+export function useWorkspaceById(id: string | undefined) {
 	return useQuery({
 		queryKey: ['workspaces', id],
 		queryFn: () => apiClient.workspaces.get(id!),

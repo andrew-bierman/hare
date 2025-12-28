@@ -1,7 +1,8 @@
 'use client'
 
 import { createContext, type ReactNode, useCallback, useContext, useEffect, useState } from 'react'
-import { useCreateWorkspace, useWorkspaces, type Workspace, type WorkspaceRole } from '@entities/workspace'
+import { useCreateWorkspace, useWorkspaces } from '@entities/workspace'
+import type { Workspace, WorkspaceRole } from '@shared/api'
 
 interface WorkspaceWithRole extends Workspace {
 	role?: WorkspaceRole
