@@ -2,13 +2,11 @@
  * TanStack Utilities
  *
  * Centralized exports for all TanStack integrations.
+ * Note: Query keys are now exported from ../api/hooks/query-keys
  */
 
 // Form utilities
 export * from './form'
-
-// Query key factories
-export * from './query-keys'
 
 // Table utilities
 export * from './table'

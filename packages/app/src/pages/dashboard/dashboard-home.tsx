@@ -17,9 +17,17 @@ import {
 } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { useWorkspace } from '../../app/providers/workspace-provider'
-import { useAgents, type Agent } from '../../entities/agent'
-import { useUsage } from '../../features/analytics'
+import type { Agent } from '../../shared/api'
 import { getModelName } from '../../shared/config/models'
+import type { UseQueryResult } from '@tanstack/react-query'
+
+/** Usage data structure */
+export interface UsageData {
+	totalCalls: number
+	totalTokens: number
+	inputTokens: number
+	outputTokens: number
+}
 
 export interface DashboardHomeProps {
 	/** Render prop for navigation links */
@@ -32,6 +40,10 @@ export interface DashboardHomeProps {
 		tools: string
 		usage: string
 	}
+	/** Agents query from parent app */
+	useAgents: (workspaceId: string | undefined) => UseQueryResult<{ agents: Agent[] }, Error>
+	/** Usage query from parent app */
+	useUsage: (workspaceId: string | undefined) => UseQueryResult<UsageData, Error>
 }
 
 const defaultRoutes = {
@@ -78,7 +90,7 @@ function AgentCardSkeleton() {
 	)
 }
 
-export function DashboardHome({ renderLink, routes }: DashboardHomeProps) {
+export function DashboardHome({ renderLink, routes, useAgents, useUsage }: DashboardHomeProps) {
 	const r = routes ?? defaultRoutes
 	const { activeWorkspace, isLoading: workspaceLoading } = useWorkspace()
 	const { data: agentsData, isLoading: agentsLoading } = useAgents(activeWorkspace?.id)

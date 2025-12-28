@@ -36,17 +36,19 @@ import { toast } from 'sonner'
 import { useAuth } from '../../features/auth'
 import { useWorkspace } from '../../app/providers'
 import {
-	type MemberRole,
 	useRemoveMember,
 	useRevokeInvitation,
 	useSendInvitation,
 	useUpdateMemberRole,
 	useWorkspaceInvitations,
 	useWorkspaceMembers,
-	type WorkspaceInvitation,
-	type WorkspaceMember,
-} from '../../entities/workspace'
-import type { WorkspaceRole } from '../../shared/api'
+} from '../../shared/api/hooks'
+import type {
+	MemberRole,
+	WorkspaceInvitation,
+	WorkspaceMember,
+	WorkspaceRole,
+} from '../../shared/api/types'
 
 function getInitials(name: string): string {
 	return name
@@ -397,7 +399,9 @@ export function TeamPage() {
 
 	const members = membersData?.members || []
 	const invitations = invitationsData?.invitations || []
-	const pendingInvitations = invitations.filter((inv) => inv.status === 'pending')
+	const pendingInvitations = invitations.filter(
+		(inv: WorkspaceInvitation) => inv.status === 'pending',
+	)
 
 	return (
 		<div className="flex-1 space-y-6 p-8 pt-6">
@@ -428,7 +432,7 @@ export function TeamPage() {
 						{members.length === 0 ? (
 							<p className="text-center text-muted-foreground py-8">No members found</p>
 						) : (
-							members.map((member) => (
+							members.map((member: WorkspaceMember) => (
 								<MemberCard
 									key={member.id}
 									member={member}
@@ -466,7 +470,7 @@ export function TeamPage() {
 							) : pendingInvitations.length === 0 ? (
 								<p className="text-center text-muted-foreground py-8">No pending invitations</p>
 							) : (
-								pendingInvitations.map((invitation) => (
+								pendingInvitations.map((invitation: WorkspaceInvitation) => (
 									<InvitationCard
 										key={invitation.id}
 										invitation={invitation}

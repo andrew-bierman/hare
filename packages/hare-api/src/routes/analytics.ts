@@ -188,7 +188,7 @@ app.openapi(getAnalyticsRoute, async (c) => {
 		.orderBy(sql<number>`SUM(${usage.totalTokens}) DESC`)
 
 	// Import model config to get model names
-	const { getModelName } = await import('@hare/config')
+	const { getModelName } = await import('@hare/app/shared/config')
 
 	return c.json(
 		{

@@ -24,7 +24,7 @@ import { Check, ChevronsUpDown, Plus } from 'lucide-react'
 import { type ChangeEvent, type KeyboardEvent, useState } from 'react'
 import { toast } from 'sonner'
 import { useWorkspace } from '../../../app/providers'
-import { useCreateWorkspace } from '../../../entities/workspace'
+import { useCreateWorkspace } from '../../../shared/api/hooks'
 
 export function WorkspaceSwitcher() {
 	const { workspaces, activeWorkspace, setActiveWorkspace, isLoading } = useWorkspace()

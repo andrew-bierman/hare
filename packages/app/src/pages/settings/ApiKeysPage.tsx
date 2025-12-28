@@ -30,7 +30,7 @@ import {
 	useApiKeys,
 	useCreateApiKey,
 	useDeleteApiKey,
-} from '../../entities/api-key'
+} from '../../shared/api'
 
 export function ApiKeysPage() {
 	const { activeWorkspace } = useWorkspace()

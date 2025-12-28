@@ -1,3 +1,4 @@
+import { APP_CONFIG, LANDING_PAGE, NAV_ITEMS, UI_TEXT } from '@hare/config'
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { Badge } from '@workspace/ui/components/badge'
 import { Button } from '@workspace/ui/components/button'
@@ -25,7 +26,6 @@ import {
 	Zap,
 } from 'lucide-react'
 import { useAuth } from 'web-app/components/providers/auth-provider'
-import { APP_CONFIG, LANDING_PAGE, NAV_ITEMS, UI_TEXT } from '@hare/app/shared'
 
 export const Route = createFileRoute('/')({
 	component: LandingPage,

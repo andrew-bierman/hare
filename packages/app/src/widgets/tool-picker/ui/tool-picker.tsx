@@ -7,6 +7,7 @@ import { SelectedTools } from './selected-tools'
 import { ToolCard } from './tool-card'
 import { ToolCategories } from './tool-categories'
 import { ToolSearch } from './tool-search'
+import type { Tool } from '../../../shared/api/types'
 import type { ToolPickerProps } from './types'
 import { useToolPicker } from './use-tool-picker'
 
@@ -101,7 +102,7 @@ export function ToolPicker({
 					</div>
 				) : (
 					<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-						{filteredTools.map((tool) => {
+						{filteredTools.map((tool: Tool) => {
 							const isSelected = internalSelectedIds.includes(tool.id)
 							const isDisabled = !isSelected && isAtMaxTools
 

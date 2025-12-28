@@ -30,7 +30,8 @@ export const workspaceKeys = {
 	details: () => [...workspaceKeys.all, 'detail'] as const,
 	detail: (id: string) => [...workspaceKeys.details(), id] as const,
 	members: (workspaceId: string) => [...workspaceKeys.all, 'members', workspaceId] as const,
-	invitations: (workspaceId: string) => [...workspaceKeys.all, 'invitations', workspaceId] as const,
+	invitations: (workspaceId: string) =>
+		[...workspaceKeys.all, 'invitations', workspaceId] as const,
 }
 
 /**
@@ -72,7 +73,17 @@ export const conversationKeys = {
 		[...conversationKeys.all, 'infinite', agentId, workspaceId] as const,
 }
 
-// Note: memoryKeys is defined in features/memory/api/hooks.ts to avoid duplication
+/**
+ * Memory query keys
+ */
+export const memoryKeys = {
+	all: ['memories'] as const,
+	lists: () => [...memoryKeys.all, 'list'] as const,
+	list: (agentId: string, workspaceId: string) =>
+		[...memoryKeys.lists(), agentId, workspaceId] as const,
+	search: (agentId: string, workspaceId: string, query: string) =>
+		[...memoryKeys.all, 'search', agentId, workspaceId, query] as const,
+}
 
 /**
  * Log query keys
@@ -120,7 +131,8 @@ export const scheduleKeys = {
 		[...scheduleKeys.lists(), agentId, workspaceId] as const,
 	details: () => [...scheduleKeys.all, 'detail'] as const,
 	detail: (id: string) => [...scheduleKeys.details(), id] as const,
-	executions: (scheduleId: string) => [...scheduleKeys.all, 'executions', scheduleId] as const,
+	executions: (scheduleId: string) =>
+		[...scheduleKeys.all, 'executions', scheduleId] as const,
 }
 
 /**

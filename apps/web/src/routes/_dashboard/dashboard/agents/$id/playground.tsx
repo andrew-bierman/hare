@@ -1,4 +1,5 @@
-import { ToolCallList } from '@hare/app/widgets'
+import { getModelName } from '@hare/config'
+import { ToolCallList } from '@hare/app/widgets/chat-interface'
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { Avatar, AvatarFallback } from '@workspace/ui/components/avatar'
 import { Badge } from '@workspace/ui/components/badge'
@@ -30,7 +31,6 @@ import {
 import { type FormEvent, type KeyboardEvent, useCallback, useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { useWorkspace } from 'web-app/components/providers/workspace-provider'
-import { getModelName } from '@hare/app/shared'
 import { useAgent, useChat } from 'web-app/lib/api/hooks'
 
 export const Route = createFileRoute('/_dashboard/dashboard/agents/$id/playground')({

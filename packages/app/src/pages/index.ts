@@ -1,20 +1,21 @@
 /**
  * Pages Layer
  *
- * Page-level components for routing.
+ * Page-level UI components.
+ * Following Feature-Sliced Design, pages compose widgets and features.
  */
 
-// Auth pages
-export * from './auth'
+// Dashboard pages
+export * from './dashboard'
 
-// Tools pages
-export * from './tools'
+// Agent pages
+export * from './agents'
 
 // Settings pages
 export * from './settings'
 
-// Agents pages
-export * from './agents'
+// Tools pages
+export * from './tools'
 
-// Dashboard pages
-export * from './dashboard'
+// Auth pages
+export * from './auth'
