@@ -5,7 +5,7 @@
 
 import type { Context } from 'hono'
 import { getCookie, setCookie } from 'hono/cookie'
-import type { HonoEnv } from '../api/types'
+import type { HonoEnv } from '@hare/api'
 import { timingSafeEqual } from './encryption'
 
 /**

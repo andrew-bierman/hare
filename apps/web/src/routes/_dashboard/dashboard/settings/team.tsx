@@ -1,3 +1,4 @@
+import type { WorkspaceRole } from '@hare/api'
 import { createFileRoute } from '@tanstack/react-router'
 import { Avatar, AvatarFallback, AvatarImage } from '@workspace/ui/components/avatar'
 import { Badge } from '@workspace/ui/components/badge'
@@ -45,7 +46,6 @@ import {
 	type WorkspaceInvitation,
 	type WorkspaceMember,
 } from 'web-app/lib/api/hooks'
-import type { WorkspaceRole } from 'web-app/lib/api/types'
 
 export const Route = createFileRoute('/_dashboard/dashboard/settings/team')({
 	component: TeamSettingsPage,

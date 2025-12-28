@@ -1,9 +1,12 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
-import { apiClient } from '../client'
+import { apiClient } from '@hare/api/client'
 
-export type { OAuthProviders } from '../client'
+export type { OAuthProviders } from '@hare/api/client'
+
+/** Auth provider cache TTL (1 hour) - providers don't change at runtime */
+const AUTH_PROVIDER_CACHE_TTL_MS = 1000 * 60 * 60
 
 export function useOAuthProviders() {
 	return useQuery({
@@ -12,6 +15,6 @@ export function useOAuthProviders() {
 			const result = await apiClient.auth.getProviders()
 			return result.providers
 		},
-		staleTime: 1000 * 60 * 60, // Cache for 1 hour (providers don't change at runtime)
+		staleTime: AUTH_PROVIDER_CACHE_TTL_MS,
 	})
 }

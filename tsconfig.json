@@ -21,7 +21,11 @@
 			"@hare/tools/*": ["packages/hare-tools/src/*"],
 			"@hare/agent": ["packages/hare-agent/src/index.ts"],
 			"@hare/agent/*": ["packages/hare-agent/src/*"],
-			"@hare/cli": ["packages/hare-cli/src/index.ts"]
+			"@hare/cli": ["packages/hare-cli/src/index.ts"],
+			"@hare/api": ["packages/hare-api/src/index.ts"],
+			"@hare/api/client": ["packages/hare-api/src/client.ts"],
+			"@hare/api/services/*": ["packages/hare-api/src/services/*"],
+			"@hare/api/*": ["packages/hare-api/src/*"]
 		},
 		"types": ["bun"]
 	},

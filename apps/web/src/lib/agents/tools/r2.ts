@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { ListLimits, StoragePrefixes } from './constants'
 import { createTool, failure, success, type ToolContext } from './types'
 
 /**
@@ -12,14 +13,14 @@ function scopedPath(workspaceId: string, key: string): string {
 	}
 	// Normalize leading slash
 	const normalizedKey = key.startsWith('/') ? key.slice(1) : key
-	return `ws/${workspaceId}/${normalizedKey}`
+	return `${StoragePrefixes.WORKSPACE}${workspaceId}/${normalizedKey}`
 }
 
 /**
  * Strip workspace prefix from path for display.
  */
 function unscopedPath(workspaceId: string, fullPath: string): string {
-	const prefix = `ws/${workspaceId}/`
+	const prefix = `${StoragePrefixes.WORKSPACE}${workspaceId}/`
 	return fullPath.startsWith(prefix) ? fullPath.slice(prefix.length) : fullPath
 }
 
@@ -144,7 +145,11 @@ export const r2ListTool = createTool({
 	description: 'List objects in Cloudflare R2 storage with optional prefix filtering.',
 	inputSchema: z.object({
 		prefix: z.string().optional().describe('Filter objects by prefix (folder path)'),
-		limit: z.number().optional().default(100).describe('Maximum number of objects to return'),
+		limit: z
+			.number()
+			.optional()
+			.default(ListLimits.R2_DEFAULT)
+			.describe('Maximum number of objects to return'),
 		cursor: z.string().optional().describe('Cursor for pagination'),
 		delimiter: z
 			.string()
@@ -159,10 +164,10 @@ export const r2ListTool = createTool({
 
 		try {
 			// Always scope to workspace, optionally with additional user prefix
-			const workspacePrefix = `ws/${context.workspaceId}/`
+			const workspacePrefixPath = `${StoragePrefixes.WORKSPACE}${context.workspaceId}/`
 			const fullPrefix = params.prefix
 				? scopedPath(context.workspaceId, params.prefix)
-				: workspacePrefix
+				: workspacePrefixPath
 
 			const options: R2ListOptions = {
 				limit: params.limit,

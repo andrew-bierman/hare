@@ -22,7 +22,8 @@ import { type ChangeEvent, useState } from 'react'
 import { toast } from 'sonner'
 import { AgentInstructionsEditor } from 'web-app/components/agent/agent-instructions-editor'
 import { useWorkspace } from 'web-app/components/providers/workspace-provider'
-import { AVAILABLE_MODELS, type Tool, useCreateAgent, useTools } from 'web-app/lib/api/hooks'
+import { AI_MODELS } from 'web-app/config'
+import { type Tool, useCreateAgent, useTools } from 'web-app/lib/api/hooks'
 
 export const Route = createFileRoute('/_dashboard/dashboard/agents/new')({
 	component: NewAgentPage,
@@ -130,7 +131,7 @@ function NewAgentPage() {
 										<SelectValue placeholder="Select a model" />
 									</SelectTrigger>
 									<SelectContent>
-										{AVAILABLE_MODELS.map((m) => (
+										{AI_MODELS.map((m) => (
 											<SelectItem key={m.id} value={m.id}>
 												<div className="flex flex-col">
 													<span>{m.name}</span>
