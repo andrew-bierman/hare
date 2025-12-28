@@ -23,8 +23,8 @@ import { Skeleton } from '@workspace/ui/components/skeleton'
 import { Check, ChevronsUpDown, Plus } from 'lucide-react'
 import { type ChangeEvent, type KeyboardEvent, useState } from 'react'
 import { toast } from 'sonner'
-import { useWorkspace } from 'web-app/components/providers/workspace-provider'
-import { useCreateWorkspace } from 'web-app/lib/api/hooks'
+import { useWorkspace } from '@hare/app/app'
+import { useCreateWorkspace } from '@hare/app/entities'
 
 export function WorkspaceSwitcher() {
 	const { workspaces, activeWorkspace, setActiveWorkspace, isLoading } = useWorkspace()

@@ -19,9 +19,9 @@ import {
 } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
-import { useWorkspace } from 'web-app/components/providers/workspace-provider'
+import { useWorkspace } from '@hare/app/app'
+import { useCreateAgent, useCreateWorkspace } from '@hare/app/entities'
 import { DEV_CONFIG, DEV_TOOLS_CONTENT, FEATURES } from 'web-app/config'
-import { useCreateAgent, useCreateWorkspace } from 'web-app/lib/api/hooks'
 import { authClient } from 'web-app/lib/auth-client'
 
 const { sections, agentNames, agentDescriptions, defaultInstructions } = DEV_TOOLS_CONTENT

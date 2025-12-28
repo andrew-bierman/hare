@@ -1,7 +1,8 @@
+import { WorkspaceProvider } from '@hare/app/app'
 import { createFileRoute, Outlet } from '@tanstack/react-router'
 import { Header } from 'web-app/components/layout/header'
 import { Sidebar } from 'web-app/components/layout/sidebar'
-import { WorkspaceProvider } from 'web-app/components/providers/workspace-provider'
+import { useAuth } from 'web-app/components/providers/auth-provider'
 import {
 	DashboardErrorComponent,
 	DashboardNotFound,
@@ -17,7 +18,7 @@ export const Route = createFileRoute('/_dashboard')({
 
 function DashboardLayout() {
 	return (
-		<WorkspaceProvider>
+		<WorkspaceProvider useAuth={useAuth}>
 			<div className="h-screen flex bg-background overflow-x-hidden">
 				{/* Sidebar */}
 				<div className="hidden md:flex md:w-72 md:flex-col md:fixed md:inset-y-0 z-50">
