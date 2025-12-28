@@ -1,3 +1,4 @@
+import { AGENT_LIMITS, AI_MODELS } from '@hare/app/shared/config'
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { Badge } from '@workspace/ui/components/badge'
 import { Button } from '@workspace/ui/components/button'
@@ -53,7 +54,6 @@ import { MemoryViewer } from 'web-app/components/agent/memory-viewer'
 import { ScheduledTasksSection } from 'web-app/components/agent/scheduled-tasks-section'
 import { ToolPicker } from 'web-app/components/agent/tool-picker'
 import { useWorkspace } from 'web-app/components/providers/workspace-provider'
-import { AGENT_LIMITS, AI_MODELS } from 'web-app/config'
 import {
 	useAgent,
 	useAgentPreviewQuery,

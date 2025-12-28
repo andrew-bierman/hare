@@ -20,7 +20,7 @@ import {
 	XCircle,
 } from 'lucide-react'
 import { useState } from 'react'
-import type { ToolCallData } from '../../../features/chat'
+import type { ToolCallData } from '../../../shared/api/hooks'
 
 export interface ToolCallBlockProps {
 	toolCall: ToolCallData

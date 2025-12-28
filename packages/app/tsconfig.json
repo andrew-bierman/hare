@@ -3,6 +3,10 @@
 	"compilerOptions": {
 		"baseUrl": ".",
 		"paths": {
+			"@app/*": ["./src/app/*"],
+			"@pages/*": ["./src/pages/*"],
+			"@widgets/*": ["./src/widgets/*"],
+			"@shared/*": ["./src/shared/*"],
 			"@workspace/ui/*": ["../ui/src/*"],
 			"@workspace/ui": ["../ui/src/index.ts"]
 		},

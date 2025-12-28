@@ -1,66 +1,20 @@
 'use client'
 
+import type { MemberRole, SendInvitationInput, WorkspaceInvitation, WorkspaceMember } from '../types'
+import { apiClient } from '../client'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { apiClient } from '../../../shared/api'
-import type { CreateWorkspaceInput, MemberRole, SendInvitationInput } from '../../../shared/api'
 
+// Re-export types for convenience
 export type {
-	CreateWorkspaceInput,
 	MemberRole,
 	SendInvitationInput,
-	Workspace,
 	WorkspaceInvitation,
 	WorkspaceMember,
-} from '../../../shared/api'
+} from '../types'
 
-export function useWorkspaces() {
-	return useQuery({
-		queryKey: ['workspaces'],
-		queryFn: () => apiClient.workspaces.list(),
-	})
-}
-
-export function useWorkspaceById(id: string | undefined) {
-	return useQuery({
-		queryKey: ['workspaces', id],
-		queryFn: () => apiClient.workspaces.get(id!),
-		enabled: !!id,
-	})
-}
-
-export function useCreateWorkspace() {
-	const queryClient = useQueryClient()
-	return useMutation({
-		mutationFn: (data: CreateWorkspaceInput) => apiClient.workspaces.create(data),
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ['workspaces'] })
-		},
-	})
-}
-
-export function useUpdateWorkspace() {
-	const queryClient = useQueryClient()
-	return useMutation({
-		mutationFn: ({ id, data }: { id: string; data: Partial<CreateWorkspaceInput> }) =>
-			apiClient.workspaces.update(id, data),
-		onSuccess: (_, { id }) => {
-			queryClient.invalidateQueries({ queryKey: ['workspaces'] })
-			queryClient.invalidateQueries({ queryKey: ['workspaces', id] })
-		},
-	})
-}
-
-export function useDeleteWorkspace() {
-	const queryClient = useQueryClient()
-	return useMutation({
-		mutationFn: (id: string) => apiClient.workspaces.delete(id),
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ['workspaces'] })
-		},
-	})
-}
-
-// Team member hooks
+/**
+ * Hook to fetch workspace members
+ */
 export function useWorkspaceMembers(workspaceId: string | undefined) {
 	return useQuery({
 		queryKey: ['workspaces', workspaceId, 'members'],
@@ -69,6 +23,9 @@ export function useWorkspaceMembers(workspaceId: string | undefined) {
 	})
 }
 
+/**
+ * Hook to fetch workspace invitations
+ */
 export function useWorkspaceInvitations(workspaceId: string | undefined) {
 	return useQuery({
 		queryKey: ['workspaces', workspaceId, 'invitations'],
@@ -77,6 +34,9 @@ export function useWorkspaceInvitations(workspaceId: string | undefined) {
 	})
 }
 
+/**
+ * Hook to send a workspace invitation
+ */
 export function useSendInvitation() {
 	const queryClient = useQueryClient()
 	return useMutation({
@@ -88,6 +48,9 @@ export function useSendInvitation() {
 	})
 }
 
+/**
+ * Hook to revoke a workspace invitation
+ */
 export function useRevokeInvitation() {
 	const queryClient = useQueryClient()
 	return useMutation({
@@ -99,6 +62,9 @@ export function useRevokeInvitation() {
 	})
 }
 
+/**
+ * Hook to remove a workspace member
+ */
 export function useRemoveMember() {
 	const queryClient = useQueryClient()
 	return useMutation({
@@ -110,6 +76,9 @@ export function useRemoveMember() {
 	})
 }
 
+/**
+ * Hook to update a member's role
+ */
 export function useUpdateMemberRole() {
 	const queryClient = useQueryClient()
 	return useMutation({

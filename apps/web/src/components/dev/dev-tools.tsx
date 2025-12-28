@@ -1,3 +1,4 @@
+import { DEV_CONFIG, DEV_TOOLS_CONTENT, FEATURES } from '@hare/app/shared/config'
 import { useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
 import { Badge } from '@workspace/ui/components/badge'
@@ -20,7 +21,6 @@ import {
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { useWorkspace } from 'web-app/components/providers/workspace-provider'
-import { DEV_CONFIG, DEV_TOOLS_CONTENT, FEATURES } from 'web-app/config'
 import { useCreateAgent, useCreateWorkspace } from 'web-app/lib/api/hooks'
 import { authClient } from 'web-app/lib/auth-client'
 

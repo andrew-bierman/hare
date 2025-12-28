@@ -1,18 +1,7 @@
 'use client'
 
+import { apiClient, type UsageParams } from '../client'
 import { useQuery } from '@tanstack/react-query'
-import { apiClient, type AnalyticsParams, type UsageParams } from '../../../shared/api'
-
-// Types are available from @shared/api, don't re-export to avoid duplicates
-
-export function useAnalytics(workspaceId: string | undefined, params?: AnalyticsParams) {
-	return useQuery({
-		queryKey: ['analytics', workspaceId, params],
-		queryFn: () => apiClient.analytics.get(workspaceId!, params),
-		enabled: !!workspaceId,
-		staleTime: 1000 * 60 * 5, // Cache for 5 minutes
-	})
-}
 
 export function useUsage(workspaceId: string | undefined, params?: UsageParams) {
 	return useQuery({
@@ -30,6 +19,7 @@ export function useUsageByAgent(workspaceId: string | undefined) {
 	})
 }
 
+/** Get usage stats for a specific agent */
 export function useAgentUsage(agentId: string | undefined, workspaceId: string | undefined) {
 	return useQuery({
 		queryKey: ['usage', 'agent', agentId, workspaceId],

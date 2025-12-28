@@ -41,14 +41,14 @@ import {
 } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
-import type { Schedule, ScheduleExecution } from '../../../shared/api'
+import type { Schedule, ScheduleExecution } from '../../../shared/api/types'
 import {
 	useAgentExecutions,
 	useCreateSchedule,
 	useDeleteSchedule,
 	useSchedules,
 	useUpdateSchedule,
-} from '../../../features/schedules'
+} from '../../../shared/api/hooks'
 
 export interface ScheduledTasksSectionProps {
 	agentId: string
@@ -260,7 +260,7 @@ export function ScheduledTasksSection({ agentId, workspaceId }: ScheduledTasksSe
 						</div>
 					) : (
 						<div className="space-y-3">
-							{schedules.map((schedule) => (
+							{schedules.map((schedule: Schedule) => (
 								<div
 									key={schedule.id}
 									className="flex items-center justify-between p-4 border rounded-lg"
@@ -365,7 +365,7 @@ export function ScheduledTasksSection({ agentId, workspaceId }: ScheduledTasksSe
 								<div>Error</div>
 							</div>
 							{/* Rows */}
-							{executions.map((execution) => (
+							{executions.map((execution: ScheduleExecution) => (
 								<div
 									key={execution.id}
 									className="grid grid-cols-5 gap-4 px-4 py-3 text-sm border-b last:border-0"

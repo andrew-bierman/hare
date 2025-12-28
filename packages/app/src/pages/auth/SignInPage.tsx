@@ -9,7 +9,8 @@ import { ArrowRight, Github, Loader2, Rabbit } from 'lucide-react'
 import { type ChangeEvent, type FormEvent, useState } from 'react'
 import { toast } from 'sonner'
 import { APP_CONFIG, AUTH_CONTENT } from '../../shared/config'
-import { useOAuthProviders, useSignInActions } from '../../features/auth'
+import { useOAuthProviders } from '../../shared/api/hooks'
+import { useSignInActions } from '../../features/auth'
 
 const { signIn: content, fields } = AUTH_CONTENT
 
