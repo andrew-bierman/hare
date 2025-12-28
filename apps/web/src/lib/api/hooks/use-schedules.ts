@@ -1,5 +1,6 @@
 'use client'
 
+import type { CreateScheduleInput, UpdateScheduleInput } from '@hare/api'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { apiClient, type ExecutionHistoryParams, type ScheduleListParams } from '@hare/api/client'
 import type { CreateScheduleInput, UpdateScheduleInput } from '@hare/api'
