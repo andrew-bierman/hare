@@ -36,6 +36,7 @@
         "@elithrar/workers-hono-rate-limit": "^0.5.1",
         "@hare/agent": "workspace:*",
         "@hare/api": "workspace:*",
+        "@hare/app": "workspace:*",
         "@hare/tools": "workspace:*",
         "@hono/zod-openapi": "^1.2.0",
         "@hono/zod-validator": "^0.7.6",

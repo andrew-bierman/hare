@@ -6,7 +6,8 @@
 			"web-app/*": ["./src/*"],
 			"@workspace/ui/*": ["../../packages/ui/src/*"],
 			"@hare/api": ["../../packages/hare-api/src/index.ts"],
-			"@hare/api/*": ["../../packages/hare-api/src/*"]
+			"@hare/api/*": ["../../packages/hare-api/src/*"],
+			"@hare/app/*": ["../../packages/app/src/*"]
 		},
 		"types": ["bun", "vite/client"],
 		"module": "ESNext",

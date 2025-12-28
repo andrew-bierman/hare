@@ -26,7 +26,7 @@ import {
 import { Textarea } from '@workspace/ui/components/textarea'
 import { Loader2 } from 'lucide-react'
 import type { Agent } from '@hare/api'
-import { AVAILABLE_MODELS } from 'web-app/lib/api/hooks'
+import { AI_MODELS, type AIModel } from '@hare/app/shared/config'
 
 /**
  * Form validation schema
@@ -191,7 +191,7 @@ export function AgentForm({
 											<SelectValue placeholder="Select a model" />
 										</SelectTrigger>
 										<SelectContent>
-											{AVAILABLE_MODELS.map((m) => (
+											{AI_MODELS.map((m: AIModel) => (
 												<SelectItem key={m.id} value={m.id}>
 													<div className="flex flex-col">
 														<span>{m.name}</span>
