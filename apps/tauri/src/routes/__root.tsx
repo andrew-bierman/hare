@@ -1,9 +1,9 @@
 import { WorkspaceProvider } from '@hare/app/providers'
+import { useWorkspacesQuery, useCreateWorkspaceMutation } from '@hare/app/shared/api'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { createRootRoute, HeadContent, Outlet, Scripts } from '@tanstack/react-router'
 import { Toaster } from 'sonner'
-import { useWorkspacesQuery, useCreateWorkspaceMutation } from '../lib/hooks'
 import '../styles.css'
 
 export const queryClient = new QueryClient({
