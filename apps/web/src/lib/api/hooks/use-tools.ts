@@ -1,12 +1,12 @@
 'use client'
 
+import type { CreateToolInput, ToolType } from '@hare/api'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { apiClient, type ToolTestRequest } from '../client'
-import type { CreateToolInput, ToolType } from '../types'
 
+export type { CreateToolInput, Tool, ToolType } from '@hare/api'
 // Re-export types for convenience
 export type { HttpToolConfig, InputSchema, InputSchemaProperty, ToolTestResult } from '../client'
-export type { CreateToolInput, Tool, ToolType } from '../types'
 
 export function useTools(workspaceId: string | undefined) {
 	return useQuery({

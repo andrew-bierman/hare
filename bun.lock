@@ -33,6 +33,7 @@
         "@dnd-kit/utilities": "^3.2.2",
         "@elithrar/workers-hono-rate-limit": "^0.5.1",
         "@hare/agent": "workspace:*",
+        "@hare/api": "workspace:*",
         "@hare/tools": "workspace:*",
         "@hono/zod-openapi": "^1.2.0",
         "@hono/zod-validator": "^0.7.6",
@@ -113,6 +114,28 @@
         "@modelcontextprotocol/sdk": "^1.0.0",
         "agents": "^0.0.67",
         "ai": "^5.0.0",
+        "zod": "^4.0.0",
+      },
+    },
+    "packages/hare-api": {
+      "name": "@hare/api",
+      "version": "0.1.0",
+      "devDependencies": {
+        "@cloudflare/workers-types": "^4.20251225.0",
+        "@elithrar/workers-hono-rate-limit": "^0.5.1",
+        "@hono/zod-openapi": "^1.2.0",
+        "@paralleldrive/cuid2": "^2.3.1",
+        "@scalar/hono-api-reference": "^0.9.30",
+        "@workspace/typescript-config": "workspace:*",
+        "ai": "^5.0.116",
+        "drizzle-orm": "^0.45.1",
+        "hono": "^4.11.3",
+        "stripe": "^20.1.0",
+        "typescript": "^5.7.0",
+        "zod": "^4.2.1",
+      },
+      "peerDependencies": {
+        "hono": "^4.0.0",
         "zod": "^4.0.0",
       },
     },
@@ -445,6 +468,8 @@
     "@floating-ui/utils": ["@floating-ui/utils@0.2.10", "", {}, "sha512-aGTxbpbg8/b5JfU1HXSrbH3wXZuLPJcNEcZQFMxLs3oSzgtVu6nFPkbbGGUvBcUjKV2YyB9Wxxabo+HEH9tcRQ=="],
 
     "@hare/agent": ["@hare/agent@workspace:packages/hare-agent"],
+
+    "@hare/api": ["@hare/api@workspace:packages/hare-api"],
 
     "@hare/cli": ["@hare/cli@workspace:packages/hare-cli"],
 

@@ -4,20 +4,7 @@
  * Re-export all hooks from a single entry point.
  */
 
-export type { AIModel } from 'web-app/config'
-// Re-export AI models from config for convenience
-export { AI_MODELS, getModelById, getModelName } from 'web-app/config'
-// Re-export analytics types
-export type {
-	AgentBreakdown,
-	AnalyticsData,
-	AnalyticsParams,
-	AnalyticsSummary,
-	ModelBreakdown,
-	OAuthProviders,
-	TimeSeriesData,
-} from '../client'
-// Re-export types
+// Re-export types from @hare/api
 export type {
 	Agent,
 	AgentConfig,
@@ -36,7 +23,20 @@ export type {
 	UsageSummary,
 	Workspace,
 	WorkspaceRole,
-} from '../types'
+} from '@hare/api'
+export type { AIModel } from 'web-app/config'
+// Re-export AI models from config for convenience
+export { AI_MODELS, getModelById, getModelName } from 'web-app/config'
+// Re-export analytics types
+export type {
+	AgentBreakdown,
+	AnalyticsData,
+	AnalyticsParams,
+	AnalyticsSummary,
+	ModelBreakdown,
+	OAuthProviders,
+	TimeSeriesData,
+} from '../client'
 // WebSocket Agent hooks
 export {
 	type AgentMessage,

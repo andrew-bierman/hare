@@ -1,6 +1,6 @@
-import { Outlet, createRootRoute, HeadContent, Scripts } from '@tanstack/react-router'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
+import { createRootRoute, HeadContent, Outlet, Scripts } from '@tanstack/react-router'
 import { Toaster } from '@workspace/ui/components/sonner'
 import '@workspace/ui/styles/globals.css'
 

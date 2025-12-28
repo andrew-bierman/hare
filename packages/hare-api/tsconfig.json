@@ -1,0 +1,15 @@
+{
+	"extends": "@workspace/typescript-config/base.json",
+	"compilerOptions": {
+		"baseUrl": ".",
+		"paths": {
+			"web-app/*": ["../../apps/web/src/*"]
+		},
+		"types": ["@cloudflare/workers-types"],
+		"module": "ESNext",
+		"moduleResolution": "Bundler",
+		"noEmit": true
+	},
+	"include": ["src/**/*.ts"],
+	"exclude": ["node_modules"]
+}
