@@ -185,7 +185,6 @@ function PlaygroundPage() {
 		[sessionId],
 	)
 
-
 	if (agentLoading) {
 		return <LoadingSkeleton />
 	}

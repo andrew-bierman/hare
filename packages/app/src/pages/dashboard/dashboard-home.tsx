@@ -19,7 +19,7 @@ import type { ReactNode } from 'react'
 import { useWorkspace } from '../../app/providers/workspace-provider'
 import { useAgents, type Agent } from '../../entities/agent'
 import { useUsage } from '../../features/analytics'
-import { AVAILABLE_MODELS } from '../../shared/config/models'
+import { getModelName } from '../../shared/config/models'
 
 export interface DashboardHomeProps {
 	/** Render prop for navigation links */
@@ -96,10 +96,6 @@ export function DashboardHome({ renderLink, routes }: DashboardHomeProps) {
 		return num.toString()
 	}
 
-	const getModelName = (modelId: string) => {
-		const model = AVAILABLE_MODELS.find((m) => m.id === modelId)
-		return model?.name || modelId
-	}
 
 	const stats = [
 		{

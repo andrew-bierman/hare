@@ -10,7 +10,7 @@ import { Bot, Clock, Plus, Search, Settings, Wrench } from 'lucide-react'
 import { type ChangeEvent, useState, type ReactNode } from 'react'
 import { useWorkspace } from '../../app/providers/workspace-provider'
 import { useAgents, type Agent } from '../../entities/agent'
-import { AVAILABLE_MODELS } from '../../shared/config/models'
+import { getModelName } from '../../shared/config/models'
 
 export interface AgentsPageProps {
 	/** Render prop for navigation links */
@@ -97,11 +97,6 @@ export function AgentsPage({ renderLink, routes }: AgentsPageProps) {
 			(filter === 'draft' && agent.status === 'draft')
 		return matchesSearch && matchesFilter
 	})
-
-	const getModelName = (modelId: string) => {
-		const model = AVAILABLE_MODELS.find((m) => m.id === modelId)
-		return model?.name || modelId
-	}
 
 	const getStatusBadge = (status: string) => {
 		switch (status) {
