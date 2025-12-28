@@ -1,3 +1,9 @@
+import {
+	AgentInstructionsEditor,
+	MemoryViewer,
+	ScheduledTasksSection,
+	ToolPicker,
+} from '@hare/app/widgets'
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { Badge } from '@workspace/ui/components/badge'
 import { Button } from '@workspace/ui/components/button'
@@ -48,10 +54,6 @@ import {
 } from 'lucide-react'
 import { type ChangeEvent, useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
-import { AgentInstructionsEditor } from 'web-app/components/agent/agent-instructions-editor'
-import { MemoryViewer } from 'web-app/components/agent/memory-viewer'
-import { ScheduledTasksSection } from 'web-app/components/agent/scheduled-tasks-section'
-import { ToolPicker } from 'web-app/components/agent/tool-picker'
 import { useWorkspace } from 'web-app/components/providers/workspace-provider'
 import { AGENT_LIMITS, AI_MODELS } from 'web-app/config'
 import {

@@ -1,3 +1,4 @@
+import { ChartContainer } from '@hare/app/widgets'
 import { createFileRoute } from '@tanstack/react-router'
 import { Button } from '@workspace/ui/components/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@workspace/ui/components/card'
@@ -32,7 +33,6 @@ import {
 	XAxis,
 	YAxis,
 } from 'recharts'
-import { ChartContainer } from 'web-app/components/charts'
 import { useWorkspace } from 'web-app/components/providers/workspace-provider'
 import { type Agent, useAgents, useAnalytics } from 'web-app/lib/api/hooks'
 import { exportToCSV, exportToJSON } from 'web-app/lib/utils/export'

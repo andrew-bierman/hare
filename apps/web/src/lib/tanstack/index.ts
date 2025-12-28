@@ -1,17 +1,12 @@
 /**
  * TanStack Utilities
  *
- * Centralized exports for all TanStack integrations.
+ * Re-export all TanStack utilities from @hare/app package.
+ * This file exists for backward compatibility.
  */
 
-// Form utilities
-export * from './form'
-// Query key factories
-export * from './query-keys'
-// Table utilities
-export * from './table'
-// Virtual list utilities
-export * from './virtual'
+// Re-export everything from the shared tanstack lib
+export * from '@hare/app/shared'
 
 // Note: Server functions are exported separately from './server-functions'
 // They should be imported directly in server context

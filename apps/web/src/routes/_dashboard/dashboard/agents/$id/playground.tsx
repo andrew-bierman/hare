@@ -1,3 +1,4 @@
+import { ToolCallList } from '@hare/app/widgets'
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { Avatar, AvatarFallback } from '@workspace/ui/components/avatar'
 import { Badge } from '@workspace/ui/components/badge'
@@ -28,7 +29,6 @@ import {
 } from 'lucide-react'
 import { type FormEvent, type KeyboardEvent, useCallback, useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
-import { ToolCallList } from 'web-app/components/chat/tool-call-list'
 import { useWorkspace } from 'web-app/components/providers/workspace-provider'
 import { getModelName } from 'web-app/config'
 import { useAgent, useChat } from 'web-app/lib/api/hooks'

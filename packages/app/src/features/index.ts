@@ -10,6 +10,8 @@
  * - team: Workspace team management
  * - schedules: Scheduled task management
  * - create-tool: Tool creation and deletion
+ * - logs: Request logging and statistics
+ * - agent-ws: Real-time WebSocket communication with agents
  */
 
 // Auth feature
@@ -35,3 +37,9 @@ export * from './create-agent'
 
 // Memory feature
 export * from './memory'
+
+// Logs feature
+export * from './logs'
+
+// Agent WebSocket feature
+export * from './agent-ws'
