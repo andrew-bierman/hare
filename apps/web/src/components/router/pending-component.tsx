@@ -1,4 +1,4 @@
-import { Skeleton } from '@workspace/ui/components/skeleton'
+import { Skeleton } from '@hare/ui/components/skeleton'
 import { Loader2 } from 'lucide-react'
 
 export function PendingComponent() {

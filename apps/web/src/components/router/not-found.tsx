@@ -1,5 +1,5 @@
 import { Link, useRouter } from '@tanstack/react-router'
-import { Button } from '@workspace/ui/components/button'
+import { Button } from '@hare/ui/components/button'
 import { ArrowLeft, FileQuestion, Home } from 'lucide-react'
 
 export function NotFound() {

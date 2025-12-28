@@ -4,8 +4,8 @@ import tailwindcss from '@tailwindcss/vite'
 import { tanstackStart } from '@tanstack/react-start/plugin/vite'
 import { defineConfig } from 'vite'
 
-// Resolve the path to @hare/app package for FSD aliases
-const appPackagePath = path.resolve(__dirname, '../../packages/app/src')
+// Resolve paths to workspace packages
+const appPackagePath = path.resolve(__dirname, '../../packages/app')
 
 export default defineConfig({
 	server: {
@@ -14,7 +14,7 @@ export default defineConfig({
 	resolve: {
 		alias: {
 			'web-app': path.resolve(__dirname, './src'),
-			'@workspace/ui': path.resolve(__dirname, '../../packages/ui/src'),
+			'@hare/ui': path.resolve(__dirname, '../../packages/ui/src'),
 			// @hare/app package aliases - specific subpaths must come before wildcards
 			'@hare/app/widgets/agent-builder': path.join(appPackagePath, 'widgets/agent-builder/index.ts'),
 			'@hare/app/widgets/chat-interface': path.join(appPackagePath, 'widgets/chat-interface/index.ts'),
@@ -31,11 +31,6 @@ export default defineConfig({
 			'@hare/app/pages': path.join(appPackagePath, 'pages/index.ts'),
 			'@hare/app/app': path.join(appPackagePath, 'app/index.ts'),
 			'@hare/app/providers': path.join(appPackagePath, 'app/providers/index.ts'),
-			// FSD path aliases for @hare/app internal imports
-			'@app': path.join(appPackagePath, 'app'),
-			'@pages': path.join(appPackagePath, 'pages'),
-			'@widgets': path.join(appPackagePath, 'widgets'),
-			'@shared': path.join(appPackagePath, 'shared'),
 		},
 	},
 	plugins: [cloudflare({ viteEnvironment: { name: 'ssr' } }), tailwindcss(), tanstackStart()],

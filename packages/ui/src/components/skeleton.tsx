@@ -1,6 +1,6 @@
 import type * as React from 'react'
 
-import { cn } from '@workspace/ui/lib/utils'
+import { cn } from '@hare/ui/lib/utils'
 
 function Skeleton({ className, ...props }: React.ComponentProps<'div'>) {
 	return (

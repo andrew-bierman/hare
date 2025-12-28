@@ -1,5 +1,5 @@
 import { type ErrorComponentProps, Link, useRouter } from '@tanstack/react-router'
-import { Button } from '@workspace/ui/components/button'
+import { Button } from '@hare/ui/components/button'
 import { AlertTriangle, Home, RefreshCw } from 'lucide-react'
 
 export function ErrorComponent({ error, reset }: ErrorComponentProps) {

@@ -1,9 +1,9 @@
 {
-	"extends": "@workspace/typescript-config/react-library.json",
+	"extends": "@hare/typescript-config/react-library.json",
 	"compilerOptions": {
 		"baseUrl": ".",
 		"paths": {
-			"@workspace/ui/*": ["./src/*"]
+			"@hare/ui/*": ["./src/*"]
 		}
 	},
 	"include": ["src/**/*.ts", "src/**/*.tsx"],

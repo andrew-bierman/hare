@@ -1,19 +1,19 @@
 import { getModelName } from '@hare/config'
 import { ToolCallList } from '@hare/app/widgets/chat-interface'
 import { createFileRoute, Link } from '@tanstack/react-router'
-import { Avatar, AvatarFallback } from '@workspace/ui/components/avatar'
-import { Badge } from '@workspace/ui/components/badge'
-import { Button } from '@workspace/ui/components/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@workspace/ui/components/card'
+import { Avatar, AvatarFallback } from '@hare/ui/components/avatar'
+import { Badge } from '@hare/ui/components/badge'
+import { Button } from '@hare/ui/components/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@hare/ui/components/card'
 import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
 	DropdownMenuTrigger,
-} from '@workspace/ui/components/dropdown-menu'
-import { ScrollArea } from '@workspace/ui/components/scroll-area'
-import { Skeleton } from '@workspace/ui/components/skeleton'
-import { Textarea } from '@workspace/ui/components/textarea'
+} from '@hare/ui/components/dropdown-menu'
+import { ScrollArea } from '@hare/ui/components/scroll-area'
+import { Skeleton } from '@hare/ui/components/skeleton'
+import { Textarea } from '@hare/ui/components/textarea'
 import {
 	ArrowLeft,
 	Bot,

@@ -1,10 +1,10 @@
 {
-	"extends": "@workspace/typescript-config/base.json",
+	"extends": "@hare/typescript-config/base.json",
 	"compilerOptions": {
 		"baseUrl": ".",
 		"paths": {
 			"web-app/*": ["./src/*"],
-			"@workspace/ui/*": ["../../packages/ui/src/*"],
+			"@hare/ui/*": ["../../packages/ui/src/*"],
 			"@hare/api": ["../../packages/hare-api/src/index.ts"],
 			"@hare/api/*": ["../../packages/hare-api/src/*"]
 		},
