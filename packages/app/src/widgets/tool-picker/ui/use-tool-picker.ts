@@ -1,7 +1,8 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import { useTools, type Tool } from '../../../entities/tool'
+import type { Tool } from '../../../shared/api/types'
+import { useTools } from '../../../shared/api/hooks'
 import type { ToolCategory } from './types'
 
 const TOOL_CATEGORY_MAP: Record<string, ToolCategory> = {
@@ -99,7 +100,7 @@ export function useToolPicker({
 
 	const selectedTools = useMemo(() => {
 		return selectedToolIds
-			.map((id) => tools.find((t) => t.id === id))
+			.map((id) => tools.find((t: Tool) => t.id === id))
 			.filter((t): t is Tool => t !== undefined)
 	}, [selectedToolIds, tools])
 
@@ -110,7 +111,7 @@ export function useToolPicker({
 		if (searchQuery) {
 			const query = searchQuery.toLowerCase()
 			filtered = filtered.filter(
-				(tool) =>
+				(tool: Tool) =>
 					tool.name.toLowerCase().includes(query) ||
 					tool.description.toLowerCase().includes(query) ||
 					tool.type.toLowerCase().includes(query),
@@ -119,7 +120,7 @@ export function useToolPicker({
 
 		// Filter by category
 		if (activeCategory !== 'all') {
-			filtered = filtered.filter((tool) => getToolCategory(tool) === activeCategory)
+			filtered = filtered.filter((tool: Tool) => getToolCategory(tool) === activeCategory)
 		}
 
 		return filtered
@@ -141,7 +142,7 @@ export function useToolPicker({
 			transform: 0,
 		}
 
-		tools.forEach((tool) => {
+		tools.forEach((tool: Tool) => {
 			const category = getToolCategory(tool)
 			counts[category]++
 		})

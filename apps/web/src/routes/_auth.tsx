@@ -1,6 +1,6 @@
+import { APP_CONFIG, AUTH_CONTENT } from '@hare/app/shared/config'
 import { createFileRoute, Link, Outlet } from '@tanstack/react-router'
 import { Rabbit } from 'lucide-react'
-import { APP_CONFIG, AUTH_CONTENT } from 'web-app/config'
 
 const { layout } = AUTH_CONTENT
 

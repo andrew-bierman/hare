@@ -1,5 +1,5 @@
 import type { MiddlewareHandler } from 'hono'
-import { BETA_ACCESS, FEATURES } from 'web-app/config'
+import { BETA_ACCESS, FEATURES } from '@hare/app/shared/config'
 import type { AuthEnv } from '../types'
 
 /**

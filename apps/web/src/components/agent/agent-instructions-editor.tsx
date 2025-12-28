@@ -1,10 +1,10 @@
 'use client'
 
+import { AGENT_LIMITS } from '@hare/app/shared/config'
 import {
 	InstructionsEditor,
 	type InstructionsEditorProps,
 } from '@workspace/ui/components/instructions-editor'
-import { AGENT_LIMITS } from 'web-app/config'
 
 interface AgentInstructionsEditorProps extends Omit<InstructionsEditorProps, 'maxLength'> {
 	maxLength?: number

@@ -8,7 +8,8 @@ import { Skeleton } from '@workspace/ui/components/skeleton'
 import { Plus, Search, Wrench } from 'lucide-react'
 import { type ChangeEvent, useState, type ReactNode } from 'react'
 import { useWorkspace } from '../../app/providers/workspace-provider'
-import { useTools, type Tool } from '../../entities/tool'
+import type { Tool } from '../../shared/api'
+import type { UseQueryResult } from '@tanstack/react-query'
 
 export interface ToolsPageProps {
 	/** Render prop for navigation links */
@@ -18,6 +19,8 @@ export interface ToolsPageProps {
 		newTool: string
 		toolDetail: (id: string) => string
 	}
+	/** Tools query from parent app */
+	useTools: (workspaceId: string | undefined) => UseQueryResult<{ tools: Tool[] }, Error>
 }
 
 const defaultRoutes = {
@@ -43,7 +46,7 @@ function ToolCardSkeleton() {
 	)
 }
 
-export function ToolsPage({ renderLink, routes }: ToolsPageProps) {
+export function ToolsPage({ renderLink, routes, useTools }: ToolsPageProps) {
 	const r = routes ?? defaultRoutes
 	const { activeWorkspace } = useWorkspace()
 	const { data, isLoading, error } = useTools(activeWorkspace?.id)

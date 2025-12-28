@@ -18,8 +18,8 @@ import {
 } from 'lucide-react'
 import { useWorkspace } from '../../app/providers'
 import { AVAILABLE_MODELS, DASHBOARD_CONTENT, UI_TEXT } from '../../shared/config'
-import { type Agent, useAgents } from '../../entities/agent'
-import { useUsage } from '../../features/analytics'
+import type { Agent } from '../../shared/api/types'
+import { useAgents, useUsage } from '../../shared/api/hooks'
 
 const { home: content } = DASHBOARD_CONTENT
 

@@ -1,8 +1,8 @@
 'use client'
 
 import { createContext, type ReactNode, useCallback, useContext, useEffect, useState } from 'react'
-import { useCreateWorkspace, useWorkspaces } from '../../entities/workspace'
-import type { Workspace, WorkspaceRole } from '../../shared/api'
+import type { Workspace, WorkspaceRole, CreateWorkspaceInput } from '../../shared/api'
+import type { UseMutationResult, UseQueryResult } from '@tanstack/react-query'
 
 interface WorkspaceWithRole extends Workspace {
 	role?: WorkspaceRole
@@ -25,12 +25,21 @@ interface WorkspaceProviderProps {
 	children: ReactNode
 	/** Auth hook to get user session */
 	useAuth: () => { data: { user: unknown } | null }
+	/** Workspaces query result from parent app */
+	workspacesQuery: UseQueryResult<{ workspaces: Workspace[] }, Error>
+	/** Create workspace mutation from parent app */
+	createWorkspaceMutation: UseMutationResult<Workspace, Error, CreateWorkspaceInput>
 }
 
-export function WorkspaceProvider({ children, useAuth }: WorkspaceProviderProps) {
+export function WorkspaceProvider({
+	children,
+	useAuth,
+	workspacesQuery,
+	createWorkspaceMutation,
+}: WorkspaceProviderProps) {
 	const { data: session } = useAuth()
-	const { data, isLoading, error } = useWorkspaces()
-	const createWorkspace = useCreateWorkspace()
+	const { data, isLoading, error } = workspacesQuery
+	const createWorkspace = createWorkspaceMutation
 	const [activeWorkspace, setActiveWorkspaceState] = useState<WorkspaceWithRole | null>(null)
 
 	const workspaces: WorkspaceWithRole[] = data?.workspaces ?? []

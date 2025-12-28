@@ -22,8 +22,8 @@ import {
 import { Textarea } from '@workspace/ui/components/textarea'
 import { type ChangeEvent, useState } from 'react'
 import { toast } from 'sonner'
-import { useCreateAgent } from '../../../entities/agent'
-import { type Tool, useTools } from '../../../entities/tool'
+import type { Tool } from '../../../shared/api/types'
+import { useCreateAgent, useTools } from '../../../shared/api/hooks'
 import { AgentInstructionsEditor } from '../../../widgets/agent-builder'
 import { AVAILABLE_MODELS } from '../../../shared/config'
 

@@ -1,3 +1,4 @@
+import { getModelName } from '@hare/app/shared/config'
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { Avatar, AvatarFallback } from '@workspace/ui/components/avatar'
 import { Badge } from '@workspace/ui/components/badge'
@@ -30,7 +31,6 @@ import { type FormEvent, type KeyboardEvent, useCallback, useEffect, useRef, use
 import { toast } from 'sonner'
 import { ToolCallList } from 'web-app/components/chat/tool-call-list'
 import { useWorkspace } from 'web-app/components/providers/workspace-provider'
-import { getModelName } from 'web-app/config'
 import { useAgent, useChat } from 'web-app/lib/api/hooks'
 
 export const Route = createFileRoute('/_dashboard/dashboard/agents/$id/playground')({
