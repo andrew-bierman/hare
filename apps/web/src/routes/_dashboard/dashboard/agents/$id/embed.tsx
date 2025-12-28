@@ -35,7 +35,7 @@ import {
 } from 'lucide-react'
 import { type ChangeEvent, useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
-import { useWorkspace } from 'web-app/components/providers/workspace-provider'
+import { useWorkspace } from 'web-app/app'
 import { useAgent, useUpdateAgent } from 'web-app/lib/api/hooks'
 
 export const Route = createFileRoute('/_dashboard/dashboard/agents/$id/embed')({

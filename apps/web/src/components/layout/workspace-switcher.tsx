@@ -23,7 +23,7 @@ import { Skeleton } from '@workspace/ui/components/skeleton'
 import { Check, ChevronsUpDown, Plus } from 'lucide-react'
 import { type ChangeEvent, type KeyboardEvent, useState } from 'react'
 import { toast } from 'sonner'
-import { useWorkspace } from 'web-app/components/providers/workspace-provider'
+import { useWorkspace } from 'web-app/app'
 import { useCreateWorkspace } from 'web-app/lib/api/hooks'
 
 export function WorkspaceSwitcher() {

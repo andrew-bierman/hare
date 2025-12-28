@@ -8,7 +8,7 @@ import {
 } from '@workspace/ui/components/card'
 import { Skeleton } from '@workspace/ui/components/skeleton'
 import { Activity, Bot, Calendar, TrendingUp } from 'lucide-react'
-import { useWorkspace } from 'web-app/components/providers/workspace-provider'
+import { useWorkspace } from 'web-app/app'
 import { type Agent, useAgents, useUsage } from 'web-app/lib/api/hooks'
 
 export const Route = createFileRoute('/_dashboard/dashboard/usage/')({

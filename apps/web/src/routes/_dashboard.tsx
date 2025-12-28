@@ -1,7 +1,7 @@
 import { createFileRoute, Outlet } from '@tanstack/react-router'
 import { Header } from 'web-app/components/layout/header'
 import { Sidebar } from 'web-app/components/layout/sidebar'
-import { WorkspaceProvider } from 'web-app/components/providers/workspace-provider'
+import { WorkspaceProvider } from 'web-app/app'
 import {
 	DashboardErrorComponent,
 	DashboardNotFound,
