@@ -264,26 +264,26 @@ export function DataTable<TData, TValue>({
 							<TableRow key={headerGroup.id}>
 								{headerGroup.headers.map((header) => (
 									<TableHead key={header.id} className="whitespace-nowrap">
-										{header.isPlaceholder ? null : (
-											<div
-												className={cn(
-													'flex items-center gap-2',
-													header.column.getCanSort() && 'cursor-pointer select-none',
-												)}
+										{header.isPlaceholder ? null : header.column.getCanSort() ? (
+											<button
+												type="button"
+												className={cn('flex items-center gap-2 cursor-pointer select-none')}
 												onClick={header.column.getToggleSortingHandler()}
 											>
 												{flexRender(header.column.columnDef.header, header.getContext())}
-												{header.column.getCanSort() && (
-													<span className="text-muted-foreground">
-														{header.column.getIsSorted() === 'desc' ? (
-															<ArrowDown className="h-4 w-4" />
-														) : header.column.getIsSorted() === 'asc' ? (
-															<ArrowUp className="h-4 w-4" />
-														) : (
-															<ArrowUpDown className="h-4 w-4" />
-														)}
-													</span>
-												)}
+												<span className="text-muted-foreground">
+													{header.column.getIsSorted() === 'desc' ? (
+														<ArrowDown className="h-4 w-4" />
+													) : header.column.getIsSorted() === 'asc' ? (
+														<ArrowUp className="h-4 w-4" />
+													) : (
+														<ArrowUpDown className="h-4 w-4" />
+													)}
+												</span>
+											</button>
+										) : (
+											<div className="flex items-center gap-2">
+												{flexRender(header.column.columnDef.header, header.getContext())}
 											</div>
 										)}
 									</TableHead>

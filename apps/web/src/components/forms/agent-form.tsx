@@ -115,9 +115,8 @@ export function AgentForm({
 					</CardHeader>
 					<CardContent className="space-y-4">
 						{/* Name Field */}
-						<form.Field
-							name="name"
-							children={(field) => (
+						<form.Field name="name">
+							{(field) => (
 								<div className="space-y-2">
 									<Label htmlFor={field.name}>
 										Agent Name <span className="text-destructive">*</span>
@@ -136,12 +135,11 @@ export function AgentForm({
 									)}
 								</div>
 							)}
-						/>
+						</form.Field>
 
 						{/* Description Field */}
-						<form.Field
-							name="description"
-							children={(field) => (
+						<form.Field name="description">
+							{(field) => (
 								<div className="space-y-2">
 									<Label htmlFor={field.name}>Description</Label>
 									<Textarea
@@ -158,7 +156,7 @@ export function AgentForm({
 									)}
 								</div>
 							)}
-						/>
+						</form.Field>
 					</CardContent>
 				</Card>
 
@@ -169,9 +167,8 @@ export function AgentForm({
 					</CardHeader>
 					<CardContent className="space-y-4">
 						{/* Model Field */}
-						<form.Field
-							name="model"
-							children={(field) => (
+						<form.Field name="model">
+							{(field) => (
 								<div className="space-y-2">
 									<Label htmlFor={field.name}>
 										Model <span className="text-destructive">*</span>
@@ -200,12 +197,11 @@ export function AgentForm({
 									)}
 								</div>
 							)}
-						/>
+						</form.Field>
 
 						{/* Instructions Field */}
-						<form.Field
-							name="instructions"
-							children={(field) => (
+						<form.Field name="instructions">
+							{(field) => (
 								<div className="space-y-2">
 									<Label htmlFor={field.name}>
 										System Prompt <span className="text-destructive">*</span>
@@ -227,7 +223,7 @@ export function AgentForm({
 									)}
 								</div>
 							)}
-						/>
+						</form.Field>
 					</CardContent>
 				</Card>
 
@@ -237,7 +233,8 @@ export function AgentForm({
 						canSubmit: state.canSubmit,
 						isSubmitting: state.isSubmitting,
 					})}
-					children={({ canSubmit, isSubmitting }) => (
+				>
+					{({ canSubmit, isSubmitting }) => (
 						<div className="flex justify-end gap-4">
 							<Button type="submit" disabled={!canSubmit || isPending || isSubmitting}>
 								{isPending || isSubmitting ? (
@@ -253,7 +250,7 @@ export function AgentForm({
 							</Button>
 						</div>
 					)}
-				/>
+				</form.Subscribe>
 			</div>
 		</form>
 	)
