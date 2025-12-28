@@ -16,6 +16,8 @@
 		"preview": "bun run --cwd apps/web preview",
 		"deploy": "bun run --cwd apps/web deploy",
 		"upload": "bun run --cwd apps/web upload",
+		"tauri:dev": "bun run --cwd apps/tauri tauri:dev",
+		"tauri:build": "bun run --cwd apps/tauri tauri:build",
 		"lint": "biome lint .",
 		"lint:fix": "biome lint --write .",
 		"format": "biome format --write .",

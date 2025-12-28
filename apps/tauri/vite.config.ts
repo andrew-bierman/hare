@@ -1,5 +1,4 @@
 import path from 'node:path'
-import { cloudflare } from '@cloudflare/vite-plugin'
 import tailwindcss from '@tailwindcss/vite'
 import { tanstackStart } from '@tanstack/react-start/plugin/vite'
 import { defineConfig } from 'vite'
@@ -8,13 +7,20 @@ import { defineConfig } from 'vite'
 const appPackagePath = path.resolve(__dirname, '../../packages/app/src')
 
 export default defineConfig({
-	server: {
-		port: 3000,
-	},
+	plugins: [
+		tailwindcss(),
+		tanstackStart({
+			// SPA mode for Tauri - no SSR needed
+			spa: {
+				enabled: true,
+			},
+			// Static target for desktop app
+			target: 'static',
+		}),
+	],
 	resolve: {
 		alias: {
-			'web-app': path.resolve(__dirname, './src'),
-			'@workspace/ui': path.resolve(__dirname, '../../packages/ui/src'),
+			'@': path.resolve(__dirname, './src'),
 			// @hare/app package aliases
 			'@hare/app/pages': path.join(appPackagePath, 'pages/index.ts'),
 			'@hare/app/app': path.join(appPackagePath, 'app/index.ts'),
@@ -29,7 +35,16 @@ export default defineConfig({
 			'@features': path.join(appPackagePath, 'features'),
 			'@entities': path.join(appPackagePath, 'entities'),
 			'@shared': path.join(appPackagePath, 'shared'),
+			// UI package aliases
+			'@workspace/ui/': path.resolve(__dirname, '../../packages/ui/src') + '/',
+			'@workspace/ui': path.resolve(__dirname, '../../packages/ui/src/index.ts'),
 		},
 	},
-	plugins: [cloudflare({ viteEnvironment: { name: 'ssr' } }), tailwindcss(), tanstackStart()],
+	// Tauri expects a fixed port during development
+	server: {
+		port: 1420,
+		strictPort: true,
+	},
+	// Environment variables
+	envPrefix: ['VITE_'],
 })
