@@ -1,0 +1,45 @@
+# Security Policy for Hare Platform
+# RFC 9116 compliant security.txt
+#
+# NOTE: Update the contact email before deploying to production
+
+Contact: mailto:security@example.com
+Expires: 2026-12-31T23:59:59.000Z
+Preferred-Languages: en
+Canonical: https://hare.run/.well-known/security.txt
+
+# Reporting Guidelines
+
+We take the security of Hare seriously. If you have discovered a security
+vulnerability in our system, we appreciate your help in disclosing it to
+us responsibly.
+
+## What to Report
+
+- Authentication or authorization bypasses
+- Data exposure or leakage
+- Cross-site scripting (XSS)
+- SQL injection
+- Remote code execution
+- Server-side request forgery (SSRF)
+- Cross-site request forgery (CSRF)
+- Any other vulnerability that could impact user security
+
+## What NOT to Report
+
+- Denial of service attacks
+- Social engineering
+- Physical security issues
+- Issues in third-party applications
+- Spam or phishing attempts
+
+## Response Timeline
+
+- Acknowledgment: Within 48 hours
+- Initial assessment: Within 5 business days
+- Resolution timeline: Depends on severity
+
+## Recognition
+
+We appreciate security researchers who help keep Hare secure.
+Responsible disclosure will be acknowledged in our security hall of fame.
