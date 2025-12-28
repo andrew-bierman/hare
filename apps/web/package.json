@@ -21,6 +21,9 @@
 		"test:headed": "playwright test --headed"
 	},
 	"dependencies": {
+		"@hare/agent": "workspace:*",
+		"@hare/api": "workspace:*",
+		"@hare/tools": "workspace:*",
 		"@ai-sdk/provider": "^2.0.0",
 		"@ai-sdk/provider-utils": "^3.0.19",
 		"@codemirror/lang-markdown": "^6.5.0",

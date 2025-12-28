@@ -1,10 +1,10 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
-import { apiClient } from '../client'
+import { apiClient } from '@hare/api/client'
 
 // Re-export types for convenience
-export type { AgentUsage, UsageSummary } from '../types'
+export type { AgentUsage, UsageSummary } from '@hare/api'
 
 export interface UsageParams {
 	startDate?: string
