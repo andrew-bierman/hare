@@ -1,14 +1,14 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
-import { Badge } from '@workspace/ui/components/badge'
-import { Button } from '@workspace/ui/components/button'
+import { Badge } from '@hare/ui/components/badge'
+import { Button } from '@hare/ui/components/button'
 import {
 	Card,
 	CardContent,
 	CardDescription,
 	CardHeader,
 	CardTitle,
-} from '@workspace/ui/components/card'
-import { Checkbox } from '@workspace/ui/components/checkbox'
+} from '@hare/ui/components/card'
+import { Checkbox } from '@hare/ui/components/checkbox'
 import {
 	Dialog,
 	DialogContent,
@@ -16,11 +16,11 @@ import {
 	DialogFooter,
 	DialogHeader,
 	DialogTitle,
-} from '@workspace/ui/components/dialog'
-import { Input } from '@workspace/ui/components/input'
-import { Label } from '@workspace/ui/components/label'
-import { ScrollArea } from '@workspace/ui/components/scroll-area'
-import { Skeleton } from '@workspace/ui/components/skeleton'
+} from '@hare/ui/components/dialog'
+import { Input } from '@hare/ui/components/input'
+import { Label } from '@hare/ui/components/label'
+import { ScrollArea } from '@hare/ui/components/scroll-area'
+import { Skeleton } from '@hare/ui/components/skeleton'
 import {
 	Table,
 	TableBody,
@@ -28,8 +28,8 @@ import {
 	TableHead,
 	TableHeader,
 	TableRow,
-} from '@workspace/ui/components/table'
-import { Textarea } from '@workspace/ui/components/textarea'
+} from '@hare/ui/components/table'
+import { Textarea } from '@hare/ui/components/textarea'
 import {
 	AlertCircle,
 	ArrowLeft,

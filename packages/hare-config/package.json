@@ -9,7 +9,7 @@
 		"zod": "^4.2.1"
 	},
 	"devDependencies": {
-		"@workspace/typescript-config": "workspace:*",
+		"@hare/typescript-config": "workspace:*",
 		"typescript": "^5"
 	}
 }

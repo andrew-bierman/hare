@@ -5,7 +5,7 @@ export default defineWorkersConfig({
   resolve: {
     alias: {
       "web-app": path.resolve(__dirname, "./apps/web/src"),
-      "@workspace/ui": path.resolve(__dirname, "./packages/ui/src"),
+      "@hare/ui": path.resolve(__dirname, "./packages/ui/src"),
     },
   },
   define: {

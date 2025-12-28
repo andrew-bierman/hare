@@ -23,11 +23,11 @@
       "version": "0.1.0",
       "dependencies": {
         "@hare/app": "workspace:*",
+        "@hare/ui": "workspace:*",
         "@tanstack/react-query": "^5.90.12",
         "@tanstack/react-query-devtools": "^5.91.1",
         "@tanstack/react-router": "^1.120.5",
         "@tanstack/react-start": "^1.138.0",
-        "@workspace/ui": "workspace:*",
         "class-variance-authority": "^0.7.1",
         "clsx": "^2.1.1",
         "lucide-react": "^0.562.0",
@@ -67,6 +67,7 @@
         "@hare/auth": "workspace:*",
         "@hare/config": "workspace:*",
         "@hare/tools": "workspace:*",
+        "@hare/ui": "workspace:*",
         "@hono/zod-openapi": "^1.2.0",
         "@hono/zod-validator": "^0.7.6",
         "@modelcontextprotocol/sdk": "1.23.0",
@@ -90,7 +91,6 @@
         "@tanstack/react-virtual": "^3.13.13",
         "@tanstack/zod-form-adapter": "^0.42.1",
         "@uiw/react-codemirror": "^4.25.4",
-        "@workspace/ui": "workspace:*",
         "agents": "0.3.0",
         "ai": "^5.0.116",
         "better-auth": "^1.4.9",
@@ -113,13 +113,13 @@
       "devDependencies": {
         "@cloudflare/vite-plugin": "^1.2.0",
         "@cloudflare/workers-types": "^4.20251225.0",
+        "@hare/typescript-config": "workspace:*",
         "@playwright/test": "^1.57.0",
         "@tailwindcss/vite": "^4.1.18",
         "@types/node": "^25.0.3",
         "@types/react": "^19",
         "@types/react-dom": "^19",
         "@vitejs/plugin-react": "^4.5.2",
-        "@workspace/typescript-config": "workspace:*",
         "drizzle-kit": "^0.31.8",
         "tailwindcss": "^4.1.18",
         "tw-animate-css": "^1.4.0",
@@ -139,13 +139,13 @@
         "@hare/agent": "workspace:*",
         "@hare/api": "workspace:*",
         "@hare/config": "workspace:*",
+        "@hare/ui": "workspace:*",
         "@tanstack/react-form": "^1.12.1",
         "@tanstack/react-query": "^5.90.12",
         "@tanstack/react-query-devtools": "^5.91.1",
         "@tanstack/react-table": "^8.21.3",
         "@tanstack/react-virtual": "^3.13.0",
         "@tanstack/zod-form-adapter": "^0.41.2",
-        "@workspace/ui": "workspace:*",
         "lucide-react": "^0.562.0",
         "react": "19.2.3",
         "react-dom": "19.2.3",
@@ -153,9 +153,9 @@
         "zod": "^4.2.1",
       },
       "devDependencies": {
+        "@hare/typescript-config": "workspace:*",
         "@types/react": "^19",
         "@types/react-dom": "^19",
-        "@workspace/typescript-config": "workspace:*",
         "typescript": "^5",
       },
       "peerDependencies": {
@@ -223,7 +223,7 @@
         "@hare/db": "workspace:*",
       },
       "devDependencies": {
-        "@workspace/typescript-config": "workspace:*",
+        "@hare/typescript-config": "workspace:*",
         "better-auth": "^1.4.9",
         "typescript": "^5",
       },
@@ -250,7 +250,7 @@
         "zod": "^4.2.1",
       },
       "devDependencies": {
-        "@workspace/typescript-config": "workspace:*",
+        "@hare/typescript-config": "workspace:*",
         "typescript": "^5",
       },
     },
@@ -262,7 +262,7 @@
         "zod": "^4.2.1",
       },
       "devDependencies": {
-        "@workspace/typescript-config": "workspace:*",
+        "@hare/typescript-config": "workspace:*",
         "drizzle-orm": "^0.45.1",
         "drizzle-zod": "^0.8.3",
         "typescript": "^5",
@@ -285,11 +285,11 @@
       },
     },
     "packages/typescript-config": {
-      "name": "@workspace/typescript-config",
+      "name": "@hare/typescript-config",
       "version": "0.0.0",
     },
     "packages/ui": {
-      "name": "@workspace/ui",
+      "name": "@hare/ui",
       "version": "0.0.0",
       "dependencies": {
         "@codemirror/lang-markdown": "^6.5.0",
@@ -320,9 +320,9 @@
         "tw-animate-css": "^1.4.0",
       },
       "devDependencies": {
+        "@hare/typescript-config": "workspace:*",
         "@types/react": "^19",
         "@types/react-dom": "^19",
-        "@workspace/typescript-config": "workspace:*",
         "tailwindcss": "^4",
         "tw-animate-css": "^1.4.0",
         "typescript": "^5",
@@ -616,6 +616,10 @@
     "@hare/scripts": ["@hare/scripts@workspace:scripts"],
 
     "@hare/tools": ["@hare/tools@workspace:packages/hare-tools"],
+
+    "@hare/typescript-config": ["@hare/typescript-config@workspace:packages/typescript-config"],
+
+    "@hare/ui": ["@hare/ui@workspace:packages/ui"],
 
     "@hono/node-server": ["@hono/node-server@1.19.7", "", { "peerDependencies": { "hono": "^4" } }, "sha512-vUcD0uauS7EU2caukW8z5lJKtoGMokxNbJtBiwHgpqxEXokaHCBkQUmCHhjFB1VUTWdqj25QoMkMKzgjq+uhrw=="],
 
@@ -1080,10 +1084,6 @@
     "@vitest/spy": ["@vitest/spy@3.2.4", "", { "dependencies": { "tinyspy": "^4.0.3" } }, "sha512-vAfasCOe6AIK70iP5UD11Ac4siNUNJ9i/9PZ3NKx07sG6sUxeag1LWdNrMWeKKYBLlzuK+Gn65Yd5nyL6ds+nw=="],
 
     "@vitest/utils": ["@vitest/utils@3.2.4", "", { "dependencies": { "@vitest/pretty-format": "3.2.4", "loupe": "^3.1.4", "tinyrainbow": "^2.0.0" } }, "sha512-fB2V0JFrQSMsCo9HiSq3Ezpdv4iYaXRG1Sx8edX3MwxfyNn83mKiGzOcH+Fkxt4MHxr3y42fQi1oeAInqgX2QA=="],
-
-    "@workspace/typescript-config": ["@workspace/typescript-config@workspace:packages/typescript-config"],
-
-    "@workspace/ui": ["@workspace/ui@workspace:packages/ui"],
 
     "accepts": ["accepts@2.0.0", "", { "dependencies": { "mime-types": "^3.0.0", "negotiator": "^1.0.0" } }, "sha512-5cvg6CtKwfgdmVqY1WIiXKc3Q1bkRqGLi+2W/6ao+6Y7gu/RCwRuAhGEzh5B4KlszSuTLgZYuqFqo5bImjNKng=="],
 

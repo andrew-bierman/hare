@@ -1,7 +1,7 @@
 'use client'
 
 import { AuthProvider as AppAuthProvider } from '@hare/app'
-import { Toaster } from '@workspace/ui/components/sonner'
+import { Toaster } from '@hare/ui/components/sonner'
 import { signOut } from '@hare/auth/client'
 import { AuthProvider, useAuth } from './auth-provider'
 import { QueryProvider } from './query-provider'

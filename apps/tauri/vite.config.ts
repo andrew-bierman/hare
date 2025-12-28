@@ -3,8 +3,8 @@ import tailwindcss from '@tailwindcss/vite'
 import { tanstackStart } from '@tanstack/react-start/plugin/vite'
 import { defineConfig } from 'vite'
 
-// Resolve the path to @hare/app package for FSD aliases
-const appPackagePath = path.resolve(__dirname, '../../packages/app/src')
+// Resolve paths to workspace packages
+const appPackagePath = path.resolve(__dirname, '../../packages/app')
 
 export default defineConfig({
 	plugins: [
@@ -26,14 +26,9 @@ export default defineConfig({
 			'@hare/app/app': path.join(appPackagePath, 'app/index.ts'),
 			'@hare/app/widgets': path.join(appPackagePath, 'widgets/index.ts'),
 			'@hare/app/shared': path.join(appPackagePath, 'shared/index.ts'),
-			// FSD path aliases for @hare/app internal imports
-			'@app': path.join(appPackagePath, 'app'),
-			'@pages': path.join(appPackagePath, 'pages'),
-			'@widgets': path.join(appPackagePath, 'widgets'),
-			'@shared': path.join(appPackagePath, 'shared'),
 			// UI package aliases
-			'@workspace/ui/': `${path.resolve(__dirname, '../../packages/ui/src')}/`,
-			'@workspace/ui': path.resolve(__dirname, '../../packages/ui/src/index.ts'),
+			'@hare/ui/': `${path.resolve(__dirname, '../../packages/ui/src')}/`,
+			'@hare/ui': path.resolve(__dirname, '../../packages/ui/src/index.ts'),
 		},
 	},
 	// Tauri expects a fixed port during development
