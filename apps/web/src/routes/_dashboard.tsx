@@ -1,9 +1,17 @@
 import { Header, Sidebar, UserNav, WorkspaceSwitcher } from '@hare/app/widgets'
 import { createFileRoute, Link, Outlet, useLocation } from '@tanstack/react-router'
 import { WorkspaceProvider } from 'web-app/components/providers/workspace-provider'
+import {
+	DashboardErrorComponent,
+	DashboardNotFound,
+	DashboardPendingComponent,
+} from 'web-app/components/router'
 
 export const Route = createFileRoute('/_dashboard')({
 	component: DashboardLayout,
+	errorComponent: DashboardErrorComponent,
+	notFoundComponent: DashboardNotFound,
+	pendingComponent: DashboardPendingComponent,
 })
 
 function DashboardLayout() {
@@ -12,7 +20,7 @@ function DashboardLayout() {
 
 	return (
 		<WorkspaceProvider>
-			<div className="h-screen flex bg-background">
+			<div className="h-screen flex bg-background overflow-x-hidden">
 				{/* Sidebar */}
 				<div className="hidden md:flex md:w-72 md:flex-col md:fixed md:inset-y-0 z-50">
 					<Sidebar pathname={pathname} Link={Link} WorkspaceSwitcher={WorkspaceSwitcher} />

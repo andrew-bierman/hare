@@ -53,7 +53,7 @@ export function UserNav({ Link, onSignOut }: UserNavProps) {
 	if (!user) {
 		return (
 			<div className="flex items-center gap-2">
-				<Link to="/sign-in">
+				<Link to="/sign-in" className="hidden sm:block">
 					<Button variant="ghost" size="sm">
 						Sign In
 					</Button>
@@ -68,7 +68,7 @@ export function UserNav({ Link, onSignOut }: UserNavProps) {
 	return (
 		<DropdownMenu>
 			<DropdownMenuTrigger asChild>
-				<Button variant="ghost" className="relative h-10 w-10 rounded-full">
+				<Button variant="ghost" className="relative h-10 w-10 rounded-full" aria-label="User menu">
 					<Avatar className="h-10 w-10">
 						<AvatarImage src={user.image || undefined} alt={user.name || 'User'} />
 						<AvatarFallback>{getInitials(user.name, user.email)}</AvatarFallback>
