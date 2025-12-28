@@ -1,7 +1,7 @@
 /**
  * Usage Entity
  *
- * Business entity for usage statistics.
+ * Re-exports from @hare/app package.
  */
 
-export * from './api'
+export * from '@hare/app/entities/usage'

@@ -5,6 +5,6 @@
  */
 
 export { AuthProvider } from './auth-provider'
-export { QueryProvider } from './query-provider'
-export { WorkspaceProvider, useWorkspace } from './workspace-provider'
 export { Providers } from './providers'
+export { QueryProvider } from './query-provider'
+export { useWorkspace, WorkspaceProvider } from './workspace-provider'

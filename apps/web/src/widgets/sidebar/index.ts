@@ -1,7 +1,7 @@
 /**
  * Sidebar Widget
  *
- * Application sidebar with navigation.
+ * Re-exports from packages/app for shared components.
  */
 
-export { Sidebar } from './ui/sidebar'
+export { Sidebar, type SidebarProps } from '@hare/app/widgets'

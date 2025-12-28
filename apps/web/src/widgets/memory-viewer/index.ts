@@ -1,7 +1,7 @@
 /**
  * Memory Viewer Widget
  *
- * A widget for viewing and managing agent memory.
+ * Re-exports from packages/app for shared components.
  */
 
-export { MemoryViewer } from './ui/memory-viewer'
+export { MemoryViewer, type MemoryViewerProps } from '@hare/app/widgets'

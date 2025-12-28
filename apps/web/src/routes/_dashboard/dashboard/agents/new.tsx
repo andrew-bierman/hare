@@ -1,5 +1,5 @@
-import { createFileRoute } from '@tanstack/react-router'
 import { AgentCreatePage } from '@hare/app/pages'
+import { createFileRoute } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/_dashboard/dashboard/agents/new')({
 	component: AgentCreatePage,

@@ -17,8 +17,8 @@ import { Skeleton } from '@workspace/ui/components/skeleton'
 import { Check, CreditCard, ExternalLink, Sparkles, Zap } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
-import { useWorkspace } from '@app/providers'
-import { useBillingStatus, useCreateCheckout, useCreatePortal, usePlans } from '@entities/billing'
+import { useWorkspace } from '../../app/providers'
+import { useBillingStatus, useCreateCheckout, useCreatePortal, usePlans } from '../../features/billing'
 
 export interface BillingPageProps {
 	searchParams?: {
@@ -41,10 +41,18 @@ export function BillingPage({ searchParams }: BillingPageProps) {
 	useEffect(() => {
 		if (searchParams?.success === 'true') {
 			toast.success('Subscription updated successfully!')
-			navigate({ to: '/dashboard/settings/billing', replace: true })
+			navigate({
+				to: '/dashboard/settings/billing',
+				search: { success: undefined, canceled: undefined },
+				replace: true,
+			})
 		} else if (searchParams?.canceled === 'true') {
 			toast.info('Checkout was canceled')
-			navigate({ to: '/dashboard/settings/billing', replace: true })
+			navigate({
+				to: '/dashboard/settings/billing',
+				search: { success: undefined, canceled: undefined },
+				replace: true,
+			})
 		}
 	}, [searchParams?.success, searchParams?.canceled, navigate])
 

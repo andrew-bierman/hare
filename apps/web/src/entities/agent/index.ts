@@ -1,7 +1,7 @@
 /**
  * Agent Entity
  *
- * Business entity for AI agents.
+ * Re-exports from @hare/app package.
  */
 
-export * from './api'
+export * from '@hare/app/entities/agent'

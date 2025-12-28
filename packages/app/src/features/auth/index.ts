@@ -7,3 +7,5 @@
 
 export * from './api/hooks'
 export * from './context'
+export * from './actions'
+export { SignOutButton } from './ui/SignOutButton'

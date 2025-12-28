@@ -21,7 +21,7 @@ import {
 import { Textarea } from '@workspace/ui/components/textarea'
 import { type ChangeEvent, useState } from 'react'
 import { toast } from 'sonner'
-import { useCreateTool } from '@entities/tool'
+import { useCreateTool } from '../../../entities/tool'
 
 const TOOL_TYPES = [
 	{ value: 'http', label: 'HTTP', description: 'Call external APIs' },

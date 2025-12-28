@@ -1,7 +1,7 @@
 /**
  * Scheduled Tasks Widget
  *
- * A widget for managing scheduled tasks.
+ * Re-exports from packages/app for shared components.
  */
 
-export { ScheduledTasksSection } from './ui/scheduled-tasks-section'
+export { ScheduledTasksSection, type ScheduledTasksSectionProps } from '@hare/app/widgets'

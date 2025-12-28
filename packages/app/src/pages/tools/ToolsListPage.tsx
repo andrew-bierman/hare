@@ -15,9 +15,9 @@ import { Input } from '@workspace/ui/components/input'
 import { Skeleton } from '@workspace/ui/components/skeleton'
 import { Code, Database, Globe, HardDrive, Plus, Search, Trash2, Wrench } from 'lucide-react'
 import { type ChangeEvent, useState } from 'react'
-import { type Tool, type ToolType, useTools } from '@entities/tool'
-import { CreateToolDialog, DeleteToolDialog } from '@features/create-tool'
-import { useWorkspace } from '@app/providers'
+import { type Tool, type ToolType, useTools } from '../../entities/tool'
+import { CreateToolDialog, DeleteToolDialog } from '../../features/create-tool'
+import { useWorkspace } from '../../app/providers'
 
 const TOOL_ICONS: Record<ToolType, typeof Wrench> = {
 	http: Globe,

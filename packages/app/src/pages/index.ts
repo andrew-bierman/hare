@@ -7,6 +7,9 @@
  * Routes in apps/web import these pages and render them.
  */
 
+// Auth pages
+export * from './auth'
+
 // Tools pages
 export * from './tools'
 
@@ -15,3 +18,6 @@ export * from './settings'
 
 // Agents pages
 export * from './agents'
+
+// Dashboard pages
+export * from './dashboard'

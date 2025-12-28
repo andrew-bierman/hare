@@ -1,5 +1,5 @@
-import { createFileRoute, useSearch } from '@tanstack/react-router'
 import { BillingPage } from '@hare/app/pages'
+import { createFileRoute, useSearch } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/_dashboard/dashboard/settings/billing')({
 	component: BillingPageWrapper,

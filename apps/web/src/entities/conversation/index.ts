@@ -1,7 +1,7 @@
 /**
  * Conversation Entity
  *
- * Business entity for chat conversations.
+ * Re-exports from @hare/app features layer.
  */
 
-export * from './api'
+export * from '@hare/app/features/chat'

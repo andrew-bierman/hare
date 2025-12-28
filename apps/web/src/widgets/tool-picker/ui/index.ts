@@ -1,8 +1,15 @@
-export { SelectedTools } from './selected-tools'
-export { SortableToolItem } from './sortable-tool-item'
-export { ToolCard } from './tool-card'
-export { ToolCategories } from './tool-categories'
-export { ToolPicker } from './tool-picker'
-export { ToolSearch } from './tool-search'
-export type * from './types'
-export { useToolPicker } from './use-tool-picker'
+'use client'
+
+export type * from '@hare/app/widgets'
+/**
+ * Re-exports from packages/app.
+ */
+export {
+	SelectedTools,
+	SortableToolItem,
+	ToolCard,
+	ToolCategories,
+	ToolPicker,
+	ToolSearch,
+	useToolPicker,
+} from '@hare/app/widgets'

@@ -1,7 +1,7 @@
 /**
  * User Entity
  *
- * Business entity for users and authentication.
+ * Re-exports from @hare/app package.
  */
 
-export * from './api'
+export * from '@hare/app/entities/user'

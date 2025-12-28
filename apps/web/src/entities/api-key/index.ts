@@ -1,7 +1,7 @@
 /**
  * API Key Entity
  *
- * Business entity for API keys.
+ * Re-exports from @hare/app package.
  */
 
-export * from './api'
+export * from '@hare/app/entities/api-key'

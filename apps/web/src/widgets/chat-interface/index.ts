@@ -1,8 +1,12 @@
 /**
  * Chat Interface Widget
  *
- * A widget for chat/conversation interactions.
+ * Re-exports from packages/app for shared components.
  */
 
-export { ToolCallBlock } from './ui/tool-call-block'
-export { ToolCallList } from './ui/tool-call-list'
+export {
+	ToolCallBlock,
+	type ToolCallBlockProps,
+	ToolCallList,
+	type ToolCallListProps,
+} from '@hare/app/widgets'

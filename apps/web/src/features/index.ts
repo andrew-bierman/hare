@@ -2,7 +2,7 @@
  * Features Layer
  *
  * User interactions and business logic.
- * Note: Most features are now in @hare/app package.
+ * Re-exports from @hare/app package.
  */
 
 export * from './auth'

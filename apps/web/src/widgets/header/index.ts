@@ -1,8 +1,9 @@
 /**
  * Header Widget
  *
- * Application header with navigation, search, and user menu.
+ * Re-exports from packages/app for shared components.
+ * Also exports web-specific components.
  */
 
-export { Header } from './ui/header'
+export { Header, type HeaderProps } from '@hare/app/widgets'
 export { UserNav } from './ui/user-nav'

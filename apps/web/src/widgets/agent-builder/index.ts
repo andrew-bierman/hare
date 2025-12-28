@@ -1,7 +1,7 @@
 /**
  * Agent Builder Widget
  *
- * A widget for building and configuring agents.
+ * Re-exports from packages/app for shared components.
  */
 
-export { AgentInstructionsEditor } from './ui/agent-instructions-editor'
+export { AgentInstructionsEditor } from '@hare/app/widgets'

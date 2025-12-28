@@ -1,8 +1,6 @@
 /**
  * Settings Pages
+ * Re-exported from @hare/app package
  */
 
-export { SettingsPage } from './SettingsPage'
-export { ApiKeysPage } from './ApiKeysPage'
-export { BillingPage } from './BillingPage'
-export { TeamPage } from './TeamPage'
+export { ApiKeysPage, BillingPage, SettingsPage, TeamPage } from '@hare/app/pages'

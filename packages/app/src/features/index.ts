@@ -24,9 +24,6 @@ export * from './analytics'
 // Billing feature
 export * from './billing'
 
-// Team feature
-export * from './team'
-
 // Schedules feature
 export * from './schedules'
 
@@ -35,3 +32,6 @@ export * from './create-tool'
 
 // Create Agent feature
 export * from './create-agent'
+
+// Memory feature
+export * from './memory'

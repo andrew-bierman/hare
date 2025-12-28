@@ -1,7 +1,7 @@
 /**
  * Billing Entity
  *
- * Business entity for billing and subscriptions.
+ * Re-exports from @hare/app features layer.
  */
 
-export * from './api'
+export * from '@hare/app/features/billing'

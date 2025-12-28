@@ -16,8 +16,8 @@ import { Skeleton } from '@workspace/ui/components/skeleton'
 import { Bell, Key, LogOut, Shield, User } from 'lucide-react'
 import { type ChangeEvent, useState } from 'react'
 import { toast } from 'sonner'
-import { useAuth, useAuthActions } from '@features/auth'
-import { useWorkspace } from '@app/providers'
+import { useAuth, useAuthActions } from '../../features/auth'
+import { useWorkspace } from '../../app/providers'
 
 export function SettingsPage() {
 	const navigate = useNavigate()

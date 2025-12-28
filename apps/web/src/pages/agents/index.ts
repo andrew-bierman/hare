@@ -1,6 +1,6 @@
 /**
  * Agents Pages
+ * Re-exported from @hare/app package
  */
 
-export { AgentsListPage } from './AgentsListPage'
-export { AgentCreatePage } from './AgentCreatePage'
+export { AgentCreatePage, AgentsListPage } from '@hare/app/pages'

@@ -24,13 +24,13 @@ import { Skeleton } from '@workspace/ui/components/skeleton'
 import { Check, Copy, Key, Plus, Trash2 } from 'lucide-react'
 import { type ChangeEvent, useState } from 'react'
 import { toast } from 'sonner'
-import { useWorkspace } from '@app/providers'
+import { useWorkspace } from '../../app/providers'
 import {
 	type ApiKeyWithSecret,
 	useApiKeys,
 	useCreateApiKey,
 	useDeleteApiKey,
-} from '@entities/api-key'
+} from '../../entities/api-key'
 
 export function ApiKeysPage() {
 	const { activeWorkspace } = useWorkspace()

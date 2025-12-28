@@ -5,7 +5,7 @@
  * Note: Most pages are now in @hare/app package.
  */
 
+export * from './agents'
 export * from './auth'
 export * from './dashboard'
-export * from './agents'
 export * from './settings'

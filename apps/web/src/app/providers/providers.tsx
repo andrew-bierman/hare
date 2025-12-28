@@ -1,11 +1,11 @@
 'use client'
 
-import { Toaster } from '@workspace/ui/components/sonner'
 import { AuthProvider as AppAuthProvider } from '@hare/app/features'
+import { Toaster } from '@workspace/ui/components/sonner'
+import { signOut } from 'web-app/lib/auth-client'
 import { AuthProvider, useAuth } from './auth-provider'
 import { QueryProvider } from './query-provider'
 import { WorkspaceProvider } from './workspace-provider'
-import { signOut } from 'web-app/lib/auth-client'
 
 /**
  * Bridge component that connects web app auth to @hare/app auth context
@@ -20,8 +20,8 @@ function AppAuthBridge({ children }: { children: React.ReactNode }) {
 						? {
 								id: session.data.user.id,
 								email: session.data.user.email,
-								name: session.data.user.name,
-								image: session.data.user.image,
+								name: session.data.user.name ?? null,
+								image: session.data.user.image ?? null,
 							}
 						: null,
 				}

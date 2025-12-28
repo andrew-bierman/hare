@@ -3,7 +3,7 @@
 import { Badge } from '@workspace/ui/components/badge'
 import { cn } from '@workspace/ui/lib/utils'
 import { Activity, BarChart3, Bot, Home, Rabbit, Settings, Wrench } from 'lucide-react'
-import { APP_CONFIG, DASHBOARD_CONTENT, FEATURES, NAV_ITEMS } from '@shared/config'
+import { APP_CONFIG, DASHBOARD_CONTENT, FEATURES, NAV_ITEMS } from '../../../shared/config'
 
 const ICONS = { Home, Bot, Wrench, Activity, Settings, BarChart3 } as const
 

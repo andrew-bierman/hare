@@ -5,8 +5,8 @@ import {
 	apiClient,
 	type AgentPreviewInput,
 	type AgentPreviewResponse,
-} from '@shared/api'
-import type { CreateAgentInput, UpdateAgentInput } from '@shared/api'
+} from '../../../shared/api'
+import type { CreateAgentInput, UpdateAgentInput } from '../../../shared/api'
 
 // Types are available from @shared/api, don't re-export to avoid duplicates
 

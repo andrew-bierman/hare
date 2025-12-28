@@ -11,7 +11,7 @@ import {
 	type PaymentHistoryItem,
 	type PaymentHistoryResponse,
 	type PortalResponse,
-} from '@shared/api'
+} from '../../../shared/api'
 
 // Types are available from @shared/api, don't re-export to avoid duplicates
 

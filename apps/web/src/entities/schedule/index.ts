@@ -1,7 +1,7 @@
 /**
  * Schedule Entity
  *
- * Business entity for scheduled tasks.
+ * Re-exports from @hare/app features layer.
  */
 
-export * from './api'
+export * from '@hare/app/features/schedules'

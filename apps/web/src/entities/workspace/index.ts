@@ -1,7 +1,7 @@
 /**
  * Workspace Entity
  *
- * Business entity for workspaces.
+ * Re-exports from @hare/app package.
  */
 
-export * from './api'
+export * from '@hare/app/entities/workspace'

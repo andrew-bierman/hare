@@ -33,8 +33,8 @@ import { Skeleton } from '@workspace/ui/components/skeleton'
 import { Clock, Mail, MoreVertical, Shield, Trash2, UserMinus, UserPlus, Users } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
-import { useAuth } from '@features/auth'
-import { useWorkspace } from '@app/providers'
+import { useAuth } from '../../features/auth'
+import { useWorkspace } from '../../app/providers'
 import {
 	type MemberRole,
 	useRemoveMember,
@@ -45,8 +45,8 @@ import {
 	useWorkspaceMembers,
 	type WorkspaceInvitation,
 	type WorkspaceMember,
-} from '@entities/workspace'
-import type { WorkspaceRole } from '@shared/api'
+} from '../../entities/workspace'
+import type { WorkspaceRole } from '../../shared/api'
 
 function getInitials(name: string): string {
 	return name

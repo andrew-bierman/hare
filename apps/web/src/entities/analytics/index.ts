@@ -1,7 +1,7 @@
 /**
  * Analytics Entity
  *
- * Business entity for analytics data.
+ * Re-exports from @hare/app features layer.
  */
 
-export * from './api'
+export * from '@hare/app/features/analytics'

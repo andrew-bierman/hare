@@ -22,10 +22,10 @@ import {
 import { Textarea } from '@workspace/ui/components/textarea'
 import { type ChangeEvent, useState } from 'react'
 import { toast } from 'sonner'
-import { useCreateAgent } from '@entities/agent'
-import { type Tool, useTools } from '@entities/tool'
-import { AgentInstructionsEditor } from '@widgets/agent-builder'
-import { AVAILABLE_MODELS } from '@shared/config'
+import { useCreateAgent } from '../../../entities/agent'
+import { type Tool, useTools } from '../../../entities/tool'
+import { AgentInstructionsEditor } from '../../../widgets/agent-builder'
+import { AVAILABLE_MODELS } from '../../../shared/config'
 
 interface CreateAgentFormProps {
 	workspaceId: string | undefined

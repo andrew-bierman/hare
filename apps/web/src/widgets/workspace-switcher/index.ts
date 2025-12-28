@@ -1,7 +1,7 @@
 /**
  * Workspace Switcher Widget
  *
- * A widget for switching between workspaces.
+ * Re-exports from packages/app for shared components.
  */
 
-export { WorkspaceSwitcher } from './ui/workspace-switcher'
+export { WorkspaceSwitcher } from '@hare/app/widgets'

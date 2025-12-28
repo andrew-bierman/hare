@@ -1,7 +1,7 @@
 /**
  * Tool Entity
  *
- * Business entity for agent tools.
+ * Re-exports from @hare/app package.
  */
 
-export * from './api'
+export * from '@hare/app/entities/tool'

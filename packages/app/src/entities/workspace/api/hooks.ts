@@ -1,8 +1,8 @@
 'use client'
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { apiClient } from '@shared/api'
-import type { CreateWorkspaceInput, MemberRole, SendInvitationInput } from '@shared/api'
+import { apiClient } from '../../../shared/api'
+import type { CreateWorkspaceInput, MemberRole, SendInvitationInput } from '../../../shared/api'
 
 export type {
 	CreateWorkspaceInput,
@@ -11,7 +11,7 @@ export type {
 	Workspace,
 	WorkspaceInvitation,
 	WorkspaceMember,
-} from '@shared/api'
+} from '../../../shared/api'
 
 export function useWorkspaces() {
 	return useQuery({

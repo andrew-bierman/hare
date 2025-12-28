@@ -1,7 +1,7 @@
 'use client'
 
-import { CreateAgentForm } from '@features/create-agent'
-import { useWorkspace } from '@app/providers'
+import { CreateAgentForm } from '../../features/create-agent'
+import { useWorkspace } from '../../app/providers'
 
 export function AgentCreatePage() {
 	const { activeWorkspace } = useWorkspace()
