@@ -128,11 +128,18 @@ function transformRouteContent(content: string, webRelPath: string): string {
 		result = result.replace(pattern, replacement)
 	}
 
-	// Remove SSR-specific imports
-	result = result.replace(/import\s*{\s*createServerFn\s*}\s*from\s*['"][^'"]+['"]\s*;?\n?/g, '')
+	// Remove SSR-specific imports (createServerFn from @tanstack/react-start/server)
+	result = result.replace(
+		/import\s*{\s*createServerFn\s*}\s*from\s*['"]@tanstack\/react-start\/server['"]\s*;?\n?/g,
+		''
+	)
 
-	// Remove createServerFn calls (multi-line)
-	result = result.replace(/const\s+\w+\s*=\s*createServerFn\([^)]*\)[\s\S]*?(?=\n\n|\nexport|\nfunction)/g, '')
+	// Comment out createServerFn declarations instead of removing them
+	// This is safer than trying to match the entire multi-line function body
+	result = result.replace(
+		/^(const\s+\w+\s*=\s*createServerFn)/gm,
+		'// TODO: Server function not available in SPA mode\n// $1'
+	)
 
 	return result
 }
