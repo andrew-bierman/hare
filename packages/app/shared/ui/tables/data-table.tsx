@@ -17,22 +17,22 @@ import {
 	useReactTable,
 	type VisibilityState,
 } from '@tanstack/react-table'
-import { Button } from '@workspace/ui/components/button'
-import { Checkbox } from '@workspace/ui/components/checkbox'
+import { Button } from '@hare/ui/components/button'
+import { Checkbox } from '@hare/ui/components/checkbox'
 import {
 	DropdownMenu,
 	DropdownMenuCheckboxItem,
 	DropdownMenuContent,
 	DropdownMenuTrigger,
-} from '@workspace/ui/components/dropdown-menu'
-import { Input } from '@workspace/ui/components/input'
+} from '@hare/ui/components/dropdown-menu'
+import { Input } from '@hare/ui/components/input'
 import {
 	Select,
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
 	SelectValue,
-} from '@workspace/ui/components/select'
+} from '@hare/ui/components/select'
 import {
 	Table,
 	TableBody,
@@ -40,8 +40,8 @@ import {
 	TableHead,
 	TableHeader,
 	TableRow,
-} from '@workspace/ui/components/table'
-import { cn } from '@workspace/ui/lib/utils'
+} from '@hare/ui/components/table'
+import { cn } from '@hare/ui/lib/utils'
 import {
 	ArrowDown,
 	ArrowUp,

@@ -7,25 +7,25 @@ import {
 	useTestToolMutation,
 } from '@hare/app/shared/api'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { Badge } from '@workspace/ui/components/badge'
-import { Button } from '@workspace/ui/components/button'
+import { Badge } from '@hare/ui/components/badge'
+import { Button } from '@hare/ui/components/button'
 import {
 	Card,
 	CardContent,
 	CardDescription,
 	CardHeader,
 	CardTitle,
-} from '@workspace/ui/components/card'
-import { Input } from '@workspace/ui/components/input'
-import { Label } from '@workspace/ui/components/label'
+} from '@hare/ui/components/card'
+import { Input } from '@hare/ui/components/input'
+import { Label } from '@hare/ui/components/label'
 import {
 	Select,
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
 	SelectValue,
-} from '@workspace/ui/components/select'
-import { Textarea } from '@workspace/ui/components/textarea'
+} from '@hare/ui/components/select'
+import { Textarea } from '@hare/ui/components/textarea'
 import {
 	AlertCircle,
 	CheckCircle2,

@@ -1,7 +1,7 @@
 'use client'
 
 import { useNavigate } from '@tanstack/react-router'
-import { Button } from '@workspace/ui/components/button'
+import { Button } from '@hare/ui/components/button'
 import { LogOut } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'

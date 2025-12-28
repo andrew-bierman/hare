@@ -1,7 +1,7 @@
 'use client'
 
-import { Button } from '@workspace/ui/components/button'
-import { Input } from '@workspace/ui/components/input'
+import { Button } from '@hare/ui/components/button'
+import { Input } from '@hare/ui/components/input'
 import { Bell, Menu, Rabbit, Search } from 'lucide-react'
 import { APP_CONFIG, DASHBOARD_CONTENT } from '../../../shared/config'
 

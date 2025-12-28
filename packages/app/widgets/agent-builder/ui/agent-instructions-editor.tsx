@@ -3,7 +3,7 @@
 import {
 	InstructionsEditor,
 	type InstructionsEditorProps,
-} from '@workspace/ui/components/instructions-editor'
+} from '@hare/ui/components/instructions-editor'
 import { AGENT_LIMITS } from '../../../shared/config'
 
 interface AgentInstructionsEditorProps extends Omit<InstructionsEditorProps, 'maxLength'> {

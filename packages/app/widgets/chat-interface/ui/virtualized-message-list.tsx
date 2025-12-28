@@ -5,7 +5,7 @@
  */
 
 import { useVirtualizer } from '@tanstack/react-virtual'
-import { cn } from '@workspace/ui/lib/utils'
+import { cn } from '@hare/ui/lib/utils'
 import { Bot, Loader2, User } from 'lucide-react'
 import { useCallback, useEffect, useRef } from 'react'
 

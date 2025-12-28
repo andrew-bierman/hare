@@ -15,15 +15,15 @@ import { MemoryViewer } from '@hare/app/widgets/memory-viewer'
 import { ScheduledTasksSection } from '@hare/app/widgets/scheduled-tasks'
 import { ToolPicker } from '@hare/app/widgets/tool-picker'
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
-import { Badge } from '@workspace/ui/components/badge'
-import { Button } from '@workspace/ui/components/button'
+import { Badge } from '@hare/ui/components/badge'
+import { Button } from '@hare/ui/components/button'
 import {
 	Card,
 	CardContent,
 	CardDescription,
 	CardHeader,
 	CardTitle,
-} from '@workspace/ui/components/card'
+} from '@hare/ui/components/card'
 import {
 	Dialog,
 	DialogContent,
@@ -31,19 +31,19 @@ import {
 	DialogFooter,
 	DialogHeader,
 	DialogTitle,
-} from '@workspace/ui/components/dialog'
-import { Input } from '@workspace/ui/components/input'
-import { Label } from '@workspace/ui/components/label'
+} from '@hare/ui/components/dialog'
+import { Input } from '@hare/ui/components/input'
+import { Label } from '@hare/ui/components/label'
 import {
 	Select,
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
 	SelectValue,
-} from '@workspace/ui/components/select'
-import { Skeleton } from '@workspace/ui/components/skeleton'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@workspace/ui/components/tabs'
-import { Textarea } from '@workspace/ui/components/textarea'
+} from '@hare/ui/components/select'
+import { Skeleton } from '@hare/ui/components/skeleton'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@hare/ui/components/tabs'
+import { Textarea } from '@hare/ui/components/textarea'
 import {
 	AlertTriangle,
 	Brain,

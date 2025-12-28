@@ -1,6 +1,6 @@
 'use client'
 
-import { Button } from '@workspace/ui/components/button'
+import { Button } from '@hare/ui/components/button'
 import {
 	Dialog,
 	DialogContent,
@@ -8,7 +8,7 @@ import {
 	DialogFooter,
 	DialogHeader,
 	DialogTitle,
-} from '@workspace/ui/components/dialog'
+} from '@hare/ui/components/dialog'
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -16,10 +16,10 @@ import {
 	DropdownMenuLabel,
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
-} from '@workspace/ui/components/dropdown-menu'
-import { Input } from '@workspace/ui/components/input'
-import { Label } from '@workspace/ui/components/label'
-import { Skeleton } from '@workspace/ui/components/skeleton'
+} from '@hare/ui/components/dropdown-menu'
+import { Input } from '@hare/ui/components/input'
+import { Label } from '@hare/ui/components/label'
+import { Skeleton } from '@hare/ui/components/skeleton'
 import { Check, ChevronsUpDown, Plus } from 'lucide-react'
 import { type ChangeEvent, type KeyboardEvent, useState } from 'react'
 import { toast } from 'sonner'

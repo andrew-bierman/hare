@@ -1,7 +1,7 @@
 'use client'
 
-import { Badge } from '@workspace/ui/components/badge'
-import { cn } from '@workspace/ui/lib/utils'
+import { Badge } from '@hare/ui/components/badge'
+import { cn } from '@hare/ui/lib/utils'
 import { Check } from 'lucide-react'
 import type { ToolCardProps } from './types'
 

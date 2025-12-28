@@ -1,25 +1,25 @@
 'use client'
 
 import { useNavigate } from '@tanstack/react-router'
-import { Button } from '@workspace/ui/components/button'
+import { Button } from '@hare/ui/components/button'
 import {
 	Card,
 	CardContent,
 	CardDescription,
 	CardHeader,
 	CardTitle,
-} from '@workspace/ui/components/card'
-import { Checkbox } from '@workspace/ui/components/checkbox'
-import { Input } from '@workspace/ui/components/input'
-import { Label } from '@workspace/ui/components/label'
+} from '@hare/ui/components/card'
+import { Checkbox } from '@hare/ui/components/checkbox'
+import { Input } from '@hare/ui/components/input'
+import { Label } from '@hare/ui/components/label'
 import {
 	Select,
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
 	SelectValue,
-} from '@workspace/ui/components/select'
-import { Textarea } from '@workspace/ui/components/textarea'
+} from '@hare/ui/components/select'
+import { Textarea } from '@hare/ui/components/textarea'
 import { type ChangeEvent, useState } from 'react'
 import { toast } from 'sonner'
 import { useCreateAgentMutation, useToolsQuery } from '../../../shared/api/hooks'

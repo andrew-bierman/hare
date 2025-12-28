@@ -1,9 +1,9 @@
 'use client'
 
-import { Badge } from '@workspace/ui/components/badge'
-import { Button } from '@workspace/ui/components/button'
-import { Card, CardContent } from '@workspace/ui/components/card'
-import { Skeleton } from '@workspace/ui/components/skeleton'
+import { Badge } from '@hare/ui/components/badge'
+import { Button } from '@hare/ui/components/button'
+import { Card, CardContent } from '@hare/ui/components/card'
+import { Skeleton } from '@hare/ui/components/skeleton'
 import {
 	Activity,
 	ArrowRight,

@@ -1,12 +1,12 @@
 /**
  * Shared UI
  *
- * Re-exports UI components from @workspace/ui package.
+ * Re-exports UI components from @hare/ui package.
  * Following Feature-Sliced Design, this provides a consistent import path.
  */
 
 // Re-export all UI components from the shared UI package
-export * from '@workspace/ui'
+export * from '@hare/ui'
 
 // Tables - Reusable table components built on TanStack Table
 export * from './tables'

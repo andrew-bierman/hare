@@ -1,8 +1,8 @@
 'use client'
 
 import { Link } from '@tanstack/react-router'
-import { Badge } from '@workspace/ui/components/badge'
-import { Button } from '@workspace/ui/components/button'
+import { Badge } from '@hare/ui/components/badge'
+import { Button } from '@hare/ui/components/button'
 import {
 	Card,
 	CardContent,
@@ -10,9 +10,9 @@ import {
 	CardFooter,
 	CardHeader,
 	CardTitle,
-} from '@workspace/ui/components/card'
-import { Input } from '@workspace/ui/components/input'
-import { Skeleton } from '@workspace/ui/components/skeleton'
+} from '@hare/ui/components/card'
+import { Input } from '@hare/ui/components/input'
+import { Skeleton } from '@hare/ui/components/skeleton'
 import { Code, Database, Globe, HardDrive, Plus, Search, Trash2, Wrench } from 'lucide-react'
 import { type ChangeEvent, useState } from 'react'
 import type { Tool, ToolType } from '../../shared/api/types'

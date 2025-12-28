@@ -1,7 +1,7 @@
 'use client'
 
-import { Button } from '@workspace/ui/components/button'
-import { cn } from '@workspace/ui/lib/utils'
+import { Button } from '@hare/ui/components/button'
+import { cn } from '@hare/ui/lib/utils'
 import {
 	Brain,
 	CheckCircle,

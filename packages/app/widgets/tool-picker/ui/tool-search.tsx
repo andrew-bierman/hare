@@ -1,6 +1,6 @@
 'use client'
 
-import { Input } from '@workspace/ui/components/input'
+import { Input } from '@hare/ui/components/input'
 import { Search } from 'lucide-react'
 import type { ToolSearchProps } from './types'
 

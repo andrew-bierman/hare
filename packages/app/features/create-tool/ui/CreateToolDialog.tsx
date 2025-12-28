@@ -1,6 +1,6 @@
 'use client'
 
-import { Button } from '@workspace/ui/components/button'
+import { Button } from '@hare/ui/components/button'
 import {
 	Dialog,
 	DialogContent,
@@ -8,17 +8,17 @@ import {
 	DialogFooter,
 	DialogHeader,
 	DialogTitle,
-} from '@workspace/ui/components/dialog'
-import { Input } from '@workspace/ui/components/input'
-import { Label } from '@workspace/ui/components/label'
+} from '@hare/ui/components/dialog'
+import { Input } from '@hare/ui/components/input'
+import { Label } from '@hare/ui/components/label'
 import {
 	Select,
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
 	SelectValue,
-} from '@workspace/ui/components/select'
-import { Textarea } from '@workspace/ui/components/textarea'
+} from '@hare/ui/components/select'
+import { Textarea } from '@hare/ui/components/textarea'
 import { type ChangeEvent, useState } from 'react'
 import { toast } from 'sonner'
 import { useCreateToolMutation } from '../../../shared/api/hooks'

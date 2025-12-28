@@ -6,8 +6,8 @@ import {
 	CardDescription,
 	CardHeader,
 	CardTitle,
-} from '@workspace/ui/components/card'
-import { Skeleton } from '@workspace/ui/components/skeleton'
+} from '@hare/ui/components/card'
+import { Skeleton } from '@hare/ui/components/skeleton'
 import type { ReactNode } from 'react'
 
 export interface ChartContainerProps {

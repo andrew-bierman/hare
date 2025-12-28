@@ -1,7 +1,7 @@
 'use client'
 
-import { Button } from '@workspace/ui/components/button'
-import { Skeleton } from '@workspace/ui/components/skeleton'
+import { Button } from '@hare/ui/components/button'
+import { Skeleton } from '@hare/ui/components/skeleton'
 import { useEffect } from 'react'
 import { SelectedTools } from './selected-tools'
 import { ToolCard } from './tool-card'

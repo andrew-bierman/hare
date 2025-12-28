@@ -5,24 +5,24 @@
  */
 
 import { useForm } from '@tanstack/react-form'
-import { Button } from '@workspace/ui/components/button'
+import { Button } from '@hare/ui/components/button'
 import {
 	Card,
 	CardContent,
 	CardDescription,
 	CardHeader,
 	CardTitle,
-} from '@workspace/ui/components/card'
-import { Input } from '@workspace/ui/components/input'
-import { Label } from '@workspace/ui/components/label'
+} from '@hare/ui/components/card'
+import { Input } from '@hare/ui/components/input'
+import { Label } from '@hare/ui/components/label'
 import {
 	Select,
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
 	SelectValue,
-} from '@workspace/ui/components/select'
-import { Textarea } from '@workspace/ui/components/textarea'
+} from '@hare/ui/components/select'
+import { Textarea } from '@hare/ui/components/textarea'
 import { Loader2 } from 'lucide-react'
 import { z } from 'zod'
 import { AI_MODELS, type AIModel } from '../../config'

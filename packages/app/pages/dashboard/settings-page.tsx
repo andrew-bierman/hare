@@ -1,8 +1,8 @@
 'use client'
 
-import { Button } from '@workspace/ui/components/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@workspace/ui/components/card'
-import { Skeleton } from '@workspace/ui/components/skeleton'
+import { Button } from '@hare/ui/components/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@hare/ui/components/card'
+import { Skeleton } from '@hare/ui/components/skeleton'
 import { CreditCard, Key, Settings, Users } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { useWorkspace } from '../../app/providers/workspace-provider'

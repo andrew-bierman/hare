@@ -13,8 +13,8 @@
 	"iconLibrary": "lucide",
 	"aliases": {
 		"components": "@/components",
-		"utils": "@workspace/ui/lib/utils",
-		"ui": "@workspace/ui/components",
+		"utils": "@hare/ui/lib/utils",
+		"ui": "@hare/ui/components",
 		"lib": "@/lib",
 		"hooks": "@/hooks"
 	},

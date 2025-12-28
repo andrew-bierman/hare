@@ -2,8 +2,8 @@
 
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { Button } from '@workspace/ui/components/button'
-import { cn } from '@workspace/ui/lib/utils'
+import { Button } from '@hare/ui/components/button'
+import { cn } from '@hare/ui/lib/utils'
 import { GripVertical, X } from 'lucide-react'
 import type { SortableToolItemProps } from './types'
 

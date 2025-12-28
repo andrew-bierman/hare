@@ -1,22 +1,22 @@
 import { type Agent, useAgentsQuery, useAnalyticsQuery } from '@hare/app/shared/api'
 import { ChartContainer } from '@hare/app/widgets'
 import { createFileRoute } from '@tanstack/react-router'
-import { Button } from '@workspace/ui/components/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@workspace/ui/components/card'
+import { Button } from '@hare/ui/components/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@hare/ui/components/card'
 import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
 	DropdownMenuTrigger,
-} from '@workspace/ui/components/dropdown-menu'
+} from '@hare/ui/components/dropdown-menu'
 import {
 	Select,
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
 	SelectValue,
-} from '@workspace/ui/components/select'
-import { Skeleton } from '@workspace/ui/components/skeleton'
+} from '@hare/ui/components/select'
+import { Skeleton } from '@hare/ui/components/skeleton'
 import { ArrowDownToLine, BarChart3, Calendar, DollarSign, TrendingUp, Zap } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import {

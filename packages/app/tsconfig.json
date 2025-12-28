@@ -1,16 +1,9 @@
 {
-	"extends": "@workspace/typescript-config/react-library.json",
+	"extends": "@hare/typescript-config/react-library.json",
 	"compilerOptions": {
-		"baseUrl": ".",
-		"paths": {
-			"@workspace/ui/*": ["../ui/src/*"],
-			"@workspace/ui": ["../ui/src/index.ts"]
-		},
-		"module": "ESNext",
-		"moduleResolution": "Bundler",
 		"jsx": "react-jsx",
 		"noEmit": true
 	},
-	"include": ["./**/*.ts", "./**/*.tsx"],
+	"include": ["**/*.ts", "**/*.tsx"],
 	"exclude": ["node_modules", "dist"]
 }

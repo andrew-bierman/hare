@@ -1,18 +1,18 @@
 'use client'
 
 import { useNavigate } from '@tanstack/react-router'
-import { Button } from '@workspace/ui/components/button'
+import { Button } from '@hare/ui/components/button'
 import {
 	Card,
 	CardContent,
 	CardDescription,
 	CardHeader,
 	CardTitle,
-} from '@workspace/ui/components/card'
-import { Input } from '@workspace/ui/components/input'
-import { Label } from '@workspace/ui/components/label'
-import { Separator } from '@workspace/ui/components/separator'
-import { Skeleton } from '@workspace/ui/components/skeleton'
+} from '@hare/ui/components/card'
+import { Input } from '@hare/ui/components/input'
+import { Label } from '@hare/ui/components/label'
+import { Separator } from '@hare/ui/components/separator'
+import { Skeleton } from '@hare/ui/components/skeleton'
 import { Bell, Key, LogOut, Shield, User } from 'lucide-react'
 import { type ChangeEvent, useState } from 'react'
 import { toast } from 'sonner'

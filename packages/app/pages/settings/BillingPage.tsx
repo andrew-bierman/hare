@@ -1,8 +1,8 @@
 'use client'
 
 import { useNavigate } from '@tanstack/react-router'
-import { Badge } from '@workspace/ui/components/badge'
-import { Button } from '@workspace/ui/components/button'
+import { Badge } from '@hare/ui/components/badge'
+import { Button } from '@hare/ui/components/button'
 import {
 	Card,
 	CardContent,
@@ -10,10 +10,10 @@ import {
 	CardFooter,
 	CardHeader,
 	CardTitle,
-} from '@workspace/ui/components/card'
-import { Progress } from '@workspace/ui/components/progress'
-import { Separator } from '@workspace/ui/components/separator'
-import { Skeleton } from '@workspace/ui/components/skeleton'
+} from '@hare/ui/components/card'
+import { Progress } from '@hare/ui/components/progress'
+import { Separator } from '@hare/ui/components/separator'
+import { Skeleton } from '@hare/ui/components/skeleton'
 import { Check, CreditCard, ExternalLink, Sparkles, Zap } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'

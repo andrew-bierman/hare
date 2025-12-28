@@ -1,6 +1,6 @@
 'use client'
 
-import { Button } from '@workspace/ui/components/button'
+import { Button } from '@hare/ui/components/button'
 import {
 	Dialog,
 	DialogContent,
@@ -8,7 +8,7 @@ import {
 	DialogFooter,
 	DialogHeader,
 	DialogTitle,
-} from '@workspace/ui/components/dialog'
+} from '@hare/ui/components/dialog'
 import { toast } from 'sonner'
 import { useDeleteToolMutation } from '../../../shared/api/hooks'
 

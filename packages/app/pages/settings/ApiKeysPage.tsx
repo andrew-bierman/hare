@@ -1,14 +1,14 @@
 'use client'
 
-import { Badge } from '@workspace/ui/components/badge'
-import { Button } from '@workspace/ui/components/button'
+import { Badge } from '@hare/ui/components/badge'
+import { Button } from '@hare/ui/components/button'
 import {
 	Card,
 	CardContent,
 	CardDescription,
 	CardHeader,
 	CardTitle,
-} from '@workspace/ui/components/card'
+} from '@hare/ui/components/card'
 import {
 	Dialog,
 	DialogContent,
@@ -17,10 +17,10 @@ import {
 	DialogHeader,
 	DialogTitle,
 	DialogTrigger,
-} from '@workspace/ui/components/dialog'
-import { Input } from '@workspace/ui/components/input'
-import { Label } from '@workspace/ui/components/label'
-import { Skeleton } from '@workspace/ui/components/skeleton'
+} from '@hare/ui/components/dialog'
+import { Input } from '@hare/ui/components/input'
+import { Label } from '@hare/ui/components/label'
+import { Skeleton } from '@hare/ui/components/skeleton'
 import { Check, Copy, Key, Plus, Trash2 } from 'lucide-react'
 import { type ChangeEvent, useState } from 'react'
 import { toast } from 'sonner'

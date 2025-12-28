@@ -1,7 +1,7 @@
 'use client'
 
-import { Avatar, AvatarFallback, AvatarImage } from '@workspace/ui/components/avatar'
-import { Button } from '@workspace/ui/components/button'
+import { Avatar, AvatarFallback, AvatarImage } from '@hare/ui/components/avatar'
+import { Button } from '@hare/ui/components/button'
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -9,7 +9,7 @@ import {
 	DropdownMenuLabel,
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
-} from '@workspace/ui/components/dropdown-menu'
+} from '@hare/ui/components/dropdown-menu'
 import { LogOut, Settings, User } from 'lucide-react'
 import { useAuth, useAuthActions } from '../../../features/auth'
 

@@ -9,7 +9,7 @@
  * - config: Application configuration and constants
  * - lib: Shared utilities and hooks
  *
- * Note: UI components should be imported directly from @workspace/ui
+ * Note: UI components should be imported directly from @hare/ui
  */
 
 // API types and schemas

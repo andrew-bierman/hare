@@ -2,9 +2,9 @@ import { useCreateAgentMutation, useCreateWorkspaceMutation } from '@hare/app/sh
 import { DEV_CONFIG, DEV_TOOLS_CONTENT, FEATURES } from '@hare/config'
 import { useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
-import { Badge } from '@workspace/ui/components/badge'
-import { Button } from '@workspace/ui/components/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@workspace/ui/components/card'
+import { Badge } from '@hare/ui/components/badge'
+import { Button } from '@hare/ui/components/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@hare/ui/components/card'
 import {
 	Bot,
 	ChevronDown,
