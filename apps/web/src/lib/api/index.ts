@@ -21,6 +21,7 @@ import embed from './routes/embed'
 import health from './routes/health'
 import logs from './routes/logs'
 import mcp from './routes/mcp'
+import mcpApi from './routes/mcp-api'
 import memory from './routes/memory'
 import schedules from './routes/schedules'
 import tools from './routes/tools'
@@ -71,6 +72,7 @@ const routes = app
 	.route('/usage', usage)
 	.route('/dev', dev)
 	.route('/mcp', mcp)
+	.route('/mcp-api', mcpApi)
 	.route('/health', health)
 	.route('/logs', logs)
 	.route('/embed', embed)
