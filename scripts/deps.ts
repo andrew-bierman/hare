@@ -12,7 +12,7 @@
  *   bun run deps sync              # Sync versions across workspaces
  */
 
-import { run as ncuRun, type Index } from 'npm-check-updates'
+import { run as ncuRun } from 'npm-check-updates'
 import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
 
@@ -55,7 +55,7 @@ async function getUpgrades(options: {
 				packageManager: 'bun',
 				target: options.target || 'latest',
 				filter: options.filter,
-			})) as Index<string>
+			})) as Record<string, string>
 
 			// Get current versions
 			const pkgContent = await readFile(join(wsPath, 'package.json'), 'utf-8')
@@ -143,7 +143,7 @@ async function updatePackages(options: {
 				target,
 				filter: packages,
 				upgrade,
-			})) as Index<string>
+			})) as Record<string, string>
 
 			const count = Object.keys(upgraded).length
 			if (count > 0) {
