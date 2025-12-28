@@ -3,12 +3,18 @@
  *
  * Enables external AI clients (Claude, Cursor, etc.) to connect
  * to Hare's tools via the Model Context Protocol.
+ *
+ * Supports both:
+ * - WebSocket connections for real-time MCP (Cloudflare Agents SDK)
+ * - HTTP endpoints for stateless MCP operations
  */
 
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
 import { and, eq } from 'drizzle-orm'
 import { workspaceMembers } from 'web-app/db/schema'
 import { isWebSocketRequest, routeToMcpAgent } from 'web-app/lib/agents'
+import { agentControlTools } from 'web-app/lib/agents/tools/agent-control'
+import type { ToolContext } from 'web-app/lib/agents/tools/types'
 import { getCloudflareEnv, getDb } from '../db'
 import { optionalAuthMiddleware } from '../middleware'
 import { ErrorSchema } from '../schemas'
@@ -94,6 +100,123 @@ const mcpInfoRoute = createRoute({
 	},
 })
 
+// MCP tools list route (HTTP)
+const mcpToolsRoute = createRoute({
+	method: 'get',
+	path: '/{workspaceId}/tools',
+	tags: ['MCP'],
+	summary: 'List available MCP tools',
+	description: 'Returns all agent control tools available via MCP',
+	request: {
+		params: z.object({
+			workspaceId: z.string().describe('Workspace ID'),
+		}),
+	},
+	responses: {
+		200: {
+			description: 'List of available tools',
+			content: {
+				'application/json': {
+					schema: z.object({
+						tools: z.array(
+							z.object({
+								name: z.string(),
+								description: z.string(),
+							}),
+						),
+					}),
+				},
+			},
+		},
+	},
+})
+
+// MCP tool execute route (HTTP)
+const mcpToolExecuteRoute = createRoute({
+	method: 'post',
+	path: '/{workspaceId}/tools/{toolId}',
+	tags: ['MCP'],
+	summary: 'Execute an MCP tool',
+	description: 'Execute a specific agent control tool with provided parameters',
+	request: {
+		params: z.object({
+			workspaceId: z.string().describe('Workspace ID'),
+			toolId: z.string().describe('Tool ID to execute'),
+		}),
+		body: {
+			content: {
+				'application/json': {
+					schema: z.record(z.string(), z.unknown()),
+				},
+			},
+		},
+	},
+	responses: {
+		200: {
+			description: 'Tool execution result',
+			content: {
+				'application/json': {
+					schema: z.object({
+						success: z.boolean(),
+						data: z.unknown().optional(),
+						error: z.string().optional(),
+					}),
+				},
+			},
+		},
+		404: {
+			description: 'Tool not found',
+			content: { 'application/json': { schema: ErrorSchema } },
+		},
+	},
+})
+
+// MCP JSON-RPC route (HTTP)
+const mcpRpcRoute = createRoute({
+	method: 'post',
+	path: '/{workspaceId}/rpc',
+	tags: ['MCP'],
+	summary: 'MCP JSON-RPC endpoint',
+	description: 'Handle MCP protocol messages via JSON-RPC over HTTP',
+	request: {
+		params: z.object({
+			workspaceId: z.string().describe('Workspace ID'),
+		}),
+		body: {
+			content: {
+				'application/json': {
+					schema: z.object({
+						jsonrpc: z.literal('2.0'),
+						id: z.union([z.string(), z.number()]),
+						method: z.string(),
+						params: z.unknown().optional(),
+					}),
+				},
+			},
+		},
+	},
+	responses: {
+		200: {
+			description: 'JSON-RPC response',
+			content: {
+				'application/json': {
+					schema: z.object({
+						jsonrpc: z.literal('2.0'),
+						id: z.union([z.string(), z.number()]),
+						result: z.unknown().optional(),
+						error: z
+							.object({
+								code: z.number(),
+								message: z.string(),
+							})
+							.optional(),
+					}),
+				},
+			},
+		},
+	},
+})
+
 // Create app
 const app = new OpenAPIHono<OptionalAuthEnv>()
 
@@ -141,9 +264,13 @@ app.openapi(mcpInfoRoute, async (c) => {
 Connect to Hare MCP server to access AI agent tools.
 
 WebSocket URL: wss://your-domain/api/mcp/${workspaceId}
+HTTP Endpoints:
+- GET  /api/mcp/${workspaceId}/tools - List available tools
+- POST /api/mcp/${workspaceId}/tools/{toolId} - Execute a tool
+- POST /api/mcp/${workspaceId}/rpc - JSON-RPC endpoint
 
 Available capabilities:
-- Tools: 40+ built-in tools for data processing, AI, integrations, etc.
+- Tools: Agent control tools (list, create, configure, message agents)
 - Resources: Access to workspace information
 - Prompts: Pre-configured prompts for common tasks
 
@@ -159,6 +286,128 @@ Example connection with Claude Desktop:
 		},
 		200,
 	)
+})
+
+// Helper to create tool context
+async function createToolContext(
+	c: Parameters<Parameters<typeof app.openapi>[1]>[0],
+	workspaceId: string,
+): Promise<ToolContext> {
+	const env = await getCloudflareEnv(c)
+	const user = c.get('user')
+
+	return {
+		env,
+		workspaceId,
+		userId: user?.id || 'mcp-client',
+	}
+}
+
+// MCP tools list (HTTP)
+app.openapi(mcpToolsRoute, async (c) => {
+	const tools = agentControlTools.map((tool) => ({
+		name: tool.id,
+		description: tool.description,
+	}))
+
+	return c.json({ tools })
+})
+
+// MCP tool execute (HTTP)
+app.openapi(mcpToolExecuteRoute, async (c) => {
+	const { workspaceId, toolId } = c.req.valid('param')
+	const params = await c.req.json()
+
+	const tool = agentControlTools.find((t) => t.id === toolId)
+	if (!tool) {
+		return c.json({ error: `Tool not found: ${toolId}` }, 404)
+	}
+
+	const context = await createToolContext(c, workspaceId)
+	const result = await tool.execute(params, context)
+
+	return c.json(result)
+})
+
+// MCP JSON-RPC (HTTP)
+app.openapi(mcpRpcRoute, async (c) => {
+	const { workspaceId } = c.req.valid('param')
+	const { id, method, params } = c.req.valid('json')
+	const context = await createToolContext(c, workspaceId)
+
+	switch (method) {
+		case 'initialize':
+			return c.json({
+				jsonrpc: '2.0',
+				id,
+				result: {
+					protocolVersion: '2024-11-05',
+					capabilities: {
+						tools: { listChanged: true },
+						resources: { subscribe: true, listChanged: true },
+						prompts: { listChanged: true },
+					},
+					serverInfo: {
+						name: 'hare-mcp',
+						version: '1.0.0',
+					},
+				},
+			})
+
+		case 'tools/list':
+			return c.json({
+				jsonrpc: '2.0',
+				id,
+				result: {
+					tools: agentControlTools.map((tool) => ({
+						name: tool.id,
+						description: tool.description,
+						inputSchema: z.toJSONSchema(tool.inputSchema, { unrepresentable: 'any' }),
+					})),
+				},
+			})
+
+		case 'tools/call': {
+			const { name, arguments: args } = params as {
+				name: string
+				arguments: Record<string, unknown>
+			}
+			const tool = agentControlTools.find((t) => t.id === name)
+
+			if (!tool) {
+				return c.json({
+					jsonrpc: '2.0',
+					id,
+					error: { code: -32601, message: `Tool not found: ${name}` },
+				})
+			}
+
+			const result = await tool.execute(args || {}, context)
+
+			return c.json({
+				jsonrpc: '2.0',
+				id,
+				result: {
+					content: [
+						{
+							type: 'text',
+							text: result.success
+								? JSON.stringify(result.data, null, 2)
+								: `Error: ${result.error}`,
+						},
+					],
+					isError: !result.success,
+				},
+			})
+		}
+
+		default:
+			return c.json({
+				jsonrpc: '2.0',
+				id,
+				error: { code: -32601, message: `Method not found: ${method}` },
+			})
+	}
 })
 
 export default app

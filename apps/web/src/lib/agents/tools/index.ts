@@ -144,6 +144,24 @@ export {
 export { getMemoryTools, recallMemoryTool, storeMemoryTool } from './memory'
 
 // ==========================================
+// AGENT CONTROL TOOLS (MCP)
+// ==========================================
+
+export {
+	agentControlTools,
+	configureAgentTool,
+	createAgentTool,
+	deleteAgentTool,
+	executeToolTool,
+	getAgentMetricsTool,
+	getAgentTool,
+	listAgentsTool,
+	listAgentToolsTool,
+	scheduleTaskTool,
+	sendMessageTool,
+} from './agent-control'
+
+// ==========================================
 // TOOL AGGREGATION
 // ==========================================
 
