@@ -9,7 +9,7 @@ import { ArrowRight, Github, Loader2, Rabbit } from 'lucide-react'
 import { type ChangeEvent, type FormEvent, useState } from 'react'
 import { toast } from 'sonner'
 import { APP_CONFIG, AUTH_CONTENT } from '../../shared/config'
-import { useOAuthProviders } from '../../shared/api/hooks'
+import { useOAuthProvidersQuery } from '../../shared/api/hooks'
 import { useSignInActions } from '../../features/auth'
 
 const { signIn: content, fields } = AUTH_CONTENT
@@ -40,7 +40,7 @@ export function SignInPage() {
 	const [isGitHubLoading, setIsGitHubLoading] = useState(false)
 	const [email, setEmail] = useState('')
 	const [password, setPassword] = useState('')
-	const { data: providers, isLoading: isProvidersLoading } = useOAuthProviders()
+	const { data: providers, isLoading: isProvidersLoading } = useOAuthProvidersQuery()
 
 	const hasOAuthProviders = providers?.google || providers?.github
 

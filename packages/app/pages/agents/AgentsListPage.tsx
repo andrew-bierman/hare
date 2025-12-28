@@ -11,7 +11,7 @@ import { Bot, Clock, Plus, Search, Settings, Wrench } from 'lucide-react'
 import { type ChangeEvent, useState } from 'react'
 import { useWorkspace } from '../../app/providers'
 import type { Agent } from '../../shared/api/types'
-import { useAgents } from '../../shared/api/hooks'
+import { useAgentsQuery } from '../../shared/api/hooks'
 import { AVAILABLE_MODELS } from '../../shared/config'
 
 function AgentCardSkeleton() {
@@ -63,7 +63,7 @@ function EmptyState() {
 
 export function AgentsListPage() {
 	const { activeWorkspace } = useWorkspace()
-	const { data, isLoading, error } = useAgents(activeWorkspace?.id)
+	const { data, isLoading, error } = useAgentsQuery(activeWorkspace?.id)
 	const [search, setSearch] = useState('')
 	const [filter, setFilter] = useState<'all' | 'deployed' | 'draft'>('all')
 

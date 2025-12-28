@@ -43,11 +43,11 @@ import { useState } from 'react'
 import { toast } from 'sonner'
 import type { Schedule, ScheduleExecution } from '../../../shared/api/types'
 import {
-	useAgentExecutions,
-	useCreateSchedule,
-	useDeleteSchedule,
-	useSchedules,
-	useUpdateSchedule,
+	useAgentExecutionsQuery,
+	useCreateScheduleMutation,
+	useDeleteScheduleMutation,
+	useSchedulesQuery,
+	useUpdateScheduleMutation,
 } from '../../../shared/api/hooks'
 
 export interface ScheduledTasksSectionProps {
@@ -156,19 +156,19 @@ export function ScheduledTasksSection({ agentId, workspaceId }: ScheduledTasksSe
 	const [action, setAction] = useState('')
 	const [reminderMessage, setReminderMessage] = useState('')
 
-	const { data: schedulesData, isLoading: schedulesLoading } = useSchedules({
+	const { data: schedulesData, isLoading: schedulesLoading } = useSchedulesQuery({
 		agentId,
 		workspaceId,
 	})
-	const { data: executionsData, isLoading: executionsLoading } = useAgentExecutions({
+	const { data: executionsData, isLoading: executionsLoading } = useAgentExecutionsQuery({
 		agentId,
 		workspaceId,
 		params: { limit: 10 },
 	})
 
-	const createSchedule = useCreateSchedule(agentId, workspaceId)
-	const updateSchedule = useUpdateSchedule(agentId, workspaceId)
-	const deleteSchedule = useDeleteSchedule(agentId, workspaceId)
+	const createSchedule = useCreateScheduleMutation(agentId, workspaceId)
+	const updateSchedule = useUpdateScheduleMutation(agentId, workspaceId)
+	const deleteSchedule = useDeleteScheduleMutation(agentId, workspaceId)
 
 	const schedules = schedulesData?.schedules ?? []
 	const executions = executionsData?.executions ?? []
@@ -260,7 +260,7 @@ export function ScheduledTasksSection({ agentId, workspaceId }: ScheduledTasksSe
 						</div>
 					) : (
 						<div className="space-y-3">
-							{schedules.map((schedule: Schedule) => (
+							{schedules.map((schedule) => (
 								<div
 									key={schedule.id}
 									className="flex items-center justify-between p-4 border rounded-lg"
@@ -365,7 +365,7 @@ export function ScheduledTasksSection({ agentId, workspaceId }: ScheduledTasksSe
 								<div>Error</div>
 							</div>
 							{/* Rows */}
-							{executions.map((execution: ScheduleExecution) => (
+							{executions.map((execution) => (
 								<div
 									key={execution.id}
 									className="grid grid-cols-5 gap-4 px-4 py-3 text-sm border-b last:border-0"

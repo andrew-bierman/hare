@@ -16,7 +16,9 @@
 		"paths": {
 			"web-app/*": ["apps/web/src/*"],
 			"@hare/ui/*": ["packages/ui/src/*"],
-			"@hare/ui": ["packages/ui/src/index.ts"]
+			"@hare/ui": ["packages/ui/src/index.ts"],
+			"@hare/app": ["packages/app/index.ts"],
+			"@hare/app/*": ["packages/app/*"]
 		},
 		"types": ["bun"]
 	},

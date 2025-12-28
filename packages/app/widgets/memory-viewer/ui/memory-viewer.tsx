@@ -46,12 +46,12 @@ import { toast } from 'sonner'
 import {
 	type Memory,
 	type MemoryType,
-	useClearMemories,
-	useCreateMemory,
-	useDeleteMemory,
-	useMemories,
-	useSearchMemories,
-	useUpdateMemory,
+	useClearMemoriesMutation,
+	useCreateMemoryMutation,
+	useDeleteMemoryMutation,
+	useMemoriesQuery,
+	useSearchMemoriesMutation,
+	useUpdateMemoryMutation,
 } from '../../../shared/api/hooks'
 
 export interface MemoryViewerProps {
@@ -167,17 +167,17 @@ export function MemoryViewer(props: MemoryViewerProps) {
 	const [formType, setFormType] = useState<MemoryType>('custom')
 	const [formTags, setFormTags] = useState('')
 
-	const { data: memoriesData, isLoading } = useMemories({
+	const { data: memoriesData, isLoading } = useMemoriesQuery({
 		agentId,
 		workspaceId,
 		limit: 50,
 	})
 
-	const createMemory = useCreateMemory({ agentId, workspaceId })
-	const updateMemory = useUpdateMemory({ agentId, workspaceId })
-	const deleteMemory = useDeleteMemory({ agentId, workspaceId })
-	const clearMemories = useClearMemories({ agentId, workspaceId })
-	const searchMemories = useSearchMemories({ agentId, workspaceId })
+	const createMemory = useCreateMemoryMutation({ agentId, workspaceId })
+	const updateMemory = useUpdateMemoryMutation({ agentId, workspaceId })
+	const deleteMemory = useDeleteMemoryMutation({ agentId, workspaceId })
+	const clearMemories = useClearMemoriesMutation({ agentId, workspaceId })
+	const searchMemories = useSearchMemoriesMutation({ agentId, workspaceId })
 
 	const memories = searchResults ?? memoriesData?.memories ?? []
 	const totalCount = memoriesData?.total ?? 0

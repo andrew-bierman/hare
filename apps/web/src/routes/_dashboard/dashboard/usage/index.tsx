@@ -1,3 +1,4 @@
+import { type Agent, useAgentsQuery, useUsageQuery } from '@hare/app/shared/api'
 import { createFileRoute } from '@tanstack/react-router'
 import {
 	Card,
@@ -9,7 +10,6 @@ import {
 import { Skeleton } from '@hare/ui/components/skeleton'
 import { Activity, Bot, Calendar, TrendingUp } from 'lucide-react'
 import { useWorkspace } from 'web-app/app'
-import { type Agent, useAgents, useUsage } from 'web-app/lib/api/hooks'
 
 export const Route = createFileRoute('/_dashboard/dashboard/usage/')({
 	component: UsagePage,
@@ -32,8 +32,8 @@ function StatCardSkeleton() {
 
 function UsagePage() {
 	const { activeWorkspace, isLoading: workspaceLoading } = useWorkspace()
-	const { data: usageData, isLoading: usageLoading } = useUsage(activeWorkspace?.id)
-	const { data: agentsData, isLoading: agentsLoading } = useAgents(activeWorkspace?.id)
+	const { data: usageData, isLoading: usageLoading } = useUsageQuery(activeWorkspace?.id)
+	const { data: agentsData, isLoading: agentsLoading } = useAgentsQuery(activeWorkspace?.id)
 
 	const isLoading = workspaceLoading || usageLoading || agentsLoading
 

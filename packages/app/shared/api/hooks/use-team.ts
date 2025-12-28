@@ -15,7 +15,7 @@ export type {
 /**
  * Hook to fetch workspace members
  */
-export function useWorkspaceMembers(workspaceId: string | undefined) {
+export function useWorkspaceMembersQuery(workspaceId: string | undefined) {
 	return useQuery({
 		queryKey: ['workspaces', workspaceId, 'members'],
 		queryFn: () => apiClient.workspaces.members.list(workspaceId!),
@@ -26,7 +26,7 @@ export function useWorkspaceMembers(workspaceId: string | undefined) {
 /**
  * Hook to fetch workspace invitations
  */
-export function useWorkspaceInvitations(workspaceId: string | undefined) {
+export function useWorkspaceInvitationsQuery(workspaceId: string | undefined) {
 	return useQuery({
 		queryKey: ['workspaces', workspaceId, 'invitations'],
 		queryFn: () => apiClient.workspaces.invitations.list(workspaceId!),
@@ -37,7 +37,7 @@ export function useWorkspaceInvitations(workspaceId: string | undefined) {
 /**
  * Hook to send a workspace invitation
  */
-export function useSendInvitation() {
+export function useSendInvitationMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
 		mutationFn: ({ workspaceId, data }: { workspaceId: string; data: SendInvitationInput }) =>
@@ -51,7 +51,7 @@ export function useSendInvitation() {
 /**
  * Hook to revoke a workspace invitation
  */
-export function useRevokeInvitation() {
+export function useRevokeInvitationMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
 		mutationFn: ({ workspaceId, inviteId }: { workspaceId: string; inviteId: string }) =>
@@ -65,7 +65,7 @@ export function useRevokeInvitation() {
 /**
  * Hook to remove a workspace member
  */
-export function useRemoveMember() {
+export function useRemoveMemberMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
 		mutationFn: ({ workspaceId, userId }: { workspaceId: string; userId: string }) =>
@@ -79,7 +79,7 @@ export function useRemoveMember() {
 /**
  * Hook to update a member's role
  */
-export function useUpdateMemberRole() {
+export function useUpdateMemberRoleMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
 		mutationFn: ({

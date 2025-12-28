@@ -22,8 +22,7 @@ import {
 import { Textarea } from '@hare/ui/components/textarea'
 import { type ChangeEvent, useState } from 'react'
 import { toast } from 'sonner'
-import type { Tool } from '../../../shared/api/types'
-import { useCreateAgent, useTools } from '../../../shared/api/hooks'
+import { useCreateAgentMutation, useToolsQuery } from '../../../shared/api/hooks'
 import { AgentInstructionsEditor } from '../../../widgets/agent-builder'
 import { AVAILABLE_MODELS } from '../../../shared/config'
 
@@ -33,8 +32,8 @@ interface CreateAgentFormProps {
 
 export function CreateAgentForm({ workspaceId }: CreateAgentFormProps) {
 	const navigate = useNavigate()
-	const createAgent = useCreateAgent(workspaceId)
-	const { data: toolsData } = useTools(workspaceId)
+	const createAgent = useCreateAgentMutation(workspaceId)
+	const { data: toolsData } = useToolsQuery(workspaceId)
 
 	const [name, setName] = useState('')
 	const [description, setDescription] = useState('')
@@ -45,8 +44,8 @@ export function CreateAgentForm({ workspaceId }: CreateAgentFormProps) {
 	const tools = toolsData?.tools ?? []
 
 	const handleToolToggle = (toolId: string) => {
-		setSelectedToolIds((prev: string[]) =>
-			prev.includes(toolId) ? prev.filter((id: string) => id !== toolId) : [...prev, toolId],
+		setSelectedToolIds((prev) =>
+			prev.includes(toolId) ? prev.filter((id) => id !== toolId) : [...prev, toolId],
 		)
 	}
 
@@ -167,7 +166,7 @@ export function CreateAgentForm({ workspaceId }: CreateAgentFormProps) {
 							</p>
 						) : (
 							<div className="space-y-3">
-								{tools.map((tool: Tool) => (
+								{tools.map((tool) => (
 									<div key={tool.id} className="flex items-start space-x-3">
 										<Checkbox
 											id={tool.id}

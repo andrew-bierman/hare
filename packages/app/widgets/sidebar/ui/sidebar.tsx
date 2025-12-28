@@ -35,7 +35,7 @@ export interface SidebarProps {
  * @param WorkspaceSwitcher - Optional workspace switcher component
  */
 export function Sidebar({ pathname, Link, WorkspaceSwitcher }: SidebarProps) {
-	const routes: RouteItem[] = NAV_ITEMS.dashboard.map((item: NavItem) => ({
+	const routes: RouteItem[] = NAV_ITEMS.dashboard.map((item) => ({
 		label: item.label,
 		icon: ICONS[item.icon as IconName],
 		href: item.href,

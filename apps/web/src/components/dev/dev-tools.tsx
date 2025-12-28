@@ -1,3 +1,4 @@
+import { useCreateAgentMutation, useCreateWorkspaceMutation } from '@hare/app/shared/api'
 import { authClient } from '@hare/auth/client'
 import { DEV_CONFIG, DEV_TOOLS_CONTENT, FEATURES } from '@hare/config'
 import { useQueryClient } from '@tanstack/react-query'
@@ -22,7 +23,6 @@ import {
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { useWorkspace } from 'web-app/app'
-import { useCreateAgent, useCreateWorkspace } from 'web-app/lib/api/hooks'
 
 const { sections, agentNames, agentDescriptions, defaultInstructions } = DEV_TOOLS_CONTENT
 
@@ -34,8 +34,8 @@ export function DevTools() {
 	const navigate = useNavigate()
 
 	const { activeWorkspace } = useWorkspace()
-	const createAgent = useCreateAgent(activeWorkspace?.id)
-	const createWorkspace = useCreateWorkspace()
+	const createAgent = useCreateAgentMutation(activeWorkspace?.id)
+	const createWorkspace = useCreateWorkspaceMutation()
 
 	// Only render in dev mode
 	if (!FEATURES.devMode) {
