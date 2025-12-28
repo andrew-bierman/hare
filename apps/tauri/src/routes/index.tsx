@@ -14,7 +14,7 @@ function HomePageWrapper() {
 				</Link>
 			)}
 			routes={{
-				newAgent: '/agents', // TODO: Add /agents/new route
+				newAgent: '/agents/new',
 				agents: '/agents',
 				agentDetail: (_id) => `/agents`, // TODO: Add /agents/$id route
 				tools: '/tools',
