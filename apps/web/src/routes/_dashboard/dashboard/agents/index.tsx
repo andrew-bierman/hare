@@ -83,7 +83,6 @@ function AgentsPage() {
 	const deployedCount = agents.filter((a) => a.status === 'deployed').length
 	const draftCount = agents.filter((a) => a.status === 'draft').length
 
-
 	const getStatusBadge = (status: string) => {
 		switch (status) {
 			case 'deployed':
@@ -250,7 +249,7 @@ function AgentsPage() {
 								</div>
 
 								<div className="flex gap-2">
-									<Link to={`/dashboard/agents/${agent.id}`} className="flex-1">
+									<Link to="/dashboard/agents/$id" params={{ id: agent.id }} className="flex-1">
 										<Button variant="outline" className="w-full gap-2 h-10">
 											<Settings className="h-4 w-4" />
 											<span className="hidden sm:inline">Configure</span>

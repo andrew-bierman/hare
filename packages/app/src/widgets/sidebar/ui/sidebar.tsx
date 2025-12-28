@@ -7,6 +7,20 @@ import { APP_CONFIG, DASHBOARD_CONTENT, FEATURES, NAV_ITEMS } from '@shared/conf
 
 const ICONS = { Home, Bot, Wrench, Activity, Settings, BarChart3 } as const
 
+type IconName = keyof typeof ICONS
+
+interface NavItem {
+	readonly label: string
+	readonly href: string
+	readonly icon: string
+}
+
+interface RouteItem {
+	label: string
+	icon: (typeof ICONS)[IconName]
+	href: string
+}
+
 export interface SidebarProps {
 	pathname: string
 	Link: React.ComponentType<{ to: string; className?: string; children: React.ReactNode }>
@@ -21,9 +35,9 @@ export interface SidebarProps {
  * @param WorkspaceSwitcher - Optional workspace switcher component
  */
 export function Sidebar({ pathname, Link, WorkspaceSwitcher }: SidebarProps) {
-	const routes = NAV_ITEMS.dashboard.map((item) => ({
+	const routes: RouteItem[] = NAV_ITEMS.dashboard.map((item: NavItem) => ({
 		label: item.label,
-		icon: ICONS[item.icon as keyof typeof ICONS],
+		icon: ICONS[item.icon as IconName],
 		href: item.href,
 	}))
 

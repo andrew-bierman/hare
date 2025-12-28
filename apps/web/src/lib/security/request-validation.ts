@@ -3,8 +3,8 @@
  * Provides protection against common request-based attacks
  */
 
-import type { Context, MiddlewareHandler } from 'hono'
 import type { HonoEnv } from '@hare/api'
+import type { Context, MiddlewareHandler } from 'hono'
 
 /**
  * Default size limits for different content types

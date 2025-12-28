@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { apiClient } from '@shared/api'
 import type { CreateWorkspaceInput } from '@shared/api'
 
-export type { CreateWorkspaceInput, Workspace } from '@shared/api'
+// Types are available from @shared/api, don't re-export to avoid duplicates
 
 export function useWorkspaces() {
 	return useQuery({
@@ -13,7 +13,7 @@ export function useWorkspaces() {
 	})
 }
 
-export function useWorkspace(id: string | undefined) {
+export function useWorkspaceById(id: string | undefined) {
 	return useQuery({
 		queryKey: ['workspaces', id],
 		queryFn: () => apiClient.workspaces.get(id!),

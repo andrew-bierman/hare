@@ -21,7 +21,10 @@ const handler: ExportedHandler<CloudflareEnv> = {
 		}
 
 		// All other requests go to TanStack Start
-		return tanstackHandler.fetch(request, env, ctx)
+		// TanStack Start handler type varies by version, use type assertion
+		return (
+			tanstackHandler as { fetch: (req: Request, env: CloudflareEnv) => Promise<Response> }
+		).fetch(request, env)
 	},
 }
 

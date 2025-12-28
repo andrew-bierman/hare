@@ -77,7 +77,6 @@ function DashboardPage() {
 		return num.toString()
 	}
 
-
 	const stats = [
 		{
 			title: content.stats.totalAgents.title,
@@ -262,7 +261,7 @@ function DashboardPage() {
 				) : (
 					<div className="grid gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3">
 						{recentAgents.map((agent) => (
-							<Link key={agent.id} to={`/dashboard/agents/${agent.id}`}>
+							<Link key={agent.id} to="/dashboard/agents/$id" params={{ id: agent.id }}>
 								<Card className="h-full hover:bg-muted/50 transition-colors">
 									<CardContent className="p-4 sm:p-6">
 										<div className="flex items-start justify-between mb-3">
