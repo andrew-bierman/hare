@@ -1,6 +1,5 @@
-import { DashboardHome } from '@hare/app/pages'
+import { DashboardHome, useAgents, useUsage } from '@hare/app'
 import { createFileRoute, Link } from '@tanstack/react-router'
-import { useAgents, useUsage } from '../lib/hooks'
 
 export const Route = createFileRoute('/')({
 	component: HomePageWrapper,
