@@ -1,17 +1,5 @@
 import { z } from 'zod'
-import {
-	DECIMAL_RADIX,
-	HEX_RADIX,
-	RSS_USER_AGENT,
-	SCRAPE_DEFAULT_TIMEOUT_MS,
-	SCRAPE_MAX_CONTENT_LENGTH,
-	SCRAPE_MAX_IMAGES_FINAL,
-	SCRAPE_MAX_IMAGES_PER_PAGE,
-	SCRAPE_MAX_LINKS_FINAL,
-	SCRAPE_MAX_LINKS_PER_PAGE,
-	SCRAPE_MAX_SELECTOR_RESULTS,
-	WEB_SCRAPE_USER_AGENT,
-} from './constants'
+import { ContentLengths, Radix, ScrapeLimits, Timeouts, UserAgents } from './constants'
 import { createTool, failure, success, type ToolContext } from './types'
 
 /**
@@ -31,7 +19,7 @@ export const rssTool = createTool({
 
 			const response = await fetch(url, {
 				headers: {
-					'User-Agent': RSS_USER_AGENT,
+					'User-Agent': UserAgents.RSS,
 					Accept: 'application/rss+xml, application/atom+xml, application/xml, text/xml',
 				},
 			})
@@ -199,12 +187,12 @@ export const scrapeTool = createTool({
 		maxLength: z
 			.number()
 			.optional()
-			.default(SCRAPE_MAX_CONTENT_LENGTH)
+			.default(ContentLengths.SCRAPE)
 			.describe('Maximum content length to return'),
 		timeout: z
 			.number()
 			.optional()
-			.default(SCRAPE_DEFAULT_TIMEOUT_MS)
+			.default(Timeouts.SCRAPE_DEFAULT)
 			.describe('Request timeout in milliseconds'),
 	}),
 	execute: async (params, _context) => {
@@ -216,7 +204,7 @@ export const scrapeTool = createTool({
 
 			const response = await fetch(url, {
 				headers: {
-					'User-Agent': WEB_SCRAPE_USER_AGENT,
+					'User-Agent': UserAgents.WEB_SCRAPE,
 					Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
 				},
 				signal: controller.signal,
@@ -260,7 +248,7 @@ export const scrapeTool = createTool({
 						links.push({ href, text })
 					}
 				}
-				return links.slice(0, SCRAPE_MAX_LINKS_PER_PAGE)
+				return links.slice(0, ScrapeLimits.MAX_LINKS_PER_PAGE)
 			}
 
 			const extractImages = (html: string): Array<{ src: string; alt: string }> => {
@@ -275,7 +263,7 @@ export const scrapeTool = createTool({
 						})
 					}
 				}
-				return images.slice(0, SCRAPE_MAX_IMAGES_PER_PAGE)
+				return images.slice(0, ScrapeLimits.MAX_IMAGES_PER_PAGE)
 			}
 
 			const extractHeadings = (html: string): Array<{ level: number; text: string }> => {
@@ -286,7 +274,7 @@ export const scrapeTool = createTool({
 					const text = match[2]?.trim()
 					if (level && text) {
 						headings.push({
-							level: parseInt(level, DECIMAL_RADIX),
+							level: parseInt(level, Radix.DECIMAL),
 							text,
 						})
 					}
@@ -353,7 +341,7 @@ export const scrapeTool = createTool({
 					}
 				}
 
-				return results.slice(0, SCRAPE_MAX_SELECTOR_RESULTS)
+				return results.slice(0, ScrapeLimits.MAX_SELECTOR_RESULTS)
 			}
 
 			let result: Record<string, unknown> = {}
@@ -382,8 +370,8 @@ export const scrapeTool = createTool({
 							meta: extractMeta(html),
 							headings: extractHeadings(html),
 							text: extractText(html),
-							links: extractLinks(html).slice(0, SCRAPE_MAX_LINKS_FINAL),
-							images: extractImages(html).slice(0, SCRAPE_MAX_IMAGES_FINAL),
+							links: extractLinks(html).slice(0, ScrapeLimits.MAX_LINKS_FINAL),
+							images: extractImages(html).slice(0, ScrapeLimits.MAX_IMAGES_FINAL),
 						}
 						break
 				}
@@ -574,7 +562,7 @@ export const cryptoTool = createTool({
 					const randomData = new Uint8Array(bytes)
 					crypto.getRandomValues(randomData)
 					const hex = Array.from(randomData)
-						.map((b) => b.toString(HEX_RADIX).padStart(2, '0'))
+						.map((b) => b.toString(Radix.HEX).padStart(2, '0'))
 						.join('')
 					const base64 = btoa(String.fromCharCode(...randomData))
 

@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { AUTORAG_INSTANCE_NAME, SEARCH_DEFAULT_MAX_RESULTS } from './constants'
+import { AutoRAGConfig, ListLimits } from './constants'
 import { createTool, failure, success, type ToolContext } from './types'
 
 /**
@@ -16,7 +16,7 @@ export const aiSearchTool = createTool({
 		maxResults: z
 			.number()
 			.optional()
-			.default(SEARCH_DEFAULT_MAX_RESULTS)
+			.default(ListLimits.SEARCH_DEFAULT)
 			.describe('Maximum number of results (1-50)'),
 		rewriteQuery: z
 			.boolean()
@@ -42,7 +42,7 @@ export const aiSearchTool = createTool({
 			// Get the AutoRAG instance - uses the configured instance name
 			// The instance name should match what's set up in Cloudflare dashboard
 			const autorag = (ai as Ai & { autorag: (name: string) => AutoRAG }).autorag(
-				AUTORAG_INSTANCE_NAME,
+				AutoRAGConfig.INSTANCE_NAME,
 			)
 
 			const results = await autorag.search({
@@ -92,7 +92,7 @@ export const aiSearchAnswerTool = createTool({
 		maxResults: z
 			.number()
 			.optional()
-			.default(SEARCH_DEFAULT_MAX_RESULTS)
+			.default(ListLimits.SEARCH_DEFAULT)
 			.describe('Maximum context results (1-50)'),
 		systemPrompt: z.string().optional().describe('Custom system prompt for the AI response'),
 	}),
@@ -110,7 +110,7 @@ export const aiSearchAnswerTool = createTool({
 
 		try {
 			const autorag = (ai as Ai & { autorag: (name: string) => AutoRAG }).autorag(
-				AUTORAG_INSTANCE_NAME,
+				AutoRAGConfig.INSTANCE_NAME,
 			)
 
 			const response = await autorag.aiSearch({

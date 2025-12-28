@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { R2_LIST_DEFAULT_LIMIT, WORKSPACE_PREFIX } from './constants'
+import { ListLimits, StoragePrefixes } from './constants'
 import { createTool, failure, success, type ToolContext } from './types'
 
 /**
@@ -13,14 +13,14 @@ function scopedPath(workspaceId: string, key: string): string {
 	}
 	// Normalize leading slash
 	const normalizedKey = key.startsWith('/') ? key.slice(1) : key
-	return `${WORKSPACE_PREFIX}${workspaceId}/${normalizedKey}`
+	return `${StoragePrefixes.WORKSPACE}${workspaceId}/${normalizedKey}`
 }
 
 /**
  * Strip workspace prefix from path for display.
  */
 function unscopedPath(workspaceId: string, fullPath: string): string {
-	const prefix = `${WORKSPACE_PREFIX}${workspaceId}/`
+	const prefix = `${StoragePrefixes.WORKSPACE}${workspaceId}/`
 	return fullPath.startsWith(prefix) ? fullPath.slice(prefix.length) : fullPath
 }
 
@@ -148,7 +148,7 @@ export const r2ListTool = createTool({
 		limit: z
 			.number()
 			.optional()
-			.default(R2_LIST_DEFAULT_LIMIT)
+			.default(ListLimits.R2_DEFAULT)
 			.describe('Maximum number of objects to return'),
 		cursor: z.string().optional().describe('Cursor for pagination'),
 		delimiter: z
@@ -164,7 +164,7 @@ export const r2ListTool = createTool({
 
 		try {
 			// Always scope to workspace, optionally with additional user prefix
-			const workspacePrefixPath = `${WORKSPACE_PREFIX}${context.workspaceId}/`
+			const workspacePrefixPath = `${StoragePrefixes.WORKSPACE}${context.workspaceId}/`
 			const fullPrefix = params.prefix
 				? scopedPath(context.workspaceId, params.prefix)
 				: workspacePrefixPath

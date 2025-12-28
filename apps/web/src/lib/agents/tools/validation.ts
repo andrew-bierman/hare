@@ -1,12 +1,5 @@
 import { z } from 'zod'
-import {
-	DECIMAL_RADIX,
-	EMAIL_DOMAIN_MAX_LENGTH,
-	EMAIL_LOCAL_PART_MAX_LENGTH,
-	PHONE_MAX_DIGITS,
-	PHONE_MIN_DIGITS,
-	URL_REACHABILITY_TIMEOUT_MS,
-} from './constants'
+import { Radix, Timeouts, ValidationLimits } from './constants'
 import { createTool, success, type ToolContext } from './types'
 
 /**
@@ -79,13 +72,13 @@ export const validateEmailTool = createTool({
 			}
 
 			// Length checks
-			if (result.localPart.length > EMAIL_LOCAL_PART_MAX_LENGTH) {
+			if (result.localPart.length > ValidationLimits.EMAIL_LOCAL_PART_MAX) {
 				result.valid = false
-				result.errors.push(`Local part too long (max ${EMAIL_LOCAL_PART_MAX_LENGTH} characters)`)
+				result.errors.push(`Local part too long (max ${ValidationLimits.EMAIL_LOCAL_PART_MAX} characters)`)
 			}
-			if (result.domain.length > EMAIL_DOMAIN_MAX_LENGTH) {
+			if (result.domain.length > ValidationLimits.EMAIL_DOMAIN_MAX) {
 				result.valid = false
-				result.errors.push(`Domain too long (max ${EMAIL_DOMAIN_MAX_LENGTH} characters)`)
+				result.errors.push(`Domain too long (max ${ValidationLimits.EMAIL_DOMAIN_MAX} characters)`)
 			}
 
 			// Check domain has at least one dot
@@ -144,12 +137,12 @@ export const validatePhoneTool = createTool({
 		}
 
 		// Basic length validation
-		if (digitsOnly.length < PHONE_MIN_DIGITS) {
+		if (digitsOnly.length < ValidationLimits.PHONE_MIN_DIGITS) {
 			result.valid = false
-			result.errors.push(`Phone number too short (min ${PHONE_MIN_DIGITS} digits)`)
-		} else if (digitsOnly.length > PHONE_MAX_DIGITS) {
+			result.errors.push(`Phone number too short (min ${ValidationLimits.PHONE_MIN_DIGITS} digits)`)
+		} else if (digitsOnly.length > ValidationLimits.PHONE_MAX_DIGITS) {
 			result.valid = false
-			result.errors.push(`Phone number too long (max ${PHONE_MAX_DIGITS} digits)`)
+			result.errors.push(`Phone number too long (max ${ValidationLimits.PHONE_MAX_DIGITS} digits)`)
 		}
 
 		// Country-specific validation
@@ -229,7 +222,7 @@ export const validateUrlTool = createTool({
 		timeout: z
 			.number()
 			.optional()
-			.default(URL_REACHABILITY_TIMEOUT_MS)
+			.default(Timeouts.URL_REACHABILITY)
 			.describe('Timeout for reachability check'),
 	}),
 	execute: async (params, _context) => {
@@ -388,7 +381,7 @@ export const validateCreditCardTool = createTool({
 		for (let i = cleaned.length - 1; i >= 0; i--) {
 			const char = cleaned[i]
 			if (!char) continue
-			let digit = parseInt(char, DECIMAL_RADIX)
+			let digit = parseInt(char, Radix.DECIMAL)
 
 			if (isEven) {
 				digit *= 2
@@ -611,7 +604,7 @@ export const validateJsonTool = createTool({
 				const posMatch = error.message.match(/position (\d+)/)
 				const posStr = posMatch?.[1]
 				if (posStr) {
-					const pos = parseInt(posStr, DECIMAL_RADIX)
+					const pos = parseInt(posStr, Radix.DECIMAL)
 					const lines = json.substring(0, pos).split('\n')
 					const lastLine = lines[lines.length - 1]
 					result.position = {

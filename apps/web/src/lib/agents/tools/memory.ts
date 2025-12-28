@@ -7,7 +7,7 @@
 
 import { searchMemory, storeMemoryWithEmbedding } from '@hare/api/services'
 import { z } from 'zod'
-import { MEMORY_CONTENT_MAX_LENGTH, MEMORY_DEFAULT_TOP_K } from './constants'
+import { ContentLengths, ListLimits } from './constants'
 import { createTool, failure, success, type ToolContext } from './types'
 
 /**
@@ -38,7 +38,7 @@ export const recallMemoryTool = createTool({
 			.min(1)
 			.max(20)
 			.optional()
-			.default(MEMORY_DEFAULT_TOP_K)
+			.default(ListLimits.MEMORY_TOP_K)
 			.describe('Number of memories to retrieve'),
 		type: MemoryTypeSchema.optional().describe('Filter by memory type'),
 		tags: z.array(z.string()).optional().describe('Filter by specific tags'),
@@ -109,7 +109,7 @@ export const storeMemoryTool = createTool({
 		content: z
 			.string()
 			.min(1)
-			.max(MEMORY_CONTENT_MAX_LENGTH)
+			.max(ContentLengths.MEMORY)
 			.describe('The information to remember. Be specific and include relevant context.'),
 		type: MemoryTypeSchema.optional()
 			.default('custom')

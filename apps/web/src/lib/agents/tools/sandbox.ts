@@ -1,11 +1,5 @@
 import { z } from 'zod'
-import {
-	ONE_HOUR_MS,
-	SANDBOX_DEFAULT_TIMEOUT_MS,
-	SANDBOX_MAX_CODE_SIZE_BYTES,
-	SANDBOX_MAX_EXECUTIONS_PER_HOUR,
-	SANDBOX_WORK_DIR,
-} from './constants'
+import { SandboxLimits, Timeouts } from './constants'
 import { createTool, failure, success, type ToolContext, type ToolResult } from './types'
 
 /**
@@ -63,17 +57,17 @@ export interface SandboxConfig {
 }
 
 const DEFAULT_CONFIG: SandboxConfig = {
-	timeout: SANDBOX_DEFAULT_TIMEOUT_MS,
+	timeout: Timeouts.SANDBOX_DEFAULT,
 	allowNetwork: false, // Disabled by default for security
-	workDir: SANDBOX_WORK_DIR,
+	workDir: SandboxLimits.WORK_DIR,
 }
 
 /**
  * Security: Rate limiting configuration
  */
 const RATE_LIMIT = {
-	maxExecutionsPerHour: SANDBOX_MAX_EXECUTIONS_PER_HOUR,
-	maxCodeSizeBytes: SANDBOX_MAX_CODE_SIZE_BYTES,
+	maxExecutionsPerHour: SandboxLimits.MAX_EXECUTIONS_PER_HOUR,
+	maxCodeSizeBytes: SandboxLimits.MAX_CODE_SIZE_BYTES,
 }
 
 /**
@@ -90,7 +84,7 @@ function checkRateLimit(workspaceId: string): { allowed: boolean; remaining: num
 	const entry = rateLimitCache.get(workspaceId)
 
 	if (!entry || now > entry.resetAt) {
-		rateLimitCache.set(workspaceId, { count: 1, resetAt: now + ONE_HOUR_MS })
+		rateLimitCache.set(workspaceId, { count: 1, resetAt: now + Timeouts.ONE_HOUR })
 		return { allowed: true, remaining: RATE_LIMIT.maxExecutionsPerHour - 1 }
 	}
 
@@ -470,7 +464,7 @@ print(json.dumps({"sum": sum(data), "avg": sum(data)/len(data)}))
 			.string()
 			.min(1)
 			.max(RATE_LIMIT.maxCodeSizeBytes)
-			.describe(`Code to execute (max ${SANDBOX_MAX_CODE_SIZE_BYTES / 1000}KB)`),
+			.describe(`Code to execute (max ${SandboxLimits.MAX_CODE_SIZE_BYTES / 1000}KB)`),
 		language: z
 			.enum(['javascript', 'python'])
 			.default('javascript')
@@ -478,9 +472,9 @@ print(json.dumps({"sum": sum(data), "avg": sum(data)/len(data)}))
 		timeout: z
 			.number()
 			.min(1000)
-			.max(SANDBOX_DEFAULT_TIMEOUT_MS)
+			.max(Timeouts.SANDBOX_DEFAULT)
 			.optional()
-			.default(SANDBOX_DEFAULT_TIMEOUT_MS)
+			.default(Timeouts.SANDBOX_DEFAULT)
 			.describe('Timeout in ms'),
 	}),
 	execute: async (input, context) => {

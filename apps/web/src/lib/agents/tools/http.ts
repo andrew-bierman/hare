@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { CONTENT_TYPE_JSON, HTTP_DEFAULT_TIMEOUT_MS, HTTP_USER_AGENT } from './constants'
+import { ContentTypes, Timeouts, UserAgents } from './constants'
 import { createTool, failure, success, type ToolContext } from './types'
 
 /**
@@ -21,7 +21,7 @@ export const httpRequestTool = createTool({
 		timeout: z
 			.number()
 			.optional()
-			.default(HTTP_DEFAULT_TIMEOUT_MS)
+			.default(Timeouts.HTTP_DEFAULT)
 			.describe('Request timeout in milliseconds'),
 	}),
 	execute: async (params, _context) => {
@@ -32,7 +32,7 @@ export const httpRequestTool = createTool({
 			const requestInit: RequestInit = {
 				method: params.method,
 				headers: {
-					'User-Agent': HTTP_USER_AGENT,
+					'User-Agent': UserAgents.DEFAULT,
 					...params.headers,
 				},
 				signal: controller.signal,
@@ -42,7 +42,7 @@ export const httpRequestTool = createTool({
 				requestInit.body = params.body
 				// Auto-set content-type if not provided
 				if (!params.headers?.['Content-Type'] && !params.headers?.['content-type']) {
-					;(requestInit.headers as Record<string, string>)['Content-Type'] = CONTENT_TYPE_JSON
+					;(requestInit.headers as Record<string, string>)['Content-Type'] = ContentTypes.JSON
 				}
 			}
 
@@ -88,7 +88,7 @@ export const httpGetTool = createTool({
 	}),
 	execute: async (params, context) => {
 		return httpRequestTool.execute(
-			{ ...params, method: 'GET', timeout: HTTP_DEFAULT_TIMEOUT_MS },
+			{ ...params, method: 'GET', timeout: Timeouts.HTTP_DEFAULT },
 			context,
 		)
 	},
@@ -113,7 +113,7 @@ export const httpPostTool = createTool({
 				method: 'POST',
 				body,
 				headers: params.headers,
-				timeout: HTTP_DEFAULT_TIMEOUT_MS,
+				timeout: Timeouts.HTTP_DEFAULT,
 			},
 			context,
 		)

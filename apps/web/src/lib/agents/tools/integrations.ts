@@ -1,15 +1,5 @@
 import { z } from 'zod'
-import {
-	CONTENT_TYPE_JSON,
-	HTTP_USER_AGENT,
-	WORKSPACE_PREFIX,
-	ZAPIER_DEFAULT_TIMEOUT_MS,
-	ZAPIER_DESCRIPTION_MAX_LENGTH,
-	ZAPIER_INTEGRATION_NAME_MAX_LENGTH,
-	ZAPIER_INTEGRATION_PREFIX,
-	ZAPIER_WAIT_TIMEOUT_MS,
-	ZAPIER_WEBHOOK_HOSTNAME,
-} from './constants'
+import { ContentTypes, StoragePrefixes, Timeouts, UserAgents, ZapierConfig } from './constants'
 import { createTool, failure, success, type ToolContext } from './types'
 
 /**
@@ -31,7 +21,7 @@ import { createTool, failure, success, type ToolContext } from './types'
 // KV Storage Helpers for Zapier Integrations
 // ==========================================
 
-const ZAPIER_PREFIX = ZAPIER_INTEGRATION_PREFIX
+const ZAPIER_PREFIX = StoragePrefixes.ZAPIER
 
 interface SavedZapierIntegration {
 	name: string
@@ -48,11 +38,11 @@ function integrationKey(workspaceId: string, name: string): string {
 	if (name.includes('..') || name.includes('/') || name.startsWith('.')) {
 		throw new Error('Invalid integration name: special characters not allowed')
 	}
-	return `${WORKSPACE_PREFIX}${workspaceId}/${ZAPIER_PREFIX}/${name.toLowerCase()}`
+	return `${StoragePrefixes.WORKSPACE}${workspaceId}/${ZAPIER_PREFIX}/${name.toLowerCase()}`
 }
 
 function listPrefix(workspaceId: string): string {
-	return `${WORKSPACE_PREFIX}${workspaceId}/${ZAPIER_PREFIX}/`
+	return `${StoragePrefixes.WORKSPACE}${workspaceId}/${ZAPIER_PREFIX}/`
 }
 
 // ==========================================
@@ -79,7 +69,7 @@ Once saved, trigger it anytime with just the name - no URL needed!`,
 		name: z
 			.string()
 			.min(1)
-			.max(ZAPIER_INTEGRATION_NAME_MAX_LENGTH)
+			.max(ZapierConfig.NAME_MAX_LENGTH)
 			.regex(
 				/^[a-z0-9]+(-[a-z0-9]+)*$/,
 				'Use lowercase letters, numbers, and hyphens (must start/end with alphanumeric)',
@@ -88,7 +78,7 @@ Once saved, trigger it anytime with just the name - no URL needed!`,
 		webhookUrl: z.string().url().describe('Zapier webhook URL (https://hooks.zapier.com/...)'),
 		description: z
 			.string()
-			.max(ZAPIER_DESCRIPTION_MAX_LENGTH)
+			.max(ZapierConfig.DESCRIPTION_MAX_LENGTH)
 			.describe('What does this integration do?'),
 		defaultData: z
 			.record(z.string(), z.unknown())
@@ -110,12 +100,12 @@ Once saved, trigger it anytime with just the name - no URL needed!`,
 				parsedUrl = new URL(webhookUrl)
 			} catch {
 				return failure(
-					`Invalid URL format. Zapier webhooks must be from ${ZAPIER_WEBHOOK_HOSTNAME}`,
+					`Invalid URL format. Zapier webhooks must be from ${ZapierConfig.WEBHOOK_HOSTNAME}`,
 				)
 			}
 
-			if (parsedUrl.hostname !== ZAPIER_WEBHOOK_HOSTNAME) {
-				return failure(`Invalid URL. Zapier webhooks must be from ${ZAPIER_WEBHOOK_HOSTNAME}`)
+			if (parsedUrl.hostname !== ZapierConfig.WEBHOOK_HOSTNAME) {
+				return failure(`Invalid URL. Zapier webhooks must be from ${ZapierConfig.WEBHOOK_HOSTNAME}`)
 			}
 
 			const key = integrationKey(context.workspaceId, name)
@@ -290,12 +280,12 @@ If the saved integration has defaultData, it will be merged (your data takes pre
 				parsedUrl = new URL(webhookUrl)
 			} catch {
 				return failure(
-					`Invalid URL format. Zapier webhooks must be from ${ZAPIER_WEBHOOK_HOSTNAME}`,
+					`Invalid URL format. Zapier webhooks must be from ${ZapierConfig.WEBHOOK_HOSTNAME}`,
 				)
 			}
 
-			if (parsedUrl.hostname !== ZAPIER_WEBHOOK_HOSTNAME) {
-				return failure(`Invalid URL. Zapier webhooks must be from ${ZAPIER_WEBHOOK_HOSTNAME}`)
+			if (parsedUrl.hostname !== ZapierConfig.WEBHOOK_HOSTNAME) {
+				return failure(`Invalid URL. Zapier webhooks must be from ${ZapierConfig.WEBHOOK_HOSTNAME}`)
 			}
 
 			// Merge default data with provided data (provided takes precedence)
@@ -307,12 +297,12 @@ If the saved integration has defaultData, it will be merged (your data takes pre
 			const controller = new AbortController()
 			const timeoutId = setTimeout(
 				() => controller.abort(),
-				waitForResponse ? ZAPIER_WAIT_TIMEOUT_MS : ZAPIER_DEFAULT_TIMEOUT_MS,
+				waitForResponse ? Timeouts.ZAPIER_WAIT : Timeouts.ZAPIER_DEFAULT,
 			)
 
 			const response = await fetch(webhookUrl, {
 				method: 'POST',
-				headers: { 'Content-Type': CONTENT_TYPE_JSON, 'User-Agent': HTTP_USER_AGENT },
+				headers: { 'Content-Type': ContentTypes.JSON, 'User-Agent': UserAgents.DEFAULT },
 				body: JSON.stringify({
 					...mergedData,
 					_hare: {
@@ -431,7 +421,7 @@ The Zap will receive the test data - check Zapier's task history to confirm.`,
 			}
 
 			const controller = new AbortController()
-			const timeoutId = setTimeout(() => controller.abort(), ZAPIER_DEFAULT_TIMEOUT_MS)
+			const timeoutId = setTimeout(() => controller.abort(), Timeouts.ZAPIER_DEFAULT)
 
 			const testPayload = {
 				...params.testData,
@@ -445,7 +435,7 @@ The Zap will receive the test data - check Zapier's task history to confirm.`,
 
 			const response = await fetch(integration.webhookUrl, {
 				method: 'POST',
-				headers: { 'Content-Type': CONTENT_TYPE_JSON, 'User-Agent': HTTP_USER_AGENT },
+				headers: { 'Content-Type': ContentTypes.JSON, 'User-Agent': UserAgents.DEFAULT },
 				body: JSON.stringify(testPayload),
 				signal: controller.signal,
 			})
@@ -505,23 +495,23 @@ Connect to 6,000+ apps through Zapier webhooks.`,
 				parsedUrl = new URL(webhookUrl)
 			} catch {
 				return failure(
-					`Invalid URL format. Zapier webhooks must be from ${ZAPIER_WEBHOOK_HOSTNAME}`,
+					`Invalid URL format. Zapier webhooks must be from ${ZapierConfig.WEBHOOK_HOSTNAME}`,
 				)
 			}
 
-			if (parsedUrl.hostname !== ZAPIER_WEBHOOK_HOSTNAME) {
-				return failure(`Invalid URL. Zapier webhooks must be from ${ZAPIER_WEBHOOK_HOSTNAME}`)
+			if (parsedUrl.hostname !== ZapierConfig.WEBHOOK_HOSTNAME) {
+				return failure(`Invalid URL. Zapier webhooks must be from ${ZapierConfig.WEBHOOK_HOSTNAME}`)
 			}
 
 			const controller = new AbortController()
 			const timeoutId = setTimeout(
 				() => controller.abort(),
-				waitForResponse ? ZAPIER_WAIT_TIMEOUT_MS : ZAPIER_DEFAULT_TIMEOUT_MS,
+				waitForResponse ? Timeouts.ZAPIER_WAIT : Timeouts.ZAPIER_DEFAULT,
 			)
 
 			const response = await fetch(webhookUrl, {
 				method: 'POST',
-				headers: { 'Content-Type': CONTENT_TYPE_JSON, 'User-Agent': HTTP_USER_AGENT },
+				headers: { 'Content-Type': ContentTypes.JSON, 'User-Agent': UserAgents.DEFAULT },
 				body: JSON.stringify({
 					...data,
 					_hare: { workspaceId: context.workspaceId, timestamp: new Date().toISOString() },
