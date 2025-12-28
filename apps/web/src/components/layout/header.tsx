@@ -11,7 +11,12 @@ export function Header() {
 			<div className="flex h-14 items-center justify-between gap-4 px-4 sm:px-6">
 				{/* Left side - Mobile menu + Logo on mobile */}
 				<div className="flex items-center gap-3">
-					<Button variant="ghost" size="icon" className="md:hidden h-10 w-10" aria-label="Open menu">
+					<Button
+						variant="ghost"
+						size="icon"
+						className="md:hidden h-10 w-10"
+						aria-label="Open menu"
+					>
 						<Menu className="h-5 w-5" />
 					</Button>
 
@@ -45,7 +50,12 @@ export function Header() {
 					</Button>
 
 					{/* Notifications */}
-					<Button variant="ghost" size="icon" className="relative h-10 w-10" aria-label="Notifications">
+					<Button
+						variant="ghost"
+						size="icon"
+						className="relative h-10 w-10"
+						aria-label="Notifications"
+					>
 						<Bell className="h-5 w-5" />
 						<span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-orange-500 ring-2 ring-background" />
 					</Button>

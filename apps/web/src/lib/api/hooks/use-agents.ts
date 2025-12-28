@@ -13,7 +13,7 @@ export type { AgentPreviewInput, AgentPreviewResponse, ValidationIssue } from '@
 /**
  * Hook to list all agents for a workspace
  */
-export function useAgents(workspaceId: string | undefined) {
+export function useAgentsQuery(workspaceId: string | undefined) {
 	return useQuery({
 		queryKey: agentKeys.list(workspaceId ?? ''),
 		queryFn: () => apiClient.agents.list(workspaceId!),
@@ -24,7 +24,7 @@ export function useAgents(workspaceId: string | undefined) {
 /**
  * Hook to get a single agent
  */
-export function useAgent(id: string | undefined, workspaceId: string | undefined) {
+export function useAgentQuery(id: string | undefined, workspaceId: string | undefined) {
 	return useQuery({
 		queryKey: agentKeys.detail(workspaceId ?? '', id ?? ''),
 		queryFn: () => apiClient.agents.get(id!, workspaceId!),
@@ -50,7 +50,7 @@ export function usePrefetchAgent() {
 /**
  * Hook to create a new agent with optimistic updates
  */
-export function useCreateAgent(workspaceId: string | undefined) {
+export function useCreateAgentMutation(workspaceId: string | undefined) {
 	const queryClient = useQueryClient()
 	return useMutation({
 		mutationFn: (data: CreateAgentInput) => apiClient.agents.create(workspaceId!, data),
@@ -63,7 +63,7 @@ export function useCreateAgent(workspaceId: string | undefined) {
 /**
  * Hook to update an agent with optimistic updates
  */
-export function useUpdateAgent(workspaceId: string | undefined) {
+export function useUpdateAgentMutation(workspaceId: string | undefined) {
 	const queryClient = useQueryClient()
 	return useMutation({
 		mutationFn: ({ id, data }: { id: string; data: UpdateAgentInput }) =>
@@ -104,7 +104,7 @@ export function useUpdateAgent(workspaceId: string | undefined) {
 /**
  * Hook to delete an agent with optimistic updates
  */
-export function useDeleteAgent(workspaceId: string | undefined) {
+export function useDeleteAgentMutation(workspaceId: string | undefined) {
 	const queryClient = useQueryClient()
 	return useMutation({
 		mutationFn: (id: string) => apiClient.agents.delete(id, workspaceId!),
@@ -138,7 +138,7 @@ export function useDeleteAgent(workspaceId: string | undefined) {
 /**
  * Hook to deploy an agent
  */
-export function useDeployAgent(workspaceId: string | undefined) {
+export function useDeployAgentMutation(workspaceId: string | undefined) {
 	const queryClient = useQueryClient()
 	return useMutation({
 		mutationFn: ({ id, version }: { id: string; version?: string }) =>
@@ -154,7 +154,7 @@ export function useDeployAgent(workspaceId: string | undefined) {
  * Hook to preview/validate agent configuration
  * Returns server-side validation with detailed errors and warnings
  */
-export function useAgentPreview(options: {
+export function useAgentPreviewMutation(options: {
 	agentId: string | undefined
 	workspaceId: string | undefined
 }) {

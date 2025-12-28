@@ -4,14 +4,15 @@
 	"private": true,
 	"type": "module",
 	"exports": {
-		"./app": "./src/app/index.ts",
-		"./app/*": "./src/app/*/index.ts",
-		"./pages": "./src/pages/index.ts",
-		"./pages/*": "./src/pages/*/index.ts",
-		"./widgets": "./src/widgets/index.ts",
-		"./widgets/*": "./src/widgets/*/index.ts",
-		"./shared": "./src/shared/index.ts",
-		"./shared/*": "./src/shared/*/index.ts"
+		".": "./index.ts",
+		"./app": "./app/index.ts",
+		"./app/*": "./app/*/index.ts",
+		"./pages": "./pages/index.ts",
+		"./pages/*": "./pages/*/index.ts",
+		"./widgets": "./widgets/index.ts",
+		"./widgets/*": "./widgets/*/index.ts",
+		"./shared": "./shared/index.ts",
+		"./shared/*": "./shared/*/index.ts"
 	},
 	"dependencies": {
 		"@dnd-kit/core": "^6.3.1",

@@ -79,7 +79,7 @@ import { billingKeys } from 'web-app/lib/tanstack/query-keys'
 /**
  * Fetch available billing plans
  */
-export function usePlans(workspaceId: string | undefined) {
+export function usePlansQuery(workspaceId: string | undefined) {
 	return useQuery({
 		queryKey: billingKeys.plans(),
 		queryFn: () => apiClient.billing.getPlans(workspaceId!),
@@ -90,7 +90,7 @@ export function usePlans(workspaceId: string | undefined) {
 /**
  * Fetch current billing status for workspace
  */
-export function useBillingStatus(workspaceId: string | undefined) {
+export function useBillingStatusQuery(workspaceId: string | undefined) {
 	return useQuery({
 		queryKey: billingKeys.status(workspaceId ?? ''),
 		queryFn: () => apiClient.billing.getStatus(workspaceId!),
@@ -101,7 +101,7 @@ export function useBillingStatus(workspaceId: string | undefined) {
 /**
  * Fetch payment history
  */
-export function usePaymentHistory(options: {
+export function usePaymentHistoryQuery(options: {
 	workspaceId: string | undefined
 	limit?: number
 	startingAfter?: string
@@ -120,7 +120,7 @@ export function usePaymentHistory(options: {
 /**
  * Create checkout session for upgrading
  */
-export function useCreateCheckout() {
+export function useCreateCheckoutMutation() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
@@ -141,7 +141,7 @@ export function useCreateCheckout() {
 /**
  * Create customer portal session
  */
-export function useCreatePortal() {
+export function useCreatePortalMutation() {
 	return useMutation({
 		mutationFn: (params: { workspaceId: string }) =>
 			apiClient.billing.createPortal(params.workspaceId),

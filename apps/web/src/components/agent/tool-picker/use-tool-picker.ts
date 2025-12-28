@@ -1,7 +1,7 @@
 'use client'
 
+import { type Tool, useToolsQuery } from '@hare/app/shared/api'
 import { useMemo, useState } from 'react'
-import { type Tool, useTools } from 'web-app/lib/api/hooks'
 import type { ToolCategory } from './types'
 
 const TOOL_CATEGORY_MAP: Record<string, ToolCategory> = {
@@ -90,7 +90,7 @@ export function useToolPicker({
 	initialSelectedIds,
 	maxTools = 20,
 }: UseToolPickerOptions) {
-	const { data: toolsData, isLoading } = useTools(workspaceId)
+	const { data: toolsData, isLoading } = useToolsQuery(workspaceId)
 	const [selectedToolIds, setSelectedToolIds] = useState<string[]>(initialSelectedIds)
 	const [searchQuery, setSearchQuery] = useState('')
 	const [activeCategory, setActiveCategory] = useState<ToolCategory>('all')

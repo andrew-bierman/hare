@@ -1,5 +1,6 @@
 'use client'
 
+import { useCreateWorkspaceMutation } from '@hare/app/shared/api'
 import { Button } from '@workspace/ui/components/button'
 import {
 	Dialog,
@@ -24,11 +25,10 @@ import { Check, ChevronsUpDown, Plus } from 'lucide-react'
 import { type ChangeEvent, type KeyboardEvent, useState } from 'react'
 import { toast } from 'sonner'
 import { useWorkspace } from 'web-app/components/providers/workspace-provider'
-import { useCreateWorkspace } from 'web-app/lib/api/hooks'
 
 export function WorkspaceSwitcher() {
 	const { workspaces, activeWorkspace, setActiveWorkspace, isLoading } = useWorkspace()
-	const createWorkspace = useCreateWorkspace()
+	const createWorkspace = useCreateWorkspaceMutation()
 	const [isCreateOpen, setIsCreateOpen] = useState(false)
 	const [newWorkspaceName, setNewWorkspaceName] = useState('')
 

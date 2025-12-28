@@ -1,5 +1,14 @@
 'use client'
 
+import {
+	type Schedule,
+	type ScheduleExecution,
+	useAgentExecutionsQuery,
+	useCreateScheduleMutation,
+	useDeleteScheduleMutation,
+	useSchedulesQuery,
+	useUpdateScheduleMutation,
+} from '@hare/app/shared/api'
 import { Badge } from '@workspace/ui/components/badge'
 import { Button } from '@workspace/ui/components/button'
 import {
@@ -41,15 +50,6 @@ import {
 } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
-import {
-	type Schedule,
-	type ScheduleExecution,
-	useAgentExecutions,
-	useCreateSchedule,
-	useDeleteSchedule,
-	useSchedules,
-	useUpdateSchedule,
-} from 'web-app/lib/api/hooks'
 
 interface ScheduledTasksSectionProps {
 	agentId: string
@@ -157,19 +157,19 @@ export function ScheduledTasksSection({ agentId, workspaceId }: ScheduledTasksSe
 	const [action, setAction] = useState('')
 	const [reminderMessage, setReminderMessage] = useState('')
 
-	const { data: schedulesData, isLoading: schedulesLoading } = useSchedules({
+	const { data: schedulesData, isLoading: schedulesLoading } = useSchedulesQuery({
 		agentId,
 		workspaceId,
 	})
-	const { data: executionsData, isLoading: executionsLoading } = useAgentExecutions({
+	const { data: executionsData, isLoading: executionsLoading } = useAgentExecutionsQuery({
 		agentId,
 		workspaceId,
 		params: { limit: 10 },
 	})
 
-	const createSchedule = useCreateSchedule(agentId, workspaceId)
-	const updateSchedule = useUpdateSchedule(agentId, workspaceId)
-	const deleteSchedule = useDeleteSchedule(agentId, workspaceId)
+	const createSchedule = useCreateScheduleMutation(agentId, workspaceId)
+	const updateSchedule = useUpdateScheduleMutation(agentId, workspaceId)
+	const deleteSchedule = useDeleteScheduleMutation(agentId, workspaceId)
 
 	const schedules = schedulesData?.schedules ?? []
 	const executions = executionsData?.executions ?? []

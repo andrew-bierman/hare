@@ -49,32 +49,33 @@ export {
 export {
 	type AgentPreviewInput,
 	type AgentPreviewResponse,
-	useAgent,
-	useAgentPreview,
+	useAgentPreviewMutation,
 	useAgentPreviewQuery,
-	useAgents,
-	useCreateAgent,
-	useDeleteAgent,
-	useDeployAgent,
-	useUpdateAgent,
+	useAgentQuery,
+	useAgentsQuery,
+	useCreateAgentMutation,
+	useDeleteAgentMutation,
+	useDeployAgentMutation,
+	usePrefetchAgent,
+	useUpdateAgentMutation,
 	type ValidationIssue,
 } from './use-agents'
 // Analytics hooks
-export { useAnalytics } from './use-analytics'
+export { useAnalyticsQuery } from './use-analytics'
 // API Key hooks
 export {
 	type ApiKey,
 	type ApiKeyWithSecret,
 	type CreateApiKeyInput,
 	type UpdateApiKeyInput,
-	useApiKey,
-	useApiKeys,
-	useCreateApiKey,
-	useDeleteApiKey,
-	useUpdateApiKey,
+	useApiKeyQuery,
+	useApiKeysQuery,
+	useCreateApiKeyMutation,
+	useDeleteApiKeyMutation,
+	useUpdateApiKeyMutation,
 } from './use-api-keys'
 // Auth hooks
-export { useOAuthProviders } from './use-auth'
+export { useOAuthProvidersQuery } from './use-auth'
 // Billing hooks
 export {
 	type BillingStatus,
@@ -86,11 +87,11 @@ export {
 	type PlanFeatures,
 	type PlansResponse,
 	type PortalResponse,
-	useBillingStatus,
-	useCreateCheckout,
-	useCreatePortal,
-	usePaymentHistory,
-	usePlans,
+	useBillingStatusQuery,
+	useCreateCheckoutMutation,
+	useCreatePortalMutation,
+	usePaymentHistoryQuery,
+	usePlansQuery,
 } from './use-billing'
 // Chat hooks
 export { useChat } from './use-chat'
@@ -100,8 +101,8 @@ export {
 	type LogsParams,
 	type LogsResponse,
 	type RequestLog,
-	useLogStats,
-	useLogs,
+	useLogStatsQuery,
+	useLogsQuery,
 } from './use-logs'
 // Memory hooks
 export {
@@ -112,12 +113,12 @@ export {
 	type SearchMemoryInput,
 	type SearchResult,
 	type UpdateMemoryInput,
-	useClearMemories,
-	useCreateMemory,
-	useDeleteMemory,
-	useMemories,
-	useSearchMemories,
-	useUpdateMemory,
+	useClearMemoriesMutation,
+	useCreateMemoryMutation,
+	useDeleteMemoryMutation,
+	useMemoriesQuery,
+	useSearchMemoriesMutation,
+	useUpdateMemoryMutation,
 } from './use-memory'
 // Schedule hooks
 export {
@@ -127,24 +128,24 @@ export {
 	type ScheduleStatus,
 	type ScheduleType,
 	type UpdateScheduleInput,
-	useAgentExecutions,
-	useCreateSchedule,
-	useDeleteSchedule,
-	useSchedule,
-	useScheduleExecutions,
-	useSchedules,
-	useUpdateSchedule,
+	useAgentExecutionsQuery,
+	useCreateScheduleMutation,
+	useDeleteScheduleMutation,
+	useScheduleExecutionsQuery,
+	useScheduleQuery,
+	useSchedulesQuery,
+	useUpdateScheduleMutation,
 } from './use-schedules'
 // Team management hooks
 export {
 	type MemberRole,
 	type SendInvitationInput,
-	useRemoveMember,
-	useRevokeInvitation,
-	useSendInvitation,
-	useUpdateMemberRole,
-	useWorkspaceInvitations,
-	useWorkspaceMembers,
+	useRemoveMemberMutation,
+	useRevokeInvitationMutation,
+	useSendInvitationMutation,
+	useUpdateMemberRoleMutation,
+	useWorkspaceInvitationsQuery,
+	useWorkspaceMembersQuery,
 	type WorkspaceInvitation,
 	type WorkspaceMember,
 } from './use-team'
@@ -155,21 +156,21 @@ export {
 	type InputSchemaProperty,
 	TOOL_TYPES,
 	type ToolTestResult,
-	useCreateTool,
-	useDeleteTool,
-	useTestExistingTool,
-	useTestTool,
-	useTool,
-	useTools,
-	useUpdateTool,
+	useCreateToolMutation,
+	useDeleteToolMutation,
+	useTestExistingToolMutation,
+	useTestToolMutation,
+	useToolQuery,
+	useToolsQuery,
+	useUpdateToolMutation,
 } from './use-tools'
 // Usage hooks
-export { useAgentUsage, useUsage, useUsageByAgent } from './use-usage'
+export { useAgentUsageQuery, useUsageByAgentQuery, useUsageQuery } from './use-usage'
 // Workspace hooks
 export {
-	useCreateWorkspace,
-	useDeleteWorkspace,
-	useUpdateWorkspace,
-	useWorkspace,
-	useWorkspaces,
+	useCreateWorkspaceMutation,
+	useDeleteWorkspaceMutation,
+	useUpdateWorkspaceMutation,
+	useWorkspaceQuery,
+	useWorkspacesQuery,
 } from './use-workspaces'

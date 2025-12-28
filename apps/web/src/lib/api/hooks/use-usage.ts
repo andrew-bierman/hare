@@ -12,7 +12,7 @@ export interface UsageParams {
 	agentId?: string
 }
 
-export function useUsage(workspaceId: string | undefined, params?: UsageParams) {
+export function useUsageQuery(workspaceId: string | undefined, params?: UsageParams) {
 	return useQuery({
 		queryKey: ['usage', workspaceId, params],
 		queryFn: () => apiClient.usage.getSummary(workspaceId!, params),
@@ -20,7 +20,7 @@ export function useUsage(workspaceId: string | undefined, params?: UsageParams) 
 	})
 }
 
-export function useUsageByAgent(workspaceId: string | undefined) {
+export function useUsageByAgentQuery(workspaceId: string | undefined) {
 	return useQuery({
 		queryKey: ['usage', 'by-agent', workspaceId],
 		queryFn: () => apiClient.usage.getByAgent(workspaceId!),
@@ -29,7 +29,7 @@ export function useUsageByAgent(workspaceId: string | undefined) {
 }
 
 /** Get usage stats for a specific agent */
-export function useAgentUsage(agentId: string | undefined, workspaceId: string | undefined) {
+export function useAgentUsageQuery(agentId: string | undefined, workspaceId: string | undefined) {
 	return useQuery({
 		queryKey: ['usage', 'agent', agentId, workspaceId],
 		queryFn: () => apiClient.usage.getSummary(workspaceId!, { agentId }),

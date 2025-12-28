@@ -48,33 +48,33 @@ interface UsageData {
 /**
  * Stub hook for agents - returns empty array
  */
-export function useAgents(
+export function useAgentsQuery(
 	_workspaceId: string | undefined,
 ): UseQueryResult<{ agents: Agent[] }, Error> {
 	return useQuery({
 		queryKey: ['agents', 'stub'],
 		queryFn: async () => ({ agents: [] }),
-		enabled: false, // Never actually fetch
+		initialData: { agents: [] },
 	})
 }
 
 /**
  * Stub hook for tools - returns empty array
  */
-export function useTools(
+export function useToolsQuery(
 	_workspaceId: string | undefined,
 ): UseQueryResult<{ tools: Tool[] }, Error> {
 	return useQuery({
 		queryKey: ['tools', 'stub'],
 		queryFn: async () => ({ tools: [] }),
-		enabled: false,
+		initialData: { tools: [] },
 	})
 }
 
 /**
  * Stub hook for usage - returns zero values
  */
-export function useUsage(_workspaceId: string | undefined): UseQueryResult<UsageData, Error> {
+export function useUsageQuery(_workspaceId: string | undefined): UseQueryResult<UsageData, Error> {
 	return useQuery({
 		queryKey: ['usage', 'stub'],
 		queryFn: async () => ({
@@ -83,6 +83,11 @@ export function useUsage(_workspaceId: string | undefined): UseQueryResult<Usage
 			inputTokens: 0,
 			outputTokens: 0,
 		}),
-		enabled: false,
+		initialData: {
+			totalCalls: 0,
+			totalTokens: 0,
+			inputTokens: 0,
+			outputTokens: 0,
+		},
 	})
 }

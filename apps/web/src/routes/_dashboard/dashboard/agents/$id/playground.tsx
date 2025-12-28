@@ -1,3 +1,4 @@
+import { useAgentQuery, useChat } from '@hare/app/shared/api'
 import { getModelName } from '@hare/app/shared/config'
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { Avatar, AvatarFallback } from '@workspace/ui/components/avatar'
@@ -31,7 +32,6 @@ import { type FormEvent, type KeyboardEvent, useCallback, useEffect, useRef, use
 import { toast } from 'sonner'
 import { ToolCallList } from 'web-app/components/chat/tool-call-list'
 import { useWorkspace } from 'web-app/components/providers/workspace-provider'
-import { useAgent, useChat } from 'web-app/lib/api/hooks'
 
 export const Route = createFileRoute('/_dashboard/dashboard/agents/$id/playground')({
 	component: PlaygroundPage,
@@ -92,7 +92,7 @@ function PlaygroundPage() {
 		data: agent,
 		isLoading: agentLoading,
 		error: agentError,
-	} = useAgent(agentId, activeWorkspace?.id)
+	} = useAgentQuery(agentId, activeWorkspace?.id)
 	const {
 		messages,
 		isStreaming,

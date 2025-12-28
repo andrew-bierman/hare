@@ -1,3 +1,4 @@
+import { type Agent, useAgentsQuery, useAnalyticsQuery } from '@hare/app/shared/api'
 import { createFileRoute } from '@tanstack/react-router'
 import { Button } from '@workspace/ui/components/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@workspace/ui/components/card'
@@ -34,7 +35,6 @@ import {
 } from 'recharts'
 import { ChartContainer } from 'web-app/components/charts'
 import { useWorkspace } from 'web-app/components/providers/workspace-provider'
-import { type Agent, useAgents, useAnalytics } from 'web-app/lib/api/hooks'
 import { exportToCSV, exportToJSON } from 'web-app/lib/utils/export'
 
 export const Route = createFileRoute('/_dashboard/dashboard/analytics/')({
@@ -82,7 +82,7 @@ function AnalyticsPage() {
 	const [groupBy, setGroupBy] = useState<'day' | 'week' | 'month'>('day')
 	const [selectedAgentId, setSelectedAgentId] = useState<string>('all')
 
-	const { data: agentsData } = useAgents(activeWorkspace?.id)
+	const { data: agentsData } = useAgentsQuery(activeWorkspace?.id)
 	const agents: Agent[] = agentsData?.agents ?? []
 
 	// Calculate date range
@@ -108,12 +108,15 @@ function AnalyticsPage() {
 		}
 	}, [dateRange])
 
-	const { data: analyticsData, isLoading: analyticsLoading } = useAnalytics(activeWorkspace?.id, {
-		startDate,
-		endDate,
-		agentId: selectedAgentId === 'all' ? undefined : selectedAgentId,
-		groupBy,
-	})
+	const { data: analyticsData, isLoading: analyticsLoading } = useAnalyticsQuery(
+		activeWorkspace?.id,
+		{
+			startDate,
+			endDate,
+			agentId: selectedAgentId === 'all' ? undefined : selectedAgentId,
+			groupBy,
+		},
+	)
 
 	const isLoading = workspaceLoading || analyticsLoading
 

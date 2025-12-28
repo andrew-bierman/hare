@@ -1,3 +1,4 @@
+import { useAgentQuery, useUpdateAgentMutation } from '@hare/app/shared/api'
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { Badge } from '@workspace/ui/components/badge'
 import { Button } from '@workspace/ui/components/button'
@@ -36,7 +37,6 @@ import {
 import { type ChangeEvent, useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
 import { useWorkspace } from 'web-app/components/providers/workspace-provider'
-import { useAgent, useUpdateAgent } from 'web-app/lib/api/hooks'
 
 export const Route = createFileRoute('/_dashboard/dashboard/agents/$id/embed')({
 	component: EmbedConfigPage,
@@ -92,8 +92,8 @@ function LoadingSkeleton() {
 function EmbedConfigPage() {
 	const { id: agentId } = Route.useParams()
 	const { activeWorkspace } = useWorkspace()
-	const { data: agent, isLoading, error } = useAgent(agentId, activeWorkspace?.id)
-	const updateAgent = useUpdateAgent(activeWorkspace?.id)
+	const { data: agent, isLoading, error } = useAgentQuery(agentId, activeWorkspace?.id)
+	const updateAgent = useUpdateAgentMutation(activeWorkspace?.id)
 
 	// Embed configuration state
 	const [config, setConfig] = useState<EmbedConfig>({

@@ -1,12 +1,12 @@
 'use client'
 
-import { createContext, type ReactNode, useCallback, useContext, useEffect, useState } from 'react'
 import {
-	useCreateWorkspace,
-	useWorkspaces,
+	useCreateWorkspaceMutation,
+	useWorkspacesQuery,
 	type Workspace,
 	type WorkspaceRole,
-} from 'web-app/lib/api/hooks'
+} from '@hare/app/shared/api'
+import { createContext, type ReactNode, useCallback, useContext, useEffect, useState } from 'react'
 import { useAuth } from './auth-provider'
 
 interface WorkspaceWithRole extends Workspace {
@@ -28,8 +28,8 @@ const ACTIVE_WORKSPACE_KEY = 'hare-active-workspace'
 
 export function WorkspaceProvider({ children }: { children: ReactNode }) {
 	const { data: session } = useAuth()
-	const { data, isLoading, error } = useWorkspaces()
-	const createWorkspace = useCreateWorkspace()
+	const { data, isLoading, error } = useWorkspacesQuery()
+	const createWorkspace = useCreateWorkspaceMutation()
 	const [activeWorkspace, setActiveWorkspaceState] = useState<WorkspaceWithRole | null>(null)
 
 	const workspaces: WorkspaceWithRole[] = data?.workspaces ?? []

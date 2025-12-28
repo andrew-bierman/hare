@@ -1,3 +1,11 @@
+import {
+	type HttpToolConfig,
+	type InputSchema,
+	type InputSchemaProperty,
+	type ToolTestResult,
+	useCreateToolMutation,
+	useTestToolMutation,
+} from '@hare/app/shared/api'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { Badge } from '@workspace/ui/components/badge'
 import { Button } from '@workspace/ui/components/button'
@@ -32,14 +40,6 @@ import {
 import { type ChangeEvent, useState } from 'react'
 import { toast } from 'sonner'
 import { useWorkspace } from 'web-app/components/providers/workspace-provider'
-import {
-	type HttpToolConfig,
-	type InputSchema,
-	type InputSchemaProperty,
-	type ToolTestResult,
-	useCreateTool,
-	useTestTool,
-} from 'web-app/lib/api/hooks'
 
 export const Route = createFileRoute('/_dashboard/dashboard/tools/new')({
 	component: NewToolPage,
@@ -64,8 +64,8 @@ function generateFieldId() {
 function NewToolPage() {
 	const navigate = useNavigate()
 	const { activeWorkspace } = useWorkspace()
-	const createTool = useCreateTool(activeWorkspace?.id)
-	const testTool = useTestTool(activeWorkspace?.id)
+	const createTool = useCreateToolMutation(activeWorkspace?.id)
+	const testTool = useTestToolMutation(activeWorkspace?.id)
 
 	// Tool metadata
 	const [name, setName] = useState('')
