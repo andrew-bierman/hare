@@ -1,45 +1,22 @@
 'use client'
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
 	apiClient,
-	type BillingPlan,
-	type BillingPlansResponse,
-	type BillingStatus,
 	type CheckoutRequest,
-	type CheckoutResponse,
-	type PaymentHistoryItem,
-	type PaymentHistoryResponse,
-	type PortalResponse,
-} from '../../../shared/api'
+} from '../client'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { billingKeys } from './query-keys'
 
-// Types are available from @shared/api, don't re-export to avoid duplicates
-
-export interface PlanFeatures {
-	maxAgents: number
-	maxMessagesPerMonth: number
-}
-
-export interface Plan {
-	id: string
-	name: string
-	description: string
-	price: number | null
-	priceId: string | null
-	features: PlanFeatures
-}
-
-export interface PlansResponse {
-	plans: Plan[]
-	currentPlanId: string | null
-}
+// =============================================================================
+// Hooks
+// =============================================================================
 
 /**
  * Fetch available billing plans
  */
 export function usePlans(workspaceId: string | undefined) {
 	return useQuery({
-		queryKey: ['billing', 'plans', workspaceId],
+		queryKey: billingKeys.plans(),
 		queryFn: () => apiClient.billing.getPlans(workspaceId!),
 		enabled: !!workspaceId,
 	})
@@ -50,7 +27,7 @@ export function usePlans(workspaceId: string | undefined) {
  */
 export function useBillingStatus(workspaceId: string | undefined) {
 	return useQuery({
-		queryKey: ['billing', 'status', workspaceId],
+		queryKey: billingKeys.status(workspaceId ?? ''),
 		queryFn: () => apiClient.billing.getStatus(workspaceId!),
 		enabled: !!workspaceId,
 	})
@@ -65,7 +42,7 @@ export function usePaymentHistory(options: {
 	startingAfter?: string
 }) {
 	return useQuery({
-		queryKey: ['billing', 'history', options.workspaceId, options.limit, options.startingAfter],
+		queryKey: billingKeys.invoices(options.workspaceId ?? ''),
 		queryFn: () =>
 			apiClient.billing.getHistory(options.workspaceId!, {
 				limit: options.limit,
@@ -89,8 +66,9 @@ export function useCreateCheckout() {
 				cancelUrl: params.cancelUrl,
 			}),
 		onSuccess: (_, { workspaceId }) => {
-			queryClient.invalidateQueries({ queryKey: ['billing', 'status', workspaceId] })
-			queryClient.invalidateQueries({ queryKey: ['billing', 'plans', workspaceId] })
+			// Invalidate billing queries after checkout
+			queryClient.invalidateQueries({ queryKey: billingKeys.status(workspaceId) })
+			queryClient.invalidateQueries({ queryKey: billingKeys.plans() })
 		},
 	})
 }

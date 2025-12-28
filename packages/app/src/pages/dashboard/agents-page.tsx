@@ -6,11 +6,12 @@ import { Card, CardContent } from '@workspace/ui/components/card'
 import { Input } from '@workspace/ui/components/input'
 import { Skeleton } from '@workspace/ui/components/skeleton'
 import { Tabs, TabsList, TabsTrigger } from '@workspace/ui/components/tabs'
-import { Bot, Clock, Plus, Search, Settings, Wrench } from 'lucide-react'
+import { Bot, Clock, Plus, Search, Wrench } from 'lucide-react'
 import { type ChangeEvent, useState, type ReactNode } from 'react'
 import { useWorkspace } from '../../app/providers/workspace-provider'
-import { useAgents, type Agent } from '../../entities/agent'
+import type { Agent } from '../../shared/api'
 import { getModelName } from '../../shared/config/models'
+import type { UseQueryResult } from '@tanstack/react-query'
 
 export interface AgentsPageProps {
 	/** Render prop for navigation links */
@@ -20,6 +21,8 @@ export interface AgentsPageProps {
 		newAgent: string
 		agentDetail: (id: string) => string
 	}
+	/** Agents query from parent app */
+	useAgents: (workspaceId: string | undefined) => UseQueryResult<{ agents: Agent[] }, Error>
 }
 
 const defaultRoutes = {
@@ -79,7 +82,7 @@ function EmptyState({ renderLink, routes }: Pick<AgentsPageProps, 'renderLink' |
 	)
 }
 
-export function AgentsPage({ renderLink, routes }: AgentsPageProps) {
+export function AgentsPage({ renderLink, routes, useAgents }: AgentsPageProps) {
 	const r = routes ?? defaultRoutes
 	const { activeWorkspace } = useWorkspace()
 	const { data, isLoading, error } = useAgents(activeWorkspace?.id)

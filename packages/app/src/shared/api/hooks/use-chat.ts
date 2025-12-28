@@ -48,6 +48,10 @@ export interface ChatUsage {
 	latencyMs: number
 }
 
+/**
+ * Chat stream event data with all runtime fields.
+ * More complete than the schema type ChatStreamEvent in types.ts.
+ */
 export interface ChatStreamEventData {
 	type: 'text' | 'tool_call' | 'tool_result' | 'done' | 'error'
 	content?: string
@@ -68,6 +72,7 @@ async function fetchConversations(agentId: string): Promise<{ conversations: Con
 		try {
 			error = await response.json()
 		} catch {
+			// Response body was not JSON - use status text
 			error = { error: response.statusText || 'Unknown error' }
 		}
 		throw new Error(getErrorMessage(error, 'Failed to fetch conversations'))
@@ -82,6 +87,7 @@ async function fetchMessages(conversationId: string): Promise<{ messages: Messag
 		try {
 			error = await response.json()
 		} catch {
+			// Response body was not JSON - use status text
 			error = { error: response.statusText || 'Unknown error' }
 		}
 		throw new Error(getErrorMessage(error, 'Failed to fetch messages'))
@@ -118,6 +124,7 @@ export function useChat(agentId: string | undefined) {
 			setIsStreaming(true)
 			setError(null)
 
+			// Add user message immediately
 			const userMessage: Message = {
 				id: `temp-${Date.now()}`,
 				conversationId: sessionId || '',
@@ -127,6 +134,7 @@ export function useChat(agentId: string | undefined) {
 			}
 			setMessages((prev) => [...prev, userMessage])
 
+			// Create placeholder for assistant response
 			const assistantMessage: Message = {
 				id: `temp-assistant-${Date.now()}`,
 				conversationId: sessionId || '',
@@ -151,6 +159,7 @@ export function useChat(agentId: string | undefined) {
 					try {
 						errorData = await response.json()
 					} catch {
+						// Response body was not JSON - use status text
 						errorData = { error: response.statusText || 'Unknown error' }
 					}
 					throw new Error(getErrorMessage(errorData, 'Failed to send message'))
@@ -227,6 +236,7 @@ export function useChat(agentId: string | undefined) {
 									setError(event.message || 'An error occurred')
 								}
 							} catch (parseError) {
+								// Log parse errors in development for debugging
 								if (process.env.NODE_ENV === 'development') {
 									console.warn('Failed to parse SSE event:', line, parseError)
 								}
@@ -236,6 +246,7 @@ export function useChat(agentId: string | undefined) {
 				}
 			} catch (err) {
 				setError(err instanceof Error ? err.message : 'Failed to send message')
+				// Remove the placeholder assistant message on error
 				setMessages((prev) => prev.slice(0, -1))
 			} finally {
 				setIsStreaming(false)
