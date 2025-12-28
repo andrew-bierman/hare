@@ -31,7 +31,7 @@ import {
 } from 'lucide-react'
 import { type ChangeEvent, useState } from 'react'
 import { toast } from 'sonner'
-import { useWorkspace } from 'web-app/components/providers/workspace-provider'
+import { useWorkspace } from 'web-app/app'
 import {
 	type HttpToolConfig,
 	type InputSchema,
