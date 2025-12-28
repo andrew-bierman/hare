@@ -11,7 +11,7 @@ import {
 	DropdownMenuTrigger,
 } from '@workspace/ui/components/dropdown-menu'
 import { LogOut, Settings, User } from 'lucide-react'
-import { useAuth } from 'web-app/components/providers/auth-provider'
+import { useAuth } from 'web-app/app'
 import { authClient } from 'web-app/lib/auth-client'
 
 export function UserNav() {

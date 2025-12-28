@@ -53,7 +53,7 @@ import { AgentInstructionsEditor } from 'web-app/components/agent/agent-instruct
 import { MemoryViewer } from 'web-app/components/agent/memory-viewer'
 import { ScheduledTasksSection } from 'web-app/components/agent/scheduled-tasks-section'
 import { ToolPicker } from 'web-app/components/agent/tool-picker'
-import { useWorkspace } from 'web-app/components/providers/workspace-provider'
+import { useWorkspace } from 'web-app/app'
 import {
 	useAgent,
 	useAgentPreviewQuery,
