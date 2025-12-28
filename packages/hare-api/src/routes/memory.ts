@@ -23,7 +23,7 @@ import {
 	storeMemoryWithEmbedding,
 	updateMemory,
 } from '../services/vector-memory'
-import type { WorkspaceEnv } from '../types'
+import type { WorkspaceEnv } from '@hare/types'
 
 // =============================================================================
 // Schemas

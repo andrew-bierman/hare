@@ -10,7 +10,7 @@
 
 import { eq } from 'drizzle-orm'
 import { agents, deployments } from 'web-app/db/schema'
-import type { Database } from 'web-app/db/types'
+import type { Database } from 'web-app/db'
 import { serverEnv } from 'web-app/lib/env/server'
 
 // =============================================================================

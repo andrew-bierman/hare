@@ -1,13 +1,6 @@
-import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { Badge } from '@hare/ui/components/badge'
 import { Button } from '@hare/ui/components/button'
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from '@hare/ui/components/card'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@hare/ui/components/card'
 import { Input } from '@hare/ui/components/input'
 import { Label } from '@hare/ui/components/label'
 import {
@@ -18,6 +11,7 @@ import {
 	SelectValue,
 } from '@hare/ui/components/select'
 import { Textarea } from '@hare/ui/components/textarea'
+import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import {
 	AlertCircle,
 	CheckCircle2,

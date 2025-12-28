@@ -1,7 +1,7 @@
 'use client'
 
-import { createContext, type ReactNode, useContext } from 'react'
 import { useSession } from '@hare/auth/client'
+import { createContext, type ReactNode, useContext } from 'react'
 
 type Session = ReturnType<typeof useSession>
 

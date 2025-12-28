@@ -12,12 +12,6 @@
  * because it uses the 'agents' package which depends on 'cloudflare:workers'.
  */
 
-import { Agent, type Connection, type ConnectionContext, type WSMessage } from 'agents'
-import type { CoreMessage } from 'ai'
-import { streamText } from 'ai'
-import { z } from 'zod'
-import { createWorkersAIModel } from './providers/workers-ai'
-import { getSystemTools, type Tool, type ToolContext, type ToolResult } from './tools'
 import {
 	type ChatPayload,
 	type ClientMessage,
@@ -27,7 +21,13 @@ import {
 	type SchedulePayload,
 	type ServerMessage,
 	type ToolExecutePayload,
-} from './types'
+} from '@hare/types'
+import { Agent, type Connection, type ConnectionContext, type WSMessage } from 'agents'
+import type { CoreMessage } from 'ai'
+import { streamText } from 'ai'
+import { z } from 'zod'
+import { createWorkersAIModel } from './providers/workers-ai'
+import { getSystemTools, type Tool, type ToolContext, type ToolResult } from './tools'
 
 // Re-export types for convenience
 export type { HareAgentState, ClientMessage, ServerMessage }

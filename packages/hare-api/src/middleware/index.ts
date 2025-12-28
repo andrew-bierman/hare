@@ -13,7 +13,7 @@ export type {
 	WorkspaceInfo,
 	WorkspaceRole,
 	WorkspaceVariables,
-} from '../types'
+} from '@hare/types'
 export {
 	apiKeyMiddleware,
 	generateApiKey,

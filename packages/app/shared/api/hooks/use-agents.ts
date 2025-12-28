@@ -1,7 +1,7 @@
 'use client'
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import type { Agent, CreateAgentInput, UpdateAgentInput } from '../types'
+import type { Agent, CreateAgentInput, UpdateAgentInput } from '@hare/types'
 import type { AgentPreviewInput, AgentPreviewResponse } from '../client'
 import { apiClient } from '../client'
 import { agentKeys } from './query-keys'

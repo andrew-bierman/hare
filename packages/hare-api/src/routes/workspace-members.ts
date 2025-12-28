@@ -18,7 +18,7 @@ import {
 	WorkspaceMemberParamsSchema,
 	WorkspaceMemberSchema,
 } from '../schemas'
-import { type AuthEnv, isWorkspaceRole, type WorkspaceRole } from '../types'
+import { type AuthEnv, isWorkspaceRole, type WorkspaceRole } from '@hare/types'
 
 // =============================================================================
 // Route Definitions

@@ -14,10 +14,6 @@
 			"types": "./src/client.ts",
 			"import": "./src/client.ts"
 		},
-		"./types": {
-			"types": "./src/types.ts",
-			"import": "./src/types.ts"
-		},
 		"./schemas": {
 			"types": "./src/schemas/index.ts",
 			"import": "./src/schemas/index.ts"
@@ -66,10 +62,12 @@
 		"@hare/auth": "workspace:*",
 		"@hare/config": "workspace:*",
 		"@hare/tools": "workspace:*",
+		"@hare/types": "workspace:*",
 		"@scalar/hono-api-reference": "^0.9.30",
 		"zod-to-json-schema": "^3.25.0"
 	},
 	"devDependencies": {
+		"@hare/typescript-config": "workspace:*",
 		"@cloudflare/workers-types": "^4.20251224.0",
 		"@hono/zod-openapi": "^1.2.0",
 		"@paralleldrive/cuid2": "^2.3.1",

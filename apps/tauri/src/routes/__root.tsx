@@ -1,8 +1,8 @@
 import { WorkspaceProvider } from '@hare/app/providers'
+import { Toaster } from '@hare/ui/components/sonner'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { createRootRoute, HeadContent, Outlet, Scripts } from '@tanstack/react-router'
-import { Toaster } from '@hare/ui/components/sonner'
 import '../styles.css'
 
 export const queryClient = new QueryClient({

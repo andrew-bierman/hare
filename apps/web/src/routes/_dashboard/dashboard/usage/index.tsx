@@ -1,12 +1,6 @@
-import { createFileRoute } from '@tanstack/react-router'
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from '@hare/ui/components/card'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@hare/ui/components/card'
 import { Skeleton } from '@hare/ui/components/skeleton'
+import { createFileRoute } from '@tanstack/react-router'
 import { Activity, Bot, Calendar, TrendingUp } from 'lucide-react'
 import { useWorkspace } from 'web-app/app'
 import { type Agent, useAgents, useUsage } from 'web-app/lib/api/hooks'

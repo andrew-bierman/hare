@@ -1,6 +1,6 @@
 import { createId } from '@paralleldrive/cuid2'
 import type { Context, Next } from 'hono'
-import type { HonoEnv } from '../types'
+import type { HonoEnv } from '@hare/types'
 
 /**
  * Request log entry stored in KV/D1.

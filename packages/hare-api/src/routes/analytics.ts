@@ -4,7 +4,7 @@ import { agents, usage } from 'web-app/db/schema'
 import { getDb } from '../db'
 import { authMiddleware, workspaceMiddleware } from '../middleware'
 import { ErrorSchema, UsageQuerySchema } from '../schemas'
-import type { WorkspaceEnv } from '../types'
+import type { WorkspaceEnv } from '@hare/types'
 
 // Define analytics response schemas
 const TimeSeriesDataSchema = z.object({
@@ -188,7 +188,7 @@ app.openapi(getAnalyticsRoute, async (c) => {
 		.orderBy(sql<number>`SUM(${usage.totalTokens}) DESC`)
 
 	// Import model config to get model names
-	const { getModelName } = await import('@hare/app/shared/config')
+	const { getModelName } = await import('@hare/config')
 
 	return c.json(
 		{

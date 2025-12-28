@@ -7,7 +7,7 @@ import { SelectedTools } from './selected-tools'
 import { ToolCard } from './tool-card'
 import { ToolCategories } from './tool-categories'
 import { ToolSearch } from './tool-search'
-import type { Tool } from '../../../shared/api/types'
+import type { Tool } from '@hare/types'
 import type { ToolPickerProps } from './types'
 import { useToolPicker } from './use-tool-picker'
 

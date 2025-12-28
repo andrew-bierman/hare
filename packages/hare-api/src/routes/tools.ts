@@ -26,7 +26,7 @@ import {
 	isUrlSafe,
 	testHttpTool,
 } from '../services/custom-tool-executor'
-import type { WorkspaceEnv } from '../types'
+import type { WorkspaceEnv } from '@hare/types'
 
 // Define routes
 const listToolsRoute = createRoute({

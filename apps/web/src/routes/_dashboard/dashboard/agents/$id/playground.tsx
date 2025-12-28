@@ -1,6 +1,5 @@
-import { getModelName } from '@hare/config'
 import { ToolCallList } from '@hare/app/widgets/chat-interface'
-import { createFileRoute, Link } from '@tanstack/react-router'
+import { getModelName } from '@hare/config'
 import { Avatar, AvatarFallback } from '@hare/ui/components/avatar'
 import { Badge } from '@hare/ui/components/badge'
 import { Button } from '@hare/ui/components/button'
@@ -14,6 +13,7 @@ import {
 import { ScrollArea } from '@hare/ui/components/scroll-area'
 import { Skeleton } from '@hare/ui/components/skeleton'
 import { Textarea } from '@hare/ui/components/textarea'
+import { createFileRoute, Link } from '@tanstack/react-router'
 import {
 	ArrowLeft,
 	Bot,

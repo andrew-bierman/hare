@@ -1,14 +1,14 @@
+import { signInWithGitHub, signInWithGoogle, signUp } from '@hare/auth/client'
 import { APP_CONFIG, AUTH_CONTENT } from '@hare/config'
-import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { Button } from '@hare/ui/components/button'
 import { Card, CardContent, CardFooter } from '@hare/ui/components/card'
 import { Input } from '@hare/ui/components/input'
 import { Label } from '@hare/ui/components/label'
+import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { ArrowRight, Github, Loader2, Rabbit } from 'lucide-react'
 import { type ChangeEvent, type FormEvent, useState } from 'react'
 import { toast } from 'sonner'
 import { useOAuthProviders } from 'web-app/lib/api/hooks'
-import { signInWithGitHub, signInWithGoogle, signUp } from '@hare/auth/client'
 
 const { signUp: content, fields, validation } = AUTH_CONTENT
 

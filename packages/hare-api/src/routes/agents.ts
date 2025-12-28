@@ -2,7 +2,7 @@ import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
 import { and, eq } from 'drizzle-orm'
 import { AGENT_LIMITS, AI_MODELS, getModelById } from '@hare/config'
 import { agents, agentTools, deployments, tools as toolsTable } from 'web-app/db/schema'
-import type { Database } from 'web-app/db/types'
+import type { Database } from 'web-app/db'
 import { routeHttpToAgent } from 'web-app/lib/agents'
 import { getCloudflareEnv, getDb } from '../db'
 import { commonResponses, requireAdminAccess, requireWriteAccess } from '../helpers'
@@ -29,7 +29,7 @@ import {
 	getDeploymentHistory,
 	rollbackDeployment,
 } from '../services/deployment'
-import type { WorkspaceEnv } from '../types'
+import type { WorkspaceEnv } from '@hare/types'
 import { validateAgentInstructions } from '../utils/sanitize'
 
 // Define routes

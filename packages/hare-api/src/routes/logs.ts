@@ -2,7 +2,7 @@ import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
 import { authMiddleware, workspaceMiddleware } from '../middleware'
 import { getLogStats, getLogs, type LogQueryParams } from '../middleware/logging'
 import { ErrorSchema } from '../schemas'
-import type { WorkspaceEnv } from '../types'
+import type { WorkspaceEnv } from '@hare/types'
 
 // Define log-related schemas
 const RequestLogSchema = z.object({

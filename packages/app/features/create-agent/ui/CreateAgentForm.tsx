@@ -22,7 +22,7 @@ import {
 import { Textarea } from '@hare/ui/components/textarea'
 import { type ChangeEvent, useState } from 'react'
 import { toast } from 'sonner'
-import type { Tool } from '../../../shared/api/types'
+import type { Tool } from '@hare/types'
 import { useCreateAgent, useTools } from '../../../shared/api/hooks'
 import { AgentInstructionsEditor } from '../../../widgets/agent-builder'
 import { AVAILABLE_MODELS } from '../../../shared/config'

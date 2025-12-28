@@ -1,13 +1,6 @@
-import { createFileRoute, Link } from '@tanstack/react-router'
 import { Badge } from '@hare/ui/components/badge'
 import { Button } from '@hare/ui/components/button'
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from '@hare/ui/components/card'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@hare/ui/components/card'
 import { Input } from '@hare/ui/components/input'
 import { Label } from '@hare/ui/components/label'
 import {
@@ -21,6 +14,7 @@ import { Skeleton } from '@hare/ui/components/skeleton'
 import { Switch } from '@hare/ui/components/switch'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@hare/ui/components/tabs'
 import { Textarea } from '@hare/ui/components/textarea'
+import { createFileRoute, Link } from '@tanstack/react-router'
 import {
 	AlertTriangle,
 	ArrowLeft,

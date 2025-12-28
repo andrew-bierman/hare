@@ -1,7 +1,7 @@
 'use client'
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import type { CreateWorkspaceInput, Workspace } from '../types'
+import type { CreateWorkspaceInput, Workspace } from '@hare/types'
 import { apiClient } from '../client'
 import { workspaceKeys } from './query-keys'
 

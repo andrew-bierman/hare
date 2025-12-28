@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { assertMessageRole, assertWorkspaceRole, isMessageRole, isWorkspaceRole } from '../types'
+import { assertMessageRole, assertWorkspaceRole, isMessageRole, isWorkspaceRole } from '@hare/types'
 
 describe('isWorkspaceRole', () => {
 	it('returns true for valid workspace roles', () => {

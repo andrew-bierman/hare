@@ -1,8 +1,15 @@
+/**
+ * API Types
+ *
+ * Type definitions for API requests and responses.
+ * Uses Zod schemas for runtime validation with z.infer for type inference.
+ */
+
 import { z } from 'zod'
+import { ToolTypeSchema } from './tool'
 
 // =============================================================================
 // HONO ENVIRONMENT TYPES (Server-side)
-// Using Zod schemas for runtime validation with z.infer for type inference
 // =============================================================================
 
 /**
@@ -128,7 +135,6 @@ export interface OptionalAuthEnv extends HonoEnv {
 
 // =============================================================================
 // DATABASE ENUM TYPES WITH RUNTIME VALIDATION
-// Using Zod schemas for validation - no need for manual validator functions
 // =============================================================================
 
 /**
@@ -185,7 +191,6 @@ export function assertMessageRole(value: unknown): asserts value is MessageRole 
 
 // =============================================================================
 // API TYPES (Client-side)
-// Using Zod schemas for runtime validation with z.infer for type inference
 // =============================================================================
 
 /**
@@ -259,13 +264,6 @@ export type UpdateAgentInput = z.infer<typeof UpdateAgentInputSchema>
 // =============================================================================
 // Tool Types
 // =============================================================================
-
-/**
- * Tool type schema (client-side subset).
- */
-export const ToolTypeSchema = z.enum(['http', 'sql', 'kv', 'r2', 'custom'])
-
-export type ToolType = z.infer<typeof ToolTypeSchema>
 
 /**
  * Tool schema.

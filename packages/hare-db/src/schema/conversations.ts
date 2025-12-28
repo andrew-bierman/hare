@@ -3,7 +3,7 @@ import { integer, sqliteTable, text } from 'drizzle-orm/sqlite-core'
 import { agents } from './agents'
 import { users } from './auth'
 import { workspaces } from './workspaces'
-import type { MessageMetadata } from '../types'
+import type { MessageMetadata } from '@hare/types'
 
 export const conversations = sqliteTable('conversations', {
 	id: text('id')

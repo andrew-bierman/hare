@@ -37,6 +37,7 @@
         "tailwind-merge": "^3.4.0",
       },
       "devDependencies": {
+        "@hare/typescript-config": "workspace:*",
         "@tailwindcss/vite": "^4",
         "@tauri-apps/cli": "^2",
         "@types/react": "^19",
@@ -67,6 +68,7 @@
         "@hare/auth": "workspace:*",
         "@hare/config": "workspace:*",
         "@hare/tools": "workspace:*",
+        "@hare/types": "workspace:*",
         "@hare/ui": "workspace:*",
         "@hono/zod-openapi": "^1.2.0",
         "@hono/zod-validator": "^0.7.6",
@@ -139,6 +141,7 @@
         "@hare/agent": "workspace:*",
         "@hare/api": "workspace:*",
         "@hare/config": "workspace:*",
+        "@hare/types": "workspace:*",
         "@hare/ui": "workspace:*",
         "@tanstack/react-form": "^1.12.1",
         "@tanstack/react-query": "^5.90.12",
@@ -168,11 +171,13 @@
       "version": "0.1.0",
       "dependencies": {
         "@hare/tools": "workspace:*",
+        "@hare/types": "workspace:*",
         "workers-ai-provider": "^2.0.0",
         "zod-to-json-schema": "^3.25.0",
       },
       "devDependencies": {
         "@cloudflare/workers-types": "^4.20251224.0",
+        "@hare/typescript-config": "workspace:*",
         "@modelcontextprotocol/sdk": "^1.11.4",
         "agents": "^0.0.67",
         "ai": "^5.0.115",
@@ -194,11 +199,13 @@
         "@hare/auth": "workspace:*",
         "@hare/config": "workspace:*",
         "@hare/tools": "workspace:*",
+        "@hare/types": "workspace:*",
         "@scalar/hono-api-reference": "^0.9.30",
         "zod-to-json-schema": "^3.25.0",
       },
       "devDependencies": {
         "@cloudflare/workers-types": "^4.20251224.0",
+        "@hare/typescript-config": "workspace:*",
         "@hono/zod-openapi": "^1.2.0",
         "@paralleldrive/cuid2": "^2.3.1",
         "ai": "^5.0.116",
@@ -241,6 +248,7 @@
         "create-hare-agent": "./src/index.ts",
       },
       "devDependencies": {
+        "@hare/typescript-config": "workspace:*",
         "@types/node": "^22.0.0",
         "typescript": "^5.7.0",
       },
@@ -260,6 +268,7 @@
       "name": "@hare/db",
       "version": "0.1.0",
       "dependencies": {
+        "@hare/types": "workspace:*",
         "@paralleldrive/cuid2": "^2.3.1",
         "zod": "^4.2.1",
       },
@@ -277,12 +286,30 @@
     "packages/hare-tools": {
       "name": "@hare/tools",
       "version": "0.1.0",
+      "dependencies": {
+        "@hare/types": "workspace:*",
+      },
       "devDependencies": {
         "@cloudflare/workers-types": "^4.20251224.0",
+        "@hare/typescript-config": "workspace:*",
         "typescript": "^5.7.0",
         "zod": "^4.2.1",
       },
       "peerDependencies": {
+        "zod": "^4.0.0",
+      },
+    },
+    "packages/hare-types": {
+      "name": "@hare/types",
+      "version": "0.1.0",
+      "devDependencies": {
+        "@hare/typescript-config": "workspace:*",
+        "ai": "^5.0.115",
+        "typescript": "^5.7.0",
+        "zod": "^4.2.1",
+      },
+      "peerDependencies": {
+        "ai": "^5.0.0",
         "zod": "^4.0.0",
       },
     },
@@ -618,6 +645,8 @@
     "@hare/scripts": ["@hare/scripts@workspace:scripts"],
 
     "@hare/tools": ["@hare/tools@workspace:packages/hare-tools"],
+
+    "@hare/types": ["@hare/types@workspace:packages/hare-types"],
 
     "@hare/typescript-config": ["@hare/typescript-config@workspace:packages/typescript-config"],
 

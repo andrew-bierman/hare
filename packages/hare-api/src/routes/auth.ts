@@ -1,7 +1,7 @@
 import { Hono } from 'hono'
 import { createAuth, getOAuthProviders, type AuthServerEnv } from '@hare/auth/server'
 import { CloudflareEnvError, getD1 } from '../db'
-import type { HonoEnv } from '../types'
+import type { HonoEnv } from '@hare/types'
 
 /**
  * Helper to get auth server env from Hono context

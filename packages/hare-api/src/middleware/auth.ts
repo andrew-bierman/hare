@@ -1,7 +1,7 @@
 import type { MiddlewareHandler } from 'hono'
 import { createAuth, type AuthServerEnv } from '@hare/auth/server'
 import { getD1 } from '../db'
-import type { AuthEnv, OptionalAuthEnv } from '../types'
+import type { AuthEnv, OptionalAuthEnv } from '@hare/types'
 
 /**
  * Helper to get auth server env from Hono context

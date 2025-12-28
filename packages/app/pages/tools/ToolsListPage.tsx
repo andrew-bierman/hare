@@ -15,12 +15,12 @@ import { Input } from '@hare/ui/components/input'
 import { Skeleton } from '@hare/ui/components/skeleton'
 import { Code, Database, Globe, HardDrive, Plus, Search, Trash2, Wrench } from 'lucide-react'
 import { type ChangeEvent, useState } from 'react'
-import type { Tool, ToolType } from '../../shared/api/types'
+import type { Tool, ToolType } from '@hare/types'
 import { useTools } from '../../shared/api/hooks'
 import { CreateToolDialog, DeleteToolDialog } from '../../features/create-tool'
 import { useWorkspace } from '../../app/providers'
 
-const TOOL_ICONS: Record<ToolType, typeof Wrench> = {
+const TOOL_ICONS: Partial<Record<ToolType, typeof Wrench>> = {
 	http: Globe,
 	sql: Database,
 	kv: HardDrive,

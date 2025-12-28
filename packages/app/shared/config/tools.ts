@@ -77,8 +77,8 @@ export function getAvailableTools(): SystemTool[] {
 // Agent Configuration
 // =============================================================================
 
-// AgentStatus is exported from shared/api/types.ts to avoid duplicate exports
-import type { AgentStatus } from '../api/types'
+// AgentStatus is exported from @hare/types
+import type { AgentStatus } from '@hare/types'
 
 export type { AgentStatus }
 

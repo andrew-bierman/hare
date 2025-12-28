@@ -12,7 +12,7 @@ import { commonResponses, requireAdminAccess, requireWriteAccess } from '../help
 import { authMiddleware, workspaceMiddleware } from '../middleware'
 import { ErrorSchema, SuccessSchema } from '../schemas'
 import { generateWebhookSecret, reactivateWebhook } from '../services/webhooks'
-import type { WorkspaceEnv } from '../types'
+import type { WorkspaceEnv } from '@hare/types'
 
 // =============================================================================
 // Schemas

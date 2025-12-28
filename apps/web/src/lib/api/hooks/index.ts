@@ -9,4 +9,4 @@
 export * from '@hare/app/shared/api'
 
 // Re-export AI models from config for convenience
-export { AI_MODELS, getModelById, getModelName, type AIModel } from '@hare/config'
+export { AI_MODELS, type AIModel, getModelById, getModelName } from '@hare/config'

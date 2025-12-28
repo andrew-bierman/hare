@@ -1,18 +1,12 @@
-import { AGENT_LIMITS, AI_MODELS } from '@hare/config'
+import { useDebouncedValue } from '@hare/app/shared'
 import { AgentInstructionsEditor } from '@hare/app/widgets/agent-builder'
 import { MemoryViewer } from '@hare/app/widgets/memory-viewer'
 import { ScheduledTasksSection } from '@hare/app/widgets/scheduled-tasks'
 import { ToolPicker } from '@hare/app/widgets/tool-picker'
-import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
+import { AGENT_LIMITS, AI_MODELS } from '@hare/config'
 import { Badge } from '@hare/ui/components/badge'
 import { Button } from '@hare/ui/components/button'
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from '@hare/ui/components/card'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@hare/ui/components/card'
 import {
 	Dialog,
 	DialogContent,
@@ -33,6 +27,7 @@ import {
 import { Skeleton } from '@hare/ui/components/skeleton'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@hare/ui/components/tabs'
 import { Textarea } from '@hare/ui/components/textarea'
+import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import {
 	AlertTriangle,
 	Brain,
@@ -64,7 +59,6 @@ import {
 	useUpdateAgent,
 	type ValidationIssue,
 } from 'web-app/lib/api/hooks'
-import { useDebouncedValue } from '@hare/app/shared'
 import { z } from 'zod'
 
 export const Route = createFileRoute('/_dashboard/dashboard/agents/$id/')({

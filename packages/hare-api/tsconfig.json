@@ -1,6 +1,9 @@
 {
-	"extends": "../../tsconfig.json",
+	"extends": "@hare/typescript-config/base.json",
 	"compilerOptions": {
+		"module": "ESNext",
+		"moduleResolution": "Bundler",
+		"noEmit": true,
 		"types": ["@cloudflare/workers-types"]
 	},
 	"include": ["src/**/*.ts"],

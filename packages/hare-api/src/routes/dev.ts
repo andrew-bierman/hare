@@ -3,7 +3,7 @@ import { agents } from 'web-app/db/schema'
 import { serverEnv } from 'web-app/lib/env/server'
 import { getDb } from '../db'
 import { authMiddleware, workspaceMiddleware } from '../middleware'
-import type { WorkspaceEnv } from '../types'
+import type { WorkspaceEnv } from '@hare/types'
 
 const app = new OpenAPIHono<WorkspaceEnv>()
 
