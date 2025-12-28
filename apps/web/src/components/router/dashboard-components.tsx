@@ -7,7 +7,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from '@workspace/ui/components/card'
-import { AlertTriangle, ArrowLeft, FileQuestion, Home, Rabbit, RefreshCw } from 'lucide-react'
+import { AlertTriangle, ArrowLeft, FileQuestion, Rabbit, RefreshCw } from 'lucide-react'
 
 export function DashboardErrorComponent({ error, reset }: ErrorComponentProps) {
 	const router = useRouter()
@@ -52,7 +52,7 @@ export function DashboardErrorComponent({ error, reset }: ErrorComponentProps) {
 
 						<Link to="/dashboard">
 							<Button className="gap-2 w-full sm:w-auto">
-								<Home className="h-4 w-4" />
+								<Rabbit className="h-4 w-4" />
 								Back to dashboard
 							</Button>
 						</Link>

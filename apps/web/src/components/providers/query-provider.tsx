@@ -20,12 +20,21 @@ export function QueryProvider({ children }: { children: ReactNode }) {
 						gcTime: 5 * 60 * 1000,
 						refetchOnWindowFocus: false,
 						retry: (failureCount, error) => {
-							// Don't retry on 4xx errors
-							if (error instanceof Error && 'status' in error) {
-								const status = (error as Error & { status: number }).status
-								if (status >= 400 && status < 500) return false
+							// Don't retry on client errors (check message patterns)
+							if (error instanceof Error) {
+								const msg = error.message.toLowerCase()
+								// Don't retry auth, validation, or not found errors
+								if (
+									msg.includes('unauthorized') ||
+									msg.includes('forbidden') ||
+									msg.includes('not found') ||
+									msg.includes('invalid') ||
+									msg.includes('validation')
+								) {
+									return false
+								}
 							}
-							return failureCount < 3
+							return failureCount < 2
 						},
 					},
 					mutations: {
