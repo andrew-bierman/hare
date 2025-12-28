@@ -1,12 +1,11 @@
 /**
  * Tauri App Providers
  *
- * Application-level providers for the Tauri desktop app.
+ * Same structure as web, but with auth client configured for remote API.
  */
 
+export { authClient, signIn, signUp, signOut, useSession, getSession } from './auth-client'
 export { AuthProvider, useAuth } from './auth-provider'
 export { Providers } from './providers'
 export { QueryProvider, queryClient } from './query-provider'
-
-// Re-export from @hare/app/providers
-export { useWorkspace, WorkspaceProvider } from '@hare/app/providers'
+export { useWorkspace, WorkspaceProvider } from './workspace-provider'
