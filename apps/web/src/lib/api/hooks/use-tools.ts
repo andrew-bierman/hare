@@ -1,16 +1,22 @@
 'use client'
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import type { CreateToolInput, Tool, ToolType } from '@hare/api'
 import { apiClient, type ToolTestRequest } from '@hare/api/client'
-import type { CreateToolInput, ToolType } from '@hare/api'
+import { toolKeys } from 'web-app/lib/tanstack/query-keys'
 
 // Re-export types for convenience
-export type { HttpToolConfig, InputSchema, InputSchemaProperty, ToolTestResult } from '@hare/api/client'
 export type { CreateToolInput, Tool, ToolType } from '@hare/api'
+export type {
+	HttpToolConfig,
+	InputSchema,
+	InputSchemaProperty,
+	ToolTestResult,
+} from '@hare/api/client'
 
 export function useTools(workspaceId: string | undefined) {
 	return useQuery({
-		queryKey: ['tools', workspaceId],
+		queryKey: toolKeys.list(workspaceId ?? ''),
 		queryFn: () => apiClient.tools.list(workspaceId!),
 		enabled: !!workspaceId,
 	})
@@ -18,7 +24,7 @@ export function useTools(workspaceId: string | undefined) {
 
 export function useTool(id: string | undefined, workspaceId: string | undefined) {
 	return useQuery({
-		queryKey: ['tools', workspaceId, id],
+		queryKey: toolKeys.detail(workspaceId ?? '', id ?? ''),
 		queryFn: () => apiClient.tools.get(id!, workspaceId!),
 		enabled: !!id && !!workspaceId,
 	})
@@ -29,7 +35,7 @@ export function useCreateTool(workspaceId: string | undefined) {
 	return useMutation({
 		mutationFn: (data: CreateToolInput) => apiClient.tools.create(workspaceId!, data),
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ['tools', workspaceId] })
+			queryClient.invalidateQueries({ queryKey: toolKeys.list(workspaceId ?? '') })
 		},
 	})
 }
@@ -39,9 +45,28 @@ export function useUpdateTool(workspaceId: string | undefined) {
 	return useMutation({
 		mutationFn: ({ id, data }: { id: string; data: Partial<CreateToolInput> }) =>
 			apiClient.tools.update(id, workspaceId!, data),
-		onSuccess: (_, { id }) => {
-			queryClient.invalidateQueries({ queryKey: ['tools', workspaceId] })
-			queryClient.invalidateQueries({ queryKey: ['tools', workspaceId, id] })
+		// Optimistic update
+		onMutate: async ({ id, data }) => {
+			await queryClient.cancelQueries({ queryKey: toolKeys.detail(workspaceId ?? '', id) })
+			const previousTool = queryClient.getQueryData<Tool>(
+				toolKeys.detail(workspaceId ?? '', id),
+			)
+			if (previousTool) {
+				queryClient.setQueryData<Tool>(toolKeys.detail(workspaceId ?? '', id), {
+					...previousTool,
+					...data,
+				})
+			}
+			return { previousTool }
+		},
+		onError: (_err, { id }, context) => {
+			if (context?.previousTool) {
+				queryClient.setQueryData(toolKeys.detail(workspaceId ?? '', id), context.previousTool)
+			}
+		},
+		onSettled: (_, _err, { id }) => {
+			queryClient.invalidateQueries({ queryKey: toolKeys.list(workspaceId ?? '') })
+			queryClient.invalidateQueries({ queryKey: toolKeys.detail(workspaceId ?? '', id) })
 		},
 	})
 }
@@ -50,8 +75,26 @@ export function useDeleteTool(workspaceId: string | undefined) {
 	const queryClient = useQueryClient()
 	return useMutation({
 		mutationFn: (id: string) => apiClient.tools.delete(id, workspaceId!),
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ['tools', workspaceId] })
+		// Optimistic update
+		onMutate: async (id) => {
+			await queryClient.cancelQueries({ queryKey: toolKeys.list(workspaceId ?? '') })
+			const previousTools = queryClient.getQueryData<{ tools: Tool[] }>(
+				toolKeys.list(workspaceId ?? ''),
+			)
+			if (previousTools) {
+				queryClient.setQueryData<{ tools: Tool[] }>(toolKeys.list(workspaceId ?? ''), {
+					tools: previousTools.tools.filter((tool) => tool.id !== id),
+				})
+			}
+			return { previousTools }
+		},
+		onError: (_err, _id, context) => {
+			if (context?.previousTools) {
+				queryClient.setQueryData(toolKeys.list(workspaceId ?? ''), context.previousTools)
+			}
+		},
+		onSettled: () => {
+			queryClient.invalidateQueries({ queryKey: toolKeys.list(workspaceId ?? '') })
 		},
 	})
 }

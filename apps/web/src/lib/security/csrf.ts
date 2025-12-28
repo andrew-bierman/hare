@@ -3,9 +3,9 @@
  * Implements double-submit cookie pattern for CSRF prevention
  */
 
+import type { HonoEnv } from '@hare/api'
 import type { Context } from 'hono'
 import { getCookie, setCookie } from 'hono/cookie'
-import type { HonoEnv } from '../api/types'
 import { timingSafeEqual } from './encryption'
 
 /**

@@ -48,10 +48,18 @@ function BillingPage() {
 	useEffect(() => {
 		if (search.success === 'true') {
 			toast.success('Subscription updated successfully!')
-			navigate({ to: '/dashboard/settings/billing', replace: true })
+			navigate({
+				to: '/dashboard/settings/billing',
+				search: { success: undefined, canceled: undefined },
+				replace: true,
+			})
 		} else if (search.canceled === 'true') {
 			toast.info('Checkout was canceled')
-			navigate({ to: '/dashboard/settings/billing', replace: true })
+			navigate({
+				to: '/dashboard/settings/billing',
+				search: { success: undefined, canceled: undefined },
+				replace: true,
+			})
 		}
 	}, [search.success, search.canceled, navigate])
 

@@ -25,16 +25,22 @@
 			"@hare/api": ["packages/hare-api/src/index.ts"],
 			"@hare/api/client": ["packages/hare-api/src/client.ts"],
 			"@hare/api/services/*": ["packages/hare-api/src/services/*"],
-			"@hare/api/*": ["packages/hare-api/src/*"]
+			"@hare/api/*": ["packages/hare-api/src/*"],
+			"@app/*": ["packages/app/src/app/*"],
+			"@pages/*": ["packages/app/src/pages/*"],
+			"@widgets/*": ["packages/app/src/widgets/*"],
+			"@features/*": ["packages/app/src/features/*"],
+			"@entities/*": ["packages/app/src/entities/*"],
+			"@shared/*": ["packages/app/src/shared/*"]
 		},
 		"types": ["bun"]
 	},
 	"include": [
-		"apps/**/*.ts",
-		"apps/**/*.tsx",
+		"apps/web/**/*.ts",
+		"apps/web/**/*.tsx",
 		"packages/**/*.ts",
 		"packages/**/*.tsx",
 		"apps/web/cloudflare-env.d.ts"
 	],
-	"exclude": ["node_modules", ".next", "dist"]
+	"exclude": ["node_modules", ".next", "dist", "apps/tauri"]
 }

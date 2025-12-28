@@ -53,9 +53,8 @@ import { MemoryViewer } from 'web-app/components/agent/memory-viewer'
 import { ScheduledTasksSection } from 'web-app/components/agent/scheduled-tasks-section'
 import { ToolPicker } from 'web-app/components/agent/tool-picker'
 import { useWorkspace } from 'web-app/components/providers/workspace-provider'
-import { AGENT_LIMITS } from 'web-app/config'
+import { AGENT_LIMITS, AI_MODELS } from 'web-app/config'
 import {
-	AVAILABLE_MODELS,
 	useAgent,
 	useAgentPreviewQuery,
 	useAgentUsage,
@@ -298,7 +297,7 @@ function AgentBuilderPage() {
 
 	// Check if model is valid
 	const isValidModel = useMemo(() => {
-		return AVAILABLE_MODELS.some((m) => m.id === model)
+		return AI_MODELS.some((m) => m.id === model)
 	}, [model])
 
 	// Check if there are any validation errors
@@ -331,7 +330,7 @@ function AgentBuilderPage() {
 
 	// Get model display name
 	const selectedModel = useMemo(() => {
-		return AVAILABLE_MODELS.find((m) => m.id === model)
+		return AI_MODELS.find((m) => m.id === model)
 	}, [model])
 
 	const handleSave = async () => {
@@ -443,7 +442,7 @@ function AgentBuilderPage() {
 							{deployAgent.isPending ? 'Deploying...' : 'Deploy'}
 						</Button>
 					)}
-					<Link to={`/dashboard/agents/${agentId}/embed`}>
+					<Link to="/dashboard/agents/$id/embed" params={{ id: agentId }}>
 						<Button variant="outline">
 							<CodeXml className="mr-2 h-4 w-4" />
 							Embed
@@ -522,7 +521,7 @@ function AgentBuilderPage() {
 												<SelectValue />
 											</SelectTrigger>
 											<SelectContent>
-												{AVAILABLE_MODELS.map((m) => (
+												{AI_MODELS.map((m) => (
 													<SelectItem key={m.id} value={m.id}>
 														<div className="flex flex-col">
 															<span>{m.name}</span>

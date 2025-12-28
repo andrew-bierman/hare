@@ -188,7 +188,7 @@ function SignInPage() {
 									{fields.password.label}
 								</Label>
 								<Link
-									to="/forgot-password"
+									to={'/forgot-password' as '/'}
 									className="text-xs text-primary hover:underline font-medium"
 								>
 									{content.forgotPassword}

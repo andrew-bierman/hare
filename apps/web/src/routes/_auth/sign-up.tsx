@@ -274,11 +274,11 @@ function SignUpPage() {
 
 			<p className="text-xs text-center text-muted-foreground px-4">
 				{content.terms}{' '}
-				<Link to="/terms" className="text-primary hover:underline">
+				<Link to={'/terms' as '/'} className="text-primary hover:underline">
 					{content.termsLink}
 				</Link>{' '}
 				and{' '}
-				<Link to="/privacy" className="text-primary hover:underline">
+				<Link to={'/privacy' as '/'} className="text-primary hover:underline">
 					{content.privacyLink}
 				</Link>
 			</p>

@@ -40,6 +40,6 @@
 	},
 	"files": {
 		"ignoreUnknown": true,
-		"includes": ["apps/**/*.ts", "apps/**/*.tsx", "**/*.json"]
+		"includes": ["apps/**/*.ts", "apps/**/*.tsx", "**/*.json", "!**/routeTree.gen.ts"]
 	}
 }

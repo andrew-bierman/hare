@@ -4,9 +4,12 @@
  * Page-level components for routing.
  * Following Feature-Sliced Design, this layer contains full page components.
  *
- * Note: Actual route components are defined in the apps/web package
- * since they depend on the TanStack Router file-based routing system.
- * This layer provides page-level utilities and shared page components.
+ * These are framework-agnostic page components that can be used by any app.
+ * Each app wraps them with their own route definitions.
  */
 
-// Page exports will be added as needed
+// Dashboard pages
+export { DashboardHome, type DashboardHomeProps } from './dashboard/dashboard-home'
+export { AgentsPage, type AgentsPageProps } from './dashboard/agents-page'
+export { ToolsPage, type ToolsPageProps } from './dashboard/tools-page'
+export { SettingsPage, type SettingsPageProps } from './dashboard/settings-page'

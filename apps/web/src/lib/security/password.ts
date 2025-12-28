@@ -233,21 +233,23 @@ export function generateSecurePassword(length = 16): string {
 
 	let password = ''
 	// Ensure at least one of each required type
-	password += uppercase[array[0] % uppercase.length]
-	password += lowercase[array[1] % lowercase.length]
-	password += numbers[array[2] % numbers.length]
-	password += special[array[3] % special.length]
+	password += uppercase[array[0]! % uppercase.length]
+	password += lowercase[array[1]! % lowercase.length]
+	password += numbers[array[2]! % numbers.length]
+	password += special[array[3]! % special.length]
 
 	// Fill the rest randomly
 	for (let i = 4; i < length; i++) {
-		password += all[array[i] % all.length]
+		password += all[array[i]! % all.length]
 	}
 
 	// Shuffle the password using Fisher-Yates
 	const chars = password.split('')
 	for (let i = chars.length - 1; i > 0; i--) {
-		const j = array[i % array.length] % (i + 1)
-		;[chars[i], chars[j]] = [chars[j], chars[i]]
+		const j = array[i % array.length]! % (i + 1)
+		const temp = chars[i]!
+		chars[i] = chars[j]!
+		chars[j] = temp
 	}
 
 	return chars.join('')
