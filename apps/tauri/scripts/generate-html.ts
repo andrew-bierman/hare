@@ -6,7 +6,7 @@
  * Remove this when the upstream issue is fixed.
  */
 
-import { readdirSync, writeFileSync, existsSync, mkdirSync } from 'node:fs'
+import { existsSync, mkdirSync, readdirSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 
 const clientDir = join(import.meta.dirname, '../dist/client')

@@ -4,8 +4,8 @@
  * TanStack Form-based agent creation/editing form with Zod validation.
  */
 
+import { AI_MODELS, type AIModel } from '@hare/app/shared/config'
 import { useForm } from '@tanstack/react-form'
-import { z } from 'zod'
 import { Button } from '@workspace/ui/components/button'
 import {
 	Card,
@@ -25,17 +25,13 @@ import {
 } from '@workspace/ui/components/select'
 import { Textarea } from '@workspace/ui/components/textarea'
 import { Loader2 } from 'lucide-react'
-import type { Agent } from '@hare/api'
-import { AI_MODELS, type AIModel } from '@hare/app/shared/config'
+import { z } from 'zod'
 
 /**
  * Form validation schema
  */
 const agentFormSchema = z.object({
-	name: z
-		.string()
-		.min(1, 'Name is required')
-		.max(100, 'Name must be at most 100 characters'),
+	name: z.string().min(1, 'Name is required').max(100, 'Name must be at most 100 characters'),
 	description: z.string().max(500, 'Description must be at most 500 characters').default(''),
 	model: z.string().min(1, 'Model is required'),
 	instructions: z
@@ -133,9 +129,7 @@ export function AgentForm({
 										onChange={(e) => field.handleChange(e.target.value)}
 										onBlur={field.handleBlur}
 										disabled={isPending}
-										aria-invalid={
-											field.state.meta.isTouched && field.state.meta.errors.length > 0
-										}
+										aria-invalid={field.state.meta.isTouched && field.state.meta.errors.length > 0}
 									/>
 									{field.state.meta.isTouched && field.state.meta.errors.length > 0 && (
 										<p className="text-sm text-destructive">{field.state.meta.errors[0]}</p>
@@ -195,9 +189,7 @@ export function AgentForm({
 												<SelectItem key={m.id} value={m.id}>
 													<div className="flex flex-col">
 														<span>{m.name}</span>
-														<span className="text-xs text-muted-foreground">
-															{m.description}
-														</span>
+														<span className="text-xs text-muted-foreground">{m.description}</span>
 													</div>
 												</SelectItem>
 											))}
@@ -247,10 +239,7 @@ export function AgentForm({
 					})}
 					children={({ canSubmit, isSubmitting }) => (
 						<div className="flex justify-end gap-4">
-							<Button
-								type="submit"
-								disabled={!canSubmit || isPending || isSubmitting}
-							>
+							<Button type="submit" disabled={!canSubmit || isPending || isSubmitting}>
 								{isPending || isSubmitting ? (
 									<>
 										<Loader2 className="h-4 w-4 mr-2 animate-spin" />

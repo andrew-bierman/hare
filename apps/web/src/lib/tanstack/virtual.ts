@@ -6,8 +6,8 @@
  * @see https://tanstack.com/virtual/latest/docs/introduction
  */
 
-import { useVirtualizer, type VirtualizerOptions } from '@tanstack/react-virtual'
-import { useRef, useCallback, type RefObject } from 'react'
+import { useVirtualizer } from '@tanstack/react-virtual'
+import { useRef } from 'react'
 
 /**
  * Options for creating a virtualized list

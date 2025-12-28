@@ -1,8 +1,8 @@
 'use client'
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type { CreateToolInput, Tool, ToolType } from '@hare/api'
 import { apiClient, type ToolTestRequest } from '@hare/api/client'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toolKeys } from 'web-app/lib/tanstack/query-keys'
 
 // Re-export types for convenience
@@ -48,9 +48,7 @@ export function useUpdateTool(workspaceId: string | undefined) {
 		// Optimistic update
 		onMutate: async ({ id, data }) => {
 			await queryClient.cancelQueries({ queryKey: toolKeys.detail(workspaceId ?? '', id) })
-			const previousTool = queryClient.getQueryData<Tool>(
-				toolKeys.detail(workspaceId ?? '', id),
-			)
+			const previousTool = queryClient.getQueryData<Tool>(toolKeys.detail(workspaceId ?? '', id))
 			if (previousTool) {
 				queryClient.setQueryData<Tool>(toolKeys.detail(workspaceId ?? '', id), {
 					...previousTool,
