@@ -20,7 +20,6 @@ import { basename, dirname, join, relative } from 'path'
 // Configuration
 const WEB_ROUTES_DIR = join(import.meta.dir, '../apps/web/src/routes')
 const TAURI_ROUTES_DIR = join(import.meta.dir, '../apps/tauri/src/routes')
-const SHARED_PAGES_DIR = join(import.meta.dir, '../packages/app/src/pages')
 const DASHBOARD_PREFIX = '_dashboard/dashboard'
 
 // Known shared page components from @hare/app/pages
@@ -38,11 +37,8 @@ const SHARED_PAGES: Record<string, SharedPageConfig> = {
 	},
 	NewAgentPage: {
 		import: "import { NewAgentPage } from '@hare/app/pages'",
-		routeProps: {
-			agentsList: '/agents',
-			agentDetail: '(id) => `/agents/${id}`',
-		},
-		// NewAgentPage uses callbacks instead of routes for navigation
+		routeProps: {},
+		// NewAgentPage uses callbacks (onSuccess, onCancel) instead of routes for navigation
 		useNavigateCallbacks: true,
 	},
 	ToolsPage: {
@@ -153,9 +149,6 @@ function webPathToTauriRoute(webRelPath: string): string {
 		.replace(/\/index$/, '')
 		// Handle root index
 		.replace(/^index$/, '')
-
-	// Convert $param to :param for display (TanStack uses $)
-	route = route.replace(/\$(\w+)/g, '$$$1')
 
 	// Ensure leading slash
 	if (!route.startsWith('/')) {

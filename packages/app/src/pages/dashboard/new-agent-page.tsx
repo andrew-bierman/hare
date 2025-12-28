@@ -18,7 +18,7 @@ import {
 	SelectValue,
 	Textarea,
 } from '@workspace/ui'
-import { type ChangeEvent, useState, type ReactNode } from 'react'
+import { type ChangeEvent, useState } from 'react'
 import { toast } from 'sonner'
 import { useWorkspace } from '../../app/providers/workspace-provider'
 import { useCreateAgent } from '../../entities/agent'
@@ -26,26 +26,13 @@ import { useTools, type Tool } from '../../entities/tool'
 import { AI_MODELS, AGENT_LIMITS } from '../../shared/config'
 
 export interface NewAgentPageProps {
-	/** Render prop for navigation links */
-	renderLink: (props: { to: string; children: ReactNode; className?: string }) => ReactNode
 	/** Callback when agent is created successfully */
 	onSuccess?: (agentId: string) => void
 	/** Callback when cancel is clicked */
 	onCancel?: () => void
-	/** Route paths configuration */
-	routes?: {
-		agentsList: string
-		agentDetail: (id: string) => string
-	}
 }
 
-const defaultRoutes = {
-	agentsList: '/dashboard/agents',
-	agentDetail: (id: string) => `/dashboard/agents/${id}`,
-}
-
-export function NewAgentPage({ renderLink, onSuccess, onCancel, routes }: NewAgentPageProps) {
-	const r = routes ?? defaultRoutes
+export function NewAgentPage({ onSuccess, onCancel }: NewAgentPageProps) {
 	const { activeWorkspace } = useWorkspace()
 	const createAgent = useCreateAgent(activeWorkspace?.id)
 	const { data: toolsData } = useTools(activeWorkspace?.id)
