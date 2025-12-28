@@ -255,7 +255,7 @@ function EmbedConfigPage() {
 			{/* Header */}
 			<div className="flex items-center justify-between">
 				<div className="flex items-center gap-4">
-					<Link to={`/dashboard/agents/${agentId}`}>
+					<Link to="/dashboard/agents/$id" params={{ id: agentId }}>
 						<Button variant="ghost" size="icon" className="h-9 w-9">
 							<ArrowLeft className="h-4 w-4" />
 						</Button>
@@ -289,7 +289,7 @@ function EmbedConfigPage() {
 								Deploy your agent before embedding the widget on your website.
 							</p>
 						</div>
-						<Link to={`/dashboard/agents/${agentId}`} className="ml-auto">
+						<Link to="/dashboard/agents/$id" params={{ id: agentId }} className="ml-auto">
 							<Button size="sm" variant="outline">
 								Go to Settings
 							</Button>

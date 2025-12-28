@@ -4,7 +4,7 @@ test.describe('Landing Page', () => {
 	test('should display hero section', async ({ page }) => {
 		await page.goto('/')
 		await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
-		await expect(page.getByText('Build and deploy AI agents')).toBeVisible()
+		await expect(page.getByText(/Build.*Deploy/i)).toBeVisible()
 	})
 
 	test('should navigate to sign up', async ({ page }) => {

@@ -8,5 +8,4 @@
 // API hooks
 export * from './api/hooks'
 
-// Re-export types from shared for convenience
-export type { CreateToolInput, Tool, ToolType } from '@shared/api'
+// Types are available from @shared/api, don't re-export to avoid duplicates

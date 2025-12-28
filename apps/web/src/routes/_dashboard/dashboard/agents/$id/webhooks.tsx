@@ -681,7 +681,7 @@ function WebhooksPage() {
 			{/* Header */}
 			<div className="flex items-center justify-between">
 				<div className="flex items-center gap-3">
-					<Link to={`/dashboard/agents/${agentId}`}>
+					<Link to="/dashboard/agents/$id" params={{ id: agentId }}>
 						<Button variant="ghost" size="icon">
 							<ArrowLeft className="h-4 w-4" />
 						</Button>

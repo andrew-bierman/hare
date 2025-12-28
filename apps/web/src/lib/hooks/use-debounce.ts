@@ -2,11 +2,14 @@
 
 import { useEffect, useState } from 'react'
 
+/** Default debounce delay in milliseconds */
+const DEFAULT_DEBOUNCE_DELAY_MS = 500
+
 /**
  * Hook that debounces a value
  * Returns the debounced value after the specified delay
  */
-export function useDebouncedValue<T>(value: T, delay: number = 500): T {
+export function useDebouncedValue<T>(value: T, delay: number = DEFAULT_DEBOUNCE_DELAY_MS): T {
 	const [debouncedValue, setDebouncedValue] = useState<T>(value)
 
 	useEffect(() => {
@@ -29,7 +32,7 @@ export function useDebouncedValue<T>(value: T, delay: number = 500): T {
  */
 export function useDebouncedCallback<T extends (...args: unknown[]) => unknown>(
 	callback: T,
-	delay: number = 500,
+	delay: number = DEFAULT_DEBOUNCE_DELAY_MS,
 ): T {
 	const [timeoutId, setTimeoutId] = useState<NodeJS.Timeout | null>(null)
 

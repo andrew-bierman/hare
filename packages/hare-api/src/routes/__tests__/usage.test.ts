@@ -1,6 +1,6 @@
 import { env } from 'cloudflare:test'
 import { beforeAll, describe, expect, it } from 'vitest'
-import { app } from 'web-app/lib/api/index'
+import { app } from '@hare/api'
 import { applyMigrations } from './setup'
 
 // Apply D1 migrations before tests

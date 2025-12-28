@@ -30,7 +30,8 @@ import { type FormEvent, type KeyboardEvent, useCallback, useEffect, useRef, use
 import { toast } from 'sonner'
 import { ToolCallList } from 'web-app/components/chat/tool-call-list'
 import { useWorkspace } from 'web-app/components/providers/workspace-provider'
-import { AVAILABLE_MODELS, useAgent, useChat } from 'web-app/lib/api/hooks'
+import { getModelName } from 'web-app/config'
+import { useAgent, useChat } from 'web-app/lib/api/hooks'
 
 export const Route = createFileRoute('/_dashboard/dashboard/agents/$id/playground')({
 	component: PlaygroundPage,
@@ -184,11 +185,6 @@ function PlaygroundPage() {
 		[sessionId],
 	)
 
-	const getModelName = (modelId: string) => {
-		const model = AVAILABLE_MODELS.find((m) => m.id === modelId)
-		return model?.name || modelId
-	}
-
 	if (agentLoading) {
 		return <LoadingSkeleton />
 	}
@@ -220,7 +216,7 @@ function PlaygroundPage() {
 						<p className="text-muted-foreground text-sm mb-6">
 							This agent needs to be deployed before you can test it in the playground.
 						</p>
-						<Link to={`/dashboard/agents/${agentId}`}>
+						<Link to="/dashboard/agents/$id" params={{ id: agentId }}>
 							<Button>Go to Agent Settings</Button>
 						</Link>
 					</CardContent>
@@ -237,7 +233,7 @@ function PlaygroundPage() {
 				<div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
 					<div className="flex items-center justify-between p-4">
 						<div className="flex items-center gap-3">
-							<Link to={`/dashboard/agents/${agentId}`}>
+							<Link to="/dashboard/agents/$id" params={{ id: agentId }}>
 								<Button variant="ghost" size="icon" className="h-9 w-9">
 									<ArrowLeft className="h-4 w-4" />
 								</Button>

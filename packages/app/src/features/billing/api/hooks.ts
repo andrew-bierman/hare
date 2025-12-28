@@ -13,17 +13,7 @@ import {
 	type PortalResponse,
 } from '@shared/api'
 
-// Re-export types
-export type {
-	BillingPlan,
-	BillingPlansResponse,
-	BillingStatus,
-	CheckoutRequest,
-	CheckoutResponse,
-	PaymentHistoryItem,
-	PaymentHistoryResponse,
-	PortalResponse,
-}
+// Types are available from @shared/api, don't re-export to avoid duplicates
 
 export interface PlanFeatures {
 	maxAgents: number

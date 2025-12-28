@@ -10,7 +10,12 @@ import {
 import { apiKeyKeys } from 'web-app/lib/tanstack/query-keys'
 
 // Re-export types for convenience
-export type { ApiKey, ApiKeyWithSecret, CreateApiKeyInput, UpdateApiKeyInput } from '@hare/api/client'
+export type {
+	ApiKey,
+	ApiKeyWithSecret,
+	CreateApiKeyInput,
+	UpdateApiKeyInput,
+} from '@hare/api/client'
 
 /**
  * Fetch all API keys for a workspace.

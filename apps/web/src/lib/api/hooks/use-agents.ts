@@ -1,14 +1,14 @@
 'use client'
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import type { Agent, CreateAgentInput, UpdateAgentInput } from '@hare/api'
 import type { AgentPreviewInput, AgentPreviewResponse } from '@hare/api/client'
 import { apiClient } from '@hare/api/client'
-import type { Agent, CreateAgentInput, UpdateAgentInput } from '@hare/api'
 import { agentKeys } from 'web-app/lib/tanstack/query-keys'
 
-export type { AgentPreviewInput, AgentPreviewResponse, ValidationIssue } from '@hare/api/client'
 // Re-export types for convenience
 export type { Agent, CreateAgentInput, UpdateAgentInput } from '@hare/api'
+export type { AgentPreviewInput, AgentPreviewResponse, ValidationIssue } from '@hare/api/client'
 
 /**
  * Hook to list all agents for a workspace

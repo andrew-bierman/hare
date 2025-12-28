@@ -8,7 +8,8 @@ import { Tabs, TabsList, TabsTrigger } from '@workspace/ui/components/tabs'
 import { Bot, Clock, Plus, Search, Settings, Wrench } from 'lucide-react'
 import { type ChangeEvent, useState } from 'react'
 import { useWorkspace } from 'web-app/components/providers/workspace-provider'
-import { type Agent, AVAILABLE_MODELS, useAgents } from 'web-app/lib/api/hooks'
+import { getModelName } from 'web-app/config'
+import { type Agent, useAgents } from 'web-app/lib/api/hooks'
 
 export const Route = createFileRoute('/_dashboard/dashboard/agents/')({
 	component: AgentsPage,
@@ -81,11 +82,6 @@ function AgentsPage() {
 
 	const deployedCount = agents.filter((a) => a.status === 'deployed').length
 	const draftCount = agents.filter((a) => a.status === 'draft').length
-
-	const getModelName = (modelId: string) => {
-		const model = AVAILABLE_MODELS.find((m) => m.id === modelId)
-		return model?.name || modelId
-	}
 
 	const getStatusBadge = (status: string) => {
 		switch (status) {
@@ -253,7 +249,7 @@ function AgentsPage() {
 								</div>
 
 								<div className="flex gap-2">
-									<Link to={`/dashboard/agents/${agent.id}`} className="flex-1">
+									<Link to="/dashboard/agents/$id" params={{ id: agent.id }} className="flex-1">
 										<Button variant="outline" className="w-full gap-2 h-10">
 											<Settings className="h-4 w-4" />
 											<span className="hidden sm:inline">Configure</span>
