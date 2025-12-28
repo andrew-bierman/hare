@@ -7,3 +7,5 @@
 export * from './auth'
 export * from './dashboard'
 export * from './agents'
+export * from './tools'
+export * from './settings'
