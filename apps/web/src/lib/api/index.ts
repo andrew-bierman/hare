@@ -9,4 +9,4 @@
 export * from '@hare/api'
 
 // Re-export the app (for backward compatibility with existing imports)
-export { app, type AppType } from '@hare/api'
+export { type AppType, app } from '@hare/api'

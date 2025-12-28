@@ -3,7 +3,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { apiClient, type AnalyticsParams, type UsageParams } from '@shared/api'
 
-export type { AnalyticsData, AnalyticsParams, UsageSummary, AgentUsage } from '@shared/api'
+// Types are available from @shared/api, don't re-export to avoid duplicates
 
 export function useAnalytics(workspaceId: string | undefined, params?: AnalyticsParams) {
 	return useQuery({

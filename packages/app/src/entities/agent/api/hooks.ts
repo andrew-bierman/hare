@@ -8,8 +8,7 @@ import {
 } from '@shared/api'
 import type { CreateAgentInput, UpdateAgentInput } from '@shared/api'
 
-export type { AgentPreviewInput, AgentPreviewResponse, ValidationIssue } from '@shared/api'
-export type { Agent, CreateAgentInput, UpdateAgentInput } from '@shared/api'
+// Types are available from @shared/api, don't re-export to avoid duplicates
 
 export function useAgents(workspaceId: string | undefined) {
 	return useQuery({

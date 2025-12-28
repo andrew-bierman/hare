@@ -77,7 +77,10 @@ export function getAvailableTools(): SystemTool[] {
 // Agent Configuration
 // =============================================================================
 
-export type AgentStatus = 'draft' | 'deployed' | 'archived'
+// AgentStatus is exported from shared/api/types.ts to avoid duplicate exports
+import type { AgentStatus } from '../api/types'
+
+export type { AgentStatus }
 
 export interface AgentDefaults {
 	model: string

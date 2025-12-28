@@ -4,14 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { apiClient, type ToolTestRequest, type ToolTestResult } from '@shared/api'
 import type { CreateToolInput, Tool } from '@shared/api'
 
-export type { CreateToolInput, Tool, ToolType } from '@shared/api'
-export type {
-	HttpToolConfig,
-	InputSchema,
-	InputSchemaProperty,
-	ToolTestRequest,
-	ToolTestResult,
-} from '@shared/api'
+// Types are available from @shared/api, don't re-export to avoid duplicates
 
 export const TOOL_TYPES = ['http', 'sql', 'kv', 'r2', 'custom'] as const
 

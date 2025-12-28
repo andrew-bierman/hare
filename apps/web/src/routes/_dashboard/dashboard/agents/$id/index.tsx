@@ -443,7 +443,7 @@ function AgentBuilderPage() {
 							{deployAgent.isPending ? 'Deploying...' : 'Deploy'}
 						</Button>
 					)}
-					<Link to={`/dashboard/agents/${agentId}/embed`}>
+					<Link to="/dashboard/agents/$id/embed" params={{ id: agentId }}>
 						<Button variant="outline">
 							<CodeXml className="mr-2 h-4 w-4" />
 							Embed

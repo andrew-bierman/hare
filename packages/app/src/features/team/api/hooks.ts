@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { apiClient } from '@shared/api'
 import type { MemberRole, SendInvitationInput, WorkspaceInvitation, WorkspaceMember } from '@shared/api'
 
-export type { MemberRole, SendInvitationInput, WorkspaceInvitation, WorkspaceMember }
+// Types are available from @shared/api, don't re-export to avoid duplicates
 
 /**
  * Hook to fetch workspace members

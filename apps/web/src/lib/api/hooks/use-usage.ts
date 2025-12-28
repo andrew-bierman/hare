@@ -1,7 +1,7 @@
 'use client'
 
-import { useQuery } from '@tanstack/react-query'
 import { apiClient } from '@hare/api/client'
+import { useQuery } from '@tanstack/react-query'
 
 // Re-export types for convenience
 export type { AgentUsage, UsageSummary } from '@hare/api'
