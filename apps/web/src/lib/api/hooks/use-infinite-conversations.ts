@@ -5,7 +5,7 @@
  */
 
 import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query'
-import { conversationKeys } from 'web-app/lib/tanstack/query-keys'
+import { conversationKeys } from '@hare/app/shared'
 
 interface Message {
 	id: string
