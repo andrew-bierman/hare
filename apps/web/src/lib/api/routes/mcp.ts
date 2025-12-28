@@ -305,6 +305,18 @@ async function createToolContext(
 
 // MCP tools list (HTTP)
 app.openapi(mcpToolsRoute, async (c) => {
+	const { workspaceId } = c.req.valid('param')
+	const db = await getDb(c)
+	const user = c.get('user')
+
+	// Verify workspace access
+	if (user?.id) {
+		const hasAccess = await hasWorkspaceAccess(db, user.id, workspaceId)
+		if (!hasAccess) {
+			return c.json({ error: 'Unauthorized: no access to this workspace' }, 403)
+		}
+	}
+
 	const tools = agentControlTools.map((tool) => ({
 		name: tool.id,
 		description: tool.description,
@@ -316,15 +328,31 @@ app.openapi(mcpToolsRoute, async (c) => {
 // MCP tool execute (HTTP)
 app.openapi(mcpToolExecuteRoute, async (c) => {
 	const { workspaceId, toolId } = c.req.valid('param')
-	const params = await c.req.json()
+	const db = await getDb(c)
+	const user = c.get('user')
+
+	// Verify workspace access
+	if (user?.id) {
+		const hasAccess = await hasWorkspaceAccess(db, user.id, workspaceId)
+		if (!hasAccess) {
+			return c.json({ error: 'Unauthorized: no access to this workspace' }, 403)
+		}
+	}
 
 	const tool = agentControlTools.find((t) => t.id === toolId)
 	if (!tool) {
 		return c.json({ error: `Tool not found: ${toolId}` }, 404)
 	}
 
+	// Validate params against tool schema
+	const params = await c.req.json()
+	const parseResult = tool.inputSchema.safeParse(params)
+	if (!parseResult.success) {
+		return c.json({ error: 'Invalid tool parameters', details: parseResult.error.errors }, 400)
+	}
+
 	const context = await createToolContext(c, workspaceId)
-	const result = await tool.execute(params, context)
+	const result = await tool.execute(parseResult.data, context)
 
 	return c.json(result)
 })
@@ -333,6 +361,21 @@ app.openapi(mcpToolExecuteRoute, async (c) => {
 app.openapi(mcpRpcRoute, async (c) => {
 	const { workspaceId } = c.req.valid('param')
 	const { id, method, params } = c.req.valid('json')
+	const db = await getDb(c)
+	const user = c.get('user')
+
+	// Verify workspace access for non-initialize methods
+	if (method !== 'initialize' && user?.id) {
+		const hasAccess = await hasWorkspaceAccess(db, user.id, workspaceId)
+		if (!hasAccess) {
+			return c.json({
+				jsonrpc: '2.0',
+				id,
+				error: { code: -32600, message: 'Unauthorized: no access to this workspace' },
+			})
+		}
+	}
+
 	const context = await createToolContext(c, workspaceId)
 
 	switch (method) {
@@ -382,7 +425,17 @@ app.openapi(mcpRpcRoute, async (c) => {
 				})
 			}
 
-			const result = await tool.execute(args || {}, context)
+			// Validate args against tool schema
+			const parseResult = tool.inputSchema.safeParse(args ?? {})
+			if (!parseResult.success) {
+				return c.json({
+					jsonrpc: '2.0',
+					id,
+					error: { code: -32602, message: 'Invalid tool arguments' },
+				})
+			}
+
+			const result = await tool.execute(parseResult.data, context)
 
 			return c.json({
 				jsonrpc: '2.0',
