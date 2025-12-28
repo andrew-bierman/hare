@@ -345,7 +345,17 @@ const app = new OpenAPIHono<WorkspaceEnv>()
 app.use('*', authMiddleware)
 app.use('*', workspaceMiddleware)
 
-// Create a minimal tool context for serialization (tools don't need actual bindings for metadata)
+/**
+ * Create a minimal tool context for serialization purposes.
+ *
+ * This context is safe to use with empty env bindings because:
+ * - Tool instantiation only captures static metadata (id, description, inputSchema)
+ * - Cloudflare bindings (AI, KV, R2, D1, VECTORIZE) are only accessed during execute()
+ * - We never call tool.execute() when serializing for API responses
+ *
+ * The workspaceId/userId are set to 'system' since these are system tool definitions,
+ * not user-specific tool instances.
+ */
 function createMinimalToolContext(): ToolContext {
 	return {
 		env: {} as HareEnv,
