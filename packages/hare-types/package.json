@@ -36,13 +36,14 @@
 		"typescript"
 	],
 	"license": "MIT",
+	"dependencies": {
+		"ai": "^5.0.0"
+	},
 	"peerDependencies": {
-		"ai": "^5.0.0",
 		"zod": "^4.0.0"
 	},
 	"devDependencies": {
 		"@hare/typescript-config": "workspace:*",
-		"ai": "^5.0.115",
 		"typescript": "^5.7.0",
 		"zod": "^4.2.1"
 	}

@@ -40,7 +40,7 @@ export const HareAgentStateSchema = z.object({
 	instructions: z.string(),
 	/** Model to use */
 	model: z.string(),
-	/** Conversation history - CoreMessage from AI SDK */
+	/** Conversation history - AI SDK CoreMessage array */
 	messages: z.custom<CoreMessage[]>((val) => Array.isArray(val)),
 	/** Whether the agent is currently processing */
 	isProcessing: z.boolean(),
