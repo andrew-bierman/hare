@@ -95,7 +95,7 @@ async function fetchMessages(conversationId: string): Promise<{ messages: Messag
 	return response.json()
 }
 
-export function useConversations(agentId: string | undefined) {
+export function useConversationsQuery(agentId: string | undefined) {
 	return useQuery({
 		queryKey: ['conversations', agentId],
 		queryFn: () => fetchConversations(agentId!),
@@ -103,7 +103,7 @@ export function useConversations(agentId: string | undefined) {
 	})
 }
 
-export function useMessages(conversationId: string | undefined) {
+export function useMessagesQuery(conversationId: string | undefined) {
 	return useQuery({
 		queryKey: ['messages', conversationId],
 		queryFn: () => fetchMessages(conversationId!),

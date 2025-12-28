@@ -1,4 +1,5 @@
-import { DashboardHome, useAgents, useUsage } from '@hare/app'
+import { DashboardHome } from '@hare/app'
+import { useAgentsQuery, useUsageQuery } from '@hare/app/shared/api'
 import { createFileRoute, Link } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/')({
@@ -20,8 +21,8 @@ function HomePageWrapper() {
 				tools: '/tools',
 				usage: '/', // No usage page in tauri yet
 			}}
-			useAgents={useAgents}
-			useUsage={useUsage}
+			useAgents={useAgentsQuery}
+			useUsage={useUsageQuery}
 		/>
 	)
 }

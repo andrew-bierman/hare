@@ -7,7 +7,7 @@ import { authKeys } from './query-keys'
 /** Auth provider cache TTL (1 hour) - providers don't change at runtime */
 const AUTH_PROVIDER_CACHE_TTL_MS = 1000 * 60 * 60
 
-export function useOAuthProviders() {
+export function useOAuthProvidersQuery() {
 	return useQuery({
 		queryKey: authKeys.providers(),
 		queryFn: async () => {

@@ -27,18 +27,19 @@ import { toast } from 'sonner'
 import { useWorkspace } from '../../app/providers'
 import {
 	type ApiKeyWithSecret,
-	useApiKeys,
-	useCreateApiKey,
-	useDeleteApiKey,
+	type ApiKey,
+	useApiKeysQuery,
+	useCreateApiKeyMutation,
+	useDeleteApiKeyMutation,
 } from '../../shared/api'
 
 export function ApiKeysPage() {
 	const { activeWorkspace } = useWorkspace()
 	const workspaceId = activeWorkspace?.id
 
-	const { data, isPending, error } = useApiKeys(workspaceId)
-	const createApiKey = useCreateApiKey(workspaceId)
-	const deleteApiKey = useDeleteApiKey(workspaceId)
+	const { data, isPending, error } = useApiKeysQuery(workspaceId)
+	const createApiKey = useCreateApiKeyMutation(workspaceId)
+	const deleteApiKey = useDeleteApiKeyMutation(workspaceId)
 
 	const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
 	const [newKeyName, setNewKeyName] = useState('')

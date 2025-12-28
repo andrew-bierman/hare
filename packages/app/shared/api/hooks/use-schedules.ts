@@ -16,7 +16,7 @@ export interface UseSchedulesInput {
 /**
  * Hook to list schedules for an agent
  */
-export function useSchedules(input: UseSchedulesInput) {
+export function useSchedulesQuery(input: UseSchedulesInput) {
 	const { agentId, workspaceId, params } = input
 	return useQuery({
 		queryKey: ['schedules', workspaceId, agentId, params?.status],
@@ -37,7 +37,7 @@ export interface UseScheduleInput {
 /**
  * Hook to get a single schedule
  */
-export function useSchedule(input: UseScheduleInput) {
+export function useScheduleQuery(input: UseScheduleInput) {
 	const { agentId, scheduleId, workspaceId } = input
 	return useQuery({
 		queryKey: ['schedules', workspaceId, agentId, scheduleId],
@@ -49,7 +49,7 @@ export function useSchedule(input: UseScheduleInput) {
 /**
  * Hook to create a schedule
  */
-export function useCreateSchedule(agentId: string | undefined, workspaceId: string | undefined) {
+export function useCreateScheduleMutation(agentId: string | undefined, workspaceId: string | undefined) {
 	const queryClient = useQueryClient()
 	return useMutation({
 		mutationFn: (data: CreateScheduleInput) =>
@@ -63,7 +63,7 @@ export function useCreateSchedule(agentId: string | undefined, workspaceId: stri
 /**
  * Hook to update a schedule
  */
-export function useUpdateSchedule(agentId: string | undefined, workspaceId: string | undefined) {
+export function useUpdateScheduleMutation(agentId: string | undefined, workspaceId: string | undefined) {
 	const queryClient = useQueryClient()
 	return useMutation({
 		mutationFn: ({ scheduleId, data }: { scheduleId: string; data: UpdateScheduleInput }) =>
@@ -78,7 +78,7 @@ export function useUpdateSchedule(agentId: string | undefined, workspaceId: stri
 /**
  * Hook to delete a schedule
  */
-export function useDeleteSchedule(agentId: string | undefined, workspaceId: string | undefined) {
+export function useDeleteScheduleMutation(agentId: string | undefined, workspaceId: string | undefined) {
 	const queryClient = useQueryClient()
 	return useMutation({
 		mutationFn: (scheduleId: string) =>
@@ -102,7 +102,7 @@ export interface UseScheduleExecutionsInput {
 /**
  * Hook to get execution history for a schedule
  */
-export function useScheduleExecutions(input: UseScheduleExecutionsInput) {
+export function useScheduleExecutionsQuery(input: UseScheduleExecutionsInput) {
 	const { agentId, scheduleId, workspaceId, params } = input
 	return useQuery({
 		queryKey: ['executions', workspaceId, agentId, scheduleId, params?.limit, params?.offset],
@@ -123,7 +123,7 @@ export interface UseAgentExecutionsInput {
 /**
  * Hook to get all executions for an agent
  */
-export function useAgentExecutions(input: UseAgentExecutionsInput) {
+export function useAgentExecutionsQuery(input: UseAgentExecutionsInput) {
 	const { agentId, workspaceId, params } = input
 	return useQuery({
 		queryKey: ['executions', workspaceId, agentId, 'all', params?.limit, params?.offset],

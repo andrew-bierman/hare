@@ -117,7 +117,7 @@ async function fetchLogStats(workspaceId: string, params?: LogsParams): Promise<
 // Hooks
 // =============================================================================
 
-export function useLogs(workspaceId: string | undefined, params?: LogsParams) {
+export function useLogsQuery(workspaceId: string | undefined, params?: LogsParams) {
 	return useQuery({
 		queryKey: ['logs', workspaceId, params],
 		queryFn: () => fetchLogs(workspaceId!, params),
@@ -127,7 +127,7 @@ export function useLogs(workspaceId: string | undefined, params?: LogsParams) {
 	})
 }
 
-export function useLogStats(workspaceId: string | undefined, params?: LogsParams) {
+export function useLogStatsQuery(workspaceId: string | undefined, params?: LogsParams) {
 	return useQuery({
 		queryKey: ['logs', 'stats', workspaceId, params],
 		queryFn: () => fetchLogStats(workspaceId!, params),

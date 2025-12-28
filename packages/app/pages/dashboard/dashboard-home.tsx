@@ -18,7 +18,7 @@ import {
 import type { ReactNode } from 'react'
 import { useWorkspace } from '../../app/providers/workspace-provider'
 import type { Agent } from '../../shared/api'
-import { getModelName } from '../../shared/config/models'
+import { getModelName } from '@hare/config'
 import type { UseQueryResult } from '@tanstack/react-query'
 
 /** Usage data structure */

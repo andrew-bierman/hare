@@ -1,4 +1,4 @@
-import { SettingsPage } from '@hare/app/pages'
+import { GenericSettingsPage as SettingsPage } from '@hare/app/pages'
 import { createFileRoute, Link } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/settings')({

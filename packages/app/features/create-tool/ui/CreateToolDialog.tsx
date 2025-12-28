@@ -21,7 +21,7 @@ import {
 import { Textarea } from '@hare/ui/components/textarea'
 import { type ChangeEvent, useState } from 'react'
 import { toast } from 'sonner'
-import { useCreateTool } from '../../../shared/api/hooks'
+import { useCreateToolMutation } from '../../../shared/api/hooks'
 
 const TOOL_TYPES = [
 	{ value: 'http', label: 'HTTP', description: 'Call external APIs' },
@@ -40,7 +40,7 @@ interface CreateToolDialogProps {
 }
 
 export function CreateToolDialog({ workspaceId, open, onOpenChange }: CreateToolDialogProps) {
-	const createTool = useCreateTool(workspaceId)
+	const createTool = useCreateToolMutation(workspaceId)
 
 	const [newName, setNewName] = useState('')
 	const [newDescription, setNewDescription] = useState('')

@@ -3,7 +3,7 @@
 import { Badge } from '@hare/ui/components/badge'
 import { cn } from '@hare/ui/lib/utils'
 import { Activity, BarChart3, Bot, Home, Rabbit, Settings, Wrench } from 'lucide-react'
-import { APP_CONFIG, DASHBOARD_CONTENT, FEATURES, NAV_ITEMS } from '../../../shared/config'
+import { APP_CONFIG, DASHBOARD_CONTENT, FEATURES, NAV_ITEMS } from '@hare/config'
 
 const ICONS = { Home, Bot, Wrench, Activity, Settings, BarChart3 } as const
 
@@ -35,7 +35,7 @@ export interface SidebarProps {
  * @param WorkspaceSwitcher - Optional workspace switcher component
  */
 export function Sidebar({ pathname, Link, WorkspaceSwitcher }: SidebarProps) {
-	const routes: RouteItem[] = NAV_ITEMS.dashboard.map((item: NavItem) => ({
+	const routes: RouteItem[] = NAV_ITEMS.dashboard.map((item) => ({
 		label: item.label,
 		icon: ICONS[item.icon as IconName],
 		href: item.href,

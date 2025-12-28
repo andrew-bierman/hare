@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react'
 import type { Tool } from '@hare/types'
-import { useTools } from '../../../shared/api/hooks'
+import { useToolsQuery } from '../../../shared/api/hooks'
 import type { ToolCategory } from './types'
 
 const TOOL_CATEGORY_MAP: Record<string, ToolCategory> = {
@@ -91,7 +91,7 @@ export function useToolPicker({
 	initialSelectedIds,
 	maxTools = 20,
 }: UseToolPickerOptions) {
-	const { data: toolsData, isLoading } = useTools(workspaceId)
+	const { data: toolsData, isLoading } = useToolsQuery(workspaceId)
 	const [selectedToolIds, setSelectedToolIds] = useState<string[]>(initialSelectedIds)
 	const [searchQuery, setSearchQuery] = useState('')
 	const [activeCategory, setActiveCategory] = useState<ToolCategory>('all')
@@ -100,7 +100,7 @@ export function useToolPicker({
 
 	const selectedTools = useMemo(() => {
 		return selectedToolIds
-			.map((id) => tools.find((t: Tool) => t.id === id))
+			.map((id) => tools.find((t) => t.id === id))
 			.filter((t): t is Tool => t !== undefined)
 	}, [selectedToolIds, tools])
 
@@ -111,7 +111,7 @@ export function useToolPicker({
 		if (searchQuery) {
 			const query = searchQuery.toLowerCase()
 			filtered = filtered.filter(
-				(tool: Tool) =>
+				(tool) =>
 					tool.name.toLowerCase().includes(query) ||
 					tool.description.toLowerCase().includes(query) ||
 					tool.type.toLowerCase().includes(query),
@@ -120,7 +120,7 @@ export function useToolPicker({
 
 		// Filter by category
 		if (activeCategory !== 'all') {
-			filtered = filtered.filter((tool: Tool) => getToolCategory(tool) === activeCategory)
+			filtered = filtered.filter((tool) => getToolCategory(tool) === activeCategory)
 		}
 
 		return filtered
@@ -142,7 +142,7 @@ export function useToolPicker({
 			transform: 0,
 		}
 
-		tools.forEach((tool: Tool) => {
+		tools.forEach((tool) => {
 			const category = getToolCategory(tool)
 			counts[category]++
 		})

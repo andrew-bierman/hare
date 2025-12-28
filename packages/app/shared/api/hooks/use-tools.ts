@@ -5,7 +5,7 @@ import type { CreateToolInput, Tool, ToolType } from '@hare/types'
 import { apiClient, type ToolTestRequest } from '../client'
 import { toolKeys } from './query-keys'
 
-export function useTools(workspaceId: string | undefined) {
+export function useToolsQuery(workspaceId: string | undefined) {
 	return useQuery({
 		queryKey: toolKeys.list(workspaceId ?? ''),
 		queryFn: () => apiClient.tools.list(workspaceId!),
@@ -13,7 +13,7 @@ export function useTools(workspaceId: string | undefined) {
 	})
 }
 
-export function useTool(id: string | undefined, workspaceId: string | undefined) {
+export function useToolQuery(id: string | undefined, workspaceId: string | undefined) {
 	return useQuery({
 		queryKey: toolKeys.detail(workspaceId ?? '', id ?? ''),
 		queryFn: () => apiClient.tools.get(id!, workspaceId!),
@@ -21,7 +21,7 @@ export function useTool(id: string | undefined, workspaceId: string | undefined)
 	})
 }
 
-export function useCreateTool(workspaceId: string | undefined) {
+export function useCreateToolMutation(workspaceId: string | undefined) {
 	const queryClient = useQueryClient()
 	return useMutation({
 		mutationFn: (data: CreateToolInput) => apiClient.tools.create(workspaceId!, data),
@@ -31,7 +31,7 @@ export function useCreateTool(workspaceId: string | undefined) {
 	})
 }
 
-export function useUpdateTool(workspaceId: string | undefined) {
+export function useUpdateToolMutation(workspaceId: string | undefined) {
 	const queryClient = useQueryClient()
 	return useMutation({
 		mutationFn: ({ id, data }: { id: string; data: Partial<CreateToolInput> }) =>
@@ -62,7 +62,7 @@ export function useUpdateTool(workspaceId: string | undefined) {
 	})
 }
 
-export function useDeleteTool(workspaceId: string | undefined) {
+export function useDeleteToolMutation(workspaceId: string | undefined) {
 	const queryClient = useQueryClient()
 	return useMutation({
 		mutationFn: (id: string) => apiClient.tools.delete(id, workspaceId!),
@@ -93,7 +93,7 @@ export function useDeleteTool(workspaceId: string | undefined) {
 /**
  * Test an HTTP tool configuration before saving.
  */
-export function useTestTool(workspaceId: string | undefined) {
+export function useTestToolMutation(workspaceId: string | undefined) {
 	return useMutation({
 		mutationFn: (data: ToolTestRequest) => apiClient.tools.test(workspaceId!, data),
 	})
@@ -102,7 +102,7 @@ export function useTestTool(workspaceId: string | undefined) {
 /**
  * Test an existing HTTP tool with test input.
  */
-export function useTestExistingTool(workspaceId: string | undefined) {
+export function useTestExistingToolMutation(workspaceId: string | undefined) {
 	return useMutation({
 		mutationFn: ({ id, testInput }: { id: string; testInput?: Record<string, unknown> }) =>
 			apiClient.tools.testExisting(id, workspaceId!, testInput),

@@ -18,8 +18,7 @@ import { Check, CreditCard, ExternalLink, Sparkles, Zap } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { useWorkspace } from '../../app/providers'
-import { useBillingStatus, useCreateCheckout, useCreatePortal, usePlans } from '../../shared/api/hooks'
-import type { BillingPlan } from '../../shared/api/client'
+import { useBillingStatusQuery, useCreateCheckoutMutation, useCreatePortalMutation, usePlansQuery } from '../../shared/api/hooks'
 
 export interface BillingPageProps {
 	searchParams?: {
@@ -33,10 +32,10 @@ export function BillingPage({ searchParams }: BillingPageProps) {
 	const { activeWorkspace } = useWorkspace()
 	const [isRedirecting, setIsRedirecting] = useState(false)
 
-	const { data: plansData, isLoading: plansLoading } = usePlans(activeWorkspace?.id)
-	const { data: statusData, isLoading: statusLoading } = useBillingStatus(activeWorkspace?.id)
-	const createCheckout = useCreateCheckout()
-	const createPortal = useCreatePortal()
+	const { data: plansData, isLoading: plansLoading } = usePlansQuery(activeWorkspace?.id)
+	const { data: statusData, isLoading: statusLoading } = useBillingStatusQuery(activeWorkspace?.id)
+	const createCheckout = useCreateCheckoutMutation()
+	const createPortal = useCreatePortalMutation()
 
 	// Handle success/cancel redirects from Stripe
 	useEffect(() => {
@@ -198,7 +197,7 @@ export function BillingPage({ searchParams }: BillingPageProps) {
 
 			{/* Pricing Plans */}
 			<div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-				{plansData?.plans.map((plan: BillingPlan) => {
+				{plansData?.plans.map((plan) => {
 					const isCurrentPlan = plan.id === currentPlanId
 					const isPopular = plan.id === 'pro'
 

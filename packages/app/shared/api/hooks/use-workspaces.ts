@@ -5,14 +5,14 @@ import type { CreateWorkspaceInput, Workspace } from '@hare/types'
 import { apiClient } from '../client'
 import { workspaceKeys } from './query-keys'
 
-export function useWorkspaces() {
+export function useWorkspacesQuery() {
 	return useQuery({
 		queryKey: workspaceKeys.list(),
 		queryFn: () => apiClient.workspaces.list(),
 	})
 }
 
-export function useWorkspaceById(id: string | undefined) {
+export function useWorkspaceByIdQuery(id: string | undefined) {
 	return useQuery({
 		queryKey: workspaceKeys.detail(id ?? ''),
 		queryFn: () => apiClient.workspaces.get(id!),
@@ -20,7 +20,7 @@ export function useWorkspaceById(id: string | undefined) {
 	})
 }
 
-export function useCreateWorkspace() {
+export function useCreateWorkspaceMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
 		mutationFn: (data: CreateWorkspaceInput) => apiClient.workspaces.create(data),
@@ -30,7 +30,7 @@ export function useCreateWorkspace() {
 	})
 }
 
-export function useUpdateWorkspace() {
+export function useUpdateWorkspaceMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
 		mutationFn: ({ id, data }: { id: string; data: Partial<CreateWorkspaceInput> }) =>
@@ -59,7 +59,7 @@ export function useUpdateWorkspace() {
 	})
 }
 
-export function useDeleteWorkspace() {
+export function useDeleteWorkspaceMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
 		mutationFn: (id: string) => apiClient.workspaces.delete(id),
