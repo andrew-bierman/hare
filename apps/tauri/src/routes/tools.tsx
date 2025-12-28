@@ -1,5 +1,6 @@
-import { ToolsPage, useTools } from '@hare/app'
+import { GenericToolsPage as ToolsPage } from '@hare/app'
 import { createFileRoute, Link } from '@tanstack/react-router'
+import { useTools } from '../lib/hooks'
 
 export const Route = createFileRoute('/tools')({
 	component: ToolsPageWrapper,

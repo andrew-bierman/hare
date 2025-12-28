@@ -2,7 +2,8 @@ import { WorkspaceProvider } from '@hare/app/providers'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { createRootRoute, HeadContent, Outlet, Scripts } from '@tanstack/react-router'
-import { Toaster } from '@hare/ui/components/sonner'
+import { Toaster } from 'sonner'
+import { useWorkspacesQuery, useCreateWorkspaceMutation } from '../lib/hooks'
 import '../styles.css'
 
 export const queryClient = new QueryClient({
@@ -48,16 +49,32 @@ function RootLayout() {
 			</head>
 			<body className="font-sans antialiased">
 				<QueryClientProvider client={queryClient}>
-					<WorkspaceProvider useAuth={useTauriAuth}>
+					<TauriWorkspaceProvider>
 						<div className="min-h-screen bg-background text-foreground">
 							<Outlet />
 						</div>
 						<Toaster position="bottom-right" />
-					</WorkspaceProvider>
+					</TauriWorkspaceProvider>
 					<ReactQueryDevtools initialIsOpen={false} />
 				</QueryClientProvider>
 				<Scripts />
 			</body>
 		</html>
+	)
+}
+
+// Wrapper component to use hooks within QueryClientProvider
+function TauriWorkspaceProvider({ children }: { children: React.ReactNode }) {
+	const workspacesQuery = useWorkspacesQuery()
+	const createWorkspaceMutation = useCreateWorkspaceMutation()
+
+	return (
+		<WorkspaceProvider
+			useAuth={useTauriAuth}
+			workspacesQuery={workspacesQuery}
+			createWorkspaceMutation={createWorkspaceMutation}
+		>
+			{children}
+		</WorkspaceProvider>
 	)
 }

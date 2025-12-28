@@ -24,7 +24,7 @@ import { type ChangeEvent, useState } from 'react'
 import { toast } from 'sonner'
 import { useCreateAgentMutation, useToolsQuery } from '../../../shared/api/hooks'
 import { AgentInstructionsEditor } from '../../../widgets/agent-builder'
-import { AVAILABLE_MODELS } from '../../../shared/config'
+import { AVAILABLE_MODELS } from '@hare/config'
 
 interface CreateAgentFormProps {
 	workspaceId: string | undefined

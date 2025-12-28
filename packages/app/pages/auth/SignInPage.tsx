@@ -8,7 +8,7 @@ import { Label } from '@hare/ui/components/label'
 import { ArrowRight, Github, Loader2, Rabbit } from 'lucide-react'
 import { type ChangeEvent, type FormEvent, useState } from 'react'
 import { toast } from 'sonner'
-import { APP_CONFIG, AUTH_CONTENT } from '../../shared/config'
+import { APP_CONFIG, AUTH_CONTENT } from '@hare/config'
 import { useOAuthProvidersQuery } from '../../shared/api/hooks'
 import { useSignInActions } from '../../features/auth'
 
