@@ -1,8 +1,8 @@
+import { APP_CONFIG, DASHBOARD_CONTENT, FEATURES, NAV_ITEMS } from '@hare/app/shared/config'
 import { Link, useLocation } from '@tanstack/react-router'
 import { Badge } from '@workspace/ui/components/badge'
 import { cn } from '@workspace/ui/lib/utils'
 import { Activity, BarChart3, Bot, Home, Rabbit, Settings, Wrench } from 'lucide-react'
-import { APP_CONFIG, DASHBOARD_CONTENT, FEATURES, NAV_ITEMS } from 'web-app/config'
 import { WorkspaceSwitcher } from './workspace-switcher'
 
 const ICONS = { Home, Bot, Wrench, Activity, Settings, BarChart3 } as const

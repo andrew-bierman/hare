@@ -5,4 +5,7 @@
  */
 
 export { SignInPage } from './SignInPage'
-export { SignInActionsProvider, type SignInActions } from '../../features/auth'
+export {
+	SignInActionsProvider,
+	type SignInActions,
+} from '../../features/auth'

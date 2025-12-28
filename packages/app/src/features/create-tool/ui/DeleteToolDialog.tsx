@@ -10,7 +10,7 @@ import {
 	DialogTitle,
 } from '@workspace/ui/components/dialog'
 import { toast } from 'sonner'
-import { useDeleteTool } from '../../../entities/tool'
+import { useDeleteTool } from '../../../shared/api/hooks'
 
 interface DeleteToolDialogProps {
 	workspaceId: string | undefined
