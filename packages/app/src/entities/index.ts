@@ -9,6 +9,7 @@
  * - User: User accounts and profiles (via auth)
  * - Schedule: Scheduled agent tasks
  * - ApiKey: API key management
+ * - Billing: Subscription and billing management
  */
 
 // Agent entity
@@ -19,3 +20,9 @@ export * from './workspace'
 
 // Tool entity
 export * from './tool'
+
+// API Key entity
+export * from './api-key'
+
+// Billing entity
+export * from './billing'

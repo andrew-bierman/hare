@@ -32,3 +32,6 @@ export * from './schedules'
 
 // Create Tool feature
 export * from './create-tool'
+
+// Create Agent feature
+export * from './create-agent'

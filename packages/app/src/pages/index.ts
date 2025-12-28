@@ -9,3 +9,9 @@
 
 // Tools pages
 export * from './tools'
+
+// Settings pages
+export * from './settings'
+
+// Agents pages
+export * from './agents'
