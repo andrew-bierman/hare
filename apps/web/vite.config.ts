@@ -7,14 +7,43 @@ import { defineConfig } from 'vite'
 
 // Resolve paths to workspace packages
 const appPackagePath = path.resolve(__dirname, '../../packages/app')
+const packagesPath = path.resolve(__dirname, '../../packages')
 
 export default defineConfig({
 	server: {
 		port: 3000,
 	},
+	environments: {
+		ssr: {
+			resolve: {
+				// Ensure dependencies are resolved for the SSR environment
+				noExternal: true,
+			},
+		},
+	},
+	build: {
+		rollupOptions: {
+			// Don't treat these as external in the SSR build
+			external: [],
+		},
+	},
 	resolve: {
 		alias: {
 			'web-app': path.resolve(__dirname, './src'),
+			// @hare/* workspace package aliases - specific subpaths must come before base paths
+			'@hare/db/schema': path.join(packagesPath, 'db/src/schema/index.ts'),
+			'@hare/db/client': path.join(packagesPath, 'db/src/client.ts'),
+			'@hare/db': path.join(packagesPath, 'db/src/index.ts'),
+			'@hare/types': path.join(packagesPath, 'types/src/index.ts'),
+			'@hare/tools': path.join(packagesPath, 'tools/src/index.ts'),
+			'@hare/config': path.join(packagesPath, 'config/src/index.ts'),
+			'@hare/api': path.join(packagesPath, 'api/src/index.ts'),
+			'@hare/auth/client': path.join(packagesPath, 'auth/src/client.ts'),
+			'@hare/auth/server': path.join(packagesPath, 'auth/src/server.ts'),
+			'@hare/auth': path.join(packagesPath, 'auth/src/index.ts'),
+			'@hare/agent/tools': path.join(packagesPath, 'agent/src/tools/index.ts'),
+			'@hare/agent/workers': path.join(packagesPath, 'agent/src/workers.ts'),
+			'@hare/agent': path.join(packagesPath, 'agent/src/index.ts'),
 			'@hare/ui': path.resolve(__dirname, '../../packages/ui/src'),
 			// @hare/app package aliases - specific subpaths must come before wildcards
 			'@hare/app/widgets/agent-builder': path.join(
