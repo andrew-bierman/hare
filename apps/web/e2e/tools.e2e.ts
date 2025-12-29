@@ -124,21 +124,23 @@ baseTest.describe('New HTTP Tool Page - Form Validation', () => {
 		await page.waitForLoadState('networkidle')
 	})
 
-	baseTest('create button is disabled when required fields are empty', async ({
-		page,
-	}: { page: Page }) => {
-		const createButton = page.getByRole('button', { name: 'Create Tool' })
-		await expect(createButton).toBeDisabled()
-	})
+	baseTest(
+		'create button is disabled when required fields are empty',
+		async ({ page }: { page: Page }) => {
+			const createButton = page.getByRole('button', { name: 'Create Tool' })
+			await expect(createButton).toBeDisabled()
+		},
+	)
 
-	baseTest('create button remains disabled with only name filled', async ({
-		page,
-	}: { page: Page }) => {
-		await page.getByLabel('Name *').fill('Test Tool')
-		const createButton = page.getByRole('button', { name: 'Create Tool' })
-		// Still disabled because URL is required
-		await expect(createButton).toBeDisabled()
-	})
+	baseTest(
+		'create button remains disabled with only name filled',
+		async ({ page }: { page: Page }) => {
+			await page.getByLabel('Name *').fill('Test Tool')
+			const createButton = page.getByRole('button', { name: 'Create Tool' })
+			// Still disabled because URL is required
+			await expect(createButton).toBeDisabled()
+		},
+	)
 
 	baseTest('run test button is disabled without URL', async ({ page }: { page: Page }) => {
 		const runTestButton = page.getByRole('button', { name: /run test/i })
@@ -192,9 +194,7 @@ baseTest.describe('New HTTP Tool Page - Headers', () => {
 
 		// Header inputs should appear
 		await expect(page.getByPlaceholder('Header name')).toBeVisible()
-		await expect(
-			page.getByPlaceholder('Value (use {{variable}} for dynamic values)'),
-		).toBeVisible()
+		await expect(page.getByPlaceholder('Value (use {{variable}} for dynamic values)')).toBeVisible()
 	})
 
 	baseTest('can remove a header', async ({ page }: { page: Page }) => {
@@ -208,7 +208,11 @@ baseTest.describe('New HTTP Tool Page - Headers', () => {
 		await expect(page.getByPlaceholder('Header name')).toBeVisible()
 
 		// Click the trash icon to remove
-		await page.locator('button').filter({ has: page.locator('svg.lucide-trash-2') }).first().click()
+		await page
+			.locator('button')
+			.filter({ has: page.locator('svg.lucide-trash-2') })
+			.first()
+			.click()
 
 		// Header inputs should be removed
 		await expect(page.getByPlaceholder('Header name')).not.toBeVisible()
@@ -273,9 +277,7 @@ test.describe('Tools - Authenticated User', () => {
 
 		await authenticatedPage.getByRole('link', { name: /create http tool/i }).click()
 		await expect(authenticatedPage).toHaveURL(/\/dashboard\/tools\/new/)
-		await expect(
-			authenticatedPage.getByRole('heading', { name: 'Create HTTP Tool' }),
-		).toBeVisible()
+		await expect(authenticatedPage.getByRole('heading', { name: 'Create HTTP Tool' })).toBeVisible()
 	})
 
 	test('authenticated user can fill in new tool form', async ({ authenticatedPage }) => {
