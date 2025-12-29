@@ -2,9 +2,8 @@
 	"name": "@hare/auth",
 	"version": "0.1.0",
 	"description": "Better Auth integration for Hare platform",
+	"license": "MIT",
 	"type": "module",
-	"main": "./src/index.ts",
-	"types": "./src/index.ts",
 	"exports": {
 		".": {
 			"types": "./src/index.ts",
@@ -19,13 +18,11 @@
 			"import": "./src/server.ts"
 		}
 	},
+	"main": "./src/index.ts",
+	"types": "./src/index.ts",
 	"files": [
 		"src"
 	],
-	"license": "MIT",
-	"peerDependencies": {
-		"better-auth": "^1.4.0"
-	},
 	"dependencies": {
 		"@hare/db": "workspace:*"
 	},
@@ -33,5 +30,8 @@
 		"@hare/typescript-config": "workspace:*",
 		"better-auth": "^1.4.9",
 		"typescript": "^5"
+	},
+	"peerDependencies": {
+		"better-auth": "^1.4.0"
 	}
 }
