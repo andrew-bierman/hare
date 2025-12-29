@@ -186,10 +186,12 @@ export function SignInPage() {
 								<Label htmlFor="password" className="text-sm font-medium">
 									{fields.password.label}
 								</Label>
-{/* TODO: Implement forgot password route */}
-								<span className="text-xs text-muted-foreground font-medium">
+								<Link
+									to="/forgot-password"
+									className="text-xs text-primary hover:underline font-medium"
+								>
 									{content.forgotPassword}
-								</span>
+								</Link>
 							</div>
 							<Input
 								id="password"

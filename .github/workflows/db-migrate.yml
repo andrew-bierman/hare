@@ -1,0 +1,30 @@
+name: Database Migration
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/web/migrations/**'
+
+jobs:
+  migrate:
+    name: Apply D1 Migrations
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Apply migrations to D1
+        run: bun run db:migrate:remote
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

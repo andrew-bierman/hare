@@ -9,15 +9,30 @@ import {
 	CardHeader,
 	CardTitle,
 } from '@hare/ui/components/card'
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+	DialogTrigger,
+} from '@hare/ui/components/dialog'
 import { Input } from '@hare/ui/components/input'
 import { Label } from '@hare/ui/components/label'
 import { Separator } from '@hare/ui/components/separator'
 import { Skeleton } from '@hare/ui/components/skeleton'
-import { Bell, Key, LogOut, Shield, User } from 'lucide-react'
-import { type ChangeEvent, useState } from 'react'
+import { Switch } from '@hare/ui/components/switch'
+import { Bell, Key, Loader2, LogOut, Shield, User } from 'lucide-react'
+import { type ChangeEvent, useEffect, useState } from 'react'
 import { toast } from 'sonner'
+import { updateUser, changePassword } from '@hare/auth/client'
 import { useAuth, useAuthActions } from '../../features/auth'
 import { useWorkspace } from '../../app/providers'
+import {
+	useUserPreferencesQuery,
+	useUpdateUserPreferencesMutation,
+} from '../../shared/api/hooks'
 
 export function SettingsPage() {
 	const navigate = useNavigate()
@@ -25,15 +40,106 @@ export function SettingsPage() {
 	const { signOut } = useAuthActions()
 	const { activeWorkspace } = useWorkspace()
 
+	// Profile state
 	const [name, setName] = useState('')
+	const [isUpdatingProfile, setIsUpdatingProfile] = useState(false)
+
+	// Password change state
+	const [passwordDialogOpen, setPasswordDialogOpen] = useState(false)
+	const [currentPassword, setCurrentPassword] = useState('')
+	const [newPassword, setNewPassword] = useState('')
+	const [confirmPassword, setConfirmPassword] = useState('')
+	const [isChangingPassword, setIsChangingPassword] = useState(false)
+
+	// Sign out state
 	const [isSigningOut, setIsSigningOut] = useState(false)
 
+	// User preferences
+	const { data: preferences, isLoading: preferencesLoading } = useUserPreferencesQuery()
+	const updatePreferencesMutation = useUpdateUserPreferencesMutation()
+
 	// Initialize name from session
-	useState(() => {
+	useEffect(() => {
 		if (session?.user?.name) {
 			setName(session.user.name)
 		}
-	})
+	}, [session?.user?.name])
+
+	const handleSaveProfile = async () => {
+		if (!name.trim()) {
+			toast.error('Name cannot be empty')
+			return
+		}
+
+		setIsUpdatingProfile(true)
+		try {
+			await updateUser({ name: name.trim() })
+			toast.success('Profile updated successfully')
+		} catch (error) {
+			toast.error(
+				error instanceof Error ? error.message : 'Failed to update profile',
+			)
+		} finally {
+			setIsUpdatingProfile(false)
+		}
+	}
+
+	const handleChangePassword = async () => {
+		if (!currentPassword || !newPassword || !confirmPassword) {
+			toast.error('Please fill in all fields')
+			return
+		}
+
+		if (newPassword !== confirmPassword) {
+			toast.error('New passwords do not match')
+			return
+		}
+
+		if (newPassword.length < 8) {
+			toast.error('Password must be at least 8 characters')
+			return
+		}
+
+		setIsChangingPassword(true)
+		try {
+			await changePassword({
+				currentPassword,
+				newPassword,
+				revokeOtherSessions: false,
+			})
+			toast.success('Password changed successfully')
+			setPasswordDialogOpen(false)
+			setCurrentPassword('')
+			setNewPassword('')
+			setConfirmPassword('')
+		} catch (error) {
+			toast.error(
+				error instanceof Error ? error.message : 'Failed to change password',
+			)
+		} finally {
+			setIsChangingPassword(false)
+		}
+	}
+
+	const handleToggleEmailNotifications = async (checked: boolean) => {
+		try {
+			await updatePreferencesMutation.mutateAsync({ emailNotifications: checked })
+			toast.success(
+				checked ? 'Email notifications enabled' : 'Email notifications disabled',
+			)
+		} catch (error) {
+			toast.error('Failed to update notification preference')
+		}
+	}
+
+	const handleToggleUsageAlerts = async (checked: boolean) => {
+		try {
+			await updatePreferencesMutation.mutateAsync({ usageAlerts: checked })
+			toast.success(checked ? 'Usage alerts enabled' : 'Usage alerts disabled')
+		} catch (error) {
+			toast.error('Failed to update usage alerts preference')
+		}
+	}
 
 	const handleSignOut = async () => {
 		setIsSigningOut(true)
@@ -47,6 +153,8 @@ export function SettingsPage() {
 			setIsSigningOut(false)
 		}
 	}
+
+	const hasProfileChanges = name !== (session?.user?.name || '')
 
 	if (sessionLoading) {
 		return (
@@ -81,7 +189,7 @@ export function SettingsPage() {
 							<Label htmlFor="name">Name</Label>
 							<Input
 								id="name"
-								value={name || session?.user?.name || ''}
+								value={name}
 								onChange={(e: ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
 								placeholder="Your name"
 							/>
@@ -99,8 +207,19 @@ export function SettingsPage() {
 								Email cannot be changed. Contact support if you need to update it.
 							</p>
 						</div>
-						<Button disabled>Save Changes</Button>
-						<p className="text-xs text-muted-foreground">Profile updates coming soon.</p>
+						<Button
+							onClick={handleSaveProfile}
+							disabled={!hasProfileChanges || isUpdatingProfile}
+						>
+							{isUpdatingProfile ? (
+								<>
+									<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+									Saving...
+								</>
+							) : (
+								'Save Changes'
+							)}
+						</Button>
 					</CardContent>
 				</Card>
 
@@ -145,9 +264,15 @@ export function SettingsPage() {
 									<p className="font-medium">Email Notifications</p>
 									<p className="text-sm text-muted-foreground">Receive updates via email</p>
 								</div>
-								<Button variant="outline" size="sm" disabled>
-									Coming Soon
-								</Button>
+								{preferencesLoading ? (
+									<Skeleton className="h-6 w-11" />
+								) : (
+									<Switch
+										checked={preferences?.emailNotifications ?? true}
+										onCheckedChange={handleToggleEmailNotifications}
+										disabled={updatePreferencesMutation.isPending}
+									/>
+								)}
 							</div>
 							<Separator />
 							<div className="flex items-center justify-between">
@@ -157,9 +282,15 @@ export function SettingsPage() {
 										Get notified when approaching limits
 									</p>
 								</div>
-								<Button variant="outline" size="sm" disabled>
-									Coming Soon
-								</Button>
+								{preferencesLoading ? (
+									<Skeleton className="h-6 w-11" />
+								) : (
+									<Switch
+										checked={preferences?.usageAlerts ?? true}
+										onCheckedChange={handleToggleUsageAlerts}
+										disabled={updatePreferencesMutation.isPending}
+									/>
+								)}
 							</div>
 						</div>
 					</CardContent>
@@ -179,9 +310,75 @@ export function SettingsPage() {
 								<p className="font-medium">Password</p>
 								<p className="text-sm text-muted-foreground">Change your password</p>
 							</div>
-							<Button variant="outline" size="sm" disabled>
-								Coming Soon
-							</Button>
+							<Dialog open={passwordDialogOpen} onOpenChange={setPasswordDialogOpen}>
+								<DialogTrigger asChild>
+									<Button variant="outline" size="sm">
+										Change Password
+									</Button>
+								</DialogTrigger>
+								<DialogContent>
+									<DialogHeader>
+										<DialogTitle>Change Password</DialogTitle>
+										<DialogDescription>
+											Enter your current password and a new password to update your credentials.
+										</DialogDescription>
+									</DialogHeader>
+									<div className="space-y-4 py-4">
+										<div className="grid gap-2">
+											<Label htmlFor="current-password">Current Password</Label>
+											<Input
+												id="current-password"
+												type="password"
+												value={currentPassword}
+												onChange={(e) => setCurrentPassword(e.target.value)}
+												placeholder="Enter current password"
+											/>
+										</div>
+										<div className="grid gap-2">
+											<Label htmlFor="new-password">New Password</Label>
+											<Input
+												id="new-password"
+												type="password"
+												value={newPassword}
+												onChange={(e) => setNewPassword(e.target.value)}
+												placeholder="Enter new password"
+											/>
+										</div>
+										<div className="grid gap-2">
+											<Label htmlFor="confirm-password">Confirm New Password</Label>
+											<Input
+												id="confirm-password"
+												type="password"
+												value={confirmPassword}
+												onChange={(e) => setConfirmPassword(e.target.value)}
+												placeholder="Confirm new password"
+											/>
+										</div>
+									</div>
+									<DialogFooter>
+										<Button
+											variant="outline"
+											onClick={() => setPasswordDialogOpen(false)}
+											disabled={isChangingPassword}
+										>
+											Cancel
+										</Button>
+										<Button
+											onClick={handleChangePassword}
+											disabled={isChangingPassword}
+										>
+											{isChangingPassword ? (
+												<>
+													<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+													Changing...
+												</>
+											) : (
+												'Change Password'
+											)}
+										</Button>
+									</DialogFooter>
+								</DialogContent>
+							</Dialog>
 						</div>
 						<Separator />
 						<div className="flex items-center justify-between">

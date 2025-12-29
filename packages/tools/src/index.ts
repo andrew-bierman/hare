@@ -193,6 +193,7 @@ export {
 	AGENT_CONTROL_TOOL_IDS,
 	agentControlTools,
 	type AgentControlToolId,
+	type ExecutableTool,
 	configureAgentTool,
 	createAgentTool,
 	deleteAgentTool,

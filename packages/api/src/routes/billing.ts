@@ -6,6 +6,7 @@ import { getDb } from '../db'
 import { commonResponses } from '../helpers'
 import { authMiddleware, workspaceMiddleware } from '../middleware'
 import { ErrorSchema } from '../schemas'
+import { getBillingUsage } from '../services/billing-usage'
 import type { HonoEnv, WorkspaceEnv } from '@hare/types'
 
 // =============================================================================
@@ -449,14 +450,10 @@ billingApp.openapi(getBillingStatusRoute, async (c) => {
 	const planId = (ws?.planId as PlanId) || 'free'
 	const plan = BILLING_PLANS[planId] || BILLING_PLANS.free
 
-	// Get usage stats
-	// TODO: Replace with actual usage query once usage tracking is in place
-	const agentsUsed = 0
-	const messagesUsed = 0
-
 	let status: 'active' | 'canceled' | 'past_due' | 'trialing' | 'none' = 'none'
 	let currentPeriodEnd: string | null = null
 	let cancelAtPeriodEnd = false
+	let periodStart: Date | undefined
 
 	// Check subscription status from Stripe if there's a subscription
 	if (ws?.stripeSubscriptionId && ws.stripeCustomerId) {
@@ -470,11 +467,16 @@ billingApp.openapi(getBillingStatusRoute, async (c) => {
 					: (subscriptionResponse as Stripe.Subscription)
 
 			status = subscription.status as typeof status
-			currentPeriodEnd = new Date(
-				(subscription as Stripe.Subscription & { current_period_end: number }).current_period_end *
-					1000,
-			).toISOString()
+			const periodEndTimestamp = (
+				subscription as Stripe.Subscription & { current_period_end: number }
+			).current_period_end
+			currentPeriodEnd = new Date(periodEndTimestamp * 1000).toISOString()
 			cancelAtPeriodEnd = subscription.cancel_at_period_end
+
+			// Calculate period start from subscription (typically 1 month before period end)
+			const periodEndDate = new Date(periodEndTimestamp * 1000)
+			periodStart = new Date(periodEndDate)
+			periodStart.setMonth(periodStart.getMonth() - 1)
 		} catch {
 			// Subscription may have been deleted
 			status = 'none'
@@ -482,6 +484,13 @@ billingApp.openapi(getBillingStatusRoute, async (c) => {
 	} else if (planId === 'free') {
 		status = 'active' // Free plan is always active
 	}
+
+	// Get actual usage stats from the database
+	const usageStats = await getBillingUsage({
+		db,
+		workspaceId: workspace.id,
+		periodStart,
+	})
 
 	return c.json(
 		{
@@ -491,9 +500,9 @@ billingApp.openapi(getBillingStatusRoute, async (c) => {
 			currentPeriodEnd,
 			cancelAtPeriodEnd,
 			usage: {
-				agentsUsed,
+				agentsUsed: usageStats.agentsUsed,
 				agentsLimit: plan.features.maxAgents,
-				messagesUsed,
+				messagesUsed: usageStats.messagesUsed,
 				messagesLimit: plan.features.maxMessagesPerMonth,
 			},
 		},

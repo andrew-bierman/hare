@@ -133,6 +133,35 @@ export const AUTH_CONTENT = {
 		signIn: 'Signed in successfully',
 		signUp: 'Account created successfully',
 		signOut: 'Signed out',
+		passwordResetSent: 'Password reset link sent to your email',
+		passwordReset: 'Password reset successfully',
+	},
+	forgotPassword: {
+		title: 'Forgot password?',
+		subtitle: 'Enter your email and we will send you a reset link',
+		submitButton: 'Send Reset Link',
+		loadingButton: 'Sending...',
+		backToSignIn: 'Back to sign in',
+		emailSent: {
+			title: 'Check your email',
+			subtitle: 'We sent a password reset link to',
+			resendPrompt: "Didn't receive the email?",
+			resendLink: 'Click to resend',
+		},
+	},
+	resetPassword: {
+		title: 'Reset password',
+		subtitle: 'Enter your new password below',
+		submitButton: 'Reset Password',
+		loadingButton: 'Resetting...',
+		newPassword: { label: 'New Password', placeholder: 'Enter new password' },
+		confirmNewPassword: { label: 'Confirm New Password', placeholder: 'Confirm new password' },
+		success: {
+			title: 'Password reset!',
+			subtitle: 'Your password has been reset successfully',
+			signInLink: 'Sign in with your new password',
+		},
+		invalidToken: 'Invalid or expired reset link. Please request a new one.',
 	},
 } as const
 

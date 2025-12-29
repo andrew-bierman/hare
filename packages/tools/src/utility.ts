@@ -101,15 +101,15 @@ const JsonFlattenOutputSchema = z.object({
 	keys: z.array(z.string()),
 })
 
-/** Combined output schema for JSON tool */
+/** Combined output schema for JSON tool - using passthrough to preserve all keys during union matching */
 const JsonOutputSchema = z.union([
-	JsonParseOutputSchema,
-	JsonStringifyOutputSchema,
-	JsonGetOutputSchema,
-	JsonMutateOutputSchema,
-	JsonKeysOutputSchema,
-	JsonValuesOutputSchema,
-	JsonFlattenOutputSchema,
+	JsonParseOutputSchema.passthrough(),
+	JsonStringifyOutputSchema.passthrough(),
+	JsonGetOutputSchema.passthrough(),
+	JsonMutateOutputSchema.passthrough(),
+	JsonKeysOutputSchema.passthrough(),
+	JsonValuesOutputSchema.passthrough(),
+	JsonFlattenOutputSchema.passthrough(),
 ])
 
 /** Output for text 'split' operation */

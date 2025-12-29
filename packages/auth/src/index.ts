@@ -18,5 +18,7 @@ export {
 	getSession,
 	signInWithGoogle,
 	signInWithGitHub,
+	updateUser,
+	changePassword,
 	type CreateAuthClientOptions,
 } from './client'

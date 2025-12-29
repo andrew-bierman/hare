@@ -636,6 +636,31 @@ export const billing = {
 }
 
 // =============================================================================
+// User Preferences API
+// =============================================================================
+
+export interface UserPreferences {
+	id: string
+	userId: string
+	emailNotifications: boolean
+	usageAlerts: boolean
+	createdAt: string
+	updatedAt: string
+}
+
+export interface UpdateUserPreferencesInput {
+	emailNotifications?: boolean
+	usageAlerts?: boolean
+}
+
+export const userPreferences = {
+	get: () => get<UserPreferences>('/api/user/preferences'),
+
+	update: (data: UpdateUserPreferencesInput) =>
+		patch<UserPreferences, UpdateUserPreferencesInput>('/api/user/preferences', data),
+}
+
+// =============================================================================
 // Export unified client
 // =============================================================================
 
@@ -647,6 +672,7 @@ export const apiClient = {
 	billing,
 	schedules,
 	tools,
+	userPreferences,
 	workspaces,
 	usage,
 }
