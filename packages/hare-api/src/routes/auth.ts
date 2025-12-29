@@ -40,7 +40,7 @@ const app = new Hono<HonoEnv>()
 	.all('/*', async (c) => {
 		let d1: D1Database
 		try {
-			d1 = await getD1(c)
+			d1 = getD1(c)
 		} catch (e) {
 			if (e instanceof CloudflareEnvError) {
 				// For session endpoints, return null session instead of error

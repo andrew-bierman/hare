@@ -235,7 +235,7 @@ app.use('*', authMiddleware)
 
 // Register routes
 app.openapi(listWorkspacesRoute, async (c) => {
-	const db = await getDb(c)
+	const db = getDb(c)
 	const user = c.get('user')
 
 	// Get workspaces where user is owner
@@ -279,7 +279,7 @@ app.openapi(listWorkspacesRoute, async (c) => {
 
 app.openapi(createWorkspaceRoute, async (c) => {
 	const data = c.req.valid('json')
-	const db = await getDb(c)
+	const db = getDb(c)
 	const user = c.get('user')
 
 	const slug = await generateUniqueSlug(data.name, (s) => slugExists(db, s))
@@ -303,7 +303,7 @@ app.openapi(createWorkspaceRoute, async (c) => {
 
 app.openapi(getWorkspaceRoute, async (c) => {
 	const { id } = c.req.valid('param')
-	const db = await getDb(c)
+	const db = getDb(c)
 	const user = c.get('user')
 
 	const [workspace] = await db.select().from(workspaces).where(eq(workspaces.id, id))
@@ -323,7 +323,7 @@ app.openapi(getWorkspaceRoute, async (c) => {
 app.openapi(updateWorkspaceRoute, async (c) => {
 	const { id } = c.req.valid('param')
 	const data = c.req.valid('json')
-	const db = await getDb(c)
+	const db = getDb(c)
 	const user = c.get('user')
 
 	const role = await getUserWorkspaceRole({ userId: user.id, workspaceId: id, db })
@@ -360,7 +360,7 @@ app.openapi(updateWorkspaceRoute, async (c) => {
 
 app.openapi(deleteWorkspaceRoute, async (c) => {
 	const { id } = c.req.valid('param')
-	const db = await getDb(c)
+	const db = getDb(c)
 	const user = c.get('user')
 
 	const [workspace] = await db.select().from(workspaces).where(eq(workspaces.id, id))

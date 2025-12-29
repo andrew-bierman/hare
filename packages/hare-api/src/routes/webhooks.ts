@@ -416,7 +416,7 @@ app.use('*', workspaceMiddleware)
 // List webhooks for an agent
 app.openapi(listWebhooksRoute, async (c) => {
 	const { id: agentId } = c.req.valid('param')
-	const db = await getDb(c)
+	const db = getDb(c)
 	const workspace = c.get('workspace')
 
 	const access = await verifyAgentAccess({ db, agentId, workspaceId: workspace.id })
@@ -433,7 +433,7 @@ app.openapi(listWebhooksRoute, async (c) => {
 app.openapi(createWebhookRoute, async (c) => {
 	const { id: agentId } = c.req.valid('param')
 	const data = c.req.valid('json')
-	const db = await getDb(c)
+	const db = getDb(c)
 	const workspace = c.get('workspace')
 	const role = c.get('workspaceRole')
 
@@ -468,7 +468,7 @@ app.openapi(createWebhookRoute, async (c) => {
 // Get webhook details
 app.openapi(getWebhookRoute, async (c) => {
 	const { id: agentId, webhookId } = c.req.valid('param')
-	const db = await getDb(c)
+	const db = getDb(c)
 	const workspace = c.get('workspace')
 
 	const access = await verifyAgentAccess({ db, agentId, workspaceId: workspace.id })
@@ -488,7 +488,7 @@ app.openapi(getWebhookRoute, async (c) => {
 app.openapi(updateWebhookRoute, async (c) => {
 	const { id: agentId, webhookId } = c.req.valid('param')
 	const data = c.req.valid('json')
-	const db = await getDb(c)
+	const db = getDb(c)
 	const workspace = c.get('workspace')
 	const role = c.get('workspaceRole')
 
@@ -533,7 +533,7 @@ app.openapi(updateWebhookRoute, async (c) => {
 // Delete a webhook
 app.openapi(deleteWebhookRoute, async (c) => {
 	const { id: agentId, webhookId } = c.req.valid('param')
-	const db = await getDb(c)
+	const db = getDb(c)
 	const workspace = c.get('workspace')
 	const role = c.get('workspaceRole')
 
@@ -560,7 +560,7 @@ app.openapi(deleteWebhookRoute, async (c) => {
 app.openapi(getWebhookLogsRoute, async (c) => {
 	const { id: agentId, webhookId } = c.req.valid('param')
 	const { limit, offset } = c.req.valid('query')
-	const db = await getDb(c)
+	const db = getDb(c)
 	const workspace = c.get('workspace')
 
 	const access = await verifyAgentAccess({ db, agentId, workspaceId: workspace.id })
@@ -600,7 +600,7 @@ app.openapi(getWebhookLogsRoute, async (c) => {
 // Regenerate webhook secret
 app.openapi(regenerateSecretRoute, async (c) => {
 	const { id: agentId, webhookId } = c.req.valid('param')
-	const db = await getDb(c)
+	const db = getDb(c)
 	const workspace = c.get('workspace')
 	const role = c.get('workspaceRole')
 

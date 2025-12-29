@@ -273,7 +273,7 @@ app.use('*', authMiddleware)
 
 app.openapi(listMembersRoute, async (c) => {
 	const { id } = c.req.valid('param')
-	const db = await getDb(c)
+	const db = getDb(c)
 	const user = c.get('user')
 
 	const role = await getUserWorkspaceRole(user.id, id, db)
@@ -343,7 +343,7 @@ app.openapi(listMembersRoute, async (c) => {
 app.openapi(sendInvitationRoute, async (c) => {
 	const { id } = c.req.valid('param')
 	const { email, role } = c.req.valid('json')
-	const db = await getDb(c)
+	const db = getDb(c)
 	const user = c.get('user')
 
 	const userRole = await getUserWorkspaceRole(user.id, id, db)
@@ -436,7 +436,7 @@ app.openapi(sendInvitationRoute, async (c) => {
 
 app.openapi(listInvitationsRoute, async (c) => {
 	const { id } = c.req.valid('param')
-	const db = await getDb(c)
+	const db = getDb(c)
 	const user = c.get('user')
 
 	const role = await getUserWorkspaceRole(user.id, id, db)
@@ -485,7 +485,7 @@ app.openapi(listInvitationsRoute, async (c) => {
 
 app.openapi(revokeInvitationRoute, async (c) => {
 	const { id, inviteId } = c.req.valid('param')
-	const db = await getDb(c)
+	const db = getDb(c)
 	const user = c.get('user')
 
 	const role = await getUserWorkspaceRole(user.id, id, db)
@@ -522,7 +522,7 @@ app.openapi(revokeInvitationRoute, async (c) => {
 
 app.openapi(removeMemberRoute, async (c) => {
 	const { id, userId } = c.req.valid('param')
-	const db = await getDb(c)
+	const db = getDb(c)
 	const user = c.get('user')
 
 	const userRole = await getUserWorkspaceRole(user.id, id, db)
@@ -559,7 +559,7 @@ app.openapi(removeMemberRoute, async (c) => {
 app.openapi(updateMemberRoleRoute, async (c) => {
 	const { id, userId } = c.req.valid('param')
 	const { role: newRole } = c.req.valid('json')
-	const db = await getDb(c)
+	const db = getDb(c)
 	const user = c.get('user')
 
 	const userRole = await getUserWorkspaceRole(user.id, id, db)

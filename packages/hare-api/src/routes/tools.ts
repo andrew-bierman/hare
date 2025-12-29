@@ -367,7 +367,7 @@ function createMinimalToolContext(): ToolContext {
 // Register routes
 app.openapi(listToolsRoute, async (c) => {
 	const { includeSystem } = c.req.valid('query')
-	const db = await getDb(c)
+	const db = getDb(c)
 	const workspace = c.get('workspace')
 
 	// Get custom tools from database
@@ -387,7 +387,7 @@ app.openapi(listToolsRoute, async (c) => {
 
 app.openapi(createToolRoute, async (c) => {
 	const data = c.req.valid('json')
-	const db = await getDb(c)
+	const db = getDb(c)
 	const user = c.get('user')
 	const workspace = c.get('workspace')
 	const role = c.get('workspaceRole')
@@ -436,7 +436,7 @@ app.openapi(createToolRoute, async (c) => {
 
 app.openapi(getToolRoute, async (c) => {
 	const { id } = c.req.valid('param')
-	const db = await getDb(c)
+	const db = getDb(c)
 	const workspace = c.get('workspace')
 
 	// Check for system tool first - use Map for O(1) lookup
@@ -465,7 +465,7 @@ app.openapi(getToolRoute, async (c) => {
 app.openapi(updateToolRoute, async (c) => {
 	const { id } = c.req.valid('param')
 	const data = c.req.valid('json')
-	const db = await getDb(c)
+	const db = getDb(c)
 	const workspace = c.get('workspace')
 	const role = c.get('workspaceRole')
 
@@ -527,7 +527,7 @@ app.openapi(updateToolRoute, async (c) => {
 
 app.openapi(deleteToolRoute, async (c) => {
 	const { id } = c.req.valid('param')
-	const db = await getDb(c)
+	const db = getDb(c)
 	const workspace = c.get('workspace')
 	const role = c.get('workspaceRole')
 
@@ -574,7 +574,7 @@ app.openapi(testToolRoute, async (c) => {
 app.openapi(testExistingToolRoute, async (c) => {
 	const { id } = c.req.valid('param')
 	const data = c.req.valid('json')
-	const db = await getDb(c)
+	const db = getDb(c)
 	const workspace = c.get('workspace')
 	const role = c.get('workspaceRole')
 

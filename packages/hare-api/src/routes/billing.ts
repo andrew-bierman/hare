@@ -315,7 +315,7 @@ const webhookApp = new OpenAPIHono<HonoEnv>()
 
 billingApp.openapi(listPlansRoute, async (c) => {
 	const workspace = c.get('workspace')
-	const db = await getDb(c)
+	const db = getDb(c)
 
 	// Get current workspace to check plan
 	const [ws] = await db.select().from(workspaces).where(eq(workspaces.id, workspace.id))
@@ -345,7 +345,7 @@ billingApp.openapi(createCheckoutRoute, async (c) => {
 	const { planId, successUrl, cancelUrl } = c.req.valid('json')
 	const workspace = c.get('workspace')
 	const user = c.get('user')
-	const db = await getDb(c)
+	const db = getDb(c)
 	const env = c.env as CloudflareEnv
 
 	const plan = BILLING_PLANS[planId]
@@ -419,7 +419,7 @@ billingApp.openapi(createCheckoutRoute, async (c) => {
 
 billingApp.openapi(createPortalRoute, async (c) => {
 	const workspace = c.get('workspace')
-	const db = await getDb(c)
+	const db = getDb(c)
 	const env = c.env as CloudflareEnv
 
 	const [ws] = await db.select().from(workspaces).where(eq(workspaces.id, workspace.id))
@@ -441,7 +441,7 @@ billingApp.openapi(createPortalRoute, async (c) => {
 
 billingApp.openapi(getBillingStatusRoute, async (c) => {
 	const workspace = c.get('workspace')
-	const db = await getDb(c)
+	const db = getDb(c)
 	const env = c.env as CloudflareEnv
 
 	const [ws] = await db.select().from(workspaces).where(eq(workspaces.id, workspace.id))
@@ -504,7 +504,7 @@ billingApp.openapi(getBillingStatusRoute, async (c) => {
 billingApp.openapi(getPaymentHistoryRoute, async (c) => {
 	const { limit = 10, starting_after } = c.req.valid('query')
 	const workspace = c.get('workspace')
-	const db = await getDb(c)
+	const db = getDb(c)
 	const env = c.env as CloudflareEnv
 
 	const [ws] = await db.select().from(workspaces).where(eq(workspaces.id, workspace.id))
@@ -567,7 +567,7 @@ webhookApp.openapi(webhookRoute, async (c) => {
 		return c.json({ error: 'Invalid signature' }, 400)
 	}
 
-	const db = await getDb(c)
+	const db = getDb(c)
 
 	// Handle the event
 	switch (event.type) {

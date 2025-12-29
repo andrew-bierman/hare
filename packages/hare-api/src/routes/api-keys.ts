@@ -222,7 +222,7 @@ app.use('*', workspaceMiddleware)
 
 // List API keys
 app.openapi(listApiKeysRoute, async (c) => {
-	const db = await getDb(c)
+	const db = getDb(c)
 	const workspace = c.get('workspace')
 
 	const keys = await db.select().from(apiKeys).where(eq(apiKeys.workspaceId, workspace.id))
@@ -233,7 +233,7 @@ app.openapi(listApiKeysRoute, async (c) => {
 // Create API key
 app.openapi(createApiKeyRoute, async (c) => {
 	const data = c.req.valid('json')
-	const db = await getDb(c)
+	const db = getDb(c)
 	const user = c.get('user')
 	const workspace = c.get('workspace')
 	const role = c.get('workspaceRole')
@@ -283,7 +283,7 @@ app.openapi(createApiKeyRoute, async (c) => {
 // Get API key
 app.openapi(getApiKeyRoute, async (c) => {
 	const { id } = c.req.valid('param')
-	const db = await getDb(c)
+	const db = getDb(c)
 	const workspace = c.get('workspace')
 
 	const [key] = await db
@@ -302,7 +302,7 @@ app.openapi(getApiKeyRoute, async (c) => {
 app.openapi(updateApiKeyRoute, async (c) => {
 	const { id } = c.req.valid('param')
 	const data = c.req.valid('json')
-	const db = await getDb(c)
+	const db = getDb(c)
 	const workspace = c.get('workspace')
 	const role = c.get('workspaceRole')
 
@@ -343,7 +343,7 @@ app.openapi(updateApiKeyRoute, async (c) => {
 // Delete/revoke API key
 app.openapi(deleteApiKeyRoute, async (c) => {
 	const { id } = c.req.valid('param')
-	const db = await getDb(c)
+	const db = getDb(c)
 	const workspace = c.get('workspace')
 	const role = c.get('workspaceRole')
 

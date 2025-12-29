@@ -234,8 +234,8 @@ app.use('*', optionalAuthMiddleware)
 // WebSocket upgrade handler
 app.openapi(agentWebSocketRoute, async (c) => {
 	const { id: agentId } = c.req.valid('param')
-	const db = await getDb(c)
-	const env = await getCloudflareEnv(c)
+	const db = getDb(c)
+	const env = getCloudflareEnv(c)
 	const user = c.get('user')
 
 	// Check if it's a WebSocket request
@@ -279,8 +279,8 @@ app.openapi(agentWebSocketRoute, async (c) => {
 // Get agent state handler
 app.openapi(agentStateRoute, async (c) => {
 	const { id: agentId } = c.req.valid('param')
-	const db = await getDb(c)
-	const env = await getCloudflareEnv(c)
+	const db = getDb(c)
+	const env = getCloudflareEnv(c)
 	const user = c.get('user')
 
 	// Verify agent exists
@@ -320,8 +320,8 @@ app.openapi(agentStateRoute, async (c) => {
 app.openapi(configureAgentRoute, async (c) => {
 	const { id: agentId } = c.req.valid('param')
 	const config = c.req.valid('json')
-	const db = await getDb(c)
-	const env = await getCloudflareEnv(c)
+	const db = getDb(c)
+	const env = getCloudflareEnv(c)
 	const user = c.get('user')
 
 	// Verify agent exists
@@ -368,8 +368,8 @@ app.openapi(configureAgentRoute, async (c) => {
 // Get agent schedules handler
 app.openapi(agentSchedulesRoute, async (c) => {
 	const { id: agentId } = c.req.valid('param')
-	const db = await getDb(c)
-	const env = await getCloudflareEnv(c)
+	const db = getDb(c)
+	const env = getCloudflareEnv(c)
 	const user = c.get('user')
 
 	// Verify agent exists
@@ -464,8 +464,8 @@ const agentChatRoute = createRoute({
 app.openapi(agentChatRoute, async (c) => {
 	const { id: agentId } = c.req.valid('param')
 	const body = c.req.valid('json')
-	const db = await getDb(c)
-	const env = await getCloudflareEnv(c)
+	const db = getDb(c)
+	const env = getCloudflareEnv(c)
 	const user = c.get('user')
 
 	// Verify agent exists and is deployed

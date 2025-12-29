@@ -261,8 +261,8 @@ app.use('/conversations/:id/export', authMiddleware)
 app.openapi(chatWithAgentRoute, async (c) => {
 	const { id: agentId } = c.req.valid('param')
 	const { message, sessionId, metadata } = c.req.valid('json')
-	const db = await getDb(c)
-	const env = await getCloudflareEnv(c)
+	const db = getDb(c)
+	const env = getCloudflareEnv(c)
 
 	// Get user from auth context (may be undefined for API key auth)
 	const user = c.get('user')
@@ -407,7 +407,7 @@ app.openapi(chatWithAgentRoute, async (c) => {
 // List conversations
 app.openapi(listConversationsRoute, async (c) => {
 	const { id: agentId } = c.req.valid('param')
-	const db = await getDb(c)
+	const db = getDb(c)
 
 	const results = await db.select().from(conversations).where(eq(conversations.agentId, agentId))
 
@@ -438,7 +438,7 @@ app.openapi(listConversationsRoute, async (c) => {
 // Get conversation messages
 app.openapi(getConversationMessagesRoute, async (c) => {
 	const { id: conversationId } = c.req.valid('param')
-	const db = await getDb(c)
+	const db = getDb(c)
 
 	const results = await db
 		.select()
@@ -463,7 +463,7 @@ app.openapi(getConversationMessagesRoute, async (c) => {
 app.openapi(exportConversationRoute, async (c) => {
 	const { id: conversationId } = c.req.valid('param')
 	const { format = 'json', includeMetadata = false } = c.req.valid('query')
-	const db = await getDb(c)
+	const db = getDb(c)
 
 	// Get conversation metadata
 	const [conversation] = await db

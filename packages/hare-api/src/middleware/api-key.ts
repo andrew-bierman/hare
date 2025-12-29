@@ -50,7 +50,7 @@ export const apiKeyMiddleware: MiddlewareHandler<ApiKeyEnv> = async (c, next) =>
 		return c.json({ error: 'API key required' }, 401)
 	}
 
-	const db = await getDb(c)
+	const db = getDb(c)
 	const hashedKey = await hashApiKey(apiKey)
 
 	const [keyRecord] = await db.select().from(apiKeys).where(eq(apiKeys.hashedKey, hashedKey))
