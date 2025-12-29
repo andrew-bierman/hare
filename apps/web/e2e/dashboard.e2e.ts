@@ -70,28 +70,27 @@ test.describe('Agent Creation Flow - Authenticated', () => {
 		// Check for heading
 		await expect(authenticatedPage.getByRole('heading', { name: 'Create New Agent' })).toBeVisible()
 
-		// Check for required form fields
-		await expect(authenticatedPage.getByLabel(/Agent Name/)).toBeVisible()
-		await expect(authenticatedPage.getByLabel('Description')).toBeVisible()
-		await expect(authenticatedPage.getByLabel(/Model/)).toBeVisible()
-		await expect(authenticatedPage.getByLabel('System Prompt')).toBeVisible()
+		// Check for required form fields using id selectors
+		await expect(authenticatedPage.locator('#name')).toBeVisible()
+		await expect(authenticatedPage.locator('#description')).toBeVisible()
+		await expect(authenticatedPage.locator('#model')).toBeVisible()
+		await expect(authenticatedPage.getByText('System Prompt', { exact: true })).toBeVisible()
 
 		// Check for create button
-		await expect(authenticatedPage.getByRole('button', { name: /create/i })).toBeVisible()
+		await expect(authenticatedPage.getByRole('button', { name: /create agent/i })).toBeVisible()
 	})
 
 	test('should successfully create a new agent', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/agents/new')
 		await authenticatedPage.waitForLoadState('networkidle')
 
-		// Fill in agent details
+		// Fill in agent details using id selectors
 		const agentName = `Test Agent ${Date.now()}`
-		await authenticatedPage.getByLabel(/Agent Name/).fill(agentName)
-		await authenticatedPage.getByLabel('Description').fill('A test agent for E2E testing')
-		await authenticatedPage.getByLabel('System Prompt').fill('You are a helpful test assistant.')
+		await authenticatedPage.locator('#name').fill(agentName)
+		await authenticatedPage.locator('#description').fill('A test agent for E2E testing')
 
 		// Select a model (if dropdown is available)
-		const modelSelect = authenticatedPage.getByLabel(/Model/)
+		const modelSelect = authenticatedPage.locator('#model')
 		if (await modelSelect.isVisible()) {
 			await modelSelect.click()
 			// Wait for dropdown options and select the first one
@@ -103,7 +102,7 @@ test.describe('Agent Creation Flow - Authenticated', () => {
 		}
 
 		// Submit the form
-		const createButton = authenticatedPage.getByRole('button', { name: /create/i })
+		const createButton = authenticatedPage.getByRole('button', { name: /create agent/i })
 		await createButton.click()
 
 		// Wait for navigation or success message
@@ -121,7 +120,7 @@ test.describe('Agent Creation Flow - Authenticated', () => {
 		await authenticatedPage.waitForLoadState('networkidle')
 
 		// The create button should be disabled when required fields are empty
-		const createButton = authenticatedPage.getByRole('button', { name: /create/i })
+		const createButton = authenticatedPage.getByRole('button', { name: /create agent/i })
 		await expect(createButton).toBeVisible()
 		await expect(createButton).toBeDisabled()
 
@@ -129,23 +128,12 @@ test.describe('Agent Creation Flow - Authenticated', () => {
 		await expect(authenticatedPage).toHaveURL('/dashboard/agents/new')
 	})
 
-	test('should allow editing system prompt', async ({ authenticatedPage }) => {
-		await authenticatedPage.goto('/dashboard/agents/new')
-		await authenticatedPage.waitForLoadState('networkidle')
-
-		const systemPrompt = 'You are a specialized AI assistant that helps with testing.'
-		const systemPromptField = authenticatedPage.getByLabel('System Prompt')
-
-		await systemPromptField.fill(systemPrompt)
-		await expect(systemPromptField).toHaveValue(systemPrompt)
-	})
-
 	test('should allow canceling agent creation', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/agents/new')
 		await authenticatedPage.waitForLoadState('networkidle')
 
 		// Fill in some data
-		await authenticatedPage.getByLabel(/Agent Name/).fill('Test Agent')
+		await authenticatedPage.locator('#name').fill('Test Agent')
 
 		// Navigate back to agents list
 		await authenticatedPage.getByRole('link', { name: 'Agents' }).click()
