@@ -42,6 +42,7 @@ import memory from './routes/memory'
 import schedules from './routes/schedules'
 import tools from './routes/tools'
 import usage from './routes/usage'
+import userSettings from './routes/user-settings'
 import webhooksRoutes from './routes/webhooks'
 import workspaceMembers from './routes/workspace-members'
 import workspaces from './routes/workspaces'
@@ -90,6 +91,7 @@ const routes = app
 	.route('/auth', auth)
 	.route('/chat', chat)
 	.route('/usage', usage)
+	.route('/user', userSettings)
 	.route('/dev', dev)
 	.route('/mcp', mcp)
 	.route('/health', health)
@@ -130,6 +132,7 @@ app.doc('/openapi.json', {
 		{ name: 'Health', description: 'System health checks and monitoring endpoints' },
 		{ name: 'Logs', description: 'Request logging and observability' },
 		{ name: 'Embed', description: 'Embeddable chat widget endpoints' },
+		{ name: 'User Settings', description: 'User preferences and notification settings' },
 	],
 })
 

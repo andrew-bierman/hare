@@ -1,7 +1,7 @@
 import { ToolsListPage, useToolsQuery } from '@hare/app'
 import { createFileRoute, Link } from '@tanstack/react-router'
 
-export const Route = createFileRoute('/tools')({
+export const Route = createFileRoute('/tools/')({
 	component: ToolsPageWrapper,
 })
 
@@ -14,8 +14,8 @@ function ToolsPageWrapper() {
 				</Link>
 			)}
 			routes={{
-				newTool: '/tools', // TODO: Add /tools/new route
-				toolDetail: (_id) => `/tools`, // TODO: Add /tools/$id route
+				newTool: '/tools/new',
+				toolDetail: (id) => `/tools/${id}`,
 			}}
 			useToolsQuery={useToolsQuery}
 		/>

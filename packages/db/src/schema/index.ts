@@ -18,6 +18,8 @@ export * from './tools'
 
 // Usage and API key tables
 export * from './usage'
+// User preferences tables
+export * from './user-preferences'
 // Webhook tables
 export * from './webhooks'
 // Workspace tables
