@@ -1,6 +1,6 @@
 import { Header, Sidebar, UserNav, WorkspaceSwitcher } from '@hare/app/widgets'
 import { createFileRoute, Link, Outlet, useLocation } from '@tanstack/react-router'
-import { WorkspaceProvider } from 'web-app/app'
+import { WorkspaceProvider } from '@hare/app'
 import {
 	DashboardErrorComponent,
 	DashboardNotFound,

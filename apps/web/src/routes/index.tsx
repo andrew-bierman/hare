@@ -19,7 +19,7 @@ import {
 	Terminal,
 	Zap,
 } from 'lucide-react'
-import { useAuth } from 'web-app/app'
+import { useAuth } from '@hare/app'
 
 export const Route = createFileRoute('/')({
 	component: LandingPage,

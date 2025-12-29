@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@hare
 import { Skeleton } from '@hare/ui/components/skeleton'
 import { createFileRoute } from '@tanstack/react-router'
 import { Activity, Bot, Calendar, TrendingUp } from 'lucide-react'
-import { useWorkspace } from 'web-app/app'
+import { useWorkspace } from '@hare/app'
 
 export const Route = createFileRoute('/_dashboard/dashboard/usage/')({
 	component: UsagePage,

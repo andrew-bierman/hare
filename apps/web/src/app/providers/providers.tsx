@@ -1,17 +1,14 @@
 'use client'
 
-import { AuthProvider as AppAuthProvider } from '@hare/app'
-import { signOut } from '@hare/auth/client'
+import { AuthProvider, QueryProvider, WorkspaceProvider } from '@hare/app'
+import { signOut, useSession } from '@hare/auth/client'
 import { Toaster } from '@hare/ui/components/sonner'
-import { AuthProvider, useAuth } from './auth-provider'
-import { QueryProvider } from './query-provider'
-import { WorkspaceProvider } from './workspace-provider'
 
 /**
- * Bridge component that connects web app auth to @hare/app auth context
+ * Bridge that connects @hare/auth/client to @hare/app's AuthProvider
  */
-function AppAuthBridge({ children }: { children: React.ReactNode }) {
-	const session = useAuth()
+function AuthBridge({ children }: { children: React.ReactNode }) {
+	const session = useSession()
 
 	const sessionData = {
 		data: session.data
@@ -37,23 +34,21 @@ function AppAuthBridge({ children }: { children: React.ReactNode }) {
 	}
 
 	return (
-		<AppAuthProvider session={sessionData} actions={actions}>
+		<AuthProvider session={sessionData} actions={actions}>
 			{children}
-		</AppAuthProvider>
+		</AuthProvider>
 	)
 }
 
 export function Providers({ children }: { children: React.ReactNode }) {
 	return (
 		<QueryProvider>
-			<AuthProvider>
-				<AppAuthBridge>
-					<WorkspaceProvider>
-						{children}
-						<Toaster />
-					</WorkspaceProvider>
-				</AppAuthBridge>
-			</AuthProvider>
+			<AuthBridge>
+				<WorkspaceProvider>
+					{children}
+					<Toaster />
+				</WorkspaceProvider>
+			</AuthBridge>
 		</QueryProvider>
 	)
 }

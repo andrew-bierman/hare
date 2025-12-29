@@ -22,7 +22,7 @@ import {
 } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
-import { useWorkspace } from 'web-app/app'
+import { useWorkspace } from '@hare/app'
 
 const { sections, agentNames, agentDescriptions, defaultInstructions } = DEV_TOOLS_CONTENT
 

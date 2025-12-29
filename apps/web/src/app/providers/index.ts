@@ -1,10 +1,7 @@
 /**
- * App Providers
+ * Web-specific Providers
  *
- * Root providers for the application.
+ * The Providers component bridges @hare/auth/client to @hare/app's auth context.
  */
 
-export { AuthProvider, useAuth } from './auth-provider'
 export { Providers } from './providers'
-export { QueryProvider } from './query-provider'
-export { useWorkspace, WorkspaceProvider } from './workspace-provider'
