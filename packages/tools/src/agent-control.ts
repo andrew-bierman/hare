@@ -11,7 +11,14 @@
  */
 
 import { z } from 'zod'
-import { type AnyTool, createTool, failure, success, type ToolContext } from './types'
+import { type AnyTool, type Tool, createTool, failure, success, type ToolContext } from './types'
+
+/**
+ * Executable tool type for arrays that need execute() method.
+ * Uses any for heterogeneous tool collections.
+ */
+// biome-ignore lint/suspicious/noExplicitAny: Required for heterogeneous tool collections
+export type ExecutableTool = Tool<any, any>
 
 /**
  * List all agents in a workspace
@@ -387,7 +394,7 @@ export const getAgentMetricsTool = createTool({
 /**
  * All agent control tools
  */
-export const agentControlTools: AnyTool[] = [
+export const agentControlTools: ExecutableTool[] = [
 	listAgentsTool,
 	getAgentTool,
 	sendMessageTool,
@@ -403,7 +410,7 @@ export const agentControlTools: AnyTool[] = [
 /**
  * Get agent control tools
  */
-export function getAgentControlTools(_context: ToolContext): AnyTool[] {
+export function getAgentControlTools(_context: ToolContext): ExecutableTool[] {
 	return agentControlTools
 }
 

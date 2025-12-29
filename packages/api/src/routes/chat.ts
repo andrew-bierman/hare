@@ -2,7 +2,7 @@ import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
 import { type ModelMessage, streamText } from 'ai'
 import { eq } from 'drizzle-orm'
 import { agents, conversations, messages, usage } from '@hare/db/schema'
-import { createEdgeAgent } from '@hare/agent'
+import { createEdgeAgent, createAgentFromConfig, type AgentConfig } from '@hare/agent'
 import type { Database } from '@hare/db'
 import { getCloudflareEnv, getDb } from '../db'
 import { aiChatFeatureMiddleware, authMiddleware, chatRateLimiter } from '../middleware'
@@ -20,7 +20,7 @@ import type { AuthEnv } from '@hare/types'
 // Memory Store (inline implementation)
 // =============================================================================
 
-function createMemoryStore(db: Database, _workspaceId: string) {
+function createMemoryStore(db: Database, workspaceId: string) {
 	return {
 		async getOrCreateConversation(options: {
 			agentId: string
@@ -42,6 +42,7 @@ function createMemoryStore(db: Database, _workspaceId: string) {
 			const [newConv] = await db
 				.insert(conversations)
 				.values({
+					workspaceId,
 					agentId: options.agentId,
 					userId: options.userId,
 					title: options.title,
@@ -66,7 +67,7 @@ function createMemoryStore(db: Database, _workspaceId: string) {
 
 		async saveMessage(options: {
 			conversationId: string
-			role: string
+			role: 'user' | 'assistant' | 'system' | 'tool'
 			content: string
 			metadata?: Record<string, unknown>
 		}): Promise<void> {
