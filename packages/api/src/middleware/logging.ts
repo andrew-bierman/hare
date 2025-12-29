@@ -1,4 +1,4 @@
-import { createId } from '@paralleldrive/cuid2'
+import { createId } from '@hare/db'
 import type { Context, Next } from 'hono'
 import type { HonoEnv } from '@hare/types'
 

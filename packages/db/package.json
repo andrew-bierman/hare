@@ -25,7 +25,6 @@
 	],
 	"dependencies": {
 		"@hare/types": "workspace:*",
-		"@paralleldrive/cuid2": "^3.0.4",
 		"zod": "^4.2.1"
 	},
 	"devDependencies": {
