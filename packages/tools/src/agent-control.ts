@@ -401,8 +401,26 @@ export const agentControlTools: Tool[] = [
 ]
 
 /**
- * Get agent control tools with context for MCP registration
+ * Get agent control tools
  */
-export function getAgentControlToolsForMcp(_context: ToolContext): Tool[] {
+export function getAgentControlTools(_context: ToolContext): Tool[] {
 	return agentControlTools
 }
+
+/**
+ * Agent control tool IDs
+ */
+export const AGENT_CONTROL_TOOL_IDS = [
+	'agent_list',
+	'agent_get',
+	'agent_send_message',
+	'agent_configure',
+	'agent_create',
+	'agent_delete',
+	'agent_schedule',
+	'agent_execute_tool',
+	'agent_list_tools',
+	'agent_metrics',
+] as const
+
+export type AgentControlToolId = (typeof AGENT_CONTROL_TOOL_IDS)[number]

@@ -100,11 +100,13 @@ export {
 // ==========================================
 
 // Tool factory for loading from database
-export { loadAgentTools } from './tools/factory'
+export { loadAgentTools, createRegistry, getAgentControlTools } from '@hare/tools'
+
+// HareAgent and McpAgent for Durable Objects
+export { HareAgent, McpAgent } from '@hare/agent'
 
 import { type AgentTool, createEdgeAgent, type EdgeAgent } from '@hare/agent'
-import { createRegistry, getSystemTools, type ToolContext } from '@hare/tools'
-// Agent configuration interface (extends SDK types with DB fields)
+import { createRegistry, getSystemTools, loadAgentTools, type ToolContext } from '@hare/tools'
 import type { Database } from 'web-app/db'
 
 /**
@@ -149,9 +151,6 @@ export interface CreateAgentFromConfigInput {
 export async function createAgentFromConfig(input: CreateAgentFromConfigInput): Promise<EdgeAgent> {
 	const { agentConfig, db, env, includeSystemTools = true, userId } = input
 
-	// Import loadAgentTools dynamically to avoid circular deps
-	const { loadAgentTools } = await import('./tools/factory')
-
 	// Create tool context
 	const toolContext: ToolContext = {
 		env,
@@ -160,7 +159,23 @@ export async function createAgentFromConfig(input: CreateAgentFromConfigInput): 
 	}
 
 	// Load agent's tools from database
-	const dbTools = await loadAgentTools({ agentId: agentConfig.id, db, context: toolContext })
+	const dbTools = await loadAgentTools({
+		agentId: agentConfig.id,
+		db: {
+			async getAgentToolIds(agentId: string) {
+				const result = await db.query.agentTools.findMany({
+					where: (t, { eq }) => eq(t.agentId, agentId),
+				})
+				return result.map((r) => r.toolId)
+			},
+			async getToolConfigs(toolIds: string[]) {
+				if (toolIds.length === 0) return []
+				const allTools = await db.query.tools.findMany()
+				return allTools.filter((t) => toolIds.includes(t.id))
+			},
+		},
+		context: toolContext,
+	})
 
 	// Get system tools if requested
 	const systemTools = includeSystemTools ? getSystemTools(toolContext) : []

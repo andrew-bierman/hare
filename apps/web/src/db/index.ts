@@ -1,5 +1,9 @@
-// Export client factory and types
-export { createDb, type Database } from './client'
+/**
+ * Database exports
+ *
+ * Re-exports from @hare/db package.
+ * All schema definitions are centralized in the package.
+ */
 
-// Export all schemas
-export * from './schema'
+// Re-export everything from @hare/db
+export * from '@hare/db'

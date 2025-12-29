@@ -1,6 +1,12 @@
 /**
- * Security module exports
- * Provides comprehensive security utilities for the Hare platform
+ * @hare/security - Security utilities for Hare platform
+ *
+ * Provides comprehensive security utilities including:
+ * - Audit logging for security events
+ * - CSRF protection middleware
+ * - Encryption/decryption utilities
+ * - Password validation and generation
+ * - Request validation middleware
  */
 
 // Audit logging
@@ -17,6 +23,7 @@ export {
 	logSecurityEvent,
 	type SecurityEventParams,
 } from './audit'
+
 // CSRF protection
 export {
 	csrfProtection,
@@ -25,6 +32,7 @@ export {
 	setCsrfCookie,
 	validateCsrfToken,
 } from './csrf'
+
 // Encryption utilities
 export {
 	decryptData,
@@ -33,6 +41,7 @@ export {
 	hashData,
 	timingSafeEqual,
 } from './encryption'
+
 // Password validation
 export {
 	calculatePasswordEntropy,
