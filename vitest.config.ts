@@ -1,14 +1,6 @@
-import path from "node:path";
 import { defineWorkersConfig } from "@cloudflare/vitest-pool-workers/config";
 
 export default defineWorkersConfig({
-  resolve: {
-    alias: {
-      // Mock cuid2 to avoid CF Workers global scope random generation error
-      // cuid2 calls crypto.getRandomValues() at import time, which fails in Workers global scope
-      "@paralleldrive/cuid2": path.resolve(__dirname, "./test/mocks/cuid2.ts"),
-    },
-  },
   define: {
     "process.env.NODE_ENV": JSON.stringify("test"),
     "process.env.NEXT_PUBLIC_APP_URL": JSON.stringify("http://localhost:3000"),
