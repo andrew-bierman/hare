@@ -11,7 +11,7 @@
  */
 
 import { z } from 'zod'
-import { type AnyTool, createTool, failure, success, type ToolContext, type HareEnv } from './types'
+import { type AnyTool, createTool, failure, success, type ToolContext, type ToolResult, type HareEnv } from './types'
 
 /**
  * Extended environment for agent control tools.
@@ -1079,9 +1079,21 @@ export const getAgentMetricsTool = createTool({
 })
 
 /**
+ * Executable tool type that includes the execute method.
+ * Use this when you need to call execute() on tools.
+ */
+export type ExecutableTool = {
+	id: string
+	description: string
+	inputSchema: z.ZodTypeAny
+	// biome-ignore lint/suspicious/noExplicitAny: Required for heterogeneous tool collections
+	execute: (params: any, context: ToolContext) => Promise<ToolResult<any>>
+}
+
+/**
  * All agent control tools
  */
-export const agentControlTools: AnyTool[] = [
+export const agentControlTools: ExecutableTool[] = [
 	listAgentsTool,
 	getAgentTool,
 	sendMessageTool,
@@ -1097,7 +1109,7 @@ export const agentControlTools: AnyTool[] = [
 /**
  * Get agent control tools
  */
-export function getAgentControlTools(_context: ToolContext): AnyTool[] {
+export function getAgentControlTools(_context: ToolContext): ExecutableTool[] {
 	return agentControlTools
 }
 

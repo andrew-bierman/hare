@@ -4,7 +4,7 @@ import { eq } from 'drizzle-orm'
 import { cors } from 'hono/cors'
 import { streamSSE } from 'hono/streaming'
 import { agents, conversations, messages, usage } from '@hare/db/schema'
-import { createEdgeAgent } from '@hare/agent'
+import { createEdgeAgent, createAgentFromConfig, type AgentConfig } from '@hare/agent'
 import type { Database } from '@hare/db'
 import { getCloudflareEnv, getDb } from '../db'
 import type { HonoEnv } from '@hare/types'
@@ -13,7 +13,7 @@ import type { HonoEnv } from '@hare/types'
 // Memory Store (inline implementation)
 // =============================================================================
 
-function createMemoryStore(db: Database, _workspaceId: string) {
+function createMemoryStore(db: Database, workspaceId: string) {
 	return {
 		async getOrCreateConversation(options: {
 			agentId: string
@@ -33,6 +33,7 @@ function createMemoryStore(db: Database, _workspaceId: string) {
 			const [newConv] = await db
 				.insert(conversations)
 				.values({
+					workspaceId,
 					agentId: options.agentId,
 					userId: options.userId,
 					title: options.title,
@@ -57,7 +58,7 @@ function createMemoryStore(db: Database, _workspaceId: string) {
 
 		async saveMessage(options: {
 			conversationId: string
-			role: string
+			role: 'user' | 'assistant' | 'system' | 'tool'
 			content: string
 			metadata?: Record<string, unknown>
 		}): Promise<void> {
