@@ -94,7 +94,7 @@ export function VirtualizedMessageList({
 		getScrollElement: () => parentRef.current,
 		estimateSize: () => estimatedMessageHeight,
 		overscan: 5,
-		getItemKey: (index) => allMessages[index].id,
+		getItemKey: (index) => allMessages[index]?.id ?? `msg-${index}`,
 	})
 
 	const virtualItems = virtualizer.getVirtualItems()
@@ -167,6 +167,7 @@ export function VirtualizedMessageList({
 				>
 					{virtualItems.map((virtualItem) => {
 						const message = allMessages[virtualItem.index]
+						if (!message) return null
 						const isStreamingMessage = message.id === 'streaming'
 
 						return (

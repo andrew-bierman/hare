@@ -1,3 +1,4 @@
+import { WorkspaceProvider } from '@hare/app'
 import {
 	DashboardErrorComponent,
 	DashboardNotFound,
@@ -8,7 +9,6 @@ import {
 	UserNav,
 	WorkspaceSwitcher,
 } from '@hare/app/widgets'
-import { WorkspaceProvider } from '@hare/app'
 import { createFileRoute, Link, Outlet, useLocation } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/_dashboard')({

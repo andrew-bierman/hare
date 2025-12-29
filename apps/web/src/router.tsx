@@ -1,5 +1,5 @@
+import { ErrorComponent, NotFound, PendingComponent } from '@hare/app'
 import { createRouter } from '@tanstack/react-router'
-import { ErrorComponent, NotFound, PendingComponent } from './components/router'
 import { routeTree } from './routeTree.gen'
 
 export function getRouter() {

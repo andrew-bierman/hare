@@ -1,4 +1,4 @@
-import { ToolsPage, useToolsQuery } from '@hare/app'
+import { ToolsListPage, useToolsQuery } from '@hare/app'
 import { createFileRoute, Link } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/tools')({
@@ -7,7 +7,7 @@ export const Route = createFileRoute('/tools')({
 
 function ToolsPageWrapper() {
 	return (
-		<ToolsPage
+		<ToolsListPage
 			renderLink={({ to, children, className }) => (
 				<Link to={to as '/'} className={className}>
 					{children}

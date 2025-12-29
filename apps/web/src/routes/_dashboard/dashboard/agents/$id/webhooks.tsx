@@ -1,3 +1,4 @@
+import { useWorkspace } from '@hare/app'
 import { useAgentQuery } from '@hare/app/shared/api'
 import { Badge } from '@hare/ui/components/badge'
 import { Button } from '@hare/ui/components/button'
@@ -42,7 +43,6 @@ import {
 } from 'lucide-react'
 import { type ChangeEvent, useCallback, useEffect, useState } from 'react'
 import { toast } from 'sonner'
-import { useWorkspace } from '@hare/app'
 
 export const Route = createFileRoute('/_dashboard/dashboard/agents/$id/webhooks')({
 	component: WebhooksPage,

@@ -1,7 +1,7 @@
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
 import { eq } from 'drizzle-orm'
 import Stripe from 'stripe'
-import { workspaces } from 'web-app/db/schema'
+import { workspaces } from '@hare/db'
 import { getDb } from '../db'
 import { commonResponses } from '../helpers'
 import { authMiddleware, workspaceMiddleware } from '../middleware'

@@ -10,7 +10,7 @@
 
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
 import { and, eq } from 'drizzle-orm'
-import { agents } from 'web-app/db/schema'
+import { agents } from '@hare/db'
 import { getCloudflareEnv, getDb } from '../db'
 import { commonResponses, requireWriteAccess } from '../helpers'
 import { authMiddleware, workspaceMiddleware } from '../middleware'

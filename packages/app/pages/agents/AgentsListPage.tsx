@@ -12,7 +12,7 @@ import { type ChangeEvent, useState } from 'react'
 import { useWorkspace } from '../../app/providers'
 import type { Agent } from '@hare/types'
 import { useAgentsQuery } from '../../shared/api/hooks'
-import { AVAILABLE_MODELS } from '@hare/config'
+import { AI_MODELS } from '@hare/config'
 
 function AgentCardSkeleton() {
 	return (
@@ -83,7 +83,7 @@ export function AgentsListPage() {
 	const draftCount = agents.filter((a) => a.status === 'draft').length
 
 	const getModelName = (modelId: string) => {
-		const model = AVAILABLE_MODELS.find((m) => m.id === modelId)
+		const model = AI_MODELS.find((m) => m.id === modelId)
 		return model?.name || modelId
 	}
 

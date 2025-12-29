@@ -31,5 +31,4 @@ const handler: ExportedHandler<CloudflareEnv> = {
 export default handler
 
 // Export Durable Objects for Cloudflare Workers
-export { HareAgent } from './lib/agents/hare-agent'
-export { HareMcpAgent } from './lib/agents/mcp-agent'
+export { HareAgent, HareMcpAgent } from '@hare/agent/workers'

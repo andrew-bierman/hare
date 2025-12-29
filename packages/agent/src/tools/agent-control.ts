@@ -11,7 +11,21 @@
  */
 
 import { z } from 'zod'
-import { type AnyTool, createTool, failure, success, type ToolContext } from './types'
+import { createTool, failure, success, type HareEnv, type ToolContext, type ToolResult } from '@hare/tools'
+
+/**
+ * Executable tool type for agent control tools.
+ * Unlike AnyTool (metadata only), this includes the execute method.
+ * Uses Tool<any, any> pattern to allow heterogeneous collections.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type ExecutableTool = {
+	id: string
+	description: string
+	inputSchema: z.ZodTypeAny
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	execute: (params: any, context: ToolContext<HareEnv>) => Promise<ToolResult<any>>
+}
 
 /**
  * List all agents in a workspace
@@ -387,7 +401,7 @@ export const getAgentMetricsTool = createTool({
 /**
  * All agent control tools
  */
-export const agentControlTools: AnyTool[] = [
+export const agentControlTools: ExecutableTool[] = [
 	listAgentsTool,
 	getAgentTool,
 	sendMessageTool,
@@ -401,26 +415,8 @@ export const agentControlTools: AnyTool[] = [
 ]
 
 /**
- * Get agent control tools
+ * Get agent control tools with context for MCP registration
  */
-export function getAgentControlTools(_context: ToolContext): AnyTool[] {
+export function getAgentControlToolsForMcp(_context: ToolContext): ExecutableTool[] {
 	return agentControlTools
 }
-
-/**
- * Agent control tool IDs
- */
-export const AGENT_CONTROL_TOOL_IDS = [
-	'agent_list',
-	'agent_get',
-	'agent_send_message',
-	'agent_configure',
-	'agent_create',
-	'agent_delete',
-	'agent_schedule',
-	'agent_execute_tool',
-	'agent_list_tools',
-	'agent_metrics',
-] as const
-
-export type AgentControlToolId = (typeof AGENT_CONTROL_TOOL_IDS)[number]

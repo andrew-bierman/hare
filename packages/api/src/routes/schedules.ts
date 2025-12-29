@@ -6,8 +6,8 @@
 
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
 import { and, desc, eq } from 'drizzle-orm'
-import { agents, scheduledTasks, scheduleExecutions } from 'web-app/db/schema'
-import { routeHttpToAgent } from 'web-app/lib/agents'
+import { agents, scheduledTasks, scheduleExecutions } from '@hare/db'
+import { routeHttpToAgent } from '@hare/agent'
 import { getCloudflareEnv, getDb } from '../db'
 import { commonResponses, requireWriteAccess } from '../helpers'
 import { authMiddleware, workspaceMiddleware } from '../middleware'

@@ -9,9 +9,8 @@
  */
 
 import { eq } from 'drizzle-orm'
-import { agents, deployments } from 'web-app/db/schema'
-import type { Database } from 'web-app/db'
-import { serverEnv } from 'web-app/lib/env/server'
+import { agents, deployments, type Database } from '@hare/db'
+import { serverEnv } from '@hare/config'
 
 // =============================================================================
 // Types

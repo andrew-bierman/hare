@@ -138,9 +138,10 @@ export class HareMcpAgent<TEnv extends McpAgentEnv = McpAgentEnv> extends McpAge
 
 	/**
 	 * Called when state is updated.
+	 * Override this method to add custom state change handling.
 	 */
-	onStateUpdate(state: McpAgentState): void {
-		console.log('MCP Agent state updated:', state)
+	onStateUpdate(_state: McpAgentState): void {
+		// State update hook - override in subclass if needed
 	}
 
 	/**

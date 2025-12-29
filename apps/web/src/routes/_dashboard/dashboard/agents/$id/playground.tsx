@@ -1,3 +1,4 @@
+import { useWorkspace } from '@hare/app'
 import { useAgentQuery, useChat } from '@hare/app/shared/api'
 import { ToolCallList } from '@hare/app/widgets/chat-interface'
 import { getModelName } from '@hare/config'
@@ -31,7 +32,6 @@ import {
 } from 'lucide-react'
 import { type FormEvent, type KeyboardEvent, useCallback, useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
-import { useWorkspace } from '@hare/app'
 
 export const Route = createFileRoute('/_dashboard/dashboard/agents/$id/playground')({
 	component: PlaygroundPage,

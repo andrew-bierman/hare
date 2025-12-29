@@ -6,7 +6,7 @@ import { type AppType, app } from '../index'
  *
  * Usage:
  * ```typescript
- * import { client } from 'web-app/lib/api/helpers/testing'
+ * import { client } from '@hare/api/helpers/testing'
  *
  * // Type-safe API calls with autocompletion
  * const res = await client.agents.$get({ query: { workspaceId: 'xxx' } })

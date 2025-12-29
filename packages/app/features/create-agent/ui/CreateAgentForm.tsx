@@ -25,7 +25,7 @@ import { toast } from 'sonner'
 import type { Tool } from '@hare/types'
 import { useCreateAgentMutation, useToolsQuery } from '../../../shared/api/hooks'
 import { AgentInstructionsEditor } from '../../../widgets/agent-builder'
-import { AVAILABLE_MODELS } from '@hare/config'
+import { AI_MODELS } from '@hare/config'
 
 interface CreateAgentFormProps {
 	workspaceId: string | undefined
@@ -124,7 +124,7 @@ export function CreateAgentForm({ workspaceId }: CreateAgentFormProps) {
 									<SelectValue placeholder="Select a model" />
 								</SelectTrigger>
 								<SelectContent>
-									{AVAILABLE_MODELS.map((m) => (
+									{AI_MODELS.map((m) => (
 										<SelectItem key={m.id} value={m.id}>
 											<div className="flex flex-col">
 												<span>{m.name}</span>

@@ -1,3 +1,4 @@
+import { useWorkspace } from '@hare/app'
 import { useDebouncedValue } from '@hare/app/shared'
 import {
 	useAgentPreviewQuery,
@@ -58,7 +59,6 @@ import {
 } from 'lucide-react'
 import { type ChangeEvent, useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
-import { useWorkspace } from '@hare/app'
 import { z } from 'zod'
 
 export const Route = createFileRoute('/_dashboard/dashboard/agents/$id/')({

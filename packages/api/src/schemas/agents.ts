@@ -1,23 +1,25 @@
 import { z } from '@hono/zod-openapi'
+import { AGENT_LIMITS, AI_MODELS } from '@hare/config'
 
 // =============================================================================
 // Validation Constants
 // =============================================================================
 
 /**
- * Agent validation limits - must match AGENT_LIMITS in config
+ * Agent validation limits - derived from AGENT_LIMITS in @hare/config
+ * Additional validation constraints for config parameters are defined here
  */
 export const AGENT_VALIDATION = {
 	name: {
-		min: 1,
-		max: 100,
+		min: AGENT_LIMITS.nameMinLength,
+		max: AGENT_LIMITS.nameMaxLength,
 	},
 	description: {
-		max: 500,
+		max: AGENT_LIMITS.descriptionMaxLength,
 	},
 	instructions: {
 		min: 1,
-		max: 10000,
+		max: AGENT_LIMITS.instructionsMaxLength,
 	},
 	config: {
 		temperature: {
@@ -36,28 +38,13 @@ export const AGENT_VALIDATION = {
 			min: 0,
 		},
 	},
-	maxToolsPerAgent: 20,
+	maxToolsPerAgent: AGENT_LIMITS.maxToolsPerAgent,
 } as const
 
 /**
- * Allowed AI model IDs for validation
- * These match the models defined in config/index.ts
+ * Allowed AI model IDs - derived from AI_MODELS in @hare/config
  */
-export const ALLOWED_MODEL_IDS = [
-	// Anthropic models
-	'claude-3-5-sonnet-20241022',
-	'claude-3-5-haiku-20241022',
-	'claude-3-opus-20240229',
-	// OpenAI models
-	'gpt-4o',
-	'gpt-4o-mini',
-	// Workers AI models
-	'@cf/meta/llama-3.3-70b-instruct-fp8-fast',
-	'@cf/meta/llama-3.1-8b-instruct',
-	'@cf/mistral/mistral-7b-instruct-v0.2',
-	'@cf/qwen/qwen1.5-14b-chat-awq',
-	'@cf/google/gemma-7b-it',
-] as const
+export const ALLOWED_MODEL_IDS = AI_MODELS.map((m) => m.id)
 
 export type AllowedModelId = (typeof ALLOWED_MODEL_IDS)[number]
 
