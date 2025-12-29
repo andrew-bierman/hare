@@ -285,7 +285,7 @@ app.openapi(healthRoute, async (c) => {
 	let env = c.env as CloudflareEnv | undefined
 	if (!env?.DB) {
 		try {
-			env = await getCloudflareEnv(c)
+			env = getCloudflareEnv(c)
 		} catch {
 			// Cloudflare env not available
 		}

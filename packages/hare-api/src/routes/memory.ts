@@ -366,8 +366,8 @@ async function findAgentByIdAndWorkspace(
 app.openapi(listMemoriesRoute, async (c) => {
 	const { id } = c.req.valid('param')
 	const { limit, offset } = c.req.valid('query')
-	const db = await getDb(c)
-	const env = await getCloudflareEnv(c)
+	const db = getDb(c)
+	const env = getCloudflareEnv(c)
 	const workspace = c.get('workspace')
 
 	const agent = await findAgentByIdAndWorkspace(db, id, workspace.id)
@@ -397,8 +397,8 @@ app.openapi(listMemoriesRoute, async (c) => {
 app.openapi(createMemoryRoute, async (c) => {
 	const { id } = c.req.valid('param')
 	const data = c.req.valid('json')
-	const db = await getDb(c)
-	const env = await getCloudflareEnv(c)
+	const db = getDb(c)
+	const env = getCloudflareEnv(c)
 	const workspace = c.get('workspace')
 	const role = c.get('workspaceRole')
 
@@ -454,8 +454,8 @@ app.openapi(createMemoryRoute, async (c) => {
 app.openapi(searchMemoriesRoute, async (c) => {
 	const { id } = c.req.valid('param')
 	const data = c.req.valid('json')
-	const db = await getDb(c)
-	const env = await getCloudflareEnv(c)
+	const db = getDb(c)
+	const env = getCloudflareEnv(c)
 	const workspace = c.get('workspace')
 
 	const agent = await findAgentByIdAndWorkspace(db, id, workspace.id)
@@ -480,8 +480,8 @@ app.openapi(searchMemoriesRoute, async (c) => {
 // Delete memory
 app.openapi(deleteMemoryRoute, async (c) => {
 	const { id, memoryId } = c.req.valid('param')
-	const db = await getDb(c)
-	const env = await getCloudflareEnv(c)
+	const db = getDb(c)
+	const env = getCloudflareEnv(c)
 	const workspace = c.get('workspace')
 	const role = c.get('workspaceRole')
 
@@ -505,8 +505,8 @@ app.openapi(deleteMemoryRoute, async (c) => {
 app.openapi(updateMemoryRoute, async (c) => {
 	const { id, memoryId } = c.req.valid('param')
 	const data = c.req.valid('json')
-	const db = await getDb(c)
-	const env = await getCloudflareEnv(c)
+	const db = getDb(c)
+	const env = getCloudflareEnv(c)
 	const workspace = c.get('workspace')
 	const role = c.get('workspaceRole')
 
@@ -561,8 +561,8 @@ app.openapi(updateMemoryRoute, async (c) => {
 // Clear all memories
 app.openapi(clearMemoriesRoute, async (c) => {
 	const { id } = c.req.valid('param')
-	const db = await getDb(c)
-	const env = await getCloudflareEnv(c)
+	const db = getDb(c)
+	const env = getCloudflareEnv(c)
 	const workspace = c.get('workspace')
 	const role = c.get('workspaceRole')
 

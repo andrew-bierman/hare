@@ -74,7 +74,7 @@ app.post('/seed', authMiddleware, workspaceMiddleware, async (c) => {
 		return c.json({ error: 'Seed endpoint only available in development' }, 403)
 	}
 
-	const db = await getDb(c)
+	const db = getDb(c)
 	const user = c.get('user')
 	const workspace = c.get('workspace')
 

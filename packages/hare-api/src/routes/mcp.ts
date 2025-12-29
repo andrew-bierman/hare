@@ -238,8 +238,8 @@ app.use('*', optionalAuthMiddleware)
 // MCP WebSocket connection
 app.openapi(mcpConnectRoute, async (c) => {
 	const { workspaceId } = c.req.valid('param')
-	const db = await getDb(c)
-	const env = await getCloudflareEnv(c)
+	const db = getDb(c)
+	const env = getCloudflareEnv(c)
 	const user = c.get('user')
 
 	// Check if it's a WebSocket request
@@ -305,7 +305,7 @@ async function createToolContext(
 	c: Parameters<Parameters<typeof app.openapi>[1]>[0],
 	workspaceId: string,
 ): Promise<ToolContext> {
-	const env = await getCloudflareEnv(c)
+	const env = getCloudflareEnv(c)
 	const user = c.get('user')
 
 	return {
@@ -318,7 +318,7 @@ async function createToolContext(
 // MCP tools list (HTTP)
 app.openapi(mcpToolsRoute, async (c) => {
 	const { workspaceId } = c.req.valid('param')
-	const db = await getDb(c)
+	const db = getDb(c)
 	const user = c.get('user')
 
 	// Verify workspace access
@@ -340,7 +340,7 @@ app.openapi(mcpToolsRoute, async (c) => {
 // MCP tool execute (HTTP)
 app.openapi(mcpToolExecuteRoute, async (c) => {
 	const { workspaceId, toolId } = c.req.valid('param')
-	const db = await getDb(c)
+	const db = getDb(c)
 	const user = c.get('user')
 
 	// Verify workspace access
@@ -373,7 +373,7 @@ app.openapi(mcpToolExecuteRoute, async (c) => {
 app.openapi(mcpRpcRoute, async (c) => {
 	const { workspaceId } = c.req.valid('param')
 	const { id, method, params } = c.req.valid('json')
-	const db = await getDb(c)
+	const db = getDb(c)
 	const user = c.get('user')
 
 	// Verify workspace access for non-initialize methods

@@ -100,7 +100,7 @@ app.use('*', workspaceMiddleware)
 // Register routes
 app.openapi(getAnalyticsRoute, async (c) => {
 	const { startDate, endDate, agentId, groupBy = 'day' } = c.req.valid('query')
-	const db = await getDb(c)
+	const db = getDb(c)
 	const workspace = c.get('workspace')
 
 	const defaultStartDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
