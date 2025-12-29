@@ -19,8 +19,23 @@ export function createHareAuthClient(options?: CreateAuthClientOptions) {
 	})
 }
 
-// Default auth client instance (uses window.location.origin in browser)
-export const authClient = createHareAuthClient()
+// Get base URL from environment or window.location.origin
+function getDefaultBaseURL() {
+	// Check for Vite environment variable (used by Tauri and other Vite apps)
+	if (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_URL) {
+		return import.meta.env.VITE_API_URL as string
+	}
+	// Fall back to window.location.origin
+	if (typeof window !== 'undefined') {
+		return window.location.origin
+	}
+	return undefined
+}
+
+// Default auth client instance
+export const authClient = createHareAuthClient({
+	baseURL: getDefaultBaseURL(),
+})
 
 // Re-export commonly used auth methods from default client
 export const { signIn, signUp, signOut, useSession, getSession } = authClient

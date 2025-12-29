@@ -31,7 +31,7 @@ import {
 } from 'lucide-react'
 import { type FormEvent, type KeyboardEvent, useCallback, useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
-import { useWorkspace } from 'web-app/app'
+import { useWorkspace } from '@hare/app'
 
 export const Route = createFileRoute('/_dashboard/dashboard/agents/$id/playground')({
 	component: PlaygroundPage,

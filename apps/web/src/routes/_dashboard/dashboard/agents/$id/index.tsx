@@ -58,7 +58,7 @@ import {
 } from 'lucide-react'
 import { type ChangeEvent, useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
-import { useWorkspace } from 'web-app/app'
+import { useWorkspace } from '@hare/app'
 import { z } from 'zod'
 
 export const Route = createFileRoute('/_dashboard/dashboard/agents/$id/')({

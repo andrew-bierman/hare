@@ -1,11 +1,15 @@
-import { WorkspaceProvider } from '@hare/app/providers'
-import { Header, Sidebar, UserNav, WorkspaceSwitcher } from '@hare/app/widgets'
-import { createFileRoute, Link, Outlet, useLocation } from '@tanstack/react-router'
 import {
 	DashboardErrorComponent,
 	DashboardNotFound,
 	DashboardPendingComponent,
-} from '../components/router'
+	DevTools,
+	Header,
+	Sidebar,
+	UserNav,
+	WorkspaceSwitcher,
+} from '@hare/app/widgets'
+import { WorkspaceProvider } from '@hare/app'
+import { createFileRoute, Link, Outlet, useLocation } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/_dashboard')({
 	component: DashboardLayout,
@@ -33,6 +37,7 @@ function DashboardLayout() {
 					</div>
 				</main>
 			</div>
+			<DevTools />
 		</WorkspaceProvider>
 	)
 }

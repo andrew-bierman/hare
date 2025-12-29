@@ -11,8 +11,6 @@ export {
 	useAuthActions,
 	type AuthActions,
 	type AuthContextValue,
-	type AuthProviderProps,
-	type Session,
 } from './context'
 
 // Sign-in actions

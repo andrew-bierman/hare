@@ -35,7 +35,7 @@ import {
 	XAxis,
 	YAxis,
 } from 'recharts'
-import { useWorkspace } from 'web-app/app'
+import { useWorkspace } from '@hare/app'
 
 export const Route = createFileRoute('/_dashboard/dashboard/analytics/')({
 	component: AnalyticsPage,

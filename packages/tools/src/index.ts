@@ -77,7 +77,33 @@ export {
 // INTEGRATION TOOLS
 // ==========================================
 
-export { getIntegrationTools, webhookTool, zapierTool } from './integrations'
+export {
+	getIntegrationTools,
+	webhookTool,
+	zapierDeleteTool,
+	zapierListTool,
+	zapierSaveTool,
+	zapierTestTool,
+	zapierTool,
+	zapierTriggerTool,
+} from './integrations'
+
+// Constants
+export {
+	AutoRAGConfig,
+	ContentLengths,
+	ContentTypes,
+	ImageGeneration,
+	ListLimits,
+	Radix,
+	SandboxLimits,
+	ScrapeLimits,
+	StoragePrefixes,
+	Timeouts,
+	UserAgents,
+	ValidationLimits,
+	ZapierConfig,
+} from './constants'
 
 // ==========================================
 // AI TOOLS (Workers AI)
@@ -154,6 +180,39 @@ export {
 // ==========================================
 
 export { getMemoryTools, recallMemoryTool, storeMemoryTool } from './memory'
+
+// ==========================================
+// AGENT CONTROL TOOLS (MCP)
+// ==========================================
+
+export {
+	AGENT_CONTROL_TOOL_IDS,
+	agentControlTools,
+	type AgentControlToolId,
+	configureAgentTool,
+	createAgentTool,
+	deleteAgentTool,
+	executeToolTool,
+	getAgentControlTools,
+	getAgentMetricsTool,
+	getAgentTool,
+	listAgentsTool,
+	listAgentToolsTool,
+	scheduleTaskTool,
+	sendMessageTool,
+} from './agent-control'
+
+// ==========================================
+// TOOL FACTORY (Database Loading)
+// ==========================================
+
+export {
+	createDrizzleToolDatabase,
+	createToolFromConfig,
+	loadAgentTools,
+	type LoadAgentToolsInput,
+	type ToolDatabase,
+} from './factory'
 
 // ==========================================
 // TOOL AGGREGATION
