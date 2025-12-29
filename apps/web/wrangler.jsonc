@@ -100,5 +100,14 @@
     ],
   },
 
+  // Observability - enable logs for debugging
+  "observability": {
+    "logs": {
+      "enabled": true,
+      "head_sampling_rate": 1,
+      "invocation_logs": true
+    }
+  },
+
   // Environment variables: use .dev.vars for local, CF dashboard for production
 }
