@@ -1,6 +1,317 @@
 import { z } from 'zod'
 import { createTool, failure, success, type ToolContext, type ToolResult } from './types'
 
+// Output schemas for utility tools
+
+/** Output for datetime 'now' operation */
+const DatetimeNowOutputSchema = z.object({
+	iso: z.string(),
+	unix: z.number(),
+	formatted: z.string(),
+	timezone: z.string().optional(),
+})
+
+/** Output for datetime 'format' operation */
+const DatetimeFormatOutputSchema = z.object({
+	original: z.string().optional(),
+	formatted: z.string(),
+	iso: z.string(),
+})
+
+/** Output for datetime 'parse' operation */
+const DatetimeParseOutputSchema = z.object({
+	original: z.string().optional(),
+	iso: z.string(),
+	unix: z.number(),
+	year: z.number(),
+	month: z.number(),
+	day: z.number(),
+	hour: z.number(),
+	minute: z.number(),
+	second: z.number(),
+	dayOfWeek: z.string(),
+})
+
+/** Output for datetime 'diff' operation */
+const DatetimeDiffOutputSchema = z.object({
+	milliseconds: z.number(),
+	seconds: z.number(),
+	minutes: z.number(),
+	hours: z.number(),
+	days: z.number(),
+	weeks: z.number(),
+	humanReadable: z.string(),
+})
+
+/** Output for datetime 'add'/'subtract' operations */
+const DatetimeAddSubtractOutputSchema = z.object({
+	original: z.string(),
+	result: z.string(),
+	formatted: z.string(),
+})
+
+/** Combined output schema for datetime tool */
+const DatetimeOutputSchema = z.union([
+	DatetimeNowOutputSchema,
+	DatetimeFormatOutputSchema,
+	DatetimeParseOutputSchema,
+	DatetimeDiffOutputSchema,
+	DatetimeAddSubtractOutputSchema,
+])
+
+/** Output for JSON 'parse' operation */
+const JsonParseOutputSchema = z.object({
+	result: z.unknown(),
+	type: z.string(),
+})
+
+/** Output for JSON 'stringify' operation */
+const JsonStringifyOutputSchema = z.object({
+	result: z.string(),
+	length: z.number(),
+})
+
+/** Output for JSON 'get' operation */
+const JsonGetOutputSchema = z.object({
+	path: z.string(),
+	value: z.unknown(),
+	found: z.boolean(),
+})
+
+/** Output for JSON 'set'/'delete'/'merge' operations */
+const JsonMutateOutputSchema = z.object({
+	result: z.unknown(),
+})
+
+/** Output for JSON 'keys' operation */
+const JsonKeysOutputSchema = z.object({
+	keys: z.array(z.string()),
+	count: z.number(),
+})
+
+/** Output for JSON 'values' operation */
+const JsonValuesOutputSchema = z.object({
+	values: z.array(z.unknown()),
+	count: z.number(),
+})
+
+/** Output for JSON 'flatten' operation */
+const JsonFlattenOutputSchema = z.object({
+	result: z.record(z.string(), z.unknown()),
+	keys: z.array(z.string()),
+})
+
+/** Combined output schema for JSON tool */
+const JsonOutputSchema = z.union([
+	JsonParseOutputSchema,
+	JsonStringifyOutputSchema,
+	JsonGetOutputSchema,
+	JsonMutateOutputSchema,
+	JsonKeysOutputSchema,
+	JsonValuesOutputSchema,
+	JsonFlattenOutputSchema,
+])
+
+/** Output for text 'split' operation */
+const TextSplitOutputSchema = z.object({
+	result: z.array(z.string()),
+	count: z.number(),
+})
+
+/** Output for text 'join'/'replace'/'replaceAll'/'uppercase'/'lowercase'/'capitalize'/'titleCase'/'trim'/'padStart'/'padEnd'/'reverse'/'slug'/'camelCase'/'snakeCase'/'kebabCase'/'repeat' operations */
+const TextResultOutputSchema = z.object({
+	result: z.string(),
+})
+
+/** Output for text 'truncate' operation */
+const TextTruncateOutputSchema = z.object({
+	result: z.string(),
+	truncated: z.boolean(),
+})
+
+/** Output for text 'wordCount' operation */
+const TextWordCountOutputSchema = z.object({
+	count: z.number(),
+	words: z.array(z.string()),
+})
+
+/** Output for text 'charCount' operation */
+const TextCharCountOutputSchema = z.object({
+	total: z.number(),
+	withoutSpaces: z.number(),
+	letters: z.number(),
+	digits: z.number(),
+})
+
+/** Output for text 'lines' operation */
+const TextLinesOutputSchema = z.object({
+	lines: z.array(z.string()),
+	count: z.number(),
+})
+
+/** Output for text 'extract' operation */
+const TextExtractOutputSchema = z.object({
+	matches: z.array(z.string()),
+	count: z.number(),
+})
+
+/** Output for text 'contains' operation */
+const TextContainsOutputSchema = z.object({
+	result: z.boolean(),
+	index: z.number(),
+})
+
+/** Output for text 'startsWith'/'endsWith' operations */
+const TextBooleanOutputSchema = z.object({
+	result: z.boolean(),
+})
+
+/** Combined output schema for text tool */
+const TextOutputSchema = z.union([
+	TextSplitOutputSchema,
+	TextResultOutputSchema,
+	TextTruncateOutputSchema,
+	TextWordCountOutputSchema,
+	TextCharCountOutputSchema,
+	TextLinesOutputSchema,
+	TextExtractOutputSchema,
+	TextContainsOutputSchema,
+	TextBooleanOutputSchema,
+])
+
+/** Output for math single result operations */
+const MathResultOutputSchema = z.object({
+	result: z.number(),
+})
+
+/** Output for math 'percentage' operation */
+const MathPercentageOutputSchema = z.object({
+	result: z.number(),
+	formatted: z.string(),
+})
+
+/** Output for math 'evaluate' operation */
+const MathEvaluateOutputSchema = z.object({
+	result: z.number(),
+	expression: z.string(),
+})
+
+/** Combined output schema for math tool */
+const MathOutputSchema = z.union([
+	MathResultOutputSchema,
+	MathPercentageOutputSchema,
+	MathEvaluateOutputSchema,
+])
+
+/** Output for uuid single ID generation */
+const UuidSingleOutputSchema = z.object({
+	id: z.string(),
+})
+
+/** Output for uuid multiple ID generation */
+const UuidMultipleOutputSchema = z.object({
+	ids: z.array(z.string()),
+	count: z.number(),
+})
+
+/** Combined output schema for uuid tool */
+const UuidOutputSchema = z.union([UuidSingleOutputSchema, UuidMultipleOutputSchema])
+
+/** Output for hash 'hash' operation */
+const HashOutputSchema = z.object({
+	hash: z.string(),
+	algorithm: z.string(),
+	encoding: z.string(),
+	inputLength: z.number(),
+})
+
+/** Output for hash 'verify' operation */
+const HashVerifyOutputSchema = z.object({
+	matches: z.boolean(),
+	computed: z.string(),
+	expected: z.string(),
+})
+
+/** Output for hash 'hmac' operation */
+const HashHmacOutputSchema = z.object({
+	hmac: z.string(),
+	algorithm: z.string(),
+	encoding: z.string(),
+})
+
+/** Combined output schema for hash tool */
+const HashToolOutputSchema = z.union([HashOutputSchema, HashVerifyOutputSchema, HashHmacOutputSchema])
+
+/** Output for base64 'encode' operation */
+const Base64EncodeOutputSchema = z.object({
+	result: z.string(),
+	originalLength: z.number(),
+	encodedLength: z.number(),
+})
+
+/** Output for base64 'decode' operation */
+const Base64DecodeOutputSchema = z.object({
+	result: z.string(),
+	encodedLength: z.number(),
+	decodedLength: z.number(),
+})
+
+/** Combined output schema for base64 tool */
+const Base64OutputSchema = z.union([Base64EncodeOutputSchema, Base64DecodeOutputSchema])
+
+/** Output for url 'parse' operation */
+const UrlParseOutputSchema = z.object({
+	href: z.string(),
+	protocol: z.string(),
+	host: z.string(),
+	hostname: z.string(),
+	port: z.string(),
+	pathname: z.string(),
+	search: z.string(),
+	hash: z.string(),
+	origin: z.string(),
+	params: z.record(z.string(), z.string()),
+})
+
+/** Output for url 'build'/'addParams'/'removeParams'/'join' operations */
+const UrlResultOutputSchema = z.object({
+	url: z.string(),
+})
+
+/** Output for url 'encode' operation */
+const UrlEncodeOutputSchema = z.object({
+	encoded: z.string(),
+	original: z.string(),
+})
+
+/** Output for url 'decode' operation */
+const UrlDecodeOutputSchema = z.object({
+	decoded: z.string(),
+	original: z.string(),
+})
+
+/** Output for url 'getParams' operation */
+const UrlGetParamsOutputSchema = z.object({
+	params: z.record(z.string(), z.string()),
+	count: z.number(),
+})
+
+/** Combined output schema for url tool */
+const UrlOutputSchema = z.union([
+	UrlParseOutputSchema,
+	UrlResultOutputSchema,
+	UrlEncodeOutputSchema,
+	UrlDecodeOutputSchema,
+	UrlGetParamsOutputSchema,
+])
+
+/** Output schema for delay tool */
+const DelayOutputSchema = z.object({
+	requested: z.number(),
+	actual: z.number(),
+	reason: z.string().optional(),
+})
+
 /**
  * DateTime Tool - Get current time, format dates, calculate differences.
  */
@@ -8,6 +319,7 @@ export const datetimeTool = createTool({
 	id: 'datetime',
 	description:
 		'Get current date/time, format dates, parse dates, or calculate time differences. Supports ISO 8601 and common formats.',
+	outputSchema: DatetimeOutputSchema,
 	inputSchema: z.object({
 		operation: z
 			.enum(['now', 'format', 'parse', 'diff', 'add', 'subtract'])
@@ -204,6 +516,7 @@ export const jsonTool = createTool({
 	id: 'json',
 	description:
 		'Parse JSON strings, stringify objects, extract values using dot notation paths, or transform JSON data.',
+	outputSchema: JsonOutputSchema,
 	inputSchema: z.object({
 		operation: z
 			.enum(['parse', 'stringify', 'get', 'set', 'delete', 'merge', 'keys', 'values', 'flatten'])
@@ -380,6 +693,7 @@ export const textTool = createTool({
 	id: 'text',
 	description:
 		'Perform text operations: split, join, replace, case conversion, trim, pad, truncate, word count, and more.',
+	outputSchema: TextOutputSchema,
 	inputSchema: z.object({
 		operation: z
 			.enum([
@@ -589,6 +903,7 @@ export const mathTool = createTool({
 	id: 'math',
 	description:
 		'Perform mathematical operations: basic arithmetic, statistics, rounding, random numbers, and more.',
+	outputSchema: MathOutputSchema,
 	inputSchema: z.object({
 		operation: z
 			.enum([
@@ -757,6 +1072,7 @@ export const mathTool = createTool({
 export const uuidTool = createTool({
 	id: 'uuid',
 	description: 'Generate UUIDs (v4), nano IDs, or other unique identifiers.',
+	outputSchema: UuidOutputSchema,
 	inputSchema: z.object({
 		type: z
 			.enum(['uuid', 'nanoid', 'ulid', 'cuid', 'timestamp', 'short'])
@@ -851,6 +1167,7 @@ export const uuidTool = createTool({
 export const hashTool = createTool({
 	id: 'hash',
 	description: 'Generate cryptographic hashes (SHA-256, SHA-384, SHA-512) or verify hashes.',
+	outputSchema: HashToolOutputSchema,
 	inputSchema: z.object({
 		operation: z
 			.enum(['hash', 'verify', 'hmac'])
@@ -933,6 +1250,7 @@ export const base64Tool = createTool({
 	id: 'base64',
 	description:
 		'Encode data to base64 or decode base64 to text. Supports standard and URL-safe variants.',
+	outputSchema: Base64OutputSchema,
 	inputSchema: z.object({
 		operation: z.enum(['encode', 'decode']).describe('Operation to perform'),
 		data: z.string().describe('Data to encode/decode'),
@@ -985,6 +1303,7 @@ export const urlTool = createTool({
 	id: 'url',
 	description:
 		'Parse URLs, construct URLs, encode/decode URL components, or manipulate query parameters.',
+	outputSchema: UrlOutputSchema,
 	inputSchema: z.object({
 		operation: z
 			.enum([
@@ -1108,6 +1427,7 @@ export const delayTool = createTool({
 	id: 'delay',
 	description:
 		'Wait for a specified amount of time before continuing. Useful for rate limiting or timing.',
+	outputSchema: DelayOutputSchema,
 	inputSchema: z.object({
 		duration: z
 			.number()

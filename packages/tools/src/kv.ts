@@ -1,12 +1,63 @@
 import { z } from 'zod'
 import { createTool, failure, success, type ToolContext } from './types'
 
+// ============================================================================
+// Output Schemas
+// ============================================================================
+
+const KvGetOutputSchema = z.object({
+	key: z.string(),
+	value: z.unknown(),
+	found: z.boolean(),
+})
+
+const KvPutOutputSchema = z.object({
+	key: z.string(),
+	stored: z.literal(true),
+})
+
+const KvDeleteOutputSchema = z.object({
+	key: z.string(),
+	deleted: z.literal(true),
+})
+
+const KvListOutputSchema = z.object({
+	keys: z.array(
+		z.object({
+			name: z.string(),
+			expiration: z.number().optional(),
+			metadata: z.unknown().optional(),
+		}),
+	),
+	complete: z.boolean(),
+	cursor: z.string().optional(),
+})
+
+// ============================================================================
+// Internal Schemas (for API response validation)
+// ============================================================================
+
+const KVListResultSchema = z.object({
+	keys: z.array(
+		z.object({
+			name: z.string(),
+			expiration: z.number().optional(),
+			metadata: z.unknown().optional(),
+		}),
+	),
+	list_complete: z.boolean(),
+	cursor: z.string().optional(),
+})
+
+// ============================================================================
+// Helper Functions
+// ============================================================================
+
 /**
  * Get workspace-scoped key.
  * All KV keys are prefixed with workspaceId to ensure multi-tenant isolation.
  */
 function scopedKey(workspaceId: string, key: string): string {
-	// Validate key doesn't try to escape workspace scope
 	if (key.includes('..') || key.startsWith('/')) {
 		throw new Error('Invalid key: path traversal not allowed')
 	}
@@ -20,6 +71,10 @@ function unscopedKey(workspaceId: string, fullKey: string): string {
 	const prefix = `ws/${workspaceId}/`
 	return fullKey.startsWith(prefix) ? fullKey.slice(prefix.length) : fullKey
 }
+
+// ============================================================================
+// Tools
+// ============================================================================
 
 /**
  * KV Get Tool - Retrieve a value from Cloudflare KV.
@@ -36,6 +91,7 @@ export const kvGetTool = createTool({
 			.default('text')
 			.describe('The type to return the value as'),
 	}),
+	outputSchema: KvGetOutputSchema,
 	execute: async (params, context) => {
 		const kv = context.env.KV
 		if (!kv) {
@@ -80,6 +136,7 @@ export const kvPutTool = createTool({
 			.optional()
 			.describe('Optional metadata to store with the key'),
 	}),
+	outputSchema: KvPutOutputSchema,
 	execute: async (params, context) => {
 		const kv = context.env.KV
 		if (!kv) {
@@ -97,7 +154,7 @@ export const kvPutTool = createTool({
 			}
 
 			await kv.put(fullKey, params.value, options)
-			return success({ key: params.key, stored: true })
+			return success({ key: params.key, stored: true as const })
 		} catch (error) {
 			return failure(
 				`Failed to put key "${params.key}": ${error instanceof Error ? error.message : 'Unknown error'}`,
@@ -115,6 +172,7 @@ export const kvDeleteTool = createTool({
 	inputSchema: z.object({
 		key: z.string().describe('The key to delete from KV storage'),
 	}),
+	outputSchema: KvDeleteOutputSchema,
 	execute: async (params, context) => {
 		const kv = context.env.KV
 		if (!kv) {
@@ -124,7 +182,7 @@ export const kvDeleteTool = createTool({
 		try {
 			const fullKey = scopedKey(context.workspaceId, params.key)
 			await kv.delete(fullKey)
-			return success({ key: params.key, deleted: true })
+			return success({ key: params.key, deleted: true as const })
 		} catch (error) {
 			return failure(
 				`Failed to delete key "${params.key}": ${error instanceof Error ? error.message : 'Unknown error'}`,
@@ -144,6 +202,7 @@ export const kvListTool = createTool({
 		limit: z.number().optional().default(100).describe('Maximum number of keys to return'),
 		cursor: z.string().optional().describe('Cursor for pagination'),
 	}),
+	outputSchema: KvListOutputSchema,
 	execute: async (params, context) => {
 		const kv = context.env.KV
 		if (!kv) {
@@ -151,7 +210,6 @@ export const kvListTool = createTool({
 		}
 
 		try {
-			// Always scope to workspace, optionally with additional user prefix
 			const workspacePrefix = `ws/${context.workspaceId}/`
 			const fullPrefix = params.prefix
 				? scopedKey(context.workspaceId, params.prefix)
@@ -166,14 +224,20 @@ export const kvListTool = createTool({
 			}
 
 			const result = await kv.list(options)
+			const parseResult = KVListResultSchema.safeParse(result)
+			if (!parseResult.success) {
+				return failure(`Invalid KV list response: ${parseResult.error.message}`)
+			}
+			const parsed = parseResult.data
+
 			return success({
-				keys: result.keys.map((k) => ({
+				keys: parsed.keys.map((k) => ({
 					name: unscopedKey(context.workspaceId, k.name),
 					expiration: k.expiration,
 					metadata: k.metadata,
 				})),
-				complete: result.list_complete,
-				cursor: result.list_complete ? undefined : (result as { cursor?: string }).cursor,
+				complete: parsed.list_complete,
+				cursor: parsed.list_complete ? undefined : parsed.cursor,
 			})
 		} catch (error) {
 			return failure(

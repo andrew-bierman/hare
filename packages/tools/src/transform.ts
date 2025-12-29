@@ -1,6 +1,122 @@
 import { z } from 'zod'
 import { createTool, failure, success, type ToolContext, type ToolResult } from './types'
 
+// ============================================================================
+// Output Schemas
+// ============================================================================
+
+const HeadingSchema = z.object({
+	level: z.number(),
+	text: z.string(),
+})
+
+const LinkSchema = z.object({
+	text: z.string(),
+	url: z.string(),
+	isImage: z.boolean(),
+})
+
+const CodeBlockSchema = z.object({
+	language: z.string(),
+	code: z.string(),
+})
+
+const MarkdownOutputSchema = z.union([
+	z.object({ html: z.string() }),
+	z.object({ text: z.string() }),
+	z.object({ headings: z.array(HeadingSchema) }),
+	z.object({ links: z.array(LinkSchema) }),
+	z.object({ codeBlocks: z.array(CodeBlockSchema) }),
+	z.object({
+		headings: z.array(HeadingSchema),
+		links: z.array(LinkSchema),
+		codeBlocks: z.array(CodeBlockSchema),
+	}),
+])
+
+const DiffChangeSchema = z.object({
+	type: z.enum(['equal', 'add', 'delete']),
+	value: z.string(),
+	lineNumber: z
+		.object({
+			old: z.number().optional(),
+			new: z.number().optional(),
+		})
+		.optional(),
+})
+
+const DiffOutputSchema = z.object({
+	changes: z.array(DiffChangeSchema),
+	unifiedDiff: z.string().optional(),
+	stats: z.object({
+		additions: z.number(),
+		deletions: z.number(),
+		unchanged: z.number(),
+	}),
+	mode: z.enum(['lines', 'words', 'chars']),
+})
+
+const QrcodeOutputSchema = z.object({
+	svg: z.string(),
+	dataUrl: z.string(),
+	size: z.number(),
+	type: z.enum(['text', 'url', 'email', 'phone', 'sms', 'wifi', 'vcard']),
+	data: z.string(),
+	moduleCount: z.number(),
+})
+
+const CompressionOutputSchema = z.union([
+	z.object({
+		compressed: z.string(),
+		originalSize: z.number(),
+		compressedSize: z.number(),
+		ratio: z.number(),
+		algorithm: z.enum(['gzip', 'deflate']),
+	}),
+	z.object({
+		decompressed: z.string(),
+		compressedSize: z.number(),
+		decompressedSize: z.number(),
+		algorithm: z.enum(['gzip', 'deflate']),
+	}),
+])
+
+const ColorOutputFormatSchema = z.union([
+	z.string(),
+	z.object({
+		hex: z.string(),
+		rgb: z.string(),
+		hsl: z.string(),
+	}),
+])
+
+const ColorOutputSchema = z.union([
+	z.object({ input: z.string(), output: ColorOutputFormatSchema }),
+	z.object({ input: z.string(), output: ColorOutputFormatSchema, amount: z.number() }),
+	z.object({ input: z.string(), complement: ColorOutputFormatSchema }),
+	z.object({
+		color1: z.string(),
+		color2: z.string(),
+		ratio: z.number(),
+		blended: ColorOutputFormatSchema,
+	}),
+	z.object({ baseColor: z.string(), palette: z.array(ColorOutputFormatSchema) }),
+	z.object({
+		color: z.string(),
+		luminance: z.number(),
+		contrastWithWhite: z.number(),
+		contrastWithBlack: z.number(),
+		recommendedTextColor: z.string(),
+		wcagAALarge: z.boolean(),
+		wcagAA: z.boolean(),
+		wcagAAA: z.boolean(),
+	}),
+])
+
+// ============================================================================
+// Tools
+// ============================================================================
+
 /**
  * Markdown Tool - Parse and render Markdown
  */
@@ -27,7 +143,8 @@ export const markdownTool = createTool({
 			})
 			.optional(),
 	}),
-	execute: async (params, _context): Promise<ToolResult<unknown>> => {
+	outputSchema: MarkdownOutputSchema,
+	execute: async (params, _context): Promise<ToolResult<z.infer<typeof MarkdownOutputSchema>>> => {
 		const { operation, markdown, options } = params
 		const { sanitize: _sanitize = true, gfm = true } = options || {}
 
@@ -215,6 +332,7 @@ export const diffTool = createTool({
 			.describe('Comparison mode'),
 		context: z.number().optional().default(3).describe('Lines of context around changes'),
 	}),
+	outputSchema: DiffOutputSchema,
 	execute: async (params, _context) => {
 		const { original, modified, mode, context: _contextLines } = params
 
@@ -394,6 +512,7 @@ export const qrcodeTool = createTool({
 			})
 			.optional(),
 	}),
+	outputSchema: QrcodeOutputSchema,
 	execute: async (params, _context) => {
 		const { data, type, size, errorCorrection, wifiOptions, vcardOptions } = params
 
@@ -566,7 +685,11 @@ export const compressionTool = createTool({
 			.default('text')
 			.describe('Input/output encoding'),
 	}),
-	execute: async (params, _context): Promise<ToolResult<unknown>> => {
+	outputSchema: CompressionOutputSchema,
+	execute: async (
+		params,
+		_context,
+	): Promise<ToolResult<z.infer<typeof CompressionOutputSchema>>> => {
 		const { operation, data, algorithm, encoding } = params
 
 		try {
@@ -680,7 +803,8 @@ export const colorTool = createTool({
 		color2: z.string().optional().describe('Second color for blend operation'),
 		blendRatio: z.number().optional().default(0.5).describe('Blend ratio (0-1)'),
 	}),
-	execute: async (params, _context): Promise<ToolResult<unknown>> => {
+	outputSchema: ColorOutputSchema,
+	execute: async (params, _context): Promise<ToolResult<z.infer<typeof ColorOutputSchema>>> => {
 		const { operation, color, format, amount, color2, blendRatio } = params
 
 		// Parse color to RGB

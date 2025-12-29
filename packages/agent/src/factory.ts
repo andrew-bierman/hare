@@ -15,10 +15,16 @@ import {
 	failure,
 	getSystemTools,
 	httpRequestTool,
+	HttpResponseOutputSchema,
 	type ToolConfig,
 	type ToolContext,
 } from '@hare/tools'
 import { type AgentTool, createEdgeAgent, type EdgeAgent } from './edge-agent'
+
+/**
+ * Generic output schema for custom tools.
+ */
+const CustomToolOutputSchema = z.unknown()
 
 /**
  * Agent configuration from database.
@@ -137,6 +143,7 @@ function createHTTPToolFromConfig(config: ToolConfig, _context: ToolContext): An
 		id: config.id,
 		description: config.description || '',
 		inputSchema: httpRequestTool.inputSchema,
+		outputSchema: HttpResponseOutputSchema,
 		execute: async (params, ctx) => {
 			// Merge config defaults with runtime params
 			const mergedParams = {
@@ -166,6 +173,7 @@ function createCustomToolFromConfig(config: ToolConfig, _context: ToolContext): 
 		id: config.id,
 		description: config.description || '',
 		inputSchema,
+		outputSchema: CustomToolOutputSchema,
 		execute: async (_params, _ctx) => {
 			if (!config.code) {
 				return failure('No code provided for custom tool')

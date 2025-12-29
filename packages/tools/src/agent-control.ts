@@ -13,6 +13,139 @@
 import { z } from 'zod'
 import { type AnyTool, createTool, failure, success, type ToolContext } from './types'
 
+// Output Schemas
+
+const AgentSchema = z.object({
+	id: z.string(),
+	name: z.string(),
+	status: z.string(),
+	model: z.string(),
+	workspaceId: z.string(),
+	connectedUsers: z.union([z.number(), z.array(z.string())]),
+	lastActivity: z.number(),
+})
+
+const ListAgentsOutputSchema = z.object({
+	agents: z.array(AgentSchema),
+	total: z.number(),
+	workspaceId: z.string(),
+})
+
+const MessageSchema = z.object({
+	role: z.string(),
+	content: z.string(),
+})
+
+const GetAgentOutputSchema = z.object({
+	id: z.string(),
+	name: z.string(),
+	status: z.string(),
+	model: z.string(),
+	workspaceId: z.string(),
+	instructions: z.string(),
+	connectedUsers: z.array(z.string()),
+	lastActivity: z.number(),
+	scheduledTasks: z.array(z.unknown()),
+	messageCount: z.number().optional(),
+	messages: z.array(MessageSchema).optional(),
+})
+
+const TokensUsedSchema = z.object({
+	prompt: z.number(),
+	completion: z.number(),
+	total: z.number(),
+})
+
+const SendMessageOutputSchema = z.object({
+	agentId: z.string(),
+	messageId: z.string(),
+	userMessage: z.string(),
+	assistantResponse: z.string(),
+	timestamp: z.number(),
+	tokensUsed: TokensUsedSchema,
+})
+
+const ConfigureAgentOutputSchema = z.object({
+	agentId: z.string(),
+	workspaceId: z.string(),
+	changes: z.object({
+		name: z.string().optional(),
+		instructions: z.string().optional(),
+		model: z.string().optional(),
+	}),
+	updatedAt: z.number(),
+})
+
+const CreateAgentOutputSchema = z.object({
+	id: z.string(),
+	name: z.string(),
+	instructions: z.string(),
+	model: z.string(),
+	workspaceId: z.string(),
+	status: z.string(),
+	createdAt: z.number(),
+	createdBy: z.string(),
+})
+
+const DeleteAgentOutputSchema = z.object({
+	agentId: z.string(),
+	deleted: z.boolean(),
+	deletedAt: z.number(),
+})
+
+const ScheduleTaskOutputSchema = z.object({
+	id: z.string(),
+	agentId: z.string(),
+	action: z.string(),
+	type: z.string(),
+	executeAt: z.number().optional(),
+	cron: z.string().optional(),
+	payload: z.record(z.string(), z.unknown()).optional(),
+	createdAt: z.number(),
+})
+
+const ExecuteToolOutputSchema = z.object({
+	agentId: z.string(),
+	toolId: z.string(),
+	result: z.object({
+		success: z.boolean(),
+		data: z.record(z.string(), z.unknown()),
+	}),
+	executedAt: z.number(),
+})
+
+const ToolInfoSchema = z.object({
+	id: z.string(),
+	category: z.string(),
+	description: z.string(),
+})
+
+const ListAgentToolsOutputSchema = z.object({
+	agentId: z.string(),
+	tools: z.array(ToolInfoSchema),
+	total: z.number(),
+})
+
+const TopToolSchema = z.object({
+	id: z.string(),
+	calls: z.number(),
+})
+
+const GetAgentMetricsOutputSchema = z.object({
+	agentId: z.string(),
+	period: z.string(),
+	metrics: z.object({
+		totalMessages: z.number(),
+		totalToolCalls: z.number(),
+		averageResponseTime: z.number(),
+		tokensUsed: TokensUsedSchema,
+		errorRate: z.number(),
+		activeUsers: z.number(),
+	}),
+	topTools: z.array(TopToolSchema),
+	generatedAt: z.number(),
+})
+
 /**
  * List all agents in a workspace
  */
@@ -27,6 +160,7 @@ export const listAgentsTool = createTool({
 			.describe('Filter agents by status'),
 		limit: z.number().optional().default(50).describe('Maximum number of agents to return'),
 	}),
+	outputSchema: ListAgentsOutputSchema,
 	execute: async (params, context: ToolContext) => {
 		try {
 			// In a real implementation, this would query the database
@@ -76,6 +210,7 @@ export const getAgentTool = createTool({
 		agentId: z.string().describe('The unique identifier of the agent'),
 		includeHistory: z.boolean().optional().default(false).describe('Include conversation history'),
 	}),
+	outputSchema: GetAgentOutputSchema,
 	execute: async (params, context: ToolContext) => {
 		try {
 			// Mock agent data for POC
@@ -120,6 +255,7 @@ export const sendMessageTool = createTool({
 			.optional()
 			.describe('Additional metadata for the message'),
 	}),
+	outputSchema: SendMessageOutputSchema,
 	execute: async (params, _context: ToolContext) => {
 		try {
 			// In production, this would route to the HareAgent Durable Object
@@ -156,6 +292,7 @@ export const configureAgentTool = createTool({
 		instructions: z.string().optional().describe('System instructions for the agent'),
 		model: z.string().optional().describe('AI model to use'),
 	}),
+	outputSchema: ConfigureAgentOutputSchema,
 	execute: async (params, context: ToolContext) => {
 		try {
 			// In production, this would update the agent via Durable Object
@@ -192,6 +329,7 @@ export const createAgentTool = createTool({
 			.default('@cf/meta/llama-3.3-70b-instruct-fp8-fast')
 			.describe('AI model to use'),
 	}),
+	outputSchema: CreateAgentOutputSchema,
 	execute: async (params, context: ToolContext) => {
 		try {
 			const newAgent = {
@@ -222,6 +360,7 @@ export const deleteAgentTool = createTool({
 		agentId: z.string().describe('The agent to delete'),
 		force: z.boolean().optional().default(false).describe('Force delete even if agent is active'),
 	}),
+	outputSchema: DeleteAgentOutputSchema,
 	execute: async (params, _context: ToolContext) => {
 		try {
 			return success({
@@ -248,6 +387,7 @@ export const scheduleTaskTool = createTool({
 		cron: z.string().optional().describe('Cron expression for recurring tasks'),
 		payload: z.record(z.string(), z.unknown()).optional().describe('Task payload'),
 	}),
+	outputSchema: ScheduleTaskOutputSchema,
 	execute: async (params, _context: ToolContext) => {
 		try {
 			if (!params.executeAt && !params.cron) {
@@ -283,6 +423,7 @@ export const executeToolTool = createTool({
 		toolId: z.string().describe('The tool to execute'),
 		params: z.record(z.string(), z.unknown()).describe('Tool parameters'),
 	}),
+	outputSchema: ExecuteToolOutputSchema,
 	execute: async (params, _context: ToolContext) => {
 		try {
 			// In production, this would route to the agent and execute the tool
@@ -313,6 +454,7 @@ export const listAgentToolsTool = createTool({
 		agentId: z.string().describe('The agent to list tools for'),
 		category: z.string().optional().describe('Filter by tool category'),
 	}),
+	outputSchema: ListAgentToolsOutputSchema,
 	execute: async (params, _context: ToolContext) => {
 		try {
 			// Mock tool list for POC
@@ -352,6 +494,7 @@ export const getAgentMetricsTool = createTool({
 			.default('day')
 			.describe('Time period for metrics'),
 	}),
+	outputSchema: GetAgentMetricsOutputSchema,
 	execute: async (params, _context: ToolContext) => {
 		try {
 			const metrics = {

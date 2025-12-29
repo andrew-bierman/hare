@@ -98,6 +98,12 @@ export const ToolSchema = z
 				method: { type: 'string', enum: ['GET', 'POST', 'PUT', 'DELETE'] },
 			},
 		}),
+		outputSchema: JsonSchemaSchema.optional().openapi({
+			example: {
+				status: { type: 'number', description: 'HTTP status code' },
+				data: { type: 'unknown', description: 'Response data' },
+			},
+		}),
 		config: ToolConfigSchema.optional().openapi({ example: {} }),
 		code: z.string().optional().openapi({
 			example: 'export default async function(input) { return fetch(input.url) }',

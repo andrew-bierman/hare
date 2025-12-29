@@ -222,6 +222,9 @@ export function serializeHareTool(tool: AnyTool): SerializedTool {
 		description: tool.description,
 		type: getToolTypeFromId(tool.id),
 		inputSchema: zodSchemaToInputSchema(tool.inputSchema, tool.id),
+		outputSchema: tool.outputSchema
+			? zodSchemaToInputSchema(tool.outputSchema, `${tool.id}_output`)
+			: undefined,
 		config: undefined,
 		isSystem: true,
 		createdAt: now,

@@ -1,6 +1,79 @@
 import { z } from 'zod'
 import { createTool, failure, success, type ToolContext } from './types'
 
+// ============================================================================
+// Output Schemas
+// ============================================================================
+
+const R2GetOutputSchema = z.object({
+	key: z.string(),
+	found: z.boolean(),
+	content: z.string().nullable(),
+	contentType: z.string().optional(),
+	size: z.number().optional(),
+	etag: z.string().optional(),
+	uploaded: z.string().optional(),
+	metadata: z.record(z.string(), z.string()).optional(),
+})
+
+const R2PutOutputSchema = z.object({
+	key: z.string(),
+	stored: z.literal(true),
+	etag: z.string(),
+	size: z.number(),
+})
+
+const R2DeleteOutputSchema = z.object({
+	key: z.string(),
+	deleted: z.literal(true),
+})
+
+const R2ListOutputSchema = z.object({
+	objects: z.array(
+		z.object({
+			key: z.string(),
+			size: z.number(),
+			etag: z.string(),
+			uploaded: z.string(),
+		}),
+	),
+	truncated: z.boolean(),
+	cursor: z.string().optional(),
+	delimitedPrefixes: z.array(z.string()).optional(),
+})
+
+const R2HeadOutputSchema = z.object({
+	key: z.string(),
+	found: z.boolean(),
+	size: z.number().optional(),
+	etag: z.string().optional(),
+	uploaded: z.string().optional(),
+	contentType: z.string().optional(),
+	metadata: z.record(z.string(), z.string()).optional(),
+})
+
+// ============================================================================
+// Internal Schemas (for API response validation)
+// ============================================================================
+
+/**
+ * Zod schema for validating R2 list result.
+ * The R2 API returns cursor as an optional field when truncated=true.
+ */
+const R2ListResultSchema = z.object({
+	objects: z.array(
+		z.object({
+			key: z.string(),
+			size: z.number(),
+			etag: z.string(),
+			uploaded: z.date(),
+		}),
+	),
+	truncated: z.boolean(),
+	cursor: z.string().optional(),
+	delimitedPrefixes: z.array(z.string()).optional(),
+})
+
 /**
  * Get workspace-scoped path.
  * All R2 paths are prefixed with workspaceId to ensure multi-tenant isolation.
@@ -33,6 +106,7 @@ export const r2GetTool = createTool({
 	inputSchema: z.object({
 		key: z.string().describe('The key (path) of the object to retrieve'),
 	}),
+	outputSchema: R2GetOutputSchema,
 	execute: async (params, context) => {
 		const r2 = context.env.R2
 		if (!r2) {
@@ -80,6 +154,7 @@ export const r2PutTool = createTool({
 			.optional()
 			.describe('Custom metadata to store with the object'),
 	}),
+	outputSchema: R2PutOutputSchema,
 	execute: async (params, context) => {
 		const r2 = context.env.R2
 		if (!r2) {
@@ -118,6 +193,7 @@ export const r2DeleteTool = createTool({
 	inputSchema: z.object({
 		key: z.string().describe('The key (path) of the object to delete'),
 	}),
+	outputSchema: R2DeleteOutputSchema,
 	execute: async (params, context) => {
 		const r2 = context.env.R2
 		if (!r2) {
@@ -151,6 +227,7 @@ export const r2ListTool = createTool({
 			.optional()
 			.describe('Delimiter for grouping (e.g., "/" for folder-like listing)'),
 	}),
+	outputSchema: R2ListOutputSchema,
 	execute: async (params, context) => {
 		const r2 = context.env.R2
 		if (!r2) {
@@ -172,16 +249,22 @@ export const r2ListTool = createTool({
 			if (params.delimiter) options.delimiter = params.delimiter
 
 			const result = await r2.list(options)
+			const parseResult = R2ListResultSchema.safeParse(result)
+			if (!parseResult.success) {
+				return failure(`Invalid R2 list response: ${parseResult.error.message}`)
+			}
+			const parsed = parseResult.data
+
 			return success({
-				objects: result.objects.map((obj) => ({
+				objects: parsed.objects.map((obj) => ({
 					key: unscopedPath(context.workspaceId, obj.key),
 					size: obj.size,
 					etag: obj.etag,
 					uploaded: obj.uploaded.toISOString(),
 				})),
-				truncated: result.truncated,
-				cursor: result.truncated ? (result as unknown as { cursor?: string }).cursor : undefined,
-				delimitedPrefixes: result.delimitedPrefixes?.map((p) =>
+				truncated: parsed.truncated,
+				cursor: parsed.truncated ? parsed.cursor : undefined,
+				delimitedPrefixes: parsed.delimitedPrefixes?.map((p) =>
 					unscopedPath(context.workspaceId, p),
 				),
 			})
@@ -202,6 +285,7 @@ export const r2HeadTool = createTool({
 	inputSchema: z.object({
 		key: z.string().describe('The key (path) of the object'),
 	}),
+	outputSchema: R2HeadOutputSchema,
 	execute: async (params, context) => {
 		const r2 = context.env.R2
 		if (!r2) {

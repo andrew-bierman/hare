@@ -2,6 +2,64 @@ import { z } from 'zod'
 import { ContentTypes, StoragePrefixes, Timeouts, UserAgents, ZapierConfig } from './constants'
 import { createTool, failure, success, type ToolContext } from './types'
 
+// ==========================================
+// Output Schemas
+// ==========================================
+
+const ZapierSaveOutputSchema = z.object({
+	saved: z.boolean().describe('Whether the integration was saved successfully'),
+	name: z.string().describe('The name of the saved integration'),
+	description: z.string().describe('Description of what the integration does'),
+	updated: z.boolean().describe('Whether this was an update to an existing integration'),
+	message: z.string().describe('Human-readable status message'),
+})
+
+const ZapierListIntegrationSchema = z.object({
+	name: z.string().describe('Name of the integration'),
+	description: z.string().describe('Description of the integration'),
+	triggerCount: z.number().optional().describe('Number of times triggered'),
+	lastTriggeredAt: z.string().optional().describe('ISO timestamp of last trigger'),
+})
+
+const ZapierListOutputSchema = z.object({
+	integrations: z.array(ZapierListIntegrationSchema).describe('List of saved integrations'),
+	count: z.number().describe('Number of integrations returned'),
+	truncated: z.boolean().describe('Whether results were truncated due to limit'),
+	message: z.string().describe('Human-readable status message'),
+})
+
+const ZapierTriggerOutputSchema = z.object({
+	triggered: z.boolean().describe('Whether the webhook was triggered successfully'),
+	integration: z.string().describe('Name of the integration or "direct" for URL-based triggers'),
+	status: z.number().describe('HTTP status code from the webhook'),
+	response: z.unknown().describe('Response from the webhook (if waitForResponse is true)'),
+})
+
+const ZapierDeleteOutputSchema = z.object({
+	deleted: z.boolean().describe('Whether the integration was deleted successfully'),
+	name: z.string().describe('Name of the deleted integration'),
+	message: z.string().describe('Human-readable status message'),
+})
+
+const ZapierTestOutputSchema = z.object({
+	tested: z.boolean().describe('Whether the test was successful'),
+	name: z.string().describe('Name of the tested integration'),
+	status: z.number().describe('HTTP status code from the test request'),
+	message: z.string().describe('Human-readable result message'),
+})
+
+const ZapierLegacyOutputSchema = z.object({
+	triggered: z.boolean().describe('Whether the webhook was triggered successfully'),
+	status: z.number().describe('HTTP status code from the webhook'),
+	response: z.unknown().describe('Response from the webhook'),
+})
+
+const WebhookOutputSchema = z.object({
+	status: z.number().describe('HTTP status code from the webhook'),
+	ok: z.boolean().describe('Whether the request was successful (2xx status)'),
+	data: z.unknown().describe('Response data from the webhook'),
+})
+
 /**
  * Integration Philosophy:
  *
@@ -85,6 +143,7 @@ Once saved, trigger it anytime with just the name - no URL needed!`,
 			.optional()
 			.describe('Default data to include with every trigger (can be overridden)'),
 	}),
+	outputSchema: ZapierSaveOutputSchema,
 	execute: async (params, context) => {
 		const kv = context.env.KV
 		if (!kv) {
@@ -156,6 +215,7 @@ Shows name, description, and usage stats for each saved integration.`,
 			.default(true)
 			.describe('Include trigger count and last triggered time'),
 	}),
+	outputSchema: ZapierListOutputSchema,
 	execute: async (params, context) => {
 		const kv = context.env.KV
 		if (!kv) {
@@ -245,6 +305,7 @@ If the saved integration has defaultData, it will be merged (your data takes pre
 			.default(false)
 			.describe('Wait for Zap response (requires Webhooks by Zapier premium)'),
 	}),
+	outputSchema: ZapierTriggerOutputSchema,
 	execute: async (params, context) => {
 		const kv = context.env.KV
 		if (!kv && params.name) {
@@ -359,6 +420,7 @@ This only removes the saved reference - the actual Zap in Zapier is not affected
 	inputSchema: z.object({
 		name: z.string().describe('Name of the integration to delete'),
 	}),
+	outputSchema: ZapierDeleteOutputSchema,
 	execute: async (params, context) => {
 		const kv = context.env.KV
 		if (!kv) {
@@ -406,6 +468,7 @@ The Zap will receive the test data - check Zapier's task history to confirm.`,
 			.default({ test: true, message: 'Test from Hare' })
 			.describe('Test data to send'),
 	}),
+	outputSchema: ZapierTestOutputSchema,
 	execute: async (params, context) => {
 		const kv = context.env.KV
 		if (!kv) {
@@ -494,6 +557,7 @@ All service credentials are managed in your Zapier account, not here.`,
 			.default(false)
 			.describe('Wait for Zap response (requires Webhooks by Zapier premium)'),
 	}),
+	outputSchema: ZapierLegacyOutputSchema,
 	execute: async (params, context) => {
 		try {
 			const { webhookUrl, data, waitForResponse } = params
@@ -560,6 +624,7 @@ export const webhookTool = createTool({
 			.optional(),
 		timeout: z.number().optional().default(30000),
 	}),
+	outputSchema: WebhookOutputSchema,
 	execute: async (params, _context) => {
 		try {
 			const { url, method, data, headers: customHeaders, auth, timeout } = params

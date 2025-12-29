@@ -1,5 +1,22 @@
 import { z } from 'zod'
+import { delegateTo } from './delegate'
 import { createTool, failure, success, type ToolContext } from './types'
+
+// ============================================================================
+// Output Schemas
+// ============================================================================
+
+export const HttpResponseOutputSchema = z.object({
+	status: z.number().describe('HTTP status code'),
+	statusText: z.string().describe('HTTP status text'),
+	headers: z.record(z.string(), z.string()).describe('Response headers'),
+	data: z.unknown().describe('Response body (parsed JSON or text)'),
+	ok: z.boolean().describe('Whether the response was successful (status 200-299)'),
+})
+
+// ============================================================================
+// Tools
+// ============================================================================
 
 /**
  * HTTP Request Tool - Make HTTP requests to external APIs.
@@ -19,6 +36,7 @@ export const httpRequestTool = createTool({
 		body: z.string().optional().describe('Request body (for POST, PUT, PATCH)'),
 		timeout: z.number().optional().default(30000).describe('Request timeout in milliseconds'),
 	}),
+	outputSchema: HttpResponseOutputSchema,
 	execute: async (params, _context) => {
 		try {
 			const controller = new AbortController()
@@ -81,8 +99,9 @@ export const httpGetTool = createTool({
 		url: z.string().url().describe('The URL to fetch'),
 		headers: z.record(z.string(), z.string()).optional().describe('Additional headers'),
 	}),
+	outputSchema: HttpResponseOutputSchema,
 	execute: async (params, context) => {
-		return httpRequestTool.execute({ ...params, method: 'GET', timeout: 30000 }, context)
+		return delegateTo(httpRequestTool, { ...params, method: 'GET', timeout: 30000 }, context)
 	},
 })
 
@@ -97,9 +116,11 @@ export const httpPostTool = createTool({
 		body: z.unknown().describe('The JSON body to send'),
 		headers: z.record(z.string(), z.string()).optional().describe('Additional headers'),
 	}),
+	outputSchema: HttpResponseOutputSchema,
 	execute: async (params, context) => {
 		const body = typeof params.body === 'string' ? params.body : JSON.stringify(params.body)
-		return httpRequestTool.execute(
+		return delegateTo(
+			httpRequestTool,
 			{
 				url: params.url,
 				method: 'POST',
