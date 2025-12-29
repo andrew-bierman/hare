@@ -7,7 +7,7 @@ import { agents, usage } from 'web-app/db/schema'
 import { type AgentConfig, createAgentFromConfig } from 'web-app/lib/agents'
 import { createMemoryStore, toAgentMessages } from 'web-app/lib/agents/memory'
 import { getCloudflareEnv, getDb } from '../db'
-import type { HonoEnv } from '../types'
+import type { HonoEnv } from '@hare/types'
 
 // =============================================================================
 // Schemas

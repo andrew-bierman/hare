@@ -10,7 +10,7 @@ import {
 	UsageQuerySchema,
 	UsageResponseSchema,
 } from '../schemas'
-import type { WorkspaceEnv } from '../types'
+import type { WorkspaceEnv } from '@hare/types'
 
 // Define routes
 const getWorkspaceUsageRoute = createRoute({

@@ -1,7 +1,7 @@
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
 import { eq, or } from 'drizzle-orm'
 import { workspaceMembers, workspaces } from 'web-app/db/schema'
-import type { Database } from 'web-app/db/types'
+import type { Database } from 'web-app/db'
 import { generateUniqueSlug } from 'web-app/lib/utils'
 import { getDb } from '../db'
 import { commonResponses, requireAdminAccess } from '../helpers'
@@ -15,7 +15,7 @@ import {
 	WorkspaceSchema,
 } from '../schemas'
 import { serializeWorkspace } from '../serializers'
-import { type AuthEnv, isWorkspaceRole, type WorkspaceRole } from '../types'
+import { type AuthEnv, isWorkspaceRole, type WorkspaceRole } from '@hare/types'
 
 // Define routes
 const listWorkspacesRoute = createRoute({

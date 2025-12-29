@@ -14,7 +14,7 @@ import {
 	SuccessSchema,
 	UpdateApiKeySchema,
 } from '../schemas'
-import type { WorkspaceEnv } from '../types'
+import type { WorkspaceEnv } from '@hare/types'
 
 // =============================================================================
 // Serializers

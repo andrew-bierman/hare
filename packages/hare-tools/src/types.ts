@@ -4,6 +4,9 @@ import type { HareEnv } from './env'
 // Re-export HareEnv for convenience
 export type { HareEnv }
 
+// Re-export tool type definitions from @hare/types
+export { ToolTypeSchema, type ToolType, ToolConfigSchema, type ToolConfig } from '@hare/types'
+
 /**
  * Tool execution context providing access to Cloudflare bindings.
  * Uses a generic env type to support any Cloudflare binding configuration.
@@ -231,91 +234,6 @@ export class ToolRegistry {
 export function createRegistry(tools: AnyTool[] = []): ToolRegistry {
 	return new ToolRegistry().registerAll(tools)
 }
-
-/**
- * All available tool types.
- */
-export const ToolTypeSchema = z.enum([
-	// Cloudflare native
-	'http',
-	'sql',
-	'kv',
-	'r2',
-	'search',
-	// Utility
-	'datetime',
-	'json',
-	'text',
-	'math',
-	'uuid',
-	'hash',
-	'base64',
-	'url',
-	'delay',
-	// Integrations
-	'zapier',
-	'webhook',
-	'slack',
-	'discord',
-	'email',
-	'teams',
-	'twilio_sms',
-	'make',
-	'n8n',
-	// AI
-	'sentiment',
-	'summarize',
-	'translate',
-	'image_generate',
-	'classify',
-	'ner',
-	'embedding',
-	'question_answer',
-	// Data
-	'rss',
-	'scrape',
-	'regex',
-	'crypto',
-	'json_schema',
-	'csv',
-	'template',
-	// Sandbox
-	'code_execute',
-	'code_validate',
-	'sandbox_file',
-	// Validation
-	'validate_email',
-	'validate_phone',
-	'validate_url',
-	'validate_credit_card',
-	'validate_ip',
-	'validate_json',
-	// Transform
-	'markdown',
-	'diff',
-	'qrcode',
-	'compression',
-	'color',
-	// Custom
-	'custom',
-])
-
-export type ToolType = z.infer<typeof ToolTypeSchema>
-
-/**
- * Tool configuration (for database-stored tools).
- */
-export const ToolConfigSchema = z.object({
-	id: z.string(),
-	name: z.string(),
-	description: z.string().nullable(),
-	type: ToolTypeSchema,
-	inputSchema: z.record(z.string(), z.unknown()).nullable().optional(),
-	config: z.record(z.string(), z.unknown()).nullable().optional(),
-	code: z.string().nullable().optional(),
-})
-
-export type ToolConfig = z.infer<typeof ToolConfigSchema>
 
 /**
  * Helper to create a successful tool result.

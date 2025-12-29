@@ -15,7 +15,7 @@ import {
 	IdParamSchema,
 	MessageSchema,
 } from '../schemas'
-import type { AuthEnv } from '../types'
+import type { AuthEnv } from '@hare/types'
 
 // =============================================================================
 // Export Helpers

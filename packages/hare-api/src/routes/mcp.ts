@@ -18,7 +18,7 @@ import type { ToolContext } from 'web-app/lib/agents/tools/types'
 import { type Database, getCloudflareEnv, getDb } from '../db'
 import { optionalAuthMiddleware } from '../middleware'
 import { ErrorSchema } from '../schemas'
-import type { OptionalAuthEnv } from '../types'
+import type { OptionalAuthEnv } from '@hare/types'
 
 /**
  * Check if a user has access to a workspace.

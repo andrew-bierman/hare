@@ -1,9 +1,9 @@
+import type { MessageMetadata } from '@hare/types'
 import { createId } from '@paralleldrive/cuid2'
 import { integer, sqliteTable, text } from 'drizzle-orm/sqlite-core'
 import { agents } from 'web-app/db/schema/agents'
 import { users } from 'web-app/db/schema/auth'
 import { workspaces } from 'web-app/db/schema/workspaces'
-import type { MessageMetadata } from 'web-app/db/types'
 
 export const conversations = sqliteTable('conversations', {
 	id: text('id')

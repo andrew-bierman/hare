@@ -20,6 +20,9 @@
  * ```
  */
 
+// Types from @hare/types (canonical source)
+export { ToolConfigSchema, type ToolConfig, ToolTypeSchema, type ToolType } from '@hare/types'
+
 // Core types and utilities
 export {
 	createRegistry,
@@ -30,12 +33,8 @@ export {
 	type AnyTool,
 	type HareEnv,
 	type Tool,
-	type ToolConfig,
 	type ToolContext,
 	type ToolResult,
-	type ToolType,
-	ToolConfigSchema,
-	ToolTypeSchema,
 } from './types'
 
 // ==========================================

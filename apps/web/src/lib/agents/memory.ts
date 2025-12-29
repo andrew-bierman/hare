@@ -1,8 +1,9 @@
-import { isMessageRole, type MessageRole } from '@hare/api'
+import type { MessageMetadata } from '@hare/types'
+import { isMessageRole, type MessageRole } from '@hare/types'
 import type { CoreMessage } from 'ai'
 import { and, desc, eq, like } from 'drizzle-orm'
+import type { Database } from 'web-app/db'
 import { conversations, messages } from 'web-app/db/schema'
-import type { Database, MessageMetadata } from 'web-app/db/types'
 
 export type { MessageRole }
 

@@ -14,7 +14,7 @@ import {
 	webhookLogs,
 	webhooks,
 } from 'web-app/db/schema'
-import type { Database } from 'web-app/db/types'
+import type { Database } from 'web-app/db'
 
 // =============================================================================
 // Types

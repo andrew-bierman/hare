@@ -5,9 +5,6 @@
 
 import { z } from 'zod'
 
-// Re-export Database type from client
-export type { Database } from './client'
-
 /**
  * Tool call structure for messages
  */

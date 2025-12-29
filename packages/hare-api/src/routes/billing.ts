@@ -6,7 +6,7 @@ import { getDb } from '../db'
 import { commonResponses } from '../helpers'
 import { authMiddleware, workspaceMiddleware } from '../middleware'
 import { ErrorSchema } from '../schemas'
-import type { HonoEnv, WorkspaceEnv } from '../types'
+import type { HonoEnv, WorkspaceEnv } from '@hare/types'
 
 // =============================================================================
 // Pricing Plans

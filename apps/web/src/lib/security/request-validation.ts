@@ -3,7 +3,7 @@
  * Provides protection against common request-based attacks
  */
 
-import type { HonoEnv } from '@hare/api'
+import type { HonoEnv } from '@hare/types'
 import type { Context, MiddlewareHandler } from 'hono'
 
 /**

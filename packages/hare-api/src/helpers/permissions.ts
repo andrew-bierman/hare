@@ -1,5 +1,5 @@
 import type { Context } from 'hono'
-import type { WorkspaceRole } from '../types'
+import type { WorkspaceRole } from '@hare/types'
 
 /**
  * Error thrown when a user lacks required permissions.

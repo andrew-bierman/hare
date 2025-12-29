@@ -13,15 +13,11 @@
  */
 
 // ==========================================
-// RE-EXPORT FROM @hare/agent
+// RE-EXPORT FROM @hare/types (canonical source)
 // ==========================================
 
-// Types (safe to import anywhere)
+// Agent state types
 export type {
-	AgentOptions,
-	AgentRouteConfig,
-	AgentStreamResponse,
-	AgentTool,
 	ChatPayload,
 	ClientMessage,
 	HareAgentState,
@@ -30,7 +26,14 @@ export type {
 	SchedulePayload,
 	ServerMessage,
 	ToolExecutePayload,
-} from '@hare/agent'
+} from '@hare/types'
+
+// ==========================================
+// RE-EXPORT FROM @hare/agent (runtime utilities)
+// ==========================================
+
+// Agent types from SDK
+export type { AgentOptions, AgentRouteConfig, AgentStreamResponse, AgentTool } from '@hare/agent'
 // Edge Agent (universal)
 // Router utilities (universal)
 // Workers AI Provider
@@ -56,18 +59,16 @@ export {
 } from '@hare/agent'
 
 // ==========================================
-// RE-EXPORT FROM @hare/tools
+// RE-EXPORT FROM @hare/types (tool types)
 // ==========================================
 
-export type {
-	SystemToolId,
-	Tool,
-	ToolCategory,
-	ToolConfig,
-	ToolContext,
-	ToolResult,
-	ToolType,
-} from '@hare/tools'
+export type { ToolConfig, ToolType } from '@hare/types'
+
+// ==========================================
+// RE-EXPORT FROM @hare/tools (runtime utilities)
+// ==========================================
+
+export type { SystemToolId, Tool, ToolCategory, ToolContext, ToolResult } from '@hare/tools'
 // Individual tool getters
 export {
 	createTool,
@@ -104,7 +105,7 @@ export { loadAgentTools } from './tools/factory'
 import { type AgentTool, createEdgeAgent, type EdgeAgent } from '@hare/agent'
 import { createRegistry, getSystemTools, type ToolContext } from '@hare/tools'
 // Agent configuration interface (extends SDK types with DB fields)
-import type { Database } from 'web-app/db/types'
+import type { Database } from 'web-app/db'
 
 /**
  * Agent configuration from database.

@@ -48,7 +48,7 @@ import type {
 	WorkspaceInvitation,
 	WorkspaceMember,
 	WorkspaceRole,
-} from '../../shared/api/types'
+} from '@hare/types'
 
 function getInitials(name: string): string {
 	return name

@@ -35,6 +35,7 @@
 		"zod": "^4.2.1"
 	},
 	"devDependencies": {
+		"@hare/typescript-config": "workspace:*",
 		"@tauri-apps/cli": "^2",
 		"@tailwindcss/vite": "^4",
 		"@types/react": "^19",

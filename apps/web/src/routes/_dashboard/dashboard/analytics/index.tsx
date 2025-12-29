@@ -1,6 +1,6 @@
 import { type Agent, useAgentsQuery, useAnalyticsQuery } from '@hare/app/shared/api'
+import { exportToCSV, exportToJSON } from '@hare/app/shared'
 import { ChartContainer } from '@hare/app/widgets'
-import { createFileRoute } from '@tanstack/react-router'
 import { Button } from '@hare/ui/components/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@hare/ui/components/card'
 import {
@@ -17,6 +17,7 @@ import {
 	SelectValue,
 } from '@hare/ui/components/select'
 import { Skeleton } from '@hare/ui/components/skeleton'
+import { createFileRoute } from '@tanstack/react-router'
 import { ArrowDownToLine, BarChart3, Calendar, DollarSign, TrendingUp, Zap } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import {
@@ -35,7 +36,6 @@ import {
 	YAxis,
 } from 'recharts'
 import { useWorkspace } from 'web-app/app'
-import { exportToCSV, exportToJSON } from '@hare/app/shared'
 
 export const Route = createFileRoute('/_dashboard/dashboard/analytics/')({
 	component: AnalyticsPage,

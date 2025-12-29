@@ -12,7 +12,7 @@ import { isWebSocketRequest, routeHttpToAgent, routeWebSocketToAgent } from 'web
 import { type Database, getCloudflareEnv, getDb } from '../db'
 import { optionalAuthMiddleware } from '../middleware'
 import { ErrorSchema, IdParamSchema } from '../schemas'
-import type { OptionalAuthEnv } from '../types'
+import type { OptionalAuthEnv } from '@hare/types'
 
 /**
  * Check if a user has access to a workspace.
