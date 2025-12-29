@@ -23,23 +23,27 @@ const mainJs = assets.find((f) => f.startsWith('main-') && f.endsWith('.js'))
 const mainCss = assets.find((f) => f.startsWith('main-') && f.endsWith('.css'))
 const clientJs = assets.find((f) => f.startsWith('client-') && f.endsWith('.js'))
 
-if (!mainJs || !mainCss) {
-	console.error('Could not find main assets in dist/client/assets')
+// CSS might be inlined or handled by the JS bundle in newer TanStack Start versions
+if (!mainJs && !clientJs) {
+	console.error('Could not find main or client JS in dist/client/assets')
 	process.exit(1)
 }
 
+const entryJs = clientJs || mainJs
+
 // Generate index.html
+const cssLink = mainCss ? `<link rel="stylesheet" href="/assets/${mainCss}" />` : ''
 const html = `<!doctype html>
 <html lang="en">
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<title>Hare Desktop</title>
-		<link rel="stylesheet" href="/assets/${mainCss}" />
+		${cssLink}
 	</head>
 	<body>
 		<div id="root"></div>
-		<script type="module" src="/assets/${clientJs || mainJs}"></script>
+		<script type="module" src="/assets/${entryJs}"></script>
 	</body>
 </html>
 `
