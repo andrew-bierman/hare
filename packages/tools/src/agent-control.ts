@@ -716,9 +716,9 @@ export const scheduleTaskTool = createTool({
 			if (hareAgent) {
 				try {
 					const id = hareAgent.idFromName(params.agentId)
-					const stub = hareAgent.get(id)
+					const _stub = hareAgent.get(id)
 
-					// Use WebSocket message to schedule
+					// TODO: Use WebSocket message to schedule
 					// The DO will handle the actual scheduling via its schedule() method
 				} catch {
 					// DO scheduling is optional

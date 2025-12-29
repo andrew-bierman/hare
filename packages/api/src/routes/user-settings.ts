@@ -2,7 +2,7 @@ import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
 import { eq } from 'drizzle-orm'
 import { userPreferences } from '@hare/db/schema'
 import { getDb } from '../db'
-import { commonResponses, ErrorSchema, SuccessSchema } from '../helpers'
+import { commonResponses, ErrorSchema } from '../helpers'
 import { authMiddleware } from '../middleware'
 import type { AuthEnv } from '@hare/types'
 
