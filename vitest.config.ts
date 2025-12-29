@@ -20,6 +20,8 @@ export default defineWorkersConfig({
       "@hare/ui": path.resolve(__dirname, "./packages/ui/src/index.ts"),
       "@hare/agent": path.resolve(__dirname, "./packages/agent/src/index.ts"),
       "@hare/security": path.resolve(__dirname, "./packages/security/src/index.ts"),
+      "@hare/app/shared/lib": path.resolve(__dirname, "./packages/app/shared/lib/index.ts"),
+      "@hare/app": path.resolve(__dirname, "./packages/app/index.ts"),
       // Map web-app imports to new package structure
       "web-app/lib/env/server": path.resolve(__dirname, "./packages/config/src/env.ts"),
       "web-app/db/schema": path.resolve(__dirname, "./packages/db/src/schema/index.ts"),
