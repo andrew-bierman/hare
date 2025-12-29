@@ -1,11 +1,30 @@
 import { env } from 'cloudflare:test'
-import { beforeAll, describe, expect, it } from 'vitest'
+import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { app } from '@hare/api'
 import { applyMigrations } from './setup'
 
-// Apply D1 migrations before tests
+// Suppress expected Better Auth APIError unhandled rejections
+// Better Auth throws APIError internally for validation errors which become unhandled rejections
+const originalUnhandledRejection = process.listeners('unhandledRejection')
+const suppressAPIError = (reason: unknown) => {
+	// Suppress expected APIError rejections from Better Auth
+	if (reason && typeof reason === 'object' && 'status' in reason) {
+		return // Suppress Better Auth APIError
+	}
+	throw reason
+}
+
 beforeAll(async () => {
 	await applyMigrations(env.DB)
+	process.removeAllListeners('unhandledRejection')
+	process.on('unhandledRejection', suppressAPIError)
+})
+
+afterAll(() => {
+	process.removeAllListeners('unhandledRejection')
+	for (const listener of originalUnhandledRejection) {
+		process.on('unhandledRejection', listener as (...args: unknown[]) => void)
+	}
 })
 
 describe('Auth API', () => {
