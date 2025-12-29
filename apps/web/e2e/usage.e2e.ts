@@ -49,12 +49,13 @@ baseTest.describe('Usage Page - Stat Cards', () => {
 		await page.waitForTimeout(1000)
 	})
 
-	baseTest('total api calls card shows billing period description', async ({
-		page,
-	}: { page: Page }) => {
-		const apiCallsCard = page.locator('[class*="card"]').filter({ hasText: 'Total API Calls' })
-		await expect(apiCallsCard.getByText('This billing period')).toBeVisible()
-	})
+	baseTest(
+		'total api calls card shows billing period description',
+		async ({ page }: { page: Page }) => {
+			const apiCallsCard = page.locator('[class*="card"]').filter({ hasText: 'Total API Calls' })
+			await expect(apiCallsCard.getByText('This billing period')).toBeVisible()
+		},
+	)
 
 	baseTest('active agents card shows total agents count', async ({ page }: { page: Page }) => {
 		const agentsCard = page.locator('[class*="card"]').filter({ hasText: 'Active Agents' })
@@ -106,9 +107,7 @@ baseTest.describe('Usage Page - About Section', () => {
 	})
 
 	baseTest('explains usage tracking', async ({ page }: { page: Page }) => {
-		await expect(
-			page.getByText(/Usage is tracked automatically for all API calls/),
-		).toBeVisible()
+		await expect(page.getByText(/Usage is tracked automatically for all API calls/)).toBeVisible()
 	})
 
 	baseTest('mentions Cloudflare Workers AI pricing', async ({ page }: { page: Page }) => {
@@ -188,7 +187,7 @@ baseTest.describe('Usage Page - Loading States', () => {
 		await page.goto('/dashboard/usage')
 
 		// Check for skeleton elements (they appear briefly during load)
-		const skeletons = page.locator('[class*="skeleton"]')
+		const _skeletons = page.locator('[class*="skeleton"]')
 		// Page should either have skeletons during load or content after load
 		const pageContent = await page.content()
 		expect(

@@ -97,14 +97,15 @@ baseTest.describe('Agent Lifecycle - Form Validation', () => {
 		await expect(createButton).toBeDisabled()
 	})
 
-	baseTest('create button becomes enabled when name is filled', async ({
-		page,
-	}: { page: Page }) => {
-		await page.getByLabel('Agent Name *').fill('Test Agent')
+	baseTest(
+		'create button becomes enabled when name is filled',
+		async ({ page }: { page: Page }) => {
+			await page.getByLabel('Agent Name *').fill('Test Agent')
 
-		const createButton = page.getByRole('button', { name: 'Create Agent' })
-		await expect(createButton).toBeEnabled()
-	})
+			const createButton = page.getByRole('button', { name: 'Create Agent' })
+			await expect(createButton).toBeEnabled()
+		},
+	)
 
 	baseTest('can fill in agent name', async ({ page }: { page: Page }) => {
 		const nameInput = page.getByLabel('Agent Name *')
@@ -331,12 +332,8 @@ baseTest.describe('Agent Lifecycle - Tips Section', () => {
 	})
 
 	baseTest('displays helpful tips', async ({ page }: { page: Page }) => {
-		await expect(
-			page.getByText(/Give your agent a clear, descriptive name/),
-		).toBeVisible()
-		await expect(
-			page.getByText(/Write a detailed system prompt/),
-		).toBeVisible()
+		await expect(page.getByText(/Give your agent a clear, descriptive name/)).toBeVisible()
+		await expect(page.getByText(/Write a detailed system prompt/)).toBeVisible()
 	})
 
 	baseTest('mentions model recommendations', async ({ page }: { page: Page }) => {
