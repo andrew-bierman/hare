@@ -1,14 +1,9 @@
+import { useAuth } from '@hare/app/providers'
 import { APP_CONFIG, LANDING_PAGE, NAV_ITEMS, UI_TEXT } from '@hare/config'
-import { createFileRoute, Link } from '@tanstack/react-router'
 import { Badge } from '@hare/ui/components/badge'
 import { Button } from '@hare/ui/components/button'
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from '@hare/ui/components/card'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@hare/ui/components/card'
+import { createFileRoute, Link } from '@tanstack/react-router'
 import {
 	ArrowRight,
 	Bot,
@@ -25,7 +20,6 @@ import {
 	Terminal,
 	Zap,
 } from 'lucide-react'
-import { useAuth } from '@hare/app/providers'
 
 export const Route = createFileRoute('/')({
 	component: LandingPage,

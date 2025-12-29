@@ -1,15 +1,9 @@
-import { type Agent, useAgentsQuery, useUsageQuery } from '@hare/app/shared/api'
-import { createFileRoute } from '@tanstack/react-router'
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from '@hare/ui/components/card'
-import { Skeleton } from '@hare/ui/components/skeleton'
-import { Activity, Bot, Calendar, TrendingUp } from 'lucide-react'
 import { useWorkspace } from '@hare/app/providers'
+import { type Agent, useAgentsQuery, useUsageQuery } from '@hare/app/shared/api'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@hare/ui/components/card'
+import { Skeleton } from '@hare/ui/components/skeleton'
+import { createFileRoute } from '@tanstack/react-router'
+import { Activity, Bot, Calendar, TrendingUp } from 'lucide-react'
 
 export const Route = createFileRoute('/_dashboard/dashboard/usage/')({
 	component: UsagePage,

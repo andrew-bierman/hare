@@ -1,12 +1,6 @@
-import { type ErrorComponentProps, Link, useRouter } from '@tanstack/react-router'
 import { Button } from '@hare/ui/components/button'
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from '@hare/ui/components/card'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@hare/ui/components/card'
+import { type ErrorComponentProps, Link, useRouter } from '@tanstack/react-router'
 import { AlertTriangle, ArrowLeft, FileQuestion, Rabbit, RefreshCw } from 'lucide-react'
 
 export function DashboardErrorComponent({ error, reset }: ErrorComponentProps) {
