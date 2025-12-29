@@ -11,17 +11,14 @@ test.describe('Workspace Switcher - Authenticated', () => {
 		await authenticatedPage.goto('/dashboard')
 		await authenticatedPage.waitForLoadState('networkidle')
 
-		// Look for workspace switcher button
-		const workspaceSwitcher = authenticatedPage
-			.locator('[data-testid="workspace-switcher"]')
+		// Look for workspace switcher button - it's a button with "Select workspace" or workspace name
+		// The sidebar is a div (not aside), so use button selector directly
+		const workspaceButton = authenticatedPage
+			.getByRole('button')
+			.filter({ hasText: /workspace|select/i })
 			.first()
-		// If no data-testid, look for the button in the sidebar
-		const sidebarButton = authenticatedPage.locator('aside button').first()
 
-		const isVisible =
-			(await workspaceSwitcher.isVisible().catch(() => false)) ||
-			(await sidebarButton.isVisible().catch(() => false))
-
+		const isVisible = await workspaceButton.isVisible({ timeout: 5000 }).catch(() => false)
 		expect(isVisible).toBe(true)
 	})
 
@@ -29,11 +26,10 @@ test.describe('Workspace Switcher - Authenticated', () => {
 		await authenticatedPage.goto('/dashboard')
 		await authenticatedPage.waitForLoadState('networkidle')
 
-		// Find and click the workspace switcher (usually a button with workspace name)
+		// Find and click the workspace switcher
 		const workspaceButton = authenticatedPage
-			.locator('aside')
 			.getByRole('button')
-			.filter({ hasText: /workspace|personal/i })
+			.filter({ hasText: /workspace|select/i })
 			.first()
 
 		if (await workspaceButton.isVisible({ timeout: 5000 }).catch(() => false)) {
@@ -62,9 +58,8 @@ test.describe('Workspace Switcher - Authenticated', () => {
 
 		// Find workspace switcher
 		const workspaceButton = authenticatedPage
-			.locator('aside')
 			.getByRole('button')
-			.filter({ hasText: /workspace|personal/i })
+			.filter({ hasText: /workspace|select/i })
 			.first()
 
 		if (await workspaceButton.isVisible({ timeout: 5000 }).catch(() => false)) {

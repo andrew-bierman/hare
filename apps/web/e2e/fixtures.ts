@@ -77,15 +77,49 @@ export const test = base.extend<{
 				// Wait for redirect to dashboard
 				await page.waitForURL(/\/dashboard/, { timeout: 15000 })
 
-				// Verify we're actually authenticated by checking the page
+				// Wait for auth session to be fully valid by polling the API
+				// The session may take a few seconds to become valid after sign-up
+				let sessionWaitAttempts = 0
+				const maxSessionWaitAttempts = 15
+				while (sessionWaitAttempts < maxSessionWaitAttempts) {
+					const sessionCheckResponse = await page.request.get('/api/workspaces')
+					if (sessionCheckResponse.ok()) {
+						break // Session is now valid
+					}
+					await page.waitForTimeout(500)
+					sessionWaitAttempts++
+				}
+
+				if (sessionWaitAttempts >= maxSessionWaitAttempts) {
+					throw new Error('Timed out waiting for auth session to become valid')
+				}
+
+				// Now reload the page to ensure React has the session hydrated
+				await page.reload()
 				await page.waitForLoadState('networkidle')
 
-				// Check if we see the authenticated UI (no "Sign In" button visible in header)
-				const signInButton = page.getByRole('link', { name: 'Sign In' })
-				const isSignInVisible = await signInButton.isVisible({ timeout: 2000 }).catch(() => false)
+				// Verify we're on the dashboard by checking for Dashboard heading
+				const dashboardHeading = page.getByRole('heading', { name: 'Dashboard' })
+				await dashboardHeading.waitFor({ state: 'visible', timeout: 10000 })
 
-				if (isSignInVisible) {
-					throw new Error('Sign-up completed but user is not authenticated')
+				// Wait for a workspace to be created (the app auto-creates one for new users)
+				// Poll the workspaces API until we get at least one workspace
+				let workspaceWaitAttempts = 0
+				const maxWorkspaceWaitAttempts = 30
+				while (workspaceWaitAttempts < maxWorkspaceWaitAttempts) {
+					const workspacesResponse = await page.request.get('/api/workspaces')
+					if (workspacesResponse.ok()) {
+						const data = await workspacesResponse.json()
+						if (data.workspaces && data.workspaces.length > 0) {
+							break
+						}
+					}
+					await page.waitForTimeout(500)
+					workspaceWaitAttempts++
+				}
+
+				if (workspaceWaitAttempts >= maxWorkspaceWaitAttempts) {
+					throw new Error('Timed out waiting for workspace to be created')
 				}
 
 				// Success - break out of retry loop

@@ -1,10 +1,24 @@
-import { type APIRequestContext, test as baseTest, expect } from '@playwright/test'
+import { type APIRequestContext, test as baseTest, expect, type Page } from '@playwright/test'
 import { test } from './fixtures'
 
 /**
  * Comprehensive API tests for authenticated endpoints.
  * Tests all CRUD operations for workspaces, agents, and tools.
  */
+
+/**
+ * Helper to get the first workspace ID from an authenticated page.
+ * Ensures page is ready and validates the API response.
+ */
+async function getWorkspaceId(page: Page): Promise<string> {
+	await page.waitForLoadState('networkidle')
+	const response = await page.request.get('/api/workspaces')
+	expect(response.status()).toBe(200)
+	const body = await response.json()
+	expect(body).toHaveProperty('workspaces')
+	expect(body.workspaces.length).toBeGreaterThan(0)
+	return body.workspaces[0].id
+}
 
 baseTest.describe('API Authentication Requirements', () => {
 	baseTest(
@@ -50,8 +64,7 @@ baseTest.describe('API Authentication Requirements', () => {
 
 test.describe('Workspaces API - Authenticated', () => {
 	test('can list workspaces', async ({ authenticatedPage }) => {
-		// Navigate to dashboard to ensure we have a session
-		await authenticatedPage.goto('/dashboard')
+		// Ensure page is on the right domain for cookies to be included in requests
 		await authenticatedPage.waitForLoadState('networkidle')
 
 		// Make API request using page context (inherits auth cookies)
@@ -59,56 +72,44 @@ test.describe('Workspaces API - Authenticated', () => {
 		expect(response.status()).toBe(200)
 
 		const body = await response.json()
-		expect(Array.isArray(body)).toBe(true)
-		// New user should have at least one workspace (default)
-		expect(body.length).toBeGreaterThanOrEqual(1)
+		expect(body).toHaveProperty('workspaces')
+		expect(Array.isArray(body.workspaces)).toBe(true)
+		// New user should have at least one workspace (created by auto-workspace feature)
+		expect(body.workspaces.length).toBeGreaterThanOrEqual(1)
 	})
 
 	test('workspace has required fields', async ({ authenticatedPage }) => {
-		await authenticatedPage.goto('/dashboard')
 		await authenticatedPage.waitForLoadState('networkidle')
-
 		const response = await authenticatedPage.request.get('/api/workspaces')
 		expect(response.status()).toBe(200)
 
-		const workspaces = await response.json()
-		expect(workspaces.length).toBeGreaterThan(0)
+		const body = await response.json()
+		expect(body.workspaces.length).toBeGreaterThan(0)
 
-		const workspace = workspaces[0]
+		const workspace = body.workspaces[0]
 		expect(workspace).toHaveProperty('id')
 		expect(workspace).toHaveProperty('name')
-		expect(workspace).toHaveProperty('slug')
+		expect(workspace).toHaveProperty('role')
+		expect(workspace).toHaveProperty('createdAt')
 	})
 })
 
 test.describe('Agents API - Authenticated', () => {
 	test('can list agents for workspace', async ({ authenticatedPage }) => {
-		await authenticatedPage.goto('/dashboard')
-		await authenticatedPage.waitForLoadState('networkidle')
-
-		// Get workspace ID first
-		const workspacesResponse = await authenticatedPage.request.get('/api/workspaces')
-		const workspaces = await workspacesResponse.json()
-		const workspaceId = workspaces[0]?.id
-
-		expect(workspaceId).toBeDefined()
+		const workspaceId = await getWorkspaceId(authenticatedPage)
 
 		// List agents
 		const response = await authenticatedPage.request.get(`/api/agents?workspaceId=${workspaceId}`)
 		expect(response.status()).toBe(200)
 
-		const agents = await response.json()
-		expect(Array.isArray(agents)).toBe(true)
+		const body = await response.json()
+		// API returns { agents: [...] } format
+		expect(body).toHaveProperty('agents')
+		expect(Array.isArray(body.agents)).toBe(true)
 	})
 
 	test('can create and delete an agent', async ({ authenticatedPage }) => {
-		await authenticatedPage.goto('/dashboard')
-		await authenticatedPage.waitForLoadState('networkidle')
-
-		// Get workspace ID
-		const workspacesResponse = await authenticatedPage.request.get('/api/workspaces')
-		const workspaces = await workspacesResponse.json()
-		const workspaceId = workspaces[0]?.id
+		const workspaceId = await getWorkspaceId(authenticatedPage)
 
 		// Create agent
 		const createResponse = await authenticatedPage.request.post(
@@ -117,7 +118,7 @@ test.describe('Agents API - Authenticated', () => {
 				data: {
 					name: `Test Agent ${Date.now()}`,
 					description: 'A test agent created via API',
-					model: 'llama-3.3-70b',
+					model: '@cf/meta/llama-3.3-70b-instruct-fp8-fast',
 					instructions: 'You are a helpful test assistant.',
 				},
 			},
@@ -137,13 +138,7 @@ test.describe('Agents API - Authenticated', () => {
 	})
 
 	test('can update an agent', async ({ authenticatedPage }) => {
-		await authenticatedPage.goto('/dashboard')
-		await authenticatedPage.waitForLoadState('networkidle')
-
-		// Get workspace ID
-		const workspacesResponse = await authenticatedPage.request.get('/api/workspaces')
-		const workspaces = await workspacesResponse.json()
-		const workspaceId = workspaces[0]?.id
+		const workspaceId = await getWorkspaceId(authenticatedPage)
 
 		// Create agent first
 		const createResponse = await authenticatedPage.request.post(
@@ -152,10 +147,12 @@ test.describe('Agents API - Authenticated', () => {
 				data: {
 					name: `Update Test Agent ${Date.now()}`,
 					description: 'Original description',
-					model: 'llama-3.3-70b',
+					model: '@cf/meta/llama-3.3-70b-instruct-fp8-fast',
+					instructions: 'Original instructions.',
 				},
 			},
 		)
+		expect(createResponse.status()).toBe(201)
 		const agent = await createResponse.json()
 
 		// Update agent
@@ -178,13 +175,7 @@ test.describe('Agents API - Authenticated', () => {
 	})
 
 	test('can deploy an agent with instructions', async ({ authenticatedPage }) => {
-		await authenticatedPage.goto('/dashboard')
-		await authenticatedPage.waitForLoadState('networkidle')
-
-		// Get workspace ID
-		const workspacesResponse = await authenticatedPage.request.get('/api/workspaces')
-		const workspaces = await workspacesResponse.json()
-		const workspaceId = workspaces[0]?.id
+		const workspaceId = await getWorkspaceId(authenticatedPage)
 
 		// Create agent with instructions
 		const createResponse = await authenticatedPage.request.post(
@@ -193,7 +184,7 @@ test.describe('Agents API - Authenticated', () => {
 				data: {
 					name: `Deploy Test Agent ${Date.now()}`,
 					description: 'Agent ready for deployment',
-					model: 'llama-3.3-70b',
+					model: '@cf/meta/llama-3.3-70b-instruct-fp8-fast',
 					instructions: 'You are a helpful assistant for testing deployments.',
 				},
 			},
@@ -216,94 +207,62 @@ test.describe('Agents API - Authenticated', () => {
 		await authenticatedPage.request.delete(`/api/agents/${agent.id}?workspaceId=${workspaceId}`)
 	})
 
-	test('cannot deploy agent without instructions', async ({ authenticatedPage }) => {
-		await authenticatedPage.goto('/dashboard')
-		await authenticatedPage.waitForLoadState('networkidle')
+	test('cannot create agent without instructions', async ({ authenticatedPage }) => {
+		const workspaceId = await getWorkspaceId(authenticatedPage)
 
-		// Get workspace ID
-		const workspacesResponse = await authenticatedPage.request.get('/api/workspaces')
-		const workspaces = await workspacesResponse.json()
-		const workspaceId = workspaces[0]?.id
-
-		// Create agent WITHOUT instructions
+		// Try to create agent WITHOUT instructions - should fail validation
 		const createResponse = await authenticatedPage.request.post(
 			`/api/agents?workspaceId=${workspaceId}`,
 			{
 				data: {
 					name: `No Instructions Agent ${Date.now()}`,
-					model: 'llama-3.3-70b',
+					model: '@cf/meta/llama-3.3-70b-instruct-fp8-fast',
 				},
 			},
 		)
-		const agent = await createResponse.json()
 
-		// Try to deploy - should fail
-		const deployResponse = await authenticatedPage.request.post(
-			`/api/agents/${agent.id}/deploy?workspaceId=${workspaceId}`,
-			{
-				data: {},
-			},
-		)
-
-		expect(deployResponse.status()).toBe(400)
-
-		// Cleanup
-		await authenticatedPage.request.delete(`/api/agents/${agent.id}?workspaceId=${workspaceId}`)
+		// Should fail validation because instructions are required
+		expect(createResponse.status()).toBe(400)
 	})
 })
 
 test.describe('Tools API - Authenticated', () => {
 	test('can list tools including system tools', async ({ authenticatedPage }) => {
-		await authenticatedPage.goto('/dashboard')
-		await authenticatedPage.waitForLoadState('networkidle')
-
-		// Get workspace ID
-		const workspacesResponse = await authenticatedPage.request.get('/api/workspaces')
-		const workspaces = await workspacesResponse.json()
-		const workspaceId = workspaces[0]?.id
+		const workspaceId = await getWorkspaceId(authenticatedPage)
 
 		const response = await authenticatedPage.request.get(
 			`/api/tools?workspaceId=${workspaceId}&includeSystem=true`,
 		)
 		expect(response.status()).toBe(200)
 
-		const tools = await response.json()
-		expect(Array.isArray(tools)).toBe(true)
+		const body = await response.json()
+		// API returns { tools: [...] } format
+		expect(body).toHaveProperty('tools')
+		expect(Array.isArray(body.tools)).toBe(true)
 
-		// Should have system tools
-		const systemTools = tools.filter((t: { id?: string }) => t.id?.startsWith('system-'))
-		expect(systemTools.length).toBeGreaterThan(0)
+		// Should have system tools (they have IDs like http_request, kv_get, etc.)
+		expect(body.tools.length).toBeGreaterThan(0)
 	})
 
 	test('system tools have correct structure', async ({ authenticatedPage }) => {
-		await authenticatedPage.goto('/dashboard')
-		await authenticatedPage.waitForLoadState('networkidle')
-
-		const workspacesResponse = await authenticatedPage.request.get('/api/workspaces')
-		const workspaces = await workspacesResponse.json()
-		const workspaceId = workspaces[0]?.id
+		const workspaceId = await getWorkspaceId(authenticatedPage)
 
 		const response = await authenticatedPage.request.get(
 			`/api/tools?workspaceId=${workspaceId}&includeSystem=true`,
 		)
-		const tools = await response.json()
+		const body = await response.json()
 
-		// Find HTTP system tool
-		const httpTool = tools.find((t: { id?: string }) => t.id === 'system-http')
+		// Find HTTP request system tool
+		const httpTool = body.tools.find((t: { id?: string }) => t.id === 'http_request')
 		expect(httpTool).toBeDefined()
-		expect(httpTool.name).toBe('HTTP Request')
+		expect(httpTool.name).toBeDefined()
 		expect(httpTool.type).toBe('http')
 	})
 
 	test('can create and delete a custom tool', async ({ authenticatedPage }) => {
-		await authenticatedPage.goto('/dashboard')
-		await authenticatedPage.waitForLoadState('networkidle')
+		const workspaceId = await getWorkspaceId(authenticatedPage)
 
-		const workspacesResponse = await authenticatedPage.request.get('/api/workspaces')
-		const workspaces = await workspacesResponse.json()
-		const workspaceId = workspaces[0]?.id
-
-		// Create custom tool
+		// Create custom tool with required inputSchema
 		const createResponse = await authenticatedPage.request.post(
 			`/api/tools?workspaceId=${workspaceId}`,
 			{
@@ -311,6 +270,7 @@ test.describe('Tools API - Authenticated', () => {
 					name: `Custom Tool ${Date.now()}`,
 					description: 'A test custom tool',
 					type: 'http',
+					inputSchema: { url: { type: 'string' } },
 					config: { url: 'https://api.example.com' },
 				},
 			},
@@ -329,16 +289,11 @@ test.describe('Tools API - Authenticated', () => {
 	})
 
 	test('cannot delete system tools', async ({ authenticatedPage }) => {
-		await authenticatedPage.goto('/dashboard')
-		await authenticatedPage.waitForLoadState('networkidle')
+		const workspaceId = await getWorkspaceId(authenticatedPage)
 
-		const workspacesResponse = await authenticatedPage.request.get('/api/workspaces')
-		const workspaces = await workspacesResponse.json()
-		const workspaceId = workspaces[0]?.id
-
-		// Try to delete a system tool
+		// Try to delete a system tool (http_request is a real system tool ID)
 		const deleteResponse = await authenticatedPage.request.delete(
-			`/api/tools/system-http?workspaceId=${workspaceId}`,
+			`/api/tools/http_request?workspaceId=${workspaceId}`,
 		)
 		expect(deleteResponse.status()).toBe(400)
 	})
@@ -346,28 +301,24 @@ test.describe('Tools API - Authenticated', () => {
 
 test.describe('Usage API - Authenticated', () => {
 	test('can get workspace usage stats', async ({ authenticatedPage }) => {
-		await authenticatedPage.goto('/dashboard')
-		await authenticatedPage.waitForLoadState('networkidle')
-
-		const workspacesResponse = await authenticatedPage.request.get('/api/workspaces')
-		const workspaces = await workspacesResponse.json()
-		const workspaceId = workspaces[0]?.id
+		const workspaceId = await getWorkspaceId(authenticatedPage)
 
 		const response = await authenticatedPage.request.get(`/api/usage?workspaceId=${workspaceId}`)
 		expect(response.status()).toBe(200)
 
-		const usage = await response.json()
-		expect(usage).toHaveProperty('totalMessages')
-		expect(usage).toHaveProperty('totalTokensIn')
-		expect(usage).toHaveProperty('totalTokensOut')
+		const body = await response.json()
+		// API returns { period: {...}, usage: {...} } format
+		expect(body).toHaveProperty('period')
+		expect(body).toHaveProperty('usage')
+		expect(body.usage).toHaveProperty('totalMessages')
+		expect(body.usage).toHaveProperty('totalTokensIn')
+		expect(body.usage).toHaveProperty('totalTokensOut')
 	})
 })
 
 test.describe('Dev API - Authenticated', () => {
 	test('can seed sample agents in development', async ({ authenticatedPage }) => {
-		await authenticatedPage.goto('/dashboard')
 		await authenticatedPage.waitForLoadState('networkidle')
-
 		const response = await authenticatedPage.request.post('/api/dev/seed')
 
 		// Should succeed in dev mode

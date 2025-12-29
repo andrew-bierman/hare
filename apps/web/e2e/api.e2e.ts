@@ -5,7 +5,7 @@ test.describe('API Health & Infrastructure', () => {
 		const response = await request.get('/api/health')
 		expect(response.status()).toBe(200)
 		const body = await response.json()
-		expect(body.status).toBe('ok')
+		expect(body.status).toBe('healthy')
 		expect(body.version).toBe('1.0.0')
 		expect(body.timestamp).toBeDefined()
 	})

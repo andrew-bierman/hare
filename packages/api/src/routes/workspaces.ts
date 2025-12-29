@@ -282,7 +282,10 @@ app.openapi(createWorkspaceRoute, async (c) => {
 	const db = getDb(c)
 	const user = c.get('user')
 
-	const slug = await generateUniqueSlug(data.name, (s) => slugExists(db, s))
+	// Always add a random suffix to avoid slug collisions from concurrent requests
+	const baseSlug = await generateUniqueSlug(data.name, (s) => slugExists(db, s))
+	const randomSuffix = Math.random().toString(36).substring(2, 8)
+	const slug = `${baseSlug}-${randomSuffix}`
 
 	const [workspace] = await db
 		.insert(workspaces)
