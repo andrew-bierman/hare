@@ -10,7 +10,7 @@
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { McpAgent } from 'agents/mcp'
-import { zodToJsonSchema } from 'zod-to-json-schema'
+import { toJSONSchema } from 'zod/v4'
 import { type HareEnv, type ToolContext, getSystemTools, ToolRegistry } from '@hare/tools'
 import { DEFAULT_MCP_AGENT_STATE, type McpAgentState } from '@hare/types'
 
@@ -81,13 +81,8 @@ export class HareMcpAgent<TEnv extends McpAgentEnv = McpAgentEnv> extends McpAge
 	async init(): Promise<void> {
 		// Register tools with MCP
 		for (const tool of this.toolRegistry.list()) {
-			// Convert Zod schema to JSON Schema for MCP
-			// Cast to any because zod-to-json-schema types are built for Zod v3
-			// but the actual runtime behavior works fine with Zod v4
-			// biome-ignore lint/suspicious/noExplicitAny: zod-to-json-schema types built for Zod v3
-			const inputSchema = zodToJsonSchema(tool.inputSchema as any, {
-				$refStrategy: 'none',
-			})
+			// Convert Zod schema to JSON Schema for MCP using Zod v4's built-in conversion
+			const inputSchema = toJSONSchema(tool.inputSchema)
 
 			// Register tool with MCP - create fresh context for each execution
 			const toolId = tool.id

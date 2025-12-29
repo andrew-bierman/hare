@@ -15,15 +15,19 @@ import { createTool, failure, success, type HareEnv, type ToolContext, type Tool
 
 /**
  * Executable tool type for agent control tools.
+ *
  * Unlike AnyTool (metadata only), this includes the execute method.
- * Uses Tool<any, any> pattern to allow heterogeneous collections.
+ * Uses `any` for params/result to allow heterogeneous tool collections
+ * where each tool has different input/output types.
+ *
+ * This is a necessary pattern for runtime tool dispatch - TypeScript
+ * cannot express "any tool from this collection" without type erasure.
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type ExecutableTool = {
 	id: string
 	description: string
 	inputSchema: z.ZodTypeAny
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	// biome-ignore lint/suspicious/noExplicitAny: Required for heterogeneous tool collections
 	execute: (params: any, context: ToolContext<HareEnv>) => Promise<ToolResult<any>>
 }
 
