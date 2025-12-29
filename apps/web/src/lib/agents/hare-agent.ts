@@ -23,7 +23,7 @@ import {
 	type ToolExecutePayload,
 } from '@hare/types'
 import { Agent, type Connection, type ConnectionContext, type WSMessage } from 'agents'
-import type { CoreMessage } from 'ai'
+import type { ModelMessage } from 'ai'
 import { streamText } from 'ai'
 import { z } from 'zod'
 import { createWorkersAIModel } from './providers/workers-ai'
@@ -325,14 +325,14 @@ export class HareAgent extends Agent<AgentEnv, HareAgentState> {
 
 		try {
 			// Add user message to history
-			const userMessage: CoreMessage = { role: 'user', content: message }
+			const userMessage: ModelMessage = { role: 'user', content: message }
 			const messages = [...this.state.messages, userMessage]
 
 			// Create AI model
 			const model = createWorkersAIModel({ modelName: this.state.model, ai: this.env.AI })
 
 			// Build system prompt
-			const systemMessage: CoreMessage = {
+			const systemMessage: ModelMessage = {
 				role: 'system',
 				content: this.buildSystemPrompt(),
 			}
@@ -356,7 +356,7 @@ export class HareAgent extends Agent<AgentEnv, HareAgentState> {
 			}
 
 			// Add assistant response to history
-			const assistantMessage: CoreMessage = { role: 'assistant', content: fullResponse }
+			const assistantMessage: ModelMessage = { role: 'assistant', content: fullResponse }
 
 			// Update state with new messages
 			this.setState({
@@ -405,14 +405,14 @@ export class HareAgent extends Agent<AgentEnv, HareAgentState> {
 
 		try {
 			// Add user message to history
-			const userMessage: CoreMessage = { role: 'user', content: message }
+			const userMessage: ModelMessage = { role: 'user', content: message }
 			const messages = [...this.state.messages, userMessage]
 
 			// Create AI model
 			const model = createWorkersAIModel({ modelName: this.state.model, ai: this.env.AI })
 
 			// Build system prompt
-			const systemMessage: CoreMessage = {
+			const systemMessage: ModelMessage = {
 				role: 'system',
 				content: this.buildSystemPrompt(),
 			}
@@ -437,7 +437,7 @@ export class HareAgent extends Agent<AgentEnv, HareAgentState> {
 						}
 
 						// Update state with response
-						const assistantMessage: CoreMessage = { role: 'assistant', content: fullResponse }
+						const assistantMessage: ModelMessage = { role: 'assistant', content: fullResponse }
 						this.setState({
 							...this.state,
 							messages: [...messages, assistantMessage],

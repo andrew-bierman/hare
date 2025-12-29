@@ -36,7 +36,7 @@ export default defineConfig({
 			'@hare/app/widgets': path.join(appPackagePath, 'widgets/index.ts'),
 			'@hare/app': path.join(appPackagePath, 'index.ts'),
 			// @hare/config package alias
-			'@hare/config': path.resolve(__dirname, '../../packages/hare-config/src/index.ts'),
+			'@hare/config': path.resolve(__dirname, '../../packages/config/src/index.ts'),
 			// UI package aliases
 			'@hare/ui/': `${path.resolve(__dirname, '../../packages/ui/src')}/`,
 			'@hare/ui': path.resolve(__dirname, '../../packages/ui/src/index.ts'),

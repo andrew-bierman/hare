@@ -324,12 +324,30 @@ function PlaygroundPage() {
 										>
 											<p className="text-sm whitespace-pre-wrap">{message.content}</p>
 										</div>
-										{/* Tool Calls */}
+										{/* Tool Calls - extracted from v6 parts array */}
 										{message.role === 'assistant' &&
-											message.toolCalls &&
-											message.toolCalls.length > 0 && (
-												<ToolCallList toolCalls={message.toolCalls} />
-											)}
+											message.parts &&
+											(() => {
+												const toolCalls = message.parts
+													.filter((part) => part.type.startsWith('tool-'))
+													.map((part) => {
+														// Cast to access tool-specific properties
+														const toolPart = part as unknown as {
+															type: string
+															toolCallId?: string
+															toolName?: string
+															input?: Record<string, unknown>
+														}
+														return {
+															id: toolPart.toolCallId ?? '',
+															name: toolPart.toolName ?? 'unknown',
+															args: toolPart.input ?? {},
+															status: 'completed' as const,
+														}
+													})
+													.filter((tc) => tc.id) // Only include valid tool calls
+												return toolCalls.length > 0 ? <ToolCallList toolCalls={toolCalls} /> : null
+											})()}
 									</div>
 								</div>
 							))}

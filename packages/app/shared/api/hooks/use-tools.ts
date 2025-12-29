@@ -1,22 +1,38 @@
 'use client'
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { queryOptions, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type { CreateToolInput, Tool, ToolType } from '@hare/types'
 import { apiClient, type ToolTestRequest } from '../client'
 import { toolKeys } from './query-keys'
 
+/**
+ * Query options for listing tools in a workspace.
+ */
+export const toolsQueryOptions = (workspaceId: string) =>
+	queryOptions({
+		queryKey: toolKeys.list(workspaceId),
+		queryFn: () => apiClient.tools.list(workspaceId),
+	})
+
+/**
+ * Query options for fetching a single tool.
+ */
+export const toolQueryOptions = (options: { id: string; workspaceId: string }) =>
+	queryOptions({
+		queryKey: toolKeys.detail(options.workspaceId, options.id),
+		queryFn: () => apiClient.tools.get(options.id, options.workspaceId),
+	})
+
 export function useToolsQuery(workspaceId: string | undefined) {
 	return useQuery({
-		queryKey: toolKeys.list(workspaceId ?? ''),
-		queryFn: () => apiClient.tools.list(workspaceId!),
+		...toolsQueryOptions(workspaceId!),
 		enabled: !!workspaceId,
 	})
 }
 
 export function useToolQuery(id: string | undefined, workspaceId: string | undefined) {
 	return useQuery({
-		queryKey: toolKeys.detail(workspaceId ?? '', id ?? ''),
-		queryFn: () => apiClient.tools.get(id!, workspaceId!),
+		...toolQueryOptions({ id: id!, workspaceId: workspaceId! }),
 		enabled: !!id && !!workspaceId,
 	})
 }

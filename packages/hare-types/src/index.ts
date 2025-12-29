@@ -47,6 +47,17 @@ export {
 // Tool types
 export { ToolTypeSchema, type ToolType, ToolConfigSchema, type ToolConfig } from './tool'
 
+// AI SDK types (re-exported for monorepo consistency)
+export type {
+	ModelMessage,
+	SystemModelMessage,
+	UserModelMessage,
+	AssistantModelMessage,
+	ToolModelMessage,
+	LanguageModel,
+	LanguageModelUsage,
+} from './ai'
+
 // API types
 export {
 	// Auth types

@@ -1,7 +1,6 @@
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
-import type { CoreMessage } from 'ai'
+import { type ModelMessage, streamText } from 'ai'
 import { eq } from 'drizzle-orm'
-import { streamSSE } from 'hono/streaming'
 import { agents, conversations, messages, usage } from 'web-app/db/schema'
 import { type AgentConfig, createAgentFromConfig } from 'web-app/lib/agents'
 import { createMemoryStore, toAgentMessages } from 'web-app/lib/agents/memory'
@@ -309,7 +308,7 @@ app.openapi(chatWithAgentRoute, async (c) => {
 		conversationId,
 		limit: 20,
 	})
-	const agentMessages: CoreMessage[] = toAgentMessages(historyMessages)
+	const agentMessages: ModelMessage[] = toAgentMessages(historyMessages)
 
 	// Add the new user message
 	agentMessages.push({ role: 'user' as const, content: message })
@@ -322,85 +321,61 @@ app.openapi(chatWithAgentRoute, async (c) => {
 		metadata: metadata as Record<string, unknown>,
 	})
 
-	// Stream the response
-	return streamSSE(c, async (stream) => {
-		const startTime = Date.now()
-		let fullResponse = ''
-		let tokensIn = 0
-		let tokensOut = 0
+	// Track timing for usage metrics
+	const startTime = Date.now()
 
-		try {
-			// Use Edge agent to generate response
-			const response = await agent.stream(agentMessages)
-
-			// Stream text chunks
-			for await (const chunk of response.textStream) {
-				fullResponse += chunk
-
-				await stream.writeSSE({
-					event: 'message',
-					data: JSON.stringify({ type: 'text', content: chunk }),
-				})
-			}
-
-			// Save assistant message to memory
-			await memory.saveMessage({
-				conversationId,
-				role: 'assistant',
-				content: fullResponse,
-				metadata: {
-					model: agentConfig.model,
-					agentId,
-				},
-			})
-
-			// Track usage (token counts are rough estimates based on ~4 chars/token)
-			// TODO: Use actual token counts from AI provider response when available
-			const latencyMs = Date.now() - startTime
-			tokensIn = agentMessages.reduce((acc, m) => {
-				const content = typeof m.content === 'string' ? m.content : JSON.stringify(m.content)
-				return acc + Math.ceil(content.length / 4)
-			}, 0)
-			tokensOut = Math.ceil(fullResponse.length / 4)
-
-			await db.insert(usage).values({
-				workspaceId: agentConfig.workspaceId,
-				agentId,
-				userId,
-				type: 'chat',
-				inputTokens: tokensIn,
-				outputTokens: tokensOut,
-				totalTokens: tokensIn + tokensOut,
-				metadata: {
-					model: agentConfig.model,
-					duration: latencyMs,
-				},
-			})
-
-			// Send done event
-			await stream.writeSSE({
-				event: 'done',
-				data: JSON.stringify({
-					type: 'done',
-					sessionId: conversationId,
-					usage: {
-						tokensIn,
-						tokensOut,
-						latencyMs,
+	// Use streamText with onFinish callback for post-stream operations
+	const result = streamText({
+		model: agent.model,
+		messages: [
+			{ role: 'system', content: agent.instructions },
+			...agentMessages,
+		],
+		onFinish: async ({ text }) => {
+			try {
+				// Save assistant message to memory
+				await memory.saveMessage({
+					conversationId,
+					role: 'assistant',
+					content: text,
+					metadata: {
+						model: agentConfig.model,
+						agentId,
 					},
-				}),
-			})
-		} catch (error) {
-			console.error('Chat error:', error)
+				})
 
-			await stream.writeSSE({
-				event: 'error',
-				data: JSON.stringify({
-					type: 'error',
-					message: error instanceof Error ? error.message : 'Unknown error',
-				}),
-			})
-		}
+				// Track usage (token counts are rough estimates based on ~4 chars/token)
+				const latencyMs = Date.now() - startTime
+				const tokensIn = agentMessages.reduce((acc, m) => {
+					const content = typeof m.content === 'string' ? m.content : JSON.stringify(m.content)
+					return acc + Math.ceil(content.length / 4)
+				}, 0)
+				const tokensOut = Math.ceil(text.length / 4)
+
+				await db.insert(usage).values({
+					workspaceId: agentConfig.workspaceId,
+					agentId,
+					userId,
+					type: 'chat',
+					inputTokens: tokensIn,
+					outputTokens: tokensOut,
+					totalTokens: tokensIn + tokensOut,
+					metadata: {
+						model: agentConfig.model,
+						duration: latencyMs,
+					},
+				})
+			} catch (error) {
+				console.error('Error saving chat completion:', error)
+			}
+		},
+	})
+
+	// Return AI SDK v6 UI Message Stream Response with session ID header
+	return result.toUIMessageStreamResponse({
+		headers: {
+			'X-Session-Id': conversationId,
+		},
 	})
 })
 

@@ -7,7 +7,7 @@
  * All types are derived from Zod schemas for runtime validation.
  */
 
-import type { CoreMessage } from 'ai'
+import type { ModelMessage } from 'ai'
 import { z } from 'zod'
 
 // =============================================================================
@@ -40,8 +40,8 @@ export const HareAgentStateSchema = z.object({
 	instructions: z.string(),
 	/** Model to use */
 	model: z.string(),
-	/** Conversation history - AI SDK CoreMessage array */
-	messages: z.custom<CoreMessage[]>((val) => Array.isArray(val)),
+	/** Conversation history - AI SDK ModelMessage array */
+	messages: z.custom<ModelMessage[]>((val) => Array.isArray(val)),
 	/** Whether the agent is currently processing */
 	isProcessing: z.boolean(),
 	/** Last activity timestamp */

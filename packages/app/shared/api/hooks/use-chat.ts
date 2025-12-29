@@ -1,7 +1,9 @@
 'use client'
 
+import { useChat as useAIChat } from '@ai-sdk/react'
 import { useQuery } from '@tanstack/react-query'
-import { useCallback, useState } from 'react'
+import { useMemo, useState } from 'react'
+import { DefaultChatTransport } from 'ai'
 
 // Helper to extract error message from API response
 function getErrorMessage(error: unknown, fallback: string): string {
@@ -9,27 +11,6 @@ function getErrorMessage(error: unknown, fallback: string): string {
 		return error.error
 	}
 	return fallback
-}
-
-// Explicit types matching the API schema
-export interface ToolCallData {
-	id: string
-	name: string
-	args: Record<string, unknown>
-	status: 'pending' | 'running' | 'completed' | 'error'
-	result?: unknown
-	error?: string
-	startedAt: string
-	completedAt?: string
-}
-
-export interface Message {
-	id: string
-	conversationId: string
-	role: 'user' | 'assistant' | 'system'
-	content: string
-	toolCalls?: ToolCallData[]
-	createdAt: string
 }
 
 export interface Conversation {
@@ -42,29 +23,6 @@ export interface Conversation {
 	updatedAt: string
 }
 
-export interface ChatUsage {
-	tokensIn: number
-	tokensOut: number
-	latencyMs: number
-}
-
-/**
- * Chat stream event data with all runtime fields.
- * More complete than the schema type ChatStreamEvent in types.ts.
- */
-export interface ChatStreamEventData {
-	type: 'text' | 'tool_call' | 'tool_result' | 'done' | 'error'
-	content?: string
-	sessionId?: string
-	usage?: ChatUsage
-	message?: string
-	toolCallId?: string
-	toolName?: string
-	toolArgs?: Record<string, unknown>
-	toolResult?: unknown
-	isError?: boolean
-}
-
 async function fetchConversations(agentId: string): Promise<{ conversations: Conversation[] }> {
 	const response = await fetch(`/api/chat/agents/${agentId}/conversations`)
 	if (!response.ok) {
@@ -72,7 +30,6 @@ async function fetchConversations(agentId: string): Promise<{ conversations: Con
 		try {
 			error = await response.json()
 		} catch {
-			// Response body was not JSON - use status text
 			error = { error: response.statusText || 'Unknown error' }
 		}
 		throw new Error(getErrorMessage(error, 'Failed to fetch conversations'))
@@ -80,14 +37,15 @@ async function fetchConversations(agentId: string): Promise<{ conversations: Con
 	return response.json()
 }
 
-async function fetchMessages(conversationId: string): Promise<{ messages: Message[] }> {
+async function fetchMessages(
+	conversationId: string,
+): Promise<{ messages: Array<{ id: string; role: string; content: string }> }> {
 	const response = await fetch(`/api/chat/conversations/${conversationId}/messages`)
 	if (!response.ok) {
 		let error: unknown = null
 		try {
 			error = await response.json()
 		} catch {
-			// Response body was not JSON - use status text
 			error = { error: response.statusText || 'Unknown error' }
 		}
 		throw new Error(getErrorMessage(error, 'Failed to fetch messages'))
@@ -111,162 +69,96 @@ export function useMessagesQuery(conversationId: string | undefined) {
 	})
 }
 
+/**
+ * Helper to extract text content from AI SDK v6 message parts
+ */
+function getMessageContent(message: { parts?: Array<{ type: string; text?: string }> }): string {
+	if (!message.parts) return ''
+	return message.parts
+		.filter((part) => part.type === 'text' && part.text)
+		.map((part) => part.text)
+		.join('')
+}
+
+/**
+ * Chat hook powered by Vercel AI SDK v6.
+ * Provides streaming chat functionality with automatic message management.
+ */
 export function useChat(agentId: string | undefined) {
-	const [isStreaming, setIsStreaming] = useState(false)
-	const [messages, setMessages] = useState<Message[]>([])
 	const [sessionId, setSessionId] = useState<string | null>(null)
-	const [error, setError] = useState<string | null>(null)
 
-	const sendMessage = useCallback(
-		async (content: string) => {
-			if (!agentId || isStreaming) return
+	// Create transport with the agent-specific API endpoint
+	const transport = useMemo(() => {
+		if (!agentId) return undefined
+		return new DefaultChatTransport({
+			api: `/api/chat/agents/${agentId}/chat`,
+			body: { sessionId },
+		})
+	}, [agentId, sessionId])
 
-			setIsStreaming(true)
-			setError(null)
-
-			// Add user message immediately
-			const userMessage: Message = {
-				id: `temp-${Date.now()}`,
-				conversationId: sessionId || '',
-				role: 'user',
-				content,
-				createdAt: new Date().toISOString(),
-			}
-			setMessages((prev) => [...prev, userMessage])
-
-			// Create placeholder for assistant response
-			const assistantMessage: Message = {
-				id: `temp-assistant-${Date.now()}`,
-				conversationId: sessionId || '',
-				role: 'assistant',
-				content: '',
-				createdAt: new Date().toISOString(),
-			}
-			setMessages((prev) => [...prev, assistantMessage])
-
-			try {
-				const response = await fetch(`/api/chat/agents/${agentId}/chat`, {
-					method: 'POST',
-					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify({
-						message: content,
-						sessionId,
-					}),
-				})
-
-				if (!response.ok) {
-					let errorData: unknown = null
-					try {
-						errorData = await response.json()
-					} catch {
-						// Response body was not JSON - use status text
-						errorData = { error: response.statusText || 'Unknown error' }
-					}
-					throw new Error(getErrorMessage(errorData, 'Failed to send message'))
-				}
-
-				const reader = response.body?.getReader()
-				if (!reader) {
-					throw new Error('No response body')
-				}
-
-				const decoder = new TextDecoder()
-				let buffer = ''
-
-				while (true) {
-					const { done, value } = await reader.read()
-					if (done) break
-
-					buffer += decoder.decode(value, { stream: true })
-					const lines = buffer.split('\n')
-					buffer = lines.pop() || ''
-
-					for (const line of lines) {
-						if (line.startsWith('data: ')) {
-							try {
-								const event: ChatStreamEventData = JSON.parse(line.slice(6))
-
-								if (event.type === 'text' && event.content) {
-									setMessages((prev) => {
-										const updated = [...prev]
-										const lastMessage = updated[updated.length - 1]
-										if (lastMessage && lastMessage.role === 'assistant') {
-											lastMessage.content += event.content
-										}
-										return updated
-									})
-								} else if (event.type === 'tool_call') {
-									setMessages((prev) => {
-										const updated = [...prev]
-										const lastMessage = updated[updated.length - 1]
-										if (lastMessage?.role === 'assistant') {
-											const toolCall: ToolCallData = {
-												id: event.toolCallId || `tool-${Date.now()}`,
-												name: event.toolName || 'unknown',
-												args: event.toolArgs || {},
-												status: 'running',
-												startedAt: new Date().toISOString(),
-											}
-											lastMessage.toolCalls = [...(lastMessage.toolCalls || []), toolCall]
-										}
-										return updated
-									})
-								} else if (event.type === 'tool_result') {
-									setMessages((prev) => {
-										const updated = [...prev]
-										const lastMessage = updated[updated.length - 1]
-										if (lastMessage?.role === 'assistant' && lastMessage.toolCalls) {
-											const toolCall = lastMessage.toolCalls.find(
-												(tc) => tc.id === event.toolCallId,
-											)
-											if (toolCall) {
-												toolCall.status = event.isError ? 'error' : 'completed'
-												toolCall.result = event.toolResult
-												if (event.isError) {
-													toolCall.error = String(event.toolResult)
-												}
-												toolCall.completedAt = new Date().toISOString()
-											}
-										}
-										return updated
-									})
-								} else if (event.type === 'done' && event.sessionId) {
-									setSessionId(event.sessionId)
-								} else if (event.type === 'error') {
-									setError(event.message || 'An error occurred')
-								}
-							} catch (parseError) {
-								// Log parse errors in development for debugging
-								if (process.env.NODE_ENV === 'development') {
-									console.warn('Failed to parse SSE event:', line, parseError)
-								}
-							}
-						}
-					}
-				}
-			} catch (err) {
-				setError(err instanceof Error ? err.message : 'Failed to send message')
-				// Remove the placeholder assistant message on error
-				setMessages((prev) => prev.slice(0, -1))
-			} finally {
-				setIsStreaming(false)
+	const chat = useAIChat({
+		id: agentId,
+		transport,
+		onFinish: ({ message }) => {
+			// Session ID is now managed by the server via the conversation ID
+			// The message metadata could be used to extract session info if needed
+			const msgSessionId = message.id?.split('-')[0] // Extract from message ID if present
+			if (msgSessionId && !sessionId) {
+				setSessionId(msgSessionId)
 			}
 		},
-		[agentId, isStreaming, sessionId],
-	)
+	})
 
-	const clearMessages = useCallback(() => {
-		setMessages([])
-		setSessionId(null)
-		setError(null)
-	}, [])
+	// Transform messages to a simpler format for backwards compatibility
+	const messages = chat.messages.map((msg) => ({
+		id: msg.id,
+		role: msg.role as 'user' | 'assistant' | 'system',
+		content: getMessageContent(msg),
+		parts: msg.parts,
+	}))
 
 	return {
 		messages,
-		isStreaming,
-		error,
+		isStreaming: chat.status === 'streaming' || chat.status === 'submitted',
+		status: chat.status,
+		error: chat.error?.message ?? null,
 		sessionId,
-		sendMessage,
-		clearMessages,
+		sendMessage: (content: string) => chat.sendMessage({ text: content }),
+		clearMessages: () => {
+			chat.setMessages([])
+			setSessionId(null)
+		},
+		stop: chat.stop,
 	}
+}
+
+// Re-export types for backwards compatibility
+export interface Message {
+	id: string
+	role: 'user' | 'assistant' | 'system'
+	content: string
+	parts?: Array<{ type: string; text?: string }>
+}
+
+export interface ChatUsage {
+	tokensIn: number
+	tokensOut: number
+	latencyMs: number
+}
+
+export interface ChatStreamEventData {
+	type: 'text' | 'tool_call' | 'tool_result' | 'done' | 'error'
+	content?: string
+	sessionId?: string
+	usage?: ChatUsage
+	message?: string
+}
+
+export interface ToolCallData {
+	id: string
+	name: string
+	args: Record<string, unknown>
+	status: 'pending' | 'running' | 'completed' | 'error'
+	result?: unknown
+	error?: string
 }

@@ -9,10 +9,10 @@
 export { DashboardPage } from './dashboard'
 
 // Agents
-export { AgentsListPage, AgentCreatePage } from './agents'
+export { AgentsListPage, AgentCreatePage, AgentsPage } from './agents'
 
 // Tools
-export { ToolsListPage } from './tools'
+export { ToolsListPage, ToolsPage } from './tools'
 
 // Settings
 export { SettingsPage, ApiKeysPage, BillingPage, type BillingPageProps, TeamPage } from './settings'
