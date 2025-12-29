@@ -50,3 +50,6 @@ export * from './router-components'
 
 // Dev tools widget
 export * from './dev-tools'
+
+// Public page layout widget
+export * from './public-page-layout'
