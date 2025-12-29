@@ -1,18 +1,51 @@
 'use client'
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { queryOptions, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type { Agent, CreateAgentInput, UpdateAgentInput } from '../types'
 import type { AgentPreviewInput, AgentPreviewResponse } from '../client'
 import { apiClient } from '../client'
 import { agentKeys } from './query-keys'
 
 /**
+ * Query options for listing agents in a workspace.
+ * Can be used with useQuery, prefetchQuery, or ensureQueryData.
+ */
+export const agentsQueryOptions = (workspaceId: string) =>
+	queryOptions({
+		queryKey: agentKeys.list(workspaceId),
+		queryFn: () => apiClient.agents.list(workspaceId),
+	})
+
+/**
+ * Query options for fetching a single agent.
+ * Can be used with useQuery, prefetchQuery, or ensureQueryData.
+ */
+export const agentQueryOptions = (options: { id: string; workspaceId: string }) =>
+	queryOptions({
+		queryKey: agentKeys.detail(options.workspaceId, options.id),
+		queryFn: () => apiClient.agents.get(options.id, options.workspaceId),
+	})
+
+/**
+ * Query options for agent preview/validation.
+ */
+export const agentPreviewQueryOptions = (options: {
+	agentId: string
+	workspaceId: string
+	overrides?: AgentPreviewInput
+}) =>
+	queryOptions({
+		queryKey: agentKeys.preview(options.workspaceId, options.agentId, options.overrides),
+		queryFn: () =>
+			apiClient.agents.preview(options.agentId, options.workspaceId, options.overrides),
+	})
+
+/**
  * Hook to list all agents for a workspace
  */
 export function useAgentsQuery(workspaceId: string | undefined) {
 	return useQuery({
-		queryKey: agentKeys.list(workspaceId ?? ''),
-		queryFn: () => apiClient.agents.list(workspaceId!),
+		...agentsQueryOptions(workspaceId!),
 		enabled: !!workspaceId,
 	})
 }
@@ -22,8 +55,7 @@ export function useAgentsQuery(workspaceId: string | undefined) {
  */
 export function useAgentQuery(id: string | undefined, workspaceId: string | undefined) {
 	return useQuery({
-		queryKey: agentKeys.detail(workspaceId ?? '', id ?? ''),
-		queryFn: () => apiClient.agents.get(id!, workspaceId!),
+		...agentQueryOptions({ id: id!, workspaceId: workspaceId! }),
 		enabled: !!id && !!workspaceId,
 	})
 }
@@ -36,9 +68,8 @@ export function usePrefetchAgent() {
 
 	return (id: string, workspaceId: string) => {
 		queryClient.prefetchQuery({
-			queryKey: agentKeys.detail(workspaceId, id),
-			queryFn: () => apiClient.agents.get(id, workspaceId),
-			staleTime: 30000, // 30 seconds
+			...agentQueryOptions({ id, workspaceId }),
+			staleTime: 30000,
 		})
 	}
 }
@@ -179,10 +210,10 @@ export function useAgentPreviewQuery(options: {
 	const { agentId, workspaceId, overrides, enabled = true } = options
 
 	return useQuery<AgentPreviewResponse>({
-		queryKey: ['agent-preview', workspaceId, agentId, overrides],
+		queryKey: agentKeys.preview(workspaceId ?? '', agentId ?? '', overrides),
 		queryFn: () => apiClient.agents.preview(agentId!, workspaceId!, overrides),
 		enabled: enabled && !!agentId && !!workspaceId,
-		staleTime: 30000, // 30 seconds - prevent too many requests
+		staleTime: 30000,
 		refetchOnWindowFocus: false,
 	})
 }

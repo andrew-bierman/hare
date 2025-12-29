@@ -80,10 +80,8 @@ export function ToolCallBlock({ toolCall }: ToolCallBlockProps) {
 	const defaultStyle = { color: 'bg-gray-500/10 text-gray-600 border-gray-500/20', icon: 'wrench' }
 	const categoryStyle = TOOL_CATEGORIES[category] ?? defaultStyle
 
-	const duration =
-		toolCall.completedAt && toolCall.startedAt
-			? new Date(toolCall.completedAt).getTime() - new Date(toolCall.startedAt).getTime()
-			: null
+	// Duration calculation is not available in v6 tool call format
+	const duration: number | null = null
 
 	return (
 		<Card className="my-3 border-l-4 border-l-primary/50">

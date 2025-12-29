@@ -41,9 +41,9 @@ export interface DashboardHomeProps {
 		usage: string
 	}
 	/** Agents query from parent app */
-	useAgents: (workspaceId: string | undefined) => UseQueryResult<{ agents: Agent[] }, Error>
+	useAgentsQuery: (workspaceId: string | undefined) => UseQueryResult<{ agents: Agent[] }, Error>
 	/** Usage query from parent app */
-	useUsage: (workspaceId: string | undefined) => UseQueryResult<UsageData, Error>
+	useUsageQuery: (workspaceId: string | undefined) => UseQueryResult<UsageData, Error>
 }
 
 const defaultRoutes = {
@@ -90,11 +90,11 @@ function AgentCardSkeleton() {
 	)
 }
 
-export function DashboardHome({ renderLink, routes, useAgents, useUsage }: DashboardHomeProps) {
+export function DashboardHome({ renderLink, routes, useAgentsQuery, useUsageQuery }: DashboardHomeProps) {
 	const r = routes ?? defaultRoutes
 	const { activeWorkspace, isLoading: workspaceLoading } = useWorkspace()
-	const { data: agentsData, isLoading: agentsLoading } = useAgents(activeWorkspace?.id)
-	const { data: usageData, isLoading: usageLoading } = useUsage(activeWorkspace?.id)
+	const { data: agentsData, isLoading: agentsLoading } = useAgentsQuery(activeWorkspace?.id)
+	const { data: usageData, isLoading: usageLoading } = useUsageQuery(activeWorkspace?.id)
 
 	const agents: Agent[] = agentsData?.agents ?? []
 	const deployedAgents = agents.filter((a) => a.status === 'deployed')

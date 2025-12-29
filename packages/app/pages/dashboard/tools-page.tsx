@@ -20,7 +20,7 @@ export interface ToolsPageProps {
 		toolDetail: (id: string) => string
 	}
 	/** Tools query from parent app */
-	useTools: (workspaceId: string | undefined) => UseQueryResult<{ tools: Tool[] }, Error>
+	useToolsQuery: (workspaceId: string | undefined) => UseQueryResult<{ tools: Tool[] }, Error>
 }
 
 const defaultRoutes = {
@@ -46,10 +46,10 @@ function ToolCardSkeleton() {
 	)
 }
 
-export function ToolsPage({ renderLink, routes, useTools }: ToolsPageProps) {
+export function ToolsPage({ renderLink, routes, useToolsQuery }: ToolsPageProps) {
 	const r = routes ?? defaultRoutes
 	const { activeWorkspace } = useWorkspace()
-	const { data, isLoading, error } = useTools(activeWorkspace?.id)
+	const { data, isLoading, error } = useToolsQuery(activeWorkspace?.id)
 	const [search, setSearch] = useState('')
 
 	const tools: Tool[] = data?.tools ?? []

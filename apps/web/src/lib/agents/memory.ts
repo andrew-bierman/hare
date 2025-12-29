@@ -1,5 +1,5 @@
 import { isMessageRole, type MessageRole } from '@hare/api'
-import type { CoreMessage } from 'ai'
+import type { ModelMessage } from 'ai'
 import { and, desc, eq, like } from 'drizzle-orm'
 import { conversations, messages } from 'web-app/db/schema'
 import type { Database, MessageMetadata } from 'web-app/db/types'
@@ -225,7 +225,7 @@ export function createMemoryStore(db: Database, workspaceId?: string): MemorySto
 /**
  * Convert conversation messages to the format expected by AI SDK agents.
  */
-export function toAgentMessages(messages: ConversationMessage[]): CoreMessage[] {
+export function toAgentMessages(messages: ConversationMessage[]): ModelMessage[] {
 	return messages
 		.filter((m) => m.role !== 'tool') // Filter out tool messages
 		.map((m) => ({

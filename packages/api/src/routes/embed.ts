@@ -1,5 +1,5 @@
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
-import type { CoreMessage } from 'ai'
+import type { ModelMessage } from 'ai'
 import { eq } from 'drizzle-orm'
 import { cors } from 'hono/cors'
 import { streamSSE } from 'hono/streaming'
@@ -282,7 +282,7 @@ app.openapi(embedChatRoute, async (c) => {
 		conversationId,
 		limit: 20,
 	})
-	const agentMessages: CoreMessage[] = toAgentMessages(historyMessages)
+	const agentMessages: ModelMessage[] = toAgentMessages(historyMessages)
 
 	// Add new user message
 	agentMessages.push({ role: 'user', content: message })

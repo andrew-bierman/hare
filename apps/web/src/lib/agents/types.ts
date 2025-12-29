@@ -8,7 +8,7 @@
  * cloudflare:workers and can only be imported in Workers context.
  */
 
-import type { CoreMessage } from 'ai'
+import type { ModelMessage } from 'ai'
 
 /**
  * Agent state that is persisted and synced with clients.
@@ -25,7 +25,7 @@ export interface HareAgentState {
 	/** Model to use */
 	model: string
 	/** Conversation history */
-	messages: CoreMessage[]
+	messages: ModelMessage[]
 	/** Whether the agent is currently processing */
 	isProcessing: boolean
 	/** Last activity timestamp */

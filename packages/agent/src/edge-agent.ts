@@ -5,7 +5,7 @@
  * Designed to run on Cloudflare Workers without Node.js dependencies.
  */
 
-import { type CoreMessage, type LanguageModel, streamText } from 'ai'
+import { type ModelMessage, type LanguageModel, streamText } from 'ai'
 import { createWorkersAIModel } from './providers/workers-ai'
 
 /**
@@ -82,15 +82,15 @@ export class EdgeAgent {
 	/**
 	 * Stream a response from the agent.
 	 */
-	async stream(messages: CoreMessage[]): Promise<AgentStreamResponse> {
+	async stream(messages: ModelMessage[]): Promise<AgentStreamResponse> {
 		// Build system message
-		const systemMessage: CoreMessage = {
+		const systemMessage: ModelMessage = {
 			role: 'system',
 			content: this.buildSystemPrompt(),
 		}
 
 		// Prepare messages with system prompt
-		const allMessages: CoreMessage[] = [systemMessage, ...messages]
+		const allMessages: ModelMessage[] = [systemMessage, ...messages]
 
 		// Use AI SDK's streamText for streaming
 		const result = streamText({
@@ -113,9 +113,26 @@ export class EdgeAgent {
 	/**
 	 * Generate a non-streaming response.
 	 */
-	async generate(messages: CoreMessage[]): Promise<string> {
+	async generate(messages: ModelMessage[]): Promise<string> {
 		const response = await this.stream(messages)
 		return response.text
+	}
+
+	/**
+	 * Stream with raw AI SDK result for use with toDataStreamResponse().
+	 * Returns the streamText result directly for maximum flexibility.
+	 */
+	streamRaw(messages: ModelMessage[]) {
+		const systemMessage: ModelMessage = {
+			role: 'system',
+			content: this.buildSystemPrompt(),
+		}
+		const allMessages: ModelMessage[] = [systemMessage, ...messages]
+
+		return streamText({
+			model: this.model,
+			messages: allMessages,
+		})
 	}
 
 	/**
