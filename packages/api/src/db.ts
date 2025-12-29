@@ -1,5 +1,5 @@
 import type { Context } from 'hono'
-import { createDb, type Database } from 'web-app/db/client'
+import { createDb, type Database } from '@hare/db'
 
 // Re-export Database type for routes
 export type { Database }

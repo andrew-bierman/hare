@@ -1,6 +1,6 @@
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
 import { and, eq, gte, lte, sql } from 'drizzle-orm'
-import { agents, usage } from 'web-app/db/schema'
+import { agents, usage } from '@hare/db'
 import { getDb } from '../db'
 import { authMiddleware, workspaceMiddleware } from '../middleware'
 import {

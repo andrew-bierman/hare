@@ -1,6 +1,6 @@
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
 import { and, eq } from 'drizzle-orm'
-import { users, workspaceInvitations, workspaceMembers, workspaces } from 'web-app/db/schema'
+import { users, workspaceInvitations, workspaceMembers, workspaces } from '@hare/db'
 import { getDb } from '../db'
 import {
 	commonResponses,

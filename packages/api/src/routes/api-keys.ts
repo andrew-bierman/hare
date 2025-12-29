@@ -1,6 +1,6 @@
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
 import { and, eq } from 'drizzle-orm'
-import { apiKeys } from 'web-app/db/schema'
+import { apiKeys } from '@hare/db'
 import { getDb } from '../db'
 import { commonResponses, requireAdminAccess } from '../helpers'
 import { authMiddleware, generateApiKey, workspaceMiddleware } from '../middleware'

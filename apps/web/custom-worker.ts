@@ -19,5 +19,4 @@ export default handler
 export { BucketCachePurge, DOQueueHandler, DOShardedTagCache } from './.open-next/worker.js'
 
 // Export custom Durable Objects for Cloudflare Agents
-export { HareAgent } from './src/lib/agents/hare-agent'
-export { HareMcpAgent } from './src/lib/agents/mcp-agent'
+export { HareAgent, HareMcpAgent } from '@hare/agent/workers'

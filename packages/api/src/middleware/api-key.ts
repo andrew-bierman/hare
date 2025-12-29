@@ -1,6 +1,6 @@
 import { eq } from 'drizzle-orm'
 import type { MiddlewareHandler } from 'hono'
-import { apiKeys, workspaces } from 'web-app/db/schema'
+import { apiKeys, workspaces } from '@hare/db'
 import { getDb } from '../db'
 import type { ApiKeyEnv, ApiKeyInfo } from '@hare/types'
 

@@ -6,7 +6,7 @@ import {
 	WEBHOOK_STATUSES,
 	webhookLogs,
 	webhooks,
-} from 'web-app/db/schema'
+} from '@hare/db'
 import { getDb } from '../db'
 import { commonResponses, requireAdminAccess, requireWriteAccess } from '../helpers'
 import { authMiddleware, workspaceMiddleware } from '../middleware'

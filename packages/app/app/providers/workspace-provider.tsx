@@ -39,7 +39,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
 
 	// Auto-create default workspace if user has none
 	useEffect(() => {
-		if (!isLoading && session?.data?.user && workspaces.length === 0 && !createWorkspace.isPending) {
+		if (!isLoading && session?.user && workspaces.length === 0 && !createWorkspace.isPending) {
 			// Add random suffix to avoid slug collisions in concurrent signup scenarios
 			const suffix = Math.random().toString(36).substring(2, 8)
 			createWorkspace.mutate({
@@ -47,7 +47,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
 				slug: `my-workspace-${suffix}`,
 			})
 		}
-	}, [isLoading, session?.data?.user, workspaces.length, createWorkspace])
+	}, [isLoading, session?.user, workspaces.length, createWorkspace])
 
 	// Restore or set active workspace
 	useEffect(() => {

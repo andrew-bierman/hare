@@ -1,6 +1,6 @@
 import { OpenAPIHono } from '@hono/zod-openapi'
-import { agents } from 'web-app/db/schema'
-import { serverEnv } from 'web-app/lib/env/server'
+import { agents } from '@hare/db'
+import { serverEnv } from '@hare/config'
 import { getDb } from '../db'
 import { authMiddleware, workspaceMiddleware } from '../middleware'
 import type { WorkspaceEnv } from '@hare/types'

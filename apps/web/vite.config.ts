@@ -6,16 +6,39 @@ import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
 
 // Resolve paths to workspace packages
-const appPackagePath = path.resolve(__dirname, '../../packages/app')
+const packagesPath = path.resolve(__dirname, '../../packages')
+const appPackagePath = path.join(packagesPath, 'app')
 
 export default defineConfig({
 	server: {
-		port: 3000,
+		port: Number(process.env.PORT) || 3000,
+	},
+	ssr: {
+		// Include these dependencies in SSR optimization upfront to avoid mid-reload prebundle issues
+		optimizeDeps: {
+			include: ['agents', 'agents/mcp', 'ai', '@modelcontextprotocol/sdk/server/mcp.js'],
+		},
+	},
+	optimizeDeps: {
+		// Also include for regular optimization
+		include: ['agents', 'agents/mcp', 'ai', '@modelcontextprotocol/sdk/server/mcp.js'],
 	},
 	resolve: {
 		alias: {
 			'web-app': path.resolve(__dirname, './src'),
-			'@hare/ui': path.resolve(__dirname, '../../packages/ui/src'),
+			// Core packages - subpaths must come before main paths
+			'@hare/db/schema': path.join(packagesPath, 'db/src/schema/index.ts'),
+			'@hare/db': path.join(packagesPath, 'db/src/index.ts'),
+			'@hare/agent/workers': path.join(packagesPath, 'agent/src/workers.ts'),
+			'@hare/agent': path.join(packagesPath, 'agent/src/index.ts'),
+			'@hare/config': path.join(packagesPath, 'config/src/index.ts'),
+			'@hare/tools': path.join(packagesPath, 'tools/src/index.ts'),
+			'@hare/types': path.join(packagesPath, 'types/src/index.ts'),
+			'@hare/api': path.join(packagesPath, 'api/src/index.ts'),
+			'@hare/auth/client': path.join(packagesPath, 'auth/src/client.ts'),
+			'@hare/auth/server': path.join(packagesPath, 'auth/src/server.ts'),
+			'@hare/auth': path.join(packagesPath, 'auth/src/index.ts'),
+			'@hare/ui': path.join(packagesPath, 'ui/src'),
 			// @hare/app package aliases - specific subpaths must come before wildcards
 			'@hare/app/widgets/agent-builder': path.join(
 				appPackagePath,

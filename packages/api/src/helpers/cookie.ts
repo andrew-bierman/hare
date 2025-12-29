@@ -1,6 +1,6 @@
 import type { Context } from 'hono'
 import { deleteCookie, getCookie, getSignedCookie, setCookie, setSignedCookie } from 'hono/cookie'
-import { serverEnv } from 'web-app/lib/env/server'
+import { serverEnv } from '@hare/config'
 
 /**
  * Cookie helpers using Hono's cookie helper.

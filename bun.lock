@@ -77,6 +77,8 @@
         "@hare/app": "workspace:*",
         "@hare/auth": "workspace:*",
         "@hare/config": "workspace:*",
+        "@hare/db": "workspace:*",
+        "@hare/security": "workspace:*",
         "@hare/tools": "workspace:*",
         "@hare/types": "workspace:*",
         "@hare/ui": "workspace:*",
@@ -145,6 +147,7 @@
       "name": "@hare/agent",
       "version": "0.1.0",
       "dependencies": {
+        "@hare/db": "workspace:*",
         "@hare/tools": "workspace:*",
         "@hare/types": "workspace:*",
         "workers-ai-provider": "^3.0.1",
@@ -163,6 +166,7 @@
         "@modelcontextprotocol/sdk": "1.23.0",
         "agents": "^0.3.0",
         "ai": "^6.0.0",
+        "drizzle-orm": "^0.43.0",
         "zod": "^4.0.0",
       },
     },
@@ -210,6 +214,7 @@
         "@dnd-kit/utilities": "^3.2.2",
         "@hare/agent": "workspace:*",
         "@hare/api": "workspace:*",
+        "@hare/auth": "workspace:*",
         "@hare/config": "workspace:*",
         "@hare/types": "workspace:*",
         "@hare/ui": "workspace:*",
@@ -295,6 +300,18 @@
       "peerDependencies": {
         "drizzle-orm": "^0.45.0",
         "drizzle-zod": "^0.8.0",
+      },
+    },
+    "packages/security": {
+      "name": "@hare/security",
+      "version": "0.1.0",
+      "dependencies": {
+        "@hare/types": "workspace:*",
+        "hono": "^4.7.9",
+      },
+      "devDependencies": {
+        "@hare/typescript-config": "workspace:*",
+        "typescript": "^5",
       },
     },
     "packages/tools": {
@@ -658,6 +675,8 @@
     "@hare/db": ["@hare/db@workspace:packages/db"],
 
     "@hare/scripts": ["@hare/scripts@workspace:scripts"],
+
+    "@hare/security": ["@hare/security@workspace:packages/security"],
 
     "@hare/tools": ["@hare/tools@workspace:packages/tools"],
 

@@ -1,6 +1,6 @@
 import type { z } from '@hono/zod-openapi'
 import type { InferSelectModel } from 'drizzle-orm'
-import type { tools } from 'web-app/db/schema'
+import type { tools } from '@hare/db'
 import type { AnyTool } from '@hare/tools'
 import { zodToJsonSchema } from 'zod-to-json-schema'
 import type { ToolSchema, ToolTypeSchema } from '../schemas'

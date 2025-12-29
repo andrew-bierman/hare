@@ -28,6 +28,7 @@
 		"README.md"
 	],
 	"dependencies": {
+		"@hare/db": "workspace:*",
 		"@hare/tools": "workspace:*",
 		"@hare/types": "workspace:*",
 		"workers-ai-provider": "^3.0.1",
@@ -46,6 +47,7 @@
 		"@modelcontextprotocol/sdk": "1.23.0",
 		"agents": "^0.3.0",
 		"ai": "^6.0.0",
+		"drizzle-orm": "^0.43.0",
 		"zod": "^4.0.0"
 	}
 }
