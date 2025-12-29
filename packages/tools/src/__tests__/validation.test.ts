@@ -69,7 +69,7 @@ describe('Validation Tools', () => {
 		describe('execution - valid emails', () => {
 			it('validates correct email format', async () => {
 				const result = await validateEmailTool.execute(
-					{ email: 'user@example.com', suggestCorrection: false },
+					{ email: 'user@example.com', checkMx: false, suggestCorrection: false },
 					context,
 				)
 
@@ -80,7 +80,7 @@ describe('Validation Tools', () => {
 
 			it('validates email with subdomain', async () => {
 				const result = await validateEmailTool.execute(
-					{ email: 'user@mail.example.com', suggestCorrection: false },
+					{ email: 'user@mail.example.com', checkMx: false, suggestCorrection: false },
 					context,
 				)
 
@@ -90,7 +90,7 @@ describe('Validation Tools', () => {
 
 			it('validates email with plus addressing', async () => {
 				const result = await validateEmailTool.execute(
-					{ email: 'user+tag@example.com', suggestCorrection: false },
+					{ email: 'user+tag@example.com', checkMx: false, suggestCorrection: false },
 					context,
 				)
 
@@ -100,7 +100,7 @@ describe('Validation Tools', () => {
 
 			it('extracts local part and domain', async () => {
 				const result = await validateEmailTool.execute(
-					{ email: 'john.doe@company.com', suggestCorrection: false },
+					{ email: 'john.doe@company.com', checkMx: false, suggestCorrection: false },
 					context,
 				)
 
@@ -113,7 +113,7 @@ describe('Validation Tools', () => {
 		describe('execution - invalid emails', () => {
 			it('rejects email without @', async () => {
 				const result = await validateEmailTool.execute(
-					{ email: 'userexample.com', suggestCorrection: false },
+					{ email: 'userexample.com', checkMx: false, suggestCorrection: false },
 					context,
 				)
 
@@ -124,7 +124,7 @@ describe('Validation Tools', () => {
 
 			it('rejects email without domain', async () => {
 				const result = await validateEmailTool.execute(
-					{ email: 'user@', suggestCorrection: false },
+					{ email: 'user@', checkMx: false, suggestCorrection: false },
 					context,
 				)
 
@@ -134,7 +134,7 @@ describe('Validation Tools', () => {
 
 			it('rejects email with consecutive dots', async () => {
 				const result = await validateEmailTool.execute(
-					{ email: 'user..name@example.com', suggestCorrection: false },
+					{ email: 'user..name@example.com', checkMx: false, suggestCorrection: false },
 					context,
 				)
 
@@ -145,7 +145,7 @@ describe('Validation Tools', () => {
 
 			it('rejects domain without dot', async () => {
 				const result = await validateEmailTool.execute(
-					{ email: 'user@localhost', suggestCorrection: false },
+					{ email: 'user@localhost', checkMx: false, suggestCorrection: false },
 					context,
 				)
 
@@ -158,7 +158,7 @@ describe('Validation Tools', () => {
 		describe('execution - typo suggestions', () => {
 			it('suggests gmail.com for gmial.com', async () => {
 				const result = await validateEmailTool.execute(
-					{ email: 'user@gmial.com', suggestCorrection: true },
+					{ email: 'user@gmial.com', checkMx: false, suggestCorrection: true },
 					context,
 				)
 
@@ -168,7 +168,7 @@ describe('Validation Tools', () => {
 
 			it('suggests hotmail.com for hotmal.com', async () => {
 				const result = await validateEmailTool.execute(
-					{ email: 'user@hotmal.com', suggestCorrection: true },
+					{ email: 'user@hotmal.com', checkMx: false, suggestCorrection: true },
 					context,
 				)
 
@@ -178,7 +178,7 @@ describe('Validation Tools', () => {
 
 			it('suggests yahoo.com for yaho.com', async () => {
 				const result = await validateEmailTool.execute(
-					{ email: 'user@yaho.com', suggestCorrection: true },
+					{ email: 'user@yaho.com', checkMx: false, suggestCorrection: true },
 					context,
 				)
 
@@ -188,7 +188,7 @@ describe('Validation Tools', () => {
 
 			it('does not suggest when suggestCorrection is false', async () => {
 				const result = await validateEmailTool.execute(
-					{ email: 'user@gmial.com', suggestCorrection: false },
+					{ email: 'user@gmial.com', checkMx: false, suggestCorrection: false },
 					context,
 				)
 
@@ -384,7 +384,7 @@ describe('Validation Tools', () => {
 					ok: true,
 					status: 200,
 				})
-				globalThis.fetch = mockFetch
+				globalThis.fetch = mockFetch as typeof fetch
 
 				const result = await validateUrlTool.execute(
 					{ url: 'https://example.com', allowedProtocols: ['https'], checkReachable: true, timeout: 5000 },
@@ -402,7 +402,7 @@ describe('Validation Tools', () => {
 
 			it('reports unreachable URLs', async () => {
 				const mockFetch = vi.fn().mockRejectedValueOnce(new Error('Network error'))
-				globalThis.fetch = mockFetch
+				globalThis.fetch = mockFetch as typeof fetch
 
 				const result = await validateUrlTool.execute(
 					{ url: 'https://unreachable.example', allowedProtocols: ['https'], checkReachable: true, timeout: 5000 },

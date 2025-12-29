@@ -8,8 +8,8 @@
  */
 
 import { and, count, eq, gte, sql } from 'drizzle-orm'
-import { agents, usage } from 'web-app/db/schema'
-import type { Database } from 'web-app/db'
+import { agents, usage } from '@hare/db/schema'
+import type { Database } from '@hare/db'
 
 // =============================================================================
 // Types

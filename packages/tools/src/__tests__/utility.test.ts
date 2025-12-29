@@ -632,7 +632,7 @@ describe('Utility Tools', () => {
 				expect(result.data?.protocol).toBe('https:')
 				expect(result.data?.host).toBe('example.com:8080')
 				expect(result.data?.pathname).toBe('/path')
-				expect(result.data?.search).toBe('?query=value')
+				expect((result.data as Record<string, unknown>)?.search).toBe('?query=value')
 			})
 
 			it('builds URL from components', async () => {
@@ -646,7 +646,7 @@ describe('Utility Tools', () => {
 					context,
 				)
 				expect(result.success).toBe(true)
-				expect(result.data?.url).toBe('https://example.com/api/users?id=123')
+				expect((result.data as Record<string, unknown>)?.url).toBe('https://example.com/api/users?id=123')
 			})
 
 			it('encodes URL components', async () => {
@@ -655,7 +655,7 @@ describe('Utility Tools', () => {
 					context,
 				)
 				expect(result.success).toBe(true)
-				expect(result.data?.encoded).toBe('hello%20world')
+				expect((result.data as Record<string, unknown>)?.encoded).toBe('hello%20world')
 			})
 
 			it('decodes URL components', async () => {
@@ -664,7 +664,7 @@ describe('Utility Tools', () => {
 					context,
 				)
 				expect(result.success).toBe(true)
-				expect(result.data?.decoded).toBe('hello world')
+				expect((result.data as Record<string, unknown>)?.decoded).toBe('hello world')
 			})
 
 			it('adds params to URL', async () => {
@@ -677,8 +677,8 @@ describe('Utility Tools', () => {
 					context,
 				)
 				expect(result.success).toBe(true)
-				expect(result.data?.url).toContain('foo=bar')
-				expect(result.data?.url).toContain('baz=qux')
+				expect((result.data as Record<string, unknown>)?.url).toContain('foo=bar')
+				expect((result.data as Record<string, unknown>)?.url).toContain('baz=qux')
 			})
 		})
 	})
