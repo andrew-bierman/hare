@@ -1,4 +1,4 @@
-import { AgentsPage, useAgentsQuery } from '@hare/app'
+import { AgentsListPage, useAgentsQuery } from '@hare/app'
 import { createFileRoute, Link } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/agents')({
@@ -7,7 +7,7 @@ export const Route = createFileRoute('/agents')({
 
 function AgentsPageWrapper() {
 	return (
-		<AgentsPage
+		<AgentsListPage
 			renderLink={({ to, children, className }) => (
 				<Link to={to as '/'} className={className}>
 					{children}

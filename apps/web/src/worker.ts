@@ -12,5 +12,4 @@
  */
 
 // Re-export for type checking and development reference
-export type { HareAgent } from './lib/agents/hare-agent'
-export type { HareMcpAgent } from './lib/agents/mcp-agent'
+export type { HareAgent, HareMcpAgent } from '@hare/agent/workers'

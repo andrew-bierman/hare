@@ -1,6 +1,6 @@
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
 import { and, eq } from 'drizzle-orm'
-import { tools } from 'web-app/db/schema'
+import { tools } from '@hare/db'
 import {
 	getSystemTools,
 	getSystemToolsMap,

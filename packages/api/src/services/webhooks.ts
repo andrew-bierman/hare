@@ -13,8 +13,8 @@ import {
 	type WebhookEventType,
 	webhookLogs,
 	webhooks,
-} from 'web-app/db/schema'
-import type { Database } from 'web-app/db'
+	type Database,
+} from '@hare/db'
 
 // =============================================================================
 // Types

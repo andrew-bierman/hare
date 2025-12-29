@@ -68,3 +68,49 @@ export type {
 	GenerateEmbeddingInput,
 	GenerateEmbeddingsInput,
 } from './providers/workers-ai'
+
+// Memory store (universal)
+export {
+	createMemoryStore,
+	toAgentMessages,
+	D1MemoryStore,
+} from './memory'
+export type {
+	MessageRole,
+	ConversationMessage,
+	SaveMessageInput,
+	GetMessagesInput,
+	GetOrCreateConversationInput,
+	SearchMessagesInput,
+	MemoryStore,
+} from './memory'
+
+// Agent control tools (for MCP)
+export {
+	agentControlTools,
+	configureAgentTool,
+	createAgentTool,
+	deleteAgentTool,
+	executeToolTool,
+	getAgentControlToolsForMcp,
+	getAgentMetricsTool,
+	getAgentTool,
+	listAgentsTool,
+	listAgentToolsTool,
+	scheduleTaskTool,
+	sendMessageTool,
+} from './tools'
+export type { AnyTool, ExecutableTool, Tool, ToolContext, ToolResult } from './tools'
+
+// Agent factory (for creating agents from database configurations)
+export {
+	createAgentFromConfig,
+	createSimpleAgent,
+	loadAgentTools,
+} from './factory'
+export type {
+	AgentConfig,
+	CreateAgentFromConfigInput,
+	CreateSimpleAgentInput,
+	LoadAgentToolsInput,
+} from './factory'

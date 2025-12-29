@@ -17,7 +17,7 @@ import {
 	Wrench,
 } from 'lucide-react'
 import { useWorkspace } from '../../app/providers'
-import { AVAILABLE_MODELS, DASHBOARD_CONTENT, UI_TEXT } from '@hare/config'
+import { AI_MODELS, DASHBOARD_CONTENT, UI_TEXT } from '@hare/config'
 import type { Agent } from '@hare/types'
 import { useAgentsQuery, useUsageQuery } from '../../shared/api/hooks'
 
@@ -77,7 +77,7 @@ export function DashboardPage() {
 	}
 
 	const getModelName = (modelId: string) => {
-		const model = AVAILABLE_MODELS.find((m) => m.id === modelId)
+		const model = AI_MODELS.find((m) => m.id === modelId)
 		return model?.name || modelId
 	}
 

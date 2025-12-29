@@ -11,10 +11,8 @@
 
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
 import { and, eq } from 'drizzle-orm'
-import { workspaceMembers } from 'web-app/db/schema'
-import { isWebSocketRequest, routeToMcpAgent } from 'web-app/lib/agents'
-import { agentControlTools } from 'web-app/lib/agents/tools/agent-control'
-import type { ToolContext } from 'web-app/lib/agents/tools/types'
+import { workspaceMembers } from '@hare/db'
+import { isWebSocketRequest, routeToMcpAgent, agentControlTools, type ToolContext } from '@hare/agent'
 import { type Database, getCloudflareEnv, getDb } from '../db'
 import { optionalAuthMiddleware } from '../middleware'
 import { ErrorSchema } from '../schemas'
