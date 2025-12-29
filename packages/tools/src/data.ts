@@ -12,7 +12,7 @@ export const rssTool = createTool({
 		limit: z.number().optional().default(10).describe('Maximum number of items to return'),
 		includeContent: z.boolean().optional().default(false).describe('Include full content of items'),
 	}),
-	execute: async (params, _context) => {
+	execute: async (params, _context): Promise<ToolResult<unknown>> => {
 		try {
 			const { url, limit, includeContent } = params
 
@@ -186,7 +186,7 @@ export const scrapeTool = createTool({
 		maxLength: z.number().optional().default(10000).describe('Maximum content length to return'),
 		timeout: z.number().optional().default(10000).describe('Request timeout in milliseconds'),
 	}),
-	execute: async (params, _context) => {
+	execute: async (params, _context): Promise<ToolResult<unknown>> => {
 		try {
 			const { url, extract, selector, maxLength, timeout } = params
 
@@ -656,7 +656,7 @@ export const jsonSchemaTool = createTool({
 			.passthrough()
 			.describe('JSON Schema to validate against'),
 	}),
-	execute: async (params, _context) => {
+	execute: async (params, _context): Promise<ToolResult<unknown>> => {
 		try {
 			const { data, schema } = params
 
@@ -950,7 +950,7 @@ export const templateTool = createTool({
 			})
 			.optional(),
 	}),
-	execute: async (params, _context) => {
+	execute: async (params, _context): Promise<ToolResult<unknown>> => {
 		try {
 			const { template, variables, options } = params
 			const { missingBehavior = 'empty', escapeHtml = false } = options || {}

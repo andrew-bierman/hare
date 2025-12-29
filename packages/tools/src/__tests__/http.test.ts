@@ -1,6 +1,7 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
 import { httpRequestTool, httpGetTool, httpPostTool, getHTTPTools } from '../http'
 import type { ToolContext } from '../types'
+import { createFetchMock } from './test-utils'
 
 // Mock fetch globally
 const originalFetch = globalThis.fetch
@@ -18,7 +19,7 @@ describe('HTTP Tools', () => {
 	beforeEach(() => {
 		context = createMockContext()
 		mockFetch = vi.fn()
-		globalThis.fetch = mockFetch
+		globalThis.fetch = createFetchMock(mockFetch)
 	})
 
 	afterEach(() => {

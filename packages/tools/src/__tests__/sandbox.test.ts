@@ -33,7 +33,7 @@ const createMockSandboxBinding = () => {
 
 const createMockContext = (hasSandbox = false): ToolContext => ({
 	env: hasSandbox
-		? { SANDBOX: createMockSandboxBinding() }
+		? ({ SANDBOX: createMockSandboxBinding() } as unknown as ToolContext['env'])
 		: ({} as ToolContext['env']),
 	workspaceId: 'test-workspace',
 	userId: 'test-user',
@@ -393,7 +393,7 @@ describe('Sandbox Tools', () => {
 					sandboxContext,
 				)
 				expect(result.success).toBe(true)
-				expect(result.data?.content).toBeDefined()
+				expect((result.data as Record<string, unknown>)?.content).toBeDefined()
 			})
 
 			it('writes file', async () => {
@@ -408,7 +408,7 @@ describe('Sandbox Tools', () => {
 					sandboxContext,
 				)
 				expect(result.success).toBe(true)
-				expect(result.data?.written).toBe(true)
+				expect((result.data as Record<string, unknown>)?.written).toBe(true)
 			})
 
 			it('lists directory', async () => {
@@ -422,7 +422,7 @@ describe('Sandbox Tools', () => {
 					sandboxContext,
 				)
 				expect(result.success).toBe(true)
-				expect(result.data?.listing).toBeDefined()
+				expect((result.data as Record<string, unknown>)?.listing).toBeDefined()
 			})
 		})
 	})

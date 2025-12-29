@@ -215,7 +215,7 @@ export const diffTool = createTool({
 			.describe('Comparison mode'),
 		context: z.number().optional().default(3).describe('Lines of context around changes'),
 	}),
-	execute: async (params, _context) => {
+	execute: async (params, _context): Promise<ToolResult<unknown>> => {
 		const { original, modified, mode, context: _contextLines } = params
 
 		type Change = {
@@ -394,7 +394,7 @@ export const qrcodeTool = createTool({
 			})
 			.optional(),
 	}),
-	execute: async (params, _context) => {
+	execute: async (params, _context): Promise<ToolResult<unknown>> => {
 		const { data, type, size, errorCorrection, wifiOptions, vcardOptions } = params
 
 		// Format data based on type

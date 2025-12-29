@@ -1116,7 +1116,7 @@ export const delayTool = createTool({
 			.describe('Duration to wait in milliseconds (max 30 seconds)'),
 		reason: z.string().optional().describe('Reason for the delay (for logging)'),
 	}),
-	execute: async (params, _context) => {
+	execute: async (params, _context): Promise<ToolResult<unknown>> => {
 		const { duration, reason } = params
 		const start = Date.now()
 		await new Promise((resolve) => setTimeout(resolve, duration))

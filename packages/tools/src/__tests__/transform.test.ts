@@ -8,6 +8,7 @@ import {
 	getTransformTools,
 } from '../transform'
 import type { ToolContext } from '../types'
+import { expectResultData, ResultSchemas } from './test-utils'
 
 const createMockContext = (): ToolContext => ({
 	env: {} as ToolContext['env'],
@@ -60,8 +61,8 @@ describe('Transform Tools', () => {
 					{ operation: 'toHtml', markdown: '# Hello World' },
 					context,
 				)
-				expect(result.success).toBe(true)
-				expect(result.data?.html).toContain('<h1>Hello World</h1>')
+				const data = expectResultData(result, ResultSchemas.markdown)
+				expect(data.html).toContain('<h1>Hello World</h1>')
 			})
 
 			it('converts bold text to HTML', async () => {
@@ -69,8 +70,8 @@ describe('Transform Tools', () => {
 					{ operation: 'toHtml', markdown: '**bold text**' },
 					context,
 				)
-				expect(result.success).toBe(true)
-				expect(result.data?.html).toContain('<strong>bold text</strong>')
+				const data = expectResultData(result, ResultSchemas.markdown)
+				expect(data.html).toContain('<strong>bold text</strong>')
 			})
 
 			it('converts italic text to HTML', async () => {
@@ -78,8 +79,8 @@ describe('Transform Tools', () => {
 					{ operation: 'toHtml', markdown: '*italic text*' },
 					context,
 				)
-				expect(result.success).toBe(true)
-				expect(result.data?.html).toContain('<em>italic text</em>')
+				const data = expectResultData(result, ResultSchemas.markdown)
+				expect(data.html).toContain('<em>italic text</em>')
 			})
 
 			it('converts links to HTML', async () => {
@@ -87,8 +88,8 @@ describe('Transform Tools', () => {
 					{ operation: 'toHtml', markdown: '[link](https://example.com)' },
 					context,
 				)
-				expect(result.success).toBe(true)
-				expect(result.data?.html).toContain('<a href="https://example.com">link</a>')
+				const data = expectResultData(result, ResultSchemas.markdown)
+				expect(data.html).toContain('<a href="https://example.com">link</a>')
 			})
 
 			it('converts code blocks to HTML', async () => {
@@ -96,9 +97,9 @@ describe('Transform Tools', () => {
 					{ operation: 'toHtml', markdown: '```javascript\nconst x = 1;\n```' },
 					context,
 				)
-				expect(result.success).toBe(true)
-				expect(result.data?.html).toContain('<pre><code')
-				expect(result.data?.html).toContain('language-javascript')
+				const data = expectResultData(result, ResultSchemas.markdown)
+				expect(data.html).toContain('<pre><code')
+				expect(data.html).toContain('language-javascript')
 			})
 
 			it('handles GFM strikethrough', async () => {
@@ -106,12 +107,12 @@ describe('Transform Tools', () => {
 					{
 						operation: 'toHtml',
 						markdown: '~~deleted~~',
-						options: { gfm: true },
+						options: { gfm: true, sanitize: false },
 					},
 					context,
 				)
-				expect(result.success).toBe(true)
-				expect(result.data?.html).toContain('<del>deleted</del>')
+				const data = expectResultData(result, ResultSchemas.markdown)
+				expect(data.html).toContain('<del>deleted</del>')
 			})
 		})
 
@@ -121,11 +122,11 @@ describe('Transform Tools', () => {
 					{ operation: 'toText', markdown: '# Hello **World**' },
 					context,
 				)
-				expect(result.success).toBe(true)
-				expect(result.data?.text).toContain('Hello')
-				expect(result.data?.text).toContain('World')
-				expect(result.data?.text).not.toContain('#')
-				expect(result.data?.text).not.toContain('**')
+				const data = expectResultData(result, ResultSchemas.markdown)
+				expect(data.text).toContain('Hello')
+				expect(data.text).toContain('World')
+				expect(data.text).not.toContain('#')
+				expect(data.text).not.toContain('**')
 			})
 		})
 
@@ -136,10 +137,10 @@ describe('Transform Tools', () => {
 					{ operation: 'extractHeadings', markdown },
 					context,
 				)
-				expect(result.success).toBe(true)
-				expect(result.data?.headings).toHaveLength(4)
-				expect(result.data?.headings[0]).toEqual({ level: 1, text: 'Title' })
-				expect(result.data?.headings[1]).toEqual({ level: 2, text: 'Section 1' })
+				const data = expectResultData(result, ResultSchemas.markdown)
+				expect(data.headings).toHaveLength(4)
+				expect(data.headings![0]).toEqual({ level: 1, text: 'Title' })
+				expect(data.headings![1]).toEqual({ level: 2, text: 'Section 1' })
 			})
 		})
 
@@ -150,8 +151,8 @@ describe('Transform Tools', () => {
 					{ operation: 'extractLinks', markdown },
 					context,
 				)
-				expect(result.success).toBe(true)
-				expect(result.data?.links).toHaveLength(2)
+				const data = expectResultData(result, ResultSchemas.markdown)
+				expect(data.links).toHaveLength(2)
 			})
 
 			it('distinguishes links from images', async () => {
@@ -160,10 +161,10 @@ describe('Transform Tools', () => {
 					{ operation: 'extractLinks', markdown },
 					context,
 				)
-				expect(result.success).toBe(true)
-				const links = result.data?.links ?? []
-				const regularLinks = links.filter((l: { isImage: boolean }) => !l.isImage)
-				const images = links.filter((l: { isImage: boolean }) => l.isImage)
+				const data = expectResultData(result, ResultSchemas.markdown)
+				const links = data.links ?? []
+				const regularLinks = links.filter((l) => !l.isImage)
+				const images = links.filter((l) => l.isImage)
 				expect(regularLinks).toHaveLength(1)
 				expect(images).toHaveLength(1)
 			})
@@ -176,10 +177,10 @@ describe('Transform Tools', () => {
 					{ operation: 'extractCodeBlocks', markdown },
 					context,
 				)
-				expect(result.success).toBe(true)
-				expect(result.data?.codeBlocks).toHaveLength(2)
-				expect(result.data?.codeBlocks[0].language).toBe('javascript')
-				expect(result.data?.codeBlocks[1].language).toBe('python')
+				const data = expectResultData(result, ResultSchemas.markdown)
+				expect(data.codeBlocks).toHaveLength(2)
+				expect(data.codeBlocks![0].language).toBe('javascript')
+				expect(data.codeBlocks![1].language).toBe('python')
 			})
 		})
 	})
@@ -219,9 +220,9 @@ describe('Transform Tools', () => {
 					},
 					context,
 				)
-				expect(result.success).toBe(true)
-				expect(result.data?.stats).toBeDefined()
-				expect(result.data?.changes).toBeDefined()
+				const data = expectResultData(result, ResultSchemas.diff)
+				expect(data.stats).toBeDefined()
+				expect(data.changes).toBeDefined()
 			})
 
 			it('detects additions', async () => {
@@ -234,8 +235,8 @@ describe('Transform Tools', () => {
 					},
 					context,
 				)
-				expect(result.success).toBe(true)
-				expect(result.data?.stats?.additions).toBeGreaterThan(0)
+				const data = expectResultData(result, ResultSchemas.diff)
+				expect(data.stats?.additions).toBeGreaterThan(0)
 			})
 
 			it('detects deletions', async () => {
@@ -248,8 +249,8 @@ describe('Transform Tools', () => {
 					},
 					context,
 				)
-				expect(result.success).toBe(true)
-				expect(result.data?.stats?.deletions).toBeGreaterThan(0)
+				const data = expectResultData(result, ResultSchemas.diff)
+				expect(data.stats?.deletions).toBeGreaterThan(0)
 			})
 
 			it('generates unified diff format', async () => {
@@ -262,9 +263,9 @@ describe('Transform Tools', () => {
 					},
 					context,
 				)
-				expect(result.success).toBe(true)
-				expect(result.data?.unifiedDiff).toContain('---')
-				expect(result.data?.unifiedDiff).toContain('+++')
+				const data = expectResultData(result, ResultSchemas.diff)
+				expect(data.unifiedDiff).toContain('---')
+				expect(data.unifiedDiff).toContain('+++')
 			})
 		})
 	})
@@ -324,9 +325,9 @@ describe('Transform Tools', () => {
 					{ data: 'test data', size: 200, type: 'text', errorCorrection: 'M' },
 					context,
 				)
-				expect(result.success).toBe(true)
-				expect(result.data?.svg).toContain('<svg')
-				expect(result.data?.svg).toContain('</svg>')
+				const data = expectResultData(result, ResultSchemas.qrcode)
+				expect(data.svg).toContain('<svg')
+				expect(data.svg).toContain('</svg>')
 			})
 
 			it('generates data URL', async () => {
@@ -334,8 +335,8 @@ describe('Transform Tools', () => {
 					{ data: 'test', size: 200, type: 'text', errorCorrection: 'M' },
 					context,
 				)
-				expect(result.success).toBe(true)
-				expect(result.data?.dataUrl).toContain('data:image/svg+xml;base64,')
+				const data = expectResultData(result, ResultSchemas.qrcode)
+				expect(data.dataUrl).toContain('data:image/svg+xml;base64,')
 			})
 
 			it('formats URL type correctly', async () => {
@@ -343,8 +344,8 @@ describe('Transform Tools', () => {
 					{ data: 'example.com', type: 'url', size: 200, errorCorrection: 'M' },
 					context,
 				)
-				expect(result.success).toBe(true)
-				expect(result.data?.data).toBe('https://example.com')
+				const data = expectResultData(result, ResultSchemas.qrcode)
+				expect(data.data).toBe('https://example.com')
 			})
 
 			it('formats email type correctly', async () => {
@@ -352,8 +353,8 @@ describe('Transform Tools', () => {
 					{ data: 'test@example.com', type: 'email', size: 200, errorCorrection: 'M' },
 					context,
 				)
-				expect(result.success).toBe(true)
-				expect(result.data?.data).toBe('mailto:test@example.com')
+				const data = expectResultData(result, ResultSchemas.qrcode)
+				expect(data.data).toBe('mailto:test@example.com')
 			})
 
 			it('formats phone type correctly', async () => {
@@ -361,8 +362,8 @@ describe('Transform Tools', () => {
 					{ data: '555-123-4567', type: 'phone', size: 200, errorCorrection: 'M' },
 					context,
 				)
-				expect(result.success).toBe(true)
-				expect(result.data?.data).toContain('tel:')
+				const data = expectResultData(result, ResultSchemas.qrcode)
+				expect(data.data).toContain('tel:')
 			})
 		})
 	})
@@ -405,9 +406,9 @@ describe('Transform Tools', () => {
 					{ operation: 'compress', data: 'hello world '.repeat(100), algorithm: 'gzip', encoding: 'text' },
 					context,
 				)
-				expect(result.success).toBe(true)
-				expect(result.data?.compressed).toBeDefined()
-				expect(result.data?.compressedSize).toBeLessThan(result.data?.originalSize)
+				const data = expectResultData(result, ResultSchemas.compression)
+				expect(data.compressed).toBeDefined()
+				expect(data.compressedSize).toBeLessThan(data.originalSize!)
 			})
 
 			it('decompresses data', async () => {
@@ -416,19 +417,20 @@ describe('Transform Tools', () => {
 					{ operation: 'compress', data: 'hello world', algorithm: 'gzip', encoding: 'text' },
 					context,
 				)
+				const compressedData = expectResultData(compressed, ResultSchemas.compression)
 
 				// Then decompress
 				const decompressed = await compressionTool.execute(
 					{
 						operation: 'decompress',
-						data: compressed.data?.compressed,
+						data: compressedData.compressed!,
 						algorithm: 'gzip',
 						encoding: 'text',
 					},
 					context,
 				)
-				expect(decompressed.success).toBe(true)
-				expect(decompressed.data?.decompressed).toBe('hello world')
+				const decompressedData = expectResultData(decompressed, ResultSchemas.compression)
+				expect(decompressedData.decompressed).toBe('hello world')
 			})
 
 			it('calculates compression ratio', async () => {
@@ -436,8 +438,8 @@ describe('Transform Tools', () => {
 					{ operation: 'compress', data: 'aaaaaaaaaa'.repeat(100), algorithm: 'gzip', encoding: 'text' },
 					context,
 				)
-				expect(result.success).toBe(true)
-				expect(result.data?.ratio).toBeGreaterThan(0)
+				const data = expectResultData(result, ResultSchemas.compression)
+				expect(data.ratio).toBeGreaterThan(0)
 			})
 		})
 	})
@@ -471,81 +473,81 @@ describe('Transform Tools', () => {
 		describe('execution - convert', () => {
 			it('converts hex to RGB', async () => {
 				const result = await colorTool.execute(
-					{ operation: 'convert', color: '#ff0000', format: 'rgb' },
+					{ operation: 'convert', color: '#ff0000', format: 'rgb', amount: 0, blendRatio: 0 },
 					context,
 				)
-				expect(result.success).toBe(true)
-				expect(result.data?.output).toBe('rgb(255, 0, 0)')
+				const data = expectResultData(result, ResultSchemas.color)
+				expect(data.output).toBe('rgb(255, 0, 0)')
 			})
 
 			it('converts hex to HSL', async () => {
 				const result = await colorTool.execute(
-					{ operation: 'convert', color: '#ff0000', format: 'hsl' },
+					{ operation: 'convert', color: '#ff0000', format: 'hsl', amount: 0, blendRatio: 0 },
 					context,
 				)
-				expect(result.success).toBe(true)
-				expect(result.data?.output).toContain('hsl')
+				const data = expectResultData(result, ResultSchemas.color)
+				expect(data.output).toContain('hsl')
 			})
 
 			it('returns all formats', async () => {
 				const result = await colorTool.execute(
-					{ operation: 'convert', color: 'red', format: 'all' },
+					{ operation: 'convert', color: 'red', format: 'all', amount: 0, blendRatio: 0 },
 					context,
 				)
-				expect(result.success).toBe(true)
-				expect(result.data?.output).toHaveProperty('hex')
-				expect(result.data?.output).toHaveProperty('rgb')
-				expect(result.data?.output).toHaveProperty('hsl')
+				const data = expectResultData(result, ResultSchemas.color)
+				expect(data.output).toHaveProperty('hex')
+				expect(data.output).toHaveProperty('rgb')
+				expect(data.output).toHaveProperty('hsl')
 			})
 
 			it('parses named colors', async () => {
 				const result = await colorTool.execute(
-					{ operation: 'convert', color: 'blue', format: 'hex' },
+					{ operation: 'convert', color: 'blue', format: 'hex', amount: 0, blendRatio: 0 },
 					context,
 				)
-				expect(result.success).toBe(true)
-				expect(result.data?.output).toBe('#0000ff')
+				const data = expectResultData(result, ResultSchemas.color)
+				expect(data.output).toBe('#0000ff')
 			})
 
 			it('handles short hex notation', async () => {
 				const result = await colorTool.execute(
-					{ operation: 'convert', color: '#f00', format: 'rgb' },
+					{ operation: 'convert', color: '#f00', format: 'rgb', amount: 0, blendRatio: 0 },
 					context,
 				)
-				expect(result.success).toBe(true)
-				expect(result.data?.output).toBe('rgb(255, 0, 0)')
+				const data = expectResultData(result, ResultSchemas.color)
+				expect(data.output).toBe('rgb(255, 0, 0)')
 			})
 		})
 
 		describe('execution - lighten/darken', () => {
 			it('lightens color', async () => {
 				const result = await colorTool.execute(
-					{ operation: 'lighten', color: '#808080', amount: 0.2 },
+					{ operation: 'lighten', color: '#808080', amount: 0.2, format: 'hex', blendRatio: 0 },
 					context,
 				)
-				expect(result.success).toBe(true)
-				expect(result.data?.output).toBeDefined()
+				const data = expectResultData(result, ResultSchemas.color)
+				expect(data.output).toBeDefined()
 			})
 
 			it('darkens color', async () => {
 				const result = await colorTool.execute(
-					{ operation: 'darken', color: '#808080', amount: 0.2 },
+					{ operation: 'darken', color: '#808080', amount: 0.2, format: 'hex', blendRatio: 0 },
 					context,
 				)
-				expect(result.success).toBe(true)
-				expect(result.data?.output).toBeDefined()
+				const data = expectResultData(result, ResultSchemas.color)
+				expect(data.output).toBeDefined()
 			})
 		})
 
 		describe('execution - complement', () => {
 			it('finds complementary color', async () => {
 				const result = await colorTool.execute(
-					{ operation: 'complement', color: '#ff0000' },
+					{ operation: 'complement', color: '#ff0000', format: 'hex', amount: 0, blendRatio: 0 },
 					context,
 				)
-				expect(result.success).toBe(true)
+				const data = expectResultData(result, ResultSchemas.color)
 				// Red's complement should be cyan-ish
-				expect(result.data?.complement).toBeDefined()
+				expect(data.complement).toBeDefined()
 			})
 		})
 
@@ -557,52 +559,54 @@ describe('Transform Tools', () => {
 						color: '#ff0000',
 						color2: '#0000ff',
 						blendRatio: 0.5,
+						format: 'hex',
+						amount: 0,
 					},
 					context,
 				)
-				expect(result.success).toBe(true)
-				expect(result.data?.blended).toBeDefined()
+				const data = expectResultData(result, ResultSchemas.color)
+				expect(data.blended).toBeDefined()
 			})
 		})
 
 		describe('execution - palette', () => {
 			it('generates color palette', async () => {
 				const result = await colorTool.execute(
-					{ operation: 'palette', color: '#3366cc' },
+					{ operation: 'palette', color: '#3366cc', format: 'hex', amount: 0, blendRatio: 0 },
 					context,
 				)
-				expect(result.success).toBe(true)
-				expect(result.data?.palette).toHaveLength(5)
+				const data = expectResultData(result, ResultSchemas.color)
+				expect(data.palette).toHaveLength(5)
 			})
 		})
 
 		describe('execution - contrast', () => {
 			it('calculates contrast ratio', async () => {
 				const result = await colorTool.execute(
-					{ operation: 'contrast', color: '#ffffff' },
+					{ operation: 'contrast', color: '#ffffff', format: 'hex', amount: 0, blendRatio: 0 },
 					context,
 				)
-				expect(result.success).toBe(true)
-				expect(result.data?.contrastWithBlack).toBeDefined()
-				expect(result.data?.contrastWithWhite).toBeDefined()
-				expect(result.data?.recommendedTextColor).toBeDefined()
+				const data = expectResultData(result, ResultSchemas.color)
+				expect(data.contrastWithBlack).toBeDefined()
+				expect(data.contrastWithWhite).toBeDefined()
+				expect(data.recommendedTextColor).toBeDefined()
 			})
 
 			it('determines WCAG compliance', async () => {
 				const result = await colorTool.execute(
-					{ operation: 'contrast', color: '#ffffff' },
+					{ operation: 'contrast', color: '#ffffff', format: 'hex', amount: 0, blendRatio: 0 },
 					context,
 				)
-				expect(result.success).toBe(true)
-				expect(result.data?.wcagAA).toBeDefined()
-				expect(result.data?.wcagAAA).toBeDefined()
+				const data = expectResultData(result, ResultSchemas.color)
+				expect(data.wcagAA).toBeDefined()
+				expect(data.wcagAAA).toBeDefined()
 			})
 		})
 
 		describe('error handling', () => {
 			it('handles invalid color format', async () => {
 				const result = await colorTool.execute(
-					{ operation: 'convert', color: 'notacolor' },
+					{ operation: 'convert', color: 'notacolor', format: 'hex', amount: 0, blendRatio: 0 },
 					context,
 				)
 				expect(result.success).toBe(false)

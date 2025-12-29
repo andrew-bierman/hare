@@ -170,7 +170,7 @@ export const storeMemoryTool = createTool({
 		tags: z.array(z.string()).max(10).optional().describe('Tags for categorization and filtering'),
 		source: z.string().optional().describe('Source of this information (e.g., conversation ID)'),
 	}),
-	execute: async (params, context) => {
+	execute: async (params, context): Promise<ToolResult<unknown>> => {
 		try {
 			if (!requireMemoryBindings(context)) {
 				return failure(
