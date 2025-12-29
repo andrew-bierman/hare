@@ -5,7 +5,7 @@ import {
 	createAuth as createAuthBase,
 	getOAuthProviders,
 } from '@hare/auth/server'
-import { serverEnv } from 'web-app/lib/env/server'
+import { serverEnv } from '@hare/config'
 
 // Re-export types from @hare/auth
 export type { Auth, AuthServerEnv, CreateAuthOptions }

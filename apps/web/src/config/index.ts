@@ -1,9 +1,7 @@
 /**
  * Web-specific configuration
  *
- * Web-specific environment configuration.
- * Import shared config directly from '@hare/config'.
+ * Re-exports from @hare/config for convenience.
  */
 
-export { type ClientEnv, clientEnv } from 'web-app/lib/env/client'
-export { type ServerEnv, serverEnv } from 'web-app/lib/env/server'
+export { type ClientEnv, clientEnv, type ServerEnv, serverEnv } from '@hare/config'
