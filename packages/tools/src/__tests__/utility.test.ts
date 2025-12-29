@@ -11,7 +11,19 @@ import {
 	delayTool,
 	getUtilityTools,
 } from '../utility'
-import type { ToolContext } from '../types'
+import type { ToolContext, ToolResult } from '../types'
+
+// Type helpers for test assertions
+type UuidResult = ToolResult<{ id?: string; ids?: string[] }>
+type HashResult = ToolResult<{ hash?: string; matches?: boolean; hmac?: string }>
+type Base64Result = ToolResult<{ result?: string }>
+type UrlResult = ToolResult<{
+	protocol?: string
+	host?: string
+	pathname?: string
+	search?: string
+	hash?: string
+}>
 
 const createMockContext = (): ToolContext => ({
 	env: {} as ToolContext['env'],
@@ -445,15 +457,21 @@ describe('Utility Tools', () => {
 			})
 
 			it('generates ULID', async () => {
-				const result = await uuidTool.execute({ type: 'ulid', count: 1 }, context)
+				const result = (await uuidTool.execute(
+					{ type: 'ulid', count: 1 },
+					context,
+				)) as UuidResult
 				expect(result.success).toBe(true)
 				// ULID generation returns a string ID
 				expect(typeof result.data?.id).toBe('string')
-				expect(result.data?.id.length).toBeGreaterThan(0)
+				expect(result.data?.id?.length).toBeGreaterThan(0)
 			})
 
 			it('adds prefix to generated ID', async () => {
-				const result = await uuidTool.execute({ type: 'uuid', count: 1, prefix: 'user_' }, context)
+				const result = (await uuidTool.execute(
+					{ type: 'uuid', count: 1, length: 21, prefix: 'user_' },
+					context,
+				)) as UuidResult
 				expect(result.success).toBe(true)
 				expect(result.data?.id).toMatch(/^user_/)
 			})
@@ -487,32 +505,32 @@ describe('Utility Tools', () => {
 
 		describe('execution', () => {
 			it('generates SHA-256 hash', async () => {
-				const result = await hashTool.execute(
+				const result = (await hashTool.execute(
 					{ operation: 'hash', data: 'hello', algorithm: 'SHA-256', encoding: 'hex' },
 					context,
-				)
+				)) as HashResult
 				expect(result.success).toBe(true)
 				expect(result.data?.hash).toHaveLength(64) // SHA-256 hex is 64 chars
 			})
 
 			it('generates base64 encoded hash', async () => {
-				const result = await hashTool.execute(
+				const result = (await hashTool.execute(
 					{ operation: 'hash', data: 'hello', algorithm: 'SHA-256', encoding: 'base64' },
 					context,
-				)
+				)) as HashResult
 				expect(result.success).toBe(true)
 				expect(result.data?.hash).not.toHaveLength(64)
 			})
 
 			it('verifies hash correctly', async () => {
 				// First generate a hash
-				const hashResult = await hashTool.execute(
+				const hashResult = (await hashTool.execute(
 					{ operation: 'hash', data: 'test', algorithm: 'SHA-256', encoding: 'hex' },
 					context,
-				)
+				)) as HashResult
 
 				// Then verify it
-				const verifyResult = await hashTool.execute(
+				const verifyResult = (await hashTool.execute(
 					{
 						operation: 'verify',
 						data: 'test',
@@ -521,13 +539,13 @@ describe('Utility Tools', () => {
 						encoding: 'hex',
 					},
 					context,
-				)
+				)) as HashResult
 				expect(verifyResult.success).toBe(true)
 				expect(verifyResult.data?.matches).toBe(true)
 			})
 
 			it('generates HMAC', async () => {
-				const result = await hashTool.execute(
+				const result = (await hashTool.execute(
 					{
 						operation: 'hmac',
 						data: 'hello',
@@ -536,7 +554,7 @@ describe('Utility Tools', () => {
 						encoding: 'hex',
 					},
 					context,
-				)
+				)) as HashResult
 				expect(result.success).toBe(true)
 				expect(result.data?.hmac).toBeDefined()
 			})
@@ -568,28 +586,28 @@ describe('Utility Tools', () => {
 
 		describe('execution', () => {
 			it('encodes to base64', async () => {
-				const result = await base64Tool.execute(
+				const result = (await base64Tool.execute(
 					{ operation: 'encode', data: 'hello world', urlSafe: false },
 					context,
-				)
+				)) as Base64Result
 				expect(result.success).toBe(true)
 				expect(result.data?.result).toBe('aGVsbG8gd29ybGQ=')
 			})
 
 			it('decodes from base64', async () => {
-				const result = await base64Tool.execute(
+				const result = (await base64Tool.execute(
 					{ operation: 'decode', data: 'aGVsbG8gd29ybGQ=', urlSafe: false },
 					context,
-				)
+				)) as Base64Result
 				expect(result.success).toBe(true)
 				expect(result.data?.result).toBe('hello world')
 			})
 
 			it('handles URL-safe base64 encoding', async () => {
-				const result = await base64Tool.execute(
+				const result = (await base64Tool.execute(
 					{ operation: 'encode', data: 'test+data/with=special', urlSafe: true },
 					context,
-				)
+				)) as Base64Result
 				expect(result.success).toBe(true)
 				expect(result.data?.result).not.toContain('+')
 				expect(result.data?.result).not.toContain('/')
@@ -624,15 +642,15 @@ describe('Utility Tools', () => {
 
 		describe('execution', () => {
 			it('parses URL components', async () => {
-				const result = await urlTool.execute(
+				const result = (await urlTool.execute(
 					{ operation: 'parse', url: 'https://example.com:8080/path?query=value#hash' },
 					context,
-				)
+				)) as UrlResult
 				expect(result.success).toBe(true)
 				expect(result.data?.protocol).toBe('https:')
 				expect(result.data?.host).toBe('example.com:8080')
 				expect(result.data?.pathname).toBe('/path')
-				expect((result.data as Record<string, unknown>)?.search).toBe('?query=value')
+				expect(result.data?.search).toBe('?query=value')
 			})
 
 			it('builds URL from components', async () => {

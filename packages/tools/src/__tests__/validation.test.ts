@@ -384,7 +384,7 @@ describe('Validation Tools', () => {
 					ok: true,
 					status: 200,
 				})
-				globalThis.fetch = mockFetch as typeof fetch
+				globalThis.fetch = mockFetch as unknown as typeof fetch
 
 				const result = await validateUrlTool.execute(
 					{ url: 'https://example.com', allowedProtocols: ['https'], checkReachable: true, timeout: 5000 },
@@ -402,7 +402,7 @@ describe('Validation Tools', () => {
 
 			it('reports unreachable URLs', async () => {
 				const mockFetch = vi.fn().mockRejectedValueOnce(new Error('Network error'))
-				globalThis.fetch = mockFetch as typeof fetch
+				globalThis.fetch = mockFetch as unknown as typeof fetch
 
 				const result = await validateUrlTool.execute(
 					{ url: 'https://unreachable.example', allowedProtocols: ['https'], checkReachable: true, timeout: 5000 },
