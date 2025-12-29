@@ -29,10 +29,9 @@ export default defineConfig({
 	},
 	resolve: {
 		alias: {
-			'web-app': path.resolve(__dirname, './src'),
+			'web-app': path.join(__dirname, './src'),
 			// @hare/* workspace package aliases - specific subpaths must come before base paths
 			'@hare/db/schema': path.join(packagesPath, 'db/src/schema/index.ts'),
-			'@hare/db/client': path.join(packagesPath, 'db/src/client.ts'),
 			'@hare/db': path.join(packagesPath, 'db/src/index.ts'),
 			'@hare/types': path.join(packagesPath, 'types/src/index.ts'),
 			'@hare/tools': path.join(packagesPath, 'tools/src/index.ts'),
@@ -41,10 +40,9 @@ export default defineConfig({
 			'@hare/auth/client': path.join(packagesPath, 'auth/src/client.ts'),
 			'@hare/auth/server': path.join(packagesPath, 'auth/src/server.ts'),
 			'@hare/auth': path.join(packagesPath, 'auth/src/index.ts'),
-			'@hare/agent/tools': path.join(packagesPath, 'agent/src/tools/index.ts'),
 			'@hare/agent/workers': path.join(packagesPath, 'agent/src/workers.ts'),
 			'@hare/agent': path.join(packagesPath, 'agent/src/index.ts'),
-			'@hare/ui': path.resolve(__dirname, '../../packages/ui/src'),
+			'@hare/ui': path.join(packagesPath, 'ui/src'),
 			// @hare/app package aliases - specific subpaths must come before wildcards
 			'@hare/app/widgets/agent-builder': path.join(
 				appPackagePath,
