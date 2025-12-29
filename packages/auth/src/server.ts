@@ -81,7 +81,13 @@ export function createAuth({ d1, env }: CreateAuthOptions) {
 				maxAge: 60 * 5, // 5 minutes
 			},
 		},
-		trustedOrigins: [env.APP_URL],
+		trustedOrigins: [
+			env.APP_URL,
+			// Only allow localhost origins in development (when APP_URL is localhost)
+			...(env.APP_URL.includes('localhost')
+				? ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:8787']
+				: []),
+		],
 	})
 }
 

@@ -131,8 +131,6 @@ export const test = base.extend<{
 			} catch (error) {
 				lastError = error as Error
 				if (attempt < maxRetries) {
-					// Wait before retry
-					await page.waitForTimeout(1000)
 					// Generate new unique user for retry to avoid duplicate email issues
 					// Create new values instead of mutating the input parameter
 					const newId = createId()
@@ -140,6 +138,12 @@ export const test = base.extend<{
 						...testUser,
 						email: `test-${newId}@example.com`,
 						name: `Test User ${newId.slice(0, 8)}`,
+					}
+					// Only wait if the page is still usable (not closed due to timeout)
+					try {
+						await page.waitForTimeout(1000)
+					} catch {
+						// Page was closed, can't wait - just continue to next attempt
 					}
 				}
 			}
