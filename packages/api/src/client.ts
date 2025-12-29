@@ -64,8 +64,21 @@ async function handleResponse<T>(response: Response): Promise<T> {
 // Base Request Functions
 // =============================================================================
 
+// Get base URL from environment or window.location.origin
+function getBaseURL(): string {
+	// Check for Vite environment variable (used by Tauri and other Vite apps)
+	if (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_URL) {
+		return import.meta.env.VITE_API_URL as string
+	}
+	// Fall back to window.location.origin
+	if (typeof window !== 'undefined') {
+		return window.location.origin
+	}
+	return ''
+}
+
 function buildUrl(path: string, params?: Record<string, string | undefined>): string {
-	const url = new URL(path, window.location.origin)
+	const url = new URL(path, getBaseURL())
 	if (params) {
 		for (const [key, value] of Object.entries(params)) {
 			if (value !== undefined) {

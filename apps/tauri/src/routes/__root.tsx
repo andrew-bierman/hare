@@ -1,15 +1,30 @@
-import { createRootRoute, Outlet } from '@tanstack/react-router'
-import * as React from 'react'
+import { Providers } from '@hare/app'
+import { createRootRoute, HeadContent, Outlet, Scripts } from '@tanstack/react-router'
+import '@hare/ui/styles/globals.css'
 
 export const Route = createRootRoute({
-	component: RootComponent,
+	head: () => ({
+		title: 'Hare Desktop',
+		meta: [
+			{ charSet: 'utf-8' },
+			{ name: 'viewport', content: 'width=device-width, initial-scale=1' },
+		],
+	}),
+	component: RootLayout,
 })
 
-function RootComponent() {
+function RootLayout() {
 	return (
-		<React.Fragment>
-			<div>Hello "__root"!</div>
-			<Outlet />
-		</React.Fragment>
+		<html lang="en">
+			<head>
+				<HeadContent />
+			</head>
+			<body className="font-sans antialiased">
+				<Providers>
+					<Outlet />
+				</Providers>
+				<Scripts />
+			</body>
+		</html>
 	)
 }
