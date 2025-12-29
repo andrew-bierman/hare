@@ -40,6 +40,7 @@
 		"@hare/auth": "workspace:*",
 		"@hare/config": "workspace:*",
 		"@hare/types": "workspace:*",
+		"@hare/utils": "workspace:*",
 		"@hare/ui": "workspace:*",
 		"@tanstack/react-form": "^1.27.6",
 		"@tanstack/react-query": "^5.90.14",

@@ -1,0 +1,26 @@
+{
+	"name": "@hare/utils",
+	"version": "0.1.0",
+	"description": "Shared utilities for Hare platform",
+	"license": "MIT",
+	"type": "module",
+	"exports": {
+		".": {
+			"types": "./src/index.ts",
+			"import": "./src/index.ts"
+		},
+		"./slug": {
+			"types": "./src/slug.ts",
+			"import": "./src/slug.ts"
+		}
+	},
+	"main": "./src/index.ts",
+	"types": "./src/index.ts",
+	"files": [
+		"src"
+	],
+	"devDependencies": {
+		"@hare/typescript-config": "workspace:*",
+		"typescript": "^5"
+	}
+}

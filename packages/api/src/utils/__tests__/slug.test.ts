@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { nameToSlug, generateUniqueSlug } from '../slug'
+import { nameToSlug, generateUniqueSlug } from '@hare/utils'
 
 describe('nameToSlug', () => {
 	it('converts name to lowercase', () => {
