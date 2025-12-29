@@ -8,6 +8,7 @@
 		"build": "vite build",
 		"start": "bun .output/server/index.mjs",
 		"deploy": "bun run build && wrangler deploy",
+		"upload": "wrangler deploy",
 		"preview": "bun run build && vite preview",
 		"cf-typegen": "wrangler types --env-interface CloudflareEnv ./cloudflare-env.d.ts",
 		"db:generate": "drizzle-kit generate",
