@@ -51,7 +51,6 @@
 	"dependencies": {
 		"@elithrar/workers-hono-rate-limit": "^0.5.1",
 		"@hare/agent": "workspace:*",
-		"@hare/app": "workspace:*",
 		"@hare/auth": "workspace:*",
 		"@hare/config": "workspace:*",
 		"@hare/db": "workspace:*",
