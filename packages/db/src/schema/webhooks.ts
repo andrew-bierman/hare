@@ -1,4 +1,4 @@
-import { createId } from '@paralleldrive/cuid2'
+import { createId } from '../id'
 import { integer, sqliteTable, text } from 'drizzle-orm/sqlite-core'
 import { agents } from './agents'
 

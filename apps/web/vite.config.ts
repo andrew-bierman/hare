@@ -39,6 +39,10 @@ export default defineConfig({
 				'widgets/workspace-switcher/index.ts',
 			),
 			'@hare/app/widgets/user-nav': path.join(appPackagePath, 'widgets/user-nav/index.ts'),
+			'@hare/app/widgets/router-components': path.join(
+				appPackagePath,
+				'widgets/router-components/index.ts',
+			),
 			'@hare/app/widgets': path.join(appPackagePath, 'widgets/index.ts'),
 			'@hare/app/shared/api': path.join(appPackagePath, 'shared/api/index.ts'),
 			'@hare/app/shared/config': path.join(appPackagePath, 'shared/config/index.ts'),
