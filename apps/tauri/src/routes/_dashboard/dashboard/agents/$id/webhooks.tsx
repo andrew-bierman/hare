@@ -1,14 +1,8 @@
+import { useWorkspace } from '@hare/app/providers'
 import { useAgentQuery } from '@hare/app/shared/api'
-import { createFileRoute, Link } from '@tanstack/react-router'
 import { Badge } from '@hare/ui/components/badge'
 import { Button } from '@hare/ui/components/button'
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from '@hare/ui/components/card'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@hare/ui/components/card'
 import { Checkbox } from '@hare/ui/components/checkbox'
 import {
 	Dialog,
@@ -31,6 +25,7 @@ import {
 	TableRow,
 } from '@hare/ui/components/table'
 import { Textarea } from '@hare/ui/components/textarea'
+import { createFileRoute, Link } from '@tanstack/react-router'
 import {
 	AlertCircle,
 	ArrowLeft,
@@ -48,7 +43,6 @@ import {
 } from 'lucide-react'
 import { type ChangeEvent, useCallback, useEffect, useState } from 'react'
 import { toast } from 'sonner'
-import { useWorkspace } from '@hare/app/providers'
 
 export const Route = createFileRoute('/_dashboard/dashboard/agents/$id/webhooks')({
 	component: WebhooksPage,
