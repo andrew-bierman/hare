@@ -1,3 +1,4 @@
+import { useWorkspace } from '@hare/app'
 import { exportToCSV, exportToJSON } from '@hare/app/shared'
 import { type Agent, useAgentsQuery, useAnalyticsQuery } from '@hare/app/shared/api'
 import { ChartContainer } from '@hare/app/widgets'
@@ -35,7 +36,6 @@ import {
 	XAxis,
 	YAxis,
 } from 'recharts'
-import { useWorkspace } from '@hare/app'
 
 export const Route = createFileRoute('/_dashboard/dashboard/analytics/')({
 	component: AnalyticsPage,

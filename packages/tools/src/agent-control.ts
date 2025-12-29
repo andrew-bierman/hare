@@ -11,7 +11,7 @@
  */
 
 import { z } from 'zod'
-import { createTool, failure, success, type Tool, type ToolContext } from './types'
+import { type AnyTool, createTool, failure, success, type ToolContext } from './types'
 
 /**
  * List all agents in a workspace
@@ -387,7 +387,7 @@ export const getAgentMetricsTool = createTool({
 /**
  * All agent control tools
  */
-export const agentControlTools: Tool[] = [
+export const agentControlTools: AnyTool[] = [
 	listAgentsTool,
 	getAgentTool,
 	sendMessageTool,
@@ -403,7 +403,7 @@ export const agentControlTools: Tool[] = [
 /**
  * Get agent control tools
  */
-export function getAgentControlTools(_context: ToolContext): Tool[] {
+export function getAgentControlTools(_context: ToolContext): AnyTool[] {
 	return agentControlTools
 }
 
