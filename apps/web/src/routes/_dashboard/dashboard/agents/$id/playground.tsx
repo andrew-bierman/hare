@@ -1,6 +1,6 @@
 import { useAgentQuery, useChat } from '@hare/app/shared/api'
-import { getModelName } from '@hare/config'
 import { ToolCallList } from '@hare/app/widgets/chat-interface'
+import { getModelName } from '@hare/config'
 import { Avatar, AvatarFallback } from '@hare/ui/components/avatar'
 import { Badge } from '@hare/ui/components/badge'
 import { Button } from '@hare/ui/components/button'

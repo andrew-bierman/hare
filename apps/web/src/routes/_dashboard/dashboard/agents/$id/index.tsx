@@ -1,3 +1,4 @@
+import { useDebouncedValue } from '@hare/app/shared'
 import {
 	useAgentPreviewQuery,
 	useAgentQuery,
@@ -8,7 +9,6 @@ import {
 	useUpdateAgentMutation,
 	type ValidationIssue,
 } from '@hare/app/shared/api'
-import { useDebouncedValue } from '@hare/app/shared'
 import { AgentInstructionsEditor } from '@hare/app/widgets/agent-builder'
 import { MemoryViewer } from '@hare/app/widgets/memory-viewer'
 import { ScheduledTasksSection } from '@hare/app/widgets/scheduled-tasks'

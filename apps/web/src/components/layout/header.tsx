@@ -1,8 +1,8 @@
-import { APP_CONFIG, DASHBOARD_CONTENT } from '@hare/config'
 import { UserNav } from '@hare/app/widgets/user-nav'
-import { Link } from '@tanstack/react-router'
+import { APP_CONFIG, DASHBOARD_CONTENT } from '@hare/config'
 import { Button } from '@hare/ui/components/button'
 import { Input } from '@hare/ui/components/input'
+import { Link } from '@tanstack/react-router'
 import { Bell, Menu, Rabbit, Search } from 'lucide-react'
 
 export function Header() {
