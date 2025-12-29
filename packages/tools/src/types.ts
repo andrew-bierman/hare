@@ -111,10 +111,13 @@ export function createTool<TInput, TOutput = unknown>(config: {
 }
 
 /**
- * Internal tool storage type. Uses `any` internally but is never exposed publicly.
- * All public APIs use `AnyTool` (metadata only) or `Tool<T>` (fully typed).
+ * Internal tool storage type for ToolRegistry.
+ *
+ * Uses `any` internally to store heterogeneous tools, but this type is never
+ * exposed publicly. All public APIs use `AnyTool` (metadata only) or `Tool<T>`
+ * (fully typed). Runtime type safety is ensured via Zod validation in execute().
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// biome-ignore lint/suspicious/noExplicitAny: Required for heterogeneous tool storage
 type InternalTool = Tool<any, any>
 
 /**
