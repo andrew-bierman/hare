@@ -11,7 +11,7 @@ export default defineConfig({
 	retries: process.env.CI ? 2 : 1,
 	workers: 1, // Single worker to avoid SQLite database locking issues
 	reporter: 'html',
-	timeout: 60000, // 60 second timeout per test
+	timeout: 120000, // 120 second timeout per test (fixture setup can take time)
 	use: {
 		baseURL: process.env.BASE_URL || `http://localhost:${DEFAULT_PORT}`,
 		trace: 'on-first-retry',

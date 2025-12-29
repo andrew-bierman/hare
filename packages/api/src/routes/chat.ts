@@ -2,7 +2,13 @@ import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
 import { type ModelMessage, streamText } from 'ai'
 import { eq } from 'drizzle-orm'
 import { agents, conversations, messages, usage } from '@hare/db/schema'
-import { createEdgeAgent } from '@hare/agent'
+import {
+	type AgentConfig,
+	createAgentFromConfig,
+	createEdgeAgent,
+	createMemoryStore,
+	toAgentMessages,
+} from '@hare/agent'
 import type { Database } from '@hare/db'
 import { getCloudflareEnv, getDb } from '../db'
 import { aiChatFeatureMiddleware, authMiddleware, chatRateLimiter } from '../middleware'
@@ -15,79 +21,6 @@ import {
 	MessageSchema,
 } from '../schemas'
 import type { AuthEnv } from '@hare/types'
-
-// =============================================================================
-// Memory Store (inline implementation)
-// =============================================================================
-
-function createMemoryStore(db: Database, _workspaceId: string) {
-	return {
-		async getOrCreateConversation(options: {
-			agentId: string
-			userId: string
-			title: string
-		}): Promise<string> {
-			// Check for existing conversation
-			const existing = await db
-				.select()
-				.from(conversations)
-				.where(eq(conversations.agentId, options.agentId))
-				.limit(1)
-
-			if (existing.length > 0) {
-				return existing[0].id
-			}
-
-			// Create new conversation
-			const [newConv] = await db
-				.insert(conversations)
-				.values({
-					agentId: options.agentId,
-					userId: options.userId,
-					title: options.title,
-				})
-				.returning()
-
-			return newConv.id
-		},
-
-		async getMessages(options: {
-			conversationId: string
-			limit?: number
-		}): Promise<Array<{ role: string; content: string }>> {
-			const results = await db
-				.select()
-				.from(messages)
-				.where(eq(messages.conversationId, options.conversationId))
-				.limit(options.limit || 50)
-
-			return results.map((m) => ({ role: m.role, content: m.content }))
-		},
-
-		async saveMessage(options: {
-			conversationId: string
-			role: string
-			content: string
-			metadata?: Record<string, unknown>
-		}): Promise<void> {
-			await db.insert(messages).values({
-				conversationId: options.conversationId,
-				role: options.role,
-				content: options.content,
-				metadata: options.metadata || null,
-			})
-		},
-	}
-}
-
-function toAgentMessages(
-	dbMessages: Array<{ role: string; content: string }>,
-): ModelMessage[] {
-	return dbMessages.map((m) => ({
-		role: m.role as 'user' | 'assistant' | 'system',
-		content: m.content,
-	}))
-}
 
 // =============================================================================
 // Export Helpers

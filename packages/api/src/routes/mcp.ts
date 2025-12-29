@@ -13,11 +13,14 @@ import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
 import { and, eq } from 'drizzle-orm'
 import { workspaceMembers } from '@hare/db/schema'
 import { isWebSocketRequest, routeToMcpAgent } from '@hare/agent'
-import { agentControlTools, type ToolContext } from '@hare/tools'
+import { agentControlTools, createRegistry, type ToolContext } from '@hare/tools'
 import { type Database, getCloudflareEnv, getDb } from '../db'
 import { optionalAuthMiddleware } from '../middleware'
 import { ErrorSchema } from '../schemas'
 import type { OptionalAuthEnv } from '@hare/types'
+
+// Create a registry for tool execution
+const toolRegistry = createRegistry(agentControlTools)
 
 /**
  * Check if a user has access to a workspace.
@@ -350,20 +353,13 @@ app.openapi(mcpToolExecuteRoute, async (c) => {
 		}
 	}
 
-	const tool = agentControlTools.find((t) => t.id === toolId)
-	if (!tool) {
+	if (!toolRegistry.has(toolId)) {
 		return c.json({ error: `Tool not found: ${toolId}` }, 404)
 	}
 
-	// Validate params against tool schema
 	const params = await c.req.json()
-	const parseResult = tool.inputSchema.safeParse(params)
-	if (!parseResult.success) {
-		return c.json({ error: 'Invalid tool parameters', details: parseResult.error.issues }, 400)
-	}
-
 	const context = await createToolContext(c, workspaceId)
-	const result = await tool.execute(parseResult.data, context)
+	const result = await toolRegistry.execute({ id: toolId, params, context })
 
 	return c.json({ success: result.success, data: result.data, error: result.error }, 200)
 })
@@ -426,9 +422,8 @@ app.openapi(mcpRpcRoute, async (c) => {
 				name: string
 				arguments: Record<string, unknown>
 			}
-			const tool = agentControlTools.find((t) => t.id === name)
 
-			if (!tool) {
+			if (!toolRegistry.has(name)) {
 				return c.json({
 					jsonrpc: '2.0',
 					id,
@@ -436,17 +431,7 @@ app.openapi(mcpRpcRoute, async (c) => {
 				})
 			}
 
-			// Validate args against tool schema
-			const parseResult = tool.inputSchema.safeParse(args ?? {})
-			if (!parseResult.success) {
-				return c.json({
-					jsonrpc: '2.0',
-					id,
-					error: { code: -32602, message: 'Invalid tool arguments' },
-				})
-			}
-
-			const result = await tool.execute(parseResult.data, context)
+			const result = await toolRegistry.execute({ id: name, params: args ?? {}, context })
 
 			return c.json({
 				jsonrpc: '2.0',
