@@ -1,14 +1,7 @@
 /**
  * Dashboard Pages
  *
- * Main dashboard page components.
+ * Main dashboard page component using TanStack Router.
  */
 
-export * from './DashboardPage'
-export * from './dashboard-home'
-
-// Router-agnostic page components (use renderLink prop)
-// These are the proper exports for use with any router
-export { AgentsPage, type AgentsPageProps } from './agents-page'
-export { ToolsPage, type ToolsPageProps } from './tools-page'
-export { SettingsPage, type SettingsPageProps } from './settings-page'
+export { DashboardPage } from './DashboardPage'
