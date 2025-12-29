@@ -1,4 +1,5 @@
-import { useCreateAgentMutation, useCreateWorkspaceMutation } from '@hare/app/shared/api'
+'use client'
+
 import { authClient } from '@hare/auth/client'
 import { DEV_CONFIG, DEV_TOOLS_CONTENT, FEATURES } from '@hare/config'
 import { Badge } from '@hare/ui/components/badge'
@@ -22,7 +23,8 @@ import {
 } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
-import { useWorkspace } from '@hare/app'
+import { useWorkspace } from '../../../app/providers'
+import { useCreateAgentMutation, useCreateWorkspaceMutation } from '../../../shared/api'
 
 const { sections, agentNames, agentDescriptions, defaultInstructions } = DEV_TOOLS_CONTENT
 

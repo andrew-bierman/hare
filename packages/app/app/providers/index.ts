@@ -4,6 +4,7 @@
  * Context providers for the application.
  */
 
+export { Providers } from './providers'
 export { queryClient, QueryProvider } from './query-provider'
 export { useWorkspace, WorkspaceProvider } from './workspace-provider'
 
@@ -14,6 +15,4 @@ export {
 	useAuthActions,
 	type AuthActions,
 	type AuthContextValue,
-	type AuthProviderProps,
-	type Session,
 } from '../../features/auth'

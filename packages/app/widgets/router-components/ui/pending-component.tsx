@@ -1,3 +1,5 @@
+'use client'
+
 import { Skeleton } from '@hare/ui/components/skeleton'
 import { Loader2 } from 'lucide-react'
 

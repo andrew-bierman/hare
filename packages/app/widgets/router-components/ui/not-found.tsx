@@ -1,3 +1,5 @@
+'use client'
+
 import { Button } from '@hare/ui/components/button'
 import { Link, useRouter } from '@tanstack/react-router'
 import { ArrowLeft, FileQuestion, Home } from 'lucide-react'

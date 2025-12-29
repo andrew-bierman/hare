@@ -39,13 +39,13 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
 
 	// Auto-create default workspace if user has none
 	useEffect(() => {
-		if (!isLoading && session?.user && workspaces.length === 0 && !createWorkspace.isPending) {
+		if (!isLoading && session?.data?.user && workspaces.length === 0 && !createWorkspace.isPending) {
 			createWorkspace.mutate({
 				name: 'My Workspace',
 				slug: 'my-workspace',
 			})
 		}
-	}, [isLoading, session?.user, workspaces.length, createWorkspace])
+	}, [isLoading, session?.data?.user, workspaces.length, createWorkspace])
 
 	// Restore or set active workspace
 	useEffect(() => {

@@ -1,24 +1,20 @@
 'use client'
 
+import { signOut, useSession } from '@hare/auth/client'
 import { createContext, type ReactNode, useContext } from 'react'
-
-/**
- * Session data structure returned by the auth system.
- */
-export interface Session {
-	user: {
-		id: string
-		email: string
-		name: string | null
-		image: string | null
-	} | null
-}
 
 /**
  * Auth context value type.
  */
 export interface AuthContextValue {
-	data: Session | null
+	data: {
+		user: {
+			id: string
+			email: string
+			name: string | null
+			image: string | null
+		} | null
+	} | null
 	isPending: boolean
 	error: Error | null
 }
@@ -28,27 +24,43 @@ export interface AuthContextValue {
  */
 export interface AuthActions {
 	signOut: () => Promise<void>
-	signIn?: {
-		social: (options: { provider: string; callbackURL?: string }) => Promise<void>
-	}
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null)
 const AuthActionsContext = createContext<AuthActions | null>(null)
 
-export interface AuthProviderProps {
-	children: ReactNode
-	session: AuthContextValue
-	actions: AuthActions
-}
-
 /**
  * Provider for auth context.
- * Apps should wrap this with their own provider that supplies the session and actions.
+ * Uses @hare/auth/client directly.
  */
-export function AuthProvider({ children, session, actions }: AuthProviderProps) {
+export function AuthProvider({ children }: { children: ReactNode }) {
+	const session = useSession()
+
+	const sessionData: AuthContextValue = {
+		data: session.data
+			? {
+					user: session.data.user
+						? {
+								id: session.data.user.id,
+								email: session.data.user.email,
+								name: session.data.user.name ?? null,
+								image: session.data.user.image ?? null,
+							}
+						: null,
+				}
+			: null,
+		isPending: session.isPending,
+		error: session.error ?? null,
+	}
+
+	const actions: AuthActions = {
+		signOut: async () => {
+			await signOut()
+		},
+	}
+
 	return (
-		<AuthContext.Provider value={session}>
+		<AuthContext.Provider value={sessionData}>
 			<AuthActionsContext.Provider value={actions}>{children}</AuthActionsContext.Provider>
 		</AuthContext.Provider>
 	)
