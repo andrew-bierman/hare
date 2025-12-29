@@ -1,8 +1,9 @@
 'use client'
 
 import { createContext, type ReactNode, useCallback, useContext, useEffect, useState } from 'react'
-import type { Workspace, WorkspaceRole, CreateWorkspaceInput } from '../../shared/api'
-import type { UseMutationResult, UseQueryResult } from '@tanstack/react-query'
+import type { Workspace, WorkspaceRole } from '../../shared/api'
+import { useWorkspacesQuery, useCreateWorkspaceMutation } from '../../shared/api'
+import { useAuth } from '../../features/auth'
 
 interface WorkspaceWithRole extends Workspace {
 	role?: WorkspaceRole
@@ -21,25 +22,10 @@ const WorkspaceContext = createContext<WorkspaceContextValue | null>(null)
 
 const ACTIVE_WORKSPACE_KEY = 'hare-active-workspace'
 
-interface WorkspaceProviderProps {
-	children: ReactNode
-	/** Auth hook to get user session */
-	useAuth: () => { data: { user: unknown } | null }
-	/** Workspaces query result from parent app */
-	workspacesQuery: UseQueryResult<{ workspaces: Workspace[] }, Error>
-	/** Create workspace mutation from parent app */
-	createWorkspaceMutation: UseMutationResult<Workspace, Error, CreateWorkspaceInput>
-}
-
-export function WorkspaceProvider({
-	children,
-	useAuth,
-	workspacesQuery,
-	createWorkspaceMutation,
-}: WorkspaceProviderProps) {
+export function WorkspaceProvider({ children }: { children: ReactNode }) {
 	const { data: session } = useAuth()
-	const { data, isLoading, error } = workspacesQuery
-	const createWorkspace = createWorkspaceMutation
+	const { data, isLoading, error } = useWorkspacesQuery()
+	const createWorkspace = useCreateWorkspaceMutation()
 	const [activeWorkspace, setActiveWorkspaceState] = useState<WorkspaceWithRole | null>(null)
 
 	const workspaces: WorkspaceWithRole[] = data?.workspaces ?? []
@@ -53,7 +39,7 @@ export function WorkspaceProvider({
 
 	// Auto-create default workspace if user has none
 	useEffect(() => {
-		if (!isLoading && session?.user && workspaces.length === 0 && !createWorkspace.isPending) {
+		if (!isLoading && session?.data?.user && workspaces.length === 0 && !createWorkspace.isPending) {
 			// Add random suffix to avoid slug collisions in concurrent signup scenarios
 			const suffix = Math.random().toString(36).substring(2, 8)
 			createWorkspace.mutate({
@@ -61,7 +47,7 @@ export function WorkspaceProvider({
 				slug: `my-workspace-${suffix}`,
 			})
 		}
-	}, [isLoading, session?.user, workspaces.length, createWorkspace])
+	}, [isLoading, session?.data?.user, workspaces.length, createWorkspace])
 
 	// Restore or set active workspace
 	useEffect(() => {

@@ -44,3 +44,9 @@ export * from './tool-picker'
 
 // Charts widget
 export * from './charts'
+
+// Router components widget
+export * from './router-components'
+
+// Dev tools widget
+export * from './dev-tools'

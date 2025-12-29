@@ -2,12 +2,20 @@
  * System Tools Configuration
  */
 
-import { DEFAULT_MODEL_ID } from './models'
+import { DEFAULT_MODEL_ID } from '@hare/config'
 
 // =============================================================================
 // System Tools
 // =============================================================================
 
+/**
+ * Core system tool types that have built-in Cloudflare integrations.
+ * This is a subset of the broader ToolType from @hare/types which includes
+ * all 77+ tool type variants (utility, AI, validation, etc.).
+ *
+ * Use SystemToolType for Cloudflare-native tools with direct bindings.
+ * Use ToolType from @hare/types for the complete tool type taxonomy.
+ */
 export type SystemToolType = 'http' | 'sql' | 'kv' | 'r2' | 'search' | 'browser'
 
 export interface SystemTool {
@@ -77,8 +85,8 @@ export function getAvailableTools(): SystemTool[] {
 // Agent Configuration
 // =============================================================================
 
-// AgentStatus is exported from shared/api/types.ts to avoid duplicate exports
-import type { AgentStatus } from '../api/types'
+// AgentStatus is exported from @hare/types
+import type { AgentStatus } from '@hare/types'
 
 export type { AgentStatus }
 

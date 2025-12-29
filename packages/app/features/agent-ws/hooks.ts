@@ -8,34 +8,9 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react'
+import type { ClientMessage, HareAgentState, ServerMessage } from '@hare/types'
 
-/**
- * Message types for client-to-server communication.
- */
-export interface ClientMessage {
-	type: 'chat' | 'get_state'
-	payload: {
-		message?: string
-		userId?: string
-	}
-}
-
-/**
- * Message types for server-to-client communication.
- */
-export interface ServerMessage {
-	type: 'text' | 'state_update' | 'done' | 'error'
-	data: unknown
-}
-
-/**
- * Agent state from the server.
- */
-export interface HareAgentState {
-	isProcessing: boolean
-	currentTool?: string
-	lastActivity?: string
-}
+export type { ClientMessage, HareAgentState, ServerMessage }
 
 /**
  * Message in the chat.

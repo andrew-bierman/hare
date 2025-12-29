@@ -1,0 +1,16 @@
+{
+	"name": "@hare/security",
+	"version": "0.1.0",
+	"type": "module",
+	"exports": {
+		".": "./src/index.ts"
+	},
+	"dependencies": {
+		"@hare/types": "workspace:*",
+		"hono": "^4.7.9"
+	},
+	"devDependencies": {
+		"@hare/typescript-config": "workspace:*",
+		"typescript": "^5"
+	}
+}

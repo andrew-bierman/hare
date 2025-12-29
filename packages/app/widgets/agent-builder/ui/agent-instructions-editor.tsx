@@ -4,7 +4,7 @@ import {
 	InstructionsEditor,
 	type InstructionsEditorProps,
 } from '@hare/ui/components/instructions-editor'
-import { AGENT_LIMITS } from '../../../shared/config'
+import { AGENT_LIMITS } from '@hare/config'
 
 interface AgentInstructionsEditorProps extends Omit<InstructionsEditorProps, 'maxLength'> {
 	maxLength?: number

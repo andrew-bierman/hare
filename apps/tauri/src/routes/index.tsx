@@ -1,27 +1,9 @@
-import { DashboardHome, useAgents, useUsage } from '@hare/app'
-import { createFileRoute, Link } from '@tanstack/react-router'
+import { createFileRoute } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/')({
-	component: HomePageWrapper,
+	component: RouteComponent,
 })
 
-function HomePageWrapper() {
-	return (
-		<DashboardHome
-			renderLink={({ to, children, className }) => (
-				<Link to={to as '/'} className={className}>
-					{children}
-				</Link>
-			)}
-			routes={{
-				newAgent: '/agents/new',
-				agents: '/agents',
-				agentDetail: (_id) => `/agents`, // TODO: Add /agents/$id route
-				tools: '/tools',
-				usage: '/', // No usage page in tauri yet
-			}}
-			useAgents={useAgents}
-			useUsage={useUsage}
-		/>
-	)
+function RouteComponent() {
+	return <div>Hello "/"!</div>
 }

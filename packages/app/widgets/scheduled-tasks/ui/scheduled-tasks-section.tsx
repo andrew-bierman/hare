@@ -41,7 +41,7 @@ import {
 } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
-import type { Schedule, ScheduleExecution } from '../../../shared/api/types'
+import type { Schedule, ScheduleExecution } from '@hare/types'
 import {
 	useAgentExecutionsQuery,
 	useCreateScheduleMutation,

@@ -1,6 +1,6 @@
+import { Providers } from '@hare/app'
 import { createRootRoute, HeadContent, Outlet, Scripts } from '@tanstack/react-router'
 import '@hare/ui/styles/globals.css'
-import { Providers } from 'web-app/app'
 
 export const Route = createRootRoute({
 	head: () => ({

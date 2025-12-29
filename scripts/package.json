@@ -1,16 +1,22 @@
 {
 	"name": "@hare/scripts",
 	"version": "0.0.0",
-	"type": "module",
 	"private": true,
+	"type": "module",
 	"scripts": {
-		"env": "bun run env.ts",
+		"check-deps": "manypkg check",
 		"checks": "bun run checks.ts",
-		"deps": "bun run deps.ts"
+		"deps": "bun run deps.ts",
+		"env": "bun run env.ts",
+		"fix-deps": "manypkg fix",
+		"sort-packages": "bun run sort-packages.ts",
+		"sync-tauri": "bun run sync-tauri.ts"
 	},
 	"dependencies": {
+		"@manypkg/cli": "^0.25.1",
 		"fs-extra": "^11.2.0",
-		"npm-check-updates": "^17.1.13"
+		"npm-check-updates": "^17.1.13",
+		"sort-package-json": "^3.6.0"
 	},
 	"devDependencies": {
 		"@types/fs-extra": "^11.0.4"

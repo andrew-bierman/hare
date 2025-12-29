@@ -1,0 +1,31 @@
+{
+	"name": "@hare/cli",
+	"version": "0.1.0",
+	"description": "CLI for scaffolding Hare AI agent projects",
+	"keywords": [
+		"cloudflare",
+		"workers",
+		"ai",
+		"agent",
+		"cli",
+		"scaffold"
+	],
+	"license": "MIT",
+	"type": "module",
+	"bin": {
+		"create-hare-agent": "./src/index.ts",
+		"hare": "./src/index.ts"
+	},
+	"files": [
+		"src",
+		"README.md"
+	],
+	"devDependencies": {
+		"@hare/typescript-config": "workspace:*",
+		"@types/node": "^25.0.3",
+		"typescript": "^5"
+	},
+	"engines": {
+		"node": ">=18"
+	}
+}

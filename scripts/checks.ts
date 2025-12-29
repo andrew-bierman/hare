@@ -7,17 +7,21 @@
  * with proper error handling, timing, and summary reporting.
  *
  * Usage:
- *   bun run .github/scripts/checks.ts                    # Run default checks
- *   bun run .github/scripts/checks.ts --lint --typecheck # Run specific checks
- *   bun run .github/scripts/checks.ts --all              # Run all available checks
- *   bun run .github/scripts/checks.ts --continue         # Continue on failure
+ *   bun run scripts/checks.ts                    # Run default checks
+ *   bun run scripts/checks.ts --lint --typecheck # Run specific checks
+ *   bun run scripts/checks.ts --all              # Run all available checks
+ *   bun run scripts/checks.ts --continue         # Continue on failure
+ *   bun run scripts/checks.ts --fix              # Auto-fix issues where possible
  *
  * Available flags:
- *   --lint       Run linting
+ *   --check-deps Check monorepo dependency consistency
+ *   --sort-pkg   Check package.json files are sorted
+ *   --lint       Run linting and formatting
  *   --typecheck  Run TypeScript type checking
  *   --build      Run production build
  *   --test       Run tests
  *   --all        Run all checks
+ *   --fix        Auto-fix issues where possible (sort-package-json)
  *   --continue   Continue running checks even if one fails
  *   --quiet      Suppress command output (show only summary)
  */
@@ -28,6 +32,7 @@ interface CheckConfig {
 	id: string
 	name: string
 	command: string
+	fixCommand?: string
 	description?: string
 }
 
@@ -41,10 +46,23 @@ interface CheckResult {
 
 const AVAILABLE_CHECKS: CheckConfig[] = [
 	{
+		id: 'check-deps',
+		name: 'Check Deps',
+		command: 'bun run check-deps',
+		description: 'Check monorepo dependency consistency',
+	},
+	{
+		id: 'sort-pkg',
+		name: 'Sort package.json',
+		command: 'bun run sort-packages:check',
+		fixCommand: 'bun run sort-packages',
+		description: 'Check package.json files are sorted',
+	},
+	{
 		id: 'lint',
 		name: 'Lint',
-		command: 'bun run lint:fix',
-		description: 'Run Biome linting',
+		command: 'bun run check:fix',
+		description: 'Run Biome linting and formatting with auto-fix',
 	},
 	{
 		id: 'typecheck',
@@ -66,46 +84,63 @@ const AVAILABLE_CHECKS: CheckConfig[] = [
 	},
 ]
 
-const DEFAULT_CHECK_IDS = ['lint', 'typecheck', 'build']
+const DEFAULT_CHECK_IDS = ['check-deps', 'sort-pkg', 'lint', 'typecheck', 'build']
 
-function parseArgs(): { checkIds: string[]; continueOnFailure: boolean; quiet: boolean } {
+interface ParsedArgs {
+	checkIds: string[]
+	continueOnFailure: boolean
+	quiet: boolean
+	fix: boolean
+}
+
+const FLAG_OPTIONS = ['--continue', '--quiet', '--all', '--fix']
+
+function parseArgs(): ParsedArgs {
 	const args = process.argv.slice(2)
 
 	if (args.length === 0) {
-		return { checkIds: DEFAULT_CHECK_IDS, continueOnFailure: false, quiet: false }
+		return { checkIds: DEFAULT_CHECK_IDS, continueOnFailure: false, quiet: false, fix: false }
 	}
 
 	const continueOnFailure = args.includes('--continue')
 	const quiet = args.includes('--quiet')
+	const fix = args.includes('--fix')
 
 	if (args.includes('--all')) {
 		return {
 			checkIds: AVAILABLE_CHECKS.map((c) => c.id),
 			continueOnFailure,
 			quiet,
+			fix,
 		}
 	}
 
 	const checkIds = args
-		.filter((arg) => arg.startsWith('--') && !['--continue', '--quiet', '--all'].includes(arg))
+		.filter((arg) => arg.startsWith('--') && !FLAG_OPTIONS.includes(arg))
 		.map((arg) => arg.slice(2))
 		.filter((id) => AVAILABLE_CHECKS.some((c) => c.id === id))
 
 	if (checkIds.length === 0) {
-		return { checkIds: DEFAULT_CHECK_IDS, continueOnFailure, quiet }
+		return { checkIds: DEFAULT_CHECK_IDS, continueOnFailure, quiet, fix }
 	}
 
-	return { checkIds, continueOnFailure, quiet }
+	return { checkIds, continueOnFailure, quiet, fix }
 }
 
-async function runCheck(config: CheckConfig, quiet: boolean): Promise<CheckResult> {
+async function runCheck(options: {
+	config: CheckConfig
+	quiet: boolean
+	fix: boolean
+}): Promise<CheckResult> {
+	const { config, quiet, fix } = options
 	const start = performance.now()
+	const command = fix && config.fixCommand ? config.fixCommand : config.command
 
 	try {
 		if (quiet) {
-			await $`${config.command.split(' ')}`.quiet()
+			await $`${command.split(' ')}`.quiet()
 		} else {
-			await $`${config.command.split(' ')}`
+			await $`${command.split(' ')}`
 		}
 
 		return {
@@ -161,16 +196,18 @@ async function runChecks(options: {
 	checks: CheckConfig[]
 	continueOnFailure: boolean
 	quiet: boolean
+	fix: boolean
 }): Promise<CheckResult[]> {
-	const { checks, continueOnFailure, quiet } = options
+	const { checks, continueOnFailure, quiet, fix } = options
 	const results: CheckResult[] = []
 
-	console.log('🐇 Running checks...\n')
+	console.log(`🐇 Running checks${fix ? ' (with auto-fix)' : ''}...\n`)
 
 	for (const check of checks) {
-		console.log(`🔍 ${check.name}...`)
+		const usingFix = fix && check.fixCommand
+		console.log(`🔍 ${check.name}${usingFix ? ' (fixing)' : ''}...`)
 
-		const result = await runCheck(check, quiet)
+		const result = await runCheck({ config: check, quiet, fix })
 		results.push(result)
 
 		if (result.success) {
@@ -188,7 +225,7 @@ async function runChecks(options: {
 }
 
 async function main(): Promise<void> {
-	const { checkIds, continueOnFailure, quiet } = parseArgs()
+	const { checkIds, continueOnFailure, quiet, fix } = parseArgs()
 
 	const checks = checkIds
 		.map((id) => AVAILABLE_CHECKS.find((c) => c.id === id))
@@ -203,7 +240,7 @@ async function main(): Promise<void> {
 		process.exit(1)
 	}
 
-	const results = await runChecks({ checks, continueOnFailure, quiet })
+	const results = await runChecks({ checks, continueOnFailure, quiet, fix })
 
 	printSummary(results)
 

@@ -22,7 +22,7 @@ export interface AgentsPageProps {
 		agentDetail: (id: string) => string
 	}
 	/** Agents query from parent app */
-	useAgents: (workspaceId: string | undefined) => UseQueryResult<{ agents: Agent[] }, Error>
+	useAgentsQuery: (workspaceId: string | undefined) => UseQueryResult<{ agents: Agent[] }, Error>
 }
 
 const defaultRoutes = {
@@ -82,10 +82,10 @@ function EmptyState({ renderLink, routes }: Pick<AgentsPageProps, 'renderLink' |
 	)
 }
 
-export function AgentsPage({ renderLink, routes, useAgents }: AgentsPageProps) {
+export function AgentsPage({ renderLink, routes, useAgentsQuery }: AgentsPageProps) {
 	const r = routes ?? defaultRoutes
 	const { activeWorkspace } = useWorkspace()
-	const { data, isLoading, error } = useAgents(activeWorkspace?.id)
+	const { data, isLoading, error } = useAgentsQuery(activeWorkspace?.id)
 	const [search, setSearch] = useState('')
 	const [filter, setFilter] = useState<'all' | 'deployed' | 'draft'>('all')
 

@@ -1,21 +1,35 @@
 'use client'
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import type { CreateWorkspaceInput, Workspace } from '../types'
+import { queryOptions, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import type { CreateWorkspaceInput, Workspace } from '@hare/types'
 import { apiClient } from '../client'
 import { workspaceKeys } from './query-keys'
 
-export function useWorkspacesQuery() {
-	return useQuery({
+/**
+ * Query options for listing all workspaces.
+ */
+export const workspacesQueryOptions = () =>
+	queryOptions({
 		queryKey: workspaceKeys.list(),
 		queryFn: () => apiClient.workspaces.list(),
 	})
+
+/**
+ * Query options for fetching a single workspace.
+ */
+export const workspaceQueryOptions = (id: string) =>
+	queryOptions({
+		queryKey: workspaceKeys.detail(id),
+		queryFn: () => apiClient.workspaces.get(id),
+	})
+
+export function useWorkspacesQuery() {
+	return useQuery(workspacesQueryOptions())
 }
 
 export function useWorkspaceByIdQuery(id: string | undefined) {
 	return useQuery({
-		queryKey: workspaceKeys.detail(id ?? ''),
-		queryFn: () => apiClient.workspaces.get(id!),
+		...workspaceQueryOptions(id!),
 		enabled: !!id,
 	})
 }

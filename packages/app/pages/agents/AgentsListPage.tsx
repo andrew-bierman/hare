@@ -10,9 +10,9 @@ import { Tabs, TabsList, TabsTrigger } from '@hare/ui/components/tabs'
 import { Bot, Clock, Plus, Search, Settings, Wrench } from 'lucide-react'
 import { type ChangeEvent, useState } from 'react'
 import { useWorkspace } from '../../app/providers'
-import type { Agent } from '../../shared/api/types'
+import type { Agent } from '@hare/types'
 import { useAgentsQuery } from '../../shared/api/hooks'
-import { AVAILABLE_MODELS } from '../../shared/config'
+import { AVAILABLE_MODELS } from '@hare/config'
 
 function AgentCardSkeleton() {
 	return (

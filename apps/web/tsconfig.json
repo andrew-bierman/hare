@@ -1,18 +1,14 @@
 {
-	"extends": "@hare/typescript-config/base.json",
+	"extends": "@hare/typescript-config/nextjs.json",
 	"compilerOptions": {
 		"baseUrl": ".",
 		"paths": {
 			"web-app/*": ["./src/*"],
 			"@hare/ui/*": ["../../packages/ui/src/*"],
-			"@hare/api": ["../../packages/hare-api/src/index.ts"],
-			"@hare/api/*": ["../../packages/hare-api/src/*"]
+			"@hare/api": ["../../packages/api/src/index.ts"],
+			"@hare/api/*": ["../../packages/api/src/*"]
 		},
-		"types": ["bun", "vite/client"],
-		"module": "ESNext",
-		"moduleResolution": "Bundler",
-		"jsx": "react-jsx",
-		"noEmit": true
+		"types": ["bun", "vite/client"]
 	},
 	"include": ["**/*.ts", "**/*.tsx", "cloudflare-env.d.ts"],
 	"exclude": ["node_modules", ".output"]

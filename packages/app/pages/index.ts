@@ -1,21 +1,21 @@
 /**
  * Pages Layer
  *
- * Page-level UI components.
- * Following Feature-Sliced Design, pages compose widgets and features.
+ * Page-level UI components using TanStack Router.
+ * All pages use TanStack Router directly (Link, useNavigate, etc.)
  */
 
-// Dashboard pages
-export * from './dashboard'
+// Dashboard
+export { DashboardPage } from './dashboard'
 
-// Agent pages
-export * from './agents'
+// Agents
+export { AgentsListPage, AgentCreatePage, AgentsPage } from './agents'
 
-// Settings pages
-export * from './settings'
+// Tools
+export { ToolsListPage, ToolsPage } from './tools'
 
-// Tools pages
-export * from './tools'
+// Settings
+export { SettingsPage, ApiKeysPage, BillingPage, type BillingPageProps, TeamPage } from './settings'
 
-// Auth pages
+// Auth
 export * from './auth'
