@@ -10,7 +10,7 @@ import {
 	UsageQuerySchema,
 	UsageResponseSchema,
 } from '../schemas'
-import type { WorkspaceEnv } from '../types'
+import type { WorkspaceEnv } from '@hare/types'
 
 // Define routes
 const getWorkspaceUsageRoute = createRoute({
@@ -91,7 +91,7 @@ app.use('*', workspaceMiddleware)
 // Register routes
 app.openapi(getWorkspaceUsageRoute, async (c) => {
 	const { startDate, endDate } = c.req.valid('query')
-	const db = await getDb(c)
+	const db = getDb(c)
 	const workspace = c.get('workspace')
 
 	const defaultStartDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
@@ -180,7 +180,7 @@ app.openapi(getWorkspaceUsageRoute, async (c) => {
 
 app.openapi(getAgentUsageRoute, async (c) => {
 	const { id: agentId } = c.req.valid('param')
-	const db = await getDb(c)
+	const db = getDb(c)
 	const workspace = c.get('workspace')
 
 	// Verify agent belongs to workspace

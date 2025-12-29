@@ -14,7 +14,7 @@
  * ```
  */
 
-// Types (safe to import anywhere)
+// Types (safe to import anywhere) - re-exported from @hare/types
 export type {
 	HareAgentState,
 	McpAgentState,
@@ -24,9 +24,9 @@ export type {
 	ToolExecutePayload,
 	SchedulePayload,
 	ScheduledTask,
-} from './types'
+} from '@hare/types'
 
-export { DEFAULT_HARE_AGENT_STATE, DEFAULT_MCP_AGENT_STATE } from './types'
+export { DEFAULT_HARE_AGENT_STATE, DEFAULT_MCP_AGENT_STATE } from '@hare/types'
 
 // Edge Agent (universal - no cloudflare:workers dependency)
 export { EdgeAgent, createEdgeAgent } from './edge-agent'

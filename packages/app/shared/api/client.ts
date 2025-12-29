@@ -24,7 +24,7 @@ import type {
 	Workspace,
 	WorkspaceInvitation,
 	WorkspaceMember,
-} from './types'
+} from '@hare/types'
 
 // =============================================================================
 // Error Handling

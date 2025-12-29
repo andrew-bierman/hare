@@ -2,7 +2,7 @@ import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
 import { and, eq } from 'drizzle-orm'
 import { AGENT_LIMITS, AI_MODELS, getModelById } from '@hare/config'
 import { agents, agentTools, deployments, tools as toolsTable } from 'web-app/db/schema'
-import type { Database } from 'web-app/db/types'
+import type { Database } from 'web-app/db'
 import { routeHttpToAgent } from 'web-app/lib/agents'
 import { getCloudflareEnv, getDb } from '../db'
 import { commonResponses, requireAdminAccess, requireWriteAccess } from '../helpers'
@@ -29,7 +29,7 @@ import {
 	getDeploymentHistory,
 	rollbackDeployment,
 } from '../services/deployment'
-import type { WorkspaceEnv } from '../types'
+import type { WorkspaceEnv } from '@hare/types'
 import { validateAgentInstructions } from '../utils/sanitize'
 
 // Define routes
@@ -594,7 +594,7 @@ app.use('*', workspaceMiddleware)
 
 // Register routes
 app.openapi(listAgentsRoute, async (c) => {
-	const db = await getDb(c)
+	const db = getDb(c)
 	const workspace = c.get('workspace')
 
 	const results = await db.select().from(agents).where(eq(agents.workspaceId, workspace.id))
@@ -610,7 +610,7 @@ app.openapi(listAgentsRoute, async (c) => {
 
 app.openapi(createAgentRoute, async (c) => {
 	const data = c.req.valid('json')
-	const db = await getDb(c)
+	const db = getDb(c)
 	const user = c.get('user')
 	const workspace = c.get('workspace')
 	const role = c.get('workspaceRole')
@@ -652,7 +652,7 @@ app.openapi(createAgentRoute, async (c) => {
 
 app.openapi(getAgentRoute, async (c) => {
 	const { id } = c.req.valid('param')
-	const db = await getDb(c)
+	const db = getDb(c)
 	const workspace = c.get('workspace')
 
 	const agent = await findAgentByIdAndWorkspace({ db, id, workspaceId: workspace.id })
@@ -667,7 +667,7 @@ app.openapi(getAgentRoute, async (c) => {
 app.openapi(updateAgentRoute, async (c) => {
 	const { id } = c.req.valid('param')
 	const data = c.req.valid('json')
-	const db = await getDb(c)
+	const db = getDb(c)
 	const workspace = c.get('workspace')
 	const role = c.get('workspaceRole')
 
@@ -717,7 +717,7 @@ app.openapi(updateAgentRoute, async (c) => {
 
 app.openapi(deleteAgentRoute, async (c) => {
 	const { id } = c.req.valid('param')
-	const db = await getDb(c)
+	const db = getDb(c)
 	const workspace = c.get('workspace')
 	const role = c.get('workspaceRole')
 
@@ -738,8 +738,8 @@ app.openapi(deleteAgentRoute, async (c) => {
 app.openapi(deployAgentRoute, async (c) => {
 	const { id } = c.req.valid('param')
 	const data = c.req.valid('json')
-	const db = await getDb(c)
-	const env = await getCloudflareEnv(c)
+	const db = getDb(c)
+	const env = getCloudflareEnv(c)
 	const user = c.get('user')
 	const workspace = c.get('workspace')
 	const role = c.get('workspaceRole')
@@ -838,7 +838,7 @@ app.openapi(deployAgentRoute, async (c) => {
 
 app.openapi(getDeploymentRoute, async (c) => {
 	const { id } = c.req.valid('param')
-	const db = await getDb(c)
+	const db = getDb(c)
 	const workspace = c.get('workspace')
 
 	const existing = await findAgentByIdAndWorkspace({ db, id, workspaceId: workspace.id })
@@ -890,7 +890,7 @@ app.openapi(getDeploymentRoute, async (c) => {
 
 app.openapi(undeployAgentRoute, async (c) => {
 	const { id } = c.req.valid('param')
-	const db = await getDb(c)
+	const db = getDb(c)
 	const workspace = c.get('workspace')
 	const role = c.get('workspaceRole')
 
@@ -908,7 +908,7 @@ app.openapi(undeployAgentRoute, async (c) => {
 app.openapi(rollbackAgentRoute, async (c) => {
 	const { id } = c.req.valid('param')
 	const data = c.req.valid('json')
-	const db = await getDb(c)
+	const db = getDb(c)
 	const user = c.get('user')
 	const workspace = c.get('workspace')
 	const role = c.get('workspaceRole')
@@ -933,7 +933,7 @@ app.openapi(rollbackAgentRoute, async (c) => {
 app.openapi(deploymentHistoryRoute, async (c) => {
 	const { id } = c.req.valid('param')
 	const { limit } = c.req.valid('query')
-	const db = await getDb(c)
+	const db = getDb(c)
 	const workspace = c.get('workspace')
 
 	const existing = await findAgentByIdAndWorkspace({ db, id, workspaceId: workspace.id })
@@ -977,7 +977,7 @@ app.openapi(deploymentHistoryRoute, async (c) => {
 
 app.openapi(validateConfigRoute, async (c) => {
 	const data = c.req.valid('json')
-	const db = await getDb(c)
+	const db = getDb(c)
 	const workspace = c.get('workspace')
 
 	const errors: Array<{ field: string; type: 'error'; message: string }> = []
@@ -1239,7 +1239,7 @@ app.openapi(validateConfigRoute, async (c) => {
 app.openapi(previewAgentRoute, async (c) => {
 	const { id } = c.req.valid('param')
 	const overrides = c.req.valid('json')
-	const db = await getDb(c)
+	const db = getDb(c)
 	const workspace = c.get('workspace')
 
 	// Find the agent

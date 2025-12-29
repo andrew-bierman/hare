@@ -8,41 +8,9 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react'
+import type { ClientMessage, HareAgentState, ServerMessage } from '@hare/types'
 
-/**
- * Agent state that is persisted and synced with clients.
- */
-export interface HareAgentState {
-	agentId: string
-	workspaceId: string
-	name: string
-	instructions: string
-	model: string
-	messages: unknown[]
-	isProcessing: boolean
-	lastActivity: number
-	connectedUsers: string[]
-	scheduledTasks: unknown[]
-	status: 'idle' | 'processing' | 'error'
-	lastError?: string
-}
-
-/**
- * Message sent from client to agent.
- */
-export interface ClientMessage {
-	type: 'chat' | 'configure' | 'execute_tool' | 'get_state' | 'schedule'
-	payload: unknown
-}
-
-/**
- * Server message sent to clients.
- */
-export interface ServerMessage {
-	type: 'text' | 'tool_call' | 'tool_result' | 'state_update' | 'error' | 'done'
-	data: unknown
-	timestamp: number
-}
+export type { ClientMessage, HareAgentState, ServerMessage }
 
 /**
  * Message in the chat.

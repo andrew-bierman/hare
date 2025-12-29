@@ -17,8 +17,8 @@ import {
 	Wrench,
 } from 'lucide-react'
 import { useWorkspace } from '../../app/providers'
-import { AVAILABLE_MODELS, DASHBOARD_CONTENT, UI_TEXT } from '../../shared/config'
-import type { Agent } from '../../shared/api/types'
+import { AVAILABLE_MODELS, DASHBOARD_CONTENT, UI_TEXT } from '@hare/config'
+import type { Agent } from '@hare/types'
 import { useAgentsQuery, useUsageQuery } from '../../shared/api/hooks'
 
 const { home: content } = DASHBOARD_CONTENT

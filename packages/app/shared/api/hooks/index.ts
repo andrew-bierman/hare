@@ -8,13 +8,13 @@
 // Query keys
 export * from './query-keys'
 
+// WebSocket Agent types from @hare/types
+export type { ClientMessage, HareAgentState, ServerMessage } from '@hare/types'
+
 // WebSocket Agent hooks
 export {
 	type AgentMessage,
-	type ClientMessage,
 	type ConnectionStatus,
-	type HareAgentState,
-	type ServerMessage,
 	type UseAgentWebSocketOptions,
 	type UseAgentWebSocketReturn,
 	useAgentWebSocket,

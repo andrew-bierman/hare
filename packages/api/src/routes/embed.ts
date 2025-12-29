@@ -7,7 +7,7 @@ import { agents, usage } from 'web-app/db/schema'
 import { type AgentConfig, createAgentFromConfig } from 'web-app/lib/agents'
 import { createMemoryStore, toAgentMessages } from 'web-app/lib/agents/memory'
 import { getCloudflareEnv, getDb } from '../db'
-import type { HonoEnv } from '../types'
+import type { HonoEnv } from '@hare/types'
 
 // =============================================================================
 // Schemas
@@ -159,7 +159,7 @@ app.use(
 // Get agent info
 app.openapi(getEmbedAgentRoute, async (c) => {
 	const { agentId } = c.req.valid('param')
-	const db = await getDb(c)
+	const db = getDb(c)
 
 	const [agent] = await db.select().from(agents).where(eq(agents.id, agentId))
 
@@ -211,8 +211,8 @@ app.openapi(getEmbedAgentRoute, async (c) => {
 app.openapi(embedChatRoute, async (c) => {
 	const { agentId } = c.req.valid('param')
 	const { message, sessionId: existingSessionId } = c.req.valid('json')
-	const db = await getDb(c)
-	const env = await getCloudflareEnv(c)
+	const db = getDb(c)
+	const env = getCloudflareEnv(c)
 
 	// Load agent
 	const [agent] = await db.select().from(agents).where(eq(agents.id, agentId))

@@ -1,4 +1,4 @@
-import { APP_CONFIG, DASHBOARD_CONTENT } from '@hare/app/shared/config'
+import { APP_CONFIG, DASHBOARD_CONTENT } from '@hare/config'
 import { UserNav } from '@hare/app/widgets/user-nav'
 import { Button } from '@hare/ui/components/button'
 import { Input } from '@hare/ui/components/input'

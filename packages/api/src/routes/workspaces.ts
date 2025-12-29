@@ -1,7 +1,7 @@
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
 import { eq, or } from 'drizzle-orm'
 import { workspaceMembers, workspaces } from 'web-app/db/schema'
-import type { Database } from 'web-app/db/types'
+import type { Database } from 'web-app/db'
 import { generateUniqueSlug } from 'web-app/lib/utils'
 import { getDb } from '../db'
 import { commonResponses, requireAdminAccess } from '../helpers'
@@ -15,7 +15,7 @@ import {
 	WorkspaceSchema,
 } from '../schemas'
 import { serializeWorkspace } from '../serializers'
-import { type AuthEnv, isWorkspaceRole, type WorkspaceRole } from '../types'
+import { type AuthEnv, isWorkspaceRole, type WorkspaceRole } from '@hare/types'
 
 // Define routes
 const listWorkspacesRoute = createRoute({
@@ -235,7 +235,7 @@ app.use('*', authMiddleware)
 
 // Register routes
 app.openapi(listWorkspacesRoute, async (c) => {
-	const db = await getDb(c)
+	const db = getDb(c)
 	const user = c.get('user')
 
 	// Get workspaces where user is owner
@@ -279,7 +279,7 @@ app.openapi(listWorkspacesRoute, async (c) => {
 
 app.openapi(createWorkspaceRoute, async (c) => {
 	const data = c.req.valid('json')
-	const db = await getDb(c)
+	const db = getDb(c)
 	const user = c.get('user')
 
 	const slug = await generateUniqueSlug(data.name, (s) => slugExists(db, s))
@@ -303,7 +303,7 @@ app.openapi(createWorkspaceRoute, async (c) => {
 
 app.openapi(getWorkspaceRoute, async (c) => {
 	const { id } = c.req.valid('param')
-	const db = await getDb(c)
+	const db = getDb(c)
 	const user = c.get('user')
 
 	const [workspace] = await db.select().from(workspaces).where(eq(workspaces.id, id))
@@ -323,7 +323,7 @@ app.openapi(getWorkspaceRoute, async (c) => {
 app.openapi(updateWorkspaceRoute, async (c) => {
 	const { id } = c.req.valid('param')
 	const data = c.req.valid('json')
-	const db = await getDb(c)
+	const db = getDb(c)
 	const user = c.get('user')
 
 	const role = await getUserWorkspaceRole({ userId: user.id, workspaceId: id, db })
@@ -360,7 +360,7 @@ app.openapi(updateWorkspaceRoute, async (c) => {
 
 app.openapi(deleteWorkspaceRoute, async (c) => {
 	const { id } = c.req.valid('param')
-	const db = await getDb(c)
+	const db = getDb(c)
 	const user = c.get('user')
 
 	const [workspace] = await db.select().from(workspaces).where(eq(workspaces.id, id))

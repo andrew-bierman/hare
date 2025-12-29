@@ -2,6 +2,7 @@ import path from 'node:path'
 import { cloudflare } from '@cloudflare/vite-plugin'
 import tailwindcss from '@tailwindcss/vite'
 import { tanstackStart } from '@tanstack/react-start/plugin/vite'
+import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
 
 // Resolve paths to workspace packages
@@ -48,5 +49,10 @@ export default defineConfig({
 			'@hare/app/providers': path.join(appPackagePath, 'app/providers/index.ts'),
 		},
 	},
-	plugins: [cloudflare({ viteEnvironment: { name: 'ssr' } }), tailwindcss(), tanstackStart()],
+	plugins: [
+		cloudflare({ viteEnvironment: { name: 'ssr' } }),
+		tanstackStart(),
+		react(),
+		tailwindcss(),
+	],
 })

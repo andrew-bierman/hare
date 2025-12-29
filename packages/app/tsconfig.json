@@ -1,7 +1,6 @@
 {
 	"extends": "@hare/typescript-config/react-library.json",
 	"compilerOptions": {
-		"jsx": "react-jsx",
 		"noEmit": true
 	},
 	"include": ["**/*.ts", "**/*.tsx"],

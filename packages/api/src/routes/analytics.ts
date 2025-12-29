@@ -4,7 +4,7 @@ import { agents, usage } from 'web-app/db/schema'
 import { getDb } from '../db'
 import { authMiddleware, workspaceMiddleware } from '../middleware'
 import { ErrorSchema, UsageQuerySchema } from '../schemas'
-import type { WorkspaceEnv } from '../types'
+import type { WorkspaceEnv } from '@hare/types'
 
 // Define analytics response schemas
 const TimeSeriesDataSchema = z.object({
@@ -100,7 +100,7 @@ app.use('*', workspaceMiddleware)
 // Register routes
 app.openapi(getAnalyticsRoute, async (c) => {
 	const { startDate, endDate, agentId, groupBy = 'day' } = c.req.valid('query')
-	const db = await getDb(c)
+	const db = getDb(c)
 	const workspace = c.get('workspace')
 
 	const defaultStartDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
@@ -188,7 +188,7 @@ app.openapi(getAnalyticsRoute, async (c) => {
 		.orderBy(sql<number>`SUM(${usage.totalTokens}) DESC`)
 
 	// Import model config to get model names
-	const { getModelName } = await import('@hare/app/shared/config')
+	const { getModelName } = await import('@hare/config')
 
 	return c.json(
 		{

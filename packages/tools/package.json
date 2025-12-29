@@ -23,10 +23,14 @@
 		"tools"
 	],
 	"license": "MIT",
+	"dependencies": {
+		"@hare/types": "workspace:*"
+	},
 	"peerDependencies": {
 		"zod": "^4.0.0"
 	},
 	"devDependencies": {
+		"@hare/typescript-config": "workspace:*",
 		"@cloudflare/workers-types": "^4.20251224.0",
 		"typescript": "^5.7.0",
 		"zod": "^4.2.1"

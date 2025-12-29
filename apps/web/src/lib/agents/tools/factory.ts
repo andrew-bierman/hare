@@ -7,8 +7,8 @@ import {
 	type ToolContext,
 } from '@hare/tools'
 import { eq } from 'drizzle-orm'
+import type { Database } from 'web-app/db'
 import { agentTools, tools as toolsTable } from 'web-app/db/schema'
-import type { Database } from 'web-app/db/types'
 import { z } from 'zod'
 
 /**

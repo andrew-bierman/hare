@@ -1,7 +1,7 @@
 import type { MiddlewareHandler } from 'hono'
 import { createAuth, type AuthServerEnv } from '@hare/auth/server'
 import { getD1 } from '../db'
-import type { AuthEnv, OptionalAuthEnv } from '../types'
+import type { AuthEnv, OptionalAuthEnv } from '@hare/types'
 
 /**
  * Helper to get auth server env from Hono context
@@ -29,7 +29,7 @@ function getAuthEnv(c: { env: CloudflareEnv }): AuthServerEnv {
  * Use this for routes that require authentication.
  */
 export const authMiddleware: MiddlewareHandler<AuthEnv> = async (c, next) => {
-	const d1 = await getD1(c)
+	const d1 = getD1(c)
 	const authEnv = getAuthEnv(c)
 	const auth = createAuth({ d1, env: authEnv })
 
@@ -61,7 +61,7 @@ export const authMiddleware: MiddlewareHandler<AuthEnv> = async (c, next) => {
  * Use for routes that work with or without authentication.
  */
 export const optionalAuthMiddleware: MiddlewareHandler<OptionalAuthEnv> = async (c, next) => {
-	const d1 = await getD1(c)
+	const d1 = getD1(c)
 	const authEnv = getAuthEnv(c)
 	const auth = createAuth({ d1, env: authEnv })
 

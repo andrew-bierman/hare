@@ -2,7 +2,7 @@ import { and, eq } from 'drizzle-orm'
 import type { MiddlewareHandler } from 'hono'
 import { workspaceMembers, workspaces } from 'web-app/db/schema'
 import { getDb } from '../db'
-import { isWorkspaceRole, type WorkspaceEnv, type WorkspaceRole } from '../types'
+import { isWorkspaceRole, type WorkspaceEnv, type WorkspaceRole } from '@hare/types'
 
 /**
  * Workspace middleware that validates workspace access.
@@ -15,7 +15,7 @@ export const workspaceMiddleware: MiddlewareHandler<WorkspaceEnv> = async (c, ne
 		return c.json({ error: 'Unauthorized' }, 401)
 	}
 
-	const db = await getDb(c)
+	const db = getDb(c)
 
 	// Get workspaceId from query or params
 	const workspaceId = c.req.query('workspaceId') || c.req.param('workspaceId')

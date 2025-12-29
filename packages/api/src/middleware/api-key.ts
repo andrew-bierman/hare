@@ -2,7 +2,7 @@ import { eq } from 'drizzle-orm'
 import type { MiddlewareHandler } from 'hono'
 import { apiKeys, workspaces } from 'web-app/db/schema'
 import { getDb } from '../db'
-import type { ApiKeyEnv, ApiKeyInfo } from '../types'
+import type { ApiKeyEnv, ApiKeyInfo } from '@hare/types'
 
 /**
  * Hash an API key for comparison.
@@ -50,7 +50,7 @@ export const apiKeyMiddleware: MiddlewareHandler<ApiKeyEnv> = async (c, next) =>
 		return c.json({ error: 'API key required' }, 401)
 	}
 
-	const db = await getDb(c)
+	const db = getDb(c)
 	const hashedKey = await hashApiKey(apiKey)
 
 	const [keyRecord] = await db.select().from(apiKeys).where(eq(apiKeys.hashedKey, hashedKey))

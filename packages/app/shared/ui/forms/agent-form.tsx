@@ -25,7 +25,7 @@ import {
 import { Textarea } from '@hare/ui/components/textarea'
 import { Loader2 } from 'lucide-react'
 import { z } from 'zod'
-import { AI_MODELS, type AIModel } from '../../config'
+import { AI_MODELS, type AIModel } from '@hare/config'
 
 /**
  * Form validation schema

@@ -22,21 +22,31 @@
       "name": "hare-tauri",
       "version": "0.1.0",
       "dependencies": {
+        "@dnd-kit/core": "^6.3.1",
+        "@dnd-kit/sortable": "^10.0.0",
+        "@dnd-kit/utilities": "^3.2.2",
         "@hare/app": "workspace:*",
+        "@hare/auth": "workspace:*",
+        "@hare/config": "workspace:*",
         "@hare/ui": "workspace:*",
+        "@tanstack/react-form": "^1.27.6",
         "@tanstack/react-query": "^5.90.12",
         "@tanstack/react-query-devtools": "^5.91.1",
         "@tanstack/react-router": "^1.120.5",
         "@tanstack/react-start": "^1.138.0",
+        "@tanstack/zod-form-adapter": "^0.42.1",
         "class-variance-authority": "^0.7.1",
         "clsx": "^2.1.1",
         "lucide-react": "^0.562.0",
         "react": "19.2.3",
         "react-dom": "19.2.3",
+        "recharts": "^3.6.0",
         "sonner": "^2.0.7",
         "tailwind-merge": "^3.4.0",
+        "zod": "^4.2.1",
       },
       "devDependencies": {
+        "@hare/typescript-config": "workspace:*",
         "@tailwindcss/vite": "^4",
         "@tauri-apps/cli": "^2",
         "@types/react": "^19",
@@ -134,11 +144,13 @@
       "version": "0.1.0",
       "dependencies": {
         "@hare/tools": "workspace:*",
+        "@hare/types": "workspace:*",
         "workers-ai-provider": "^3.0.0",
         "zod-to-json-schema": "^3.25.0",
       },
       "devDependencies": {
         "@cloudflare/workers-types": "^4.20251224.0",
+        "@hare/typescript-config": "workspace:*",
         "@modelcontextprotocol/sdk": "1.23.0",
         "agents": "^0.3.0",
         "ai": "^6.0.3",
@@ -160,11 +172,13 @@
         "@hare/auth": "workspace:*",
         "@hare/config": "workspace:*",
         "@hare/tools": "workspace:*",
+        "@hare/types": "workspace:*",
         "@scalar/hono-api-reference": "^0.9.30",
         "zod-to-json-schema": "^3.25.0",
       },
       "devDependencies": {
         "@cloudflare/workers-types": "^4.20251224.0",
+        "@hare/typescript-config": "workspace:*",
         "@hono/zod-openapi": "^1.2.0",
         "@paralleldrive/cuid2": "^2.3.1",
         "ai": "^6.0.3",
@@ -195,6 +209,7 @@
         "@hare/agent": "workspace:*",
         "@hare/api": "workspace:*",
         "@hare/config": "workspace:*",
+        "@hare/types": "workspace:*",
         "@hare/ui": "workspace:*",
         "@tanstack/react-form": "^1.12.1",
         "@tanstack/react-query": "^5.90.12",
@@ -243,6 +258,7 @@
         "create-hare-agent": "./src/index.ts",
       },
       "devDependencies": {
+        "@hare/typescript-config": "workspace:*",
         "@types/node": "^22.0.0",
         "typescript": "^5.7.0",
       },
@@ -262,6 +278,7 @@
       "name": "@hare/db",
       "version": "0.1.0",
       "dependencies": {
+        "@hare/types": "workspace:*",
         "@paralleldrive/cuid2": "^2.3.1",
         "zod": "^4.2.1",
       },
@@ -276,11 +293,30 @@
         "drizzle-zod": "^0.8.0",
       },
     },
+    "packages/hare-types": {
+      "name": "@hare/types",
+      "version": "0.1.0",
+      "dependencies": {
+        "ai": "^6.0.0",
+      },
+      "devDependencies": {
+        "@hare/typescript-config": "workspace:*",
+        "typescript": "^5.7.0",
+        "zod": "^4.2.1",
+      },
+      "peerDependencies": {
+        "zod": "^4.0.0",
+      },
+    },
     "packages/tools": {
       "name": "@hare/tools",
       "version": "0.1.0",
+      "dependencies": {
+        "@hare/types": "workspace:*",
+      },
       "devDependencies": {
         "@cloudflare/workers-types": "^4.20251224.0",
+        "@hare/typescript-config": "workspace:*",
         "typescript": "^5.7.0",
         "zod": "^4.2.1",
       },
@@ -618,6 +654,8 @@
     "@hare/scripts": ["@hare/scripts@workspace:scripts"],
 
     "@hare/tools": ["@hare/tools@workspace:packages/tools"],
+
+    "@hare/types": ["@hare/types@workspace:packages/hare-types"],
 
     "@hare/typescript-config": ["@hare/typescript-config@workspace:packages/typescript-config"],
 
@@ -1991,6 +2029,8 @@
 
     "express/cookie": ["cookie@0.7.2", "", {}, "sha512-yki5XnKuf750l50uGTllt6kKILY4nQ1eNIQatoXEByZ5dWgnKqbnqmTrBE5B4N7lrMJKQ2ytWMiTO2o0v6Ew/w=="],
 
+    "hare-tauri/@tanstack/zod-form-adapter": ["@tanstack/zod-form-adapter@0.42.1", "", { "dependencies": { "@tanstack/form-core": "0.42.1" }, "peerDependencies": { "zod": "^3.x" } }, "sha512-hPRM0lawVKP64yurW4c6KHZH6altMo2MQN14hfi+GMBTKjO9S7bW1x5LPZ5cayoJE3mBvdlahpSGT5rYZtSbXQ=="],
+
     "htmlparser2/entities": ["entities@6.0.1", "", {}, "sha512-aN97NXWF6AWBTahfVOIrB/NShkzi5H7F9r1s9mD3cDj4Ko5f2qhhVoYMibXF7GlLveb/D2ioWay8lxI97Ven3g=="],
 
     "mimetext/mime-types": ["mime-types@2.1.35", "", { "dependencies": { "mime-db": "1.52.0" } }, "sha512-ZDY+bPm5zTTF+YpCrAU9nK0UgICYPT0QtT1NZWFv4s++TNkcgVaT0g6+4R2uI4MjQjzysHB1zxuWL50hzaeXiw=="],
@@ -2164,6 +2204,10 @@
     "drizzle-kit/esbuild/@esbuild/win32-ia32": ["@esbuild/win32-ia32@0.25.12", "", { "os": "win32", "cpu": "ia32" }, "sha512-HkqnmmBoCbCwxUKKNPBixiWDGCpQGVsrQfJoVGYLPT41XWF8lHuE5N6WhVia2n4o5QK5M4tYr21827fNhi4byQ=="],
 
     "drizzle-kit/esbuild/@esbuild/win32-x64": ["@esbuild/win32-x64@0.25.12", "", { "os": "win32", "cpu": "x64" }, "sha512-alJC0uCZpTFrSL0CCDjcgleBXPnCrEAhTBILpeAp7M/OFgoqtAetfBzX0xM00MUsVVPpVjlPuMbREqnZCXaTnA=="],
+
+    "hare-tauri/@tanstack/zod-form-adapter/@tanstack/form-core": ["@tanstack/form-core@0.42.1", "", { "dependencies": { "@tanstack/store": "^0.7.0" } }, "sha512-jTU0jyHqFceujdtPNv3jPVej1dTqBwa8TYdIyWB5BCwRVUBZEp1PiYEBkC9r92xu5fMpBiKc+JKud3eeVjuMiA=="],
+
+    "hare-tauri/@tanstack/zod-form-adapter/zod": ["zod@3.25.76", "", {}, "sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ=="],
 
     "mimetext/mime-types/mime-db": ["mime-db@1.52.0", "", {}, "sha512-sPU4uV7dYlvtWJxwwxHD0PuihVNiE7TyAbQ5SWxDCB9mUYvOgroQOwYQQOKPJ8CIbE+1ETVlOoK1UC2nU3gYvg=="],
 

@@ -4,11 +4,26 @@ import { createContext, type ReactNode, useContext } from 'react'
 
 /**
  * Sign-in result from email/password authentication.
+ * Compatible with Better Auth client response shape.
  */
 export interface SignInResult {
 	error?: {
-		message: string
-	}
+		message?: string
+		code?: string
+	} | null
+}
+
+/**
+ * OAuth sign-in result for Google/GitHub.
+ * Compatible with Better Auth client response shape.
+ */
+export interface OAuthSignInResult {
+	error?: {
+		message?: string
+		code?: string
+	} | null
+	redirect?: boolean
+	url?: string
 }
 
 /**
@@ -19,8 +34,8 @@ export interface SignInActions {
 	signIn: {
 		email: (options: { email: string; password: string }) => Promise<SignInResult>
 	}
-	signInWithGoogle: () => Promise<void>
-	signInWithGitHub: () => Promise<void>
+	signInWithGoogle: () => Promise<OAuthSignInResult | void>
+	signInWithGitHub: () => Promise<OAuthSignInResult | void>
 }
 
 const SignInActionsContext = createContext<SignInActions | null>(null)

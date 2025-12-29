@@ -20,7 +20,7 @@ import {
 	SuccessSchema,
 	UpdateScheduleSchema,
 } from '../schemas'
-import type { WorkspaceEnv } from '../types'
+import type { WorkspaceEnv } from '@hare/types'
 
 // =============================================================================
 // Serializers
@@ -346,7 +346,7 @@ app.use('*', workspaceMiddleware)
 app.openapi(listSchedulesRoute, async (c) => {
 	const { agentId } = c.req.valid('param')
 	const { status } = c.req.valid('query')
-	const db = await getDb(c)
+	const db = getDb(c)
 	const workspace = c.get('workspace')
 
 	// Verify agent exists and belongs to workspace
@@ -377,8 +377,8 @@ app.openapi(listSchedulesRoute, async (c) => {
 app.openapi(createScheduleRoute, async (c) => {
 	const { agentId } = c.req.valid('param')
 	const data = c.req.valid('json')
-	const db = await getDb(c)
-	const env = await getCloudflareEnv(c)
+	const db = getDb(c)
+	const env = getCloudflareEnv(c)
 	const user = c.get('user')
 	const workspace = c.get('workspace')
 	const role = c.get('workspaceRole')
@@ -459,7 +459,7 @@ app.openapi(createScheduleRoute, async (c) => {
 
 app.openapi(getScheduleRoute, async (c) => {
 	const { agentId, scheduleId } = c.req.valid('param')
-	const db = await getDb(c)
+	const db = getDb(c)
 	const workspace = c.get('workspace')
 
 	// Verify agent exists and belongs to workspace
@@ -487,7 +487,7 @@ app.openapi(getScheduleRoute, async (c) => {
 app.openapi(updateScheduleRoute, async (c) => {
 	const { agentId, scheduleId } = c.req.valid('param')
 	const data = c.req.valid('json')
-	const db = await getDb(c)
+	const db = getDb(c)
 	const workspace = c.get('workspace')
 	const role = c.get('workspaceRole')
 
@@ -546,7 +546,7 @@ app.openapi(updateScheduleRoute, async (c) => {
 
 app.openapi(deleteScheduleRoute, async (c) => {
 	const { agentId, scheduleId } = c.req.valid('param')
-	const db = await getDb(c)
+	const db = getDb(c)
 	const workspace = c.get('workspace')
 	const role = c.get('workspaceRole')
 
@@ -577,7 +577,7 @@ app.openapi(deleteScheduleRoute, async (c) => {
 app.openapi(getExecutionHistoryRoute, async (c) => {
 	const { agentId, scheduleId } = c.req.valid('param')
 	const { limit, offset } = c.req.valid('query')
-	const db = await getDb(c)
+	const db = getDb(c)
 	const workspace = c.get('workspace')
 
 	// Verify agent exists and belongs to workspace
@@ -626,7 +626,7 @@ app.openapi(getExecutionHistoryRoute, async (c) => {
 app.openapi(getAgentExecutionsRoute, async (c) => {
 	const { agentId } = c.req.valid('param')
 	const { limit, offset } = c.req.valid('query')
-	const db = await getDb(c)
+	const db = getDb(c)
 	const workspace = c.get('workspace')
 
 	// Verify agent exists and belongs to workspace

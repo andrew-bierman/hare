@@ -45,7 +45,7 @@ import usage from './routes/usage'
 import webhooksRoutes from './routes/webhooks'
 import workspaceMembers from './routes/workspace-members'
 import workspaces from './routes/workspaces'
-import type { HonoEnv } from './types'
+import type { HonoEnv } from '@hare/types'
 
 // =============================================================================
 // APP CREATION
@@ -163,7 +163,7 @@ export { app }
 // Type for RPC client
 export type AppType = typeof routes
 
-// Re-export types
+// Re-export types from @hare/types (canonical source)
 export type {
 	Agent,
 	AgentConfig,
@@ -210,10 +210,10 @@ export type {
 	WorkspaceInvitation,
 	WorkspaceRole,
 	WorkspaceVariables,
-} from './types'
+} from '@hare/types'
 
-// Re-export type guards
-export { isMessageRole, isWorkspaceRole } from './types'
+// Re-export type guards from @hare/types
+export { isMessageRole, isWorkspaceRole } from '@hare/types'
 
 // Re-export schemas
 export * from './schemas'

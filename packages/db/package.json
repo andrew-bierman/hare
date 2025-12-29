@@ -24,6 +24,7 @@
 	],
 	"license": "MIT",
 	"dependencies": {
+		"@hare/types": "workspace:*",
 		"@paralleldrive/cuid2": "^2.3.1",
 		"zod": "^4.2.1"
 	},

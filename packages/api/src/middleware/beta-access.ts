@@ -1,6 +1,6 @@
 import type { MiddlewareHandler } from 'hono'
 import { BETA_ACCESS, FEATURES } from '@hare/config'
-import type { AuthEnv } from '../types'
+import type { AuthEnv } from '@hare/types'
 
 /**
  * Feature flag middleware for AI chat

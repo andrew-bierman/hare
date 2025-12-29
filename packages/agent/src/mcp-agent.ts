@@ -12,7 +12,7 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { McpAgent } from 'agents/mcp'
 import { zodToJsonSchema } from 'zod-to-json-schema'
 import { type HareEnv, type ToolContext, getSystemTools, ToolRegistry } from '@hare/tools'
-import { DEFAULT_MCP_AGENT_STATE, type McpAgentState } from './types'
+import { DEFAULT_MCP_AGENT_STATE, type McpAgentState } from '@hare/types'
 
 // Re-export types for convenience
 export type { McpAgentState }

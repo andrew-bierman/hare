@@ -17,7 +17,6 @@ import type { ModelMessage } from 'ai'
 import { streamText } from 'ai'
 import { z } from 'zod'
 import { type HareEnv, type ToolContext, type ToolResult, getSystemTools, ToolRegistry } from '@hare/tools'
-import { createWorkersAIModel } from './providers/workers-ai'
 import {
 	type ChatPayload,
 	type ClientMessage,
@@ -27,7 +26,8 @@ import {
 	type SchedulePayload,
 	type ServerMessage,
 	type ToolExecutePayload,
-} from './types'
+} from '@hare/types'
+import { createWorkersAIModel } from './providers/workers-ai'
 
 // Re-export types for convenience
 export type { HareAgentState, ClientMessage, ServerMessage }

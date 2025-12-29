@@ -28,6 +28,7 @@
 	],
 	"license": "MIT",
 	"dependencies": {
+		"@hare/types": "workspace:*",
 		"@hare/tools": "workspace:*",
 		"workers-ai-provider": "^3.0.0",
 		"zod-to-json-schema": "^3.25.0"
@@ -39,6 +40,7 @@
 		"zod": "^4.0.0"
 	},
 	"devDependencies": {
+		"@hare/typescript-config": "workspace:*",
 		"@cloudflare/workers-types": "^4.20251224.0",
 		"@modelcontextprotocol/sdk": "1.23.0",
 		"agents": "^0.3.0",

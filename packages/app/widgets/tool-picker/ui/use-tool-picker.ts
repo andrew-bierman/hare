@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import type { Tool } from '../../../shared/api/types'
+import type { Tool } from '@hare/types'
 import { useToolsQuery } from '../../../shared/api/hooks'
 import type { ToolCategory } from './types'
 

@@ -3,7 +3,7 @@
 import { Button } from '@hare/ui/components/button'
 import { Input } from '@hare/ui/components/input'
 import { Bell, Menu, Rabbit, Search } from 'lucide-react'
-import { APP_CONFIG, DASHBOARD_CONTENT } from '../../../shared/config'
+import { APP_CONFIG, DASHBOARD_CONTENT } from '@hare/config'
 
 export interface HeaderProps {
 	Link: React.ComponentType<{ to: string; className?: string; children: React.ReactNode }>

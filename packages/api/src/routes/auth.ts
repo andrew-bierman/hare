@@ -1,7 +1,7 @@
 import { Hono } from 'hono'
 import { createAuth, getOAuthProviders, type AuthServerEnv } from '@hare/auth/server'
 import { CloudflareEnvError, getD1 } from '../db'
-import type { HonoEnv } from '../types'
+import type { HonoEnv } from '@hare/types'
 
 /**
  * Helper to get auth server env from Hono context
@@ -40,7 +40,7 @@ const app = new Hono<HonoEnv>()
 	.all('/*', async (c) => {
 		let d1: D1Database
 		try {
-			d1 = await getD1(c)
+			d1 = getD1(c)
 		} catch (e) {
 			if (e instanceof CloudflareEnvError) {
 				// For session endpoints, return null session instead of error

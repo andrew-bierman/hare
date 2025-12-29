@@ -1,7 +1,7 @@
 'use client'
 
 import { queryOptions, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import type { CreateToolInput, Tool, ToolType } from '../types'
+import type { CreateToolInput, Tool, ToolType } from '@hare/types'
 import { apiClient, type ToolTestRequest } from '../client'
 import { toolKeys } from './query-keys'
 

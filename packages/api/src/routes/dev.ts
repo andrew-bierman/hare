@@ -3,7 +3,7 @@ import { agents } from 'web-app/db/schema'
 import { serverEnv } from 'web-app/lib/env/server'
 import { getDb } from '../db'
 import { authMiddleware, workspaceMiddleware } from '../middleware'
-import type { WorkspaceEnv } from '../types'
+import type { WorkspaceEnv } from '@hare/types'
 
 const app = new OpenAPIHono<WorkspaceEnv>()
 
@@ -74,7 +74,7 @@ app.post('/seed', authMiddleware, workspaceMiddleware, async (c) => {
 		return c.json({ error: 'Seed endpoint only available in development' }, 403)
 	}
 
-	const db = await getDb(c)
+	const db = getDb(c)
 	const user = c.get('user')
 	const workspace = c.get('workspace')
 

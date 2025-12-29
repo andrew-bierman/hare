@@ -1,6 +1,6 @@
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
 import { getCloudflareEnv } from '../db'
-import type { HonoEnv } from '../types'
+import type { HonoEnv } from '@hare/types'
 
 // =============================================================================
 // Health Check Schemas
@@ -285,7 +285,7 @@ app.openapi(healthRoute, async (c) => {
 	let env = c.env as CloudflareEnv | undefined
 	if (!env?.DB) {
 		try {
-			env = await getCloudflareEnv(c)
+			env = getCloudflareEnv(c)
 		} catch {
 			// Cloudflare env not available
 		}
