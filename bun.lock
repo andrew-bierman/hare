@@ -181,7 +181,7 @@
         "@hare/db": "workspace:*",
         "@hare/tools": "workspace:*",
         "@hare/types": "workspace:*",
-        "@hare/utils": "workspace:*",
+        "@hare/utilities": "workspace:*",
         "@scalar/hono-api-reference": "^0.9.30",
       },
       "devDependencies": {
@@ -218,7 +218,7 @@
         "@hare/config": "workspace:*",
         "@hare/types": "workspace:*",
         "@hare/ui": "workspace:*",
-        "@hare/utils": "workspace:*",
+        "@hare/utilities": "workspace:*",
         "@tanstack/react-form": "^1.27.6",
         "@tanstack/react-query": "^5.90.14",
         "@tanstack/react-query-devtools": "^5.91.2",
@@ -393,8 +393,8 @@
         "react-dom": "^19.0.0",
       },
     },
-    "packages/utils": {
-      "name": "@hare/utils",
+    "packages/utilities": {
+      "name": "@hare/utilities",
       "version": "0.1.0",
       "devDependencies": {
         "@hare/typescript-config": "workspace:*",
@@ -702,7 +702,7 @@
 
     "@hare/ui": ["@hare/ui@workspace:packages/ui"],
 
-    "@hare/utils": ["@hare/utils@workspace:packages/utils"],
+    "@hare/utilities": ["@hare/utilities@workspace:packages/utilities"],
 
     "@hono/node-server": ["@hono/node-server@1.19.7", "", { "peerDependencies": { "hono": "^4" } }, "sha512-vUcD0uauS7EU2caukW8z5lJKtoGMokxNbJtBiwHgpqxEXokaHCBkQUmCHhjFB1VUTWdqj25QoMkMKzgjq+uhrw=="],
 

@@ -8,8 +8,8 @@
 // Hooks
 export { useDebouncedCallback, useDebouncedValue } from './hooks'
 
-// Utilities (from shared @hare/utils)
-export { generateUniqueSlug, nameToSlug } from '@hare/utils'
+// Utilities (from shared @hare/utilities)
+export { generateUniqueSlug, nameToSlug } from '@hare/utilities'
 export { exportToCSV, exportToJSON } from './export'
 
 // TanStack utilities

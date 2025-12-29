@@ -19,5 +19,5 @@ export {
 	truncateString,
 } from './sanitize'
 
-// Slug generation utilities (from shared @hare/utils)
-export { generateUniqueSlug, nameToSlug } from '@hare/utils'
+// Slug generation utilities (from shared @hare/utilities)
+export { generateUniqueSlug, nameToSlug } from '@hare/utilities'
