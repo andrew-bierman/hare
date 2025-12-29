@@ -1,13 +1,6 @@
-import path from "node:path";
 import { defineWorkersConfig } from "@cloudflare/vitest-pool-workers/config";
 
 export default defineWorkersConfig({
-  resolve: {
-    alias: {
-      "web-app": path.resolve(__dirname, "./apps/web/src"),
-      "@hare/ui": path.resolve(__dirname, "./packages/ui/src"),
-    },
-  },
   define: {
     "process.env.NODE_ENV": JSON.stringify("test"),
     "process.env.NEXT_PUBLIC_APP_URL": JSON.stringify("http://localhost:3000"),

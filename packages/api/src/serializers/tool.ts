@@ -1,8 +1,7 @@
-import type { z } from '@hono/zod-openapi'
+import { type z, toJSONSchema } from 'zod/v4'
 import type { InferSelectModel } from 'drizzle-orm'
 import type { tools } from '@hare/db'
 import type { AnyTool } from '@hare/tools'
-import { zodToJsonSchema } from 'zod-to-json-schema'
 import type { ToolSchema, ToolTypeSchema } from '../schemas'
 
 type ToolRow = InferSelectModel<typeof tools>
@@ -124,8 +123,9 @@ const TOOL_TYPE_MAP: Record<string, ToolType> = {
  */
 function getToolTypeFromId(toolId: string): ToolType {
 	// Check explicit mapping first
-	if (toolId in TOOL_TYPE_MAP) {
-		return TOOL_TYPE_MAP[toolId]
+	const mapped = TOOL_TYPE_MAP[toolId]
+	if (mapped) {
+		return mapped
 	}
 	// For most tools, the ID matches the type (datetime, json, text, sentiment, etc.)
 	return toolId as ToolType
@@ -138,8 +138,8 @@ function getToolTypeFromId(toolId: string): ToolType {
  */
 function zodSchemaToInputSchema(zodSchema: unknown, toolId?: string): InputSchema {
 	try {
-		// biome-ignore lint/suspicious/noExplicitAny: zod-to-json-schema types differ between Zod versions
-		const jsonSchema = zodToJsonSchema(zodSchema as any, { $refStrategy: 'none' })
+		// Use Zod v4's built-in JSON Schema conversion
+		const jsonSchema = toJSONSchema(zodSchema as z.ZodType)
 		// Extract properties from the JSON Schema
 		if (
 			typeof jsonSchema === 'object' &&

@@ -22,6 +22,7 @@
 		"./widgets/tool-picker": "./widgets/tool-picker/index.ts",
 		"./widgets/workspace-switcher": "./widgets/workspace-switcher/index.ts",
 		"./widgets/user-nav": "./widgets/user-nav/index.ts",
+		"./widgets/router-components": "./widgets/router-components/index.ts",
 		"./widgets/*": "./widgets/*/index.ts",
 		"./shared": "./shared/index.ts",
 		"./shared/api": "./shared/api/index.ts",

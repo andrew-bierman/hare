@@ -3,8 +3,15 @@ import type { ModelMessage } from 'ai'
 import { eq } from 'drizzle-orm'
 import { cors } from 'hono/cors'
 import { streamSSE } from 'hono/streaming'
-import { agents, usage } from '@hare/db'
-import { type AgentConfig, createAgentFromConfig, createMemoryStore, toAgentMessages } from '@hare/agent'
+import { agents, conversations, messages, usage } from '@hare/db/schema'
+import {
+	type AgentConfig,
+	createAgentFromConfig,
+	createEdgeAgent,
+	createMemoryStore,
+	toAgentMessages,
+} from '@hare/agent'
+import type { Database } from '@hare/db'
 import { getCloudflareEnv, getDb } from '../db'
 import type { HonoEnv } from '@hare/types'
 

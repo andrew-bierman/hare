@@ -14,9 +14,8 @@ import handler from './.open-next/worker.js'
 // Re-export the default handler
 export default handler
 
+// Export custom Durable Objects for Cloudflare Agents
+export { HareAgent, HareMcpAgent } from '@hare/agent/workers'
 // Re-export OpenNext's internal Durable Objects (required for caching)
 // @ts-expect-error - .open-next/worker.js is generated at build time
 export { BucketCachePurge, DOQueueHandler, DOShardedTagCache } from './.open-next/worker.js'
-
-// Export custom Durable Objects for Cloudflare Agents
-export { HareAgent, HareMcpAgent } from '@hare/agent/workers'

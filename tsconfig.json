@@ -13,7 +13,6 @@
 		"jsx": "preserve",
 		"incremental": true,
 		"paths": {
-			"web-app/*": ["./apps/web/src/*"],
 			"@hare/db/schema": ["./packages/db/src/schema/index.ts"],
 			"@hare/db": ["./packages/db/src/index.ts"],
 			"@hare/agent/workers": ["./packages/agent/src/workers.ts"],
@@ -39,5 +38,5 @@
 		"packages/**/*.tsx",
 		"apps/web/cloudflare-env.d.ts"
 	],
-	"exclude": ["node_modules", ".next", "dist", "apps/tauri", "packages/e2e"]
+	"exclude": ["node_modules", ".next", "dist", "apps/tauri"]
 }

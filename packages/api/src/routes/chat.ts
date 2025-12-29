@@ -1,8 +1,15 @@
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
 import { type ModelMessage, streamText } from 'ai'
 import { eq } from 'drizzle-orm'
-import { agents, conversations, messages, usage } from '@hare/db'
-import { type AgentConfig, createAgentFromConfig, createMemoryStore, toAgentMessages } from '@hare/agent'
+import { agents, conversations, messages, usage } from '@hare/db/schema'
+import {
+	type AgentConfig,
+	createAgentFromConfig,
+	createEdgeAgent,
+	createMemoryStore,
+	toAgentMessages,
+} from '@hare/agent'
+import type { Database } from '@hare/db'
 import { getCloudflareEnv, getDb } from '../db'
 import { aiChatFeatureMiddleware, authMiddleware, chatRateLimiter } from '../middleware'
 import {

@@ -11,16 +11,16 @@
 
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
 import { and, eq } from 'drizzle-orm'
-import { workspaceMembers } from '@hare/db'
+import { workspaceMembers } from '@hare/db/schema'
 import { isWebSocketRequest, routeToMcpAgent } from '@hare/agent'
 import { agentControlTools, createRegistry, type ToolContext } from '@hare/tools'
-
-// Create a registry for tool execution
-const toolRegistry = createRegistry(agentControlTools)
 import { type Database, getCloudflareEnv, getDb } from '../db'
 import { optionalAuthMiddleware } from '../middleware'
 import { ErrorSchema } from '../schemas'
 import type { OptionalAuthEnv } from '@hare/types'
+
+// Create a registry for tool execution
+const toolRegistry = createRegistry(agentControlTools)
 
 /**
  * Check if a user has access to a workspace.

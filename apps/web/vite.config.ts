@@ -13,14 +13,16 @@ export default defineConfig({
 	server: {
 		port: Number(process.env.PORT) || 3000,
 	},
+	// SSR and client-side optimizations are configured separately in Vite.
+	// Both are needed for TanStack Start which runs code in both environments.
 	ssr: {
-		// Include these dependencies in SSR optimization upfront to avoid mid-reload prebundle issues
 		optimizeDeps: {
+			// Pre-bundle these deps for SSR to avoid mid-reload issues
 			include: ['agents', 'agents/mcp', 'ai', '@modelcontextprotocol/sdk/server/mcp.js'],
 		},
 	},
 	optimizeDeps: {
-		// Also include for regular optimization
+		// Pre-bundle the same deps for client-side
 		include: ['agents', 'agents/mcp', 'ai', '@modelcontextprotocol/sdk/server/mcp.js'],
 	},
 	resolve: {
@@ -62,6 +64,10 @@ export default defineConfig({
 				'widgets/workspace-switcher/index.ts',
 			),
 			'@hare/app/widgets/user-nav': path.join(appPackagePath, 'widgets/user-nav/index.ts'),
+			'@hare/app/widgets/router-components': path.join(
+				appPackagePath,
+				'widgets/router-components/index.ts',
+			),
 			'@hare/app/widgets': path.join(appPackagePath, 'widgets/index.ts'),
 			'@hare/app/shared/api': path.join(appPackagePath, 'shared/api/index.ts'),
 			'@hare/app/shared/config': path.join(appPackagePath, 'shared/config/index.ts'),

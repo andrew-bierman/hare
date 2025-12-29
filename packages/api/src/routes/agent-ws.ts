@@ -7,7 +7,7 @@
 
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
 import { and, eq } from 'drizzle-orm'
-import { agents, workspaceMembers } from '@hare/db'
+import { agents, workspaceMembers } from '@hare/db/schema'
 import { isWebSocketRequest, routeHttpToAgent, routeWebSocketToAgent } from '@hare/agent'
 import { type Database, getCloudflareEnv, getDb } from '../db'
 import { optionalAuthMiddleware } from '../middleware'

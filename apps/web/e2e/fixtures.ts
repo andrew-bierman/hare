@@ -1,4 +1,7 @@
-import { createId } from '@paralleldrive/cuid2'
+// Use native crypto.randomUUID() which is workers/browser compatible
+function createId(): string {
+	return crypto.randomUUID()
+}
 import { type APIRequestContext, test as base, expect, type Page } from '@playwright/test'
 
 /**

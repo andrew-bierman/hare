@@ -50,18 +50,18 @@
 	],
 	"dependencies": {
 		"@elithrar/workers-hono-rate-limit": "^0.5.1",
+		"@hare/agent": "workspace:*",
 		"@hare/auth": "workspace:*",
 		"@hare/config": "workspace:*",
+		"@hare/db": "workspace:*",
 		"@hare/tools": "workspace:*",
 		"@hare/types": "workspace:*",
-		"@scalar/hono-api-reference": "^0.9.30",
-		"zod-to-json-schema": "^3.25.0"
+		"@scalar/hono-api-reference": "^0.9.30"
 	},
 	"devDependencies": {
 		"@cloudflare/workers-types": "^4.20251224.0",
 		"@hare/typescript-config": "workspace:*",
 		"@hono/zod-openapi": "^1.2.0",
-		"@paralleldrive/cuid2": "^3.0.4",
 		"ai": "^6.0.3",
 		"drizzle-orm": "^0.45.1",
 		"hono": "^4.11.3",
@@ -71,7 +71,6 @@
 	},
 	"peerDependencies": {
 		"@hono/zod-openapi": "^1.2.0",
-		"@paralleldrive/cuid2": "^3.0.4",
 		"ai": "^6.0.0",
 		"drizzle-orm": "^0.45.0",
 		"hono": "^4.0.0",
