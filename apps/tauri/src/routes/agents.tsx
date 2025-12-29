@@ -15,7 +15,7 @@ function AgentsPageWrapper() {
 			)}
 			routes={{
 				newAgent: '/agents/new',
-				agentDetail: (_id) => `/agents`, // TODO: Add /agents/$id route
+				agentDetail: (id) => `/agents/${id}`,
 			}}
 			useAgentsQuery={useAgentsQuery}
 		/>

@@ -7,6 +7,30 @@ export default defineWorkersConfig({
       // Mock cuid2 to avoid CF Workers global scope random generation error
       // cuid2 calls crypto.getRandomValues() at import time, which fails in Workers global scope
       "@paralleldrive/cuid2": path.resolve(__dirname, "./test/mocks/cuid2.ts"),
+      // @hare/* package aliases
+      "@hare/api": path.resolve(__dirname, "./packages/api/src/index.ts"),
+      "@hare/auth/server": path.resolve(__dirname, "./packages/auth/src/server.ts"),
+      "@hare/auth/client": path.resolve(__dirname, "./packages/auth/src/client.ts"),
+      "@hare/auth": path.resolve(__dirname, "./packages/auth/src/index.ts"),
+      "@hare/config": path.resolve(__dirname, "./packages/config/src/index.ts"),
+      "@hare/db/schema": path.resolve(__dirname, "./packages/db/src/schema/index.ts"),
+      "@hare/db": path.resolve(__dirname, "./packages/db/src/index.ts"),
+      "@hare/tools": path.resolve(__dirname, "./packages/tools/src/index.ts"),
+      "@hare/types": path.resolve(__dirname, "./packages/types/src/index.ts"),
+      "@hare/ui": path.resolve(__dirname, "./packages/ui/src/index.ts"),
+      "@hare/agent": path.resolve(__dirname, "./packages/agent/src/index.ts"),
+      "@hare/security": path.resolve(__dirname, "./packages/security/src/index.ts"),
+      // Map web-app imports to new package structure
+      "web-app/lib/env/server": path.resolve(__dirname, "./packages/config/src/env.ts"),
+      "web-app/db/schema": path.resolve(__dirname, "./packages/db/src/schema/index.ts"),
+      "web-app/db/client": path.resolve(__dirname, "./packages/db/src/client.ts"),
+      "web-app/db": path.resolve(__dirname, "./packages/db/src/index.ts"),
+      "web-app/lib/agents/memory": path.resolve(__dirname, "./packages/tools/src/memory.ts"),
+      "web-app/lib/agents/tools/types": path.resolve(__dirname, "./packages/tools/src/types.ts"),
+      "web-app/lib/agents/tools/agent-control": path.resolve(__dirname, "./packages/tools/src/agent-control.ts"),
+      "web-app/lib/agents": path.resolve(__dirname, "./packages/agent/src/index.ts"),
+      "web-app/lib/utils": path.resolve(__dirname, "./packages/ui/src/lib/utils.ts"),
+      "web-app": path.resolve(__dirname, "./apps/web/src"),
     },
   },
   define: {

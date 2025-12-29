@@ -38,7 +38,29 @@ export const authClient = createHareAuthClient({
 })
 
 // Re-export commonly used auth methods from default client
-export const { signIn, signUp, signOut, useSession, getSession } = authClient
+export const { signIn, signUp, signOut, useSession, getSession, requestPasswordReset, resetPassword } = authClient
+
+/**
+ * Update user profile (name, image)
+ * @param data - Object containing fields to update
+ * @returns Promise with updated user data
+ */
+export async function updateUser(data: { name?: string; image?: string }) {
+	return authClient.updateUser(data)
+}
+
+/**
+ * Change user password
+ * @param options - Current password and new password
+ * @returns Promise with result
+ */
+export async function changePassword(options: {
+	currentPassword: string
+	newPassword: string
+	revokeOtherSessions?: boolean
+}) {
+	return authClient.changePassword(options)
+}
 
 /**
  * Sign in with Google OAuth

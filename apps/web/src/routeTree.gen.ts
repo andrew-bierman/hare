@@ -16,6 +16,8 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as EmbedAgentIdRouteImport } from './routes/embed/$agentId'
 import { Route as AuthSignUpRouteImport } from './routes/_auth/sign-up'
 import { Route as AuthSignInRouteImport } from './routes/_auth/sign-in'
+import { Route as AuthForgotPasswordRouteImport } from './routes/_auth/forgot-password'
+import { Route as AuthResetPasswordRouteImport } from './routes/_auth/reset-password'
 import { Route as DashboardDashboardIndexRouteImport } from './routes/_dashboard/dashboard/index'
 import { Route as DashboardDashboardUsageIndexRouteImport } from './routes/_dashboard/dashboard/usage/index'
 import { Route as DashboardDashboardToolsIndexRouteImport } from './routes/_dashboard/dashboard/tools/index'
@@ -63,6 +65,16 @@ const AuthSignUpRoute = AuthSignUpRouteImport.update({
 const AuthSignInRoute = AuthSignInRouteImport.update({
   id: '/sign-in',
   path: '/sign-in',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthForgotPasswordRoute = AuthForgotPasswordRouteImport.update({
+  id: '/forgot-password',
+  path: '/forgot-password',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthResetPasswordRoute = AuthResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
   getParentRoute: () => AuthRoute,
 } as any)
 const DashboardDashboardIndexRoute = DashboardDashboardIndexRouteImport.update({
@@ -160,6 +172,8 @@ export interface FileRoutesByFullPath {
   '/embed': typeof EmbedRouteWithChildren
   '/sign-in': typeof AuthSignInRoute
   '/sign-up': typeof AuthSignUpRoute
+  '/forgot-password': typeof AuthForgotPasswordRoute
+  '/reset-password': typeof AuthResetPasswordRoute
   '/embed/$agentId': typeof EmbedAgentIdRoute
   '/dashboard': typeof DashboardDashboardIndexRoute
   '/dashboard/agents/new': typeof DashboardDashboardAgentsNewRoute
@@ -182,6 +196,8 @@ export interface FileRoutesByTo {
   '/embed': typeof EmbedRouteWithChildren
   '/sign-in': typeof AuthSignInRoute
   '/sign-up': typeof AuthSignUpRoute
+  '/forgot-password': typeof AuthForgotPasswordRoute
+  '/reset-password': typeof AuthResetPasswordRoute
   '/embed/$agentId': typeof EmbedAgentIdRoute
   '/dashboard': typeof DashboardDashboardIndexRoute
   '/dashboard/agents/new': typeof DashboardDashboardAgentsNewRoute
@@ -207,6 +223,8 @@ export interface FileRoutesById {
   '/embed': typeof EmbedRouteWithChildren
   '/_auth/sign-in': typeof AuthSignInRoute
   '/_auth/sign-up': typeof AuthSignUpRoute
+  '/_auth/forgot-password': typeof AuthForgotPasswordRoute
+  '/_auth/reset-password': typeof AuthResetPasswordRoute
   '/embed/$agentId': typeof EmbedAgentIdRoute
   '/_dashboard/dashboard/': typeof DashboardDashboardIndexRoute
   '/_dashboard/dashboard/agents/new': typeof DashboardDashboardAgentsNewRoute
@@ -231,6 +249,8 @@ export interface FileRouteTypes {
     | '/embed'
     | '/sign-in'
     | '/sign-up'
+    | '/forgot-password'
+    | '/reset-password'
     | '/embed/$agentId'
     | '/dashboard'
     | '/dashboard/agents/new'
@@ -253,6 +273,8 @@ export interface FileRouteTypes {
     | '/embed'
     | '/sign-in'
     | '/sign-up'
+    | '/forgot-password'
+    | '/reset-password'
     | '/embed/$agentId'
     | '/dashboard'
     | '/dashboard/agents/new'
@@ -277,6 +299,8 @@ export interface FileRouteTypes {
     | '/embed'
     | '/_auth/sign-in'
     | '/_auth/sign-up'
+    | '/_auth/forgot-password'
+    | '/_auth/reset-password'
     | '/embed/$agentId'
     | '/_dashboard/dashboard/'
     | '/_dashboard/dashboard/agents/new'
@@ -351,6 +375,20 @@ declare module '@tanstack/react-router' {
       path: '/sign-in'
       fullPath: '/sign-in'
       preLoaderRoute: typeof AuthSignInRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/forgot-password': {
+      id: '/_auth/forgot-password'
+      path: '/forgot-password'
+      fullPath: '/forgot-password'
+      preLoaderRoute: typeof AuthForgotPasswordRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/reset-password': {
+      id: '/_auth/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof AuthResetPasswordRouteImport
       parentRoute: typeof AuthRoute
     }
     '/_dashboard/dashboard/': {
@@ -464,11 +502,15 @@ declare module '@tanstack/react-router' {
 interface AuthRouteChildren {
   AuthSignInRoute: typeof AuthSignInRoute
   AuthSignUpRoute: typeof AuthSignUpRoute
+  AuthForgotPasswordRoute: typeof AuthForgotPasswordRoute
+  AuthResetPasswordRoute: typeof AuthResetPasswordRoute
 }
 
 const AuthRouteChildren: AuthRouteChildren = {
   AuthSignInRoute: AuthSignInRoute,
   AuthSignUpRoute: AuthSignUpRoute,
+  AuthForgotPasswordRoute: AuthForgotPasswordRoute,
+  AuthResetPasswordRoute: AuthResetPasswordRoute,
 }
 
 const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)

@@ -154,3 +154,10 @@ export {
 	useWorkspaceByIdQuery,
 	useWorkspacesQuery,
 } from './use-workspaces'
+
+// User preferences hooks
+export {
+	userPreferencesKeys,
+	useUserPreferencesQuery,
+	useUpdateUserPreferencesMutation,
+} from './use-user-preferences'

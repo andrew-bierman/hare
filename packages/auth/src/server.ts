@@ -45,6 +45,19 @@ export function createAuth({ d1, env }: CreateAuthOptions) {
 		emailAndPassword: {
 			enabled: true,
 			autoSignIn: true,
+			// Password reset configuration
+			sendResetPassword: async ({ user, url }) => {
+				// TODO: Implement email sending (e.g., using Resend, SendGrid, etc.)
+				// For now, log the reset URL for development purposes
+				console.log(`[Auth] Password reset requested for ${user.email}`)
+				console.log(`[Auth] Reset URL: ${url}`)
+				// In production, you would send an email like:
+				// await sendEmail({
+				//   to: user.email,
+				//   subject: 'Reset your password',
+				//   text: `Click the link to reset your password: ${url}`,
+				// })
+			},
 		},
 		socialProviders: {
 			...(isGoogleConfigured && {
