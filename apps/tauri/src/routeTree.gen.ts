@@ -9,9 +9,10 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as ToolsRouteImport } from './routes/tools'
+import { Route as AgentsRouteImport } from './routes/agents'
 import { Route as DashboardRouteImport } from './routes/_dashboard'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as AgentsNewRouteImport } from './routes/agents/new'
 import { Route as DashboardDashboardIndexRouteImport } from './routes/_dashboard/dashboard/index'
 import { Route as DashboardDashboardUsageIndexRouteImport } from './routes/_dashboard/dashboard/usage/index'
 import { Route as DashboardDashboardToolsIndexRouteImport } from './routes/_dashboard/dashboard/tools/index'
@@ -27,6 +28,16 @@ import { Route as DashboardDashboardAgentsIdIndexRouteImport } from './routes/_d
 import { Route as DashboardDashboardAgentsIdWebhooksRouteImport } from './routes/_dashboard/dashboard/agents/$id/webhooks'
 import { Route as DashboardDashboardAgentsIdPlaygroundRouteImport } from './routes/_dashboard/dashboard/agents/$id/playground'
 
+const ToolsRoute = ToolsRouteImport.update({
+  id: '/tools',
+  path: '/tools',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AgentsRoute = AgentsRouteImport.update({
+  id: '/agents',
+  path: '/agents',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DashboardRoute = DashboardRouteImport.update({
   id: '/_dashboard',
   getParentRoute: () => rootRouteImport,
@@ -34,11 +45,6 @@ const DashboardRoute = DashboardRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AgentsNewRoute = AgentsNewRouteImport.update({
-  id: '/agents/new',
-  path: '/agents/new',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardDashboardIndexRoute = DashboardDashboardIndexRouteImport.update({
@@ -127,7 +133,8 @@ const DashboardDashboardAgentsIdPlaygroundRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/agents/new': typeof AgentsNewRoute
+  '/agents': typeof AgentsRoute
+  '/tools': typeof ToolsRoute
   '/dashboard': typeof DashboardDashboardIndexRoute
   '/dashboard/agents/new': typeof DashboardDashboardAgentsNewRoute
   '/dashboard/settings/api-keys': typeof DashboardDashboardSettingsApiKeysRoute
@@ -145,7 +152,8 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/agents/new': typeof AgentsNewRoute
+  '/agents': typeof AgentsRoute
+  '/tools': typeof ToolsRoute
   '/dashboard': typeof DashboardDashboardIndexRoute
   '/dashboard/agents/new': typeof DashboardDashboardAgentsNewRoute
   '/dashboard/settings/api-keys': typeof DashboardDashboardSettingsApiKeysRoute
@@ -165,7 +173,8 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_dashboard': typeof DashboardRouteWithChildren
-  '/agents/new': typeof AgentsNewRoute
+  '/agents': typeof AgentsRoute
+  '/tools': typeof ToolsRoute
   '/_dashboard/dashboard/': typeof DashboardDashboardIndexRoute
   '/_dashboard/dashboard/agents/new': typeof DashboardDashboardAgentsNewRoute
   '/_dashboard/dashboard/settings/api-keys': typeof DashboardDashboardSettingsApiKeysRoute
@@ -185,7 +194,8 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/agents/new'
+    | '/agents'
+    | '/tools'
     | '/dashboard'
     | '/dashboard/agents/new'
     | '/dashboard/settings/api-keys'
@@ -203,7 +213,8 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/agents/new'
+    | '/agents'
+    | '/tools'
     | '/dashboard'
     | '/dashboard/agents/new'
     | '/dashboard/settings/api-keys'
@@ -222,7 +233,8 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_dashboard'
-    | '/agents/new'
+    | '/agents'
+    | '/tools'
     | '/_dashboard/dashboard/'
     | '/_dashboard/dashboard/agents/new'
     | '/_dashboard/dashboard/settings/api-keys'
@@ -242,11 +254,26 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DashboardRoute: typeof DashboardRouteWithChildren
-  AgentsNewRoute: typeof AgentsNewRoute
+  AgentsRoute: typeof AgentsRoute
+  ToolsRoute: typeof ToolsRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/tools': {
+      id: '/tools'
+      path: '/tools'
+      fullPath: '/tools'
+      preLoaderRoute: typeof ToolsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/agents': {
+      id: '/agents'
+      path: '/agents'
+      fullPath: '/agents'
+      preLoaderRoute: typeof AgentsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_dashboard': {
       id: '/_dashboard'
       path: ''
@@ -259,13 +286,6 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/agents/new': {
-      id: '/agents/new'
-      path: '/agents/new'
-      fullPath: '/agents/new'
-      preLoaderRoute: typeof AgentsNewRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_dashboard/dashboard/': {
@@ -414,7 +434,8 @@ const DashboardRouteWithChildren = DashboardRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DashboardRoute: DashboardRouteWithChildren,
-  AgentsNewRoute: AgentsNewRoute,
+  AgentsRoute: AgentsRoute,
+  ToolsRoute: ToolsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
