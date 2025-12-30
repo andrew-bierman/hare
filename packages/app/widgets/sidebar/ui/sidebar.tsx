@@ -2,7 +2,7 @@
 
 import { Badge } from '@hare/ui/components/badge'
 import { cn } from '@hare/ui/lib/utils'
-import { Activity, BarChart3, Bot, Home, Rabbit, Settings, Wrench } from 'lucide-react'
+import { Activity, BarChart3, Bot, ExternalLink, Home, Rabbit, Settings, Wrench } from 'lucide-react'
 import { APP_CONFIG, DASHBOARD_CONTENT, FEATURES, NAV_ITEMS } from '@hare/config'
 
 const ICONS = { Home, Bot, Wrench, Activity, Settings, BarChart3 } as const
@@ -103,8 +103,11 @@ export function Sidebar({ pathname, Link, WorkspaceSwitcher }: SidebarProps) {
 			<div className="p-3 border-t">
 				<a
 					href={APP_CONFIG.docs}
-					className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-muted hover:text-foreground min-h-[44px]"
+					target="_blank"
+					rel="noopener noreferrer"
+					className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-muted hover:text-foreground min-h-[44px] transition-colors"
 				>
+					<ExternalLink className="h-4 w-4" />
 					<span>{DASHBOARD_CONTENT.sidebar.docsLink}</span>
 				</a>
 			</div>

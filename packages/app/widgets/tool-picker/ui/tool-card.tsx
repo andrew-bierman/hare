@@ -1,63 +1,46 @@
 'use client'
 
-import { Badge } from '@hare/ui/components/badge'
+import { Checkbox } from '@hare/ui/components/checkbox'
 import { cn } from '@hare/ui/lib/utils'
-import { Check } from 'lucide-react'
 import type { ToolCardProps } from './types'
-
-const TOOL_TYPE_ICONS: Record<string, string> = {
-	http: '🌐',
-	sql: '🗄️',
-	kv: '📦',
-	r2: '☁️',
-	vectorize: '🔍',
-	custom: '🔧',
-}
+import { getToolIcon } from './tool-icons'
 
 export function ToolCard({ tool, isSelected, isDisabled, onToggle }: ToolCardProps) {
-	const icon = TOOL_TYPE_ICONS[tool.type] || '🔧'
+	const Icon = getToolIcon(tool.type)
 
 	return (
 		<button
 			type="button"
 			className={cn(
-				'group relative w-full cursor-pointer rounded-lg border p-4 text-left transition-all duration-200',
-				'hover:border-primary/50 hover:bg-accent/50',
-				isSelected && 'border-primary bg-primary/5 ring-2 ring-primary/20',
+				'group flex w-full items-center gap-3 rounded-md px-3 py-2 text-left transition-colors',
+				'hover:bg-accent/50',
+				isSelected && 'bg-accent',
 				isDisabled && !isSelected && 'cursor-not-allowed opacity-50',
 			)}
 			onClick={() => !isDisabled && onToggle()}
 			aria-pressed={isSelected}
 			disabled={isDisabled && !isSelected}
 		>
-			{/* Selection indicator */}
-			{isSelected && (
-				<div className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-primary text-primary-foreground">
-					<Check className="h-4 w-4" />
-				</div>
-			)}
+			{/* Checkbox */}
+			<Checkbox
+				checked={isSelected}
+				className="pointer-events-none"
+				aria-hidden
+			/>
 
-			<div className="flex items-start gap-3">
-				{/* Icon */}
-				<div className="text-2xl">{icon}</div>
+			{/* Icon */}
+			<div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-muted">
+				<Icon className="h-4 w-4 text-muted-foreground" />
+			</div>
 
-				{/* Content */}
-				<div className="flex-1 space-y-1">
-					<div className="flex items-center gap-2">
-						<h3 className="font-semibold leading-none">{tool.name}</h3>
-						{tool.isSystem && (
-							<Badge variant="secondary" className="text-xs">
-								System
-							</Badge>
-						)}
-					</div>
-					<p className="text-sm text-muted-foreground line-clamp-2">{tool.description}</p>
-					<div className="flex items-center gap-2 pt-1">
-						<Badge variant="outline" className="text-xs">
-							{tool.type}
-						</Badge>
-					</div>
+			{/* Content */}
+			<div className="min-w-0 flex-1">
+				<div className="flex items-center gap-2">
+					<span className="truncate font-medium text-sm">{tool.name}</span>
 				</div>
+				{tool.description && (
+					<p className="truncate text-xs text-muted-foreground">{tool.description}</p>
+				)}
 			</div>
 		</button>
 	)

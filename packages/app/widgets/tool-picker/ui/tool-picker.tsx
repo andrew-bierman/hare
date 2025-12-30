@@ -1,13 +1,19 @@
 'use client'
 
 import { Button } from '@hare/ui/components/button'
+import {
+	Collapsible,
+	CollapsibleContent,
+	CollapsibleTrigger,
+} from '@hare/ui/components/collapsible'
 import { Skeleton } from '@hare/ui/components/skeleton'
-import { useEffect } from 'react'
+import { ChevronDown } from 'lucide-react'
+import { useEffect, useState } from 'react'
 import { SelectedTools } from './selected-tools'
 import { ToolCard } from './tool-card'
-import { ToolCategories } from './tool-categories'
+import { getCategoryIcon, TOOL_CATEGORY_LABELS } from './tool-icons'
 import { ToolSearch } from './tool-search'
-import type { ToolPickerProps } from './types'
+import type { ToolCategory, ToolPickerProps } from './types'
 import { useToolPicker } from './use-tool-picker'
 
 export function ToolPicker({
@@ -18,24 +24,38 @@ export function ToolPicker({
 }: ToolPickerProps) {
 	const {
 		selectedTools,
-		filteredTools,
+		groupedTools,
 		isLoading,
 		selectedToolIds: internalSelectedIds,
 		searchQuery,
-		activeCategory,
 		setSearchQuery,
-		setActiveCategory,
 		toggleTool,
 		reorderTools,
 		removeTool,
 		clearSelection,
 		isAtMaxTools,
-		toolCounts,
 	} = useToolPicker({
 		workspaceId,
 		initialSelectedIds: selectedToolIds,
 		maxTools,
 	})
+
+	// Track which categories are expanded
+	const [expandedCategories, setExpandedCategories] = useState<Set<ToolCategory>>(
+		new Set(['storage', 'ai', 'http']),
+	)
+
+	const toggleCategory = (category: ToolCategory) => {
+		setExpandedCategories((prev) => {
+			const next = new Set(prev)
+			if (next.has(category)) {
+				next.delete(category)
+			} else {
+				next.add(category)
+			}
+			return next
+		})
+	}
 
 	// Sync internal state with external prop
 	useEffect(() => {
@@ -44,18 +64,11 @@ export function ToolPicker({
 
 	if (isLoading) {
 		return (
-			<div className="space-y-6">
-				<div className="space-y-2">
-					<div className="flex items-center justify-between">
-						<Skeleton className="h-5 w-32" />
-						<Skeleton className="h-9 w-16" />
-					</div>
-					<Skeleton className="h-20 w-full" />
-				</div>
+			<div className="space-y-4">
 				<Skeleton className="h-10 w-full" />
-				<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-					{['tp-sk-1', 'tp-sk-2', 'tp-sk-3', 'tp-sk-4', 'tp-sk-5', 'tp-sk-6'].map((id) => (
-						<Skeleton key={id} className="h-32" />
+				<div className="space-y-2">
+					{['tp-sk-1', 'tp-sk-2', 'tp-sk-3'].map((id) => (
+						<Skeleton key={id} className="h-12 w-full" />
 					))}
 				</div>
 			</div>
@@ -63,59 +76,82 @@ export function ToolPicker({
 	}
 
 	return (
-		<div className="space-y-6">
-			{/* Selected Tools Section */}
-			<div className="space-y-2">
-				<div className="flex items-center justify-between">
-					<h3 className="text-sm font-medium">
-						Selected Tools ({internalSelectedIds.length}/{maxTools})
-					</h3>
-					{internalSelectedIds.length > 0 && (
-						<Button variant="ghost" size="sm" onClick={clearSelection}>
-							Clear All
+		<div className="space-y-4">
+			{/* Search */}
+			<ToolSearch value={searchQuery} onChange={setSearchQuery} />
+
+			{/* Selected Tools */}
+			{internalSelectedIds.length > 0 && (
+				<div className="space-y-2">
+					<div className="flex items-center justify-between">
+						<span className="text-xs font-medium text-muted-foreground">
+							Selected ({internalSelectedIds.length}/{maxTools})
+						</span>
+						<Button
+							variant="ghost"
+							size="sm"
+							className="h-6 px-2 text-xs"
+							onClick={clearSelection}
+						>
+							Clear
 						</Button>
-					)}
+					</div>
+					<SelectedTools tools={selectedTools} onRemove={removeTool} onReorder={reorderTools} />
 				</div>
-				<SelectedTools tools={selectedTools} onRemove={removeTool} onReorder={reorderTools} />
-			</div>
+			)}
 
-			{/* Search and Filter Section */}
-			<div className="space-y-4">
-				<ToolSearch value={searchQuery} onChange={setSearchQuery} />
-				<ToolCategories
-					activeCategory={activeCategory}
-					onCategoryChange={setActiveCategory}
-					toolCounts={toolCounts}
-				/>
-			</div>
-
-			{/* Available Tools Grid */}
-			<div>
-				{filteredTools.length === 0 ? (
-					<div className="flex min-h-[200px] items-center justify-center rounded-lg border border-dashed">
+			{/* Tool Categories Accordion */}
+			<div className="space-y-1">
+				{groupedTools.length === 0 ? (
+					<div className="flex min-h-[100px] items-center justify-center rounded-lg border border-dashed">
 						<p className="text-sm text-muted-foreground">
-							{searchQuery || activeCategory !== 'all'
-								? 'No tools match your search criteria.'
-								: 'No tools available.'}
+							{searchQuery ? 'No tools match your search.' : 'No tools available.'}
 						</p>
 					</div>
 				) : (
-					<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-						{filteredTools.map((tool) => {
-							const isSelected = internalSelectedIds.includes(tool.id)
-							const isDisabled = !isSelected && isAtMaxTools
+					groupedTools.map(({ category, tools }) => {
+						const isExpanded = expandedCategories.has(category)
+						const CategoryIcon = getCategoryIcon(category)
 
-							return (
-								<ToolCard
-									key={tool.id}
-									tool={tool}
-									isSelected={isSelected}
-									isDisabled={isDisabled}
-									onToggle={() => toggleTool(tool.id)}
-								/>
-							)
-						})}
-					</div>
+						return (
+							<Collapsible
+								key={category}
+								open={isExpanded}
+								onOpenChange={() => toggleCategory(category)}
+							>
+								<CollapsibleTrigger className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm font-medium hover:bg-accent transition-colors">
+									<div className="flex items-center gap-2">
+										<CategoryIcon className="h-4 w-4 text-muted-foreground" />
+										<span>{TOOL_CATEGORY_LABELS[category]}</span>
+										<span className="text-xs text-muted-foreground">({tools.length})</span>
+									</div>
+									<ChevronDown
+										className={`h-4 w-4 text-muted-foreground transition-transform ${
+											isExpanded ? 'rotate-180' : ''
+										}`}
+									/>
+								</CollapsibleTrigger>
+								<CollapsibleContent>
+									<div className="ml-2 border-l pl-2 py-1 space-y-0.5">
+										{tools.map((tool) => {
+											const isSelected = internalSelectedIds.includes(tool.id)
+											const isDisabled = !isSelected && isAtMaxTools
+
+											return (
+												<ToolCard
+													key={tool.id}
+													tool={tool}
+													isSelected={isSelected}
+													isDisabled={isDisabled}
+													onToggle={() => toggleTool(tool.id)}
+												/>
+											)
+										})}
+									</div>
+								</CollapsibleContent>
+							</Collapsible>
+						)
+					})
 				)}
 			</div>
 		</div>
