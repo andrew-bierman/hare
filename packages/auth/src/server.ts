@@ -7,6 +7,7 @@ import * as schema from '@hare/db/schema'
  * Server environment configuration required for auth
  */
 export interface AuthServerEnv {
+	BETTER_AUTH_SECRET: string
 	GOOGLE_CLIENT_ID?: string
 	GOOGLE_CLIENT_SECRET?: string
 	GITHUB_CLIENT_ID?: string
@@ -33,6 +34,7 @@ export function createAuth({ d1, env }: CreateAuthOptions) {
 	const isGitHubConfigured = Boolean(env.GITHUB_CLIENT_ID && env.GITHUB_CLIENT_SECRET)
 
 	return betterAuth({
+		secret: env.BETTER_AUTH_SECRET,
 		database: drizzleAdapter(db, {
 			provider: 'sqlite',
 			schema: {
