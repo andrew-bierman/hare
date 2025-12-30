@@ -16,7 +16,7 @@ export const APP_CONFIG = {
 		'The fastest way to create, deploy, and manage AI agents. Built on Cloudflare Workers for instant global deployment.',
 	version: '0.1.0',
 	stage: 'beta' as const,
-	repository: 'https://github.com/your-org/hare',
+	repository: 'https://github.com/andrew-bierman/hare',
 	docs: '/docs',
 
 	// Rabbit/Hare themed branding
