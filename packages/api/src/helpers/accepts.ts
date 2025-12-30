@@ -7,10 +7,21 @@ import { accepts } from 'hono/accepts'
  * These utilities help handle Accept-* headers for proper content negotiation.
  */
 
+// =============================================================================
+// Types
+// =============================================================================
+
 /**
  * Supported response formats for the API.
  */
 export type ResponseFormat = 'json' | 'text' | 'html'
+
+export interface AcceptsContentTypeOptions {
+	/** Hono context */
+	c: Context
+	/** Content type to check */
+	contentType: string
+}
 
 /**
  * Get the preferred response format based on Accept header.
@@ -63,12 +74,13 @@ export function getPreferredLanguage(c: Context): SupportedLanguage {
  *
  * Usage:
  * ```typescript
- * if (acceptsContentType(c, 'text/event-stream')) {
+ * if (acceptsContentType({ c, contentType: 'text/event-stream' })) {
  *   return streamSSE(c, ...)
  * }
  * ```
  */
-export function acceptsContentType(c: Context, contentType: string): boolean {
+export function acceptsContentType(options: AcceptsContentTypeOptions): boolean {
+	const { c, contentType } = options
 	const accept = c.req.header('Accept') || '*/*'
 	if (accept === '*/*') return true
 
@@ -80,14 +92,14 @@ export function acceptsContentType(c: Context, contentType: string): boolean {
  * Check if client accepts JSON responses.
  */
 export function acceptsJson(c: Context): boolean {
-	return acceptsContentType(c, 'application/json')
+	return acceptsContentType({ c, contentType: 'application/json' })
 }
 
 /**
  * Check if client accepts Server-Sent Events.
  */
 export function acceptsSSE(c: Context): boolean {
-	return acceptsContentType(c, 'text/event-stream')
+	return acceptsContentType({ c, contentType: 'text/event-stream' })
 }
 
 /**

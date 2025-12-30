@@ -3,6 +3,10 @@ import type { agents } from '@hare/db'
 
 type AgentRow = InferSelectModel<typeof agents>
 
+// =============================================================================
+// Types
+// =============================================================================
+
 /**
  * API response shape for an agent.
  */
@@ -26,10 +30,29 @@ export interface SerializedAgent {
 	updatedAt: string
 }
 
+export interface SerializeAgentOptions {
+	/** Agent database row */
+	agent: AgentRow
+	/** Tool IDs associated with the agent */
+	toolIds?: string[]
+}
+
+export interface SerializeAgentsOptions {
+	/** Agent database rows */
+	agents: AgentRow[]
+	/** Map of agent IDs to their tool IDs */
+	toolIdsByAgent: Map<string, string[]>
+}
+
+// =============================================================================
+// Public API
+// =============================================================================
+
 /**
  * Serialize a database agent row to API response format.
  */
-export function serializeAgent(agent: AgentRow, toolIds: string[] = []): SerializedAgent {
+export function serializeAgent(options: SerializeAgentOptions): SerializedAgent {
+	const { agent, toolIds = [] } = options
 	return {
 		id: agent.id,
 		workspaceId: agent.workspaceId,
@@ -48,9 +71,9 @@ export function serializeAgent(agent: AgentRow, toolIds: string[] = []): Seriali
 /**
  * Serialize multiple agents with their tool IDs.
  */
-export function serializeAgents(
-	agents: AgentRow[],
-	toolIdsByAgent: Map<string, string[]>,
-): SerializedAgent[] {
-	return agents.map((agent) => serializeAgent(agent, toolIdsByAgent.get(agent.id) || []))
+export function serializeAgents(options: SerializeAgentsOptions): SerializedAgent[] {
+	const { agents, toolIdsByAgent } = options
+	return agents.map((agent) =>
+		serializeAgent({ agent, toolIds: toolIdsByAgent.get(agent.id) || [] }),
+	)
 }

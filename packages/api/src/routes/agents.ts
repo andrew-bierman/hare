@@ -601,7 +601,7 @@ app.openapi(listAgentsRoute, async (c) => {
 
 	const agentsData = await Promise.all(
 		results.map(async (agent) =>
-			serializeAgent(agent, await getAgentToolIds({ agentId: agent.id, db })),
+			serializeAgent({ agent, toolIds: await getAgentToolIds({ agentId: agent.id, db }) }),
 		),
 	)
 
@@ -647,7 +647,7 @@ app.openapi(createAgentRoute, async (c) => {
 		}
 	}
 
-	return c.json(serializeAgent(agent, data.toolIds || []), 201)
+	return c.json(serializeAgent({ agent, toolIds: data.toolIds || [] }), 201)
 })
 
 app.openapi(getAgentRoute, async (c) => {
@@ -661,7 +661,7 @@ app.openapi(getAgentRoute, async (c) => {
 	}
 
 	const toolIds = await getAgentToolIds({ agentId: agent.id, db })
-	return c.json(serializeAgent(agent, toolIds), 200)
+	return c.json(serializeAgent({ agent, toolIds }), 200)
 })
 
 app.openapi(updateAgentRoute, async (c) => {
@@ -712,7 +712,7 @@ app.openapi(updateAgentRoute, async (c) => {
 	}
 
 	const toolIds = await getAgentToolIds({ agentId: id, db })
-	return c.json(serializeAgent(agent, toolIds), 200)
+	return c.json(serializeAgent({ agent, toolIds }), 200)
 })
 
 app.openapi(deleteAgentRoute, async (c) => {

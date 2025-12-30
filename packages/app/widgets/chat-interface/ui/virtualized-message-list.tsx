@@ -197,18 +197,9 @@ export function VirtualizedMessageList({
 						<Bot className="h-4 w-4 text-primary" />
 					</div>
 					<div className="flex gap-1">
-						<span
-							className="h-2 w-2 animate-bounce rounded-full bg-muted-foreground"
-							style={{ animationDelay: '0ms' }}
-						/>
-						<span
-							className="h-2 w-2 animate-bounce rounded-full bg-muted-foreground"
-							style={{ animationDelay: '150ms' }}
-						/>
-						<span
-							className="h-2 w-2 animate-bounce rounded-full bg-muted-foreground"
-							style={{ animationDelay: '300ms' }}
-						/>
+						<span className="h-2 w-2 animate-bounce rounded-full bg-muted-foreground" />
+						<span className="h-2 w-2 animate-bounce rounded-full bg-muted-foreground [animation-delay:150ms]" />
+						<span className="h-2 w-2 animate-bounce rounded-full bg-muted-foreground [animation-delay:300ms]" />
 					</div>
 				</div>
 			)}

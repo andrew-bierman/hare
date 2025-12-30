@@ -3,6 +3,37 @@
  * Uses Web Crypto API for encryption/decryption
  */
 
+import { ENCRYPTION_CONFIG } from '@hare/config'
+
+// =============================================================================
+// Types
+// =============================================================================
+
+export interface EncryptDataOptions {
+	/** Data to encrypt */
+	data: string
+	/** Secret key for encryption */
+	secret: string
+}
+
+export interface DecryptDataOptions {
+	/** Base64-encoded encrypted data */
+	encryptedData: string
+	/** Secret key for decryption */
+	secret: string
+}
+
+export interface TimingSafeEqualOptions {
+	/** First string to compare */
+	a: string
+	/** Second string to compare */
+	b: string
+}
+
+// =============================================================================
+// Internal Helpers
+// =============================================================================
+
 /**
  * Generate a secure encryption key from a password or secret
  * Uses PBKDF2 for key derivation
@@ -21,29 +52,34 @@ async function deriveKey(password: string, salt: Uint8Array): Promise<CryptoKey>
 		{
 			name: 'PBKDF2',
 			salt: salt.buffer as ArrayBuffer,
-			iterations: 100000,
+			iterations: ENCRYPTION_CONFIG.PBKDF2_ITERATIONS,
 			hash: 'SHA-256',
 		},
 		passwordKey,
-		{ name: 'AES-GCM', length: 256 },
+		{ name: 'AES-GCM', length: ENCRYPTION_CONFIG.AES_KEY_LENGTH },
 		false,
 		['encrypt', 'decrypt'],
 	)
 }
 
+// =============================================================================
+// Public API
+// =============================================================================
+
 /**
  * Encrypt data using AES-GCM
  * Returns base64-encoded encrypted data with IV prepended
  */
-export async function encryptData(data: string, secret: string): Promise<string> {
+export async function encryptData(options: EncryptDataOptions): Promise<string> {
+	const { data, secret } = options
 	const encoder = new TextEncoder()
 	const dataBuffer = encoder.encode(data)
 
 	// Generate random IV (12 bytes for GCM)
-	const iv = crypto.getRandomValues(new Uint8Array(12))
+	const iv = crypto.getRandomValues(new Uint8Array(ENCRYPTION_CONFIG.IV_SIZE))
 
 	// Generate random salt for key derivation
-	const salt = crypto.getRandomValues(new Uint8Array(16))
+	const salt = crypto.getRandomValues(new Uint8Array(ENCRYPTION_CONFIG.SALT_SIZE))
 
 	// Derive encryption key
 	const key = await deriveKey(secret, salt)
@@ -72,20 +108,21 @@ export async function encryptData(data: string, secret: string): Promise<string>
  * Decrypt data using AES-GCM
  * Expects base64-encoded data with salt + IV + ciphertext
  */
-export async function decryptData(encryptedData: string, secret: string): Promise<string> {
+export async function decryptData(options: DecryptDataOptions): Promise<string> {
+	const { encryptedData, secret } = options
 	// Decode base64
 	const combined = Uint8Array.from(atob(encryptedData), (c) => c.charCodeAt(0))
 
 	// Extract salt, IV, and ciphertext
-	const salt = combined.slice(0, 16)
-	const iv = combined.slice(16, 28)
-	const ciphertext = combined.slice(28)
+	const salt = combined.slice(0, ENCRYPTION_CONFIG.SALT_SIZE)
+	const iv = combined.slice(ENCRYPTION_CONFIG.SALT_SIZE, ENCRYPTION_CONFIG.SALT_SIZE + ENCRYPTION_CONFIG.IV_SIZE)
+	const ciphertext = combined.slice(ENCRYPTION_CONFIG.SALT_SIZE + ENCRYPTION_CONFIG.IV_SIZE)
 
 	// Derive decryption key
 	const key = await deriveKey(secret, salt)
 
 	// Decrypt data
-	const decryptedData = await crypto.subtle.decrypt(
+	const decryptedDataBuffer = await crypto.subtle.decrypt(
 		{
 			name: 'AES-GCM',
 			iv,
@@ -96,7 +133,7 @@ export async function decryptData(encryptedData: string, secret: string): Promis
 
 	// Convert to string
 	const decoder = new TextDecoder()
-	return decoder.decode(decryptedData)
+	return decoder.decode(decryptedDataBuffer)
 }
 
 /**
@@ -111,11 +148,17 @@ export async function hashData(data: string): Promise<string> {
 	return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('')
 }
 
+export interface GenerateSecretOptions {
+	/** Length of the secret in bytes (default: 32) */
+	length?: number
+}
+
 /**
  * Generate a random secret key
  * Returns base64-encoded key
  */
-export function generateSecret(length = 32): string {
+export function generateSecret(options: GenerateSecretOptions = {}): string {
+	const { length = ENCRYPTION_CONFIG.DEFAULT_SECRET_LENGTH } = options
 	const array = new Uint8Array(length)
 	crypto.getRandomValues(array)
 	return btoa(String.fromCharCode(...array))
@@ -131,7 +174,8 @@ export function generateSecret(length = 32): string {
  * Note: If strings have different lengths, this still leaks that information
  * (unavoidable without padding), but does NOT leak where the difference is.
  */
-export function timingSafeEqual(a: string, b: string): boolean {
+export function timingSafeEqual(options: TimingSafeEqualOptions): boolean {
+	const { a, b } = options
 	// If lengths differ, we still need to do a full comparison to avoid
 	// timing attacks, but we know the result will be false
 	const lengthsMatch = a.length === b.length

@@ -187,46 +187,48 @@ describe('validateAgentInstructions', () => {
 
 describe('isSafeString', () => {
 	it('should validate safe strings', () => {
-		expect(isSafeString('hello-world_123')).toBe(true)
-		expect(isSafeString('valid_identifier')).toBe(true)
+		expect(isSafeString({ input: 'hello-world_123' })).toBe(true)
+		expect(isSafeString({ input: 'valid_identifier' })).toBe(true)
 	})
 
 	it('should reject unsafe characters', () => {
-		expect(isSafeString('hello world')).toBe(false) // space
-		expect(isSafeString('test@email')).toBe(false) // @
-		expect(isSafeString('../path')).toBe(false) // dot and slash
+		expect(isSafeString({ input: 'hello world' })).toBe(false) // space
+		expect(isSafeString({ input: 'test@email' })).toBe(false) // @
+		expect(isSafeString({ input: '../path' })).toBe(false) // dot and slash
 	})
 
 	it('should accept custom patterns', () => {
 		const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
-		expect(isSafeString('test@example.com', emailPattern)).toBe(true)
-		expect(isSafeString('not-an-email', emailPattern)).toBe(false)
+		expect(isSafeString({ input: 'test@example.com', allowedPattern: emailPattern })).toBe(true)
+		expect(isSafeString({ input: 'not-an-email', allowedPattern: emailPattern })).toBe(false)
 	})
 })
 
 describe('getRateLimitKey', () => {
 	it('should generate consistent keys', () => {
-		const key1 = getRateLimitKey('user123', '/api/chat')
-		const key2 = getRateLimitKey('user123', '/api/chat')
+		const key1 = getRateLimitKey({ userId: 'user123', endpoint: '/api/chat' })
+		const key2 = getRateLimitKey({ userId: 'user123', endpoint: '/api/chat' })
 		expect(key1).toBe(key2)
 	})
 
 	it('should sanitize inputs', () => {
-		const key = getRateLimitKey('user@#$123', '/api/chat/../../../etc')
+		const key = getRateLimitKey({ userId: 'user@#$123', endpoint: '/api/chat/../../../etc' })
 		expect(key).toMatch(/^rate:[a-zA-Z0-9_-]+:[a-zA-Z0-9/_-]+$/)
 	})
 })
 
 describe('truncateString', () => {
 	it('should truncate long strings', () => {
-		expect(truncateString('This is a very long string', 10)).toBe('This is...')
+		expect(truncateString({ input: 'This is a very long string', maxLength: 10 })).toBe(
+			'This is...',
+		)
 	})
 
 	it('should not truncate short strings', () => {
-		expect(truncateString('Short', 10)).toBe('Short')
+		expect(truncateString({ input: 'Short', maxLength: 10 })).toBe('Short')
 	})
 
 	it('should handle exact length', () => {
-		expect(truncateString('Exactly10!', 10)).toBe('Exactly10!')
+		expect(truncateString({ input: 'Exactly10!', maxLength: 10 })).toBe('Exactly10!')
 	})
 })
