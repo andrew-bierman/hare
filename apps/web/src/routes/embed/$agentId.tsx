@@ -1,8 +1,8 @@
 import {
 	CHAT_STREAM_TYPES,
+	type ChatStreamType,
 	EMBED_COLORS,
 	WIDGET_MESSAGE_TYPES,
-	type ChatStreamType,
 } from '@hare/config'
 import { createFileRoute } from '@tanstack/react-router'
 import { Bot, Loader2, Send, User, X } from 'lucide-react'
@@ -258,7 +258,9 @@ function EmbedChatPage() {
 				className="flex items-center justify-between px-4 py-3 border-b"
 				style={{
 					borderColor: isDark ? EMBED_COLORS.DARK_BORDER : EMBED_COLORS.LIGHT_BORDER,
-					backgroundColor: isDark ? EMBED_COLORS.DARK_SECONDARY_BG : EMBED_COLORS.LIGHT_SECONDARY_BG,
+					backgroundColor: isDark
+						? EMBED_COLORS.DARK_SECONDARY_BG
+						: EMBED_COLORS.LIGHT_SECONDARY_BG,
 				}}
 			>
 				<div className="flex items-center gap-3">
@@ -276,7 +278,10 @@ function EmbedChatPage() {
 					className="p-1.5 rounded-lg transition-colors hover:bg-black/5 dark:hover:bg-white/10"
 					aria-label="Close chat"
 				>
-					<X className="h-4 w-4" style={{ color: isDark ? EMBED_COLORS.DARK_TEXT : EMBED_COLORS.LIGHT_TEXT }} />
+					<X
+						className="h-4 w-4"
+						style={{ color: isDark ? EMBED_COLORS.DARK_TEXT : EMBED_COLORS.LIGHT_TEXT }}
+					/>
 				</button>
 			</div>
 
@@ -290,7 +295,10 @@ function EmbedChatPage() {
 						>
 							<Bot className="h-6 w-6" style={{ color: primaryColor }} />
 						</div>
-						<p className="text-sm" style={{ color: isDark ? EMBED_COLORS.DARK_TEXT : EMBED_COLORS.LIGHT_TEXT }}>
+						<p
+							className="text-sm"
+							style={{ color: isDark ? EMBED_COLORS.DARK_TEXT : EMBED_COLORS.LIGHT_TEXT }}
+						>
 							Send a message to start chatting
 						</p>
 					</div>
@@ -304,13 +312,22 @@ function EmbedChatPage() {
 								className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full"
 								style={{
 									backgroundColor:
-										message.role === 'user' ? primaryColor : isDark ? EMBED_COLORS.DARK_MESSAGE_BG : EMBED_COLORS.LIGHT_ASSISTANT_BG,
+										message.role === 'user'
+											? primaryColor
+											: isDark
+												? EMBED_COLORS.DARK_MESSAGE_BG
+												: EMBED_COLORS.LIGHT_ASSISTANT_BG,
 								}}
 							>
 								{message.role === 'user' ? (
 									<User className="h-3.5 w-3.5 text-white" />
 								) : (
-									<Bot className="h-3.5 w-3.5" style={{ color: isDark ? EMBED_COLORS.DARK_TEXT_LIGHT : EMBED_COLORS.LIGHT_TEXT }} />
+									<Bot
+										className="h-3.5 w-3.5"
+										style={{
+											color: isDark ? EMBED_COLORS.DARK_TEXT_LIGHT : EMBED_COLORS.LIGHT_TEXT,
+										}}
+									/>
 								)}
 							</div>
 							<div
@@ -319,7 +336,11 @@ function EmbedChatPage() {
 								}`}
 								style={{
 									backgroundColor:
-										message.role === 'user' ? primaryColor : isDark ? EMBED_COLORS.DARK_MESSAGE_BG : EMBED_COLORS.LIGHT_MESSAGE_BG,
+										message.role === 'user'
+											? primaryColor
+											: isDark
+												? EMBED_COLORS.DARK_MESSAGE_BG
+												: EMBED_COLORS.LIGHT_MESSAGE_BG,
 									color: message.role === 'user' ? EMBED_COLORS.LIGHT_BG : 'inherit',
 								}}
 							>
@@ -336,7 +357,11 @@ function EmbedChatPage() {
 						<div className="flex gap-2">
 							<div
 								className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full"
-								style={{ backgroundColor: isDark ? EMBED_COLORS.DARK_MESSAGE_BG : EMBED_COLORS.LIGHT_ASSISTANT_BG }}
+								style={{
+									backgroundColor: isDark
+										? EMBED_COLORS.DARK_MESSAGE_BG
+										: EMBED_COLORS.LIGHT_ASSISTANT_BG,
+								}}
 							>
 								<Loader2
 									className="h-3.5 w-3.5 animate-spin"
@@ -345,9 +370,15 @@ function EmbedChatPage() {
 							</div>
 							<div
 								className="rounded-2xl rounded-bl-sm px-3.5 py-2 text-sm"
-								style={{ backgroundColor: isDark ? EMBED_COLORS.DARK_MESSAGE_BG : EMBED_COLORS.LIGHT_MESSAGE_BG }}
+								style={{
+									backgroundColor: isDark
+										? EMBED_COLORS.DARK_MESSAGE_BG
+										: EMBED_COLORS.LIGHT_MESSAGE_BG,
+								}}
 							>
-								<span style={{ color: isDark ? EMBED_COLORS.DARK_TEXT : EMBED_COLORS.LIGHT_TEXT }}>Thinking...</span>
+								<span style={{ color: isDark ? EMBED_COLORS.DARK_TEXT : EMBED_COLORS.LIGHT_TEXT }}>
+									Thinking...
+								</span>
 							</div>
 						</div>
 					)}
@@ -364,7 +395,10 @@ function EmbedChatPage() {
 			</div>
 
 			{/* Input */}
-			<div className="border-t px-4 py-3" style={{ borderColor: isDark ? EMBED_COLORS.DARK_BORDER : EMBED_COLORS.LIGHT_BORDER }}>
+			<div
+				className="border-t px-4 py-3"
+				style={{ borderColor: isDark ? EMBED_COLORS.DARK_BORDER : EMBED_COLORS.LIGHT_BORDER }}
+			>
 				<form onSubmit={handleSubmit} className="flex gap-2">
 					<textarea
 						ref={textareaRef}
@@ -377,7 +411,9 @@ function EmbedChatPage() {
 						className="flex-1 resize-none rounded-xl border px-3.5 py-2.5 text-sm outline-none transition-colors min-h-[42px] max-h-[120px]"
 						style={{
 							backgroundColor: isDark ? EMBED_COLORS.DARK_INPUT_BG : EMBED_COLORS.LIGHT_INPUT_BG,
-							borderColor: isDark ? EMBED_COLORS.DARK_INPUT_BORDER : EMBED_COLORS.LIGHT_INPUT_BORDER,
+							borderColor: isDark
+								? EMBED_COLORS.DARK_INPUT_BORDER
+								: EMBED_COLORS.LIGHT_INPUT_BORDER,
 							color: 'inherit',
 						}}
 					/>
@@ -394,7 +430,10 @@ function EmbedChatPage() {
 						)}
 					</button>
 				</form>
-				<p className="mt-2 text-center text-xs" style={{ color: isDark ? EMBED_COLORS.DARK_FOOTER_TEXT : EMBED_COLORS.LIGHT_FOOTER_TEXT }}>
+				<p
+					className="mt-2 text-center text-xs"
+					style={{ color: isDark ? EMBED_COLORS.DARK_FOOTER_TEXT : EMBED_COLORS.LIGHT_FOOTER_TEXT }}
+				>
 					Powered by Hare
 				</p>
 			</div>
