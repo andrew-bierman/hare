@@ -10,7 +10,7 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from '@hare/ui/components/dropdown-menu'
-import { LogOut, Settings, User } from 'lucide-react'
+import { LogOut, Settings } from 'lucide-react'
 import { useAuth, useAuthActions } from '../../../features/auth'
 
 export interface UserNavProps {
@@ -83,12 +83,6 @@ export function UserNav({ Link, onSignOut }: UserNavProps) {
 					</div>
 				</DropdownMenuLabel>
 				<DropdownMenuSeparator />
-				<DropdownMenuItem asChild>
-					<Link to="/dashboard/settings">
-						<User className="mr-2 h-4 w-4" />
-						<span>Profile</span>
-					</Link>
-				</DropdownMenuItem>
 				<DropdownMenuItem asChild>
 					<Link to="/dashboard/settings">
 						<Settings className="mr-2 h-4 w-4" />
