@@ -2,7 +2,7 @@
 
 import { useChat as useAIChat } from '@ai-sdk/react'
 import { useQuery } from '@tanstack/react-query'
-import { useMemo, useState } from 'react'
+import { useCallback, useMemo, useRef, useState } from 'react'
 import { DefaultChatTransport } from 'ai'
 
 // Helper to extract error message from API response
@@ -86,27 +86,40 @@ function getMessageContent(message: { parts?: Array<{ type: string; text?: strin
  */
 export function useChat(agentId: string | undefined) {
 	const [sessionId, setSessionId] = useState<string | null>(null)
+	// Use ref to access current sessionId without recreating transport
+	const sessionIdRef = useRef<string | null>(null)
+	sessionIdRef.current = sessionId
+
+	// Create a stable ref for the setSessionId to avoid recreating fetch
+	const setSessionIdRef = useRef(setSessionId)
+	setSessionIdRef.current = setSessionId
+
+	// Custom fetch that captures X-Session-Id header
+	const customFetch = useCallback(async (url: RequestInfo | URL, init?: RequestInit) => {
+		const response = await fetch(url, init)
+
+		// Extract session ID from response header
+		const headerSessionId = response.headers.get('X-Session-Id')
+		if (headerSessionId && !sessionIdRef.current) {
+			setSessionIdRef.current(headerSessionId)
+		}
+
+		return response
+	}, [])
 
 	// Create transport with the agent-specific API endpoint
 	const transport = useMemo(() => {
 		if (!agentId) return undefined
 		return new DefaultChatTransport({
 			api: `/api/chat/agents/${agentId}/chat`,
-			body: { sessionId },
+			body: { sessionId: sessionIdRef.current },
+			fetch: customFetch,
 		})
-	}, [agentId, sessionId])
+	}, [agentId, customFetch])
 
 	const chat = useAIChat({
 		id: agentId,
 		transport,
-		onFinish: ({ message }) => {
-			// Session ID is now managed by the server via the conversation ID
-			// The message metadata could be used to extract session info if needed
-			const msgSessionId = message.id?.split('-')[0] // Extract from message ID if present
-			if (msgSessionId && !sessionId) {
-				setSessionId(msgSessionId)
-			}
-		},
 	})
 
 	// Transform messages to a simpler format for backwards compatibility
