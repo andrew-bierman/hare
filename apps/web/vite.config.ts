@@ -4,8 +4,9 @@ import tailwindcss from '@tailwindcss/vite'
 import { tanstackStart } from '@tanstack/react-start/plugin/vite'
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
-import mdx from 'fumadocs-mdx/vite'
-import * as MdxConfig from './source.config'
+// TODO: fumadocs-mdx causes CF build timeout - needs investigation
+// import mdx from 'fumadocs-mdx/vite'
+// import * as MdxConfig from './source.config'
 
 // Resolve paths to workspace packages
 const packagesPath = path.resolve(__dirname, '../../packages')
@@ -92,7 +93,7 @@ export default defineConfig({
 		},
 	},
 	plugins: [
-		mdx(MdxConfig),
+		// mdx(MdxConfig),
 		cloudflare({ viteEnvironment: { name: 'ssr' } }),
 		tanstackStart(),
 		react(),
