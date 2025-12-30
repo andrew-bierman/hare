@@ -42,7 +42,7 @@ export interface GetMessagesInput {
  */
 export interface GetOrCreateConversationInput {
 	agentId: string
-	userId: string
+	userId: string | null
 	title?: string
 }
 
@@ -78,28 +78,32 @@ export class D1MemoryStore implements MemoryStore {
 
 	/**
 	 * Get or create a conversation for an agent and user.
+	 * For anonymous sessions (null userId), always creates a new conversation.
 	 */
 	async getOrCreateConversation(input: GetOrCreateConversationInput): Promise<string> {
 		const { agentId, userId, title } = input
-		// Try to find existing conversation
-		const existing = await this.db
-			.select()
-			.from(conversations)
-			.where(and(eq(conversations.agentId, agentId), eq(conversations.userId, userId)))
-			.orderBy(desc(conversations.updatedAt))
-			.limit(1)
 
-		const existingConversation = existing[0]
-		if (existingConversation) {
-			// Update the timestamp
-			await this.db
-				.update(conversations)
-				.set({ updatedAt: new Date() })
-				.where(eq(conversations.id, existingConversation.id))
-			return existingConversation.id
+		// For authenticated users, try to find existing conversation
+		if (userId) {
+			const existing = await this.db
+				.select()
+				.from(conversations)
+				.where(and(eq(conversations.agentId, agentId), eq(conversations.userId, userId)))
+				.orderBy(desc(conversations.updatedAt))
+				.limit(1)
+
+			const existingConversation = existing[0]
+			if (existingConversation) {
+				// Update the timestamp
+				await this.db
+					.update(conversations)
+					.set({ updatedAt: new Date() })
+					.where(eq(conversations.id, existingConversation.id))
+				return existingConversation.id
+			}
 		}
 
-		// Create new conversation
+		// Create new conversation (always for anonymous, or if no existing for authenticated)
 		const newConversation = await this.db
 			.insert(conversations)
 			.values({

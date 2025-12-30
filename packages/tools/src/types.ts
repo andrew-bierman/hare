@@ -16,8 +16,8 @@ export interface ToolContext<TEnv extends HareEnv = HareEnv> {
 	env: TEnv
 	/** Workspace ID for multi-tenant isolation (optional for SDK users) */
 	workspaceId: string
-	/** User ID for audit trail (optional for SDK users) */
-	userId: string
+	/** User ID for audit trail (optional for anonymous sessions) */
+	userId?: string | null
 }
 
 /**

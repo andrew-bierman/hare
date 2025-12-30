@@ -58,8 +58,8 @@ export interface CreateAgentFromConfigInput {
 	env: CloudflareEnv
 	/** Include system tools (KV, R2, Vectorize, etc.) */
 	includeSystemTools?: boolean
-	/** User ID for tool context */
-	userId: string
+	/** User ID for tool context (optional for anonymous sessions) */
+	userId?: string | null
 }
 
 /**

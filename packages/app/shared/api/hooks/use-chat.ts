@@ -105,7 +105,7 @@ export function useChat(agentId: string | undefined) {
 		return new DefaultChatTransport({
 			api: `/api/chat/agents/${agentId}/chat`,
 			body: sessionIdRef.current ? { sessionId: sessionIdRef.current } : {},
-			fetch: fetchWithSessionCapture as typeof fetch,
+			fetch: fetchWithSessionCapture as typeof globalThis.fetch,
 		})
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [agentId])
