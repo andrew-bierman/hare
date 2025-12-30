@@ -60,6 +60,7 @@ const ConfigurePayloadSchema = z.object({
 	name: z.string().min(1).optional(),
 	instructions: z.string().optional(),
 	model: z.string().min(1).optional(),
+	systemToolsEnabled: z.boolean().optional(),
 	messages: z
 		.array(
 			z.object({
@@ -137,10 +138,24 @@ export class HareAgent<TEnv extends HareAgentEnv = HareAgentEnv> extends Agent<
 	 * Called when the agent is created or loaded.
 	 */
 	async onStart(): Promise<void> {
-		// Load system tools
-		const context = this.createToolContext()
-		const systemTools = getSystemTools(context)
-		this.toolRegistry.registerAll(systemTools)
+		// Load system tools only if enabled
+		this.reloadTools()
+	}
+
+	/**
+	 * Reload tools based on current state.
+	 * Called on startup and when systemToolsEnabled changes.
+	 */
+	private reloadTools(): void {
+		// Clear existing tools
+		this.toolRegistry = new ToolRegistry()
+
+		// Load system tools only if enabled
+		if (this.state.systemToolsEnabled) {
+			const context = this.createToolContext()
+			const systemTools = getSystemTools(context)
+			this.toolRegistry.registerAll(systemTools)
+		}
 	}
 
 	/**
@@ -321,11 +336,20 @@ export class HareAgent<TEnv extends HareAgentEnv = HareAgentEnv> extends Agent<
 	 * Configure the agent with new settings.
 	 */
 	async configure(config: Partial<HareAgentState>): Promise<void> {
+		const systemToolsChanged =
+			config.systemToolsEnabled !== undefined &&
+			config.systemToolsEnabled !== this.state.systemToolsEnabled
+
 		this.setState({
 			...this.state,
 			...config,
 			lastActivity: Date.now(),
 		})
+
+		// Reload tools if systemToolsEnabled changed
+		if (systemToolsChanged) {
+			this.reloadTools()
+		}
 	}
 
 	/**

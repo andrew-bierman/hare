@@ -7,7 +7,7 @@ import { Card, CardContent } from '@hare/ui/components/card'
 import { Input } from '@hare/ui/components/input'
 import { Skeleton } from '@hare/ui/components/skeleton'
 import { Tabs, TabsList, TabsTrigger } from '@hare/ui/components/tabs'
-import { Bot, Clock, Plus, Search, Settings, Wrench } from 'lucide-react'
+import { Bot, Clock, Plus, SearchIcon, Settings, Wrench } from 'lucide-react'
 import { type ChangeEvent, useState } from 'react'
 import { useWorkspace } from '../../app/providers'
 import type { Agent } from '@hare/types'
@@ -149,7 +149,7 @@ export function AgentsListPage() {
 			{/* Filters */}
 			<div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
 				<div className="relative flex-1 max-w-lg">
-					<Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+					<SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
 					<Input
 						placeholder="Search agents..."
 						className="pl-9 h-11"
@@ -193,7 +193,7 @@ export function AgentsListPage() {
 					<Card className="border-dashed border-2">
 						<CardContent className="flex flex-col items-center justify-center py-12 px-4">
 							<div className="flex h-14 w-14 items-center justify-center rounded-xl bg-muted mb-4">
-								<Search className="h-6 w-6 text-muted-foreground" />
+								<SearchIcon className="h-6 w-6 text-muted-foreground" />
 							</div>
 							<h3 className="font-semibold mb-1">No agents found</h3>
 							<p className="text-muted-foreground text-sm text-center mb-4">

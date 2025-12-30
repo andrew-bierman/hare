@@ -6,7 +6,7 @@ import { Card, CardContent } from '@hare/ui/components/card'
 import { Input } from '@hare/ui/components/input'
 import { Skeleton } from '@hare/ui/components/skeleton'
 import { Tabs, TabsList, TabsTrigger } from '@hare/ui/components/tabs'
-import { Bot, Clock, Plus, Search, Wrench } from 'lucide-react'
+import { Bot, Clock, Plus, SearchIcon, Wrench } from 'lucide-react'
 import { type ChangeEvent, useState, type ReactNode } from 'react'
 import { useWorkspace } from '../../app/providers/workspace-provider'
 import type { Agent } from '../../shared/api'
@@ -168,7 +168,7 @@ export function AgentsPage({ renderLink, routes, useAgentsQuery }: AgentsPagePro
 					</TabsList>
 				</Tabs>
 				<div className="relative w-full sm:w-64">
-					<Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+					<SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
 					<Input
 						placeholder="Search agents..."
 						value={search}
@@ -190,7 +190,7 @@ export function AgentsPage({ renderLink, routes, useAgentsQuery }: AgentsPagePro
 			) : filteredAgents.length === 0 ? (
 				<Card>
 					<CardContent className="flex flex-col items-center justify-center py-12 px-4">
-						<Search className="h-12 w-12 text-muted-foreground mb-4" />
+						<SearchIcon className="h-12 w-12 text-muted-foreground mb-4" />
 						<h3 className="text-lg font-semibold mb-2">No agents found</h3>
 						<p className="text-muted-foreground text-center text-sm">
 							Try adjusting your search or filter

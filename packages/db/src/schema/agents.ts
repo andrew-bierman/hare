@@ -17,6 +17,7 @@ export const agents = sqliteTable('agents', {
 	status: text('status', { enum: ['draft', 'deployed', 'archived'] })
 		.notNull()
 		.default('draft'),
+	systemToolsEnabled: integer('systemToolsEnabled', { mode: 'boolean' }).notNull().default(true),
 	config: text('config', { mode: 'json' }).$type<{
 		temperature?: number
 		maxTokens?: number

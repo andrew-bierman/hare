@@ -69,6 +69,7 @@ export function createAgentCollection(options: {
 						model: data.model,
 						instructions: data.instructions,
 						config: data.config ?? undefined,
+						systemToolsEnabled: data.systemToolsEnabled,
 						toolIds: data.toolIds,
 					})
 				}
@@ -80,14 +81,23 @@ export function createAgentCollection(options: {
 			for (const mutation of mutations) {
 				if (mutation.type === 'update' && mutation.original && mutation.modified) {
 					const { id, _workspaceId } = mutation.original
-					const { name, description, model, instructions, config, toolIds, status } =
-						mutation.modified
+					const {
+						name,
+						description,
+						model,
+						instructions,
+						config,
+						systemToolsEnabled,
+						toolIds,
+						status,
+					} = mutation.modified
 					await apiClient.agents.update(id, _workspaceId, {
 						name,
 						description: description ?? undefined,
 						model,
 						instructions,
 						config: config ?? undefined,
+						systemToolsEnabled,
 						toolIds,
 						status,
 					})

@@ -20,12 +20,7 @@ export default defineConfig({
 	ssr: {
 		optimizeDeps: {
 			// Pre-bundle these deps for SSR to avoid mid-reload issues
-			include: [
-				'agents',
-				'agents/mcp',
-				'ai',
-				'@modelcontextprotocol/sdk/server/mcp.js',
-			],
+			include: ['agents', 'agents/mcp', 'ai', '@modelcontextprotocol/sdk/server/mcp.js'],
 			// Wait for full dependency discovery before serving to avoid mid-request rebuilds
 			holdUntilCrawlEnd: true,
 		},

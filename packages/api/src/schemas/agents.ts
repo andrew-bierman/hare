@@ -114,6 +114,9 @@ export const AgentSchema = z
 		instructions: z.string().nullable().openapi({ example: 'You are a helpful customer support agent.' }),
 		config: AgentConfigSchema.optional(),
 		status: AgentStatusSchema,
+		systemToolsEnabled: z
+			.boolean()
+			.openapi({ example: true, description: 'Whether system tools are enabled for this agent' }),
 		toolIds: z
 			.array(z.string())
 			.optional()
@@ -173,6 +176,14 @@ export const CreateAgentSchema = z
 				description: 'System prompt/instructions (1-10000 chars)',
 			}),
 		config: AgentConfigSchema.optional(),
+		systemToolsEnabled: z
+			.boolean()
+			.optional()
+			.default(true)
+			.openapi({
+				example: true,
+				description: 'Enable built-in system tools (storage, HTTP, AI, etc.). Defaults to true.',
+			}),
 		toolIds: z
 			.array(z.string())
 			.max(
@@ -222,6 +233,7 @@ export const UpdateAgentSchema = z
 			)
 			.optional(),
 		config: AgentConfigSchema.optional(),
+		systemToolsEnabled: z.boolean().optional(),
 		toolIds: z
 			.array(z.string())
 			.max(

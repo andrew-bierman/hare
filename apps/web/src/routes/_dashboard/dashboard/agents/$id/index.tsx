@@ -36,6 +36,7 @@ import {
 	SelectValue,
 } from '@hare/ui/components/select'
 import { Skeleton } from '@hare/ui/components/skeleton'
+import { Switch } from '@hare/ui/components/switch'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@hare/ui/components/tabs'
 import { Textarea } from '@hare/ui/components/textarea'
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
@@ -192,6 +193,7 @@ function AgentBuilderPage() {
 	const [description, setDescription] = useState('')
 	const [model, setModel] = useState('')
 	const [instructions, setInstructions] = useState('')
+	const [systemToolsEnabled, setSystemToolsEnabled] = useState(true)
 	const [selectedToolIds, setSelectedToolIds] = useState<string[]>([])
 	const [isDeleteOpen, setIsDeleteOpen] = useState(false)
 	const [hasChanges, setHasChanges] = useState(false)
@@ -242,6 +244,7 @@ function AgentBuilderPage() {
 			setDescription(agent.description || '')
 			setModel(agent.model)
 			setInstructions(agent.instructions || '')
+			setSystemToolsEnabled(agent.systemToolsEnabled)
 			setSelectedToolIds(agent.toolIds || [])
 		}
 	}, [agent])
@@ -254,10 +257,11 @@ function AgentBuilderPage() {
 				description !== (agent.description || '') ||
 				model !== agent.model ||
 				instructions !== (agent.instructions || '') ||
+				systemToolsEnabled !== agent.systemToolsEnabled ||
 				JSON.stringify(selectedToolIds.sort()) !== JSON.stringify((agent.toolIds || []).sort())
 			setHasChanges(changed)
 		}
-	}, [agent, name, description, model, instructions, selectedToolIds])
+	}, [agent, name, description, model, instructions, systemToolsEnabled, selectedToolIds])
 
 	// Client-side validation (immediate feedback)
 	useEffect(() => {
@@ -336,6 +340,7 @@ function AgentBuilderPage() {
 					description: description.trim() || undefined,
 					model,
 					instructions: instructions.trim() || undefined,
+					systemToolsEnabled,
 					toolIds: selectedToolIds,
 				},
 			})
@@ -613,18 +618,38 @@ function AgentBuilderPage() {
 							</CardDescription>
 						</CardHeader>
 						<CardContent className="space-y-4">
+							<div className="flex items-center justify-between rounded-lg border p-4">
+								<div className="space-y-0.5">
+									<Label htmlFor="system-tools" className="text-base">
+										Include System Tools
+									</Label>
+									<p className="text-sm text-muted-foreground">
+										Adds 50+ built-in tools for storage, HTTP, AI, data processing, and more.
+									</p>
+								</div>
+								<Switch
+									id="system-tools"
+									checked={systemToolsEnabled}
+									onCheckedChange={setSystemToolsEnabled}
+								/>
+							</div>
+
 							{validationWarnings.tools && (
 								<div className="flex items-center gap-2 rounded-md border border-yellow-200 bg-yellow-50 p-3 text-sm text-yellow-800 dark:border-yellow-800 dark:bg-yellow-950 dark:text-yellow-200">
 									<AlertTriangle className="h-4 w-4 flex-shrink-0" />
 									<span>{validationWarnings.tools}</span>
 								</div>
 							)}
-							<ToolPicker
-								workspaceId={activeWorkspace?.id || ''}
-								selectedToolIds={selectedToolIds}
-								onSelectionChange={setSelectedToolIds}
-								maxTools={20}
-							/>
+
+							<div className="space-y-2">
+								<Label className="text-sm font-medium">Custom Tools</Label>
+								<ToolPicker
+									workspaceId={activeWorkspace?.id || ''}
+									selectedToolIds={selectedToolIds}
+									onSelectionChange={setSelectedToolIds}
+									maxTools={20}
+								/>
+							</div>
 						</CardContent>
 					</Card>
 				</TabsContent>

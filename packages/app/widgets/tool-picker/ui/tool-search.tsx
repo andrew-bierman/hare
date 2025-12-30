@@ -1,13 +1,13 @@
 'use client'
 
 import { Input } from '@hare/ui/components/input'
-import { Search } from 'lucide-react'
+import { SearchIcon } from 'lucide-react'
 import type { ToolSearchProps } from './types'
 
 export function ToolSearch({ value, onChange, placeholder = 'Search tools...' }: ToolSearchProps) {
 	return (
 		<div className="relative">
-			<Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+			<SearchIcon className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
 			<Input
 				type="text"
 				placeholder={placeholder}

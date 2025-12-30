@@ -40,6 +40,8 @@ export const HareAgentStateSchema = z.object({
 	instructions: z.string(),
 	/** Model to use */
 	model: z.string(),
+	/** Whether system tools are enabled */
+	systemToolsEnabled: z.boolean(),
 	/** Conversation history - AI SDK ModelMessage array */
 	messages: z.custom<ModelMessage[]>((val) => Array.isArray(val)),
 	/** Whether the agent is currently processing */
@@ -122,6 +124,7 @@ export type ServerMessage = z.infer<typeof ServerMessageSchema>
 
 export const McpAgentStateSchema = z.object({
 	workspaceId: z.string(),
+	systemToolsEnabled: z.boolean(),
 	connectedClients: z.number(),
 	lastActivity: z.number(),
 })
@@ -141,6 +144,7 @@ export const DEFAULT_HARE_AGENT_STATE: HareAgentState = {
 	name: 'Hare Agent',
 	instructions: 'You are a helpful AI assistant.',
 	model: '@cf/meta/llama-3.3-70b-instruct-fp8-fast',
+	systemToolsEnabled: true,
 	messages: [],
 	isProcessing: false,
 	lastActivity: Date.now(),
@@ -154,6 +158,7 @@ export const DEFAULT_HARE_AGENT_STATE: HareAgentState = {
  */
 export const DEFAULT_MCP_AGENT_STATE: McpAgentState = {
 	workspaceId: '',
+	systemToolsEnabled: true,
 	connectedClients: 0,
 	lastActivity: Date.now(),
 }
