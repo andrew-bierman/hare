@@ -18,15 +18,19 @@ import { failure, type HareEnv, type Tool, type ToolContext, type ToolResult } f
  * ```ts
  * // In httpGetTool's execute:
  * execute: async (params, context) => {
- *   return delegateTo(httpRequestTool, { ...params, method: 'GET' }, context)
+ *   return delegateTo({ tool: httpRequestTool, params: { ...params, method: 'GET' }, context })
  * }
  * ```
  */
-export async function delegateTo<TInput, TOutput>(
-	tool: Tool<TInput, TOutput>,
-	params: TInput,
-	context: ToolContext<HareEnv>,
-): Promise<ToolResult<TOutput>> {
+export async function delegateTo<TInput, TOutput>({
+	tool,
+	params,
+	context,
+}: {
+	tool: Tool<TInput, TOutput>
+	params: TInput
+	context: ToolContext<HareEnv>
+}): Promise<ToolResult<TOutput>> {
 	return tool.execute(params, context)
 }
 
@@ -40,15 +44,19 @@ export async function delegateTo<TInput, TOutput>(
  * ```ts
  * // When delegating with potentially untrusted params:
  * execute: async (params, context) => {
- *   return delegateToWithValidation(httpRequestTool, params, context)
+ *   return delegateToWithValidation({ tool: httpRequestTool, params, context })
  * }
  * ```
  */
-export async function delegateToWithValidation<TInput, TOutput>(
-	tool: Tool<TInput, TOutput>,
-	params: unknown,
-	context: ToolContext<HareEnv>,
-): Promise<ToolResult<TOutput>> {
+export async function delegateToWithValidation<TInput, TOutput>({
+	tool,
+	params,
+	context,
+}: {
+	tool: Tool<TInput, TOutput>
+	params: unknown
+	context: ToolContext<HareEnv>
+}): Promise<ToolResult<TOutput>> {
 	const parseResult = tool.inputSchema.safeParse(params)
 	if (!parseResult.success) {
 		return failure(`Input validation failed: ${parseResult.error.message}`)

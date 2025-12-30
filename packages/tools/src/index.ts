@@ -304,7 +304,13 @@ export function getSystemTools(context: ToolContext): AnyTool[] {
  * const storageTools = getToolsByCategory('storage', context)
  * ```
  */
-export function getToolsByCategory(category: ToolCategory, context: ToolContext): AnyTool[] {
+export function getToolsByCategory({
+	category,
+	context,
+}: {
+	category: ToolCategory
+	context: ToolContext
+}): AnyTool[] {
 	switch (category) {
 		case 'storage':
 			return [...getKVTools(context), ...getR2Tools(context)]

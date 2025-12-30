@@ -91,7 +91,7 @@ interface SavedZapierIntegration {
 	triggerCount: number
 }
 
-function integrationKey(workspaceId: string, name: string): string {
+function integrationKey({ workspaceId, name }: { workspaceId: string; name: string }): string {
 	// Validate name doesn't try to escape scope
 	if (name.includes('..') || name.includes('/') || name.startsWith('.')) {
 		throw new Error('Invalid integration name: special characters not allowed')
@@ -167,7 +167,7 @@ Once saved, trigger it anytime with just the name - no URL needed!`,
 				return failure(`Invalid URL. Zapier webhooks must be from ${ZapierConfig.WEBHOOK_HOSTNAME}`)
 			}
 
-			const key = integrationKey(context.workspaceId, name)
+			const key = integrationKey({ workspaceId: context.workspaceId, name })
 
 			// Check if already exists and preserve stats on update
 			const existing = (await kv.get(key, 'json')) as SavedZapierIntegration | null
@@ -319,7 +319,7 @@ If the saved integration has defaultData, it will be merged (your data takes pre
 
 			// Resolve webhook URL from name if provided
 			if (name && kv) {
-				const key = integrationKey(context.workspaceId, name)
+				const key = integrationKey({ workspaceId: context.workspaceId, name })
 				savedIntegration = await kv.get<SavedZapierIntegration>(key, 'json')
 
 				if (!savedIntegration) {
@@ -387,7 +387,7 @@ If the saved integration has defaultData, it will be merged (your data takes pre
 			// Note: Stats are best-effort approximate. Concurrent triggers may result in
 			// slightly inaccurate counts since KV doesn't support atomic increments.
 			if (savedIntegration && kv && name) {
-				const key = integrationKey(context.workspaceId, name)
+				const key = integrationKey({ workspaceId: context.workspaceId, name })
 				savedIntegration.triggerCount += 1
 				savedIntegration.lastTriggeredAt = new Date().toISOString()
 				await kv.put(key, JSON.stringify(savedIntegration))
@@ -428,7 +428,7 @@ This only removes the saved reference - the actual Zap in Zapier is not affected
 		}
 
 		try {
-			const key = integrationKey(context.workspaceId, params.name)
+			const key = integrationKey({ workspaceId: context.workspaceId, name: params.name })
 			const existing = await kv.get(key)
 
 			if (!existing) {
@@ -476,7 +476,7 @@ The Zap will receive the test data - check Zapier's task history to confirm.`,
 		}
 
 		try {
-			const key = integrationKey(context.workspaceId, params.name)
+			const key = integrationKey({ workspaceId: context.workspaceId, name: params.name })
 			const integration = await kv.get<SavedZapierIntegration>(key, 'json')
 
 			if (!integration) {

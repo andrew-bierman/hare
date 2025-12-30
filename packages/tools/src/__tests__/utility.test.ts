@@ -86,7 +86,7 @@ describe('Utility Tools', () => {
 					context,
 				)
 
-				const data = expectResultData(result, ResultSchemas.datetime)
+				const data = expectResultData({ result, schema: ResultSchemas.datetime })
 				expect(data.iso).toBeDefined()
 				expect(data.unix).toBeDefined()
 			})
@@ -97,7 +97,7 @@ describe('Utility Tools', () => {
 					context,
 				)
 
-				const data = expectResultData(result, ResultSchemas.datetime)
+				const data = expectResultData({ result, schema: ResultSchemas.datetime })
 				expect(data.iso).toBe('2024-01-15T12:00:00.000Z')
 			})
 
@@ -107,7 +107,7 @@ describe('Utility Tools', () => {
 					context,
 				)
 
-				const data = expectResultData(result, ResultSchemas.datetime)
+				const data = expectResultData({ result, schema: ResultSchemas.datetime })
 				expect(data.days).toBe(14)
 			})
 
@@ -117,7 +117,7 @@ describe('Utility Tools', () => {
 					context,
 				)
 
-				const data = expectResultData(result, ResultSchemas.datetime)
+				const data = expectResultData({ result, schema: ResultSchemas.datetime })
 				expect(data.result).toContain('2024-01-08')
 			})
 		})
@@ -162,7 +162,7 @@ describe('Utility Tools', () => {
 					context,
 				)
 
-				const data = expectResultData(result, ResultSchemas.json)
+				const data = expectResultData({ result, schema: ResultSchemas.json })
 				expect(data.result).toEqual({ name: 'test' })
 			})
 
@@ -172,7 +172,7 @@ describe('Utility Tools', () => {
 					context,
 				)
 
-				const data = expectResultData(result, ResultSchemas.json)
+				const data = expectResultData({ result, schema: ResultSchemas.json })
 				expect(data.result).toContain('name')
 			})
 
@@ -182,7 +182,7 @@ describe('Utility Tools', () => {
 					context,
 				)
 
-				const data = expectResultData(result, ResultSchemas.json)
+				const data = expectResultData({ result, schema: ResultSchemas.json })
 				expect(data.value).toBe('test')
 			})
 
@@ -192,7 +192,7 @@ describe('Utility Tools', () => {
 					context,
 				)
 
-				const data = expectResultData(result, ResultSchemas.json)
+				const data = expectResultData({ result, schema: ResultSchemas.json })
 				expect(data.result).toEqual({ user: { name: 'new' } })
 			})
 
@@ -202,7 +202,7 @@ describe('Utility Tools', () => {
 					context,
 				)
 
-				const data = expectResultData(result, ResultSchemas.json)
+				const data = expectResultData({ result, schema: ResultSchemas.json })
 				expect(data.result).toEqual({ a: 1, b: 2 })
 			})
 
@@ -212,7 +212,7 @@ describe('Utility Tools', () => {
 					context,
 				)
 
-				const data = expectResultData(result, ResultSchemas.json)
+				const data = expectResultData({ result, schema: ResultSchemas.json })
 				expect(data.keys).toEqual(['a', 'b', 'c'])
 			})
 
@@ -222,7 +222,7 @@ describe('Utility Tools', () => {
 					context,
 				)
 
-				const data = expectResultData(result, ResultSchemas.json)
+				const data = expectResultData({ result, schema: ResultSchemas.json })
 				expect(data.result).toHaveProperty('user.name', 'test')
 				expect(data.result).toHaveProperty('user.address.city', 'NYC')
 			})
@@ -253,7 +253,7 @@ describe('Utility Tools', () => {
 					{ operation: 'uppercase', text: 'hello', padChar: ' ', suffix: '', times: 1 },
 					context,
 				)
-				const data = expectResultData(result, ResultSchemas.text)
+				const data = expectResultData({ result, schema: ResultSchemas.text })
 				expect(data.result).toBe('HELLO')
 			})
 
@@ -262,7 +262,7 @@ describe('Utility Tools', () => {
 					{ operation: 'lowercase', text: 'HELLO', padChar: ' ', suffix: '', times: 1 },
 					context,
 				)
-				const data = expectResultData(result, ResultSchemas.text)
+				const data = expectResultData({ result, schema: ResultSchemas.text })
 				expect(data.result).toBe('hello')
 			})
 
@@ -271,7 +271,7 @@ describe('Utility Tools', () => {
 					{ operation: 'reverse', text: 'hello', padChar: ' ', suffix: '', times: 1 },
 					context,
 				)
-				const data = expectResultData(result, ResultSchemas.text)
+				const data = expectResultData({ result, schema: ResultSchemas.text })
 				expect(data.result).toBe('olleh')
 			})
 
@@ -280,7 +280,7 @@ describe('Utility Tools', () => {
 					{ operation: 'wordCount', text: 'hello world test', padChar: ' ', suffix: '', times: 1 },
 					context,
 				)
-				const data = expectResultData(result, ResultSchemas.text)
+				const data = expectResultData({ result, schema: ResultSchemas.text })
 				expect(data.count).toBe(3)
 			})
 
@@ -289,7 +289,7 @@ describe('Utility Tools', () => {
 					{ operation: 'slug', text: 'Hello World Test!', padChar: ' ', suffix: '', times: 1 },
 					context,
 				)
-				const data = expectResultData(result, ResultSchemas.text)
+				const data = expectResultData({ result, schema: ResultSchemas.text })
 				expect(data.result).toBe('hello-world-test')
 			})
 
@@ -298,7 +298,7 @@ describe('Utility Tools', () => {
 					{ operation: 'camelCase', text: 'hello world test', padChar: ' ', suffix: '', times: 1 },
 					context,
 				)
-				const data = expectResultData(result, ResultSchemas.text)
+				const data = expectResultData({ result, schema: ResultSchemas.text })
 				expect(data.result).toBe('helloWorldTest')
 			})
 
@@ -307,7 +307,7 @@ describe('Utility Tools', () => {
 					{ operation: 'truncate', text: 'hello world', length: 8, suffix: '...', padChar: ' ', times: 1 },
 					context,
 				)
-				const data = expectResultData(result, ResultSchemas.text)
+				const data = expectResultData({ result, schema: ResultSchemas.text })
 				expect(data.result).toBe('hello...')
 			})
 
@@ -316,7 +316,7 @@ describe('Utility Tools', () => {
 					{ operation: 'split', text: 'a,b,c', separator: ',', padChar: ' ', suffix: '', times: 1 },
 					context,
 				)
-				const data = expectResultData(result, ResultSchemas.text)
+				const data = expectResultData({ result, schema: ResultSchemas.text })
 				expect(data.result).toEqual(['a', 'b', 'c'])
 			})
 		})
@@ -349,25 +349,25 @@ describe('Utility Tools', () => {
 		describe('execution', () => {
 			it('adds numbers', async () => {
 				const result = await mathTool.execute({ operation: 'add', a: 5, b: 3, decimals: 2 }, context)
-				const data = expectResultData(result, ResultSchemas.math)
+				const data = expectResultData({ result, schema: ResultSchemas.math })
 				expect(data.result).toBe(8)
 			})
 
 			it('subtracts numbers', async () => {
 				const result = await mathTool.execute({ operation: 'subtract', a: 10, b: 3, decimals: 2 }, context)
-				const data = expectResultData(result, ResultSchemas.math)
+				const data = expectResultData({ result, schema: ResultSchemas.math })
 				expect(data.result).toBe(7)
 			})
 
 			it('multiplies numbers', async () => {
 				const result = await mathTool.execute({ operation: 'multiply', a: 4, b: 5, decimals: 2 }, context)
-				const data = expectResultData(result, ResultSchemas.math)
+				const data = expectResultData({ result, schema: ResultSchemas.math })
 				expect(data.result).toBe(20)
 			})
 
 			it('divides numbers', async () => {
 				const result = await mathTool.execute({ operation: 'divide', a: 20, b: 4, decimals: 2 }, context)
-				const data = expectResultData(result, ResultSchemas.math)
+				const data = expectResultData({ result, schema: ResultSchemas.math })
 				expect(data.result).toBe(5)
 			})
 
@@ -379,7 +379,7 @@ describe('Utility Tools', () => {
 
 			it('calculates square root', async () => {
 				const result = await mathTool.execute({ operation: 'sqrt', a: 16, decimals: 2 }, context)
-				const data = expectResultData(result, ResultSchemas.math)
+				const data = expectResultData({ result, schema: ResultSchemas.math })
 				expect(data.result).toBe(4)
 			})
 
@@ -388,7 +388,7 @@ describe('Utility Tools', () => {
 					{ operation: 'sum', numbers: [1, 2, 3, 4, 5], decimals: 2 },
 					context,
 				)
-				const data = expectResultData(result, ResultSchemas.math)
+				const data = expectResultData({ result, schema: ResultSchemas.math })
 				expect(data.result).toBe(15)
 			})
 
@@ -397,19 +397,19 @@ describe('Utility Tools', () => {
 					{ operation: 'average', numbers: [2, 4, 6, 8, 10], decimals: 2 },
 					context,
 				)
-				const data = expectResultData(result, ResultSchemas.math)
+				const data = expectResultData({ result, schema: ResultSchemas.math })
 				expect(data.result).toBe(6)
 			})
 
 			it('calculates percentage', async () => {
 				const result = await mathTool.execute({ operation: 'percentage', a: 25, b: 100, decimals: 2 }, context)
-				const data = expectResultData(result, ResultSchemas.math)
+				const data = expectResultData({ result, schema: ResultSchemas.math })
 				expect(data.result).toBe(25)
 			})
 
 			it('generates random integer', async () => {
 				const result = await mathTool.execute({ operation: 'randomInt', min: 1, max: 10, decimals: 2 }, context)
-				const data = expectResultData(result, ResultSchemas.math)
+				const data = expectResultData({ result, schema: ResultSchemas.math })
 				expect(data.result).toBeGreaterThanOrEqual(1)
 				expect(data.result).toBeLessThanOrEqual(10)
 			})
@@ -439,7 +439,7 @@ describe('Utility Tools', () => {
 		describe('execution', () => {
 			it('generates UUID v4', async () => {
 				const result = await uuidTool.execute({ type: 'uuid', count: 1, length: 21 }, context)
-				const data = expectResultData(result, ResultSchemas.uuid)
+				const data = expectResultData({ result, schema: ResultSchemas.uuid })
 				expect(data.id).toMatch(
 					/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
 				)
@@ -447,13 +447,13 @@ describe('Utility Tools', () => {
 
 			it('generates multiple UUIDs', async () => {
 				const result = await uuidTool.execute({ type: 'uuid', count: 3, length: 21 }, context)
-				const data = expectResultData(result, ResultSchemas.uuid)
+				const data = expectResultData({ result, schema: ResultSchemas.uuid })
 				expect(data.ids).toHaveLength(3)
 			})
 
 			it('generates nanoid with custom length', async () => {
 				const result = await uuidTool.execute({ type: 'nanoid', length: 10, count: 1 }, context)
-				const data = expectResultData(result, ResultSchemas.uuid)
+				const data = expectResultData({ result, schema: ResultSchemas.uuid })
 				expect(data.id).toHaveLength(10)
 			})
 
@@ -462,7 +462,7 @@ describe('Utility Tools', () => {
 					{ type: 'ulid', count: 1, length: 21 },
 					context,
 				)
-				const data = expectResultData(result, ResultSchemas.uuid)
+				const data = expectResultData({ result, schema: ResultSchemas.uuid })
 				// ULID generation returns a string ID
 				expect(typeof data.id).toBe('string')
 				expect(data.id?.length).toBeGreaterThan(0)
@@ -736,7 +736,7 @@ describe('Utility Tools', () => {
 				const result = await delayTool.execute({ duration: 100 }, context)
 				const elapsed = Date.now() - start
 
-				const data = expectResultData(result, ResultSchemas.delay)
+				const data = expectResultData({ result, schema: ResultSchemas.delay })
 				expect(elapsed).toBeGreaterThanOrEqual(90) // Allow some tolerance
 				expect(data.requested).toBe(100)
 			})
@@ -746,7 +746,7 @@ describe('Utility Tools', () => {
 					{ duration: 50, reason: 'Rate limiting' },
 					context,
 				)
-				const data = expectResultData(result, ResultSchemas.delay)
+				const data = expectResultData({ result, schema: ResultSchemas.delay })
 				expect(data.reason).toBe('Rate limiting')
 			})
 		})

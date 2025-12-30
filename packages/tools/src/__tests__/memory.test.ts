@@ -154,9 +154,9 @@ describe('Memory Tools', () => {
 					context,
 				)
 
-				expect(result.success).toBe(true)
-				expect((result.data as Record<string, unknown>)?.found).toBe(true)
-				expect((result.data as Record<string, unknown[]>)?.memories).toHaveLength(2)
+				const data = expectResultData({ result, schema: ResultSchemas.recallMemory })
+				expect(data.found).toBe(true)
+				expect(data.memories).toHaveLength(2)
 			})
 
 			it('returns formatted memories', async () => {
@@ -165,8 +165,8 @@ describe('Memory Tools', () => {
 					context,
 				)
 
-				expect(result.success).toBe(true)
-				const memory = ((result.data as Record<string, unknown[]>)?.memories)?.[0]
+				const data = expectResultData({ result, schema: ResultSchemas.recallMemory })
+				const memory = data.memories[0]
 				expect(memory).toHaveProperty('id')
 				expect(memory).toHaveProperty('content')
 				expect(memory).toHaveProperty('type')
@@ -194,9 +194,9 @@ describe('Memory Tools', () => {
 					emptyContext,
 				)
 
-				expect(result.success).toBe(true)
-				expect((result.data as Record<string, unknown>)?.found).toBe(false)
-				expect((result.data as Record<string, unknown[]>)?.memories).toHaveLength(0)
+				const data = expectResultData({ result, schema: ResultSchemas.recallMemory })
+				expect(data.found).toBe(false)
+				expect(data.memories).toHaveLength(0)
 			})
 
 			it('fails when AI binding is not available', async () => {
@@ -311,7 +311,7 @@ describe('Memory Tools', () => {
 					context,
 				)
 
-				const data = expectResultData(result, ResultSchemas.storeMemory)
+				const data = expectResultData({ result, schema: ResultSchemas.storeMemory })
 				expect(data.stored).toBe(true)
 				expect(data.memoryId).toBeDefined()
 			})
@@ -365,8 +365,8 @@ describe('Memory Tools', () => {
 					context,
 				)
 
-				const data1 = expectResultData(result1, ResultSchemas.storeMemory)
-				const data2 = expectResultData(result2, ResultSchemas.storeMemory)
+				const data1 = expectResultData({ result: result1, schema: ResultSchemas.storeMemory })
+				const data2 = expectResultData({ result: result2, schema: ResultSchemas.storeMemory })
 				expect(data1.memoryId).not.toBe(data2.memoryId)
 			})
 
@@ -391,7 +391,7 @@ describe('Memory Tools', () => {
 					context,
 				)
 
-				const data = expectResultData(result, ResultSchemas.storeMemory)
+				const data = expectResultData({ result, schema: ResultSchemas.storeMemory })
 				expect(data.type).toBe('custom')
 			})
 

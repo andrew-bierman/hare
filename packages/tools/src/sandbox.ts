@@ -255,12 +255,17 @@ function hasSandbox(env: HareEnv): env is HareEnvWithSandbox {
  * - Audit logging
  * - Bash disabled by default (requires explicit opt-in)
  */
-export async function executeSandboxed<T = unknown>(
-	code: string,
-	language: 'javascript' | 'python' | 'bash',
-	context: ToolContext,
-	config: Partial<SandboxConfig> = {},
-): Promise<ToolResult<T>> {
+export async function executeSandboxed<T = unknown>({
+	code,
+	language,
+	context,
+	config = {},
+}: {
+	code: string
+	language: 'javascript' | 'python' | 'bash'
+	context: ToolContext
+	config?: Partial<SandboxConfig>
+}): Promise<ToolResult<T>> {
 	const cfg = { ...DEFAULT_CONFIG, ...config }
 
 	// Security: Bash is disabled for safety - too many attack vectors
@@ -516,8 +521,11 @@ print(json.dumps({"sum": sum(data), "avg": sum(data)/len(data)}))
 	}),
 	outputSchema: CodeExecuteOutputSchema,
 	execute: async (input, context) => {
-		return executeSandboxed(input.code, input.language, context, {
-			timeout: input.timeout,
+		return executeSandboxed({
+			code: input.code,
+			language: input.language,
+			context,
+			config: { timeout: input.timeout },
 		})
 	},
 })

@@ -72,11 +72,13 @@ function requireMemoryBindings(
  * Generate an embedding for text using Workers AI.
  * Validates the API response shape using Zod.
  */
-async function generateEmbedding(ai: Ai, text: string): Promise<number[]> {
+async function generateEmbedding({ ai, text }: { ai: Ai; text: string }): Promise<number[]> {
 	const response = await ai.run('@cf/baai/bge-base-en-v1.5', { text: [text] })
 	const parseResult = EmbeddingResponseSchema.safeParse(response)
 	if (!parseResult.success) {
-		throw new Error(`Invalid embedding response: ${parseResult.error.message}`)
+		throw new Error(
+			`Invalid embedding response: ${parseResult.error.message}. Response: ${JSON.stringify(response).slice(0, 200)}`,
+		)
 	}
 	const embedding = parseResult.data.data[0]
 	if (!embedding) {
@@ -137,7 +139,7 @@ export const recallMemoryTool = createTool({
 			const agentId = context.workspaceId
 
 			// Generate embedding for the query
-			const queryVector = await generateEmbedding(context.env.AI, query)
+			const queryVector = await generateEmbedding({ ai: context.env.AI, text: query })
 
 			// Build filter for Vectorize query
 			const filter: VectorizeVectorMetadataFilter = { agentId }
@@ -230,7 +232,7 @@ export const storeMemoryTool = createTool({
 			const memoryId = `mem_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`
 
 			// Generate embedding for the content
-			const embedding = await generateEmbedding(context.env.AI, content)
+			const embedding = await generateEmbedding({ ai: context.env.AI, text: content })
 
 			// Prepare metadata
 			const metadata: MemoryMetadata = {

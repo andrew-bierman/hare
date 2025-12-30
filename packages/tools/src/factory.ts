@@ -84,19 +84,25 @@ export async function loadAgentTools(input: LoadAgentToolsInput): Promise<AnyToo
 
 	// Convert to executable tools
 	return toolConfigs
-		.map((config) => createToolFromConfig(config, context))
+		.map((config) => createToolFromConfig({ config, context }))
 		.filter((t): t is AnyTool => t !== null)
 }
 
 /**
  * Create an executable tool from a database configuration.
  */
-export function createToolFromConfig(config: ToolConfig, context: ToolContext): AnyTool | null {
+export function createToolFromConfig({
+	config,
+	context,
+}: {
+	config: ToolConfig
+	context: ToolContext
+}): AnyTool | null {
 	switch (config.type) {
 		case 'http':
-			return createHTTPToolFromConfig(config, context)
+			return createHTTPToolFromConfig({ config, context })
 		case 'custom':
-			return createCustomToolFromConfig(config, context)
+			return createCustomToolFromConfig({ config, context })
 		default:
 			console.warn(`Unknown tool type "${config.type}" for tool ${config.id}`)
 			return null
@@ -107,7 +113,13 @@ export function createToolFromConfig(config: ToolConfig, context: ToolContext): 
  * Create an HTTP tool from configuration.
  * Returns null if the configuration is invalid.
  */
-function createHTTPToolFromConfig(config: ToolConfig, _context: ToolContext): AnyTool | null {
+function createHTTPToolFromConfig({
+	config,
+	context: _context,
+}: {
+	config: ToolConfig
+	context: ToolContext
+}): AnyTool | null {
 	const parseResult = HttpToolDbConfigSchema.safeParse(config.config)
 	if (!parseResult.success) {
 		console.warn(
@@ -143,7 +155,13 @@ function createHTTPToolFromConfig(config: ToolConfig, _context: ToolContext): An
  * Currently, custom tools will return an error indicating they need to be
  * executed in a Cloudflare Worker or similar isolated environment.
  */
-function createCustomToolFromConfig(config: ToolConfig, _context: ToolContext): AnyTool {
+function createCustomToolFromConfig({
+	config,
+	context: _context,
+}: {
+	config: ToolConfig
+	context: ToolContext
+}): AnyTool {
 	// Use the tool's own input schema, not a misleading HTTP fallback
 	const inputSchema = buildInputSchema(config.inputSchema)
 

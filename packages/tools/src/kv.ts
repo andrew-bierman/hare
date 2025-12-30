@@ -58,7 +58,7 @@ const KVListResultSchema = z.object({
  * All KV keys are prefixed with workspaceId to ensure multi-tenant isolation.
  * Validates that the key cannot escape the workspace scope (prevents path traversal attacks).
  */
-function scopedKey(workspaceId: string, key: string): string {
+function scopedKey({ workspaceId, key }: { workspaceId: string; key: string }): string {
 	// Security: Prevent path traversal attempts that could escape workspace scope
 	if (key.includes('..') || key.startsWith('/')) {
 		throw new Error('Invalid key: path traversal not allowed')
@@ -69,7 +69,7 @@ function scopedKey(workspaceId: string, key: string): string {
 /**
  * Strip workspace prefix from key for display.
  */
-function unscopedKey(workspaceId: string, fullKey: string): string {
+function unscopedKey({ workspaceId, fullKey }: { workspaceId: string; fullKey: string }): string {
 	const prefix = `ws/${workspaceId}/`
 	return fullKey.startsWith(prefix) ? fullKey.slice(prefix.length) : fullKey
 }
@@ -101,7 +101,7 @@ export const kvGetTool = createTool({
 		}
 
 		try {
-			const fullKey = scopedKey(context.workspaceId, params.key)
+			const fullKey = scopedKey({ workspaceId: context.workspaceId, key: params.key })
 			let value: unknown
 			switch (params.type) {
 				case 'json':
@@ -146,7 +146,7 @@ export const kvPutTool = createTool({
 		}
 
 		try {
-			const fullKey = scopedKey(context.workspaceId, params.key)
+			const fullKey = scopedKey({ workspaceId: context.workspaceId, key: params.key })
 			const options: KVNamespacePutOptions = {}
 			if (params.expirationTtl) {
 				options.expirationTtl = params.expirationTtl
@@ -182,7 +182,7 @@ export const kvDeleteTool = createTool({
 		}
 
 		try {
-			const fullKey = scopedKey(context.workspaceId, params.key)
+			const fullKey = scopedKey({ workspaceId: context.workspaceId, key: params.key })
 			await kv.delete(fullKey)
 			return success({ key: params.key, deleted: true as const })
 		} catch (error) {
@@ -216,7 +216,7 @@ export const kvListTool = createTool({
 			// User-provided prefix is combined with workspace prefix, never used directly.
 			const workspacePrefix = `ws/${context.workspaceId}/`
 			const fullPrefix = params.prefix
-				? scopedKey(context.workspaceId, params.prefix)
+				? scopedKey({ workspaceId: context.workspaceId, key: params.prefix })
 				: workspacePrefix
 
 			const options: KVNamespaceListOptions = {
@@ -236,7 +236,7 @@ export const kvListTool = createTool({
 
 			return success({
 				keys: parsed.keys.map((k) => ({
-					name: unscopedKey(context.workspaceId, k.name),
+					name: unscopedKey({ workspaceId: context.workspaceId, fullKey: k.name }),
 					expiration: k.expiration,
 					metadata: k.metadata,
 				})),

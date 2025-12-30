@@ -101,7 +101,11 @@ export const httpGetTool = createTool({
 	}),
 	outputSchema: HttpResponseOutputSchema,
 	execute: async (params, context) => {
-		return delegateTo(httpRequestTool, { ...params, method: 'GET', timeout: 30000 }, context)
+		return delegateTo({
+			tool: httpRequestTool,
+			params: { ...params, method: 'GET', timeout: 30000 },
+			context,
+		})
 	},
 })
 
@@ -119,9 +123,9 @@ export const httpPostTool = createTool({
 	outputSchema: HttpResponseOutputSchema,
 	execute: async (params, context) => {
 		const body = typeof params.body === 'string' ? params.body : JSON.stringify(params.body)
-		return delegateTo(
-			httpRequestTool,
-			{
+		return delegateTo({
+			tool: httpRequestTool,
+			params: {
 				url: params.url,
 				method: 'POST',
 				body,
@@ -129,7 +133,7 @@ export const httpPostTool = createTool({
 				timeout: 30000,
 			},
 			context,
-		)
+		})
 	},
 })
 
