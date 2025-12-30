@@ -2,7 +2,7 @@
 
 import { useChat as useAIChat } from '@ai-sdk/react'
 import { useQuery } from '@tanstack/react-query'
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { DefaultChatTransport } from 'ai'
 
 // Helper to extract error message from API response
@@ -86,27 +86,33 @@ function getMessageContent(message: { parts?: Array<{ type: string; text?: strin
  */
 export function useChat(agentId: string | undefined) {
 	const [sessionId, setSessionId] = useState<string | null>(null)
+	const sessionIdRef = useRef(sessionId)
+	sessionIdRef.current = sessionId
+
+	// Custom fetch to capture session ID from response header
+	const fetchWithSessionCapture: typeof fetch = async (url, init) => {
+		const response = await fetch(url, init)
+		const newSessionId = response.headers.get('X-Session-Id')
+		if (newSessionId && !sessionIdRef.current) {
+			setSessionId(newSessionId)
+		}
+		return response
+	}
 
 	// Create transport with the agent-specific API endpoint
 	const transport = useMemo(() => {
 		if (!agentId) return undefined
 		return new DefaultChatTransport({
 			api: `/api/chat/agents/${agentId}/chat`,
-			body: { sessionId },
+			body: sessionIdRef.current ? { sessionId: sessionIdRef.current } : {},
+			fetch: fetchWithSessionCapture,
 		})
-	}, [agentId, sessionId])
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [agentId])
 
 	const chat = useAIChat({
 		id: agentId,
 		transport,
-		onFinish: ({ message }) => {
-			// Session ID is now managed by the server via the conversation ID
-			// The message metadata could be used to extract session info if needed
-			const msgSessionId = message.id?.split('-')[0] // Extract from message ID if present
-			if (msgSessionId && !sessionId) {
-				setSessionId(msgSessionId)
-			}
-		},
 	})
 
 	// Transform messages to a simpler format for backwards compatibility
