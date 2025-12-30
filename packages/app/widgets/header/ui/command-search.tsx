@@ -92,7 +92,7 @@ export function CommandSearch({ open, onOpenChange, onNavigate }: CommandSearchP
 			})
 		})
 
-		// Add custom tools
+		// Add custom tools (non-system tools)
 		toolsData?.tools?.filter((t) => !t.isSystem).forEach((tool) => {
 			items.push({
 				id: `tool-${tool.id}`,

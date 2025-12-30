@@ -12,5 +12,8 @@ export { useDebouncedCallback, useDebouncedValue } from './hooks'
 export { generateUniqueSlug, nameToSlug } from './slug'
 export { exportToCSV, exportToJSON } from './export'
 
-// TanStack utilities
-export * from './tanstack'
+// TanStack utilities (form, table, virtual only - db hooks are in api/hooks)
+export * from './tanstack/form'
+export * from './tanstack/table'
+export * from './tanstack/virtual'
+export type { ServerFnInput } from './tanstack/server-functions'

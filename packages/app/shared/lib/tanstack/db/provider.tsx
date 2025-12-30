@@ -9,24 +9,17 @@
  * @see https://tanstack.com/db/latest/docs/quick-start
  */
 
-import type { Collection } from '@tanstack/react-db'
 import { useQueryClient } from '@tanstack/react-query'
-import {
-	createContext,
-	useContext,
-	useMemo,
-	useRef,
-	type ReactNode,
-} from 'react'
+import { createContext, useContext, useMemo, useRef, type ReactNode } from 'react'
 import {
 	createAgentCollection,
 	createScheduleCollection,
 	createToolCollection,
 	createWorkspaceCollection,
-	type AgentRow,
-	type ScheduleRow,
-	type ToolRow,
-	type WorkspaceRow,
+	type AgentCollection,
+	type ScheduleCollection,
+	type ToolCollection,
+	type WorkspaceCollection,
 } from './collections'
 
 // =============================================================================
@@ -35,16 +28,13 @@ import {
 
 interface TanStackDBContextValue {
 	/** Workspace collection (not workspace-scoped) */
-	workspaces: Collection<WorkspaceRow>
+	workspaces: WorkspaceCollection
 	/** Get or create an agent collection for a workspace */
-	getAgentCollection: (workspaceId: string) => Collection<AgentRow>
+	getAgentCollection: (workspaceId: string) => AgentCollection
 	/** Get or create a tool collection for a workspace */
-	getToolCollection: (workspaceId: string) => Collection<ToolRow>
+	getToolCollection: (workspaceId: string) => ToolCollection
 	/** Get or create a schedule collection for an agent */
-	getScheduleCollection: (options: {
-		agentId: string
-		workspaceId: string
-	}) => Collection<ScheduleRow>
+	getScheduleCollection: (options: { agentId: string; workspaceId: string }) => ScheduleCollection
 }
 
 const TanStackDBContext = createContext<TanStackDBContextValue | null>(null)
@@ -74,16 +64,16 @@ export function TanStackDBProvider({ children }: TanStackDBProviderProps) {
 	const queryClient = useQueryClient()
 
 	// Collection caches - use refs to persist across renders
-	const agentCollectionsRef = useRef(new Map<string, Collection<AgentRow>>())
-	const toolCollectionsRef = useRef(new Map<string, Collection<ToolRow>>())
-	const scheduleCollectionsRef = useRef(new Map<string, Collection<ScheduleRow>>())
+	const agentCollectionsRef = useRef(new Map<string, AgentCollection>())
+	const toolCollectionsRef = useRef(new Map<string, ToolCollection>())
+	const scheduleCollectionsRef = useRef(new Map<string, ScheduleCollection>())
 
 	// Create the workspace collection once
 	const workspaces = useMemo(() => createWorkspaceCollection({ queryClient }), [queryClient])
 
 	// Factory functions for workspace-scoped collections
 	const getAgentCollection = useMemo(() => {
-		return (workspaceId: string): Collection<AgentRow> => {
+		return (workspaceId: string): AgentCollection => {
 			const existing = agentCollectionsRef.current.get(workspaceId)
 			if (existing) return existing
 
@@ -94,7 +84,7 @@ export function TanStackDBProvider({ children }: TanStackDBProviderProps) {
 	}, [queryClient])
 
 	const getToolCollection = useMemo(() => {
-		return (workspaceId: string): Collection<ToolRow> => {
+		return (workspaceId: string): ToolCollection => {
 			const existing = toolCollectionsRef.current.get(workspaceId)
 			if (existing) return existing
 
@@ -105,7 +95,7 @@ export function TanStackDBProvider({ children }: TanStackDBProviderProps) {
 	}, [queryClient])
 
 	const getScheduleCollection = useMemo(() => {
-		return (options: { agentId: string; workspaceId: string }): Collection<ScheduleRow> => {
+		return (options: { agentId: string; workspaceId: string }): ScheduleCollection => {
 			const key = `${options.workspaceId}:${options.agentId}`
 			const existing = scheduleCollectionsRef.current.get(key)
 			if (existing) return existing
@@ -123,7 +113,7 @@ export function TanStackDBProvider({ children }: TanStackDBProviderProps) {
 			getToolCollection,
 			getScheduleCollection,
 		}),
-		[workspaces, getAgentCollection, getToolCollection, getScheduleCollection],
+		[workspaces, getAgentCollection, getToolCollection, getScheduleCollection]
 	)
 
 	return <TanStackDBContext.Provider value={value}>{children}</TanStackDBContext.Provider>
@@ -149,14 +139,14 @@ export function useTanStackDB(): TanStackDBContextValue {
 /**
  * Get the workspace collection.
  */
-export function useWorkspaceCollection(): Collection<WorkspaceRow> {
+export function useWorkspaceCollection(): WorkspaceCollection {
 	return useTanStackDB().workspaces
 }
 
 /**
  * Get or create an agent collection for a workspace.
  */
-export function useAgentCollection(workspaceId: string): Collection<AgentRow> {
+export function useAgentCollection(workspaceId: string): AgentCollection {
 	const { getAgentCollection } = useTanStackDB()
 	return useMemo(() => getAgentCollection(workspaceId), [getAgentCollection, workspaceId])
 }
@@ -164,7 +154,7 @@ export function useAgentCollection(workspaceId: string): Collection<AgentRow> {
 /**
  * Get or create a tool collection for a workspace.
  */
-export function useToolCollection(workspaceId: string): Collection<ToolRow> {
+export function useToolCollection(workspaceId: string): ToolCollection {
 	const { getToolCollection } = useTanStackDB()
 	return useMemo(() => getToolCollection(workspaceId), [getToolCollection, workspaceId])
 }
@@ -175,10 +165,10 @@ export function useToolCollection(workspaceId: string): Collection<ToolRow> {
 export function useScheduleCollection(options: {
 	agentId: string
 	workspaceId: string
-}): Collection<ScheduleRow> {
+}): ScheduleCollection {
 	const { getScheduleCollection } = useTanStackDB()
 	return useMemo(
 		() => getScheduleCollection(options),
-		[getScheduleCollection, options.agentId, options.workspaceId],
+		[getScheduleCollection, options.agentId, options.workspaceId]
 	)
 }
