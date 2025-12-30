@@ -1,4 +1,3 @@
-// @ts-nocheck - Broken TanStack DB code from main, needs fixing
 'use client'
 
 /**
@@ -12,7 +11,7 @@
  */
 
 import type { AgentStatus } from '@hare/types'
-import { useLiveQuery, eq, and, or } from '@tanstack/react-db'
+import { useLiveQuery, eq, or } from '@tanstack/react-db'
 import { useMemo } from 'react'
 import {
 	useAgentCollection,
@@ -20,7 +19,7 @@ import {
 	useWorkspaceCollection,
 	useScheduleCollection,
 } from './provider'
-import type { AgentRow, ToolRow, WorkspaceRow, ScheduleRow } from './collections'
+import type { AgentRow, ToolRow, ScheduleRow } from './collections'
 
 // =============================================================================
 // Agent Live Queries
@@ -34,7 +33,7 @@ export function useLiveAgents(workspaceId: string | undefined) {
 	const collection = useAgentCollection(workspaceId ?? '')
 
 	return useLiveQuery(
-		(q) => q.from({ agent: collection }).orderBy(({ agent }) => agent.updatedAt, 'desc'),
+		(q) => q.from({ agent: collection }).orderBy((row) => row.agent.updatedAt, 'desc'),
 		[workspaceId],
 	)
 }
@@ -47,7 +46,7 @@ export function useLiveAgent(options: { id: string; workspaceId: string } | unde
 
 	return useLiveQuery(
 		(q) =>
-			q.from({ agent: collection }).where(({ agent }) => eq(agent.id, options?.id ?? '')),
+			q.from({ agent: collection }).where((row) => eq(row.agent.id, options?.id ?? '')),
 		[options?.id, options?.workspaceId],
 	)
 }
@@ -67,10 +66,8 @@ export function useLiveAgentsByStatus(options: {
 		(q) =>
 			q
 				.from({ agent: collection })
-				.where(({ agent }) =>
-					or(...statuses.map((s) => eq(agent.status, s))),
-				)
-				.orderBy(({ agent }) => agent.updatedAt, 'desc'),
+				.where((row) => or(...statuses.map((s) => eq(row.agent.status, s))))
+				.orderBy((row) => row.agent.updatedAt, 'desc'),
 		[workspaceId, ...statuses],
 	)
 }
@@ -97,17 +94,17 @@ export function useLiveAgentsWithTool(options: { workspaceId: string; toolId: st
 	const collection = useAgentCollection(workspaceId)
 
 	// Note: This filters client-side since toolIds is an array
-	const { data: allAgents, ...rest } = useLiveQuery(
-		(q) => q.from({ agent: collection }),
-		[workspaceId],
-	)
+	const result = useLiveQuery((q) => q.from({ agent: collection }), [workspaceId])
 
-	const filteredData = useMemo(
-		() => allAgents?.filter((row) => row.agent.toolIds.includes(toolId)) ?? [],
-		[allAgents, toolId],
-	)
+	const filteredData = useMemo(() => {
+		if (!result.data) return []
+		return result.data.filter((row) => {
+			const agent = row.agent as AgentRow
+			return agent.toolIds.includes(toolId)
+		})
+	}, [result.data, toolId])
 
-	return { data: filteredData, ...rest }
+	return { ...result, data: filteredData }
 }
 
 // =============================================================================
@@ -121,7 +118,7 @@ export function useLiveTools(workspaceId: string | undefined) {
 	const collection = useToolCollection(workspaceId ?? '')
 
 	return useLiveQuery(
-		(q) => q.from({ tool: collection }).orderBy(({ tool }) => tool.name, 'asc'),
+		(q) => q.from({ tool: collection }).orderBy((row) => row.tool.name, 'asc'),
 		[workspaceId],
 	)
 }
@@ -133,8 +130,7 @@ export function useLiveTool(options: { id: string; workspaceId: string } | undef
 	const collection = useToolCollection(options?.workspaceId ?? '')
 
 	return useLiveQuery(
-		(q) =>
-			q.from({ tool: collection }).where(({ tool }) => eq(tool.id, options?.id ?? '')),
+		(q) => q.from({ tool: collection }).where((row) => eq(row.tool.id, options?.id ?? '')),
 		[options?.id, options?.workspaceId],
 	)
 }
@@ -150,8 +146,8 @@ export function useLiveToolsByType(options: { workspaceId: string; type: string 
 		(q) =>
 			q
 				.from({ tool: collection })
-				.where(({ tool }) => eq(tool.type, type))
-				.orderBy(({ tool }) => tool.name, 'asc'),
+				.where((row) => eq(row.tool.type, type))
+				.orderBy((row) => row.tool.name, 'asc'),
 		[workspaceId, type],
 	)
 }
@@ -166,8 +162,8 @@ export function useLiveSystemTools(workspaceId: string) {
 		(q) =>
 			q
 				.from({ tool: collection })
-				.where(({ tool }) => eq(tool.isSystem, true))
-				.orderBy(({ tool }) => tool.name, 'asc'),
+				.where((row) => eq((row.tool as ToolRow).isSystem, true))
+				.orderBy((row) => row.tool.name, 'asc'),
 		[workspaceId],
 	)
 }
@@ -182,8 +178,8 @@ export function useLiveCustomTools(workspaceId: string) {
 		(q) =>
 			q
 				.from({ tool: collection })
-				.where(({ tool }) => eq(tool.isSystem, false))
-				.orderBy(({ tool }) => tool.name, 'asc'),
+				.where((row) => eq((row.tool as ToolRow).isSystem, false))
+				.orderBy((row) => row.tool.name, 'asc'),
 		[workspaceId],
 	)
 }
@@ -199,7 +195,7 @@ export function useLiveWorkspaces() {
 	const collection = useWorkspaceCollection()
 
 	return useLiveQuery(
-		(q) => q.from({ workspace: collection }).orderBy(({ workspace }) => workspace.name, 'asc'),
+		(q) => q.from({ workspace: collection }).orderBy((row) => row.workspace.name, 'asc'),
 		[],
 	)
 }
@@ -211,8 +207,7 @@ export function useLiveWorkspace(id: string | undefined) {
 	const collection = useWorkspaceCollection()
 
 	return useLiveQuery(
-		(q) =>
-			q.from({ workspace: collection }).where(({ workspace }) => eq(workspace.id, id ?? '')),
+		(q) => q.from({ workspace: collection }).where((row) => eq(row.workspace.id, id ?? '')),
 		[id],
 	)
 }
@@ -232,7 +227,7 @@ export function useLiveSchedules(options: { agentId: string; workspaceId: string
 
 	return useLiveQuery(
 		(q) =>
-			q.from({ schedule: collection }).orderBy(({ schedule }) => schedule.createdAt, 'desc'),
+			q.from({ schedule: collection }).orderBy((row) => row.schedule.createdAt, 'desc'),
 		[options?.agentId, options?.workspaceId],
 	)
 }
@@ -248,8 +243,8 @@ export function useLiveActiveSchedules(options: { agentId: string; workspaceId: 
 		(q) =>
 			q
 				.from({ schedule: collection })
-				.where(({ schedule }) => eq(schedule.status, 'active'))
-				.orderBy(({ schedule }) => schedule.nextExecuteAt, 'asc'),
+				.where((row) => eq((row.schedule as ScheduleRow).status, 'active'))
+				.orderBy((row) => (row.schedule as ScheduleRow).nextExecuteAt, 'asc'),
 		[agentId, workspaceId],
 	)
 }
@@ -265,8 +260,8 @@ export function useLivePendingSchedules(options: { agentId: string; workspaceId:
 		(q) =>
 			q
 				.from({ schedule: collection })
-				.where(({ schedule }) => eq(schedule.status, 'pending'))
-				.orderBy(({ schedule }) => schedule.executeAt, 'asc'),
+				.where((row) => eq((row.schedule as ScheduleRow).status, 'pending'))
+				.orderBy((row) => (row.schedule as ScheduleRow).executeAt, 'asc'),
 		[agentId, workspaceId],
 	)
 }

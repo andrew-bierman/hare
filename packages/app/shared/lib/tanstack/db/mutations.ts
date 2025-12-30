@@ -1,4 +1,3 @@
-// @ts-nocheck - Broken TanStack DB code from main, needs fixing
 'use client'
 
 /**
@@ -11,16 +10,12 @@
  */
 
 import type {
-	Agent,
 	CreateAgentInput,
 	CreateScheduleInput,
 	CreateToolInput,
 	CreateWorkspaceInput,
-	Schedule,
-	Tool,
 	UpdateAgentInput,
 	UpdateScheduleInput,
-	Workspace,
 } from '@hare/types'
 import { createId } from '@paralleldrive/cuid2'
 import { useMemo } from 'react'
@@ -73,7 +68,7 @@ export function useAgentMutations(workspaceId: string) {
 			 * Update an agent with optimistic update.
 			 */
 			update: (id: string, data: UpdateAgentInput): void => {
-				collection.update(id, (draft) => {
+				collection.update(id, (draft: AgentRow) => {
 					if (data.name !== undefined) draft.name = data.name
 					if (data.description !== undefined) draft.description = data.description ?? null
 					if (data.model !== undefined) draft.model = data.model
@@ -96,7 +91,7 @@ export function useAgentMutations(workspaceId: string) {
 			 * Deploy an agent (set status to deployed).
 			 */
 			deploy: (id: string): void => {
-				collection.update(id, (draft) => {
+				collection.update(id, (draft: AgentRow) => {
 					draft.status = 'deployed'
 					draft.updatedAt = new Date().toISOString()
 				})
@@ -106,7 +101,7 @@ export function useAgentMutations(workspaceId: string) {
 			 * Archive an agent.
 			 */
 			archive: (id: string): void => {
-				collection.update(id, (draft) => {
+				collection.update(id, (draft: AgentRow) => {
 					draft.status = 'archived'
 					draft.updatedAt = new Date().toISOString()
 				})
@@ -155,7 +150,7 @@ export function useToolMutations(workspaceId: string) {
 			 * Update a tool with optimistic update.
 			 */
 			update: (id: string, data: Partial<CreateToolInput>): void => {
-				collection.update(id, (draft) => {
+				collection.update(id, (draft: ToolRow) => {
 					if (data.name !== undefined) draft.name = data.name
 					if (data.description !== undefined) draft.description = data.description ?? ''
 					if (data.type !== undefined) draft.type = data.type
@@ -210,7 +205,7 @@ export function useWorkspaceMutations() {
 			 * Update a workspace with optimistic update.
 			 */
 			update: (id: string, data: Partial<CreateWorkspaceInput>): void => {
-				collection.update(id, (draft) => {
+				collection.update(id, (draft: WorkspaceRow) => {
 					if (data.name !== undefined) draft.name = data.name
 					if (data.description !== undefined) draft.description = data.description ?? null
 					draft.updatedAt = new Date().toISOString()
@@ -271,7 +266,7 @@ export function useScheduleMutations(options: { agentId: string; workspaceId: st
 			 * Update a schedule with optimistic update.
 			 */
 			update: (id: string, data: UpdateScheduleInput): void => {
-				collection.update(id, (draft) => {
+				collection.update(id, (draft: ScheduleRow) => {
 					if (data.status !== undefined) draft.status = data.status
 					if (data.executeAt !== undefined) draft.executeAt = data.executeAt ?? null
 					if (data.cron !== undefined) draft.cron = data.cron ?? null
@@ -291,7 +286,7 @@ export function useScheduleMutations(options: { agentId: string; workspaceId: st
 			 * Pause a schedule.
 			 */
 			pause: (id: string): void => {
-				collection.update(id, (draft) => {
+				collection.update(id, (draft: ScheduleRow) => {
 					draft.status = 'paused'
 					draft.updatedAt = new Date().toISOString()
 				})
@@ -301,7 +296,7 @@ export function useScheduleMutations(options: { agentId: string; workspaceId: st
 			 * Resume a paused schedule.
 			 */
 			resume: (id: string): void => {
-				collection.update(id, (draft) => {
+				collection.update(id, (draft: ScheduleRow) => {
 					draft.status = 'active'
 					draft.updatedAt = new Date().toISOString()
 				})
@@ -311,7 +306,7 @@ export function useScheduleMutations(options: { agentId: string; workspaceId: st
 			 * Cancel a schedule.
 			 */
 			cancel: (id: string): void => {
-				collection.update(id, (draft) => {
+				collection.update(id, (draft: ScheduleRow) => {
 					draft.status = 'cancelled'
 					draft.updatedAt = new Date().toISOString()
 				})

@@ -1,4 +1,3 @@
-// @ts-nocheck - Broken TanStack DB code from main, needs fixing
 /**
  * TanStack DB Collections
  *
@@ -9,7 +8,8 @@
  */
 
 import type { Agent, Schedule, Tool, Workspace } from '@hare/types'
-import { createCollection, type Collection } from '@tanstack/react-db'
+import type { QueryClient } from '@tanstack/react-query'
+import { createCollection } from '@tanstack/react-db'
 import { queryCollectionOptions } from '@tanstack/query-db-collection'
 import { apiClient } from '../../../api/client'
 import { agentKeys, scheduleKeys, toolKeys, workspaceKeys } from '../../../api/hooks/query-keys'
@@ -40,27 +40,28 @@ export interface ScheduleRow extends Schedule {
  * Create an agent collection scoped to a workspace.
  * Uses TanStack Query for data fetching and handles optimistic mutations.
  */
-export function createAgentCollection(options: { workspaceId: string }): Collection<AgentRow> {
-	const { workspaceId } = options
+export function createAgentCollection(options: { workspaceId: string; queryClient: QueryClient }) {
+	const { workspaceId, queryClient } = options
 
-	return createCollection<AgentRow>(
-		queryCollectionOptions({
+	return createCollection(
+		queryCollectionOptions<AgentRow, string>({
+			queryClient,
 			queryKey: agentKeys.list(workspaceId),
 			queryFn: async () => {
 				const response = await apiClient.agents.list(workspaceId)
 				return response.agents.map((agent) => ({
 					...agent,
 					_workspaceId: workspaceId,
-				}))
+				})) as AgentRow[]
 			},
-			getKey: (agent) => agent.id,
-			getId: (agent) => agent.id,
+			getKey: (agent: AgentRow) => agent.id,
 
 			onInsert: async ({ transaction }) => {
 				const mutations = transaction.mutations
 				for (const mutation of mutations) {
 					if (mutation.type === 'insert' && mutation.modified) {
-						const { _workspaceId, ...data } = mutation.modified
+						const modified = mutation.modified as AgentRow
+						const { _workspaceId, ...data } = modified
 						await apiClient.agents.create(_workspaceId, {
 							name: data.name,
 							description: data.description ?? undefined,
@@ -77,9 +78,10 @@ export function createAgentCollection(options: { workspaceId: string }): Collect
 				const mutations = transaction.mutations
 				for (const mutation of mutations) {
 					if (mutation.type === 'update' && mutation.original && mutation.modified) {
-						const { id, _workspaceId } = mutation.original
-						const { name, description, model, instructions, config, toolIds, status } =
-							mutation.modified
+						const original = mutation.original as AgentRow
+						const modified = mutation.modified as AgentRow
+						const { id, _workspaceId } = original
+						const { name, description, model, instructions, config, toolIds, status } = modified
 						await apiClient.agents.update(id, _workspaceId, {
 							name,
 							description: description ?? undefined,
@@ -97,7 +99,8 @@ export function createAgentCollection(options: { workspaceId: string }): Collect
 				const mutations = transaction.mutations
 				for (const mutation of mutations) {
 					if (mutation.type === 'delete' && mutation.original) {
-						const { id, _workspaceId } = mutation.original
+						const original = mutation.original as AgentRow
+						const { id, _workspaceId } = original
 						await apiClient.agents.delete(id, _workspaceId)
 					}
 				}
@@ -113,27 +116,28 @@ export function createAgentCollection(options: { workspaceId: string }): Collect
 /**
  * Create a tool collection scoped to a workspace.
  */
-export function createToolCollection(options: { workspaceId: string }): Collection<ToolRow> {
-	const { workspaceId } = options
+export function createToolCollection(options: { workspaceId: string; queryClient: QueryClient }) {
+	const { workspaceId, queryClient } = options
 
-	return createCollection<ToolRow>(
-		queryCollectionOptions({
+	return createCollection(
+		queryCollectionOptions<ToolRow, string>({
+			queryClient,
 			queryKey: toolKeys.list(workspaceId),
 			queryFn: async () => {
 				const response = await apiClient.tools.list(workspaceId)
 				return response.tools.map((tool) => ({
 					...tool,
 					_workspaceId: workspaceId,
-				}))
+				})) as ToolRow[]
 			},
-			getKey: (tool) => tool.id,
-			getId: (tool) => tool.id,
+			getKey: (tool: ToolRow) => tool.id,
 
 			onInsert: async ({ transaction }) => {
 				const mutations = transaction.mutations
 				for (const mutation of mutations) {
 					if (mutation.type === 'insert' && mutation.modified) {
-						const { _workspaceId, ...data } = mutation.modified
+						const modified = mutation.modified as ToolRow
+						const { _workspaceId, ...data } = modified
 						await apiClient.tools.create(_workspaceId, {
 							name: data.name,
 							description: data.description ?? undefined,
@@ -149,8 +153,10 @@ export function createToolCollection(options: { workspaceId: string }): Collecti
 				const mutations = transaction.mutations
 				for (const mutation of mutations) {
 					if (mutation.type === 'update' && mutation.original && mutation.modified) {
-						const { id, _workspaceId } = mutation.original
-						const { name, description, type, inputSchema, config } = mutation.modified
+						const original = mutation.original as ToolRow
+						const modified = mutation.modified as ToolRow
+						const { id, _workspaceId } = original
+						const { name, description, type, inputSchema, config } = modified
 						await apiClient.tools.update(id, _workspaceId, {
 							name,
 							description: description ?? undefined,
@@ -166,7 +172,8 @@ export function createToolCollection(options: { workspaceId: string }): Collecti
 				const mutations = transaction.mutations
 				for (const mutation of mutations) {
 					if (mutation.type === 'delete' && mutation.original) {
-						const { id, _workspaceId } = mutation.original
+						const original = mutation.original as ToolRow
+						const { id, _workspaceId } = original
 						await apiClient.tools.delete(id, _workspaceId)
 					}
 				}
@@ -182,22 +189,25 @@ export function createToolCollection(options: { workspaceId: string }): Collecti
 /**
  * Create a workspace collection for the current user.
  */
-export function createWorkspaceCollection(): Collection<WorkspaceRow> {
-	return createCollection<WorkspaceRow>(
-		queryCollectionOptions({
+export function createWorkspaceCollection(options: { queryClient: QueryClient }) {
+	const { queryClient } = options
+
+	return createCollection(
+		queryCollectionOptions<WorkspaceRow, string>({
+			queryClient,
 			queryKey: workspaceKeys.list(),
 			queryFn: async () => {
 				const response = await apiClient.workspaces.list()
-				return response.workspaces
+				return response.workspaces as WorkspaceRow[]
 			},
-			getKey: (workspace) => workspace.id,
-			getId: (workspace) => workspace.id,
+			getKey: (workspace: WorkspaceRow) => workspace.id,
 
 			onInsert: async ({ transaction }) => {
 				const mutations = transaction.mutations
 				for (const mutation of mutations) {
 					if (mutation.type === 'insert' && mutation.modified) {
-						const { name, description, slug } = mutation.modified
+						const modified = mutation.modified as WorkspaceRow
+						const { name, description, slug } = modified
 						await apiClient.workspaces.create({
 							name,
 							description: description ?? undefined,
@@ -211,8 +221,10 @@ export function createWorkspaceCollection(): Collection<WorkspaceRow> {
 				const mutations = transaction.mutations
 				for (const mutation of mutations) {
 					if (mutation.type === 'update' && mutation.original && mutation.modified) {
-						const { id } = mutation.original
-						const { name, description } = mutation.modified
+						const original = mutation.original as WorkspaceRow
+						const modified = mutation.modified as WorkspaceRow
+						const { id } = original
+						const { name, description } = modified
 						await apiClient.workspaces.update(id, {
 							name,
 							description: description ?? undefined,
@@ -225,7 +237,8 @@ export function createWorkspaceCollection(): Collection<WorkspaceRow> {
 				const mutations = transaction.mutations
 				for (const mutation of mutations) {
 					if (mutation.type === 'delete' && mutation.original) {
-						const { id } = mutation.original
+						const original = mutation.original as WorkspaceRow
+						const { id } = original
 						await apiClient.workspaces.delete(id)
 					}
 				}
@@ -244,28 +257,29 @@ export function createWorkspaceCollection(): Collection<WorkspaceRow> {
 export function createScheduleCollection(options: {
 	agentId: string
 	workspaceId: string
-}): Collection<ScheduleRow> {
-	const { agentId, workspaceId } = options
+	queryClient: QueryClient
+}) {
+	const { agentId, workspaceId, queryClient } = options
 
-	return createCollection<ScheduleRow>(
-		queryCollectionOptions({
+	return createCollection(
+		queryCollectionOptions<ScheduleRow, string>({
+			queryClient,
 			queryKey: scheduleKeys.list(agentId, workspaceId),
 			queryFn: async () => {
 				const response = await apiClient.schedules.list(agentId, workspaceId)
 				return response.schedules.map((schedule) => ({
 					...schedule,
 					_workspaceId: workspaceId,
-				}))
+				})) as ScheduleRow[]
 			},
-			getKey: (schedule) => schedule.id,
-			getId: (schedule) => schedule.id,
+			getKey: (schedule: ScheduleRow) => schedule.id,
 
 			onInsert: async ({ transaction }) => {
 				const mutations = transaction.mutations
 				for (const mutation of mutations) {
 					if (mutation.type === 'insert' && mutation.modified) {
-						const { agentId: aId, _workspaceId, type, executeAt, cron, action, payload } =
-							mutation.modified
+						const modified = mutation.modified as ScheduleRow
+						const { agentId: aId, _workspaceId, type, executeAt, cron, action, payload } = modified
 						await apiClient.schedules.create(aId, _workspaceId, {
 							type,
 							executeAt: executeAt ?? undefined,
@@ -281,8 +295,10 @@ export function createScheduleCollection(options: {
 				const mutations = transaction.mutations
 				for (const mutation of mutations) {
 					if (mutation.type === 'update' && mutation.original && mutation.modified) {
-						const { id, agentId: aId, _workspaceId } = mutation.original
-						const { status, executeAt, cron, payload } = mutation.modified
+						const original = mutation.original as ScheduleRow
+						const modified = mutation.modified as ScheduleRow
+						const { id, agentId: aId, _workspaceId } = original
+						const { status, executeAt, cron, payload } = modified
 						await apiClient.schedules.update(aId, id, _workspaceId, {
 							status,
 							executeAt: executeAt ?? undefined,
@@ -297,7 +313,8 @@ export function createScheduleCollection(options: {
 				const mutations = transaction.mutations
 				for (const mutation of mutations) {
 					if (mutation.type === 'delete' && mutation.original) {
-						const { id, agentId: aId, _workspaceId } = mutation.original
+						const original = mutation.original as ScheduleRow
+						const { id, agentId: aId, _workspaceId } = original
 						await apiClient.schedules.delete(aId, id, _workspaceId)
 					}
 				}
