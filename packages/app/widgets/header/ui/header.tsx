@@ -2,16 +2,9 @@
 
 import { useState, useEffect } from 'react'
 import { Button } from '@hare/ui/components/button'
-import {
-	CommandDialog,
-	CommandEmpty,
-	CommandGroup,
-	CommandInput,
-	CommandItem,
-	CommandList,
-} from '@hare/ui/components/command'
-import { Bot, Home, Menu, Plus, Rabbit, Search, Settings, Wrench } from 'lucide-react'
+import { Menu, Rabbit, Search } from 'lucide-react'
 import { APP_CONFIG } from '@hare/config'
+import { CommandSearch } from './command-search'
 
 export interface HeaderProps {
 	Link: React.ComponentType<{ to: string; className?: string; children: React.ReactNode }>
@@ -39,11 +32,6 @@ export function Header({ Link, UserNav, onMobileMenuToggle, onNavigate }: Header
 		document.addEventListener('keydown', down)
 		return () => document.removeEventListener('keydown', down)
 	}, [])
-
-	const handleSelect = (path: string) => {
-		setOpen(false)
-		onNavigate?.(path)
-	}
 
 	return (
 		<>
@@ -74,7 +62,7 @@ export function Header({ Link, UserNav, onMobileMenuToggle, onNavigate }: Header
 							onClick={() => setOpen(true)}
 						>
 							<Search className="mr-2 h-4 w-4" />
-							<span className="flex-1 text-left">Search...</span>
+							<span className="flex-1 text-left">Search agents, tools, pages...</span>
 							<kbd className="pointer-events-none hidden sm:inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground">
 								<span className="text-xs">&#8984;</span>K
 							</kbd>
@@ -102,37 +90,8 @@ export function Header({ Link, UserNav, onMobileMenuToggle, onNavigate }: Header
 				</div>
 			</header>
 
-			{/* Command Dialog for search */}
-			<CommandDialog open={open} onOpenChange={setOpen}>
-				<CommandInput placeholder="Search agents, tools, settings..." />
-				<CommandList>
-					<CommandEmpty>No results found.</CommandEmpty>
-					<CommandGroup heading="Quick Actions">
-						<CommandItem onSelect={() => handleSelect('/dashboard/agents/new')}>
-							<Plus className="mr-2 h-4 w-4" />
-							<span>Create new agent</span>
-						</CommandItem>
-					</CommandGroup>
-					<CommandGroup heading="Navigation">
-						<CommandItem onSelect={() => handleSelect('/dashboard')}>
-							<Home className="mr-2 h-4 w-4" />
-							<span>Dashboard</span>
-						</CommandItem>
-						<CommandItem onSelect={() => handleSelect('/dashboard/agents')}>
-							<Bot className="mr-2 h-4 w-4" />
-							<span>Agents</span>
-						</CommandItem>
-						<CommandItem onSelect={() => handleSelect('/dashboard/tools')}>
-							<Wrench className="mr-2 h-4 w-4" />
-							<span>Tools</span>
-						</CommandItem>
-						<CommandItem onSelect={() => handleSelect('/dashboard/settings')}>
-							<Settings className="mr-2 h-4 w-4" />
-							<span>Settings</span>
-						</CommandItem>
-					</CommandGroup>
-				</CommandList>
-			</CommandDialog>
+			{/* Command Search Dialog */}
+			<CommandSearch open={open} onOpenChange={setOpen} onNavigate={onNavigate} />
 		</>
 	)
 }
