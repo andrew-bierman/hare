@@ -149,7 +149,7 @@ export function AgentsListPage() {
 			{/* Filters */}
 			<div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
 				<div className="relative flex-1 max-w-lg">
-					<Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+					<Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
 					<Input
 						placeholder="Search agents..."
 						className="pl-9 h-11"

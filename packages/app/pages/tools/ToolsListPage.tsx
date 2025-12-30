@@ -119,7 +119,7 @@ export function ToolsListPage() {
 
 			{/* Search */}
 			<div className="relative max-w-sm">
-				<Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+				<Search className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
 				<Input
 					placeholder="Search tools..."
 					className="pl-8"
