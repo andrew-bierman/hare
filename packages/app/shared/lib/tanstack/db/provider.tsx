@@ -10,6 +10,7 @@
  */
 
 import type { Collection } from '@tanstack/react-db'
+import { useQueryClient } from '@tanstack/react-query'
 import {
 	createContext,
 	useContext,
@@ -70,13 +71,15 @@ interface TanStackDBProviderProps {
  * ```
  */
 export function TanStackDBProvider({ children }: TanStackDBProviderProps) {
+	const queryClient = useQueryClient()
+
 	// Collection caches - use refs to persist across renders
 	const agentCollectionsRef = useRef(new Map<string, Collection<AgentRow>>())
 	const toolCollectionsRef = useRef(new Map<string, Collection<ToolRow>>())
 	const scheduleCollectionsRef = useRef(new Map<string, Collection<ScheduleRow>>())
 
 	// Create the workspace collection once
-	const workspaces = useMemo(() => createWorkspaceCollection(), [])
+	const workspaces = useMemo(() => createWorkspaceCollection({ queryClient }), [queryClient])
 
 	// Factory functions for workspace-scoped collections
 	const getAgentCollection = useMemo(() => {
@@ -84,22 +87,22 @@ export function TanStackDBProvider({ children }: TanStackDBProviderProps) {
 			const existing = agentCollectionsRef.current.get(workspaceId)
 			if (existing) return existing
 
-			const collection = createAgentCollection({ workspaceId })
+			const collection = createAgentCollection({ workspaceId, queryClient })
 			agentCollectionsRef.current.set(workspaceId, collection)
 			return collection
 		}
-	}, [])
+	}, [queryClient])
 
 	const getToolCollection = useMemo(() => {
 		return (workspaceId: string): Collection<ToolRow> => {
 			const existing = toolCollectionsRef.current.get(workspaceId)
 			if (existing) return existing
 
-			const collection = createToolCollection({ workspaceId })
+			const collection = createToolCollection({ workspaceId, queryClient })
 			toolCollectionsRef.current.set(workspaceId, collection)
 			return collection
 		}
-	}, [])
+	}, [queryClient])
 
 	const getScheduleCollection = useMemo(() => {
 		return (options: { agentId: string; workspaceId: string }): Collection<ScheduleRow> => {
@@ -107,11 +110,11 @@ export function TanStackDBProvider({ children }: TanStackDBProviderProps) {
 			const existing = scheduleCollectionsRef.current.get(key)
 			if (existing) return existing
 
-			const collection = createScheduleCollection(options)
+			const collection = createScheduleCollection({ ...options, queryClient })
 			scheduleCollectionsRef.current.set(key, collection)
 			return collection
 		}
-	}, [])
+	}, [queryClient])
 
 	const value = useMemo<TanStackDBContextValue>(
 		() => ({

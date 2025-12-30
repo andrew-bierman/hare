@@ -66,9 +66,19 @@ export function useLiveAgentsByStatus(options: {
 		(q) =>
 			q
 				.from({ agent: collection })
-				.where(({ agent }) =>
-					or(...statuses.map((s) => eq(agent.status, s))),
-				)
+				.where(({ agent }) => {
+					// Build OR condition for multiple statuses
+					if (statuses.length === 1) {
+						return eq(agent.status, statuses[0]!)
+					}
+					// For multiple statuses, manually build OR chain
+					return or(
+						eq(agent.status, statuses[0]!),
+						statuses.length === 2
+							? eq(agent.status, statuses[1]!)
+							: or(eq(agent.status, statuses[1]!), eq(agent.status, statuses[2]!))
+					)
+				})
 				.orderBy(({ agent }) => agent.updatedAt, 'desc'),
 		[workspaceId, ...statuses],
 	)
@@ -102,7 +112,8 @@ export function useLiveAgentsWithTool(options: { workspaceId: string; toolId: st
 	)
 
 	const filteredData = useMemo(
-		() => allAgents?.filter((row) => row.agent.toolIds.includes(toolId)) ?? [],
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		() => allAgents?.filter((row: any) => row.toolIds?.includes(toolId)) ?? [],
 		[allAgents, toolId],
 	)
 
