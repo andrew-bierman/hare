@@ -90,7 +90,7 @@ export const ToolSchema = z
 	.object({
 		id: z.string().openapi({ example: 'tool_http' }),
 		name: z.string().openapi({ example: 'HTTP Request' }),
-		description: z.string().openapi({ example: 'Make HTTP requests to external APIs' }),
+		description: z.string().nullable().openapi({ example: 'Make HTTP requests to external APIs' }),
 		type: ToolTypeSchema,
 		inputSchema: JsonSchemaSchema.openapi({
 			example: {

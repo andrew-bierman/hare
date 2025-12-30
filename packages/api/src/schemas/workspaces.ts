@@ -39,7 +39,7 @@ export const WorkspaceSchema = z
 export const CreateWorkspaceSchema = z
 	.object({
 		name: z.string().min(1).max(100).openapi({ example: 'My Workspace' }),
-		description: z.string().optional().openapi({ example: 'A workspace for my agents' }),
+		description: z.string().nullish().openapi({ example: 'A workspace for my agents' }),
 	})
 	.openapi('CreateWorkspace')
 
@@ -49,7 +49,7 @@ export const CreateWorkspaceSchema = z
 export const UpdateWorkspaceSchema = z
 	.object({
 		name: z.string().min(1).max(100).optional().openapi({ example: 'Updated Workspace' }),
-		description: z.string().optional().openapi({ example: 'Updated description' }),
+		description: z.string().nullish().openapi({ example: 'Updated description' }),
 	})
 	.openapi('UpdateWorkspace')
 
