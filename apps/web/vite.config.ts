@@ -24,6 +24,19 @@ export default defineConfig({
 			// Wait for full dependency discovery before serving to avoid mid-request rebuilds
 			holdUntilCrawlEnd: true,
 		},
+		// Ensure fumadocs server code stays server-side only
+		noExternal: ['fumadocs-mdx', 'fumadocs-core'],
+	},
+	build: {
+		rollupOptions: {
+			// Exclude fumadocs server code from client bundle
+			external: (id) => {
+				if (id.includes('fumadocs-mdx/runtime/server') || id.includes('.source/server')) {
+					return true
+				}
+				return false
+			},
+		},
 	},
 	optimizeDeps: {
 		// Pre-bundle the same deps for client-side
