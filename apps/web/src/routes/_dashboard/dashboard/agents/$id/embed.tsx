@@ -1,5 +1,6 @@
 import { useWorkspace } from '@hare/app'
 import { useAgentQuery, useUpdateAgentMutation } from '@hare/app/shared/api'
+import { EMBED_COLOR_PRESETS, EMBED_COLORS, EMBED_POSITIONS, UI_TIMING } from '@hare/config'
 import { Badge } from '@hare/ui/components/badge'
 import { Button } from '@hare/ui/components/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@hare/ui/components/card'
@@ -35,26 +36,6 @@ import { toast } from 'sonner'
 export const Route = createFileRoute('/_dashboard/dashboard/agents/$id/embed')({
 	component: EmbedConfigPage,
 })
-
-// Color presets
-const COLOR_PRESETS = [
-	{ name: 'Indigo', value: '#6366f1' },
-	{ name: 'Blue', value: '#3b82f6' },
-	{ name: 'Emerald', value: '#10b981' },
-	{ name: 'Rose', value: '#f43f5e' },
-	{ name: 'Amber', value: '#f59e0b' },
-	{ name: 'Purple', value: '#a855f7' },
-	{ name: 'Slate', value: '#475569' },
-	{ name: 'Black', value: '#18181b' },
-]
-
-// Position options
-const POSITIONS = [
-	{ label: 'Bottom Right', value: 'bottom-right' },
-	{ label: 'Bottom Left', value: 'bottom-left' },
-	{ label: 'Top Right', value: 'top-right' },
-	{ label: 'Top Left', value: 'top-left' },
-]
 
 interface EmbedConfig {
 	enabled: boolean
@@ -94,7 +75,7 @@ function EmbedConfigPage() {
 		enabled: true,
 		theme: 'light',
 		position: 'bottom-right',
-		primaryColor: '#6366f1',
+		primaryColor: EMBED_COLORS.DEFAULT_PRIMARY,
 		initialMessage: '',
 		allowedDomains: [],
 	})
@@ -112,7 +93,7 @@ function EmbedConfigPage() {
 					enabled: embedConfig.enabled ?? true,
 					theme: embedConfig.theme ?? 'light',
 					position: embedConfig.position ?? 'bottom-right',
-					primaryColor: embedConfig.primaryColor ?? '#6366f1',
+					primaryColor: embedConfig.primaryColor ?? EMBED_COLORS.DEFAULT_PRIMARY,
 					initialMessage: embedConfig.initialMessage ?? '',
 					allowedDomains: embedConfig.allowedDomains ?? [],
 				})
@@ -135,7 +116,7 @@ function EmbedConfigPage() {
 				config.enabled !== (existingEmbed?.enabled ?? true) ||
 				config.theme !== (existingEmbed?.theme ?? 'light') ||
 				config.position !== (existingEmbed?.position ?? 'bottom-right') ||
-				config.primaryColor !== (existingEmbed?.primaryColor ?? '#6366f1') ||
+				config.primaryColor !== (existingEmbed?.primaryColor ?? EMBED_COLORS.DEFAULT_PRIMARY) ||
 				config.initialMessage !== (existingEmbed?.initialMessage ?? '') ||
 				JSON.stringify(currentDomains.sort()) !==
 					JSON.stringify((existingEmbed?.allowedDomains ?? []).sort())
@@ -178,7 +159,7 @@ function EmbedConfigPage() {
 			await navigator.clipboard.writeText(embedCode)
 			setCopied(true)
 			toast.success('Embed code copied to clipboard')
-			setTimeout(() => setCopied(false), 2000)
+			setTimeout(() => setCopied(false), UI_TIMING.CLIPBOARD_FEEDBACK_MS)
 		} catch {
 			toast.error('Failed to copy to clipboard')
 		}
@@ -348,7 +329,7 @@ function EmbedConfigPage() {
 												<SelectValue />
 											</SelectTrigger>
 											<SelectContent>
-												{POSITIONS.map((pos) => (
+												{EMBED_POSITIONS.map((pos) => (
 													<SelectItem key={pos.value} value={pos.value}>
 														{pos.label}
 													</SelectItem>
@@ -361,7 +342,7 @@ function EmbedConfigPage() {
 									<div className="space-y-3">
 										<Label>Primary Color</Label>
 										<div className="flex flex-wrap gap-2">
-											{COLOR_PRESETS.map((color) => (
+											{EMBED_COLOR_PRESETS.map((color) => (
 												<button
 													key={color.value}
 													type="button"
@@ -390,7 +371,7 @@ function EmbedConfigPage() {
 												onChange={(e: ChangeEvent<HTMLInputElement>) =>
 													setConfig((c) => ({ ...c, primaryColor: e.target.value }))
 												}
-												placeholder="#6366f1"
+												placeholder={EMBED_COLORS.DEFAULT_PRIMARY}
 												className="flex-1"
 											/>
 										</div>
@@ -500,7 +481,8 @@ function EmbedConfigPage() {
 							<div
 								className="relative h-[400px] rounded-lg border overflow-hidden"
 								style={{
-									backgroundColor: config.theme === 'dark' ? '#1a1a1a' : '#f5f5f5',
+									backgroundColor:
+										config.theme === 'dark' ? EMBED_COLORS.DARK_BG : EMBED_COLORS.LIGHT_INPUT_BG,
 								}}
 							>
 								<iframe

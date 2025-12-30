@@ -4,6 +4,21 @@
  * Provides URL-safe slug generation from names/titles.
  */
 
+// =============================================================================
+// Types
+// =============================================================================
+
+export interface GenerateUniqueSlugOptions {
+	/** The original name to convert */
+	name: string
+	/** Async function to check if a slug already exists */
+	checkExists: (slug: string) => Promise<boolean>
+}
+
+// =============================================================================
+// Public API
+// =============================================================================
+
 /**
  * Convert a name to a URL-safe slug.
  *
@@ -21,19 +36,17 @@ export function nameToSlug(name: string): string {
 /**
  * Generate a unique slug by appending a counter if needed.
  *
- * @param name - The original name to convert
- * @param checkExists - Async function to check if a slug already exists
- *
  * @example
- * const slug = await generateUniqueSlug("My Workspace", async (slug) => {
- *   const [existing] = await db.select().from(workspaces).where(eq(workspaces.slug, slug))
- *   return !!existing
+ * const slug = await generateUniqueSlug({
+ *   name: "My Workspace",
+ *   checkExists: async (slug) => {
+ *     const [existing] = await db.select().from(workspaces).where(eq(workspaces.slug, slug))
+ *     return !!existing
+ *   }
  * })
  */
-export async function generateUniqueSlug(
-	name: string,
-	checkExists: (slug: string) => Promise<boolean>,
-): Promise<string> {
+export async function generateUniqueSlug(options: GenerateUniqueSlugOptions): Promise<string> {
+	const { name, checkExists } = options
 	const baseSlug = nameToSlug(name)
 	let slug = baseSlug
 	let counter = 1

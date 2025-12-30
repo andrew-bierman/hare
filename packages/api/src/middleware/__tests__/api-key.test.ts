@@ -9,7 +9,7 @@ describe('hasAgentAccess', () => {
 			name: 'Test Key',
 			permissions: {},
 		}
-		expect(hasAgentAccess(apiKey, 'agent_1')).toBe(true)
+		expect(hasAgentAccess({ apiKey, agentId: 'agent_1' })).toBe(true)
 	})
 
 	it('returns true when agentIds array is empty', () => {
@@ -19,7 +19,7 @@ describe('hasAgentAccess', () => {
 			name: 'Test Key',
 			permissions: { agentIds: [] },
 		}
-		expect(hasAgentAccess(apiKey, 'agent_1')).toBe(true)
+		expect(hasAgentAccess({ apiKey, agentId: 'agent_1' })).toBe(true)
 	})
 
 	it('returns true when agentId is in the allowed list', () => {
@@ -29,7 +29,7 @@ describe('hasAgentAccess', () => {
 			name: 'Test Key',
 			permissions: { agentIds: ['agent_1', 'agent_2'] },
 		}
-		expect(hasAgentAccess(apiKey, 'agent_1')).toBe(true)
+		expect(hasAgentAccess({ apiKey, agentId: 'agent_1' })).toBe(true)
 	})
 
 	it('returns false when agentId is not in the allowed list', () => {
@@ -39,7 +39,7 @@ describe('hasAgentAccess', () => {
 			name: 'Test Key',
 			permissions: { agentIds: ['agent_1', 'agent_2'] },
 		}
-		expect(hasAgentAccess(apiKey, 'agent_3')).toBe(false)
+		expect(hasAgentAccess({ apiKey, agentId: 'agent_3' })).toBe(false)
 	})
 })
 
@@ -51,7 +51,7 @@ describe('hasScope', () => {
 			name: 'Test Key',
 			permissions: {},
 		}
-		expect(hasScope(apiKey, 'read')).toBe(true)
+		expect(hasScope({ apiKey, scope: 'read' })).toBe(true)
 	})
 
 	it('returns true when scopes array is empty', () => {
@@ -61,7 +61,7 @@ describe('hasScope', () => {
 			name: 'Test Key',
 			permissions: { scopes: [] },
 		}
-		expect(hasScope(apiKey, 'read')).toBe(true)
+		expect(hasScope({ apiKey, scope: 'read' })).toBe(true)
 	})
 
 	it('returns true when scope is in the allowed list', () => {
@@ -71,7 +71,7 @@ describe('hasScope', () => {
 			name: 'Test Key',
 			permissions: { scopes: ['read', 'write'] },
 		}
-		expect(hasScope(apiKey, 'read')).toBe(true)
+		expect(hasScope({ apiKey, scope: 'read' })).toBe(true)
 	})
 
 	it('returns false when scope is not in the allowed list', () => {
@@ -81,6 +81,6 @@ describe('hasScope', () => {
 			name: 'Test Key',
 			permissions: { scopes: ['read'] },
 		}
-		expect(hasScope(apiKey, 'write')).toBe(false)
+		expect(hasScope({ apiKey, scope: 'write' })).toBe(false)
 	})
 })

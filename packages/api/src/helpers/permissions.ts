@@ -1,5 +1,21 @@
 import type { Context } from 'hono'
 import type { WorkspaceRole } from '@hare/types'
+import { HTTP_STATUS } from '@hare/config'
+
+// =============================================================================
+// Types
+// =============================================================================
+
+export interface HandleRouteErrorOptions {
+	/** Hono context */
+	c: Context
+	/** Error that occurred */
+	error: unknown
+}
+
+// =============================================================================
+// Errors
+// =============================================================================
 
 /**
  * Error thrown when a user lacks required permissions.
@@ -73,13 +89,14 @@ export function requireOwner(role: WorkspaceRole): void {
  * Handle common errors and return appropriate JSON responses.
  * Use this in route handlers to standardize error handling.
  */
-export function handleRouteError(c: Context, error: unknown) {
+export function handleRouteError(options: HandleRouteErrorOptions) {
+	const { c, error } = options
 	if (error instanceof ForbiddenError) {
-		return c.json({ error: error.message }, 403)
+		return c.json({ error: error.message }, HTTP_STATUS.FORBIDDEN)
 	}
 	if (error instanceof NotFoundError) {
-		return c.json({ error: error.message }, 404)
+		return c.json({ error: error.message }, HTTP_STATUS.NOT_FOUND)
 	}
 	console.error('Unhandled route error:', error)
-	return c.json({ error: 'Internal server error' }, 500)
+	return c.json({ error: 'Internal server error' }, HTTP_STATUS.INTERNAL_SERVER_ERROR)
 }

@@ -1,3 +1,9 @@
+import {
+	CHAT_STREAM_TYPES,
+	EMBED_COLORS,
+	WIDGET_MESSAGE_TYPES,
+	type ChatStreamType,
+} from '@hare/config'
 import { createFileRoute } from '@tanstack/react-router'
 import { Bot, Loader2, Send, User, X } from 'lucide-react'
 import { type FormEvent, type KeyboardEvent, useCallback, useEffect, useRef, useState } from 'react'
@@ -7,7 +13,7 @@ export const Route = createFileRoute('/embed/$agentId')({
 	validateSearch: (search: Record<string, unknown>) => {
 		return {
 			theme: (search.theme as string) || 'light',
-			primaryColor: (search.primaryColor as string) || '#6366f1',
+			primaryColor: (search.primaryColor as string) || EMBED_COLORS.DEFAULT_PRIMARY,
 			initialMessage: (search.initialMessage as string) || '',
 		}
 	},
@@ -22,7 +28,7 @@ interface Message {
 }
 
 interface ChatStreamEvent {
-	type: 'text' | 'done' | 'error'
+	type: ChatStreamType
 	content?: string
 	sessionId?: string
 	message?: string
@@ -91,7 +97,7 @@ function EmbedChatPage() {
 
 	// Notify parent that widget is ready
 	useEffect(() => {
-		window.parent.postMessage({ type: 'hare:widget:ready' }, '*')
+		window.parent.postMessage({ type: WIDGET_MESSAGE_TYPES.READY }, '*')
 	}, [])
 
 	const sendMessage = useCallback(
@@ -157,7 +163,7 @@ function EmbedChatPage() {
 							try {
 								const event: ChatStreamEvent = JSON.parse(line.slice(6))
 
-								if (event.type === 'text' && event.content) {
+								if (event.type === CHAT_STREAM_TYPES.TEXT && event.content) {
 									setMessages((prev) => {
 										const updated = [...prev]
 										const lastMsg = updated[updated.length - 1]
@@ -167,9 +173,9 @@ function EmbedChatPage() {
 										return updated
 									})
 									scrollToBottom()
-								} else if (event.type === 'done' && event.sessionId) {
+								} else if (event.type === CHAT_STREAM_TYPES.DONE && event.sessionId) {
 									setSessionId(event.sessionId)
-								} else if (event.type === 'error') {
+								} else if (event.type === CHAT_STREAM_TYPES.ERROR) {
 									setError(event.message || 'An error occurred')
 								}
 							} catch {
@@ -196,12 +202,12 @@ function EmbedChatPage() {
 			if (!data || typeof data !== 'object') return
 
 			switch (data.type) {
-				case 'hare:widget:send':
+				case WIDGET_MESSAGE_TYPES.SEND:
 					if (data.message && !isStreaming) {
 						sendMessage(data.message)
 					}
 					break
-				case 'hare:widget:toggle':
+				case WIDGET_MESSAGE_TYPES.TOGGLE:
 					// Widget was opened/closed
 					break
 			}
@@ -227,14 +233,14 @@ function EmbedChatPage() {
 	}
 
 	const handleClose = () => {
-		window.parent.postMessage({ type: 'hare:widget:close' }, '*')
+		window.parent.postMessage({ type: WIDGET_MESSAGE_TYPES.CLOSE }, '*')
 	}
 
 	// Dynamic styles based on theme
 	const containerStyle = {
 		'--primary-color': primaryColor,
-		backgroundColor: isDark ? '#1a1a1a' : '#ffffff',
-		color: isDark ? '#ffffff' : '#1a1a1a',
+		backgroundColor: isDark ? EMBED_COLORS.DARK_BG : EMBED_COLORS.LIGHT_BG,
+		color: isDark ? EMBED_COLORS.LIGHT_BG : EMBED_COLORS.DARK_BG,
 	} as React.CSSProperties
 
 	if (isLoading) {
@@ -251,8 +257,8 @@ function EmbedChatPage() {
 			<div
 				className="flex items-center justify-between px-4 py-3 border-b"
 				style={{
-					borderColor: isDark ? '#333' : '#e5e5e5',
-					backgroundColor: isDark ? '#222' : '#fafafa',
+					borderColor: isDark ? EMBED_COLORS.DARK_BORDER : EMBED_COLORS.LIGHT_BORDER,
+					backgroundColor: isDark ? EMBED_COLORS.DARK_SECONDARY_BG : EMBED_COLORS.LIGHT_SECONDARY_BG,
 				}}
 			>
 				<div className="flex items-center gap-3">
@@ -270,7 +276,7 @@ function EmbedChatPage() {
 					className="p-1.5 rounded-lg transition-colors hover:bg-black/5 dark:hover:bg-white/10"
 					aria-label="Close chat"
 				>
-					<X className="h-4 w-4" style={{ color: isDark ? '#888' : '#666' }} />
+					<X className="h-4 w-4" style={{ color: isDark ? EMBED_COLORS.DARK_TEXT : EMBED_COLORS.LIGHT_TEXT }} />
 				</button>
 			</div>
 
@@ -284,7 +290,7 @@ function EmbedChatPage() {
 						>
 							<Bot className="h-6 w-6" style={{ color: primaryColor }} />
 						</div>
-						<p className="text-sm" style={{ color: isDark ? '#888' : '#666' }}>
+						<p className="text-sm" style={{ color: isDark ? EMBED_COLORS.DARK_TEXT : EMBED_COLORS.LIGHT_TEXT }}>
 							Send a message to start chatting
 						</p>
 					</div>
@@ -298,13 +304,13 @@ function EmbedChatPage() {
 								className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full"
 								style={{
 									backgroundColor:
-										message.role === 'user' ? primaryColor : isDark ? '#333' : '#e5e5e5',
+										message.role === 'user' ? primaryColor : isDark ? EMBED_COLORS.DARK_MESSAGE_BG : EMBED_COLORS.LIGHT_ASSISTANT_BG,
 								}}
 							>
 								{message.role === 'user' ? (
 									<User className="h-3.5 w-3.5 text-white" />
 								) : (
-									<Bot className="h-3.5 w-3.5" style={{ color: isDark ? '#ccc' : '#666' }} />
+									<Bot className="h-3.5 w-3.5" style={{ color: isDark ? EMBED_COLORS.DARK_TEXT_LIGHT : EMBED_COLORS.LIGHT_TEXT }} />
 								)}
 							</div>
 							<div
@@ -313,8 +319,8 @@ function EmbedChatPage() {
 								}`}
 								style={{
 									backgroundColor:
-										message.role === 'user' ? primaryColor : isDark ? '#333' : '#f0f0f0',
-									color: message.role === 'user' ? '#ffffff' : 'inherit',
+										message.role === 'user' ? primaryColor : isDark ? EMBED_COLORS.DARK_MESSAGE_BG : EMBED_COLORS.LIGHT_MESSAGE_BG,
+									color: message.role === 'user' ? EMBED_COLORS.LIGHT_BG : 'inherit',
 								}}
 							>
 								<p className="whitespace-pre-wrap break-words">{message.content}</p>
@@ -330,18 +336,18 @@ function EmbedChatPage() {
 						<div className="flex gap-2">
 							<div
 								className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full"
-								style={{ backgroundColor: isDark ? '#333' : '#e5e5e5' }}
+								style={{ backgroundColor: isDark ? EMBED_COLORS.DARK_MESSAGE_BG : EMBED_COLORS.LIGHT_ASSISTANT_BG }}
 							>
 								<Loader2
 									className="h-3.5 w-3.5 animate-spin"
-									style={{ color: isDark ? '#ccc' : '#666' }}
+									style={{ color: isDark ? EMBED_COLORS.DARK_TEXT_LIGHT : EMBED_COLORS.LIGHT_TEXT }}
 								/>
 							</div>
 							<div
 								className="rounded-2xl rounded-bl-sm px-3.5 py-2 text-sm"
-								style={{ backgroundColor: isDark ? '#333' : '#f0f0f0' }}
+								style={{ backgroundColor: isDark ? EMBED_COLORS.DARK_MESSAGE_BG : EMBED_COLORS.LIGHT_MESSAGE_BG }}
 							>
-								<span style={{ color: isDark ? '#888' : '#666' }}>Thinking...</span>
+								<span style={{ color: isDark ? EMBED_COLORS.DARK_TEXT : EMBED_COLORS.LIGHT_TEXT }}>Thinking...</span>
 							</div>
 						</div>
 					)}
@@ -350,7 +356,7 @@ function EmbedChatPage() {
 				{error && (
 					<div
 						className="text-center py-2 px-3 rounded-lg text-sm"
-						style={{ backgroundColor: '#fee2e2', color: '#dc2626' }}
+						style={{ backgroundColor: EMBED_COLORS.ERROR_BG, color: EMBED_COLORS.ERROR_TEXT }}
 					>
 						{error}
 					</div>
@@ -358,7 +364,7 @@ function EmbedChatPage() {
 			</div>
 
 			{/* Input */}
-			<div className="border-t px-4 py-3" style={{ borderColor: isDark ? '#333' : '#e5e5e5' }}>
+			<div className="border-t px-4 py-3" style={{ borderColor: isDark ? EMBED_COLORS.DARK_BORDER : EMBED_COLORS.LIGHT_BORDER }}>
 				<form onSubmit={handleSubmit} className="flex gap-2">
 					<textarea
 						ref={textareaRef}
@@ -368,19 +374,17 @@ function EmbedChatPage() {
 						placeholder="Type a message..."
 						disabled={isStreaming}
 						rows={1}
-						className="flex-1 resize-none rounded-xl border px-3.5 py-2.5 text-sm outline-none transition-colors"
+						className="flex-1 resize-none rounded-xl border px-3.5 py-2.5 text-sm outline-none transition-colors min-h-[42px] max-h-[120px]"
 						style={{
-							backgroundColor: isDark ? '#222' : '#f5f5f5',
-							borderColor: isDark ? '#444' : '#e0e0e0',
+							backgroundColor: isDark ? EMBED_COLORS.DARK_INPUT_BG : EMBED_COLORS.LIGHT_INPUT_BG,
+							borderColor: isDark ? EMBED_COLORS.DARK_INPUT_BORDER : EMBED_COLORS.LIGHT_INPUT_BORDER,
 							color: 'inherit',
-							minHeight: '42px',
-							maxHeight: '120px',
 						}}
 					/>
 					<button
 						type="submit"
 						disabled={!input.trim() || isStreaming}
-						className="flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-xl transition-opacity disabled:opacity-50"
+						className="flex size-[42px] shrink-0 items-center justify-center rounded-xl transition-opacity disabled:opacity-50"
 						style={{ backgroundColor: primaryColor }}
 					>
 						{isStreaming ? (
@@ -390,7 +394,7 @@ function EmbedChatPage() {
 						)}
 					</button>
 				</form>
-				<p className="mt-2 text-center text-xs" style={{ color: isDark ? '#666' : '#999' }}>
+				<p className="mt-2 text-center text-xs" style={{ color: isDark ? EMBED_COLORS.DARK_FOOTER_TEXT : EMBED_COLORS.LIGHT_FOOTER_TEXT }}>
 					Powered by Hare
 				</p>
 			</div>

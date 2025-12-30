@@ -67,7 +67,7 @@ export function validateCsrfToken(c: Context<HonoEnv>): boolean {
 	}
 
 	// Use timing-safe comparison from encryption module
-	return timingSafeEqual(cookieToken, headerToken)
+	return timingSafeEqual({ a: cookieToken, b: headerToken })
 }
 
 /**

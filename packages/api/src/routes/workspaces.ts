@@ -283,7 +283,7 @@ app.openapi(createWorkspaceRoute, async (c) => {
 	const user = c.get('user')
 
 	// Always add a random suffix to avoid slug collisions from concurrent requests
-	const baseSlug = await generateUniqueSlug(data.name, (s) => slugExists(db, s))
+	const baseSlug = await generateUniqueSlug({ name: data.name, checkExists: (s) => slugExists(db, s) })
 	const randomSuffix = Math.random().toString(36).substring(2, 8)
 	const slug = `${baseSlug}-${randomSuffix}`
 
@@ -342,7 +342,10 @@ app.openapi(updateWorkspaceRoute, async (c) => {
 
 	if (data.name !== undefined) {
 		updateData.name = data.name
-		updateData.slug = await generateUniqueSlug(data.name, (s) => slugExists(db, s, id))
+		updateData.slug = await generateUniqueSlug({
+			name: data.name,
+			checkExists: (s) => slugExists(db, s, id),
+		})
 	}
 	if (data.description !== undefined) {
 		updateData.description = data.description

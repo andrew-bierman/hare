@@ -1,8 +1,27 @@
 import { eq } from 'drizzle-orm'
 import type { MiddlewareHandler } from 'hono'
 import { apiKeys, workspaces } from '@hare/db'
+import { API_KEY_CONFIG } from '@hare/config'
 import { getDb } from '../db'
 import type { ApiKeyEnv, ApiKeyInfo } from '@hare/types'
+
+// =============================================================================
+// Types
+// =============================================================================
+
+export interface HasAgentAccessOptions {
+	/** API key info object */
+	apiKey: ApiKeyInfo
+	/** Agent ID to check access for */
+	agentId: string
+}
+
+export interface HasScopeOptions {
+	/** API key info object */
+	apiKey: ApiKeyInfo
+	/** Scope to check */
+	scope: string
+}
 
 /**
  * Hash an API key for comparison.
@@ -100,7 +119,8 @@ export const apiKeyMiddleware: MiddlewareHandler<ApiKeyEnv> = async (c, next) =>
 /**
  * Check if API key has access to a specific agent.
  */
-export function hasAgentAccess(apiKey: ApiKeyInfo, agentId: string): boolean {
+export function hasAgentAccess(options: HasAgentAccessOptions): boolean {
+	const { apiKey, agentId } = options
 	if (!apiKey.permissions?.agentIds || apiKey.permissions.agentIds.length === 0) {
 		return true
 	}
@@ -110,7 +130,8 @@ export function hasAgentAccess(apiKey: ApiKeyInfo, agentId: string): boolean {
 /**
  * Check if API key has a specific scope.
  */
-export function hasScope(apiKey: ApiKeyInfo, scope: string): boolean {
+export function hasScope(options: HasScopeOptions): boolean {
+	const { apiKey, scope } = options
 	if (!apiKey.permissions?.scopes || apiKey.permissions.scopes.length === 0) {
 		return true
 	}
@@ -126,18 +147,18 @@ export async function generateApiKey(): Promise<{
 	hashedKey: string
 	prefix: string
 }> {
-	const randomBytes = new Uint8Array(32)
+	const randomBytes = new Uint8Array(API_KEY_CONFIG.RANDOM_BYTES)
 	crypto.getRandomValues(randomBytes)
 
 	const key =
-		'hare_' +
+		API_KEY_CONFIG.PREFIX +
 		btoa(String.fromCharCode(...randomBytes))
 			.replace(/\+/g, '-')
 			.replace(/\//g, '_')
 			.replace(/=/g, '')
 
 	const hashedKey = await hashApiKey(key)
-	const prefix = key.substring(0, 12)
+	const prefix = key.substring(0, API_KEY_CONFIG.PREFIX_DISPLAY_LENGTH)
 
 	return { key, hashedKey, prefix }
 }

@@ -1,6 +1,11 @@
 import { createId } from '@hare/db'
+import { LOGGING_CONFIG } from '@hare/config'
 import type { Context, Next } from 'hono'
 import type { HonoEnv } from '@hare/types'
+
+// =============================================================================
+// Types
+// =============================================================================
 
 /**
  * Request log entry stored in KV/D1.
@@ -20,27 +25,26 @@ export interface RequestLog {
 	error: string | null
 }
 
-/**
- * KV key prefix for request logs.
- */
-const LOG_KEY_PREFIX = 'request_log:'
+export interface GetLogKeyOptions {
+	/** Workspace ID (null for global) */
+	workspaceId: string | null
+	/** Log timestamp */
+	timestamp: string
+	/** Log ID */
+	id: string
+}
 
-/**
- * Maximum number of logs to keep in memory before flushing.
- */
-const LOG_BATCH_SIZE = 100
-
-/**
- * TTL for logs in KV (7 days).
- */
-const LOG_TTL_SECONDS = 7 * 24 * 60 * 60
+// =============================================================================
+// Internal Helpers
+// =============================================================================
 
 /**
  * Generate a KV key for a request log.
  */
-function getLogKey(workspaceId: string | null, timestamp: string, id: string): string {
+function getLogKey(options: GetLogKeyOptions): string {
+	const { workspaceId, timestamp, id } = options
 	const ws = workspaceId || 'global'
-	return `${LOG_KEY_PREFIX}${ws}:${timestamp}:${id}`
+	return `${LOGGING_CONFIG.KEY_PREFIX}${ws}:${timestamp}:${id}`
 }
 
 /**
@@ -95,21 +99,21 @@ async function storeLog(env: CloudflareEnv, log: RequestLog): Promise<void> {
 	}
 
 	try {
-		const key = getLogKey(log.workspaceId, log.timestamp, log.id)
-		await env.KV.put(key, JSON.stringify(log), { expirationTtl: LOG_TTL_SECONDS })
+		const key = getLogKey({ workspaceId: log.workspaceId, timestamp: log.timestamp, id: log.id })
+		await env.KV.put(key, JSON.stringify(log), { expirationTtl: LOGGING_CONFIG.TTL_SECONDS })
 
 		// Also maintain a recent logs list for the workspace
-		const listKey = `${LOG_KEY_PREFIX}list:${log.workspaceId || 'global'}`
+		const listKey = `${LOGGING_CONFIG.KEY_PREFIX}list:${log.workspaceId || 'global'}`
 		const existing = await env.KV.get(listKey)
 		const logIds: string[] = existing ? JSON.parse(existing) : []
 
 		// Add new log ID and keep only the most recent
 		logIds.unshift(log.id)
-		if (logIds.length > LOG_BATCH_SIZE) {
+		if (logIds.length > LOGGING_CONFIG.BATCH_SIZE) {
 			logIds.pop()
 		}
 
-		await env.KV.put(listKey, JSON.stringify(logIds), { expirationTtl: LOG_TTL_SECONDS })
+		await env.KV.put(listKey, JSON.stringify(logIds), { expirationTtl: LOGGING_CONFIG.TTL_SECONDS })
 	} catch (error) {
 		console.error('Failed to store request log:', error)
 	}
@@ -205,13 +209,13 @@ export async function getLogs(
 	}
 
 	const workspaceId = params.workspaceId || 'global'
-	const limit = Math.min(params.limit || 50, 100)
+	const limit = Math.min(params.limit || LOGGING_CONFIG.DEFAULT_LIMIT, LOGGING_CONFIG.MAX_LIMIT)
 	const offset = params.offset || 0
 
 	try {
 		// List all log keys for the workspace
-		const prefix = `${LOG_KEY_PREFIX}${workspaceId}:`
-		const list = await env.KV.list({ prefix, limit: 1000 })
+		const prefix = `${LOGGING_CONFIG.KEY_PREFIX}${workspaceId}:`
+		const list = await env.KV.list({ prefix, limit: LOGGING_CONFIG.STATS_LIMIT })
 
 		const allLogs: RequestLog[] = []
 
@@ -277,7 +281,7 @@ export interface LogStats {
  * Calculate stats from logs.
  */
 export async function getLogStats(env: CloudflareEnv, params: LogQueryParams): Promise<LogStats> {
-	const { logs } = await getLogs(env, { ...params, limit: 1000 })
+	const { logs } = await getLogs(env, { ...params, limit: LOGGING_CONFIG.STATS_LIMIT })
 
 	const stats: LogStats = {
 		totalRequests: logs.length,

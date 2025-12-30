@@ -1,4 +1,5 @@
 import { ErrorComponent, NotFound, PendingComponent } from '@hare/app/widgets/router-components'
+import { ROUTER_TIMING } from '@hare/config'
 import { createRouter } from '@tanstack/react-router'
 import { routeTree } from './routeTree.gen'
 
@@ -10,8 +11,8 @@ export function getRouter() {
 		defaultNotFoundComponent: NotFound,
 		defaultErrorComponent: ErrorComponent,
 		defaultPendingComponent: PendingComponent,
-		defaultPendingMinMs: 200,
-		defaultPendingMs: 100,
+		defaultPendingMinMs: ROUTER_TIMING.PENDING_MIN_MS,
+		defaultPendingMs: ROUTER_TIMING.PENDING_MS,
 	})
 }
 

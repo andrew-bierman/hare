@@ -3,6 +3,37 @@
  * Protects against XSS, SQL injection, and other common attacks
  */
 
+import { VALIDATION } from '@hare/config'
+
+// =============================================================================
+// Types
+// =============================================================================
+
+export interface RateLimitKeyOptions {
+	/** User ID */
+	userId: string
+	/** API endpoint */
+	endpoint: string
+}
+
+export interface IsSafeStringOptions {
+	/** Input string to check */
+	input: string
+	/** Optional allowed pattern (default: alphanumeric + underscore + hyphen) */
+	allowedPattern?: RegExp
+}
+
+export interface TruncateStringOptions {
+	/** Input string to truncate */
+	input: string
+	/** Maximum length */
+	maxLength: number
+}
+
+// =============================================================================
+// Constants
+// =============================================================================
+
 /**
  * HTML entity encoding map
  */
@@ -109,7 +140,7 @@ export function sanitizeFilename(filename: string): string {
 	sanitized = sanitized.replace(/^\.+/, '')
 
 	// Trim and limit length
-	sanitized = sanitized.trim().substring(0, 255)
+	sanitized = sanitized.trim().substring(0, VALIDATION.FILENAME_MAX_LENGTH)
 
 	if (!sanitized) {
 		throw new Error('Invalid filename')
@@ -139,7 +170,8 @@ export function sanitizeJson<T = unknown>(input: string): T {
  * Rate limit key generation
  * Creates a consistent key for rate limiting based on user and endpoint
  */
-export function getRateLimitKey(userId: string, endpoint: string): string {
+export function getRateLimitKey(options: RateLimitKeyOptions): string {
+	const { userId, endpoint } = options
 	// Sanitize inputs
 	const sanitizedUserId = userId.replace(/[^a-zA-Z0-9_-]/g, '')
 	const sanitizedEndpoint = endpoint.replace(/[^a-zA-Z0-9/_-]/g, '')
@@ -158,7 +190,7 @@ export function validateAgentInstructions(instructions: string): {
 	const issues: string[] = []
 
 	// Check for extremely long instructions
-	if (instructions.length > 50000) {
+	if (instructions.length > VALIDATION.AGENT_INSTRUCTIONS_MAX_LENGTH) {
 		issues.push('Instructions exceed maximum length')
 	}
 
@@ -221,7 +253,8 @@ export function sanitizeMetadata(metadata: Record<string, unknown>): Record<stri
  * Check if a string contains only safe characters
  * Useful for validating identifiers, slugs, etc.
  */
-export function isSafeString(input: string, allowedPattern?: RegExp): boolean {
+export function isSafeString(options: IsSafeStringOptions): boolean {
+	const { input, allowedPattern } = options
 	const pattern = allowedPattern || /^[a-zA-Z0-9_-]+$/
 	return pattern.test(input)
 }
@@ -229,7 +262,8 @@ export function isSafeString(input: string, allowedPattern?: RegExp): boolean {
 /**
  * Truncate string to a maximum length with ellipsis
  */
-export function truncateString(input: string, maxLength: number): string {
+export function truncateString(options: TruncateStringOptions): string {
+	const { input, maxLength } = options
 	if (input.length <= maxLength) return input
 	return `${input.substring(0, maxLength - 3)}...`
 }
