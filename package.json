@@ -28,6 +28,7 @@
 		"fix-deps": "bun run --cwd scripts fix-deps",
 		"format": "biome format --write .",
 		"postinstall": "bun run scripts/env.ts",
+		"setup:worktree": "bun run scripts/setup-worktree.ts",
 		"lint": "biome lint .",
 		"lint:fix": "biome lint --write .",
 		"preview": "bun run --cwd apps/web preview",

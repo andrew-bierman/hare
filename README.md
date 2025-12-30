@@ -24,6 +24,7 @@ Built as a **Cloudflare-native** platform using Workers AI, D1, KV, R2, and Vect
 - [Tech Stack](#tech-stack)
 - [Project Structure](#project-structure)
 - [Quick Start](#quick-start)
+- [Worktree Development](#worktree-development)
 - [Architecture](#architecture)
 - [Database Schema](#database-schema)
 - [API Reference](#api-reference)
@@ -266,6 +267,86 @@ bun run dev
 ```bash
 # Preview with Cloudflare Pages locally (tests the actual deployment environment)
 bun run preview
+```
+
+---
+
+## Worktree Development
+
+When using git worktrees (e.g., with [claude-squad](https://github.com/smtg-ai/claude-squad) or similar tools), each worktree needs its own local development environment with a unique port to avoid conflicts.
+
+**Note:** The API and app run on the **same port** via the Cloudflare Vite plugin.
+
+### Quick Setup (Recommended)
+
+Run the automated setup script:
+
+```bash
+bun run setup:worktree
+```
+
+This script will:
+1. Install dependencies (`bun install`)
+2. Create `.env.local` from template (if missing)
+3. Generate a unique `BETTER_AUTH_SECRET`
+4. Configure a unique port based on your worktree path (3001-3099)
+5. Regenerate environment files
+6. Run local database migrations
+
+### Manual Setup
+
+If you prefer manual setup or need to customize the port:
+
+```bash
+# 1. Install dependencies
+bun install
+
+# 2. Create environment file
+cp .env.local.example .env.local
+
+# 3. Generate auth secret
+echo "BETTER_AUTH_SECRET=$(openssl rand -base64 32)" >> .env.local
+
+# 4. Choose a unique port (default: 3000, worktrees: 3001-3099)
+
+# 5. Update .env.local with your port (SAME port for both!)
+#    BETTER_AUTH_URL=http://localhost:3050
+#    NEXT_PUBLIC_APP_URL=http://localhost:3050
+
+# 6. Regenerate environment files
+bun run scripts/env.ts
+
+# 7. Run database migrations
+bun run db:migrate:local
+```
+
+### Starting the Dev Server
+
+Use the PORT environment variable:
+
+```bash
+# Check your configured port
+cat .worktree-config
+
+# Start with custom port
+PORT=3050 bun run dev
+```
+
+### Troubleshooting
+
+**Port conflicts (`EADDRINUSE`)**:
+```bash
+# Find what's using a port
+lsof -i :3000
+
+# Use a different port
+PORT=3050 bun run dev
+```
+
+**Missing environment variables**:
+```bash
+# Regenerate env files
+bun run scripts/env.ts
 ```
 
 ---
@@ -813,8 +894,9 @@ All scripts can be run from the root directory using Bun:
 ### 🚀 Development
 
 ```bash
-bun run dev              # Start Next.js dev server with Turbopack
+bun run dev              # Start dev server (Vite + Cloudflare Workers)
 bun run preview          # Preview on Cloudflare runtime (tests actual deployment)
+bun run setup:worktree   # Set up local environment for worktree development
 ```
 
 ### 🗄️ Database
