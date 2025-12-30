@@ -178,7 +178,13 @@ baseTest.describe('Tools List Page', () => {
 	})
 
 	baseTest('has add tool button', async ({ page }: { page: Page }) => {
-		await expect(page.getByRole('button', { name: 'Add Tool' }).first()).toBeVisible()
+		// UI has "Quick Add" and "Create HTTP Tool" buttons
+		const quickAddBtn = page.getByRole('button', { name: 'Quick Add' })
+		const createHttpToolBtn = page.getByRole('button', { name: 'Create HTTP Tool' })
+		// At least one should be visible
+		const hasQuickAdd = await quickAddBtn.isVisible().catch(() => false)
+		const hasCreateHttp = await createHttpToolBtn.isVisible().catch(() => false)
+		expect(hasQuickAdd || hasCreateHttp).toBe(true)
 	})
 
 	baseTest('shows tool categories or list', async ({ page }: { page: Page }) => {
