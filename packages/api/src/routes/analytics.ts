@@ -84,6 +84,10 @@ const getAnalyticsRoute = createRoute({
 			description: 'Unauthorized',
 			content: { 'application/json': { schema: ErrorSchema } },
 		},
+		500: {
+			description: 'Internal server error',
+			content: { 'application/json': { schema: ErrorSchema } },
+		},
 		503: {
 			description: 'Service unavailable',
 			content: { 'application/json': { schema: ErrorSchema } },
@@ -107,6 +111,7 @@ app.openapi(getAnalyticsRoute, async (c) => {
 	const defaultStartDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
 	const defaultEndDate = new Date().toISOString()
 
+	try {
 	// Build query conditions
 	const conditions = [eq(usage.workspaceId, workspace.id)]
 	if (startDate) {
@@ -235,6 +240,13 @@ app.openapi(getAnalyticsRoute, async (c) => {
 		},
 		200,
 	)
+	} catch (error) {
+		console.error('Analytics query failed:', error)
+		return c.json(
+			{ error: error instanceof Error ? error.message : 'Failed to fetch analytics' },
+			500,
+		)
+	}
 })
 
 export default app
