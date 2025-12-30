@@ -626,6 +626,7 @@ app.openapi(createAgentRoute, async (c) => {
 			model: data.model,
 			instructions: data.instructions,
 			config: data.config,
+			systemToolsEnabled: data.systemToolsEnabled ?? true,
 			createdBy: user.id,
 		})
 		.returning()
@@ -686,6 +687,7 @@ app.openapi(updateAgentRoute, async (c) => {
 		...(data.model !== undefined && { model: data.model }),
 		...(data.instructions !== undefined && { instructions: data.instructions }),
 		...(data.config !== undefined && { config: data.config }),
+		...(data.systemToolsEnabled !== undefined && { systemToolsEnabled: data.systemToolsEnabled }),
 		...(data.status !== undefined && { status: data.status }),
 	}
 
@@ -770,6 +772,7 @@ app.openapi(deployAgentRoute, async (c) => {
 			name: existing.name,
 			instructions: existing.instructions,
 			model: existing.model,
+			systemToolsEnabled: existing.systemToolsEnabled,
 		}),
 	})
 

@@ -105,7 +105,7 @@ for await (const chunk of response.textStream) {
 	{
 		step: 4,
 		title: 'Deploy',
-		description: 'Your agent runs on Cloudflare\'s edge network.',
+		description: "Your agent runs on Cloudflare's edge network.",
 		code: `wrangler deploy`,
 	},
 ]
