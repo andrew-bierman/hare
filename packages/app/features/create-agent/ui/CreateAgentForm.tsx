@@ -13,6 +13,7 @@ import { Checkbox } from '@hare/ui/components/checkbox'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@hare/ui/components/collapsible'
 import { Input } from '@hare/ui/components/input'
 import { Label } from '@hare/ui/components/label'
+import { Switch } from '@hare/ui/components/switch'
 import {
 	Select,
 	SelectContent,
@@ -56,6 +57,7 @@ export function CreateAgentForm({ workspaceId, templateId }: CreateAgentFormProp
 	const [description, setDescription] = useState('')
 	const [model, setModel] = useState('@cf/meta/llama-3.3-70b-instruct-fp8-fast')
 	const [instructions, setInstructions] = useState('')
+	const [systemToolsEnabled, setSystemToolsEnabled] = useState(true)
 	const [selectedToolIds, setSelectedToolIds] = useState<string[]>([])
 	const [responseStyle, setResponseStyle] = useState<ResponseStyle>('balanced')
 	const [config, setConfig] = useState<AgentConfig>({
@@ -66,6 +68,7 @@ export function CreateAgentForm({ workspaceId, templateId }: CreateAgentFormProp
 	const [toolsOpen, setToolsOpen] = useState(false)
 
 	const tools = toolsData?.tools ?? []
+	const customTools = tools.filter((t) => !t.isSystem)
 
 	// Initialize form with template values
 	useEffect(() => {
@@ -134,6 +137,7 @@ export function CreateAgentForm({ workspaceId, templateId }: CreateAgentFormProp
 				description: description.trim() || undefined,
 				model,
 				instructions: instructions.trim() || undefined,
+				systemToolsEnabled,
 				toolIds: selectedToolIds.length > 0 ? selectedToolIds : undefined,
 				config: {
 					temperature: config.temperature,
@@ -251,13 +255,13 @@ export function CreateAgentForm({ workspaceId, templateId }: CreateAgentFormProp
 									<div className="text-left">
 										<CardTitle className="flex items-center gap-2">
 											Tools & Capabilities
-											{selectedToolIds.length > 0 && (
+											{(systemToolsEnabled || selectedToolIds.length > 0) && (
 												<span className="text-xs font-normal text-muted-foreground">
-													({selectedToolIds.length} selected)
+													({systemToolsEnabled ? '50+ system' : ''}{systemToolsEnabled && selectedToolIds.length > 0 ? ' + ' : ''}{selectedToolIds.length > 0 ? `${selectedToolIds.length} custom` : ''})
 												</span>
 											)}
 										</CardTitle>
-										<CardDescription>Enable additional tools for your agent</CardDescription>
+										<CardDescription>Enable tools for your agent</CardDescription>
 									</div>
 									<ChevronDown
 										className={cn(
@@ -269,14 +273,33 @@ export function CreateAgentForm({ workspaceId, templateId }: CreateAgentFormProp
 							</CardHeader>
 						</CollapsibleTrigger>
 						<CollapsibleContent>
-							<CardContent>
-								{tools.length === 0 ? (
+							<CardContent className="space-y-4">
+								{/* System Tools Toggle */}
+								<div className="flex items-center justify-between rounded-lg border p-4">
+									<div className="space-y-0.5">
+										<Label htmlFor="system-tools" className="text-base">
+											Include System Tools
+										</Label>
+										<p className="text-sm text-muted-foreground">
+											Adds 50+ built-in tools for storage, HTTP, AI, data processing, and more.
+										</p>
+									</div>
+									<Switch
+										id="system-tools"
+										checked={systemToolsEnabled}
+										onCheckedChange={setSystemToolsEnabled}
+									/>
+								</div>
+
+								{/* Custom Tools */}
+								{customTools.length === 0 ? (
 									<p className="text-sm text-muted-foreground">
-										No tools available. Tools will be automatically created when you deploy.
+										No custom tools available. You can add custom tools after creating the agent.
 									</p>
 								) : (
 									<div className="space-y-3">
-										{tools.map((tool) => (
+										<Label className="text-sm font-medium">Custom Tools</Label>
+										{customTools.map((tool) => (
 											<div key={tool.id} className="flex items-start space-x-3">
 												<Checkbox
 													id={tool.id}
@@ -289,9 +312,6 @@ export function CreateAgentForm({ workspaceId, templateId }: CreateAgentFormProp
 														className="text-sm font-medium leading-none cursor-pointer"
 													>
 														{tool.name}
-														{tool.isSystem && (
-															<span className="ml-2 text-xs text-muted-foreground">(System)</span>
-														)}
 													</label>
 													<p className="text-xs text-muted-foreground">{tool.description}</p>
 												</div>

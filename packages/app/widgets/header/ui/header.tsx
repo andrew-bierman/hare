@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Button } from '@hare/ui/components/button'
-import { Menu, Rabbit, Search } from 'lucide-react'
+import { Menu, Rabbit, SearchIcon } from 'lucide-react'
 import { APP_CONFIG } from '@hare/config'
 import { CommandSearch } from './command-search'
 
@@ -61,7 +61,7 @@ export function Header({ Link, UserNav, onMobileMenuToggle, onNavigate }: Header
 							className="w-full justify-start text-sm text-muted-foreground h-10 bg-muted/50 border-transparent hover:bg-muted hover:border-border"
 							onClick={() => setOpen(true)}
 						>
-							<Search className="mr-2 h-4 w-4" />
+							<SearchIcon className="mr-2 h-4 w-4" />
 							<span className="flex-1 text-left">Search agents, tools, pages...</span>
 							<kbd className="pointer-events-none hidden sm:inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground">
 								<span className="text-xs">&#8984;</span>K
@@ -81,7 +81,7 @@ export function Header({ Link, UserNav, onMobileMenuToggle, onNavigate }: Header
 							className="md:hidden h-10 w-10"
 							onClick={() => setOpen(true)}
 						>
-							<Search className="h-5 w-5" />
+							<SearchIcon className="h-5 w-5" />
 						</Button>
 
 						{/* User nav */}

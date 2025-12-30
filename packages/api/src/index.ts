@@ -140,6 +140,7 @@ app.doc('/openapi.json', {
 app.get(
 	'/docs',
 	apiReference({
+		url: '/api/openapi.json',
 		theme: 'kepler',
 		layout: 'modern',
 		defaultHttpClient: {

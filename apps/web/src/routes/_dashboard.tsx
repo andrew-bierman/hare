@@ -9,9 +9,23 @@ import {
 	UserNav,
 	WorkspaceSwitcher,
 } from '@hare/app/widgets'
-import { createFileRoute, Link, Outlet, useLocation, useNavigate } from '@tanstack/react-router'
+import {
+	createFileRoute,
+	Link,
+	Outlet,
+	redirect,
+	useLocation,
+	useNavigate,
+} from '@tanstack/react-router'
 
 export const Route = createFileRoute('/_dashboard')({
+	beforeLoad: ({ context }) => {
+		// Use auth context from root route - no duplicate network calls
+		// Auth is already fetched in __root.tsx beforeLoad
+		if (!context.auth.isAuthenticated) {
+			throw redirect({ to: '/sign-in' })
+		}
+	},
 	component: DashboardLayout,
 	errorComponent: DashboardErrorComponent,
 	notFoundComponent: DashboardNotFound,
