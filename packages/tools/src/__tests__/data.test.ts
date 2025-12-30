@@ -10,6 +10,7 @@ import {
 	getDataTools,
 } from '../data'
 import type { ToolContext } from '../types'
+import { createFetchMock, expectResultData, ResultSchemas } from './test-utils'
 
 const originalFetch = globalThis.fetch
 
@@ -80,16 +81,16 @@ describe('Data Tools', () => {
 						</rss>
 					`,
 				})
-				globalThis.fetch = mockFetch
+				globalThis.fetch = createFetchMock(mockFetch)
 
 				const result = await rssTool.execute(
 					{ url: 'https://example.com/feed.xml', limit: 10, includeContent: false },
 					context,
 				)
 
-				expect(result.success).toBe(true)
-				expect(result.data?.type).toBe('rss')
-				expect(result.data?.items).toHaveLength(1)
+				const data = expectResultData(result, ResultSchemas.validation)
+				expect(data.type).toBe('rss')
+				expect(data.items).toHaveLength(1)
 			})
 
 			it('handles fetch errors', async () => {
@@ -98,7 +99,7 @@ describe('Data Tools', () => {
 					status: 404,
 					statusText: 'Not Found',
 				})
-				globalThis.fetch = mockFetch
+				globalThis.fetch = createFetchMock(mockFetch)
 
 				const result = await rssTool.execute(
 					{ url: 'https://example.com/feed.xml', limit: 10, includeContent: false },
@@ -147,7 +148,7 @@ describe('Data Tools', () => {
 					ok: true,
 					text: async () => '<html><body><p>Hello World</p></body></html>',
 				})
-				globalThis.fetch = mockFetch
+				globalThis.fetch = createFetchMock(mockFetch)
 
 				const result = await scrapeTool.execute(
 					{ url: 'https://example.com', extract: 'text', maxLength: 10000, timeout: 10000 },
@@ -155,7 +156,7 @@ describe('Data Tools', () => {
 				)
 
 				expect(result.success).toBe(true)
-				expect(result.data?.text).toContain('Hello World')
+				expect((result.data as Record<string, unknown>)?.text).toContain('Hello World')
 			})
 
 			it('extracts links from page', async () => {
@@ -163,7 +164,7 @@ describe('Data Tools', () => {
 					ok: true,
 					text: async () => '<html><body><a href="https://test.com">Link</a></body></html>',
 				})
-				globalThis.fetch = mockFetch
+				globalThis.fetch = createFetchMock(mockFetch)
 
 				const result = await scrapeTool.execute(
 					{ url: 'https://example.com', extract: 'links', maxLength: 10000, timeout: 10000 },
@@ -171,8 +172,9 @@ describe('Data Tools', () => {
 				)
 
 				expect(result.success).toBe(true)
-				expect(result.data?.links).toHaveLength(1)
-				expect(result.data?.links[0].href).toBe('https://test.com')
+				const data = result.data as unknown as Record<string, { href: string }[]>
+				expect(data?.links).toHaveLength(1)
+				expect(data?.links[0].href).toBe('https://test.com')
 			})
 
 			it('extracts meta tags', async () => {
@@ -188,7 +190,7 @@ describe('Data Tools', () => {
 						</html>
 					`,
 				})
-				globalThis.fetch = mockFetch
+				globalThis.fetch = createFetchMock(mockFetch)
 
 				const result = await scrapeTool.execute(
 					{ url: 'https://example.com', extract: 'meta', maxLength: 10000, timeout: 10000 },
@@ -196,8 +198,9 @@ describe('Data Tools', () => {
 				)
 
 				expect(result.success).toBe(true)
-				expect(result.data?.meta?.title).toBe('Test Page')
-				expect(result.data?.meta?.description).toBe('Test description')
+				const data = result.data as unknown as Record<string, Record<string, string>>
+				expect(data?.meta?.title).toBe('Test Page')
+				expect(data?.meta?.description).toBe('Test description')
 			})
 		})
 	})
@@ -235,7 +238,7 @@ describe('Data Tools', () => {
 					context,
 				)
 				expect(result.success).toBe(true)
-				expect(result.data?.matches).toBe(true)
+				expect((result.data as Record<string, unknown>)?.matches).toBe(true)
 			})
 
 			it('tests pattern no match', async () => {
@@ -244,7 +247,7 @@ describe('Data Tools', () => {
 					context,
 				)
 				expect(result.success).toBe(true)
-				expect(result.data?.matches).toBe(false)
+				expect((result.data as Record<string, unknown>)?.matches).toBe(false)
 			})
 		})
 
@@ -255,7 +258,7 @@ describe('Data Tools', () => {
 					context,
 				)
 				expect(result.success).toBe(true)
-				expect(result.data?.matches).toHaveLength(3)
+				expect((result.data as Record<string, unknown[]>)?.matches).toHaveLength(3)
 			})
 		})
 
@@ -272,7 +275,7 @@ describe('Data Tools', () => {
 					context,
 				)
 				expect(result.success).toBe(true)
-				expect(result.data?.result).toBe('hello there')
+				expect((result.data as Record<string, unknown>)?.result).toBe('hello there')
 			})
 		})
 
@@ -289,9 +292,10 @@ describe('Data Tools', () => {
 					context,
 				)
 				expect(result.success).toBe(true)
-				expect(result.data?.extracted).toHaveLength(2)
-				expect(result.data?.extracted[0].user).toBe('user')
-				expect(result.data?.extracted[0].domain).toBe('example.com')
+				const data = result.data as Record<string, Record<string, string>[]>
+				expect(data?.extracted).toHaveLength(2)
+				expect(data?.extracted[0].user).toBe('user')
+				expect(data?.extracted[0].domain).toBe('example.com')
 			})
 		})
 
@@ -336,8 +340,9 @@ describe('Data Tools', () => {
 					context,
 				)
 				expect(result.success).toBe(true)
-				expect(result.data?.key).toBeDefined()
-				expect(result.data?.algorithm).toBe('AES-GCM')
+				const data = result.data as Record<string, unknown>
+				expect(data?.key).toBeDefined()
+				expect(data?.algorithm).toBe('AES-GCM')
 			})
 
 			it('generates random bytes', async () => {
@@ -346,9 +351,10 @@ describe('Data Tools', () => {
 					context,
 				)
 				expect(result.success).toBe(true)
-				expect(result.data?.hex).toBeDefined()
-				expect(result.data?.base64).toBeDefined()
-				expect(result.data?.bytes).toBe(16)
+				const data = result.data as Record<string, unknown>
+				expect(data?.hex).toBeDefined()
+				expect(data?.base64).toBeDefined()
+				expect(data?.bytes).toBe(16)
 			})
 
 			it('encrypts and decrypts data', async () => {
@@ -357,7 +363,8 @@ describe('Data Tools', () => {
 					{ operation: 'generateKey', bytes: 32 },
 					context,
 				)
-				const key = keyResult.data?.key
+				const keyData = keyResult.data as Record<string, unknown>
+				const key = keyData?.key as string
 
 				// Encrypt
 				const encryptResult = await cryptoTool.execute(
@@ -365,20 +372,21 @@ describe('Data Tools', () => {
 					context,
 				)
 				expect(encryptResult.success).toBe(true)
+				const encryptData = encryptResult.data as Record<string, string>
 
 				// Decrypt
 				const decryptResult = await cryptoTool.execute(
 					{
 						operation: 'decrypt',
-						data: encryptResult.data?.encrypted,
+						data: encryptData?.encrypted,
 						key,
-						iv: encryptResult.data?.iv,
+						iv: encryptData?.iv,
 						bytes: 32,
 					},
 					context,
 				)
 				expect(decryptResult.success).toBe(true)
-				expect(decryptResult.data?.decrypted).toBe('secret message')
+				expect((decryptResult.data as Record<string, unknown>)?.decrypted).toBe('secret message')
 			})
 		})
 	})
@@ -411,9 +419,9 @@ describe('Data Tools', () => {
 					},
 					context,
 				)
-				expect(result.success).toBe(true)
-				expect(result.data?.valid).toBe(true)
-				expect(result.data?.errors).toHaveLength(0)
+				const data = expectResultData(result, ResultSchemas.validation)
+				expect(data.valid).toBe(true)
+				expect(data.errors).toHaveLength(0)
 			})
 
 			it('detects type errors', async () => {
@@ -427,9 +435,9 @@ describe('Data Tools', () => {
 					},
 					context,
 				)
-				expect(result.success).toBe(true)
-				expect(result.data?.valid).toBe(false)
-				expect(result.data?.errors.length).toBeGreaterThan(0)
+				const data = expectResultData(result, ResultSchemas.validation)
+				expect(data.valid).toBe(false)
+				expect(data.errors?.length).toBeGreaterThan(0)
 			})
 
 			it('detects missing required fields', async () => {
@@ -443,8 +451,8 @@ describe('Data Tools', () => {
 					},
 					context,
 				)
-				expect(result.success).toBe(true)
-				expect(result.data?.valid).toBe(false)
+				const data = expectResultData(result, ResultSchemas.validation)
+				expect(data.valid).toBe(false)
 			})
 
 			it('validates string constraints', async () => {
@@ -458,8 +466,8 @@ describe('Data Tools', () => {
 					},
 					context,
 				)
-				expect(result.success).toBe(true)
-				expect(result.data?.valid).toBe(false)
+				const data = expectResultData(result, ResultSchemas.validation)
+				expect(data.valid).toBe(false)
 			})
 
 			it('validates number constraints', async () => {
@@ -473,8 +481,8 @@ describe('Data Tools', () => {
 					},
 					context,
 				)
-				expect(result.success).toBe(true)
-				expect(result.data?.valid).toBe(false)
+				const data = expectResultData(result, ResultSchemas.validation)
+				expect(data.valid).toBe(false)
 			})
 
 			it('validates enum values', async () => {
@@ -488,8 +496,8 @@ describe('Data Tools', () => {
 					},
 					context,
 				)
-				expect(result.success).toBe(true)
-				expect(result.data?.valid).toBe(false)
+				const data = expectResultData(result, ResultSchemas.validation)
+				expect(data.valid).toBe(false)
 			})
 		})
 	})
@@ -523,14 +531,15 @@ describe('Data Tools', () => {
 					{
 						operation: 'parse',
 						data: 'name,age\nJohn,30\nJane,25',
-						options: { headers: true, delimiter: ',' },
+						options: { headers: true, delimiter: ',', skipEmptyLines: false },
 					},
 					context,
 				)
 				expect(result.success).toBe(true)
-				expect(result.data?.data).toHaveLength(2)
-				expect(result.data?.data[0].name).toBe('John')
-				expect(result.data?.data[0].age).toBe('30')
+				const data = result.data as { data: Record<string, string>[] }
+				expect(data?.data).toHaveLength(2)
+				expect(data?.data[0].name).toBe('John')
+				expect(data?.data[0].age).toBe('30')
 			})
 
 			it('handles custom delimiter', async () => {
@@ -538,12 +547,13 @@ describe('Data Tools', () => {
 					{
 						operation: 'parse',
 						data: 'name;age\nJohn;30',
-						options: { delimiter: ';', headers: true },
+						options: { delimiter: ';', headers: true, skipEmptyLines: false },
 					},
 					context,
 				)
 				expect(result.success).toBe(true)
-				expect(result.data?.data[0].name).toBe('John')
+				const data = result.data as { data: Record<string, string>[] }
+				expect(data?.data[0].name).toBe('John')
 			})
 
 			it('handles quoted values', async () => {
@@ -551,12 +561,13 @@ describe('Data Tools', () => {
 					{
 						operation: 'parse',
 						data: 'name,bio\n"John","Hello, World"',
-						options: { headers: true, delimiter: ',' },
+						options: { headers: true, delimiter: ',', skipEmptyLines: false },
 					},
 					context,
 				)
 				expect(result.success).toBe(true)
-				expect(result.data?.data[0].bio).toBe('Hello, World')
+				const data = result.data as { data: Record<string, string>[] }
+				expect(data?.data[0].bio).toBe('Hello, World')
 			})
 		})
 
@@ -569,13 +580,14 @@ describe('Data Tools', () => {
 							{ name: 'John', age: 30 },
 							{ name: 'Jane', age: 25 },
 						],
-						options: { headers: true, delimiter: ',' },
+						options: { headers: true, delimiter: ',', skipEmptyLines: false },
 					},
 					context,
 				)
 				expect(result.success).toBe(true)
-				expect(result.data?.csv).toContain('name,age')
-				expect(result.data?.csv).toContain('John,30')
+				const data = result.data as { csv: string }
+				expect(data?.csv).toContain('name,age')
+				expect(data?.csv).toContain('John,30')
 			})
 
 			it('escapes special characters', async () => {
@@ -583,12 +595,13 @@ describe('Data Tools', () => {
 					{
 						operation: 'stringify',
 						data: [{ name: 'John, Jr.', bio: 'Hello "World"' }],
-						options: { headers: true, delimiter: ',' },
+						options: { headers: true, delimiter: ',', skipEmptyLines: false },
 					},
 					context,
 				)
 				expect(result.success).toBe(true)
-				expect(result.data?.csv).toContain('"John, Jr."')
+				const data = result.data as { csv: string }
+				expect(data?.csv).toContain('"John, Jr."')
 			})
 		})
 	})
@@ -617,8 +630,8 @@ describe('Data Tools', () => {
 					},
 					context,
 				)
-				expect(result.success).toBe(true)
-				expect(result.data?.result).toBe('Hello World!')
+				const data = expectResultData(result, ResultSchemas.template)
+				expect(data.result).toBe('Hello World!')
 			})
 
 			it('handles nested variables', async () => {
@@ -629,8 +642,8 @@ describe('Data Tools', () => {
 					},
 					context,
 				)
-				expect(result.success).toBe(true)
-				expect(result.data?.result).toBe('John is 30 years old')
+				const data = expectResultData(result, ResultSchemas.template)
+				expect(data.result).toBe('John is 30 years old')
 			})
 
 			it('handles missing variables with empty string', async () => {
@@ -638,13 +651,13 @@ describe('Data Tools', () => {
 					{
 						template: 'Hello {{name}}{{missing}}!',
 						variables: { name: 'World' },
-						options: { missingBehavior: 'empty' },
+						options: { missingBehavior: 'empty', escapeHtml: false },
 					},
 					context,
 				)
-				expect(result.success).toBe(true)
-				expect(result.data?.result).toBe('Hello World!')
-				expect(result.data?.missingVariables).toContain('missing')
+				const data = expectResultData(result, ResultSchemas.template)
+				expect(data.result).toBe('Hello World!')
+				expect(data.missingVariables).toContain('missing')
 			})
 
 			it('keeps missing variables when configured', async () => {
@@ -652,12 +665,12 @@ describe('Data Tools', () => {
 					{
 						template: 'Hello {{name}}!',
 						variables: {},
-						options: { missingBehavior: 'keep' },
+						options: { missingBehavior: 'keep', escapeHtml: false },
 					},
 					context,
 				)
-				expect(result.success).toBe(true)
-				expect(result.data?.result).toBe('Hello {{name}}!')
+				const data = expectResultData(result, ResultSchemas.template)
+				expect(data.result).toBe('Hello {{name}}!')
 			})
 
 			it('escapes HTML when configured', async () => {
@@ -665,13 +678,13 @@ describe('Data Tools', () => {
 					{
 						template: '{{content}}',
 						variables: { content: '<script>alert("xss")</script>' },
-						options: { escapeHtml: true },
+						options: { escapeHtml: true, missingBehavior: 'empty' },
 					},
 					context,
 				)
-				expect(result.success).toBe(true)
-				expect(result.data?.result).not.toContain('<script>')
-				expect(result.data?.result).toContain('&lt;script&gt;')
+				const data = expectResultData(result, ResultSchemas.template)
+				expect(data.result).not.toContain('<script>')
+				expect(data.result).toContain('&lt;script&gt;')
 			})
 		})
 	})

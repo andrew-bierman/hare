@@ -339,7 +339,7 @@ describe('KV Tools', () => {
 				mockKV._storage.set('ws/test-workspace/key1', { value: 'v1' })
 				mockKV._storage.set('ws/test-workspace/key2', { value: 'v2' })
 
-				const result = await kvListTool.execute({}, context)
+				const result = await kvListTool.execute({ limit: 100 }, context)
 
 				expect(result.success).toBe(true)
 				expect(mockKV.list).toHaveBeenCalledWith(
@@ -350,7 +350,7 @@ describe('KV Tools', () => {
 			})
 
 			it('filters by prefix within workspace', async () => {
-				const result = await kvListTool.execute({ prefix: 'users/' }, context)
+				const result = await kvListTool.execute({ prefix: 'users/', limit: 100 }, context)
 
 				expect(result.success).toBe(true)
 				expect(mockKV.list).toHaveBeenCalledWith(
@@ -380,7 +380,7 @@ describe('KV Tools', () => {
 					list_complete: true,
 				})
 
-				const result = await kvListTool.execute({}, context)
+				const result = await kvListTool.execute({ limit: 100 }, context)
 
 				expect(result.success).toBe(true)
 				expect(result.data?.keys).toEqual([
@@ -393,7 +393,7 @@ describe('KV Tools', () => {
 				const contextWithoutKV = createMockContext()
 				contextWithoutKV.env.KV = undefined as unknown as KVNamespace
 
-				const result = await kvListTool.execute({}, contextWithoutKV)
+				const result = await kvListTool.execute({ limit: 100 }, contextWithoutKV)
 
 				expect(result.success).toBe(false)
 				expect(result.error).toBe('KV namespace not available')

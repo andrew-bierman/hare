@@ -89,16 +89,23 @@ export interface Tool<TInput = unknown, TOutput = unknown> extends AnyTool {
 /**
  * Create a type-safe tool definition.
  *
+ * Uses Zod's input type for the execute parameter, allowing optional fields
+ * with defaults to be omitted when calling the tool.
+ *
  * @example
  * ```ts
  * const myTool = createTool({
  *   id: 'my-tool',
  *   description: 'Does something useful',
- *   inputSchema: z.object({ query: z.string() }),
+ *   inputSchema: z.object({ query: z.string(), limit: z.number().default(10) }),
  *   execute: async (params, ctx) => {
+ *     // params.limit is number (default applied by Zod)
  *     return success({ result: 'done' })
  *   }
  * })
+ *
+ * // Can call without limit (it has a default)
+ * await myTool.execute({ query: 'hello' }, ctx)
  * ```
  */
 export function createTool<TInput, TOutput = unknown>(config: {

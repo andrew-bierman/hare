@@ -1,6 +1,7 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest'
 import { recallMemoryTool, storeMemoryTool, getMemoryTools } from '../memory'
 import type { ToolContext } from '../types'
+import { expectResultData, ResultSchemas } from './test-utils'
 
 // Mock AI binding for embedding generation
 const createMockAI = () => ({
@@ -154,8 +155,8 @@ describe('Memory Tools', () => {
 				)
 
 				expect(result.success).toBe(true)
-				expect(result.data?.found).toBe(true)
-				expect(result.data?.memories).toHaveLength(2)
+				expect((result.data as Record<string, unknown>)?.found).toBe(true)
+				expect((result.data as Record<string, unknown[]>)?.memories).toHaveLength(2)
 			})
 
 			it('returns formatted memories', async () => {
@@ -165,7 +166,7 @@ describe('Memory Tools', () => {
 				)
 
 				expect(result.success).toBe(true)
-				const memory = result.data?.memories[0]
+				const memory = ((result.data as Record<string, unknown[]>)?.memories)?.[0]
 				expect(memory).toHaveProperty('id')
 				expect(memory).toHaveProperty('content')
 				expect(memory).toHaveProperty('type')
@@ -186,7 +187,7 @@ describe('Memory Tools', () => {
 
 			it('handles no results', async () => {
 				const emptyContext = createMockContext()
-				;(emptyContext.env.VECTORIZE as { query: ReturnType<typeof vi.fn> }).query.mockResolvedValueOnce({ matches: [] })
+				;(emptyContext.env.VECTORIZE as unknown as { query: ReturnType<typeof vi.fn> }).query.mockResolvedValueOnce({ matches: [] })
 
 				const result = await recallMemoryTool.execute(
 					{ query: 'nonexistent topic', topK: 5 },
@@ -194,8 +195,8 @@ describe('Memory Tools', () => {
 				)
 
 				expect(result.success).toBe(true)
-				expect(result.data?.found).toBe(false)
-				expect(result.data?.memories).toHaveLength(0)
+				expect((result.data as Record<string, unknown>)?.found).toBe(false)
+				expect((result.data as Record<string, unknown[]>)?.memories).toHaveLength(0)
 			})
 
 			it('fails when AI binding is not available', async () => {
@@ -310,14 +311,14 @@ describe('Memory Tools', () => {
 					context,
 				)
 
-				expect(result.success).toBe(true)
-				expect(result.data?.stored).toBe(true)
-				expect(result.data?.memoryId).toBeDefined()
+				const data = expectResultData(result, ResultSchemas.storeMemory)
+				expect(data.stored).toBe(true)
+				expect(data.memoryId).toBeDefined()
 			})
 
 			it('generates embedding for content', async () => {
 				await storeMemoryTool.execute(
-					{ content: 'Important fact to remember' },
+					{ content: 'Important fact to remember', type: 'fact' },
 					context,
 				)
 
@@ -356,20 +357,22 @@ describe('Memory Tools', () => {
 
 			it('generates unique memory IDs', async () => {
 				const result1 = await storeMemoryTool.execute(
-					{ content: 'Memory 1' },
+					{ content: 'Memory 1', type: 'custom' },
 					context,
 				)
 				const result2 = await storeMemoryTool.execute(
-					{ content: 'Memory 2' },
+					{ content: 'Memory 2', type: 'custom' },
 					context,
 				)
 
-				expect(result1.data?.memoryId).not.toBe(result2.data?.memoryId)
+				const data1 = expectResultData(result1, ResultSchemas.storeMemory)
+				const data2 = expectResultData(result2, ResultSchemas.storeMemory)
+				expect(data1.memoryId).not.toBe(data2.memoryId)
 			})
 
 			it('includes timestamp in metadata', async () => {
 				await storeMemoryTool.execute(
-					{ content: 'Test content' },
+					{ content: 'Test content', type: 'custom' },
 					context,
 				)
 
@@ -384,19 +387,19 @@ describe('Memory Tools', () => {
 
 			it('uses default type when not specified', async () => {
 				const result = await storeMemoryTool.execute(
-					{ content: 'Content without type' },
+					{ content: 'Content without type', type: 'custom' },
 					context,
 				)
 
-				expect(result.success).toBe(true)
-				expect(result.data?.type).toBe('custom')
+				const data = expectResultData(result, ResultSchemas.storeMemory)
+				expect(data.type).toBe('custom')
 			})
 
 			it('fails when AI binding is not available', async () => {
 				const contextWithoutAI = createMockContext(false, true)
 
 				const result = await storeMemoryTool.execute(
-					{ content: 'test' },
+					{ content: 'test', type: 'custom' },
 					contextWithoutAI,
 				)
 
@@ -408,7 +411,7 @@ describe('Memory Tools', () => {
 				const contextWithoutVectorize = createMockContext(true, false)
 
 				const result = await storeMemoryTool.execute(
-					{ content: 'test' },
+					{ content: 'test', type: 'custom' },
 					contextWithoutVectorize,
 				)
 

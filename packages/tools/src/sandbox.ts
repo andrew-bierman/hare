@@ -467,7 +467,7 @@ print(json.dumps({"sum": sum(data), "avg": sum(data)/len(data)}))
 			.describe('Programming language (bash is disabled for security)'),
 		timeout: z.number().min(1000).max(30000).optional().default(30000).describe('Timeout in ms'),
 	}),
-	execute: async (input, context) => {
+	execute: async (input, context): Promise<ToolResult<unknown>> => {
 		return executeSandboxed(input.code, input.language, context, {
 			timeout: input.timeout,
 		})
