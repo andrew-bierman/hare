@@ -6,6 +6,14 @@
 	"compatibility_date": "2025-12-01",
 	"compatibility_flags": ["nodejs_compat"],
 
+  // Environment variables (non-secret)
+  // Secrets (BETTER_AUTH_SECRET, STRIPE_SECRET_KEY, etc.) must be set via:
+  //   wrangler secret put <SECRET_NAME>
+  "vars": {
+    "ENVIRONMENT": "production",
+    "APP_URL": "https://hare.abbierman101.workers.dev"
+  },
+
   // Self-reference for caching
   "services": [
     {
