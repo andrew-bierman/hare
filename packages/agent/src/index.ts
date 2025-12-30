@@ -7,7 +7,7 @@
  * @example
  * ```ts
  * // Universal imports (safe anywhere)
- * import { EdgeAgent, createEdgeAgent } from '@hare/agent'
+ * import { HareEdgeAgent, createHareEdgeAgent } from '@hare/agent'
  *
  * // Workers-only imports
  * import { HareAgent, HareMcpAgent } from '@hare/agent/workers'
@@ -29,7 +29,7 @@ export type {
 export { DEFAULT_HARE_AGENT_STATE, DEFAULT_MCP_AGENT_STATE } from '@hare/types'
 
 // Edge Agent (universal - no cloudflare:workers dependency)
-export { EdgeAgent, createEdgeAgent } from './edge-agent'
+export { HareEdgeAgent, createHareEdgeAgent, EdgeAgent, createEdgeAgent } from './edge-agent'
 export type { AgentTool, AgentOptions, AgentStreamResponse } from './edge-agent'
 
 // Router utilities (universal)

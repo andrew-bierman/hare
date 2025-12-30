@@ -42,9 +42,9 @@ export interface AgentStreamResponse {
  *
  * @example
  * ```ts
- * import { EdgeAgent } from '@hare/agent'
+ * import { HareEdgeAgent } from 'hare'
  *
- * const agent = new EdgeAgent({
+ * const agent = new HareEdgeAgent({
  *   name: 'My Agent',
  *   instructions: 'You are a helpful assistant.',
  *   model: 'llama-3.3-70b',
@@ -60,7 +60,7 @@ export interface AgentStreamResponse {
  * }
  * ```
  */
-export class EdgeAgent {
+export class HareEdgeAgent {
 	readonly name: string
 	readonly instructions: string
 	readonly model: LanguageModel
@@ -176,6 +176,12 @@ export class EdgeAgent {
 /**
  * Create a new Edge-compatible agent.
  */
-export function createEdgeAgent(options: AgentOptions): EdgeAgent {
-	return new EdgeAgent(options)
+export function createHareEdgeAgent(options: AgentOptions): HareEdgeAgent {
+	return new HareEdgeAgent(options)
 }
+
+// Backwards compatibility aliases
+/** @deprecated Use HareEdgeAgent instead */
+export const EdgeAgent = HareEdgeAgent
+/** @deprecated Use createHareEdgeAgent instead */
+export const createEdgeAgent = createHareEdgeAgent

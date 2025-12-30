@@ -300,6 +300,36 @@
         "drizzle-zod": "^0.8.0",
       },
     },
+    "packages/sdk": {
+      "name": "hare",
+      "version": "0.1.0",
+      "dependencies": {
+        "@hare/agent": "workspace:*",
+        "@hare/tools": "workspace:*",
+        "@hare/types": "workspace:*",
+      },
+      "devDependencies": {
+        "@cloudflare/workers-types": "^4.20251224.0",
+        "@hare/typescript-config": "workspace:*",
+        "@modelcontextprotocol/sdk": "^1.25.1",
+        "agents": "^0.3.0",
+        "ai": "^6.0.3",
+        "drizzle-orm": "^0.45.1",
+        "typescript": "^5",
+        "zod": "^4.2.1",
+      },
+      "peerDependencies": {
+        "@modelcontextprotocol/sdk": "^1.23.0",
+        "agents": "^0.3.0",
+        "ai": "^6.0.0",
+        "drizzle-orm": "^0.45.0",
+        "zod": "^4.0.0",
+      },
+      "optionalPeers": [
+        "@modelcontextprotocol/sdk",
+        "drizzle-orm",
+      ],
+    },
     "packages/security": {
       "name": "@hare/security",
       "version": "0.1.0",
@@ -1497,6 +1527,8 @@
     "graceful-fs": ["graceful-fs@4.2.11", "", {}, "sha512-RbJ5/jmFcNNCcDV5o9eTnBLJ/HszWV0P73bc+Ff4nS/rJj+YaS6IGyiOL0VoBYX+l1Wrl3k63h/KrH+nhJ0XvQ=="],
 
     "h3-v2": ["h3@2.0.1-rc.6", "", { "dependencies": { "rou3": "^0.7.10", "srvx": "^0.9.7" }, "peerDependencies": { "crossws": "^0.4.1" }, "optionalPeers": ["crossws"] }, "sha512-kKLFVFNJlDVTbQjakz1ZTFSHB9+oi9+Khf0v7xQsUKU3iOqu2qmrFzTD56YsDvvj2nBgqVDphGRXB2VRursw4w=="],
+
+    "hare": ["hare@workspace:packages/sdk"],
 
     "hare-tauri": ["hare-tauri@workspace:apps/tauri"],
 

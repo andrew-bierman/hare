@@ -1,0 +1,71 @@
+{
+	"name": "hare",
+	"version": "0.1.0",
+	"description": "Hare SDK - Build AI agents on Cloudflare's edge network",
+	"keywords": [
+		"cloudflare",
+		"workers",
+		"ai",
+		"agent",
+		"sdk",
+		"llm",
+		"tools",
+		"mcp"
+	],
+	"license": "MIT",
+	"type": "module",
+	"exports": {
+		".": {
+			"types": "./src/index.ts",
+			"import": "./src/index.ts"
+		},
+		"./workers": {
+			"types": "./src/workers.ts",
+			"import": "./src/workers.ts"
+		},
+		"./tools": {
+			"types": "./src/tools.ts",
+			"import": "./src/tools.ts"
+		},
+		"./types": {
+			"types": "./src/types.ts",
+			"import": "./src/types.ts"
+		}
+	},
+	"main": "./src/index.ts",
+	"types": "./src/index.ts",
+	"files": [
+		"src",
+		"README.md"
+	],
+	"dependencies": {
+		"@hare/agent": "workspace:*",
+		"@hare/tools": "workspace:*",
+		"@hare/types": "workspace:*"
+	},
+	"devDependencies": {
+		"@cloudflare/workers-types": "^4.20251224.0",
+		"@hare/typescript-config": "workspace:*",
+		"@modelcontextprotocol/sdk": "^1.25.1",
+		"agents": "^0.3.0",
+		"ai": "^6.0.3",
+		"drizzle-orm": "^0.45.1",
+		"typescript": "^5",
+		"zod": "^4.2.1"
+	},
+	"peerDependencies": {
+		"@modelcontextprotocol/sdk": "^1.23.0",
+		"agents": "^0.3.0",
+		"ai": "^6.0.0",
+		"drizzle-orm": "^0.45.0",
+		"zod": "^4.0.0"
+	},
+	"peerDependenciesMeta": {
+		"@modelcontextprotocol/sdk": {
+			"optional": true
+		},
+		"drizzle-orm": {
+			"optional": true
+		}
+	}
+}
