@@ -25,6 +25,7 @@ export interface SerializedAgent {
 		stopSequences?: string[]
 	}
 	status: 'draft' | 'deployed' | 'archived'
+	systemToolsEnabled: boolean
 	toolIds: string[]
 	createdAt: string
 	updatedAt: string
@@ -62,6 +63,7 @@ export function serializeAgent(options: SerializeAgentOptions): SerializedAgent 
 		instructions: agent.instructions || '',
 		config: agent.config || undefined,
 		status: agent.status,
+		systemToolsEnabled: agent.systemToolsEnabled,
 		toolIds,
 		createdAt: agent.createdAt.toISOString(),
 		updatedAt: agent.updatedAt.toISOString(),
