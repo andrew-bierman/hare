@@ -1,0 +1,109 @@
+---
+title: EdgeAgent
+description: Universal agent that works in any JavaScript environment
+---
+
+# EdgeAgent
+
+`EdgeAgent` is a lightweight, universal agent that works in any JavaScript environment - Edge, Node.js, or browser.
+
+## Usage
+
+```ts
+import { createEdgeAgent, createWorkersAIModel } from '@hare/agent'
+
+const agent = createEdgeAgent({
+  model: createWorkersAIModel({
+    modelId: '@cf/meta/llama-3.3-70b-instruct-fp8-fast',
+    ai: env.AI,
+  }),
+  systemPrompt: 'You are a helpful assistant.',
+  tools: myTools, // Optional
+})
+
+// Simple chat
+const response = await agent.chat('Hello!')
+console.log(response.text)
+
+// Streaming
+for await (const chunk of response.stream) {
+  process.stdout.write(chunk)
+}
+```
+
+## API Reference
+
+### createEdgeAgent
+
+Creates a new EdgeAgent instance.
+
+```ts
+function createEdgeAgent(options: AgentOptions): EdgeAgent
+```
+
+### AgentOptions
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `model` | `LanguageModel` | The AI model to use (from Vercel AI SDK) |
+| `systemPrompt` | `string` | System prompt for the agent |
+| `tools` | `AgentTool[]` | Optional array of tools |
+| `maxSteps` | `number` | Max tool call iterations (default: 10) |
+
+### AgentStreamResponse
+
+The response from `agent.chat()`:
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `text` | `Promise<string>` | Full response text |
+| `stream` | `AsyncIterable<string>` | Text chunks as they arrive |
+| `toolCalls` | `Promise<ToolCall[]>` | Tool calls made |
+| `toolResults` | `Promise<ToolResult[]>` | Results from tools |
+
+## Examples
+
+### With Tools
+
+```ts
+import { z } from 'zod'
+
+const weatherTool = {
+  name: 'get_weather',
+  description: 'Get current weather for a location',
+  parameters: z.object({
+    location: z.string().describe('City name'),
+  }),
+  execute: async ({ location }) => {
+    return { temperature: 72, condition: 'sunny' }
+  },
+}
+
+const agent = createEdgeAgent({
+  model: createWorkersAIModel({ modelId: '...', ai: env.AI }),
+  systemPrompt: 'You can check the weather.',
+  tools: [weatherTool],
+})
+
+const response = await agent.chat('What is the weather in San Francisco?')
+```
+
+### With Memory
+
+```ts
+import { createMemoryStore, toAgentMessages } from '@hare/agent'
+
+const memory = createMemoryStore({ db: env.DB })
+
+// Load conversation history
+const messages = await memory.getMessages({
+  conversationId: 'conv_123',
+  limit: 50,
+})
+
+const agent = createEdgeAgent({
+  model: createWorkersAIModel({ modelId: '...', ai: env.AI }),
+  systemPrompt: 'You are helpful.',
+  messages: toAgentMessages(messages),
+})
+```

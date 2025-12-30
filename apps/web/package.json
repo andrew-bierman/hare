@@ -4,6 +4,7 @@
 	"private": true,
 	"type": "module",
 	"scripts": {
+		"postinstall": "bun run scripts/generate-docs.ts",
 		"build": "vite build",
 		"cf-typegen": "wrangler types --env-interface CloudflareEnv ./cloudflare-env.d.ts",
 		"db:generate": "drizzle-kit generate",
@@ -71,6 +72,8 @@
 		"clsx": "^2.1.1",
 		"drizzle-orm": "^0.45.1",
 		"drizzle-zod": "^0.8.3",
+		"fumadocs-openapi": "^10.2.2",
+		"fumadocs-typescript": "^5.0.0",
 		"gpt-tokenizer": "^3.4.0",
 		"hono": "^4.11.3",
 		"lucide-react": "^0.562.0",

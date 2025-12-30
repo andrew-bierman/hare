@@ -1,0 +1,173 @@
+---
+title: HareMcpAgent
+description: Expose Hare tools via Model Context Protocol (MCP)
+---
+
+# HareMcpAgent
+
+`HareMcpAgent` implements the Model Context Protocol (MCP), allowing external AI clients like Claude Desktop or Cursor to use Hare's tools.
+
+**Workers-only**: This class requires the Cloudflare Workers runtime.
+
+## What is MCP?
+
+[Model Context Protocol](https://modelcontextprotocol.io) is an open standard for connecting AI assistants to external tools and data sources. With `HareMcpAgent`, you can:
+
+- Connect Claude Desktop to your Hare workspace
+- Use Hare tools from Cursor IDE
+- Integrate with any MCP-compatible client
+
+## Usage
+
+```ts
+import { HareMcpAgent } from '@hare/agent/workers'
+
+// Export as Durable Object
+export { HareMcpAgent }
+
+export default {
+  async fetch(request: Request, env: Env) {
+    const id = env.MCP_AGENT.idFromName('workspace-123')
+    const agent = env.MCP_AGENT.get(id)
+    return agent.fetch(request)
+  }
+}
+```
+
+## Wrangler Configuration
+
+```toml
+[[durable_objects.bindings]]
+name = "MCP_AGENT"
+class_name = "HareMcpAgent"
+
+[[migrations]]
+tag = "v1"
+new_classes = ["HareMcpAgent"]
+
+[ai]
+binding = "AI"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "hare-db"
+database_id = "your-database-id"
+```
+
+## Connecting Clients
+
+### Claude Desktop
+
+Add to your Claude Desktop config (`claude_desktop_config.json`):
+
+```json
+{
+  "mcpServers": {
+    "hare": {
+      "command": "npx",
+      "args": ["-y", "mcp-remote", "https://your-app.workers.dev/api/mcp/workspace-123"]
+    }
+  }
+}
+```
+
+### Cursor IDE
+
+Add to Cursor settings:
+
+```json
+{
+  "mcp.servers": {
+    "hare": {
+      "url": "https://your-app.workers.dev/api/mcp/workspace-123"
+    }
+  }
+}
+```
+
+## Available Tools
+
+HareMcpAgent automatically exposes all system tools:
+
+### Storage Tools
+- `kv_get`, `kv_set`, `kv_delete`, `kv_list`
+- `r2_get`, `r2_put`, `r2_delete`, `r2_list`
+- `d1_query`, `d1_execute`
+
+### HTTP Tools
+- `http_get`, `http_post`, `http_put`, `http_delete`
+- `graphql_query`
+
+### AI Tools
+- `text_generation`, `text_embedding`
+- `image_generation`, `image_classification`
+- `summarization`, `translation`
+
+### Utility Tools
+- `json_parse`, `json_stringify`
+- `base64_encode`, `base64_decode`
+- `hash`, `uuid`
+- `datetime_format`, `datetime_parse`
+
+## Resources
+
+The MCP agent also exposes resources:
+
+```ts
+// Workspace information
+{
+  uri: 'hare://workspace/workspace-123',
+  mimeType: 'application/json',
+  text: '{"workspaceId":"workspace-123",...}'
+}
+```
+
+## API Reference
+
+### McpAgentState
+
+```ts
+interface McpAgentState {
+  workspaceId: string
+  connectedClients: number
+  lastActivity: number
+}
+```
+
+### Methods
+
+#### configure
+
+Set the workspace ID for the MCP agent:
+
+```ts
+await mcpAgent.configure('workspace-123')
+```
+
+## Extending HareMcpAgent
+
+Add custom tools by extending the class:
+
+```ts
+import { HareMcpAgent, type McpAgentEnv } from '@hare/agent/workers'
+
+class MyMcpAgent extends HareMcpAgent {
+  async init(): Promise<void> {
+    await super.init()
+
+    // Add custom tool
+    this.server.tool(
+      'my_custom_tool',
+      'Does something custom',
+      { type: 'object', properties: { input: { type: 'string' } } },
+      async (params) => {
+        return {
+          content: [{ type: 'text', text: `Processed: ${params.input}` }]
+        }
+      }
+    )
+  }
+}
+
+export { MyMcpAgent as HareMcpAgent }
+```

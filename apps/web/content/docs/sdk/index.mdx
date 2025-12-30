@@ -1,0 +1,65 @@
+---
+title: SDK Reference
+description: Complete reference for the @hare/agent SDK
+---
+
+# @hare/agent SDK
+
+The `@hare/agent` package provides everything you need to build AI agents for Cloudflare Workers.
+
+## Installation
+
+```bash
+bun add @hare/agent
+```
+
+## Entry Points
+
+The SDK has two entry points:
+
+```ts
+// Universal imports (safe anywhere)
+import { EdgeAgent, createEdgeAgent } from '@hare/agent'
+
+// Workers-only imports (requires Cloudflare Workers runtime)
+import { HareAgent, HareMcpAgent } from '@hare/agent/workers'
+```
+
+## Core Exports
+
+### Agents
+
+- [EdgeAgent](/docs/sdk/edge-agent) - Universal agent that works anywhere
+- [HareAgent](/docs/sdk/hare-agent) - Full-featured Durable Object agent
+- [HareMcpAgent](/docs/sdk/mcp-agent) - MCP protocol support
+
+### Providers
+
+- [Workers AI](/docs/sdk/providers) - Cloudflare Workers AI integration
+
+### Utilities
+
+- [Memory Store](/docs/sdk/memory) - Conversation persistence with D1
+- [Router](/docs/sdk/router) - Request routing utilities
+- [Tools](/docs/sdk/tools) - Agent control tools
+
+## Quick Example
+
+```ts
+import { createEdgeAgent, createWorkersAIModel } from '@hare/agent'
+
+export default {
+  async fetch(request: Request, env: Env) {
+    const agent = createEdgeAgent({
+      model: createWorkersAIModel({
+        modelId: '@cf/meta/llama-3.3-70b-instruct-fp8-fast',
+        ai: env.AI,
+      }),
+      systemPrompt: 'You are a helpful assistant.',
+    })
+
+    const response = await agent.chat('Hello!')
+    return new Response(response.text)
+  },
+}
+```

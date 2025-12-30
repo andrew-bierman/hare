@@ -1,0 +1,194 @@
+---
+title: Tools
+description: Built-in tools for AI agents
+---
+
+# Tools
+
+Hare includes 40+ built-in tools that agents can use to interact with external services and perform various operations.
+
+## Tool Categories
+
+### Storage Tools
+
+Tools for working with Cloudflare storage services.
+
+| Tool | Description |
+|------|-------------|
+| `kv_get` | Get a value from KV storage |
+| `kv_set` | Set a value in KV storage |
+| `kv_delete` | Delete a value from KV storage |
+| `kv_list` | List keys in KV storage |
+| `r2_get` | Get an object from R2 storage |
+| `r2_put` | Put an object in R2 storage |
+| `r2_delete` | Delete an object from R2 storage |
+| `r2_list` | List objects in R2 bucket |
+| `d1_query` | Execute a read query on D1 |
+| `d1_execute` | Execute a write query on D1 |
+
+### HTTP Tools
+
+Tools for making HTTP requests.
+
+| Tool | Description |
+|------|-------------|
+| `http_get` | Make a GET request |
+| `http_post` | Make a POST request |
+| `http_put` | Make a PUT request |
+| `http_delete` | Make a DELETE request |
+| `http_patch` | Make a PATCH request |
+| `graphql_query` | Execute a GraphQL query |
+
+### AI Tools
+
+Tools for AI operations using Workers AI.
+
+| Tool | Description |
+|------|-------------|
+| `text_generation` | Generate text with an LLM |
+| `text_embedding` | Generate text embeddings |
+| `image_generation` | Generate images from text |
+| `image_classification` | Classify images |
+| `summarization` | Summarize text |
+| `translation` | Translate text |
+| `sentiment_analysis` | Analyze sentiment |
+
+### Data Tools
+
+Tools for data manipulation.
+
+| Tool | Description |
+|------|-------------|
+| `json_parse` | Parse JSON string |
+| `json_stringify` | Convert to JSON string |
+| `csv_parse` | Parse CSV data |
+| `csv_stringify` | Convert to CSV |
+| `xml_parse` | Parse XML data |
+
+### Utility Tools
+
+General utility tools.
+
+| Tool | Description |
+|------|-------------|
+| `base64_encode` | Encode to Base64 |
+| `base64_decode` | Decode from Base64 |
+| `hash` | Generate hash (MD5, SHA-256, etc.) |
+| `uuid` | Generate UUID |
+| `datetime_format` | Format datetime |
+| `datetime_parse` | Parse datetime string |
+| `random_number` | Generate random number |
+| `sleep` | Wait for specified time |
+
+### Validation Tools
+
+Tools for data validation.
+
+| Tool | Description |
+|------|-------------|
+| `validate_email` | Validate email format |
+| `validate_url` | Validate URL format |
+| `validate_json_schema` | Validate against JSON Schema |
+
+## Using Tools
+
+### In EdgeAgent
+
+```ts
+import { createEdgeAgent, createWorkersAIModel } from '@hare/agent'
+import { z } from 'zod'
+
+const weatherTool = {
+  name: 'get_weather',
+  description: 'Get weather for a location',
+  parameters: z.object({
+    location: z.string(),
+  }),
+  execute: async (params) => {
+    // Call your weather API here
+    return { temperature: 72, condition: 'sunny' }
+  },
+}
+
+const agent = createEdgeAgent({
+  model: createWorkersAIModel({
+    modelId: '@cf/meta/llama-3.3-70b-instruct-fp8-fast',
+    ai: env.AI,
+  }),
+  systemPrompt: 'You can check the weather.',
+  tools: [weatherTool],
+})
+```
+
+### In HareAgent
+
+HareAgent automatically loads system tools. To execute a tool via WebSocket:
+
+```ts
+ws.send(JSON.stringify({
+  type: 'execute_tool',
+  payload: {
+    toolId: 'kv_get',
+    params: { key: 'my-key' }
+  }
+}))
+```
+
+## Creating Custom Tools
+
+```ts
+import { z } from 'zod'
+import { createTool, success, failure } from '@hare/tools'
+import type { ToolContext } from '@hare/tools'
+
+export const myTool = createTool({
+  id: 'my_custom_tool',
+  description: 'Does something useful',
+  inputSchema: z.object({
+    input: z.string().describe('The input value'),
+    options: z.object({
+      format: z.enum(['json', 'text']).default('json'),
+    }).optional(),
+  }),
+  execute: async (params, context) => {
+    try {
+      // Access Cloudflare bindings
+      const result = await context.env.KV.get(params.input)
+      return success({ data: result })
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Unknown error'
+      return failure('Failed: ' + message)
+    }
+  },
+})
+```
+
+## Tool Context
+
+Every tool receives a `ToolContext` with:
+
+```ts
+interface ToolContext {
+  env: HareEnv          // Cloudflare bindings (DB, KV, R2, AI, etc.)
+  workspaceId: string   // Current workspace
+  userId: string        // User executing the tool
+}
+```
+
+## Tool Results
+
+Tools return a `ToolResult`:
+
+```ts
+interface ToolResult {
+  success: boolean
+  data?: unknown      // Result data if successful
+  error?: string      // Error message if failed
+}
+
+// Helper functions
+import { success, failure } from '@hare/tools'
+
+return success({ items: myResults })
+return failure('Something went wrong')
+```

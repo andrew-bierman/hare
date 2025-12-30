@@ -1,0 +1,99 @@
+---
+title: Memory Store
+description: Persist conversations with D1 database
+---
+
+# Memory Store
+
+The Memory Store provides conversation persistence using Cloudflare D1.
+
+## Usage
+
+```ts
+import { createMemoryStore, toAgentMessages } from '@hare/agent'
+
+// Create a memory store with your D1 binding
+const memory = createMemoryStore({ db: env.DB })
+
+// Save a message
+await memory.saveMessage({
+  conversationId: 'conv_123',
+  role: 'user',
+  content: 'Hello!',
+})
+
+// Get conversation history
+const messages = await memory.getMessages({
+  conversationId: 'conv_123',
+  limit: 50,
+})
+
+// Convert to agent-compatible format
+const agentMessages = toAgentMessages(messages)
+```
+
+## API Reference
+
+### createMemoryStore
+
+Creates a new memory store instance.
+
+```ts
+function createMemoryStore(options: { db: D1Database }): MemoryStore
+```
+
+### MemoryStore Methods
+
+#### saveMessage
+
+Saves a message to the conversation.
+
+```ts
+interface SaveMessageInput {
+  conversationId: string
+  role: MessageRole
+  content: string
+  metadata?: Record<string, unknown>
+}
+```
+
+#### getMessages
+
+Retrieves messages from a conversation.
+
+```ts
+interface GetMessagesInput {
+  conversationId: string
+  limit?: number
+  before?: string // cursor for pagination
+}
+```
+
+#### getOrCreateConversation
+
+Gets an existing conversation or creates a new one.
+
+```ts
+interface GetOrCreateConversationInput {
+  conversationId: string
+  workspaceId: string
+  agentId: string
+  userId?: string
+}
+```
+
+### MessageRole
+
+```ts
+type MessageRole = 'user' | 'assistant' | 'system' | 'tool'
+```
+
+## D1MemoryStore
+
+For more control, use the class directly:
+
+```ts
+import { D1MemoryStore } from '@hare/agent'
+
+const memory = new D1MemoryStore(env.DB)
+```
