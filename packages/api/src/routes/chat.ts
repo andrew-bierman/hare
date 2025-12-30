@@ -330,7 +330,7 @@ app.openapi(chatWithAgentRoute, async (c) => {
 	// Track timing for usage metrics
 	const startTime = Date.now()
 
-	// Use streamText with onFinish callback for post-stream operations
+	// Stream the response
 	const result = streamText({
 		model: agent.model,
 		messages: [
@@ -377,7 +377,7 @@ app.openapi(chatWithAgentRoute, async (c) => {
 		},
 	})
 
-	// Return AI SDK v6 UI Message Stream Response with session ID header
+	// Return stream with session ID in header
 	return result.toUIMessageStreamResponse({
 		headers: {
 			'X-Session-Id': conversationId,
