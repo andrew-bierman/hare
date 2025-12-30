@@ -15,7 +15,6 @@ import {
 	Wrench,
 } from 'lucide-react'
 
-// @ts-expect-error - Route types are generated at build time
 export const Route = createFileRoute('/docs/')({
 	component: DocsPage,
 	head: () => ({

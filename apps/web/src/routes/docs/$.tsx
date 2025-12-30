@@ -11,8 +11,8 @@ import '../../styles/docs.css'
 export const Route = createFileRoute('/docs/$')({
 	component: DocsPageComponent,
 	loader: async ({ params }) => {
-		// @ts-expect-error - _splat is available for catch-all routes
-		const splat = params._splat as string | undefined
+		// _splat is available for catch-all routes
+		const splat = (params as { _splat?: string })._splat
 		const slugs = splat?.split('/').filter(Boolean) ?? []
 		const page = source.getPage(slugs)
 
@@ -33,8 +33,9 @@ export const Route = createFileRoute('/docs/$')({
 })
 
 function DocsPageComponent() {
-	// @ts-expect-error - loader data type inference
-	const { page } = Route.useLoaderData()
+	// Page is guaranteed to exist since loader throws notFound() for missing pages
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	const { page } = Route.useLoaderData() as { page: any }
 	const MDX = page.data.body
 
 	// Combine default fumadocs components with our custom ones (AutoTypeTable, etc.)
@@ -43,10 +44,12 @@ function DocsPageComponent() {
 		...getMDXComponents(),
 	}
 
+	const toc = page.data.toc
+
 	return (
 		<RootProvider>
 			<DocsLayout tree={source.pageTree} {...getLayoutOptions()}>
-				<DocsPage toc={page.data.toc}>
+				<DocsPage toc={toc}>
 					<DocsBody>
 						<h1>{page.data.title}</h1>
 						<MDX components={components} />
