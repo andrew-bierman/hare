@@ -12,8 +12,9 @@ import {
 	getUtilityTools,
 } from '../utility'
 import type { ToolContext, ToolResult } from '../types'
+import { expectResultData, ResultSchemas } from './test-utils'
 
-// Type helpers for test assertions
+// Type helpers for test assertions (for cases not covered by expectResultData)
 type UuidResult = ToolResult<{ id?: string; ids?: string[] }>
 type HashResult = ToolResult<{ hash?: string; matches?: boolean; hmac?: string }>
 type Base64Result = ToolResult<{ result?: string }>
@@ -24,17 +25,6 @@ type UrlResult = ToolResult<{
 	search?: string
 	hash?: string
 }>
-type DatetimeNowResult = { iso: string; unix: number; formatted: string }
-type DatetimeFormatResult = { iso: string; original?: string; formatted: string }
-type DatetimeDiffResult = { days: number; milliseconds: number; seconds: number; minutes: number; hours: number; weeks: number }
-type DatetimeAddResult = { result: string; original: string; formatted: string }
-type JsonResult = { result: unknown }
-type JsonGetResult = { value: unknown; path: string; found: boolean }
-type JsonKeysResult = { keys: string[]; count: number }
-type TextResult = { result: string | string[] }
-type TextCountResult = { count: number }
-type MathResult = { result: number }
-type DelayResult = { requested: number; actual: number; reason?: string }
 
 const createMockContext = (): ToolContext => ({
 	env: {} as ToolContext['env'],
@@ -96,10 +86,9 @@ describe('Utility Tools', () => {
 					context,
 				)
 
-				expect(result.success).toBe(true)
-				const data = result.data as unknown as DatetimeNowResult
-				expect(data?.iso).toBeDefined()
-				expect(data?.unix).toBeDefined()
+				const data = expectResultData(result, ResultSchemas.datetime)
+				expect(data.iso).toBeDefined()
+				expect(data.unix).toBeDefined()
 			})
 
 			it('formats date correctly', async () => {
@@ -108,9 +97,8 @@ describe('Utility Tools', () => {
 					context,
 				)
 
-				expect(result.success).toBe(true)
-				const data = result.data as unknown as DatetimeFormatResult
-				expect(data?.iso).toBe('2024-01-15T12:00:00.000Z')
+				const data = expectResultData(result, ResultSchemas.datetime)
+				expect(data.iso).toBe('2024-01-15T12:00:00.000Z')
 			})
 
 			it('calculates date difference', async () => {
@@ -119,9 +107,8 @@ describe('Utility Tools', () => {
 					context,
 				)
 
-				expect(result.success).toBe(true)
-				const data = result.data as unknown as DatetimeDiffResult
-				expect(data?.days).toBe(14)
+				const data = expectResultData(result, ResultSchemas.datetime)
+				expect(data.days).toBe(14)
 			})
 
 			it('adds time to date', async () => {
@@ -130,9 +117,8 @@ describe('Utility Tools', () => {
 					context,
 				)
 
-				expect(result.success).toBe(true)
-				const data = result.data as unknown as DatetimeAddResult
-				expect(data?.result).toContain('2024-01-08')
+				const data = expectResultData(result, ResultSchemas.datetime)
+				expect(data.result).toContain('2024-01-08')
 			})
 		})
 	})
@@ -172,13 +158,12 @@ describe('Utility Tools', () => {
 		describe('execution', () => {
 			it('parses JSON string', async () => {
 				const result = await jsonTool.execute(
-					{ operation: 'parse', data: '{"name": "test"}', pretty: true },
+					{ operation: 'parse', data: '{"name": "test"}', pretty: false },
 					context,
 				)
 
-				expect(result.success).toBe(true)
-				const data = result.data as unknown as JsonResult
-				expect(data?.result).toEqual({ name: 'test' })
+				const data = expectResultData(result, ResultSchemas.json)
+				expect(data.result).toEqual({ name: 'test' })
 			})
 
 			it('stringifies object', async () => {
@@ -187,65 +172,59 @@ describe('Utility Tools', () => {
 					context,
 				)
 
-				expect(result.success).toBe(true)
-				const data = result.data as unknown as JsonResult
-				expect(data?.result).toContain('name')
+				const data = expectResultData(result, ResultSchemas.json)
+				expect(data.result).toContain('name')
 			})
 
 			it('gets nested value by path', async () => {
 				const result = await jsonTool.execute(
-					{ operation: 'get', data: { user: { name: 'test' } }, path: 'user.name', pretty: true },
+					{ operation: 'get', data: { user: { name: 'test' } }, path: 'user.name', pretty: false },
 					context,
 				)
 
-				expect(result.success).toBe(true)
-				const data = result.data as unknown as JsonGetResult
-				expect(data?.value).toBe('test')
+				const data = expectResultData(result, ResultSchemas.json)
+				expect(data.value).toBe('test')
 			})
 
 			it('sets value at path', async () => {
 				const result = await jsonTool.execute(
-					{ operation: 'set', data: { user: {} }, path: 'user.name', value: 'new', pretty: true },
+					{ operation: 'set', data: { user: {} }, path: 'user.name', value: 'new', pretty: false },
 					context,
 				)
 
-				expect(result.success).toBe(true)
-				const data = result.data as unknown as JsonResult
-				expect(data?.result).toEqual({ user: { name: 'new' } })
+				const data = expectResultData(result, ResultSchemas.json)
+				expect(data.result).toEqual({ user: { name: 'new' } })
 			})
 
 			it('merges two objects', async () => {
 				const result = await jsonTool.execute(
-					{ operation: 'merge', data: { a: 1 }, data2: { b: 2 }, pretty: true },
+					{ operation: 'merge', data: { a: 1 }, data2: { b: 2 }, pretty: false },
 					context,
 				)
 
-				expect(result.success).toBe(true)
-				const data = result.data as unknown as JsonResult
-				expect(data?.result).toEqual({ a: 1, b: 2 })
+				const data = expectResultData(result, ResultSchemas.json)
+				expect(data.result).toEqual({ a: 1, b: 2 })
 			})
 
 			it('gets object keys', async () => {
 				const result = await jsonTool.execute(
-					{ operation: 'keys', data: { a: 1, b: 2, c: 3 }, pretty: true },
+					{ operation: 'keys', data: { a: 1, b: 2, c: 3 }, pretty: false },
 					context,
 				)
 
-				expect(result.success).toBe(true)
-				const data = result.data as unknown as JsonKeysResult
-				expect(data?.keys).toEqual(['a', 'b', 'c'])
+				const data = expectResultData(result, ResultSchemas.json)
+				expect(data.keys).toEqual(['a', 'b', 'c'])
 			})
 
 			it('flattens nested object', async () => {
 				const result = await jsonTool.execute(
-					{ operation: 'flatten', data: { user: { name: 'test', address: { city: 'NYC' } } }, pretty: true },
+					{ operation: 'flatten', data: { user: { name: 'test', address: { city: 'NYC' } } }, pretty: false },
 					context,
 				)
 
-				expect(result.success).toBe(true)
-				const data = result.data as unknown as JsonResult
-				expect(data?.result).toHaveProperty('user.name', 'test')
-				expect(data?.result).toHaveProperty('user.address.city', 'NYC')
+				const data = expectResultData(result, ResultSchemas.json)
+				expect(data.result).toHaveProperty('user.name', 'test')
+				expect(data.result).toHaveProperty('user.address.city', 'NYC')
 			})
 		})
 	})
@@ -271,62 +250,56 @@ describe('Utility Tools', () => {
 		describe('execution', () => {
 			it('converts to uppercase', async () => {
 				const result = await textTool.execute(
-					{ operation: 'uppercase', text: 'hello', padChar: ' ', suffix: '...', times: 1 },
+					{ operation: 'uppercase', text: 'hello', padChar: ' ', suffix: '', times: 1 },
 					context,
 				)
-				expect(result.success).toBe(true)
-				const data = result.data as unknown as TextResult
-				expect(data?.result).toBe('HELLO')
+				const data = expectResultData(result, ResultSchemas.text)
+				expect(data.result).toBe('HELLO')
 			})
 
 			it('converts to lowercase', async () => {
 				const result = await textTool.execute(
-					{ operation: 'lowercase', text: 'HELLO', padChar: ' ', suffix: '...', times: 1 },
+					{ operation: 'lowercase', text: 'HELLO', padChar: ' ', suffix: '', times: 1 },
 					context,
 				)
-				expect(result.success).toBe(true)
-				const data = result.data as unknown as TextResult
-				expect(data?.result).toBe('hello')
+				const data = expectResultData(result, ResultSchemas.text)
+				expect(data.result).toBe('hello')
 			})
 
 			it('reverses text', async () => {
 				const result = await textTool.execute(
-					{ operation: 'reverse', text: 'hello', padChar: ' ', suffix: '...', times: 1 },
+					{ operation: 'reverse', text: 'hello', padChar: ' ', suffix: '', times: 1 },
 					context,
 				)
-				expect(result.success).toBe(true)
-				const data = result.data as unknown as TextResult
-				expect(data?.result).toBe('olleh')
+				const data = expectResultData(result, ResultSchemas.text)
+				expect(data.result).toBe('olleh')
 			})
 
 			it('counts words', async () => {
 				const result = await textTool.execute(
-					{ operation: 'wordCount', text: 'hello world test', padChar: ' ', suffix: '...', times: 1 },
+					{ operation: 'wordCount', text: 'hello world test', padChar: ' ', suffix: '', times: 1 },
 					context,
 				)
-				expect(result.success).toBe(true)
-				const data = result.data as unknown as TextCountResult
-				expect(data?.count).toBe(3)
+				const data = expectResultData(result, ResultSchemas.text)
+				expect(data.count).toBe(3)
 			})
 
 			it('creates slug', async () => {
 				const result = await textTool.execute(
-					{ operation: 'slug', text: 'Hello World Test!', padChar: ' ', suffix: '...', times: 1 },
+					{ operation: 'slug', text: 'Hello World Test!', padChar: ' ', suffix: '', times: 1 },
 					context,
 				)
-				expect(result.success).toBe(true)
-				const data = result.data as unknown as TextResult
-				expect(data?.result).toBe('hello-world-test')
+				const data = expectResultData(result, ResultSchemas.text)
+				expect(data.result).toBe('hello-world-test')
 			})
 
 			it('converts to camelCase', async () => {
 				const result = await textTool.execute(
-					{ operation: 'camelCase', text: 'hello world test', padChar: ' ', suffix: '...', times: 1 },
+					{ operation: 'camelCase', text: 'hello world test', padChar: ' ', suffix: '', times: 1 },
 					context,
 				)
-				expect(result.success).toBe(true)
-				const data = result.data as unknown as TextResult
-				expect(data?.result).toBe('helloWorldTest')
+				const data = expectResultData(result, ResultSchemas.text)
+				expect(data.result).toBe('helloWorldTest')
 			})
 
 			it('truncates text', async () => {
@@ -334,19 +307,17 @@ describe('Utility Tools', () => {
 					{ operation: 'truncate', text: 'hello world', length: 8, suffix: '...', padChar: ' ', times: 1 },
 					context,
 				)
-				expect(result.success).toBe(true)
-				const data = result.data as unknown as TextResult
-				expect(data?.result).toBe('hello...')
+				const data = expectResultData(result, ResultSchemas.text)
+				expect(data.result).toBe('hello...')
 			})
 
 			it('splits text', async () => {
 				const result = await textTool.execute(
-					{ operation: 'split', text: 'a,b,c', separator: ',', padChar: ' ', suffix: '...', times: 1 },
+					{ operation: 'split', text: 'a,b,c', separator: ',', padChar: ' ', suffix: '', times: 1 },
 					context,
 				)
-				expect(result.success).toBe(true)
-				const data = result.data as unknown as TextResult
-				expect(data?.result).toEqual(['a', 'b', 'c'])
+				const data = expectResultData(result, ResultSchemas.text)
+				expect(data.result).toEqual(['a', 'b', 'c'])
 			})
 		})
 	})
@@ -378,30 +349,26 @@ describe('Utility Tools', () => {
 		describe('execution', () => {
 			it('adds numbers', async () => {
 				const result = await mathTool.execute({ operation: 'add', a: 5, b: 3, decimals: 2 }, context)
-				expect(result.success).toBe(true)
-				const data = result.data as unknown as MathResult
-				expect(data?.result).toBe(8)
+				const data = expectResultData(result, ResultSchemas.math)
+				expect(data.result).toBe(8)
 			})
 
 			it('subtracts numbers', async () => {
 				const result = await mathTool.execute({ operation: 'subtract', a: 10, b: 3, decimals: 2 }, context)
-				expect(result.success).toBe(true)
-				const data = result.data as unknown as MathResult
-				expect(data?.result).toBe(7)
+				const data = expectResultData(result, ResultSchemas.math)
+				expect(data.result).toBe(7)
 			})
 
 			it('multiplies numbers', async () => {
 				const result = await mathTool.execute({ operation: 'multiply', a: 4, b: 5, decimals: 2 }, context)
-				expect(result.success).toBe(true)
-				const data = result.data as unknown as MathResult
-				expect(data?.result).toBe(20)
+				const data = expectResultData(result, ResultSchemas.math)
+				expect(data.result).toBe(20)
 			})
 
 			it('divides numbers', async () => {
 				const result = await mathTool.execute({ operation: 'divide', a: 20, b: 4, decimals: 2 }, context)
-				expect(result.success).toBe(true)
-				const data = result.data as unknown as MathResult
-				expect(data?.result).toBe(5)
+				const data = expectResultData(result, ResultSchemas.math)
+				expect(data.result).toBe(5)
 			})
 
 			it('handles division by zero', async () => {
@@ -412,9 +379,8 @@ describe('Utility Tools', () => {
 
 			it('calculates square root', async () => {
 				const result = await mathTool.execute({ operation: 'sqrt', a: 16, decimals: 2 }, context)
-				expect(result.success).toBe(true)
-				const data = result.data as unknown as MathResult
-				expect(data?.result).toBe(4)
+				const data = expectResultData(result, ResultSchemas.math)
+				expect(data.result).toBe(4)
 			})
 
 			it('calculates sum of array', async () => {
@@ -422,9 +388,8 @@ describe('Utility Tools', () => {
 					{ operation: 'sum', numbers: [1, 2, 3, 4, 5], decimals: 2 },
 					context,
 				)
-				expect(result.success).toBe(true)
-				const data = result.data as unknown as MathResult
-				expect(data?.result).toBe(15)
+				const data = expectResultData(result, ResultSchemas.math)
+				expect(data.result).toBe(15)
 			})
 
 			it('calculates average', async () => {
@@ -432,24 +397,21 @@ describe('Utility Tools', () => {
 					{ operation: 'average', numbers: [2, 4, 6, 8, 10], decimals: 2 },
 					context,
 				)
-				expect(result.success).toBe(true)
-				const data = result.data as unknown as MathResult
-				expect(data?.result).toBe(6)
+				const data = expectResultData(result, ResultSchemas.math)
+				expect(data.result).toBe(6)
 			})
 
 			it('calculates percentage', async () => {
 				const result = await mathTool.execute({ operation: 'percentage', a: 25, b: 100, decimals: 2 }, context)
-				expect(result.success).toBe(true)
-				const data = result.data as unknown as MathResult
-				expect(data?.result).toBe(25)
+				const data = expectResultData(result, ResultSchemas.math)
+				expect(data.result).toBe(25)
 			})
 
 			it('generates random integer', async () => {
 				const result = await mathTool.execute({ operation: 'randomInt', min: 1, max: 10, decimals: 2 }, context)
-				expect(result.success).toBe(true)
-				const data = result.data as unknown as MathResult
-				expect(data?.result).toBeGreaterThanOrEqual(1)
-				expect(data?.result).toBeLessThanOrEqual(10)
+				const data = expectResultData(result, ResultSchemas.math)
+				expect(data.result).toBeGreaterThanOrEqual(1)
+				expect(data.result).toBeLessThanOrEqual(10)
 			})
 		})
 	})
@@ -477,36 +439,33 @@ describe('Utility Tools', () => {
 		describe('execution', () => {
 			it('generates UUID v4', async () => {
 				const result = await uuidTool.execute({ type: 'uuid', count: 1, length: 21 }, context)
-				expect(result.success).toBe(true)
-				const data = result.data as unknown as { id?: string }
-				expect(data?.id).toMatch(
+				const data = expectResultData(result, ResultSchemas.uuid)
+				expect(data.id).toMatch(
 					/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
 				)
 			})
 
 			it('generates multiple UUIDs', async () => {
 				const result = await uuidTool.execute({ type: 'uuid', count: 3, length: 21 }, context)
-				expect(result.success).toBe(true)
-				const data = result.data as unknown as { ids?: string[] }
-				expect(data?.ids).toHaveLength(3)
+				const data = expectResultData(result, ResultSchemas.uuid)
+				expect(data.ids).toHaveLength(3)
 			})
 
 			it('generates nanoid with custom length', async () => {
 				const result = await uuidTool.execute({ type: 'nanoid', length: 10, count: 1 }, context)
-				expect(result.success).toBe(true)
-				const data = result.data as unknown as { id?: string }
-				expect(data?.id).toHaveLength(10)
+				const data = expectResultData(result, ResultSchemas.uuid)
+				expect(data.id).toHaveLength(10)
 			})
 
 			it('generates ULID', async () => {
-				const result = (await uuidTool.execute(
+				const result = await uuidTool.execute(
 					{ type: 'ulid', count: 1, length: 21 },
 					context,
-				)) as UuidResult
-				expect(result.success).toBe(true)
+				)
+				const data = expectResultData(result, ResultSchemas.uuid)
 				// ULID generation returns a string ID
-				expect(typeof result.data?.id).toBe('string')
-				expect(result.data?.id?.length).toBeGreaterThan(0)
+				expect(typeof data.id).toBe('string')
+				expect(data.id?.length).toBeGreaterThan(0)
 			})
 
 			it('adds prefix to generated ID', async () => {
@@ -777,10 +736,9 @@ describe('Utility Tools', () => {
 				const result = await delayTool.execute({ duration: 100 }, context)
 				const elapsed = Date.now() - start
 
-				expect(result.success).toBe(true)
+				const data = expectResultData(result, ResultSchemas.delay)
 				expect(elapsed).toBeGreaterThanOrEqual(90) // Allow some tolerance
-				const data = result.data as unknown as DelayResult
-				expect(data?.requested).toBe(100)
+				expect(data.requested).toBe(100)
 			})
 
 			it('includes reason in result', async () => {
@@ -788,9 +746,8 @@ describe('Utility Tools', () => {
 					{ duration: 50, reason: 'Rate limiting' },
 					context,
 				)
-				expect(result.success).toBe(true)
-				const data = result.data as unknown as DelayResult
-				expect(data?.reason).toBe('Rate limiting')
+				const data = expectResultData(result, ResultSchemas.delay)
+				expect(data.reason).toBe('Rate limiting')
 			})
 		})
 	})

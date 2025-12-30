@@ -221,7 +221,7 @@ describe('Agent Control Tools', () => {
 					{
 						name: 'New Agent',
 						description: 'Description',
-						model: 'llama-3.3-70b',
+						model: 'gpt-4',
 					},
 					context,
 				)

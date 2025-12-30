@@ -393,7 +393,7 @@ describe('Sandbox Tools', () => {
 					sandboxContext,
 				)
 				expect(result.success).toBe(true)
-				expect((result.data as unknown as { content: string })?.content).toBeDefined()
+				expect((result.data as Record<string, unknown>)?.content).toBeDefined()
 			})
 
 			it('writes file', async () => {
@@ -408,7 +408,7 @@ describe('Sandbox Tools', () => {
 					sandboxContext,
 				)
 				expect(result.success).toBe(true)
-				expect((result.data as unknown as { written: boolean })?.written).toBe(true)
+				expect((result.data as Record<string, unknown>)?.written).toBe(true)
 			})
 
 			it('lists directory', async () => {
@@ -422,7 +422,7 @@ describe('Sandbox Tools', () => {
 					sandboxContext,
 				)
 				expect(result.success).toBe(true)
-				expect((result.data as unknown as { listing: string })?.listing).toBeDefined()
+				expect((result.data as Record<string, unknown>)?.listing).toBeDefined()
 			})
 		})
 	})

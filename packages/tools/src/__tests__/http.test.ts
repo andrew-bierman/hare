@@ -1,31 +1,10 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
 import { httpRequestTool, httpGetTool, httpPostTool, getHTTPTools } from '../http'
 import type { ToolContext } from '../types'
+import { createFetchMock } from './test-utils'
 
 // Mock fetch globally
 const originalFetch = globalThis.fetch
-
-// Helper to create a properly typed mock fetch
-const createMockFetch = (
-	response:
-		| {
-				ok: boolean
-				text?: () => Promise<string>
-				json?: () => Promise<unknown>
-				status?: number
-				statusText?: string
-				headers?: Headers
-		  }
-		| Error,
-) => {
-	const mockFn = vi.fn()
-	if (response instanceof Error) {
-		mockFn.mockRejectedValueOnce(response)
-	} else {
-		mockFn.mockResolvedValueOnce(response)
-	}
-	return mockFn as unknown as typeof fetch
-}
 
 const createMockContext = (): ToolContext => ({
 	env: {} as ToolContext['env'],
@@ -40,7 +19,7 @@ describe('HTTP Tools', () => {
 	beforeEach(() => {
 		context = createMockContext()
 		mockFetch = vi.fn()
-		globalThis.fetch = mockFetch as unknown as typeof fetch
+		globalThis.fetch = createFetchMock(mockFetch)
 	})
 
 	afterEach(() => {
