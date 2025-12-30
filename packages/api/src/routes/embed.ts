@@ -259,38 +259,24 @@ app.openapi(embedChatRoute, async (c) => {
 		return c.json({ error: 'AI service not available' }, 503)
 	}
 
-	// Use 'embed' as user ID for widget users
-	const userId = 'embed'
-
 	// Set up memory store
 	const memory = createMemoryStore(db, agent.workspaceId)
 
-	// Get or create conversation - use crypto.randomUUID as fallback if DB insert fails
-	// (This can happen if userId='embed' doesn't exist in the users table)
-	let conversationId: string
-	if (existingSessionId) {
-		conversationId = existingSessionId
-	} else {
-		try {
-			conversationId = await memory.getOrCreateConversation({
-				agentId,
-				userId,
-				title: `Widget chat with ${agent.name}`,
-			})
-		} catch (error) {
-			// If conversation creation fails (e.g., foreign key constraint), use a temporary ID
-			// This allows the chat to work but history won't be persisted
-			console.warn('Failed to create conversation for embed, using temporary session:', error)
-			conversationId = crypto.randomUUID()
-		}
-	}
+	// Get or create conversation (null userId for anonymous embed sessions)
+	const conversationId =
+		existingSessionId ||
+		(await memory.getOrCreateConversation({
+			agentId,
+			userId: null,
+			title: `Widget chat with ${agent.name}`,
+		}))
 
-	// Create agent
+	// Create agent (null userId for anonymous embed sessions)
 	const agentInstance = await createAgentFromConfig({
 		agentConfig: agent as AgentConfig,
 		db,
 		env,
-		userId,
+		userId: null,
 		includeSystemTools: true,
 	})
 
@@ -304,16 +290,12 @@ app.openapi(embedChatRoute, async (c) => {
 	// Add new user message
 	agentMessages.push({ role: 'user', content: message })
 
-	// Save user message (ignore errors for temporary sessions)
-	try {
-		await memory.saveMessage({
-			conversationId,
-			role: 'user',
-			content: message,
-		})
-	} catch {
-		// Silently ignore save errors for embed sessions
-	}
+	// Save user message
+	await memory.saveMessage({
+		conversationId,
+		role: 'user',
+		content: message,
+	})
 
 	// Stream response
 	return streamSSE(c, async (stream) => {
@@ -331,46 +313,38 @@ app.openapi(embedChatRoute, async (c) => {
 				})
 			}
 
-			// Save assistant message (ignore errors for temporary sessions)
-			try {
-				await memory.saveMessage({
-					conversationId,
-					role: 'assistant',
-					content: fullResponse,
-					metadata: {
-						model: agent.model,
-						agentId,
-					},
-				})
-			} catch {
-				// Silently ignore save errors for embed sessions
-			}
-
-			// Track usage (ignore errors for embed sessions)
-			try {
-				const latencyMs = Date.now() - startTime
-				const tokensIn = agentMessages.reduce((acc, m) => {
-					const content = typeof m.content === 'string' ? m.content : JSON.stringify(m.content)
-					return acc + Math.ceil(content.length / 4)
-				}, 0)
-				const tokensOut = Math.ceil(fullResponse.length / 4)
-
-				await db.insert(usage).values({
-					workspaceId: agent.workspaceId,
+			// Save assistant message
+			await memory.saveMessage({
+				conversationId,
+				role: 'assistant',
+				content: fullResponse,
+				metadata: {
+					model: agent.model,
 					agentId,
-					userId,
-					type: 'embed',
-					inputTokens: tokensIn,
-					outputTokens: tokensOut,
-					totalTokens: tokensIn + tokensOut,
-					metadata: {
-						model: agent.model,
-						duration: latencyMs,
-					},
-				})
-			} catch {
-				// Silently ignore usage tracking errors for embed sessions
-			}
+				},
+			})
+
+			// Track usage
+			const latencyMs = Date.now() - startTime
+			const tokensIn = agentMessages.reduce((acc, m) => {
+				const content = typeof m.content === 'string' ? m.content : JSON.stringify(m.content)
+				return acc + Math.ceil(content.length / 4)
+			}, 0)
+			const tokensOut = Math.ceil(fullResponse.length / 4)
+
+			await db.insert(usage).values({
+				workspaceId: agent.workspaceId,
+				agentId,
+				userId: null,
+				type: 'embed',
+				inputTokens: tokensIn,
+				outputTokens: tokensOut,
+				totalTokens: tokensIn + tokensOut,
+				metadata: {
+					model: agent.model,
+					duration: latencyMs,
+				},
+			})
 
 			await stream.writeSSE({
 				event: 'done',
