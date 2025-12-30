@@ -15,9 +15,7 @@ export const conversations = sqliteTable('conversations', {
 	agentId: text('agentId')
 		.notNull()
 		.references(() => agents.id, { onDelete: 'cascade' }),
-	userId: text('userId')
-		.notNull()
-		.references(() => users.id, { onDelete: 'cascade' }),
+	userId: text('userId').references(() => users.id, { onDelete: 'cascade' }),
 	title: text('title'),
 	createdAt: integer('createdAt', { mode: 'timestamp' })
 		.notNull()

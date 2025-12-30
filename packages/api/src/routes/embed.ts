@@ -259,27 +259,24 @@ app.openapi(embedChatRoute, async (c) => {
 		return c.json({ error: 'AI service not available' }, 503)
 	}
 
-	// Use 'embed' as user ID for widget users
-	const userId = 'embed'
-
 	// Set up memory store
 	const memory = createMemoryStore(db, agent.workspaceId)
 
-	// Get or create conversation
+	// Get or create conversation (null userId for anonymous embed sessions)
 	const conversationId =
 		existingSessionId ||
 		(await memory.getOrCreateConversation({
 			agentId,
-			userId,
+			userId: null,
 			title: `Widget chat with ${agent.name}`,
 		}))
 
-	// Create agent
+	// Create agent (null userId for anonymous embed sessions)
 	const agentInstance = await createAgentFromConfig({
 		agentConfig: agent as AgentConfig,
 		db,
 		env,
-		userId,
+		userId: null,
 		includeSystemTools: true,
 	})
 
@@ -338,7 +335,7 @@ app.openapi(embedChatRoute, async (c) => {
 			await db.insert(usage).values({
 				workspaceId: agent.workspaceId,
 				agentId,
-				userId,
+				userId: null,
 				type: 'embed',
 				inputTokens: tokensIn,
 				outputTokens: tokensOut,
