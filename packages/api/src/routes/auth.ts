@@ -10,12 +10,19 @@ import type { HonoEnv } from '@hare/types'
 function getAuthEnv(c: { env: CloudflareEnv }): AuthServerEnv {
 	// Cast to access optional OAuth env vars that may not be in the CloudflareEnv type
 	const env = c.env as CloudflareEnv & {
+		BETTER_AUTH_SECRET?: string
 		GOOGLE_CLIENT_ID?: string
 		GOOGLE_CLIENT_SECRET?: string
 		GITHUB_CLIENT_ID?: string
 		GITHUB_CLIENT_SECRET?: string
 	}
+
+	if (!env.BETTER_AUTH_SECRET) {
+		throw new Error('BETTER_AUTH_SECRET environment variable is required')
+	}
+
 	return {
+		BETTER_AUTH_SECRET: env.BETTER_AUTH_SECRET,
 		APP_URL: env.APP_URL ?? 'http://localhost:3000',
 		GOOGLE_CLIENT_ID: env.GOOGLE_CLIENT_ID,
 		GOOGLE_CLIENT_SECRET: env.GOOGLE_CLIENT_SECRET,
