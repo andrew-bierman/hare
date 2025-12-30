@@ -9,6 +9,8 @@
 	],
 	"scripts": {
 		"build": "turbo build",
+		"build:tauri": "turbo build --filter=hare-tauri",
+		"build:web": "turbo build --filter=web-app",
 		"cf:typegen": "bun run --cwd apps/web cf-typegen",
 		"check": "biome check .",
 		"check:fix": "biome check --write .",
