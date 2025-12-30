@@ -161,3 +161,36 @@ export {
 	useUserPreferencesQuery,
 	useUpdateUserPreferencesMutation,
 } from './use-user-preferences'
+
+// =============================================================================
+// TanStack DB Live Hooks (reactive collections with optimistic mutations)
+// These are experimental - use the standard hooks above for stable functionality
+// =============================================================================
+
+// Live agent hooks - reactive data with optimistic mutations
+export {
+	useLiveAgents,
+	useLiveAgent,
+	useAgentMutations,
+	type AgentRecord,
+} from './use-live-agents'
+
+// Live tool hooks - reactive data with optimistic mutations
+export {
+	useLiveTools,
+	useLiveTool,
+	useLiveToolsByType,
+	useToolMutations,
+	type ToolRecord,
+} from './use-live-tools'
+
+// Live workspace hooks - reactive data with optimistic mutations
+export {
+	useLiveWorkspaces,
+	useLiveWorkspace,
+	useWorkspaceMutations,
+	type WorkspaceRecord,
+} from './use-live-workspaces'
+
+// Re-export TanStack DB utilities for direct use
+export { useLiveQuery, eq, createAgentsCollection, createToolsCollection } from '../collections'
