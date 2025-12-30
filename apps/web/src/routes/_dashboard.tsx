@@ -1,4 +1,4 @@
-import { WorkspaceProvider } from '@hare/app'
+import { WorkspaceProvider, WorkspaceGate } from '@hare/app'
 import {
 	DashboardErrorComponent,
 	DashboardNotFound,
@@ -9,6 +9,7 @@ import {
 	UserNav,
 	WorkspaceSwitcher,
 } from '@hare/app/widgets'
+import { useSession } from '@hare/auth/client'
 import {
 	createFileRoute,
 	Link,
@@ -17,12 +18,15 @@ import {
 	useLocation,
 	useNavigate,
 } from '@tanstack/react-router'
+import { useEffect } from 'react'
 
 export const Route = createFileRoute('/_dashboard')({
 	beforeLoad: ({ context }) => {
 		// Use auth context from root route - no duplicate network calls
 		// Auth is already fetched in __root.tsx beforeLoad
-		if (!context.auth.isAuthenticated) {
+		// During SSR, skip redirect - client will handle auth check
+		const isSSR = (context.auth as { _isSSR?: boolean })._isSSR
+		if (!isSSR && !context.auth.isAuthenticated) {
 			throw redirect({ to: '/sign-in' })
 		}
 	},
@@ -35,6 +39,14 @@ export const Route = createFileRoute('/_dashboard')({
 function DashboardLayout() {
 	const { pathname } = useLocation()
 	const navigate = useNavigate()
+	const { data: session, isPending } = useSession()
+
+	// Client-side auth guard - handles SSR hydration case
+	useEffect(() => {
+		if (!isPending && !session?.user) {
+			navigate({ to: '/sign-in' })
+		}
+	}, [session, isPending, navigate])
 
 	return (
 		<WorkspaceProvider>
@@ -52,7 +64,9 @@ function DashboardLayout() {
 						onNavigate={(path) => navigate({ to: path })}
 					/>
 					<div className="flex-1 overflow-y-auto bg-muted/20">
-						<Outlet />
+						<WorkspaceGate>
+							<Outlet />
+						</WorkspaceGate>
 					</div>
 				</main>
 			</div>
