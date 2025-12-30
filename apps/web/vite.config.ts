@@ -4,6 +4,7 @@ import tailwindcss from '@tailwindcss/vite'
 import { tanstackStart } from '@tanstack/react-start/plugin/vite'
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
+
 // TODO: Re-enable fumadocs-mdx once path.join browser bundling issue is fixed
 // import mdx from 'fumadocs-mdx/vite'
 // import * as MdxConfig from './source.config'
@@ -21,12 +22,7 @@ export default defineConfig({
 	ssr: {
 		optimizeDeps: {
 			// Pre-bundle these deps for SSR to avoid mid-reload issues
-			include: [
-				'agents',
-				'agents/mcp',
-				'ai',
-				'@modelcontextprotocol/sdk/server/mcp.js',
-			],
+			include: ['agents', 'agents/mcp', 'ai', '@modelcontextprotocol/sdk/server/mcp.js'],
 			// Wait for full dependency discovery before serving to avoid mid-request rebuilds
 			holdUntilCrawlEnd: true,
 		},

@@ -234,6 +234,7 @@ export const AgentSchema = z.object({
 	instructions: z.string(),
 	config: AgentConfigSchema.nullable(),
 	status: AgentStatusSchema,
+	systemToolsEnabled: z.boolean(),
 	toolIds: z.array(z.string()),
 	createdAt: z.string(),
 	updatedAt: z.string(),
@@ -250,6 +251,7 @@ export const CreateAgentInputSchema = z.object({
 	model: z.string(),
 	instructions: z.string().optional(),
 	config: AgentConfigSchema.optional(),
+	systemToolsEnabled: z.boolean().optional(),
 	toolIds: z.array(z.string()).optional(),
 })
 
@@ -264,6 +266,7 @@ export const UpdateAgentInputSchema = z.object({
 	model: z.string().optional(),
 	instructions: z.string().optional(),
 	config: AgentConfigSchema.optional(),
+	systemToolsEnabled: z.boolean().optional(),
 	toolIds: z.array(z.string()).optional(),
 	status: AgentStatusSchema.optional(),
 })
