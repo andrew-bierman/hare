@@ -105,6 +105,16 @@ export const ResultSchemas = {
 		parts: z.array(z.string()).optional(),
 		pattern: z.string().optional(),
 		flags: z.string().optional(),
+		count: z.number().optional(),
+		originalLength: z.number().optional(),
+		newLength: z.number().optional(),
+		changed: z.boolean().optional(),
+	}),
+
+	// Regex extract operation (different shape)
+	regexExtract: z.object({
+		extracted: z.array(z.record(z.string(), z.string())),
+		count: z.number(),
 	}),
 
 	random: z.object({

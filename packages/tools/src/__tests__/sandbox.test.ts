@@ -262,9 +262,9 @@ describe('Sandbox Tools', () => {
 					},
 					context,
 				)
-				expect(result.success).toBe(true)
-				expect(result.data?.valid).toBe(true)
-				expect(result.data?.issues).toHaveLength(0)
+				const data = expectResultData(result, ResultSchemas.sandboxValidation)
+				expect(data.valid).toBe(true)
+				expect(data.issues).toHaveLength(0)
 			})
 
 			it('detects dangerous patterns', async () => {
@@ -275,9 +275,9 @@ describe('Sandbox Tools', () => {
 					},
 					context,
 				)
-				expect(result.success).toBe(true)
-				expect(result.data?.valid).toBe(false)
-				expect(result.data?.issues.length).toBeGreaterThan(0)
+				const data = expectResultData(result, ResultSchemas.sandboxValidation)
+				expect(data.valid).toBe(false)
+				expect((data.issues as unknown[]).length).toBeGreaterThan(0)
 			})
 
 			it('detects potential infinite loops', async () => {
@@ -288,8 +288,8 @@ describe('Sandbox Tools', () => {
 					},
 					context,
 				)
-				expect(result.success).toBe(true)
-				expect(result.data?.issues).toContain('Potential infinite loop detected')
+				const data = expectResultData(result, ResultSchemas.sandboxValidation)
+				expect(data.issues).toContain('Potential infinite loop detected')
 			})
 
 			it('detects syntax errors', async () => {
@@ -300,9 +300,9 @@ describe('Sandbox Tools', () => {
 					},
 					context,
 				)
-				expect(result.success).toBe(true)
-				expect(result.data?.valid).toBe(false)
-				expect(result.data?.issues.some((i: string) => i.includes('Syntax error'))).toBe(true)
+				const data = expectResultData(result, ResultSchemas.sandboxValidation)
+				expect(data.valid).toBe(false)
+				expect((data.issues as string[]).some((i) => i.includes('Syntax error'))).toBe(true)
 			})
 
 			it('reports code statistics', async () => {
@@ -313,9 +313,9 @@ describe('Sandbox Tools', () => {
 					},
 					context,
 				)
-				expect(result.success).toBe(true)
-				expect(result.data?.length).toBeGreaterThan(0)
-				expect(result.data?.lines).toBe(2)
+				const data = expectResultData(result, ResultSchemas.sandboxValidation)
+				expect(data.length).toBeGreaterThan(0)
+				expect(data.lines).toBe(2)
 			})
 		})
 	})
