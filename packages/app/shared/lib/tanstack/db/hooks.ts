@@ -11,7 +11,7 @@
  */
 
 import type { AgentStatus } from '@hare/types'
-import { useLiveQuery, eq, inArray } from '@tanstack/react-db'
+import { useLiveQuery, eq, or } from '@tanstack/react-db'
 import { useMemo } from 'react'
 import {
 	useAgentCollection,
@@ -32,8 +32,8 @@ export function useLiveAgents(workspaceId: string | undefined) {
 	const collection = useAgentCollection(workspaceId ?? '')
 
 	return useLiveQuery(
-		(q) => q.from({ agent: collection }).orderBy(({ agent }) => agent.updatedAt, 'desc'),
-		[workspaceId]
+		(q) => q.from({ agent: collection }).orderBy((row) => row.agent.updatedAt, 'desc'),
+		[workspaceId],
 	)
 }
 
@@ -45,8 +45,8 @@ export function useLiveAgent(options: { id: string; workspaceId: string } | unde
 
 	return useLiveQuery(
 		(q) =>
-			q.from({ agent: collection }).where(({ agent }) => eq(agent.id, options?.id ?? '')),
-		[options?.id, options?.workspaceId]
+			q.from({ agent: collection }).where((row) => eq(row.agent.id, options?.id ?? '')),
+		[options?.id, options?.workspaceId],
 	)
 }
 
@@ -65,13 +65,9 @@ export function useLiveAgentsByStatus(options: {
 		(q) =>
 			q
 				.from({ agent: collection })
-				.where(({ agent }) =>
-					statuses.length === 1
-						? eq(agent.status, statuses[0]!)
-						: inArray(agent.status, statuses)
-				)
-				.orderBy(({ agent }) => agent.updatedAt, 'desc'),
-		[workspaceId, ...statuses]
+				.where((row) => or(...statuses.map((s) => eq(row.agent.status, s))))
+				.orderBy((row) => row.agent.updatedAt, 'desc'),
+		[workspaceId, ...statuses],
 	)
 }
 
@@ -91,25 +87,17 @@ export function useLiveDraftAgents(workspaceId: string) {
 
 /**
  * Live query for agents with a specific tool.
- * Note: Filters client-side since toolIds is an array field.
  */
 export function useLiveAgentsWithTool(options: { workspaceId: string; toolId: string }) {
 	const { workspaceId, toolId } = options
 	const collection = useAgentCollection(workspaceId)
 
+	// Note: This filters client-side since toolIds is an array
 	const result = useLiveQuery((q) => q.from({ agent: collection }), [workspaceId])
 
 	const filteredData = useMemo(() => {
 		if (!result.data) return []
-		// Filter agents that have the specified toolId in their toolIds array
-		return result.data.filter((row) => {
-			// The row contains the agent data directly from the collection
-			if (row && typeof row === 'object' && 'toolIds' in row) {
-				const toolIds = row.toolIds as string[] | undefined
-				return toolIds?.includes(toolId)
-			}
-			return false
-		})
+		return result.data.filter(({ agent }) => agent.toolIds?.includes(toolId))
 	}, [result.data, toolId])
 
 	return { ...result, data: filteredData }
@@ -126,8 +114,8 @@ export function useLiveTools(workspaceId: string | undefined) {
 	const collection = useToolCollection(workspaceId ?? '')
 
 	return useLiveQuery(
-		(q) => q.from({ tool: collection }).orderBy(({ tool }) => tool.name, 'asc'),
-		[workspaceId]
+		(q) => q.from({ tool: collection }).orderBy((row) => row.tool.name, 'asc'),
+		[workspaceId],
 	)
 }
 
@@ -138,8 +126,8 @@ export function useLiveTool(options: { id: string; workspaceId: string } | undef
 	const collection = useToolCollection(options?.workspaceId ?? '')
 
 	return useLiveQuery(
-		(q) => q.from({ tool: collection }).where(({ tool }) => eq(tool.id, options?.id ?? '')),
-		[options?.id, options?.workspaceId]
+		(q) => q.from({ tool: collection }).where((row) => eq(row.tool.id, options?.id ?? '')),
+		[options?.id, options?.workspaceId],
 	)
 }
 
@@ -154,9 +142,9 @@ export function useLiveToolsByType(options: { workspaceId: string; type: string 
 		(q) =>
 			q
 				.from({ tool: collection })
-				.where(({ tool }) => eq(tool.type, type))
-				.orderBy(({ tool }) => tool.name, 'asc'),
-		[workspaceId, type]
+				.where((row) => eq(row.tool.type, type))
+				.orderBy((row) => row.tool.name, 'asc'),
+		[workspaceId, type],
 	)
 }
 
@@ -172,7 +160,7 @@ export function useLiveSystemTools(workspaceId: string) {
 				.from({ tool: collection })
 				.where(({ tool }) => eq(tool.isSystem, true))
 				.orderBy(({ tool }) => tool.name, 'asc'),
-		[workspaceId]
+		[workspaceId],
 	)
 }
 
@@ -188,7 +176,7 @@ export function useLiveCustomTools(workspaceId: string) {
 				.from({ tool: collection })
 				.where(({ tool }) => eq(tool.isSystem, false))
 				.orderBy(({ tool }) => tool.name, 'asc'),
-		[workspaceId]
+		[workspaceId],
 	)
 }
 
@@ -203,8 +191,8 @@ export function useLiveWorkspaces() {
 	const collection = useWorkspaceCollection()
 
 	return useLiveQuery(
-		(q) => q.from({ workspace: collection }).orderBy(({ workspace }) => workspace.name, 'asc'),
-		[]
+		(q) => q.from({ workspace: collection }).orderBy((row) => row.workspace.name, 'asc'),
+		[],
 	)
 }
 
@@ -215,9 +203,8 @@ export function useLiveWorkspace(id: string | undefined) {
 	const collection = useWorkspaceCollection()
 
 	return useLiveQuery(
-		(q) =>
-			q.from({ workspace: collection }).where(({ workspace }) => eq(workspace.id, id ?? '')),
-		[id]
+		(q) => q.from({ workspace: collection }).where((row) => eq(row.workspace.id, id ?? '')),
+		[id],
 	)
 }
 
@@ -236,8 +223,8 @@ export function useLiveSchedules(options: { agentId: string; workspaceId: string
 
 	return useLiveQuery(
 		(q) =>
-			q.from({ schedule: collection }).orderBy(({ schedule }) => schedule.createdAt, 'desc'),
-		[options?.agentId, options?.workspaceId]
+			q.from({ schedule: collection }).orderBy((row) => row.schedule.createdAt, 'desc'),
+		[options?.agentId, options?.workspaceId],
 	)
 }
 
@@ -254,7 +241,7 @@ export function useLiveActiveSchedules(options: { agentId: string; workspaceId: 
 				.from({ schedule: collection })
 				.where(({ schedule }) => eq(schedule.status, 'active'))
 				.orderBy(({ schedule }) => schedule.nextExecuteAt, 'asc'),
-		[agentId, workspaceId]
+		[agentId, workspaceId],
 	)
 }
 
@@ -271,7 +258,7 @@ export function useLivePendingSchedules(options: { agentId: string; workspaceId:
 				.from({ schedule: collection })
 				.where(({ schedule }) => eq(schedule.status, 'pending'))
 				.orderBy(({ schedule }) => schedule.executeAt, 'asc'),
-		[agentId, workspaceId]
+		[agentId, workspaceId],
 	)
 }
 
