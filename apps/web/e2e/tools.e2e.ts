@@ -6,29 +6,15 @@ import { test } from './fixtures'
  * Tests the tools listing, system tools, and tool management functionality.
  */
 
-baseTest.describe('Tools Page - Unauthenticated', () => {
-	baseTest.beforeEach(async ({ page }: { page: Page }) => {
+// Tools page requires authentication - test redirect
+baseTest.describe('Tools Page - Auth Redirect', () => {
+	baseTest('tools page redirects to sign-in for unauthenticated users', async ({
+		page,
+	}: { page: Page }) => {
 		await page.goto('/dashboard/tools')
 		await page.waitForLoadState('networkidle')
-	})
-
-	baseTest('displays tools heading', async ({ page }: { page: Page }) => {
-		await expect(page.getByRole('heading', { name: 'Tools', exact: true })).toBeVisible()
-	})
-
-	baseTest('displays tool action buttons', async ({ page }: { page: Page }) => {
-		// UI has "Quick Add" and "Create HTTP Tool" buttons
-		const quickAddBtn = page.getByRole('button', { name: 'Quick Add' })
-		const createHttpToolBtn = page.getByRole('button', { name: 'Create HTTP Tool' })
-		// At least one should be visible
-		const hasQuickAdd = await quickAddBtn.isVisible().catch(() => false)
-		const hasCreateHttp = await createHttpToolBtn.isVisible().catch(() => false)
-		expect(hasQuickAdd || hasCreateHttp).toBe(true)
-	})
-
-	baseTest('page loads without errors', async ({ page }: { page: Page }) => {
-		// Page should have some content about tools
-		await expect(page.locator('body')).not.toContainText('404')
+		// Should be redirected to sign-in
+		await expect(page).toHaveURL(/\/sign-in/)
 	})
 })
 
@@ -103,20 +89,24 @@ test.describe('Tools Page - Authenticated', () => {
 	})
 })
 
-baseTest.describe('Tools Page - Responsive', () => {
-	baseTest('displays correctly on mobile', async ({ page }: { page: Page }) => {
-		await page.setViewportSize({ width: 375, height: 667 })
-		await page.goto('/dashboard/tools')
-		await page.waitForLoadState('networkidle')
+test.describe('Tools Page - Responsive', () => {
+	test('displays correctly on mobile', async ({ authenticatedPage }) => {
+		await authenticatedPage.setViewportSize({ width: 375, height: 667 })
+		await authenticatedPage.goto('/dashboard/tools')
+		await authenticatedPage.waitForLoadState('networkidle')
 
-		await expect(page.getByRole('heading', { name: 'Tools', exact: true })).toBeVisible()
+		await expect(
+			authenticatedPage.getByRole('heading', { name: 'Tools', exact: true }),
+		).toBeVisible()
 	})
 
-	baseTest('displays correctly on tablet', async ({ page }: { page: Page }) => {
-		await page.setViewportSize({ width: 768, height: 1024 })
-		await page.goto('/dashboard/tools')
-		await page.waitForLoadState('networkidle')
+	test('displays correctly on tablet', async ({ authenticatedPage }) => {
+		await authenticatedPage.setViewportSize({ width: 768, height: 1024 })
+		await authenticatedPage.goto('/dashboard/tools')
+		await authenticatedPage.waitForLoadState('networkidle')
 
-		await expect(page.getByRole('heading', { name: 'Tools', exact: true })).toBeVisible()
+		await expect(
+			authenticatedPage.getByRole('heading', { name: 'Tools', exact: true }),
+		).toBeVisible()
 	})
 })

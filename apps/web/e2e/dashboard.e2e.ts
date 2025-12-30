@@ -1,34 +1,47 @@
 import { test as baseTest, expect, type Page } from '@playwright/test'
 import { test } from './fixtures'
 
-baseTest.describe('Dashboard Overview - Unauthenticated', () => {
-	baseTest.beforeEach(async ({ page }: { page: Page }) => {
+// Test that unauthenticated users are redirected to sign-in when accessing protected routes
+baseTest.describe('Protected Routes - Auth Redirect', () => {
+	baseTest('dashboard redirects to sign-in for unauthenticated users', async ({
+		page,
+	}: { page: Page }) => {
 		await page.goto('/dashboard')
 		await page.waitForLoadState('networkidle')
+		// Should be redirected to sign-in
+		await expect(page).toHaveURL(/\/sign-in/)
 	})
 
-	baseTest('displays dashboard heading', async ({ page }: { page: Page }) => {
-		await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible()
-	})
-
-	baseTest('displays key metrics cards', async ({ page }: { page: Page }) => {
-		// Dashboard should show some metrics/stats
-		// Look for card-like elements with stats
-		const cards = page.locator('[class*="card"]')
-		await expect(cards.first()).toBeVisible()
-	})
-
-	baseTest('has sidebar navigation', async ({ page }: { page: Page }) => {
-		// Wait for page to fully load
+	baseTest('agents page redirects to sign-in for unauthenticated users', async ({
+		page,
+	}: { page: Page }) => {
+		await page.goto('/dashboard/agents')
 		await page.waitForLoadState('networkidle')
+		await expect(page).toHaveURL(/\/sign-in/)
+	})
 
-		// Verify sidebar links exist using nav locator for specificity
-		const nav = page.locator('nav')
-		await expect(nav.getByRole('link', { name: 'Dashboard' })).toBeVisible()
-		await expect(nav.getByRole('link', { name: 'Agents' })).toBeVisible()
-		await expect(nav.getByRole('link', { name: 'Tools' })).toBeVisible()
-		await expect(nav.getByRole('link', { name: 'Usage' })).toBeVisible()
-		await expect(nav.getByRole('link', { name: 'Settings' })).toBeVisible()
+	baseTest('tools page redirects to sign-in for unauthenticated users', async ({
+		page,
+	}: { page: Page }) => {
+		await page.goto('/dashboard/tools')
+		await page.waitForLoadState('networkidle')
+		await expect(page).toHaveURL(/\/sign-in/)
+	})
+
+	baseTest('usage page redirects to sign-in for unauthenticated users', async ({
+		page,
+	}: { page: Page }) => {
+		await page.goto('/dashboard/usage')
+		await page.waitForLoadState('networkidle')
+		await expect(page).toHaveURL(/\/sign-in/)
+	})
+
+	baseTest('settings page redirects to sign-in for unauthenticated users', async ({
+		page,
+	}: { page: Page }) => {
+		await page.goto('/dashboard/settings')
+		await page.waitForLoadState('networkidle')
+		await expect(page).toHaveURL(/\/sign-in/)
 	})
 })
 
@@ -38,25 +51,47 @@ test.describe('Dashboard Overview - Authenticated', () => {
 		await authenticatedPage.waitForLoadState('networkidle')
 		await expect(authenticatedPage.getByRole('heading', { name: 'Dashboard' })).toBeVisible()
 	})
+
+	test('authenticated user sees key metrics cards', async ({ authenticatedPage }) => {
+		await authenticatedPage.goto('/dashboard')
+		await authenticatedPage.waitForLoadState('networkidle')
+		// Dashboard should show some metrics/stats cards
+		const cards = authenticatedPage.locator('[class*="card"]')
+		await expect(cards.first()).toBeVisible()
+	})
+
+	test('authenticated user has sidebar navigation', async ({ authenticatedPage }) => {
+		await authenticatedPage.goto('/dashboard')
+		await authenticatedPage.waitForLoadState('networkidle')
+		// Verify sidebar links exist using nav locator for specificity
+		const nav = authenticatedPage.locator('nav')
+		await expect(nav.getByRole('link', { name: 'Dashboard' })).toBeVisible()
+		await expect(nav.getByRole('link', { name: 'Agents' })).toBeVisible()
+		await expect(nav.getByRole('link', { name: 'Tools' })).toBeVisible()
+		await expect(nav.getByRole('link', { name: 'Usage' })).toBeVisible()
+		await expect(nav.getByRole('link', { name: 'Settings' })).toBeVisible()
+	})
 })
 
-baseTest.describe('Agents List Page - Unauthenticated', () => {
-	baseTest.beforeEach(async ({ page }: { page: Page }) => {
-		await page.goto('/dashboard/agents')
-		await page.waitForLoadState('networkidle')
+test.describe('Agents List Page - Authenticated', () => {
+	test('displays agents heading', async ({ authenticatedPage }) => {
+		await authenticatedPage.goto('/dashboard/agents')
+		await authenticatedPage.waitForLoadState('networkidle')
+		await expect(
+			authenticatedPage.getByRole('heading', { name: 'Agents', exact: true }),
+		).toBeVisible()
 	})
 
-	baseTest('displays agents heading', async ({ page }: { page: Page }) => {
-		await expect(page.getByRole('heading', { name: 'Agents', exact: true })).toBeVisible()
+	test('has new agent button', async ({ authenticatedPage }) => {
+		await authenticatedPage.goto('/dashboard/agents')
+		await authenticatedPage.waitForLoadState('networkidle')
+		await expect(authenticatedPage.getByRole('link', { name: 'New Agent' })).toBeVisible()
 	})
 
-	baseTest('has new agent button', async ({ page }: { page: Page }) => {
-		await expect(page.getByRole('link', { name: 'New Agent' })).toBeVisible()
-	})
-
-	baseTest('new agent button navigates to create page', async ({ page }: { page: Page }) => {
-		// Verify New Agent link has correct href (navigation tested separately in navigation.e2e.ts)
-		const newAgentLink = page.getByRole('link', { name: 'New Agent' })
+	test('new agent button has correct href', async ({ authenticatedPage }) => {
+		await authenticatedPage.goto('/dashboard/agents')
+		await authenticatedPage.waitForLoadState('networkidle')
+		const newAgentLink = authenticatedPage.getByRole('link', { name: 'New Agent' })
 		await expect(newAgentLink).toBeVisible()
 		await expect(newAgentLink).toHaveAttribute('href', '/dashboard/agents/new')
 	})
@@ -167,90 +202,97 @@ test.describe('Agent List and Management - Authenticated', () => {
 	})
 })
 
-baseTest.describe('Tools List Page', () => {
-	baseTest.beforeEach(async ({ page }: { page: Page }) => {
-		await page.goto('/dashboard/tools')
-		await page.waitForLoadState('networkidle')
+test.describe('Tools List Page - Authenticated', () => {
+	test('displays tools heading', async ({ authenticatedPage }) => {
+		await authenticatedPage.goto('/dashboard/tools')
+		await authenticatedPage.waitForLoadState('networkidle')
+		await expect(
+			authenticatedPage.getByRole('heading', { name: 'Tools', exact: true }),
+		).toBeVisible()
 	})
 
-	baseTest('displays tools heading', async ({ page }: { page: Page }) => {
-		await expect(page.getByRole('heading', { name: 'Tools', exact: true })).toBeVisible()
-	})
-
-	baseTest('has add tool button', async ({ page }: { page: Page }) => {
+	test('has add tool button', async ({ authenticatedPage }) => {
+		await authenticatedPage.goto('/dashboard/tools')
+		await authenticatedPage.waitForLoadState('networkidle')
 		// UI has "Quick Add" and "Create HTTP Tool" buttons
-		const quickAddBtn = page.getByRole('button', { name: 'Quick Add' })
-		const createHttpToolBtn = page.getByRole('button', { name: 'Create HTTP Tool' })
+		const quickAddBtn = authenticatedPage.getByRole('button', { name: 'Quick Add' })
+		const createHttpToolBtn = authenticatedPage.getByRole('button', { name: 'Create HTTP Tool' })
 		// At least one should be visible
 		const hasQuickAdd = await quickAddBtn.isVisible().catch(() => false)
 		const hasCreateHttp = await createHttpToolBtn.isVisible().catch(() => false)
 		expect(hasQuickAdd || hasCreateHttp).toBe(true)
 	})
 
-	baseTest('shows tool categories or list', async ({ page }: { page: Page }) => {
-		// Page should have some content about tools
-		await expect(page.locator('body')).not.toContainText('404')
+	test('shows tool content', async ({ authenticatedPage }) => {
+		await authenticatedPage.goto('/dashboard/tools')
+		await authenticatedPage.waitForLoadState('networkidle')
+		// Page should have some content about tools (not 404)
+		await expect(authenticatedPage.locator('body')).not.toContainText('404')
 	})
 })
 
-baseTest.describe('Usage Page', () => {
-	baseTest.beforeEach(async ({ page }: { page: Page }) => {
-		await page.goto('/dashboard/usage')
-		await page.waitForLoadState('networkidle')
+test.describe('Usage Page - Authenticated', () => {
+	test('displays usage heading', async ({ authenticatedPage }) => {
+		await authenticatedPage.goto('/dashboard/usage')
+		await authenticatedPage.waitForLoadState('networkidle')
+		await expect(authenticatedPage.getByRole('heading', { name: 'Usage' })).toBeVisible()
 	})
 
-	baseTest('displays usage heading', async ({ page }: { page: Page }) => {
-		await expect(page.getByRole('heading', { name: 'Usage' })).toBeVisible()
-	})
-
-	baseTest('shows usage statistics section', async ({ page }: { page: Page }) => {
-		// Usage page should have stats/metrics
-		await expect(page.locator('body')).not.toContainText('404')
+	test('shows usage statistics section', async ({ authenticatedPage }) => {
+		await authenticatedPage.goto('/dashboard/usage')
+		await authenticatedPage.waitForLoadState('networkidle')
+		// Usage page should have stats/metrics (not 404)
+		await expect(authenticatedPage.locator('body')).not.toContainText('404')
 	})
 })
 
-baseTest.describe('Responsive Layout', () => {
-	baseTest('dashboard is responsive on mobile', async ({ page }: { page: Page }) => {
-		await page.setViewportSize({ width: 375, height: 667 })
-		await page.goto('/dashboard')
-		await page.waitForLoadState('networkidle')
+test.describe('Responsive Layout - Authenticated', () => {
+	test('dashboard is responsive on mobile', async ({ authenticatedPage }) => {
+		await authenticatedPage.setViewportSize({ width: 375, height: 667 })
+		await authenticatedPage.goto('/dashboard')
+		await authenticatedPage.waitForLoadState('networkidle')
 
 		// Page should still load without 404
-		await expect(page.locator('body')).not.toContainText('404')
+		await expect(authenticatedPage.locator('body')).not.toContainText('404')
 		// Heading should be visible
-		await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible()
+		await expect(authenticatedPage.getByRole('heading', { name: 'Dashboard' })).toBeVisible()
 	})
 
-	baseTest('agents page is responsive on tablet', async ({ page }: { page: Page }) => {
-		await page.setViewportSize({ width: 768, height: 1024 })
-		await page.goto('/dashboard/agents')
-		await page.waitForLoadState('networkidle')
+	test('agents page is responsive on tablet', async ({ authenticatedPage }) => {
+		await authenticatedPage.setViewportSize({ width: 768, height: 1024 })
+		await authenticatedPage.goto('/dashboard/agents')
+		await authenticatedPage.waitForLoadState('networkidle')
 
-		await expect(page.locator('body')).not.toContainText('404')
-		await expect(page.getByRole('heading', { name: 'Agents', exact: true })).toBeVisible()
+		await expect(authenticatedPage.locator('body')).not.toContainText('404')
+		await expect(
+			authenticatedPage.getByRole('heading', { name: 'Agents', exact: true }),
+		).toBeVisible()
 	})
 })
 
-baseTest.describe('Theme and Accessibility', () => {
-	baseTest('pages have proper heading hierarchy', async ({ page }: { page: Page }) => {
-		await page.goto('/dashboard')
-		await page.waitForLoadState('networkidle')
+test.describe('Theme and Accessibility - Authenticated', () => {
+	test('pages have proper heading hierarchy', async ({ authenticatedPage }) => {
+		await authenticatedPage.goto('/dashboard')
+		await authenticatedPage.waitForLoadState('networkidle')
 
 		// Should have an h1 heading
-		const h1 = page.locator('h1').first()
+		const h1 = authenticatedPage.locator('h1').first()
 		await expect(h1).toBeVisible()
 	})
 
-	baseTest('buttons are keyboard accessible', async ({ page }: { page: Page }) => {
-		await page.goto('/dashboard/agents')
-		await page.waitForLoadState('networkidle')
+	test('buttons are keyboard accessible', async ({ authenticatedPage }) => {
+		await authenticatedPage.goto('/dashboard/agents')
+		await authenticatedPage.waitForLoadState('networkidle')
 
 		// Tab to the New Agent button and verify it's focusable
-		const newAgentLink = page.getByRole('link', { name: 'New Agent' })
+		const newAgentLink = authenticatedPage.getByRole('link', { name: 'New Agent' })
 		await newAgentLink.focus()
 		await expect(newAgentLink).toBeFocused()
 	})
+})
 
+// Accessibility tests that don't require auth
+baseTest.describe('Theme and Accessibility - Public', () => {
 	baseTest('form inputs are keyboard accessible', async ({ page }: { page: Page }) => {
 		await page.goto('/sign-in')
 		await page.waitForLoadState('networkidle')

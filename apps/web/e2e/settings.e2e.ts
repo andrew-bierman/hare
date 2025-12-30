@@ -6,18 +6,15 @@ import { test } from './fixtures'
  * Tests the settings page, profile management, and sign-out functionality.
  */
 
-baseTest.describe('Settings Page - Unauthenticated', () => {
-	baseTest.beforeEach(async ({ page }: { page: Page }) => {
+// Settings page requires authentication - test redirect
+baseTest.describe('Settings Page - Auth Redirect', () => {
+	baseTest('settings page redirects to sign-in for unauthenticated users', async ({
+		page,
+	}: { page: Page }) => {
 		await page.goto('/dashboard/settings')
 		await page.waitForLoadState('networkidle')
-	})
-
-	baseTest('displays settings heading', async ({ page }: { page: Page }) => {
-		await expect(page.getByRole('heading', { name: 'Settings' })).toBeVisible()
-	})
-
-	baseTest('shows profile section', async ({ page }: { page: Page }) => {
-		await expect(page.getByText(/profile/i).first()).toBeVisible()
+		// Should be redirected to sign-in
+		await expect(page).toHaveURL(/\/sign-in/)
 	})
 })
 

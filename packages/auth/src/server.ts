@@ -85,9 +85,19 @@ export function createAuth({ d1, env }: CreateAuthOptions) {
 		},
 		trustedOrigins: [
 			env.APP_URL,
-			// Only allow localhost origins in development (when APP_URL is localhost)
+			// Allow all common localhost ports in development
 			...(env.APP_URL.includes('localhost')
-				? ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:8787']
+				? [
+						'http://localhost:3000',
+						'http://localhost:3001',
+						'http://localhost:3070',
+						'http://localhost:3071',
+						'http://localhost:8787',
+						'http://127.0.0.1:3000',
+						'http://127.0.0.1:3001',
+						'http://127.0.0.1:3070',
+						'http://127.0.0.1:8787',
+					]
 				: []),
 		],
 	})
