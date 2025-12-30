@@ -10,13 +10,14 @@ import {
 	CommandItem,
 	CommandList,
 } from '@hare/ui/components/command'
-import { Menu, Rabbit, Search } from 'lucide-react'
+import { Bot, Home, Menu, Plus, Rabbit, Search, Settings, Wrench } from 'lucide-react'
 import { APP_CONFIG } from '@hare/config'
 
 export interface HeaderProps {
 	Link: React.ComponentType<{ to: string; className?: string; children: React.ReactNode }>
 	UserNav?: React.ComponentType
 	onMobileMenuToggle?: () => void
+	onNavigate?: (path: string) => void
 }
 
 /**
@@ -24,7 +25,7 @@ export interface HeaderProps {
  * Mobile: hamburger + logo + user nav
  * Desktop: command search + user nav (sidebar provides logo)
  */
-export function Header({ Link, UserNav, onMobileMenuToggle }: HeaderProps) {
+export function Header({ Link, UserNav, onMobileMenuToggle, onNavigate }: HeaderProps) {
 	const [open, setOpen] = useState(false)
 
 	// Cmd+K to open search
@@ -38,6 +39,11 @@ export function Header({ Link, UserNav, onMobileMenuToggle }: HeaderProps) {
 		document.addEventListener('keydown', down)
 		return () => document.removeEventListener('keydown', down)
 	}, [])
+
+	const handleSelect = (path: string) => {
+		setOpen(false)
+		onNavigate?.(path)
+	}
 
 	return (
 		<>
@@ -102,27 +108,26 @@ export function Header({ Link, UserNav, onMobileMenuToggle }: HeaderProps) {
 				<CommandList>
 					<CommandEmpty>No results found.</CommandEmpty>
 					<CommandGroup heading="Quick Actions">
-						<CommandItem onSelect={() => setOpen(false)}>
+						<CommandItem onSelect={() => handleSelect('/dashboard/agents/new')}>
+							<Plus className="mr-2 h-4 w-4" />
 							<span>Create new agent</span>
-						</CommandItem>
-						<CommandItem onSelect={() => setOpen(false)}>
-							<span>View all agents</span>
-						</CommandItem>
-						<CommandItem onSelect={() => setOpen(false)}>
-							<span>Manage tools</span>
 						</CommandItem>
 					</CommandGroup>
 					<CommandGroup heading="Navigation">
-						<CommandItem onSelect={() => setOpen(false)}>
+						<CommandItem onSelect={() => handleSelect('/dashboard')}>
+							<Home className="mr-2 h-4 w-4" />
 							<span>Dashboard</span>
 						</CommandItem>
-						<CommandItem onSelect={() => setOpen(false)}>
+						<CommandItem onSelect={() => handleSelect('/dashboard/agents')}>
+							<Bot className="mr-2 h-4 w-4" />
 							<span>Agents</span>
 						</CommandItem>
-						<CommandItem onSelect={() => setOpen(false)}>
+						<CommandItem onSelect={() => handleSelect('/dashboard/tools')}>
+							<Wrench className="mr-2 h-4 w-4" />
 							<span>Tools</span>
 						</CommandItem>
-						<CommandItem onSelect={() => setOpen(false)}>
+						<CommandItem onSelect={() => handleSelect('/dashboard/settings')}>
+							<Settings className="mr-2 h-4 w-4" />
 							<span>Settings</span>
 						</CommandItem>
 					</CommandGroup>
