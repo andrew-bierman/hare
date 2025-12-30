@@ -15,7 +15,8 @@ export * from './table'
 export * from './virtual'
 
 // TanStack DB (reactive collections and live queries)
-export * from './db'
+// NOTE: Disabled - hooks are exported from shared/api/hooks instead to avoid duplicates
+// export * from './db'
 
 // Note: Server functions are exported separately from './server-functions'
 // They should be imported directly in server context
