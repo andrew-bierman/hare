@@ -90,7 +90,7 @@ export function useChat(agentId: string | undefined) {
 	sessionIdRef.current = sessionId
 
 	// Custom fetch to capture session ID from response header
-	const fetchWithSessionCapture: typeof fetch = async (url, init) => {
+	const fetchWithSessionCapture = async (url: RequestInfo | URL, init?: RequestInit) => {
 		const response = await fetch(url, init)
 		const newSessionId = response.headers.get('X-Session-Id')
 		if (newSessionId && !sessionIdRef.current) {
@@ -105,7 +105,7 @@ export function useChat(agentId: string | undefined) {
 		return new DefaultChatTransport({
 			api: `/api/chat/agents/${agentId}/chat`,
 			body: sessionIdRef.current ? { sessionId: sessionIdRef.current } : {},
-			fetch: fetchWithSessionCapture,
+			fetch: fetchWithSessionCapture as typeof globalThis.fetch,
 		})
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [agentId])

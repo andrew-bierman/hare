@@ -15,7 +15,7 @@ export const ChatRequestSchema = z
 	.object({
 		message: z.string().min(1).openapi({ example: 'Hello, how are you?' }),
 		sessionId: z.string().nullish().openapi({ example: 'session_abc123' }),
-		metadata: MetadataSchema.optional().openapi({ example: { userId: 'user_123' } }),
+		metadata: MetadataSchema.nullish().openapi({ example: { userId: 'user_123' } }),
 	})
 	.openapi('ChatRequest')
 
