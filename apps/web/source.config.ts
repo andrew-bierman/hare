@@ -28,8 +28,8 @@ const remarkAutoTypeTableConfig = {
 }
 
 export const docs = defineDocs({
-	// Content lives in packages/docs for better separation
-	dir: '../../packages/docs/content',
+	// Content lives in apps/web/content
+	dir: './content',
 	docs: {
 		mdxOptions: {
 			// Add remarkAutoTypeTable to transform <AutoTypeTable> components at build time
