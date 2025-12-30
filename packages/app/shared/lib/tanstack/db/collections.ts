@@ -46,15 +46,15 @@ export function createAgentCollection(options: {
 }): Collection<AgentRow> {
 	const { workspaceId, queryClient } = options
 
-	const config = queryCollectionOptions<AgentRow>({
+	const config = queryCollectionOptions({
 		queryClient,
 		queryKey: agentKeys.list(workspaceId),
-		queryFn: async () => {
+		queryFn: async (): Promise<AgentRow[]> => {
 			const response = await apiClient.agents.list(workspaceId)
 			return response.agents.map((agent) => ({
 				...agent,
 				_workspaceId: workspaceId,
-			})) as AgentRow[]
+			}))
 		},
 		getKey: (agent) => agent.id,
 
@@ -106,8 +106,7 @@ export function createAgentCollection(options: {
 		},
 	})
 
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	return createCollection<AgentRow>(config as any)
+	return createCollection(config)
 }
 
 // =============================================================================
@@ -123,15 +122,15 @@ export function createToolCollection(options: {
 }): Collection<ToolRow> {
 	const { workspaceId, queryClient } = options
 
-	const config = queryCollectionOptions<ToolRow>({
+	const config = queryCollectionOptions({
 		queryClient,
 		queryKey: toolKeys.list(workspaceId),
-		queryFn: async () => {
+		queryFn: async (): Promise<ToolRow[]> => {
 			const response = await apiClient.tools.list(workspaceId)
 			return response.tools.map((tool) => ({
 				...tool,
 				_workspaceId: workspaceId,
-			})) as ToolRow[]
+			}))
 		},
 		getKey: (tool) => tool.id,
 
@@ -179,8 +178,7 @@ export function createToolCollection(options: {
 		},
 	})
 
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	return createCollection<ToolRow>(config as any)
+	return createCollection(config)
 }
 
 // =============================================================================
@@ -195,12 +193,12 @@ export function createWorkspaceCollection(options: {
 }): Collection<WorkspaceRow> {
 	const { queryClient } = options
 
-	const config = queryCollectionOptions<WorkspaceRow>({
+	const config = queryCollectionOptions({
 		queryClient,
 		queryKey: workspaceKeys.list(),
-		queryFn: async () => {
+		queryFn: async (): Promise<WorkspaceRow[]> => {
 			const response = await apiClient.workspaces.list()
-			return response.workspaces as WorkspaceRow[]
+			return response.workspaces
 		},
 		getKey: (workspace) => workspace.id,
 
@@ -243,8 +241,7 @@ export function createWorkspaceCollection(options: {
 		},
 	})
 
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	return createCollection<WorkspaceRow>(config as any)
+	return createCollection(config)
 }
 
 // =============================================================================
@@ -261,15 +258,15 @@ export function createScheduleCollection(options: {
 }): Collection<ScheduleRow> {
 	const { agentId, workspaceId, queryClient } = options
 
-	const config = queryCollectionOptions<ScheduleRow>({
+	const config = queryCollectionOptions({
 		queryClient,
 		queryKey: scheduleKeys.list(agentId, workspaceId),
-		queryFn: async () => {
+		queryFn: async (): Promise<ScheduleRow[]> => {
 			const response = await apiClient.schedules.list(agentId, workspaceId)
 			return response.schedules.map((schedule) => ({
 				...schedule,
 				_workspaceId: workspaceId,
-			})) as ScheduleRow[]
+			}))
 		},
 		getKey: (schedule) => schedule.id,
 
@@ -317,6 +314,5 @@ export function createScheduleCollection(options: {
 		},
 	})
 
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	return createCollection<ScheduleRow>(config as any)
+	return createCollection(config)
 }

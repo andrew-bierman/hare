@@ -19,7 +19,6 @@ import {
 	useWorkspaceCollection,
 	useScheduleCollection,
 } from './provider'
-import type { AgentRow, ToolRow, ScheduleRow } from './collections'
 
 // =============================================================================
 // Agent Live Queries
@@ -98,10 +97,7 @@ export function useLiveAgentsWithTool(options: { workspaceId: string; toolId: st
 
 	const filteredData = useMemo(() => {
 		if (!result.data) return []
-		return result.data.filter((row) => {
-			const agent = row.agent as AgentRow
-			return agent.toolIds.includes(toolId)
-		})
+		return result.data.filter(({ agent }) => agent.toolIds?.includes(toolId))
 	}, [result.data, toolId])
 
 	return { ...result, data: filteredData }
@@ -162,8 +158,8 @@ export function useLiveSystemTools(workspaceId: string) {
 		(q) =>
 			q
 				.from({ tool: collection })
-				.where((row) => eq((row.tool as ToolRow).isSystem, true))
-				.orderBy((row) => row.tool.name, 'asc'),
+				.where(({ tool }) => eq(tool.isSystem, true))
+				.orderBy(({ tool }) => tool.name, 'asc'),
 		[workspaceId],
 	)
 }
@@ -178,8 +174,8 @@ export function useLiveCustomTools(workspaceId: string) {
 		(q) =>
 			q
 				.from({ tool: collection })
-				.where((row) => eq((row.tool as ToolRow).isSystem, false))
-				.orderBy((row) => row.tool.name, 'asc'),
+				.where(({ tool }) => eq(tool.isSystem, false))
+				.orderBy(({ tool }) => tool.name, 'asc'),
 		[workspaceId],
 	)
 }
@@ -243,8 +239,8 @@ export function useLiveActiveSchedules(options: { agentId: string; workspaceId: 
 		(q) =>
 			q
 				.from({ schedule: collection })
-				.where((row) => eq((row.schedule as ScheduleRow).status, 'active'))
-				.orderBy((row) => (row.schedule as ScheduleRow).nextExecuteAt, 'asc'),
+				.where(({ schedule }) => eq(schedule.status, 'active'))
+				.orderBy(({ schedule }) => schedule.nextExecuteAt, 'asc'),
 		[agentId, workspaceId],
 	)
 }
@@ -260,8 +256,8 @@ export function useLivePendingSchedules(options: { agentId: string; workspaceId:
 		(q) =>
 			q
 				.from({ schedule: collection })
-				.where((row) => eq((row.schedule as ScheduleRow).status, 'pending'))
-				.orderBy((row) => (row.schedule as ScheduleRow).executeAt, 'asc'),
+				.where(({ schedule }) => eq(schedule.status, 'pending'))
+				.orderBy(({ schedule }) => schedule.executeAt, 'asc'),
 		[agentId, workspaceId],
 	)
 }
