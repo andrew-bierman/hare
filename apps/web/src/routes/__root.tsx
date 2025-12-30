@@ -1,8 +1,10 @@
 import { Providers } from '@hare/app'
-import { createRootRoute, HeadContent, Outlet, Scripts } from '@tanstack/react-router'
+import { getSession } from '@hare/auth/client'
+import { createRootRouteWithContext, HeadContent, Outlet, Scripts } from '@tanstack/react-router'
 import '@hare/ui/styles/globals.css'
+import type { RouterContext } from '../router-context'
 
-export const Route = createRootRoute({
+export const Route = createRootRouteWithContext<RouterContext>()({
 	head: () => ({
 		title: 'Hare - AI Agents on the Edge',
 		meta: [
@@ -15,6 +17,27 @@ export const Route = createRootRoute({
 		],
 		links: [{ rel: 'icon', href: '/favicon.svg' }],
 	}),
+	beforeLoad: async () => {
+		// Fetch session and provide auth context for all routes
+		// This runs on both server (SSR) and client (navigation)
+		try {
+			const session = await getSession()
+			return {
+				auth: {
+					isAuthenticated: !!session.data?.user,
+					user: session.data?.user ?? null,
+				},
+			}
+		} catch {
+			// If session fetch fails, treat as unauthenticated
+			return {
+				auth: {
+					isAuthenticated: false,
+					user: null,
+				},
+			}
+		}
+	},
 	component: RootLayout,
 })
 

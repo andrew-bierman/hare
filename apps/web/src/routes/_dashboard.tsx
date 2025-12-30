@@ -9,7 +9,6 @@ import {
 	UserNav,
 	WorkspaceSwitcher,
 } from '@hare/app/widgets'
-import { getSession } from '@hare/auth/client'
 import {
 	createFileRoute,
 	Link,
@@ -20,18 +19,10 @@ import {
 } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/_dashboard')({
-	beforeLoad: async () => {
-		try {
-			const session = await getSession()
-			if (!session.data?.user) {
-				throw redirect({ to: '/sign-in' })
-			}
-		} catch (error) {
-			// Check if it's a TanStack Router redirect
-			if (error && typeof error === 'object' && 'isRedirect' in error) {
-				throw error
-			}
-			// For any other error (network, etc.), redirect to sign-in
+	beforeLoad: ({ context }) => {
+		// Use auth context from root route - no duplicate network calls
+		// Auth is already fetched in __root.tsx beforeLoad
+		if (!context.auth.isAuthenticated) {
 			throw redirect({ to: '/sign-in' })
 		}
 	},
