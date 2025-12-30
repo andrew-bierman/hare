@@ -1,4 +1,4 @@
-import { WorkspaceProvider } from '@hare/app'
+import { WorkspaceProvider, WorkspaceGate } from '@hare/app'
 import {
 	DashboardErrorComponent,
 	DashboardNotFound,
@@ -52,7 +52,9 @@ function DashboardLayout() {
 						onNavigate={(path) => navigate({ to: path })}
 					/>
 					<div className="flex-1 overflow-y-auto bg-muted/20">
-						<Outlet />
+						<WorkspaceGate>
+							<Outlet />
+						</WorkspaceGate>
 					</div>
 				</main>
 			</div>

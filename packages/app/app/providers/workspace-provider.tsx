@@ -15,6 +15,7 @@ interface WorkspaceContextValue {
 	workspaceRole: WorkspaceRole | undefined
 	setActiveWorkspace: (workspace: WorkspaceWithRole) => void
 	isLoading: boolean
+	isCreatingWorkspace: boolean
 	error: Error | null
 }
 
@@ -37,14 +38,13 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
 		}
 	}, [])
 
-	// Auto-create default workspace if user has none
+	// Auto-create default workspace if user has none (fallback for OAuth users)
+	// Server handles slug uniqueness, so we don't need client-side suffix
 	useEffect(() => {
 		if (!isLoading && session?.user && workspaces.length === 0 && !createWorkspace.isPending) {
-			// Add random suffix to avoid slug collisions in concurrent signup scenarios
-			const suffix = Math.random().toString(36).substring(2, 8)
 			createWorkspace.mutate({
 				name: 'My Workspace',
-				slug: `my-workspace-${suffix}`,
+				slug: 'my-workspace',
 			})
 		}
 	}, [isLoading, session?.user, workspaces.length, createWorkspace])
@@ -72,6 +72,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
 				workspaceRole: activeWorkspace?.role,
 				setActiveWorkspace,
 				isLoading,
+				isCreatingWorkspace: createWorkspace.isPending,
 				error: error as Error | null,
 			}}
 		>

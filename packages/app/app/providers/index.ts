@@ -7,6 +7,7 @@
 export { Providers } from './providers'
 export { queryClient, QueryProvider } from './query-provider'
 export { useWorkspace, WorkspaceProvider } from './workspace-provider'
+export { WorkspaceGate } from './workspace-gate'
 
 // Re-export auth context from features for convenience
 export {

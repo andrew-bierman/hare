@@ -32,6 +32,19 @@ export {
 	type SystemToolType,
 } from './tools'
 
+// Agent Templates & Response Styles
+export {
+	AGENT_TEMPLATES,
+	getResponseStyleById,
+	getResponseStyleFromConfig,
+	getTemplateById,
+	RESPONSE_STYLE_PRESETS,
+	type AgentTemplate,
+	type AgentTemplateId,
+	type ResponseStyle,
+	type ResponseStylePreset,
+} from './templates'
+
 // Navigation
 export { NAV_ITEMS, type NavItems } from './navigation'
 

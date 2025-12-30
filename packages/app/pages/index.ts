@@ -9,7 +9,7 @@
 export { DashboardPage } from './dashboard'
 
 // Agents
-export { AgentsListPage, AgentCreatePage } from './agents'
+export { AgentsListPage, AgentCreatePage, AgentTemplatesPage } from './agents'
 
 // Tools
 export { ToolsListPage } from './tools'
