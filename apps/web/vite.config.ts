@@ -44,6 +44,8 @@ export default defineConfig({
 	},
 	resolve: {
 		alias: {
+			// Polyfill Node.js path module for browser (fumadocs-mdx needs it)
+			path: 'path-browserify',
 			// Fumadocs MDX generated files
 			'fumadocs-mdx:collections/server': path.resolve(__dirname, './.source/server'),
 			'fumadocs-mdx:collections/browser': path.resolve(__dirname, './.source/browser'),
