@@ -56,8 +56,10 @@ const KVListResultSchema = z.object({
 /**
  * Get workspace-scoped key.
  * All KV keys are prefixed with workspaceId to ensure multi-tenant isolation.
+ * Validates that the key cannot escape the workspace scope (prevents path traversal attacks).
  */
 function scopedKey(workspaceId: string, key: string): string {
+	// Security: Prevent path traversal attempts that could escape workspace scope
 	if (key.includes('..') || key.startsWith('/')) {
 		throw new Error('Invalid key: path traversal not allowed')
 	}
@@ -210,6 +212,8 @@ export const kvListTool = createTool({
 		}
 
 		try {
+			// Always scope KV operations to the workspace to maintain strict multi-tenant isolation.
+			// User-provided prefix is combined with workspace prefix, never used directly.
 			const workspacePrefix = `ws/${context.workspaceId}/`
 			const fullPrefix = params.prefix
 				? scopedKey(context.workspaceId, params.prefix)

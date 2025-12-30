@@ -137,8 +137,8 @@ export function createTool<TInput, TOutput>(
 		...config,
 		execute: async (params, context) => {
 			const result = await originalExecute(params, context)
-			// Validate output if execution succeeded and has data
-			if (result.success && result.data !== undefined) {
+			// Validate output if execution succeeded and has data (skip for undefined/null)
+			if (result.success && result.data !== undefined && result.data !== null) {
 				const parseResult = outputSchema.safeParse(result.data)
 				if (!parseResult.success) {
 					return failure(`Output validation failed: ${parseResult.error.message}`)

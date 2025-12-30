@@ -5,7 +5,7 @@
  * This ensures type safety is maintained when tools delegate to other tools.
  */
 
-import type { HareEnv, Tool, ToolContext, ToolResult } from './types'
+import { failure, type HareEnv, type Tool, type ToolContext, type ToolResult } from './types'
 
 /**
  * Type-safe tool delegation.
@@ -51,10 +51,7 @@ export async function delegateToWithValidation<TInput, TOutput>(
 ): Promise<ToolResult<TOutput>> {
 	const parseResult = tool.inputSchema.safeParse(params)
 	if (!parseResult.success) {
-		return {
-			success: false,
-			error: `Input validation failed: ${parseResult.error.message}`,
-		}
+		return failure(`Input validation failed: ${parseResult.error.message}`)
 	}
 	return tool.execute(parseResult.data, context)
 }

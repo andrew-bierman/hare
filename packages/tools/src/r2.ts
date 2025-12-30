@@ -263,7 +263,7 @@ export const r2ListTool = createTool({
 					uploaded: obj.uploaded.toISOString(),
 				})),
 				truncated: parsed.truncated,
-				cursor: parsed.truncated ? parsed.cursor : undefined,
+				cursor: parsed.truncated && parsed.cursor ? parsed.cursor : undefined,
 				delimitedPrefixes: parsed.delimitedPrefixes?.map((p) =>
 					unscopedPath(context.workspaceId, p),
 				),
