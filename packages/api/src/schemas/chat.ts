@@ -40,7 +40,7 @@ export const ConversationSchema = z
 		id: z.string().openapi({ example: 'conv_xyz789' }),
 		agentId: z.string().openapi({ example: 'agent_abc123' }),
 		userId: z.string().nullable().openapi({ example: 'user_abc123' }),
-		title: z.string().openapi({ example: 'Chat about features' }),
+		title: z.string().nullable().openapi({ example: 'Chat about features' }),
 		messageCount: z.number().openapi({ example: 5 }),
 		createdAt: z.string().datetime().openapi({ example: '2024-12-01T00:00:00Z' }),
 		updatedAt: z.string().datetime().openapi({ example: '2024-12-01T00:00:00Z' }),
@@ -88,7 +88,7 @@ export const ExportedMessageSchema = z
 export const ConversationExportSchema = z
 	.object({
 		id: z.string(),
-		title: z.string(),
+		title: z.string().nullable(),
 		agentId: z.string(),
 		createdAt: z.string().datetime(),
 		updatedAt: z.string().datetime(),
