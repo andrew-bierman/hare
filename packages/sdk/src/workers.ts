@@ -1,12 +1,12 @@
 /**
- * hare/workers - Workers-only agent exports
+ * hareai/workers - Workers-only agent exports
  *
  * These exports can ONLY be used in Cloudflare Workers context because they
  * depend on the 'cloudflare:workers' module for Durable Objects support.
  *
  * @example
  * ```ts
- * import { HareAgent, HareMcpAgent } from 'hare/workers'
+ * import { HareAgent, HareMcpAgent } from 'hareai/workers'
  *
  * // Export the Durable Object classes in your worker
  * export { HareAgent, HareMcpAgent }

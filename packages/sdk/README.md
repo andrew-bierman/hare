@@ -1,13 +1,13 @@
-# hare
+# hareai
 
 Build AI agents on Cloudflare's edge network.
 
 ## Installation
 
 ```bash
-npm install hare
+npm install hareai
 # or
-bun add hare
+bun add hareai
 ```
 
 ### Peer Dependencies
@@ -21,8 +21,8 @@ npm install ai zod agents
 ### 1. Create a Simple Agent
 
 ```ts
-import { createSimpleAgent, createWorkersAIModel } from 'hare'
-import { getSystemTools } from 'hare/tools'
+import { createSimpleAgent, createWorkersAIModel } from 'hareai'
+import { getSystemTools } from 'hareai/tools'
 
 export default {
   async fetch(request: Request, env: Env) {
@@ -50,7 +50,7 @@ export default {
 ### 2. Use Durable Object Agents (Stateful)
 
 ```ts
-import { HareAgent, routeToHareAgent } from 'hare/workers'
+import { HareAgent, routeToHareAgent } from 'hareai/workers'
 
 // Export the Durable Object class
 export { HareAgent }
@@ -69,7 +69,7 @@ export default {
 ### 3. Create Custom Tools
 
 ```ts
-import { createTool, success, failure } from 'hare/tools'
+import { createTool, success, failure } from 'hareai/tools'
 import { z } from 'zod'
 
 const weatherTool = createTool({
@@ -94,10 +94,10 @@ const weatherTool = createTool({
 
 | Import Path | Description |
 |-------------|-------------|
-| `hare` | Main entry - universal exports (HareEdgeAgent, tools, types) |
-| `hare/workers` | Workers-only exports (HareAgent, HareMcpAgent with Durable Objects) |
-| `hare/tools` | All 59+ tools organized by category |
-| `hare/types` | Complete type definitions |
+| `hareai` | Main entry - universal exports (HareEdgeAgent, tools, types) |
+| `hareai/workers` | Workers-only exports (HareAgent, HareMcpAgent with Durable Objects) |
+| `hareai/tools` | All 59+ tools organized by category |
+| `hareai/types` | Complete type definitions |
 
 ## Available Tools (59+)
 
@@ -170,7 +170,7 @@ import type {
   Tool,
   AnyTool,
   AgentConfig
-} from 'hare/types'
+} from 'hareai/types'
 ```
 
 ## API Reference

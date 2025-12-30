@@ -1,5 +1,5 @@
 {
-	"name": "hare",
+	"name": "hareai",
 	"version": "0.1.0",
 	"description": "Hare SDK - Build AI agents on Cloudflare's edge network",
 	"keywords": [

@@ -1,5 +1,5 @@
 /**
- * hare - Build AI agents on Cloudflare's edge network
+ * hareai - Build AI agents on Cloudflare's edge network
  *
  * This is the main entry point for the Hare SDK. It exports everything you need
  * to build AI agents that run on Cloudflare Workers.
@@ -13,16 +13,16 @@
  *   createWorkersAIModel,
  *   getSystemTools,
  *   createTool
- * } from 'hare'
+ * } from 'hareai'
  *
  * // Workers-only imports (Durable Objects)
- * import { HareAgent, HareMcpAgent } from 'hare/workers'
+ * import { HareAgent, HareMcpAgent } from 'hareai/workers'
  *
  * // Tool-specific imports
- * import { getKVTools, getAITools } from 'hare/tools'
+ * import { getKVTools, getAITools } from 'hareai/tools'
  *
  * // Type imports
- * import type { HareAgentState, ToolContext } from 'hare/types'
+ * import type { HareAgentState, ToolContext } from 'hareai/types'
  * ```
  *
  * @packageDocumentation

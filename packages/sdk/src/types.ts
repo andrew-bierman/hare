@@ -1,5 +1,5 @@
 /**
- * hare/types - Complete type exports
+ * hareai/types - Complete type exports
  *
  * This module provides access to all type definitions used in the Hare platform.
  *
@@ -10,7 +10,7 @@
  *   ToolContext,
  *   AgentConfig,
  *   ChatMessage,
- * } from 'hare/types'
+ * } from 'hareai/types'
  * ```
  *
  * @packageDocumentation

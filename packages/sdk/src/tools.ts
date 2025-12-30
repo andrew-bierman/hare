@@ -1,5 +1,5 @@
 /**
- * hare/tools - Complete tool exports
+ * hareai/tools - Complete tool exports
  *
  * This module provides access to all 59+ tools available in the Hare platform,
  * organized by category.
@@ -20,7 +20,7 @@
  *   // Individual tools
  *   kvGetTool,
  *   summarizeTool,
- * } from 'hare/tools'
+ * } from 'hareai/tools'
  *
  * // Create a custom tool
  * const myTool = createTool({

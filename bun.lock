@@ -301,7 +301,7 @@
       },
     },
     "packages/sdk": {
-      "name": "hare",
+      "name": "hareai",
       "version": "0.1.0",
       "dependencies": {
         "@hare/agent": "workspace:*",
@@ -1528,9 +1528,9 @@
 
     "h3-v2": ["h3@2.0.1-rc.6", "", { "dependencies": { "rou3": "^0.7.10", "srvx": "^0.9.7" }, "peerDependencies": { "crossws": "^0.4.1" }, "optionalPeers": ["crossws"] }, "sha512-kKLFVFNJlDVTbQjakz1ZTFSHB9+oi9+Khf0v7xQsUKU3iOqu2qmrFzTD56YsDvvj2nBgqVDphGRXB2VRursw4w=="],
 
-    "hare": ["hare@workspace:packages/sdk"],
-
     "hare-tauri": ["hare-tauri@workspace:apps/tauri"],
+
+    "hareai": ["hareai@workspace:packages/sdk"],
 
     "has-flag": ["has-flag@4.0.0", "", {}, "sha512-EykJT/Q1KjTWctppgIAgfSO0tKVuZUjhgMr17kqTumMl6Afv3EISleU7qZUzoXDFTAHTDC4NOoG/ZxU3EvlMPQ=="],
 

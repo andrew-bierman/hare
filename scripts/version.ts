@@ -209,7 +209,7 @@ async function main(): Promise<void> {
 		newVersion = bumpType
 	} else if (['major', 'minor', 'patch', 'prerelease'].includes(bumpType)) {
 		// Get current version from a publishable package (prefer 'hare' SDK)
-		const sdkPkg = packages.find((p) => p.name === 'hare' && !p.isPrivate)
+		const sdkPkg = packages.find((p) => p.name === 'hareai' && !p.isPrivate)
 		const publishable = packages.filter((p) => !p.isPrivate)
 		const reference = sdkPkg || publishable[0]
 
