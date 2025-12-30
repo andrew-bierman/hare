@@ -48,7 +48,8 @@
 		"typecheck:tsc": "tsc -b",
 		"typecheck:tsgo": "tsgo -b",
 		"typecheck:web": "bun run --cwd apps/web tsc --noEmit",
-		"upload": "bun run --cwd apps/web upload"
+		"upload": "bun run --cwd apps/web upload",
+		"version": "bun run scripts/version.ts"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "^2.3.10",

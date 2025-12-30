@@ -19,7 +19,7 @@ import {
 	type ToolConfig,
 	type ToolContext,
 } from '@hare/tools'
-import { type AgentTool, createEdgeAgent, type EdgeAgent } from './edge-agent'
+import { type AgentTool, createHareEdgeAgent, type HareEdgeAgent } from './edge-agent'
 
 /**
  * Generic output schema for custom tools.
@@ -221,7 +221,7 @@ function buildInstructions(config: AgentConfig, tools: AgentTool[]): string {
 /**
  * Create an Edge-compatible Agent from a database configuration.
  */
-export async function createAgentFromConfig(input: CreateAgentFromConfigInput): Promise<EdgeAgent> {
+export async function createAgentFromConfig(input: CreateAgentFromConfigInput): Promise<HareEdgeAgent> {
 	const { agentConfig, db, env, includeSystemTools = true, userId } = input
 
 	// Create tool context
@@ -258,7 +258,7 @@ export async function createAgentFromConfig(input: CreateAgentFromConfigInput): 
 	const instructions = buildInstructions(agentConfig, agentTools)
 
 	// Create and return the Edge agent
-	return createEdgeAgent({
+	return createHareEdgeAgent({
 		name: agentConfig.name,
 		instructions,
 		model: agentConfig.model,
@@ -286,9 +286,9 @@ export interface CreateSimpleAgentInput {
 /**
  * Create a simple agent without database tools.
  */
-export function createSimpleAgent(input: CreateSimpleAgentInput): EdgeAgent {
+export function createSimpleAgent(input: CreateSimpleAgentInput): HareEdgeAgent {
 	const { name, instructions, model, env, tools = [] } = input
-	return createEdgeAgent({
+	return createHareEdgeAgent({
 		name,
 		instructions,
 		model,
