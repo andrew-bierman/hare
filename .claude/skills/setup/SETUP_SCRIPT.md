@@ -23,7 +23,7 @@ bun run setup:worktree [options]
 2. **Calculates port** - Generates a unique port for this worktree (3001-3099)
 3. **Installs dependencies** - Runs `bun install`
 4. **Creates/updates `.env.local`** - Copies from template if missing, generates `BETTER_AUTH_SECRET`
-5. **Updates port configuration** - Sets both `BETTER_AUTH_URL` and `NEXT_PUBLIC_APP_URL` to the same port
+5. **Updates port configuration** - Sets both `BETTER_AUTH_URL` and `VITE_APP_URL` to the same port
 6. **Regenerates environment files** - Runs `scripts/env.ts` to create `apps/web/.env.local` and `apps/web/.dev.vars`
 7. **Runs database migrations** - Applies local D1 migrations
 8. **Creates `.worktree-config`** - Saves port configuration for reference
@@ -109,7 +109,7 @@ openssl rand -base64 32
 
 # 4. Update port in .env.local (use same port for both!)
 # BETTER_AUTH_URL=http://localhost:3050
-# NEXT_PUBLIC_APP_URL=http://localhost:3050
+# VITE_APP_URL=http://localhost:3050
 
 # 5. Regenerate env files
 bun run scripts/env.ts

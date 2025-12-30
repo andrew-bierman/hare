@@ -224,7 +224,7 @@ cp .env.local.example .env.local
 
 Hare uses an environment shim script to automatically generate app-specific environment files from a single root `.env.local` file. When you run `bun install`:
 
-- `.env.local` → `apps/web/.env.local` (for Next.js, with `NEXT_PUBLIC_` prefix)
+- `.env.local` → `apps/web/.env.local` (for Vite, with `VITE_` prefix for client-side)
 - `.env.local` → `apps/web/.dev.vars` (for Cloudflare Workers, server-side only)
 
 This ensures consistency across your monorepo and follows Cloudflare's convention of using `.dev.vars` for local development instead of `.env`.
@@ -311,7 +311,7 @@ echo "BETTER_AUTH_SECRET=$(openssl rand -base64 32)" >> .env.local
 
 # 5. Update .env.local with your port (SAME port for both!)
 #    BETTER_AUTH_URL=http://localhost:3050
-#    NEXT_PUBLIC_APP_URL=http://localhost:3050
+#    VITE_APP_URL=http://localhost:3050
 
 # 6. Regenerate environment files
 bun run scripts/env.ts
@@ -753,22 +753,21 @@ STRIPE_SECRET_KEY=sk_test_...
 STRIPE_WEBHOOK_SECRET=whsec_...
 
 # 🌐 App Configuration
-NEXT_PUBLIC_APP_URL=http://localhost:3000
+VITE_APP_URL=http://localhost:3000
 ```
 
 ### How It Works
 
-The environment shim script (`.github/scripts/env.ts`) runs automatically during `bun install` and:
+The environment shim script (`scripts/env.ts`) runs automatically during `bun install` and:
 
 1. **Reads** the root `.env.local` file
-2. **Transforms** `PUBLIC_` prefixed variables to `NEXT_PUBLIC_` for Next.js
-3. **Generates** `apps/web/.env.local` with all variables (including `NEXT_PUBLIC_`)
-4. **Generates** `apps/web/.dev.vars` with only server-side variables (excludes `NEXT_PUBLIC_` and `PUBLIC_`)
+2. **Generates** `apps/web/.env.local` with all variables (VITE_* prefix exposes to client)
+3. **Generates** `apps/web/.dev.vars` with only server-side variables (excludes `VITE_*`)
 
 This approach:
 - ✅ Maintains a single source of truth for environment variables
 - ✅ Follows Cloudflare's convention of using `.dev.vars` for Workers
-- ✅ Automatically transforms variables for Next.js
+- ✅ Uses Vite's `VITE_*` prefix for client-side variables
 - ✅ Prevents accidental exposure of server-side secrets
 - ✅ Skips generation in CI environments
 
