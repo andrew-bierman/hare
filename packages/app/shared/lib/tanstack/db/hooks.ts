@@ -11,7 +11,7 @@
  */
 
 import type { AgentStatus } from '@hare/types'
-import { useLiveQuery, eq, and, or } from '@tanstack/react-db'
+import { useLiveQuery, eq, inArray } from '@tanstack/react-db'
 import { useMemo } from 'react'
 import {
 	useAgentCollection,
@@ -19,7 +19,6 @@ import {
 	useWorkspaceCollection,
 	useScheduleCollection,
 } from './provider'
-import type { AgentRow, ToolRow, WorkspaceRow, ScheduleRow } from './collections'
 
 // =============================================================================
 // Agent Live Queries
@@ -34,7 +33,7 @@ export function useLiveAgents(workspaceId: string | undefined) {
 
 	return useLiveQuery(
 		(q) => q.from({ agent: collection }).orderBy(({ agent }) => agent.updatedAt, 'desc'),
-		[workspaceId],
+		[workspaceId]
 	)
 }
 
@@ -47,7 +46,7 @@ export function useLiveAgent(options: { id: string; workspaceId: string } | unde
 	return useLiveQuery(
 		(q) =>
 			q.from({ agent: collection }).where(({ agent }) => eq(agent.id, options?.id ?? '')),
-		[options?.id, options?.workspaceId],
+		[options?.id, options?.workspaceId]
 	)
 }
 
@@ -66,21 +65,13 @@ export function useLiveAgentsByStatus(options: {
 		(q) =>
 			q
 				.from({ agent: collection })
-				.where(({ agent }) => {
-					// Build OR condition for multiple statuses
-					if (statuses.length === 1) {
-						return eq(agent.status, statuses[0]!)
-					}
-					// For multiple statuses, manually build OR chain
-					return or(
-						eq(agent.status, statuses[0]!),
-						statuses.length === 2
-							? eq(agent.status, statuses[1]!)
-							: or(eq(agent.status, statuses[1]!), eq(agent.status, statuses[2]!))
-					)
-				})
+				.where(({ agent }) =>
+					statuses.length === 1
+						? eq(agent.status, statuses[0]!)
+						: inArray(agent.status, statuses)
+				)
 				.orderBy(({ agent }) => agent.updatedAt, 'desc'),
-		[workspaceId, ...statuses],
+		[workspaceId, ...statuses]
 	)
 }
 
@@ -100,24 +91,28 @@ export function useLiveDraftAgents(workspaceId: string) {
 
 /**
  * Live query for agents with a specific tool.
+ * Note: Filters client-side since toolIds is an array field.
  */
 export function useLiveAgentsWithTool(options: { workspaceId: string; toolId: string }) {
 	const { workspaceId, toolId } = options
 	const collection = useAgentCollection(workspaceId)
 
-	// Note: This filters client-side since toolIds is an array
-	const { data: allAgents, ...rest } = useLiveQuery(
-		(q) => q.from({ agent: collection }),
-		[workspaceId],
-	)
+	const result = useLiveQuery((q) => q.from({ agent: collection }), [workspaceId])
 
-	const filteredData = useMemo(
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		() => allAgents?.filter((row: any) => row.toolIds?.includes(toolId)) ?? [],
-		[allAgents, toolId],
-	)
+	const filteredData = useMemo(() => {
+		if (!result.data) return []
+		// Filter agents that have the specified toolId in their toolIds array
+		return result.data.filter((row) => {
+			// The row contains the agent data directly from the collection
+			if (row && typeof row === 'object' && 'toolIds' in row) {
+				const toolIds = row.toolIds as string[] | undefined
+				return toolIds?.includes(toolId)
+			}
+			return false
+		})
+	}, [result.data, toolId])
 
-	return { data: filteredData, ...rest }
+	return { ...result, data: filteredData }
 }
 
 // =============================================================================
@@ -132,7 +127,7 @@ export function useLiveTools(workspaceId: string | undefined) {
 
 	return useLiveQuery(
 		(q) => q.from({ tool: collection }).orderBy(({ tool }) => tool.name, 'asc'),
-		[workspaceId],
+		[workspaceId]
 	)
 }
 
@@ -143,9 +138,8 @@ export function useLiveTool(options: { id: string; workspaceId: string } | undef
 	const collection = useToolCollection(options?.workspaceId ?? '')
 
 	return useLiveQuery(
-		(q) =>
-			q.from({ tool: collection }).where(({ tool }) => eq(tool.id, options?.id ?? '')),
-		[options?.id, options?.workspaceId],
+		(q) => q.from({ tool: collection }).where(({ tool }) => eq(tool.id, options?.id ?? '')),
+		[options?.id, options?.workspaceId]
 	)
 }
 
@@ -162,7 +156,7 @@ export function useLiveToolsByType(options: { workspaceId: string; type: string 
 				.from({ tool: collection })
 				.where(({ tool }) => eq(tool.type, type))
 				.orderBy(({ tool }) => tool.name, 'asc'),
-		[workspaceId, type],
+		[workspaceId, type]
 	)
 }
 
@@ -178,7 +172,7 @@ export function useLiveSystemTools(workspaceId: string) {
 				.from({ tool: collection })
 				.where(({ tool }) => eq(tool.isSystem, true))
 				.orderBy(({ tool }) => tool.name, 'asc'),
-		[workspaceId],
+		[workspaceId]
 	)
 }
 
@@ -194,7 +188,7 @@ export function useLiveCustomTools(workspaceId: string) {
 				.from({ tool: collection })
 				.where(({ tool }) => eq(tool.isSystem, false))
 				.orderBy(({ tool }) => tool.name, 'asc'),
-		[workspaceId],
+		[workspaceId]
 	)
 }
 
@@ -210,7 +204,7 @@ export function useLiveWorkspaces() {
 
 	return useLiveQuery(
 		(q) => q.from({ workspace: collection }).orderBy(({ workspace }) => workspace.name, 'asc'),
-		[],
+		[]
 	)
 }
 
@@ -223,7 +217,7 @@ export function useLiveWorkspace(id: string | undefined) {
 	return useLiveQuery(
 		(q) =>
 			q.from({ workspace: collection }).where(({ workspace }) => eq(workspace.id, id ?? '')),
-		[id],
+		[id]
 	)
 }
 
@@ -243,7 +237,7 @@ export function useLiveSchedules(options: { agentId: string; workspaceId: string
 	return useLiveQuery(
 		(q) =>
 			q.from({ schedule: collection }).orderBy(({ schedule }) => schedule.createdAt, 'desc'),
-		[options?.agentId, options?.workspaceId],
+		[options?.agentId, options?.workspaceId]
 	)
 }
 
@@ -260,7 +254,7 @@ export function useLiveActiveSchedules(options: { agentId: string; workspaceId: 
 				.from({ schedule: collection })
 				.where(({ schedule }) => eq(schedule.status, 'active'))
 				.orderBy(({ schedule }) => schedule.nextExecuteAt, 'asc'),
-		[agentId, workspaceId],
+		[agentId, workspaceId]
 	)
 }
 
@@ -277,7 +271,7 @@ export function useLivePendingSchedules(options: { agentId: string; workspaceId:
 				.from({ schedule: collection })
 				.where(({ schedule }) => eq(schedule.status, 'pending'))
 				.orderBy(({ schedule }) => schedule.executeAt, 'asc'),
-		[agentId, workspaceId],
+		[agentId, workspaceId]
 	)
 }
 

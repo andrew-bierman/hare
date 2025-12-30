@@ -9,10 +9,15 @@
 
 import type { Agent, Schedule, Tool, Workspace } from '@hare/types'
 import type { QueryClient } from '@tanstack/react-query'
-import { createCollection, type Collection } from '@tanstack/db'
+import { createCollection } from '@tanstack/db'
 import { queryCollectionOptions } from '@tanstack/query-db-collection'
 import { apiClient } from '../../../api/client'
-import { agentKeys, scheduleKeys, toolKeys, workspaceKeys } from '../../../api/hooks/query-keys'
+import {
+	agentKeys,
+	scheduleKeys,
+	toolKeys,
+	workspaceKeys,
+} from '../../../api/hooks/query-keys'
 
 // =============================================================================
 // Collection Types
@@ -43,71 +48,70 @@ export interface ScheduleRow extends Schedule {
 export function createAgentCollection(options: {
 	workspaceId: string
 	queryClient: QueryClient
-}): Collection<AgentRow> {
+}) {
 	const { workspaceId, queryClient } = options
 
-	const config = queryCollectionOptions<AgentRow>({
-		queryClient,
-		queryKey: agentKeys.list(workspaceId),
-		queryFn: async () => {
-			const response = await apiClient.agents.list(workspaceId)
-			return response.agents.map((agent) => ({
-				...agent,
-				_workspaceId: workspaceId,
-			})) as AgentRow[]
-		},
-		getKey: (agent) => agent.id,
+	return createCollection(
+		queryCollectionOptions({
+			queryClient,
+			queryKey: agentKeys.list(workspaceId),
+			queryFn: async (): Promise<AgentRow[]> => {
+				const response = await apiClient.agents.list(workspaceId)
+				return response.agents.map((agent) => ({
+					...agent,
+					_workspaceId: workspaceId,
+				}))
+			},
+			getKey: (agent) => agent.id,
 
-		onInsert: async ({ transaction }) => {
-			const mutations = transaction.mutations
-			for (const mutation of mutations) {
-				if (mutation.type === 'insert' && mutation.modified) {
-					const { _workspaceId, ...data } = mutation.modified
-					await apiClient.agents.create(_workspaceId, {
-						name: data.name,
-						description: data.description ?? undefined,
-						model: data.model,
-						instructions: data.instructions,
-						config: data.config ?? undefined,
-						toolIds: data.toolIds,
-					})
+			onInsert: async ({ transaction }) => {
+				const mutations = transaction.mutations
+				for (const mutation of mutations) {
+					if (mutation.type === 'insert' && mutation.modified) {
+						const { _workspaceId, ...data } = mutation.modified
+						await apiClient.agents.create(_workspaceId, {
+							name: data.name,
+							description: data.description ?? undefined,
+							model: data.model,
+							instructions: data.instructions,
+							config: data.config ?? undefined,
+							toolIds: data.toolIds,
+						})
+					}
 				}
-			}
-		},
+			},
 
-		onUpdate: async ({ transaction }) => {
-			const mutations = transaction.mutations
-			for (const mutation of mutations) {
-				if (mutation.type === 'update' && mutation.original && mutation.modified) {
-					const { id, _workspaceId } = mutation.original
-					const { name, description, model, instructions, config, toolIds, status } =
-						mutation.modified
-					await apiClient.agents.update(id, _workspaceId, {
-						name,
-						description: description ?? undefined,
-						model,
-						instructions,
-						config: config ?? undefined,
-						toolIds,
-						status,
-					})
+			onUpdate: async ({ transaction }) => {
+				const mutations = transaction.mutations
+				for (const mutation of mutations) {
+					if (mutation.type === 'update' && mutation.original && mutation.modified) {
+						const { id, _workspaceId } = mutation.original
+						const { name, description, model, instructions, config, toolIds, status } =
+							mutation.modified
+						await apiClient.agents.update(id, _workspaceId, {
+							name,
+							description: description ?? undefined,
+							model,
+							instructions,
+							config: config ?? undefined,
+							toolIds,
+							status,
+						})
+					}
 				}
-			}
-		},
+			},
 
-		onDelete: async ({ transaction }) => {
-			const mutations = transaction.mutations
-			for (const mutation of mutations) {
-				if (mutation.type === 'delete' && mutation.original) {
-					const { id, _workspaceId } = mutation.original
-					await apiClient.agents.delete(id, _workspaceId)
+			onDelete: async ({ transaction }) => {
+				const mutations = transaction.mutations
+				for (const mutation of mutations) {
+					if (mutation.type === 'delete' && mutation.original) {
+						const { id, _workspaceId } = mutation.original
+						await apiClient.agents.delete(id, _workspaceId)
+					}
 				}
-			}
-		},
-	})
-
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	return createCollection<AgentRow>(config as any)
+			},
+		})
+	)
 }
 
 // =============================================================================
@@ -120,67 +124,66 @@ export function createAgentCollection(options: {
 export function createToolCollection(options: {
 	workspaceId: string
 	queryClient: QueryClient
-}): Collection<ToolRow> {
+}) {
 	const { workspaceId, queryClient } = options
 
-	const config = queryCollectionOptions<ToolRow>({
-		queryClient,
-		queryKey: toolKeys.list(workspaceId),
-		queryFn: async () => {
-			const response = await apiClient.tools.list(workspaceId)
-			return response.tools.map((tool) => ({
-				...tool,
-				_workspaceId: workspaceId,
-			})) as ToolRow[]
-		},
-		getKey: (tool) => tool.id,
+	return createCollection(
+		queryCollectionOptions({
+			queryClient,
+			queryKey: toolKeys.list(workspaceId),
+			queryFn: async (): Promise<ToolRow[]> => {
+				const response = await apiClient.tools.list(workspaceId)
+				return response.tools.map((tool) => ({
+					...tool,
+					_workspaceId: workspaceId,
+				}))
+			},
+			getKey: (tool) => tool.id,
 
-		onInsert: async ({ transaction }) => {
-			const mutations = transaction.mutations
-			for (const mutation of mutations) {
-				if (mutation.type === 'insert' && mutation.modified) {
-					const { _workspaceId, ...data } = mutation.modified
-					await apiClient.tools.create(_workspaceId, {
-						name: data.name,
-						description: data.description ?? undefined,
-						type: data.type,
-						inputSchema: data.inputSchema ?? undefined,
-						config: data.config ?? undefined,
-					})
+			onInsert: async ({ transaction }) => {
+				const mutations = transaction.mutations
+				for (const mutation of mutations) {
+					if (mutation.type === 'insert' && mutation.modified) {
+						const { _workspaceId, ...data } = mutation.modified
+						await apiClient.tools.create(_workspaceId, {
+							name: data.name,
+							description: data.description ?? undefined,
+							type: data.type,
+							inputSchema: data.inputSchema ?? undefined,
+							config: data.config ?? undefined,
+						})
+					}
 				}
-			}
-		},
+			},
 
-		onUpdate: async ({ transaction }) => {
-			const mutations = transaction.mutations
-			for (const mutation of mutations) {
-				if (mutation.type === 'update' && mutation.original && mutation.modified) {
-					const { id, _workspaceId } = mutation.original
-					const { name, description, type, inputSchema, config } = mutation.modified
-					await apiClient.tools.update(id, _workspaceId, {
-						name,
-						description: description ?? undefined,
-						type,
-						inputSchema: inputSchema ?? undefined,
-						config: config ?? undefined,
-					})
+			onUpdate: async ({ transaction }) => {
+				const mutations = transaction.mutations
+				for (const mutation of mutations) {
+					if (mutation.type === 'update' && mutation.original && mutation.modified) {
+						const { id, _workspaceId } = mutation.original
+						const { name, description, type, inputSchema, config } = mutation.modified
+						await apiClient.tools.update(id, _workspaceId, {
+							name,
+							description: description ?? undefined,
+							type,
+							inputSchema: inputSchema ?? undefined,
+							config: config ?? undefined,
+						})
+					}
 				}
-			}
-		},
+			},
 
-		onDelete: async ({ transaction }) => {
-			const mutations = transaction.mutations
-			for (const mutation of mutations) {
-				if (mutation.type === 'delete' && mutation.original) {
-					const { id, _workspaceId } = mutation.original
-					await apiClient.tools.delete(id, _workspaceId)
+			onDelete: async ({ transaction }) => {
+				const mutations = transaction.mutations
+				for (const mutation of mutations) {
+					if (mutation.type === 'delete' && mutation.original) {
+						const { id, _workspaceId } = mutation.original
+						await apiClient.tools.delete(id, _workspaceId)
+					}
 				}
-			}
-		},
-	})
-
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	return createCollection<ToolRow>(config as any)
+			},
+		})
+	)
 }
 
 // =============================================================================
@@ -190,61 +193,58 @@ export function createToolCollection(options: {
 /**
  * Create a workspace collection for the current user.
  */
-export function createWorkspaceCollection(options: {
-	queryClient: QueryClient
-}): Collection<WorkspaceRow> {
+export function createWorkspaceCollection(options: { queryClient: QueryClient }) {
 	const { queryClient } = options
 
-	const config = queryCollectionOptions<WorkspaceRow>({
-		queryClient,
-		queryKey: workspaceKeys.list(),
-		queryFn: async () => {
-			const response = await apiClient.workspaces.list()
-			return response.workspaces as WorkspaceRow[]
-		},
-		getKey: (workspace) => workspace.id,
+	return createCollection(
+		queryCollectionOptions({
+			queryClient,
+			queryKey: workspaceKeys.list(),
+			queryFn: async (): Promise<WorkspaceRow[]> => {
+				const response = await apiClient.workspaces.list()
+				return response.workspaces
+			},
+			getKey: (workspace) => workspace.id,
 
-		onInsert: async ({ transaction }) => {
-			const mutations = transaction.mutations
-			for (const mutation of mutations) {
-				if (mutation.type === 'insert' && mutation.modified) {
-					const { name, description, slug } = mutation.modified
-					await apiClient.workspaces.create({
-						name,
-						description: description ?? undefined,
-						slug,
-					})
+			onInsert: async ({ transaction }) => {
+				const mutations = transaction.mutations
+				for (const mutation of mutations) {
+					if (mutation.type === 'insert' && mutation.modified) {
+						const { name, description, slug } = mutation.modified
+						await apiClient.workspaces.create({
+							name,
+							description: description ?? undefined,
+							slug,
+						})
+					}
 				}
-			}
-		},
+			},
 
-		onUpdate: async ({ transaction }) => {
-			const mutations = transaction.mutations
-			for (const mutation of mutations) {
-				if (mutation.type === 'update' && mutation.original && mutation.modified) {
-					const { id } = mutation.original
-					const { name, description } = mutation.modified
-					await apiClient.workspaces.update(id, {
-						name,
-						description: description ?? undefined,
-					})
+			onUpdate: async ({ transaction }) => {
+				const mutations = transaction.mutations
+				for (const mutation of mutations) {
+					if (mutation.type === 'update' && mutation.original && mutation.modified) {
+						const { id } = mutation.original
+						const { name, description } = mutation.modified
+						await apiClient.workspaces.update(id, {
+							name,
+							description: description ?? undefined,
+						})
+					}
 				}
-			}
-		},
+			},
 
-		onDelete: async ({ transaction }) => {
-			const mutations = transaction.mutations
-			for (const mutation of mutations) {
-				if (mutation.type === 'delete' && mutation.original) {
-					const { id } = mutation.original
-					await apiClient.workspaces.delete(id)
+			onDelete: async ({ transaction }) => {
+				const mutations = transaction.mutations
+				for (const mutation of mutations) {
+					if (mutation.type === 'delete' && mutation.original) {
+						const { id } = mutation.original
+						await apiClient.workspaces.delete(id)
+					}
 				}
-			}
-		},
-	})
-
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	return createCollection<WorkspaceRow>(config as any)
+			},
+		})
+	)
 }
 
 // =============================================================================
@@ -258,65 +258,73 @@ export function createScheduleCollection(options: {
 	agentId: string
 	workspaceId: string
 	queryClient: QueryClient
-}): Collection<ScheduleRow> {
+}) {
 	const { agentId, workspaceId, queryClient } = options
 
-	const config = queryCollectionOptions<ScheduleRow>({
-		queryClient,
-		queryKey: scheduleKeys.list(agentId, workspaceId),
-		queryFn: async () => {
-			const response = await apiClient.schedules.list(agentId, workspaceId)
-			return response.schedules.map((schedule) => ({
-				...schedule,
-				_workspaceId: workspaceId,
-			})) as ScheduleRow[]
-		},
-		getKey: (schedule) => schedule.id,
+	return createCollection(
+		queryCollectionOptions({
+			queryClient,
+			queryKey: scheduleKeys.list(agentId, workspaceId),
+			queryFn: async (): Promise<ScheduleRow[]> => {
+				const response = await apiClient.schedules.list(agentId, workspaceId)
+				return response.schedules.map((schedule) => ({
+					...schedule,
+					_workspaceId: workspaceId,
+				}))
+			},
+			getKey: (schedule) => schedule.id,
 
-		onInsert: async ({ transaction }) => {
-			const mutations = transaction.mutations
-			for (const mutation of mutations) {
-				if (mutation.type === 'insert' && mutation.modified) {
-					const { agentId: aId, _workspaceId, type, executeAt, cron, action, payload } =
-						mutation.modified
-					await apiClient.schedules.create(aId, _workspaceId, {
-						type,
-						executeAt: executeAt ?? undefined,
-						cron: cron ?? undefined,
-						action,
-						payload: payload ?? undefined,
-					})
+			onInsert: async ({ transaction }) => {
+				const mutations = transaction.mutations
+				for (const mutation of mutations) {
+					if (mutation.type === 'insert' && mutation.modified) {
+						const { agentId: aId, _workspaceId, type, executeAt, cron, action, payload } =
+							mutation.modified
+						await apiClient.schedules.create(aId, _workspaceId, {
+							type,
+							executeAt: executeAt ?? undefined,
+							cron: cron ?? undefined,
+							action,
+							payload: payload ?? undefined,
+						})
+					}
 				}
-			}
-		},
+			},
 
-		onUpdate: async ({ transaction }) => {
-			const mutations = transaction.mutations
-			for (const mutation of mutations) {
-				if (mutation.type === 'update' && mutation.original && mutation.modified) {
-					const { id, agentId: aId, _workspaceId } = mutation.original
-					const { status, executeAt, cron, payload } = mutation.modified
-					await apiClient.schedules.update(aId, id, _workspaceId, {
-						status,
-						executeAt: executeAt ?? undefined,
-						cron: cron ?? undefined,
-						payload: payload ?? undefined,
-					})
+			onUpdate: async ({ transaction }) => {
+				const mutations = transaction.mutations
+				for (const mutation of mutations) {
+					if (mutation.type === 'update' && mutation.original && mutation.modified) {
+						const { id, agentId: aId, _workspaceId } = mutation.original
+						const { status, executeAt, cron, payload } = mutation.modified
+						await apiClient.schedules.update(aId, id, _workspaceId, {
+							status,
+							executeAt: executeAt ?? undefined,
+							cron: cron ?? undefined,
+							payload: payload ?? undefined,
+						})
+					}
 				}
-			}
-		},
+			},
 
-		onDelete: async ({ transaction }) => {
-			const mutations = transaction.mutations
-			for (const mutation of mutations) {
-				if (mutation.type === 'delete' && mutation.original) {
-					const { id, agentId: aId, _workspaceId } = mutation.original
-					await apiClient.schedules.delete(aId, id, _workspaceId)
+			onDelete: async ({ transaction }) => {
+				const mutations = transaction.mutations
+				for (const mutation of mutations) {
+					if (mutation.type === 'delete' && mutation.original) {
+						const { id, agentId: aId, _workspaceId } = mutation.original
+						await apiClient.schedules.delete(aId, id, _workspaceId)
+					}
 				}
-			}
-		},
-	})
-
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	return createCollection<ScheduleRow>(config as any)
+			},
+		})
+	)
 }
+
+// =============================================================================
+// Type exports for collection return types (inferred)
+// =============================================================================
+
+export type AgentCollection = ReturnType<typeof createAgentCollection>
+export type ToolCollection = ReturnType<typeof createToolCollection>
+export type WorkspaceCollection = ReturnType<typeof createWorkspaceCollection>
+export type ScheduleCollection = ReturnType<typeof createScheduleCollection>
