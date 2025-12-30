@@ -1,0 +1,103 @@
+---
+title: Router Utilities
+description: Route requests to Hare agents
+---
+
+# Router Utilities
+
+The router module provides utilities for routing HTTP and WebSocket requests to Hare agents.
+
+## Usage
+
+```ts
+import {
+  routeToHareAgent,
+  routeWebSocketToAgent,
+  isWebSocketRequest,
+  getAgentIdFromRequest,
+} from 'hareai'
+
+export default {
+  async fetch(request: Request, env: Env) {
+    // Check if this is a WebSocket upgrade request
+    if (isWebSocketRequest(request)) {
+      return routeWebSocketToAgent({
+        request,
+        env,
+        agentId: getAgentIdFromRequest(request),
+      })
+    }
+
+    // Route HTTP request to agent
+    return routeToHareAgent({
+      request,
+      env,
+      agentId: getAgentIdFromRequest(request),
+    })
+  },
+}
+```
+
+## API Reference
+
+### routeToHareAgent
+
+Routes an HTTP request to a HareAgent Durable Object.
+
+<AutoTypeTable path="packages/agent/src/router.ts" name="RouteToHareAgentInput" />
+
+```ts
+function routeToHareAgent(input: RouteToHareAgentInput): Promise<Response>
+```
+
+### routeToMcpAgent
+
+Routes a request to a HareMcpAgent for MCP protocol handling.
+
+<AutoTypeTable path="packages/agent/src/router.ts" name="RouteToMcpAgentInput" />
+
+```ts
+function routeToMcpAgent(input: RouteToMcpAgentInput): Promise<Response>
+```
+
+### routeWebSocketToAgent
+
+Handles WebSocket upgrade and routes to an agent.
+
+<AutoTypeTable path="packages/agent/src/router.ts" name="RouteWebSocketToAgentInput" />
+
+```ts
+function routeWebSocketToAgent(input: RouteWebSocketToAgentInput): Promise<Response>
+```
+
+### Helper Functions
+
+#### isWebSocketRequest
+
+Checks if a request is a WebSocket upgrade request.
+
+```ts
+function isWebSocketRequest(request: Request): boolean
+```
+
+#### getAgentIdFromRequest
+
+Extracts the agent ID from request URL or headers.
+
+```ts
+function getAgentIdFromRequest(request: Request): string | undefined
+```
+
+#### createAgentHeaders
+
+Creates headers for agent responses.
+
+```ts
+function createAgentHeaders(): Headers
+```
+
+### HareAgentEnv
+
+Required environment bindings for routing:
+
+<AutoTypeTable path="packages/agent/src/router.ts" name="HareAgentEnv" />

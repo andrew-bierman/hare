@@ -16,7 +16,9 @@ import { Route as DocsRouteImport } from './routes/docs'
 import { Route as DashboardRouteImport } from './routes/_dashboard'
 import { Route as AuthRouteImport } from './routes/_auth'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as DocsIndexRouteImport } from './routes/docs/index'
 import { Route as EmbedAgentIdRouteImport } from './routes/embed/$agentId'
+import { Route as DocsSplatRouteImport } from './routes/docs/$'
 import { Route as AuthSignUpRouteImport } from './routes/_auth/sign-up'
 import { Route as AuthSignInRouteImport } from './routes/_auth/sign-in'
 import { Route as AuthResetPasswordRouteImport } from './routes/_auth/reset-password'
@@ -70,10 +72,20 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DocsIndexRoute = DocsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => DocsRoute,
+} as any)
 const EmbedAgentIdRoute = EmbedAgentIdRouteImport.update({
   id: '/$agentId',
   path: '/$agentId',
   getParentRoute: () => EmbedRoute,
+} as any)
+const DocsSplatRoute = DocsSplatRouteImport.update({
+  id: '/$',
+  path: '/$',
+  getParentRoute: () => DocsRoute,
 } as any)
 const AuthSignUpRoute = AuthSignUpRouteImport.update({
   id: '/sign-up',
@@ -187,7 +199,7 @@ const DashboardDashboardAgentsIdEmbedRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/docs': typeof DocsRoute
+  '/docs': typeof DocsRouteWithChildren
   '/embed': typeof EmbedRouteWithChildren
   '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
@@ -195,7 +207,9 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof AuthResetPasswordRoute
   '/sign-in': typeof AuthSignInRoute
   '/sign-up': typeof AuthSignUpRoute
+  '/docs/$': typeof DocsSplatRoute
   '/embed/$agentId': typeof EmbedAgentIdRoute
+  '/docs/': typeof DocsIndexRoute
   '/dashboard': typeof DashboardDashboardIndexRoute
   '/dashboard/agents/new': typeof DashboardDashboardAgentsNewRoute
   '/dashboard/settings/api-keys': typeof DashboardDashboardSettingsApiKeysRoute
@@ -214,7 +228,6 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/docs': typeof DocsRoute
   '/embed': typeof EmbedRouteWithChildren
   '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
@@ -222,7 +235,9 @@ export interface FileRoutesByTo {
   '/reset-password': typeof AuthResetPasswordRoute
   '/sign-in': typeof AuthSignInRoute
   '/sign-up': typeof AuthSignUpRoute
+  '/docs/$': typeof DocsSplatRoute
   '/embed/$agentId': typeof EmbedAgentIdRoute
+  '/docs': typeof DocsIndexRoute
   '/dashboard': typeof DashboardDashboardIndexRoute
   '/dashboard/agents/new': typeof DashboardDashboardAgentsNewRoute
   '/dashboard/settings/api-keys': typeof DashboardDashboardSettingsApiKeysRoute
@@ -244,7 +259,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_auth': typeof AuthRouteWithChildren
   '/_dashboard': typeof DashboardRouteWithChildren
-  '/docs': typeof DocsRoute
+  '/docs': typeof DocsRouteWithChildren
   '/embed': typeof EmbedRouteWithChildren
   '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
@@ -252,7 +267,9 @@ export interface FileRoutesById {
   '/_auth/reset-password': typeof AuthResetPasswordRoute
   '/_auth/sign-in': typeof AuthSignInRoute
   '/_auth/sign-up': typeof AuthSignUpRoute
+  '/docs/$': typeof DocsSplatRoute
   '/embed/$agentId': typeof EmbedAgentIdRoute
+  '/docs/': typeof DocsIndexRoute
   '/_dashboard/dashboard/': typeof DashboardDashboardIndexRoute
   '/_dashboard/dashboard/agents/new': typeof DashboardDashboardAgentsNewRoute
   '/_dashboard/dashboard/settings/api-keys': typeof DashboardDashboardSettingsApiKeysRoute
@@ -281,7 +298,9 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/sign-in'
     | '/sign-up'
+    | '/docs/$'
     | '/embed/$agentId'
+    | '/docs/'
     | '/dashboard'
     | '/dashboard/agents/new'
     | '/dashboard/settings/api-keys'
@@ -300,7 +319,6 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/docs'
     | '/embed'
     | '/privacy'
     | '/terms'
@@ -308,7 +326,9 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/sign-in'
     | '/sign-up'
+    | '/docs/$'
     | '/embed/$agentId'
+    | '/docs'
     | '/dashboard'
     | '/dashboard/agents/new'
     | '/dashboard/settings/api-keys'
@@ -337,7 +357,9 @@ export interface FileRouteTypes {
     | '/_auth/reset-password'
     | '/_auth/sign-in'
     | '/_auth/sign-up'
+    | '/docs/$'
     | '/embed/$agentId'
+    | '/docs/'
     | '/_dashboard/dashboard/'
     | '/_dashboard/dashboard/agents/new'
     | '/_dashboard/dashboard/settings/api-keys'
@@ -359,7 +381,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthRoute: typeof AuthRouteWithChildren
   DashboardRoute: typeof DashboardRouteWithChildren
-  DocsRoute: typeof DocsRoute
+  DocsRoute: typeof DocsRouteWithChildren
   EmbedRoute: typeof EmbedRouteWithChildren
   PrivacyRoute: typeof PrivacyRoute
   TermsRoute: typeof TermsRoute
@@ -416,12 +438,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/docs/': {
+      id: '/docs/'
+      path: '/'
+      fullPath: '/docs/'
+      preLoaderRoute: typeof DocsIndexRouteImport
+      parentRoute: typeof DocsRoute
+    }
     '/embed/$agentId': {
       id: '/embed/$agentId'
       path: '/$agentId'
       fullPath: '/embed/$agentId'
       preLoaderRoute: typeof EmbedAgentIdRouteImport
       parentRoute: typeof EmbedRoute
+    }
+    '/docs/$': {
+      id: '/docs/$'
+      path: '/$'
+      fullPath: '/docs/$'
+      preLoaderRoute: typeof DocsSplatRouteImport
+      parentRoute: typeof DocsRoute
     }
     '/_auth/sign-up': {
       id: '/_auth/sign-up'
@@ -619,6 +655,18 @@ const DashboardRouteWithChildren = DashboardRoute._addFileChildren(
   DashboardRouteChildren,
 )
 
+interface DocsRouteChildren {
+  DocsSplatRoute: typeof DocsSplatRoute
+  DocsIndexRoute: typeof DocsIndexRoute
+}
+
+const DocsRouteChildren: DocsRouteChildren = {
+  DocsSplatRoute: DocsSplatRoute,
+  DocsIndexRoute: DocsIndexRoute,
+}
+
+const DocsRouteWithChildren = DocsRoute._addFileChildren(DocsRouteChildren)
+
 interface EmbedRouteChildren {
   EmbedAgentIdRoute: typeof EmbedAgentIdRoute
 }
@@ -633,7 +681,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthRoute: AuthRouteWithChildren,
   DashboardRoute: DashboardRouteWithChildren,
-  DocsRoute: DocsRoute,
+  DocsRoute: DocsRouteWithChildren,
   EmbedRoute: EmbedRouteWithChildren,
   PrivacyRoute: PrivacyRoute,
   TermsRoute: TermsRoute,

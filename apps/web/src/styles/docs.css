@@ -1,0 +1,13 @@
+/**
+ * Fumadocs styles - isolated to /docs routes only
+ * This file is imported only in the docs layout, not the main app
+ */
+
+@import 'tailwindcss';
+@import 'fumadocs-ui/css/neutral.css';
+@import 'fumadocs-ui/css/preset.css';
+
+/* Source content from docs-related files */
+@source "../routes/docs/**/*.{ts,tsx}";
+@source "../lib/docs/**/*.{ts,tsx}";
+@source "../../content/docs/**/*.mdx";

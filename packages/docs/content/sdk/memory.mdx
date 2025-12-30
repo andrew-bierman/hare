@@ -1,0 +1,121 @@
+---
+title: Memory Store
+description: Persist conversations with D1 database
+---
+
+# Memory Store
+
+The Memory Store provides conversation persistence using Cloudflare D1.
+
+## Usage
+
+```ts
+import { createMemoryStore, toAgentMessages } from 'hareai'
+
+// Create a memory store with your D1 binding
+const memory = createMemoryStore({ db: env.DB })
+
+// Save a message
+await memory.saveMessage({
+  conversationId: 'conv_123',
+  role: 'user',
+  content: 'Hello!',
+})
+
+// Get conversation history
+const messages = await memory.getMessages({
+  conversationId: 'conv_123',
+  limit: 50,
+})
+
+// Convert to agent-compatible format
+const agentMessages = toAgentMessages(messages)
+```
+
+## API Reference
+
+### createMemoryStore
+
+Creates a new memory store instance.
+
+```ts
+function createMemoryStore(options: { db: D1Database }): MemoryStore
+```
+
+### ConversationMessage
+
+A message stored in the memory:
+
+<AutoTypeTable path="packages/agent/src/memory.ts" name="ConversationMessage" />
+
+### SaveMessageInput
+
+Input for saving a message:
+
+<AutoTypeTable path="packages/agent/src/memory.ts" name="SaveMessageInput" />
+
+### GetMessagesInput
+
+Input for retrieving messages:
+
+<AutoTypeTable path="packages/agent/src/memory.ts" name="GetMessagesInput" />
+
+### GetOrCreateConversationInput
+
+Input for getting or creating a conversation:
+
+<AutoTypeTable path="packages/agent/src/memory.ts" name="GetOrCreateConversationInput" />
+
+### MessageRole
+
+Valid message roles:
+
+```ts
+type MessageRole = 'user' | 'assistant' | 'system' | 'tool'
+```
+
+## D1MemoryStore Class
+
+For more control, use the class directly:
+
+```ts
+import { D1MemoryStore } from 'hareai'
+
+const memory = new D1MemoryStore(env.DB)
+```
+
+## Integration with Agents
+
+### With HareEdgeAgent
+
+```ts
+import { createMemoryStore, toAgentMessages, HareEdgeAgent } from 'hareai'
+
+const memory = createMemoryStore({ db: env.DB })
+
+// Load conversation history
+const messages = await memory.getMessages({
+  conversationId: 'conv_123',
+  limit: 50,
+})
+
+const agent = new HareEdgeAgent({
+  name: 'My Agent',
+  instructions: 'You are a helpful assistant.',
+  model: '@cf/meta/llama-3.3-70b-instruct-fp8-fast',
+  ai: env.AI,
+})
+
+// Include history in the conversation
+const response = await agent.stream([
+  ...toAgentMessages(messages),
+  { role: 'user', content: 'Continue our conversation' }
+])
+
+// Save the response
+await memory.saveMessage({
+  conversationId: 'conv_123',
+  role: 'assistant',
+  content: await response.text,
+})
+```

@@ -1,0 +1,100 @@
+---
+title: Getting Started
+description: Build your first AI agent with Hare in 5 minutes
+---
+
+# Getting Started
+
+This guide will walk you through creating your first AI agent with Hare.
+
+## Prerequisites
+
+- [Bun](https://bun.sh) or Node.js 20+
+- A Cloudflare account with Workers AI enabled
+- Basic TypeScript knowledge
+
+## Create a New Project
+
+```bash
+# Create a new Cloudflare Workers project
+bun create cloudflare my-agent
+
+cd my-agent
+
+# Install the Hare SDK and peer dependencies
+npm install hareai ai zod agents
+```
+
+## Configure Bindings
+
+Update your `wrangler.toml`:
+
+```toml
+name = "my-agent"
+main = "src/index.ts"
+compatibility_date = "2024-12-01"
+
+[ai]
+binding = "AI"
+```
+
+## Create Your Agent
+
+Replace `src/index.ts`:
+
+```ts
+import { HareEdgeAgent } from 'hareai'
+
+interface Env {
+  AI: Ai
+}
+
+export default {
+  async fetch(request: Request, env: Env): Promise<Response> {
+    const agent = new HareEdgeAgent({
+      name: 'My Agent',
+      instructions: 'You are a helpful AI assistant.',
+      model: '@cf/meta/llama-3.3-70b-instruct-fp8-fast',
+      ai: env.AI,
+    })
+
+    // Parse the message from the request
+    const { message } = await request.json<{ message: string }>()
+
+    // Get the response
+    const response = await agent.stream([
+      { role: 'user', content: message }
+    ])
+
+    return new Response(await response.text, {
+      headers: { 'Content-Type': 'text/plain' },
+    })
+  },
+}
+```
+
+## Run Locally
+
+```bash
+bun run dev
+```
+
+## Test Your Agent
+
+```bash
+curl http://localhost:8787 \
+  -H "Content-Type: application/json" \
+  -d '{"message": "Hello! What can you help me with?"}'
+```
+
+## Deploy
+
+```bash
+bun run deploy
+```
+
+## Next Steps
+
+- [Add tools to your agent](/docs/sdk/tools)
+- [Persist conversations with Memory Store](/docs/sdk/memory)
+- [Use HareAgent for stateful agents](/docs/sdk/hare-agent)

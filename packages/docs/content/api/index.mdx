@@ -1,0 +1,124 @@
+---
+title: API Reference
+description: Complete REST API documentation for Hare
+---
+
+# API Reference
+
+The Hare API provides programmatic access to all platform features.
+
+## Interactive API Explorer
+
+The best way to explore the API is through our interactive documentation:
+
+**[Open API Explorer →](/api/docs)**
+
+This provides:
+- Full endpoint documentation
+- Request/response examples
+- Try-it-out functionality
+- Authentication testing
+
+## Base URL
+
+All API endpoints are available at `/api/*`:
+
+```
+https://your-hare-instance.com/api
+```
+
+## Authentication
+
+Most endpoints require authentication via one of:
+
+| Method | Use Case |
+|--------|----------|
+| **Session Cookie** | Browser-based requests (automatic with login) |
+| **API Key** | Programmatic access via `Authorization: Bearer <key>` |
+
+### Using API Keys
+
+```bash
+curl -X GET "https://your-instance.com/api/agents" \
+  -H "Authorization: Bearer hare_sk_..."
+```
+
+## OpenAPI Specification
+
+The full OpenAPI 3.1 specification is available at:
+
+```
+GET /api/openapi.json
+```
+
+You can use this with tools like:
+- [Postman](https://postman.com) - Import the spec directly
+- [Insomnia](https://insomnia.rest) - API testing
+- Code generators - Generate client SDKs
+
+## Endpoint Categories
+
+| Category | Description |
+|----------|-------------|
+| **Authentication** | User auth, sessions, OAuth providers |
+| **Workspaces** | Team workspace management |
+| **Agents** | AI agent CRUD, deployment, configuration |
+| **Chat** | Streaming chat with agents (SSE) |
+| **Schedules** | Scheduled task management |
+| **Webhooks** | Event notification configuration |
+| **Tools** | Custom tool management |
+| **API Keys** | Programmatic access tokens |
+| **Usage** | Usage statistics and limits |
+| **Analytics** | Detailed metrics and insights |
+| **MCP** | Model Context Protocol endpoints |
+| **Health** | System health checks |
+
+## Rate Limits
+
+API requests are rate-limited based on your plan:
+
+| Plan | Requests/minute |
+|------|-----------------|
+| Free | 60 |
+| Pro | 300 |
+| Enterprise | Custom |
+
+Rate limit headers are included in responses:
+- `X-RateLimit-Limit`: Maximum requests per window
+- `X-RateLimit-Remaining`: Requests remaining
+- `X-RateLimit-Reset`: Window reset time (Unix timestamp)
+
+## Error Responses
+
+All errors follow a consistent format:
+
+```json
+{
+  "error": "Error message here",
+  "code": "ERROR_CODE",
+  "details": {}
+}
+```
+
+Common HTTP status codes:
+- `400` - Bad request (validation error)
+- `401` - Unauthorized (missing/invalid auth)
+- `403` - Forbidden (insufficient permissions)
+- `404` - Not found
+- `429` - Rate limited
+- `500` - Internal server error
+
+## SDK Client
+
+For TypeScript/JavaScript, use the type-safe RPC client:
+
+```ts
+import { hc } from 'hono/client'
+import type { AppType } from '@hare/api'
+
+const client = hc<AppType>('https://your-instance.com')
+
+// Fully typed API calls
+const agents = await client.api.agents.$get()
+const data = await agents.json()
+```

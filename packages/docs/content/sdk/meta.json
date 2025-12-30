@@ -1,0 +1,14 @@
+{
+	"title": "SDK Reference",
+	"pages": [
+		"index",
+		"edge-agent",
+		"hare-agent",
+		"mcp-agent",
+		"tools",
+		"memory",
+		"providers",
+		"router",
+		"types"
+	]
+}

@@ -1,0 +1,158 @@
+---
+title: Types
+description: TypeScript types and interfaces for hareai
+---
+
+# Types Reference
+
+Complete TypeScript type definitions for the `hareai` package.
+
+```ts
+import type {
+  HareAgentState,
+  ToolContext,
+  Tool,
+  AnyTool,
+  AgentConfig
+} from 'hareai/types'
+```
+
+## Agent State Types
+
+### HareAgentState
+
+The state object persisted and synced with clients for `HareAgent`.
+
+<AutoTypeTable path="packages/agent/src/types.ts" name="HareAgentState" />
+
+### McpAgentState
+
+State for MCP (Model Context Protocol) agents.
+
+<AutoTypeTable path="packages/agent/src/types.ts" name="McpAgentState" />
+
+### ScheduledTask
+
+Definition for scheduled one-time or recurring tasks.
+
+<AutoTypeTable path="packages/agent/src/types.ts" name="ScheduledTask" />
+
+## Message Types
+
+### ClientMessage
+
+Messages sent from clients to agents.
+
+<AutoTypeTable path="packages/agent/src/types.ts" name="ClientMessage" />
+
+### ServerMessage
+
+Messages sent from agents to clients.
+
+<AutoTypeTable path="packages/agent/src/types.ts" name="ServerMessage" />
+
+### ChatPayload
+
+Payload for chat messages.
+
+<AutoTypeTable path="packages/agent/src/types.ts" name="ChatPayload" />
+
+### ToolExecutePayload
+
+Payload for tool execution requests.
+
+<AutoTypeTable path="packages/agent/src/types.ts" name="ToolExecutePayload" />
+
+### SchedulePayload
+
+Payload for scheduling tasks.
+
+<AutoTypeTable path="packages/agent/src/types.ts" name="SchedulePayload" />
+
+## EdgeAgent Types
+
+### AgentOptions
+
+Options for creating a `HareEdgeAgent`.
+
+<AutoTypeTable path="packages/agent/src/edge-agent.ts" name="AgentOptions" />
+
+### AgentTool
+
+Tool definition for agents.
+
+<AutoTypeTable path="packages/agent/src/edge-agent.ts" name="AgentTool" />
+
+### AgentStreamResponse
+
+Response from agent streaming.
+
+<AutoTypeTable path="packages/agent/src/edge-agent.ts" name="AgentStreamResponse" />
+
+## Memory Types
+
+### ConversationMessage
+
+A message in a conversation.
+
+<AutoTypeTable path="packages/agent/src/memory.ts" name="ConversationMessage" />
+
+### SaveMessageInput
+
+Input for saving a message.
+
+<AutoTypeTable path="packages/agent/src/memory.ts" name="SaveMessageInput" />
+
+### GetMessagesInput
+
+Input for retrieving messages.
+
+<AutoTypeTable path="packages/agent/src/memory.ts" name="GetMessagesInput" />
+
+## Workers AI Types
+
+### CreateWorkersAIModelInput
+
+Input for creating a Workers AI model.
+
+<AutoTypeTable path="packages/agent/src/providers/workers-ai.ts" name="CreateWorkersAIModelInput" />
+
+### GenerateEmbeddingInput
+
+Input for generating embeddings.
+
+<AutoTypeTable path="packages/agent/src/providers/workers-ai.ts" name="GenerateEmbeddingInput" />
+
+## Router Types
+
+### RouteToHareAgentInput
+
+Input for routing to a HareAgent.
+
+<AutoTypeTable path="packages/agent/src/router.ts" name="RouteToHareAgentInput" />
+
+### RouteToMcpAgentInput
+
+Input for routing to an MCP agent.
+
+<AutoTypeTable path="packages/agent/src/router.ts" name="RouteToMcpAgentInput" />
+
+## Factory Types
+
+### AgentConfig
+
+Configuration for creating an agent from database settings.
+
+<AutoTypeTable path="packages/agent/src/factory.ts" name="AgentConfig" />
+
+### CreateAgentFromConfigInput
+
+Input for `createAgentFromConfig`.
+
+<AutoTypeTable path="packages/agent/src/factory.ts" name="CreateAgentFromConfigInput" />
+
+### CreateSimpleAgentInput
+
+Input for `createSimpleAgent`.
+
+<AutoTypeTable path="packages/agent/src/factory.ts" name="CreateSimpleAgentInput" />

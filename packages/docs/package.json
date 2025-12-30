@@ -1,0 +1,10 @@
+{
+	"name": "@hare/docs",
+	"version": "0.0.1",
+	"private": true,
+	"description": "Hare documentation content",
+	"type": "module",
+	"exports": {
+		"./content/*": "./content/*"
+	}
+}
