@@ -163,8 +163,8 @@ describe('Transform Tools', () => {
 				)
 				const data = expectResultData({ result, schema: ResultSchemas.markdown })
 				const links = data.links ?? []
-				const regularLinks = links.filter((l) => !l.isImage)
-				const images = links.filter((l) => l.isImage)
+				const regularLinks = links.filter((l: { isImage?: boolean }) => !l.isImage)
+				const images = links.filter((l: { isImage?: boolean }) => l.isImage)
 				expect(regularLinks).toHaveLength(1)
 				expect(images).toHaveLength(1)
 			})

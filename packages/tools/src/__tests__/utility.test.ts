@@ -664,7 +664,7 @@ describe('Utility Tools', () => {
 					},
 					context,
 				)
-				const data = expectResultData(result, ResultSchemas.url)
+				const data = expectResultData({ result, schema: ResultSchemas.url })
 				expect(data.url).toBe('https://example.com/api/users?id=123')
 			})
 
@@ -673,7 +673,7 @@ describe('Utility Tools', () => {
 					{ operation: 'encode', text: 'hello world' },
 					context,
 				)
-				const data = expectResultData(result, ResultSchemas.url)
+				const data = expectResultData({ result, schema: ResultSchemas.url })
 				expect(data.encoded).toBe('hello%20world')
 			})
 
@@ -682,7 +682,7 @@ describe('Utility Tools', () => {
 					{ operation: 'decode', text: 'hello%20world' },
 					context,
 				)
-				const data = expectResultData(result, ResultSchemas.url)
+				const data = expectResultData({ result, schema: ResultSchemas.url })
 				expect(data.decoded).toBe('hello world')
 			})
 
@@ -695,7 +695,7 @@ describe('Utility Tools', () => {
 					},
 					context,
 				)
-				const data = expectResultData(result, ResultSchemas.url)
+				const data = expectResultData({ result, schema: ResultSchemas.url })
 				expect(data.url).toContain('foo=bar')
 				expect(data.url).toContain('baz=qux')
 			})

@@ -302,7 +302,7 @@ describe('Sandbox Tools', () => {
 				)
 				const data = expectResultData({ result, schema: ResultSchemas.codeValidate })
 				expect(data.valid).toBe(false)
-				expect(data.issues.some((i) => i.includes('Syntax error'))).toBe(true)
+				expect(data.issues.some((i: string) => i.includes('Syntax error'))).toBe(true)
 			})
 
 			it('reports code statistics', async () => {
