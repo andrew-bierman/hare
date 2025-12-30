@@ -1,6 +1,7 @@
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
 import { and, eq, gte, lte, sql } from 'drizzle-orm'
 import { agents, usage } from '@hare/db'
+import { getModelName } from '@hare/config'
 import { getDb } from '../db'
 import { authMiddleware, workspaceMiddleware } from '../middleware'
 import { ErrorSchema, UsageQuerySchema } from '../schemas'
@@ -186,9 +187,6 @@ app.openapi(getAnalyticsRoute, async (c) => {
 		.where(and(...conditions))
 		.groupBy(sql`json_extract(${usage.metadata}, '$.model')`)
 		.orderBy(sql<number>`SUM(${usage.totalTokens}) DESC`)
-
-	// Import model config to get model names
-	const { getModelName } = await import('@hare/config')
 
 	return c.json(
 		{
