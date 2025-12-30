@@ -39,26 +39,18 @@ export function SelectedTools({ tools, onRemove, onReorder }: SelectedToolsProps
 	}
 
 	if (tools.length === 0) {
-		return (
-			<div className="flex min-h-[80px] items-center justify-center rounded-lg border border-dashed bg-muted/30 p-4">
-				<p className="text-sm text-muted-foreground">
-					No tools selected. Click on tools below to add them.
-				</p>
-			</div>
-		)
+		return null
 	}
 
 	return (
-		<div className="rounded-lg border border-dashed bg-muted/30 p-3">
-			<DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-				<SortableContext items={tools.map((t) => t.id)} strategy={horizontalListSortingStrategy}>
-					<div className="flex flex-wrap gap-2">
-						{tools.map((tool) => (
-							<SortableToolItem key={tool.id} tool={tool} onRemove={onRemove} />
-						))}
-					</div>
-				</SortableContext>
-			</DndContext>
-		</div>
+		<DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+			<SortableContext items={tools.map((t) => t.id)} strategy={horizontalListSortingStrategy}>
+				<div className="flex flex-wrap gap-1.5">
+					{tools.map((tool) => (
+						<SortableToolItem key={tool.id} tool={tool} onRemove={onRemove} />
+					))}
+				</div>
+			</SortableContext>
+		</DndContext>
 	)
 }

@@ -4,81 +4,32 @@ import { useMemo, useState } from 'react'
 import type { Tool } from '@hare/types'
 import { useToolsQuery } from '../../../shared/api/hooks'
 import type { ToolCategory } from './types'
+import { getToolCategory as getToolCategoryFromType } from './tool-icons'
 
-const TOOL_CATEGORY_MAP: Record<string, ToolCategory> = {
-	// Storage
-	kv: 'storage',
-	r2: 'storage',
-	// Database
-	sql: 'database',
-	// HTTP
-	http: 'http',
-	// Search
-	vectorize: 'search',
-	// AI
-	sentiment: 'ai',
-	summarize: 'ai',
-	translate: 'ai',
-	image_generate: 'ai',
-	classify: 'ai',
-	ner: 'ai',
-	embedding: 'ai',
-	qa: 'ai',
-	// Utility
-	datetime: 'utility',
-	json: 'utility',
-	text: 'utility',
-	math: 'utility',
-	uuid: 'utility',
-	hash: 'utility',
-	base64: 'utility',
-	url: 'utility',
-	delay: 'utility',
-	// Integrations
-	zapier: 'integrations',
-	webhook: 'integrations',
-	// Data
-	rss: 'data',
-	scrape: 'data',
-	regex: 'data',
-	crypto: 'data',
-	json_schema: 'data',
-	csv: 'data',
-	template: 'data',
-	// Sandbox
-	code_execute: 'sandbox',
-	code_validate: 'sandbox',
-	sandbox_file: 'sandbox',
-	// Validation
-	email: 'validation',
-	phone: 'validation',
-	credit_card: 'validation',
-	ip: 'validation',
-	// Transform
-	markdown: 'transform',
-	diff: 'transform',
-	qrcode: 'transform',
-	compression: 'transform',
-	color: 'transform',
-}
-
+/**
+ * Get the category for a tool.
+ * Uses the tool type to determine category.
+ */
 function getToolCategory(tool: Tool): ToolCategory {
-	// Try to match by type first
-	const typeCategory = TOOL_CATEGORY_MAP[tool.type]
-	if (typeCategory) {
-		return typeCategory
-	}
-
-	// Try to match by name (lowercase, remove spaces/dashes)
-	const normalizedName = tool.name.toLowerCase().replace(/[\s-]/g, '_')
-	const nameCategory = TOOL_CATEGORY_MAP[normalizedName]
-	if (nameCategory) {
-		return nameCategory
-	}
-
-	// Default to utility for custom tools
-	return 'utility'
+	return getToolCategoryFromType(tool.type)
 }
+
+/**
+ * Category display order (most commonly used first).
+ */
+const CATEGORY_ORDER: ToolCategory[] = [
+	'storage',
+	'database',
+	'http',
+	'ai',
+	'utility',
+	'search',
+	'integrations',
+	'data',
+	'sandbox',
+	'validation',
+	'transform',
+]
 
 interface UseToolPickerOptions {
 	workspaceId: string
@@ -150,6 +101,52 @@ export function useToolPicker({
 		return counts
 	}, [tools])
 
+	/**
+	 * Tools grouped by category for accordion display.
+	 * Filters by search query but ignores category filter (accordion shows all categories).
+	 */
+	const groupedTools = useMemo(() => {
+		let toolsToGroup = tools
+
+		// Filter by search query
+		if (searchQuery) {
+			const query = searchQuery.toLowerCase()
+			toolsToGroup = toolsToGroup.filter(
+				(tool) =>
+					tool.name.toLowerCase().includes(query) ||
+					tool.description.toLowerCase().includes(query) ||
+					tool.type.toLowerCase().includes(query),
+			)
+		}
+
+		// Group by category
+		const groups: Record<ToolCategory, Tool[]> = {
+			all: [],
+			storage: [],
+			database: [],
+			http: [],
+			search: [],
+			ai: [],
+			utility: [],
+			integrations: [],
+			data: [],
+			sandbox: [],
+			validation: [],
+			transform: [],
+		}
+
+		toolsToGroup.forEach((tool) => {
+			const category = getToolCategory(tool)
+			groups[category].push(tool)
+		})
+
+		// Return as ordered array of { category, tools } objects
+		return CATEGORY_ORDER.map((category) => ({
+			category,
+			tools: groups[category],
+		})).filter((group) => group.tools.length > 0)
+	}, [tools, searchQuery])
+
 	const isAtMaxTools = selectedToolIds.length >= maxTools
 
 	const toggleTool = (toolId: string) => {
@@ -181,6 +178,7 @@ export function useToolPicker({
 		tools,
 		selectedTools,
 		filteredTools,
+		groupedTools,
 		isLoading,
 		selectedToolIds,
 
