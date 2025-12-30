@@ -42,7 +42,7 @@ const ICONS = {
 } as const
 
 function LandingPage() {
-	const { data: session, isPending } = useAuth()
+	const { data: session, isPending, error } = useAuth()
 	const { hero, features, steps, stats, badges, cta, codeExample } = LANDING_PAGE
 
 	return (
@@ -75,7 +75,7 @@ function LandingPage() {
 					</nav>
 
 					<div className="flex items-center gap-2">
-						{isPending ? (
+						{isPending && !error ? (
 							<div className="h-9 w-20 animate-pulse rounded-md bg-muted" />
 						) : session?.user ? (
 							<Link to="/dashboard">

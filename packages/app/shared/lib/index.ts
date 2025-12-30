@@ -17,3 +17,17 @@ export * from './tanstack/form'
 export * from './tanstack/table'
 export * from './tanstack/virtual'
 export type { ServerFnInput } from './tanstack/server-functions'
+
+// TanStack DB provider and collection hooks (exported separately from query hooks)
+export {
+	TanStackDBProvider,
+	useTanStackDB,
+	useWorkspaceCollection,
+	useAgentCollection,
+	useToolCollection,
+	useScheduleCollection,
+	type AgentRow,
+	type ToolRow,
+	type WorkspaceRow,
+	type ScheduleRow,
+} from './tanstack/db'

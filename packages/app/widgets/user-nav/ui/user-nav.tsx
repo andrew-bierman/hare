@@ -25,10 +25,11 @@ export interface UserNavProps {
  * @param onSignOut - Optional callback after sign out
  */
 export function UserNav({ Link, onSignOut }: UserNavProps) {
-	const { data: session } = useAuth()
+	const { data: session, error } = useAuth()
 	const { signOut } = useAuthActions()
 
-	const user = session?.user
+	// If auth errored, treat as logged out
+	const user = error ? null : session?.user
 
 	const getInitials = (name?: string | null, email?: string | null) => {
 		if (name) {
