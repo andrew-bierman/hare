@@ -133,11 +133,14 @@ app.openapi(getAnalyticsRoute, async (c) => {
 		.where(and(...conditions))
 
 	// Determine date format based on groupBy
-	let dateFormat = `DATE(${usage.createdAt})`
+	// Note: createdAt is stored as Unix timestamp (integer), so we need 'unixepoch' modifier
+	let dateFormat: string
 	if (groupBy === 'week') {
-		dateFormat = `DATE(${usage.createdAt}, 'weekday 0', '-6 days')`
+		dateFormat = "DATE(createdAt, 'unixepoch', 'weekday 0', '-6 days')"
 	} else if (groupBy === 'month') {
-		dateFormat = `DATE(${usage.createdAt}, 'start of month')`
+		dateFormat = "DATE(createdAt, 'unixepoch', 'start of month')"
+	} else {
+		dateFormat = "DATE(createdAt, 'unixepoch')"
 	}
 
 	// Get time series data
