@@ -60,7 +60,7 @@ export function Sidebar({ pathname, Link, WorkspaceSwitcher }: SidebarProps) {
 					{FEATURES.showBetaBadge && (
 						<Badge
 							variant="secondary"
-							className="text-[10px] px-1.5 bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400"
+							className="bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400"
 						>
 							{APP_CONFIG.stage}
 						</Badge>

@@ -39,8 +39,8 @@ export function Header({ Link, UserNav }: HeaderProps) {
 
 				{/* Center - Search (hidden on mobile) */}
 				<div className="hidden md:flex flex-1 max-w-md">
-					<div className="relative w-full">
-						<Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+					<div className="relative flex items-center w-full">
+						<Search className="absolute left-3 h-4 w-4 text-muted-foreground pointer-events-none" />
 						<Input
 							placeholder={DASHBOARD_CONTENT.header.searchPlaceholder}
 							className="pl-9 h-10 bg-muted/50 border-transparent focus:border-orange-300 focus:bg-background transition-colors"
