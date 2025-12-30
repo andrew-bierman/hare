@@ -10,6 +10,7 @@ import {
 	CardTitle,
 } from '@hare/ui/components/card'
 import { Checkbox } from '@hare/ui/components/checkbox'
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@hare/ui/components/collapsible'
 import { Input } from '@hare/ui/components/input'
 import { Label } from '@hare/ui/components/label'
 import {
@@ -20,34 +21,100 @@ import {
 	SelectValue,
 } from '@hare/ui/components/select'
 import { Textarea } from '@hare/ui/components/textarea'
-import { type ChangeEvent, useState } from 'react'
+import { type ChangeEvent, useState, useEffect } from 'react'
 import { toast } from 'sonner'
-import type { Tool } from '@hare/types'
+import { ChevronDown } from 'lucide-react'
+import type { AgentConfig } from '@hare/types'
 import { useCreateAgentMutation, useToolsQuery } from '../../../shared/api/hooks'
 import { AgentInstructionsEditor } from '../../../widgets/agent-builder'
-import { AI_MODELS } from '@hare/config'
+import { ResponseStyleSelector } from '../../../widgets/response-style-selector'
+import { AdvancedSettings } from '../../../widgets/advanced-settings'
+import {
+	AI_MODELS,
+	getTemplateById,
+	getResponseStyleById,
+	getResponseStyleFromConfig,
+	type ResponseStyle,
+} from '@hare/config'
+import { cn } from '@hare/ui/lib/utils'
 
 interface CreateAgentFormProps {
 	workspaceId: string | undefined
+	templateId?: string
 }
 
-export function CreateAgentForm({ workspaceId }: CreateAgentFormProps) {
+export function CreateAgentForm({ workspaceId, templateId }: CreateAgentFormProps) {
 	const navigate = useNavigate()
 	const createAgent = useCreateAgentMutation(workspaceId)
 	const { data: toolsData } = useToolsQuery(workspaceId)
 
+	// Load template if provided
+	const template = templateId ? getTemplateById(templateId) : undefined
+
+	// Form state
 	const [name, setName] = useState('')
 	const [description, setDescription] = useState('')
-	const [model, setModel] = useState('llama-3.3-70b')
+	const [model, setModel] = useState('@cf/meta/llama-3.3-70b-instruct-fp8-fast')
 	const [instructions, setInstructions] = useState('')
 	const [selectedToolIds, setSelectedToolIds] = useState<string[]>([])
+	const [responseStyle, setResponseStyle] = useState<ResponseStyle>('balanced')
+	const [config, setConfig] = useState<AgentConfig>({
+		temperature: 0.7,
+		maxTokens: 4096,
+		topP: 0.95,
+	})
+	const [toolsOpen, setToolsOpen] = useState(false)
 
 	const tools = toolsData?.tools ?? []
+
+	// Initialize form with template values
+	useEffect(() => {
+		if (template) {
+			setName(`${template.name} Agent`)
+			setDescription(template.description)
+			setModel(template.model)
+			setInstructions(template.instructions)
+			setResponseStyle(template.responseStyle)
+
+			// Set config from response style preset
+			const preset = getResponseStyleById(template.responseStyle)
+			if (preset) {
+				setConfig((prev) => ({
+					...prev,
+					temperature: preset.config.temperature,
+					topP: preset.config.topP,
+				}))
+			}
+		}
+	}, [template])
 
 	const handleToolToggle = (toolId: string) => {
 		setSelectedToolIds((prev) =>
 			prev.includes(toolId) ? prev.filter((id) => id !== toolId) : [...prev, toolId],
 		)
+	}
+
+	const handleResponseStyleChange = (style: ResponseStyle) => {
+		setResponseStyle(style)
+		const preset = getResponseStyleById(style)
+		if (preset) {
+			setConfig((prev) => ({
+				...prev,
+				temperature: preset.config.temperature,
+				topP: preset.config.topP,
+			}))
+		}
+	}
+
+	const handleConfigChange = (newConfig: AgentConfig) => {
+		setConfig(newConfig)
+		// Update response style based on temperature if manually changed
+		if (newConfig.temperature !== undefined) {
+			const detectedStyle = getResponseStyleFromConfig(newConfig.temperature)
+			if (detectedStyle !== responseStyle) {
+				setResponseStyle(detectedStyle)
+			}
+		}
 	}
 
 	const handleSubmit = async () => {
@@ -68,6 +135,12 @@ export function CreateAgentForm({ workspaceId }: CreateAgentFormProps) {
 				model,
 				instructions: instructions.trim() || undefined,
 				toolIds: selectedToolIds.length > 0 ? selectedToolIds : undefined,
+				config: {
+					temperature: config.temperature,
+					maxTokens: config.maxTokens,
+					topP: config.topP,
+					topK: config.topK,
+				},
 			})
 			toast.success('Agent created successfully')
 			navigate({ to: `/dashboard/agents/${agent.id}` })
@@ -117,24 +190,32 @@ export function CreateAgentForm({ workspaceId }: CreateAgentFormProps) {
 						<CardDescription>Set up your agent's behavior and capabilities</CardDescription>
 					</CardHeader>
 					<CardContent className="space-y-4">
-						<div className="space-y-2">
-							<Label htmlFor="model">Model *</Label>
-							<Select value={model} onValueChange={setModel}>
-								<SelectTrigger id="model">
-									<SelectValue placeholder="Select a model" />
-								</SelectTrigger>
-								<SelectContent>
-									{AI_MODELS.map((m) => (
-										<SelectItem key={m.id} value={m.id}>
-											<div className="flex flex-col">
-												<span>{m.name}</span>
-												<span className="text-xs text-muted-foreground">{m.description}</span>
-											</div>
-										</SelectItem>
-									))}
-								</SelectContent>
-							</Select>
+						<div className="grid gap-4 sm:grid-cols-2">
+							<div className="space-y-2">
+								<Label htmlFor="model">Model *</Label>
+								<Select value={model} onValueChange={setModel}>
+									<SelectTrigger id="model">
+										<SelectValue placeholder="Select a model" />
+									</SelectTrigger>
+									<SelectContent>
+										{AI_MODELS.map((m) => (
+											<SelectItem key={m.id} value={m.id}>
+												<div className="flex flex-col">
+													<span>{m.name}</span>
+													<span className="text-xs text-muted-foreground">{m.description}</span>
+												</div>
+											</SelectItem>
+										))}
+									</SelectContent>
+								</Select>
+							</div>
+							<ResponseStyleSelector
+								value={responseStyle}
+								onValueChange={handleResponseStyleChange}
+								disabled={createAgent.isPending}
+							/>
 						</div>
+
 						<div className="space-y-2">
 							<Label htmlFor="system-prompt">System Prompt</Label>
 							<AgentInstructionsEditor
@@ -152,45 +233,75 @@ export function CreateAgentForm({ workspaceId }: CreateAgentFormProps) {
 								{'}'}. This prompt will be sent with every conversation.
 							</p>
 						</div>
+
+						<AdvancedSettings
+							config={config}
+							onConfigChange={handleConfigChange}
+							disabled={createAgent.isPending}
+						/>
 					</CardContent>
 				</Card>
 
+				{/* Collapsible Tools Section */}
 				<Card>
-					<CardHeader>
-						<CardTitle>Tools & Capabilities</CardTitle>
-						<CardDescription>Enable additional tools for your agent</CardDescription>
-					</CardHeader>
-					<CardContent>
-						{tools.length === 0 ? (
-							<p className="text-sm text-muted-foreground">
-								No tools available. Tools will be automatically created when you deploy.
-							</p>
-						) : (
-							<div className="space-y-3">
-								{tools.map((tool) => (
-									<div key={tool.id} className="flex items-start space-x-3">
-										<Checkbox
-											id={tool.id}
-											checked={selectedToolIds.includes(tool.id)}
-											onCheckedChange={() => handleToolToggle(tool.id)}
-										/>
-										<div className="space-y-1">
-											<label
-												htmlFor={tool.id}
-												className="text-sm font-medium leading-none cursor-pointer"
-											>
-												{tool.name}
-												{tool.isSystem && (
-													<span className="ml-2 text-xs text-muted-foreground">(System)</span>
-												)}
-											</label>
-											<p className="text-xs text-muted-foreground">{tool.description}</p>
-										</div>
+					<Collapsible open={toolsOpen} onOpenChange={setToolsOpen}>
+						<CollapsibleTrigger className="w-full">
+							<CardHeader className="cursor-pointer hover:bg-accent/50 transition-colors rounded-t-lg">
+								<div className="flex items-center justify-between">
+									<div className="text-left">
+										<CardTitle className="flex items-center gap-2">
+											Tools & Capabilities
+											{selectedToolIds.length > 0 && (
+												<span className="text-xs font-normal text-muted-foreground">
+													({selectedToolIds.length} selected)
+												</span>
+											)}
+										</CardTitle>
+										<CardDescription>Enable additional tools for your agent</CardDescription>
 									</div>
-								))}
-							</div>
-						)}
-					</CardContent>
+									<ChevronDown
+										className={cn(
+											'h-5 w-5 text-muted-foreground transition-transform',
+											toolsOpen && 'rotate-180'
+										)}
+									/>
+								</div>
+							</CardHeader>
+						</CollapsibleTrigger>
+						<CollapsibleContent>
+							<CardContent>
+								{tools.length === 0 ? (
+									<p className="text-sm text-muted-foreground">
+										No tools available. Tools will be automatically created when you deploy.
+									</p>
+								) : (
+									<div className="space-y-3">
+										{tools.map((tool) => (
+											<div key={tool.id} className="flex items-start space-x-3">
+												<Checkbox
+													id={tool.id}
+													checked={selectedToolIds.includes(tool.id)}
+													onCheckedChange={() => handleToolToggle(tool.id)}
+												/>
+												<div className="space-y-1">
+													<label
+														htmlFor={tool.id}
+														className="text-sm font-medium leading-none cursor-pointer"
+													>
+														{tool.name}
+														{tool.isSystem && (
+															<span className="ml-2 text-xs text-muted-foreground">(System)</span>
+														)}
+													</label>
+													<p className="text-xs text-muted-foreground">{tool.description}</p>
+												</div>
+											</div>
+										))}
+									</div>
+								)}
+							</CardContent>
+						</CollapsibleContent>
+					</Collapsible>
 				</Card>
 			</div>
 
@@ -219,11 +330,10 @@ export function CreateAgentForm({ workspaceId }: CreateAgentFormProps) {
 					</CardHeader>
 					<CardContent className="space-y-2 text-sm text-muted-foreground">
 						<p>Give your agent a clear, descriptive name that reflects its purpose.</p>
-						<p>Write a detailed system prompt to guide the agent's behavior and responses.</p>
 						<p>
-							Start with Llama 3.3 70B for the best quality, or use a smaller model for faster
-							responses.
+							<strong>Response Style</strong> controls how creative vs. consistent responses are.
 						</p>
+						<p>Write a detailed system prompt to guide the agent's behavior and responses.</p>
 						<p>After creation, you'll need to deploy the agent before testing it.</p>
 					</CardContent>
 				</Card>
