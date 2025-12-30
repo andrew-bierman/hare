@@ -21,8 +21,8 @@ bun create cloudflare my-agent
 
 cd my-agent
 
-# Install the Hare SDK
-bun add @hare/agent
+# Install the Hare SDK and peer dependencies
+npm install hareai ai zod agents
 ```
 
 ## Configure Bindings
@@ -43,7 +43,7 @@ binding = "AI"
 Replace `src/index.ts`:
 
 ```ts
-import { createEdgeAgent, createWorkersAIModel } from '@hare/agent'
+import { HareEdgeAgent } from 'hareai'
 
 interface Env {
   AI: Ai
@@ -51,19 +51,20 @@ interface Env {
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
-    const agent = createEdgeAgent({
-      model: createWorkersAIModel({
-        modelId: '@cf/meta/llama-3.3-70b-instruct-fp8-fast',
-        ai: env.AI,
-      }),
-      systemPrompt: 'You are a helpful AI assistant.',
+    const agent = new HareEdgeAgent({
+      name: 'My Agent',
+      instructions: 'You are a helpful AI assistant.',
+      model: '@cf/meta/llama-3.3-70b-instruct-fp8-fast',
+      ai: env.AI,
     })
 
     // Parse the message from the request
     const { message } = await request.json<{ message: string }>()
 
     // Get the response
-    const response = await agent.chat(message)
+    const response = await agent.stream([
+      { role: 'user', content: message }
+    ])
 
     return new Response(await response.text, {
       headers: { 'Content-Type': 'text/plain' },

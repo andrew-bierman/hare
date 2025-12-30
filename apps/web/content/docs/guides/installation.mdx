@@ -1,6 +1,6 @@
 ---
 title: Installation
-description: Install and configure the @hare/agent SDK
+description: Install and configure the hareai SDK
 ---
 
 # Installation
@@ -14,14 +14,14 @@ description: Install and configure the @hare/agent SDK
 ## Install the SDK
 
 ```bash
-# Using bun (recommended)
-bun add @hare/agent
-
 # Using npm
-npm install @hare/agent
+npm install hareai
+
+# Using bun
+bun add hareai
 
 # Using pnpm
-pnpm add @hare/agent
+pnpm add hareai
 ```
 
 ## Peer Dependencies
@@ -29,7 +29,17 @@ pnpm add @hare/agent
 The SDK requires these peer dependencies:
 
 ```bash
-bun add ai zod drizzle-orm agents @modelcontextprotocol/sdk
+npm install ai zod agents
+```
+
+Optional peer dependencies for additional features:
+
+```bash
+# For MCP (Model Context Protocol) support
+npm install @modelcontextprotocol/sdk
+
+# For conversation persistence
+npm install drizzle-orm
 ```
 
 ## Cloudflare Bindings
@@ -86,19 +96,18 @@ interface Env {
 ## Verify Installation
 
 ```ts
-import { createEdgeAgent, createWorkersAIModel } from '@hare/agent'
+import { HareEdgeAgent } from 'hareai'
 
 // This should compile without errors
-const agent = createEdgeAgent({
-  model: createWorkersAIModel({
-    modelId: '@cf/meta/llama-3.3-70b-instruct-fp8-fast',
-    ai: {} as Ai,
-  }),
-  systemPrompt: 'Hello',
+const agent = new HareEdgeAgent({
+  name: 'Test Agent',
+  instructions: 'Hello',
+  model: '@cf/meta/llama-3.3-70b-instruct-fp8-fast',
+  ai: {} as Ai,
 })
 ```
 
 ## Next Steps
 
 - [Getting Started Guide](/docs/guides/getting-started)
-- [EdgeAgent Reference](/docs/sdk/edge-agent)
+- [HareEdgeAgent Reference](/docs/sdk/edge-agent)

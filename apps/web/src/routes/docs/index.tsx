@@ -38,18 +38,18 @@ const DOCS_SECTIONS = [
 	},
 	{
 		title: 'SDK Reference',
-		description: 'Complete @hare/agent SDK documentation',
+		description: 'Complete hareai SDK documentation',
 		icon: Code,
 		href: '/docs/sdk',
 		links: [
-			{ label: 'EdgeAgent', href: '/docs/sdk/edge-agent' },
+			{ label: 'HareEdgeAgent', href: '/docs/sdk/edge-agent' },
 			{ label: 'Memory Store', href: '/docs/sdk/memory' },
 			{ label: 'Workers AI Provider', href: '/docs/sdk/providers' },
 		],
 	},
 	{
 		title: 'Tools Reference',
-		description: 'Explore the 40+ built-in tools',
+		description: 'Explore the 59+ built-in tools',
 		icon: Wrench,
 		href: '/docs/sdk/tools',
 		links: [
@@ -75,30 +75,31 @@ const QUICK_START_STEPS = [
 	{
 		step: 1,
 		title: 'Install the SDK',
-		description: 'Add @hare/agent to your Cloudflare Workers project.',
-		code: `bun add @hare/agent`,
+		description: 'Add hareai to your Cloudflare Workers project.',
+		code: `npm install hareai ai zod agents`,
 	},
 	{
 		step: 2,
 		title: 'Create Your Agent',
-		description: 'Use EdgeAgent for a simple, universal agent.',
-		code: `import { createEdgeAgent, createWorkersAIModel } from '@hare/agent'
+		description: 'Use HareEdgeAgent for a simple, universal agent.',
+		code: `import { HareEdgeAgent } from 'hareai'
 
-const agent = createEdgeAgent({
-  model: createWorkersAIModel({
-    modelId: '@cf/meta/llama-3.3-70b-instruct-fp8-fast',
-    ai: env.AI,
-  }),
-  systemPrompt: 'You are a helpful assistant.',
+const agent = new HareEdgeAgent({
+  name: 'My Agent',
+  instructions: 'You are a helpful assistant.',
+  model: '@cf/meta/llama-3.3-70b-instruct-fp8-fast',
+  ai: env.AI,
 })`,
 	},
 	{
 		step: 3,
 		title: 'Stream Responses',
 		description: 'Get streaming responses from your agent.',
-		code: `const response = await agent.chat('Hello!')
+		code: `const response = await agent.stream([
+  { role: 'user', content: 'Hello!' }
+])
 
-for await (const chunk of response.stream) {
+for await (const chunk of response.textStream) {
   console.log(chunk)
 }`,
 	},

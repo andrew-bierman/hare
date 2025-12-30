@@ -1,82 +1,41 @@
 ---
 title: Types
-description: TypeScript types and interfaces for @hare/agent
+description: TypeScript types and interfaces for hareai
 ---
 
 # Types Reference
 
-Complete TypeScript type definitions for the `@hare/agent` package.
+Complete TypeScript type definitions for the `hareai` package.
 
-## Agent Types
+```ts
+import type {
+  HareAgentState,
+  ToolContext,
+  Tool,
+  AnyTool,
+  AgentConfig
+} from 'hareai/types'
+```
+
+## Agent State Types
 
 ### HareAgentState
 
 The state object persisted and synced with clients for `HareAgent`.
 
-```ts
-interface HareAgentState {
-  /** Agent configuration ID */
-  agentId: string
-  /** Workspace ID */
-  workspaceId: string
-  /** Agent name */
-  name: string
-  /** Agent instructions/system prompt */
-  instructions: string
-  /** Model to use (e.g., '@cf/meta/llama-3.3-70b-instruct-fp8-fast') */
-  model: string
-  /** Conversation history */
-  messages: ModelMessage[]
-  /** Whether the agent is currently processing */
-  isProcessing: boolean
-  /** Last activity timestamp */
-  lastActivity: number
-  /** Connected user IDs */
-  connectedUsers: string[]
-  /** Scheduled tasks */
-  scheduledTasks: ScheduledTask[]
-  /** Agent status */
-  status: 'idle' | 'processing' | 'error'
-  /** Last error if any */
-  lastError?: string
-}
-```
+<AutoTypeTable path="packages/agent/src/types.ts" name="HareAgentState" />
 
 ### McpAgentState
 
 State for MCP (Model Context Protocol) agents.
 
-```ts
-interface McpAgentState {
-  /** Workspace ID */
-  workspaceId: string
-  /** Number of connected clients */
-  connectedClients: number
-  /** Last activity timestamp */
-  lastActivity: number
-}
-```
+<AutoTypeTable path="packages/agent/src/types.ts" name="McpAgentState" />
 
 ### ScheduledTask
 
 Definition for scheduled one-time or recurring tasks.
 
-```ts
-interface ScheduledTask {
-  /** Unique task ID */
-  id: string
-  /** Task type */
-  type: 'one-time' | 'recurring'
-  /** Execution timestamp (for one-time tasks) */
-  executeAt?: number
-  /** Cron expression (for recurring tasks) */
-  cron?: string
-  /** Action to perform */
-  action: string
-  /** Additional payload data */
-  payload?: Record<string, unknown>
-}
-```
+<AutoTypeTable path="packages/agent/src/types.ts" name="ScheduledTask" />
 
 ## Message Types
 
@@ -84,312 +43,99 @@ interface ScheduledTask {
 
 Messages sent from clients to agents.
 
-```ts
-interface ClientMessage {
-  type: 'chat' | 'configure' | 'execute_tool' | 'get_state' | 'schedule'
-  payload: unknown
-}
-```
+<AutoTypeTable path="packages/agent/src/types.ts" name="ClientMessage" />
 
 ### ServerMessage
 
 Messages sent from agents to clients.
 
-```ts
-interface ServerMessage {
-  type: 'text' | 'tool_call' | 'tool_result' | 'state_update' | 'error' | 'done'
-  data: unknown
-  timestamp: number
-}
-```
+<AutoTypeTable path="packages/agent/src/types.ts" name="ServerMessage" />
 
 ### ChatPayload
 
 Payload for chat messages.
 
-```ts
-interface ChatPayload {
-  /** The user's message */
-  message: string
-  /** User ID */
-  userId: string
-  /** Optional session ID */
-  sessionId?: string
-  /** Optional metadata */
-  metadata?: Record<string, unknown>
-}
-```
+<AutoTypeTable path="packages/agent/src/types.ts" name="ChatPayload" />
 
 ### ToolExecutePayload
 
 Payload for tool execution requests.
 
-```ts
-interface ToolExecutePayload {
-  /** Tool identifier */
-  toolId: string
-  /** Tool parameters */
-  params: Record<string, unknown>
-}
-```
+<AutoTypeTable path="packages/agent/src/types.ts" name="ToolExecutePayload" />
 
 ### SchedulePayload
 
 Payload for scheduling tasks.
 
-```ts
-interface SchedulePayload {
-  /** Action to schedule */
-  action: string
-  /** When to execute (timestamp) */
-  executeAt?: number
-  /** Cron expression for recurring tasks */
-  cron?: string
-  /** Additional payload */
-  payload?: Record<string, unknown>
-}
-```
+<AutoTypeTable path="packages/agent/src/types.ts" name="SchedulePayload" />
 
 ## EdgeAgent Types
 
 ### AgentOptions
 
-Options for creating an `EdgeAgent`.
+Options for creating a `HareEdgeAgent`.
 
-```ts
-interface AgentOptions {
-  /** AI model to use */
-  model: LanguageModelV1
-  /** System prompt/instructions */
-  systemPrompt?: string
-  /** Available tools */
-  tools?: AgentTool[]
-  /** Maximum tokens to generate */
-  maxTokens?: number
-  /** Temperature for generation */
-  temperature?: number
-}
-```
+<AutoTypeTable path="packages/agent/src/edge-agent.ts" name="AgentOptions" />
 
 ### AgentTool
 
 Tool definition for agents.
 
-```ts
-interface AgentTool {
-  /** Tool name */
-  name: string
-  /** Tool description */
-  description: string
-  /** Zod schema for parameters */
-  parameters: z.ZodSchema
-  /** Tool execution function */
-  execute: (params: unknown) => Promise<unknown>
-}
-```
+<AutoTypeTable path="packages/agent/src/edge-agent.ts" name="AgentTool" />
 
 ### AgentStreamResponse
 
-Response from agent chat with streaming.
+Response from agent streaming.
 
-```ts
-interface AgentStreamResponse {
-  /** Async iterator for text chunks */
-  stream: AsyncIterable<string>
-  /** Full response text (after stream completes) */
-  text: Promise<string>
-  /** Tool calls made during response */
-  toolCalls: Promise<ToolCall[]>
-  /** Usage statistics */
-  usage: Promise<Usage>
-}
-```
-
-## Router Types
-
-### HareAgentEnv
-
-Environment bindings required for agent routing.
-
-```ts
-interface HareAgentEnv {
-  /** HareAgent Durable Object binding */
-  HARE_AGENT: DurableObjectNamespace
-  /** MCP Agent Durable Object binding (optional) */
-  MCP_AGENT?: DurableObjectNamespace
-}
-```
-
-### AgentRouteConfig
-
-Configuration for agent routing.
-
-```ts
-interface AgentRouteConfig {
-  /** Extract agent ID from request */
-  getAgentId: (request: Request) => string | null
-  /** Validate request (optional) */
-  validateRequest?: (request: Request) => boolean | Promise<boolean>
-}
-```
-
-### RouteToHareAgentInput
-
-Input for routing to a HareAgent.
-
-```ts
-interface RouteToHareAgentInput {
-  /** Incoming request */
-  request: Request
-  /** Environment bindings */
-  env: HareAgentEnv
-  /** Agent ID */
-  agentId: string
-}
-```
+<AutoTypeTable path="packages/agent/src/edge-agent.ts" name="AgentStreamResponse" />
 
 ## Memory Types
-
-### MemoryStore
-
-Interface for conversation memory storage.
-
-```ts
-interface MemoryStore {
-  /** Save a message */
-  saveMessage(input: SaveMessageInput): Promise<void>
-  /** Get messages for a conversation */
-  getMessages(input: GetMessagesInput): Promise<ConversationMessage[]>
-  /** Get or create a conversation */
-  getOrCreateConversation(input: GetOrCreateConversationInput): Promise<string>
-  /** Search messages */
-  searchMessages(input: SearchMessagesInput): Promise<ConversationMessage[]>
-}
-```
 
 ### ConversationMessage
 
 A message in a conversation.
 
-```ts
-interface ConversationMessage {
-  /** Message ID */
-  id: string
-  /** Conversation ID */
-  conversationId: string
-  /** Message role */
-  role: MessageRole
-  /** Message content */
-  content: string
-  /** Creation timestamp */
-  createdAt: Date
-  /** Optional metadata */
-  metadata?: Record<string, unknown>
-}
-```
+<AutoTypeTable path="packages/agent/src/memory.ts" name="ConversationMessage" />
 
-### MessageRole
+### SaveMessageInput
 
-Valid message roles.
+Input for saving a message.
 
-```ts
-type MessageRole = 'user' | 'assistant' | 'system' | 'tool'
-```
+<AutoTypeTable path="packages/agent/src/memory.ts" name="SaveMessageInput" />
+
+### GetMessagesInput
+
+Input for retrieving messages.
+
+<AutoTypeTable path="packages/agent/src/memory.ts" name="GetMessagesInput" />
 
 ## Workers AI Types
-
-### WorkersAIModelId
-
-Available Workers AI model identifiers.
-
-```ts
-type WorkersAIModelId =
-  | '@cf/meta/llama-3.3-70b-instruct-fp8-fast'
-  | '@cf/meta/llama-3.2-3b-instruct'
-  | '@cf/meta/llama-3.2-1b-instruct'
-  | '@cf/mistral/mistral-7b-instruct-v0.2-lora'
-  | '@cf/google/gemma-7b-it-lora'
-  | '@hf/thebloke/deepseek-coder-6.7b-instruct-awq'
-  // ... and more
-```
-
-### EmbeddingModelId
-
-Available embedding model identifiers.
-
-```ts
-type EmbeddingModelId =
-  | '@cf/baai/bge-base-en-v1.5'
-  | '@cf/baai/bge-small-en-v1.5'
-  | '@cf/baai/bge-large-en-v1.5'
-```
 
 ### CreateWorkersAIModelInput
 
 Input for creating a Workers AI model.
 
-```ts
-interface CreateWorkersAIModelInput {
-  /** Model ID */
-  modelId: WorkersAIModelId
-  /** Workers AI binding */
-  ai: Ai
-  /** Optional settings */
-  settings?: {
-    maxTokens?: number
-    temperature?: number
-  }
-}
-```
+<AutoTypeTable path="packages/agent/src/providers/workers-ai.ts" name="CreateWorkersAIModelInput" />
 
-## Tool Types
+### GenerateEmbeddingInput
 
-### Tool
+Input for generating embeddings.
 
-Base tool definition.
+<AutoTypeTable path="packages/agent/src/providers/workers-ai.ts" name="GenerateEmbeddingInput" />
 
-```ts
-interface Tool<TInput = unknown, TOutput = unknown> {
-  /** Unique tool ID */
-  id: string
-  /** Tool description */
-  description: string
-  /** Zod schema for input validation */
-  inputSchema: z.ZodSchema<TInput>
-  /** Tool execution function */
-  execute: (params: TInput, context: ToolContext) => Promise<ToolResult<TOutput>>
-}
-```
+## Router Types
 
-### ToolContext
+### RouteToHareAgentInput
 
-Context provided to tool execution.
+Input for routing to a HareAgent.
 
-```ts
-interface ToolContext {
-  /** Cloudflare environment bindings */
-  env: HareEnv
-  /** Current workspace ID */
-  workspaceId: string
-  /** User ID executing the tool */
-  userId: string
-}
-```
+<AutoTypeTable path="packages/agent/src/router.ts" name="RouteToHareAgentInput" />
 
-### ToolResult
+### RouteToMcpAgentInput
 
-Result returned from tool execution.
+Input for routing to an MCP agent.
 
-```ts
-interface ToolResult<T = unknown> {
-  /** Whether execution succeeded */
-  success: boolean
-  /** Result data (if successful) */
-  data?: T
-  /** Error message (if failed) */
-  error?: string
-}
-```
+<AutoTypeTable path="packages/agent/src/router.ts" name="RouteToMcpAgentInput" />
 
 ## Factory Types
 
@@ -397,70 +143,16 @@ interface ToolResult<T = unknown> {
 
 Configuration for creating an agent from database settings.
 
-```ts
-interface AgentConfig {
-  /** Agent ID */
-  id: string
-  /** Agent name */
-  name: string
-  /** System prompt */
-  instructions: string
-  /** Model ID */
-  model: string
-  /** Temperature setting */
-  temperature: number
-  /** Max tokens */
-  maxTokens: number
-  /** Enabled tool IDs */
-  enabledTools: string[]
-}
-```
+<AutoTypeTable path="packages/agent/src/factory.ts" name="AgentConfig" />
 
 ### CreateAgentFromConfigInput
 
 Input for `createAgentFromConfig`.
 
-```ts
-interface CreateAgentFromConfigInput {
-  /** Agent configuration */
-  config: AgentConfig
-  /** Workers AI binding */
-  ai: Ai
-  /** Tool context */
-  toolContext: ToolContext
-}
-```
+<AutoTypeTable path="packages/agent/src/factory.ts" name="CreateAgentFromConfigInput" />
 
-## Default Values
+### CreateSimpleAgentInput
 
-### DEFAULT_HARE_AGENT_STATE
+Input for `createSimpleAgent`.
 
-Default state for new HareAgent instances.
-
-```ts
-const DEFAULT_HARE_AGENT_STATE: HareAgentState = {
-  agentId: '',
-  workspaceId: '',
-  name: 'Hare Agent',
-  instructions: 'You are a helpful AI assistant.',
-  model: '@cf/meta/llama-3.3-70b-instruct-fp8-fast',
-  messages: [],
-  isProcessing: false,
-  lastActivity: Date.now(),
-  connectedUsers: [],
-  scheduledTasks: [],
-  status: 'idle',
-}
-```
-
-### DEFAULT_MCP_AGENT_STATE
-
-Default state for new MCP Agent instances.
-
-```ts
-const DEFAULT_MCP_AGENT_STATE: McpAgentState = {
-  workspaceId: '',
-  connectedClients: 0,
-  lastActivity: Date.now(),
-}
-```
+<AutoTypeTable path="packages/agent/src/factory.ts" name="CreateSimpleAgentInput" />

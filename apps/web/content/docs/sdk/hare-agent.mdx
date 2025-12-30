@@ -7,20 +7,20 @@ description: Stateful AI agent with Durable Objects, WebSocket, and scheduling
 
 `HareAgent` is a full-featured AI agent built on Cloudflare's Agents SDK with Durable Objects for state persistence.
 
-**Workers-only**: This class requires the Cloudflare Workers runtime.
+**Workers-only**: This class requires the Cloudflare Workers runtime. Import from `hareai/workers`.
 
 ## Features
 
 - **Durable Object State** - Persistent state across requests
 - **WebSocket Support** - Real-time bidirectional communication with hibernation
-- **Tool Execution** - 40+ built-in tools
+- **Tool Execution** - 59+ built-in tools
 - **Scheduling** - One-time and recurring tasks via alarms
 - **State Sync** - Automatic broadcast to connected clients
 
 ## Usage
 
 ```ts
-import { HareAgent } from '@hare/agent/workers'
+import { HareAgent } from 'hareai/workers'
 
 // Export as Durable Object
 export { HareAgent }
@@ -162,29 +162,15 @@ ws.send(JSON.stringify({
 
 ## State
 
-```ts
-interface HareAgentState {
-  agentId: string
-  workspaceId: string
-  name: string
-  instructions: string      // System prompt
-  model: string             // e.g., '@cf/meta/llama-3.3-70b-instruct-fp8-fast'
-  messages: ModelMessage[]  // Conversation history
-  isProcessing: boolean
-  lastActivity: number
-  connectedUsers: string[]
-  scheduledTasks: ScheduledTask[]
-  status: 'idle' | 'processing' | 'error'
-  lastError?: string
-}
-```
+<AutoTypeTable path="packages/agent/src/types.ts" name="HareAgentState" />
 
 ## Extending HareAgent
 
 Create a custom agent by extending the class:
 
 ```ts
-import { HareAgent, type HareAgentEnv } from '@hare/agent/workers'
+import { HareAgent } from 'hareai/workers'
+import type { HareAgentEnv } from 'hareai/workers'
 
 interface MyEnv extends HareAgentEnv {
   MY_KV: KVNamespace

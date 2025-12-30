@@ -1,35 +1,71 @@
 ---
 title: SDK Reference
-description: Complete reference for the @hare/agent SDK
+description: Complete reference for the hareai SDK
 ---
 
-# @hare/agent SDK
+# hareai SDK
 
-The `@hare/agent` package provides everything you need to build AI agents for Cloudflare Workers.
+The `hareai` package provides everything you need to build AI agents on Cloudflare's edge network.
 
 ## Installation
 
 ```bash
-bun add @hare/agent
+npm install hareai
+# or
+bun add hareai
+```
+
+### Peer Dependencies
+
+```bash
+npm install ai zod agents
 ```
 
 ## Entry Points
 
-The SDK has two entry points:
+The SDK provides multiple entry points for different use cases:
+
+| Import Path | Description |
+|-------------|-------------|
+| `hareai` | Main entry - universal exports (HareEdgeAgent, tools, types) |
+| `hareai/workers` | Workers-only exports (HareAgent, HareMcpAgent with Durable Objects) |
+| `hareai/tools` | All 59+ tools organized by category |
+| `hareai/types` | Complete type definitions |
+
+## Quick Example
 
 ```ts
-// Universal imports (safe anywhere)
-import { EdgeAgent, createEdgeAgent } from '@hare/agent'
+import { createSimpleAgent, createWorkersAIModel } from 'hareai'
+import { getSystemTools } from 'hareai/tools'
 
-// Workers-only imports (requires Cloudflare Workers runtime)
-import { HareAgent, HareMcpAgent } from '@hare/agent/workers'
+export default {
+  async fetch(request: Request, env: Env) {
+    const tools = getSystemTools({
+      env,
+      workspaceId: 'my-workspace',
+      userId: 'user-123'
+    })
+
+    const agent = createSimpleAgent({
+      model: createWorkersAIModel({
+        modelId: '@cf/meta/llama-3.3-70b-instruct-fp8-fast',
+        ai: env.AI
+      }),
+      tools,
+      systemPrompt: 'You are a helpful assistant.'
+    })
+
+    const response = await agent.chat('Hello!')
+    return new Response(response.text)
+  }
+}
 ```
 
 ## Core Exports
 
 ### Agents
 
-- [EdgeAgent](/docs/sdk/edge-agent) - Universal agent that works anywhere
+- [HareEdgeAgent](/docs/sdk/edge-agent) - Universal agent that works anywhere
 - [HareAgent](/docs/sdk/hare-agent) - Full-featured Durable Object agent
 - [HareMcpAgent](/docs/sdk/mcp-agent) - MCP protocol support
 
@@ -41,25 +77,37 @@ import { HareAgent, HareMcpAgent } from '@hare/agent/workers'
 
 - [Memory Store](/docs/sdk/memory) - Conversation persistence with D1
 - [Router](/docs/sdk/router) - Request routing utilities
-- [Tools](/docs/sdk/tools) - Agent control tools
+- [Tools](/docs/sdk/tools) - 59+ built-in tools
 
-## Quick Example
+## TypeScript Types
 
 ```ts
-import { createEdgeAgent, createWorkersAIModel } from '@hare/agent'
+import type {
+  HareAgentState,
+  ToolContext,
+  Tool,
+  AnyTool,
+  AgentConfig
+} from 'hareai/types'
+```
+
+## Durable Object Agents
+
+For stateful agents with persistence:
+
+```ts
+import { HareAgent, routeToHareAgent } from 'hareai/workers'
+
+// Export the Durable Object class
+export { HareAgent }
 
 export default {
   async fetch(request: Request, env: Env) {
-    const agent = createEdgeAgent({
-      model: createWorkersAIModel({
-        modelId: '@cf/meta/llama-3.3-70b-instruct-fp8-fast',
-        ai: env.AI,
-      }),
-      systemPrompt: 'You are a helpful assistant.',
+    return routeToHareAgent({
+      request,
+      env,
+      agentId: 'my-agent'
     })
-
-    const response = await agent.chat('Hello!')
-    return new Response(response.text)
-  },
+  }
 }
 ```

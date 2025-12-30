@@ -15,7 +15,7 @@ import {
   routeWebSocketToAgent,
   isWebSocketRequest,
   getAgentIdFromRequest,
-} from '@hare/agent'
+} from 'hareai'
 
 export default {
   async fetch(request: Request, env: Env) {
@@ -44,14 +44,9 @@ export default {
 
 Routes an HTTP request to a HareAgent Durable Object.
 
-```ts
-interface RouteToHareAgentInput {
-  request: Request
-  env: HareAgentEnv
-  agentId: string
-  workspaceId?: string
-}
+<AutoTypeTable path="packages/agent/src/router.ts" name="RouteToHareAgentInput" />
 
+```ts
 function routeToHareAgent(input: RouteToHareAgentInput): Promise<Response>
 ```
 
@@ -59,13 +54,9 @@ function routeToHareAgent(input: RouteToHareAgentInput): Promise<Response>
 
 Routes a request to a HareMcpAgent for MCP protocol handling.
 
-```ts
-interface RouteToMcpAgentInput {
-  request: Request
-  env: HareAgentEnv
-  workspaceId: string
-}
+<AutoTypeTable path="packages/agent/src/router.ts" name="RouteToMcpAgentInput" />
 
+```ts
 function routeToMcpAgent(input: RouteToMcpAgentInput): Promise<Response>
 ```
 
@@ -73,13 +64,9 @@ function routeToMcpAgent(input: RouteToMcpAgentInput): Promise<Response>
 
 Handles WebSocket upgrade and routes to an agent.
 
-```ts
-interface RouteWebSocketToAgentInput {
-  request: Request
-  env: HareAgentEnv
-  agentId: string
-}
+<AutoTypeTable path="packages/agent/src/router.ts" name="RouteWebSocketToAgentInput" />
 
+```ts
 function routeWebSocketToAgent(input: RouteWebSocketToAgentInput): Promise<Response>
 ```
 
@@ -113,11 +100,4 @@ function createAgentHeaders(): Headers
 
 Required environment bindings for routing:
 
-```ts
-interface HareAgentEnv {
-  HARE_AGENT: DurableObjectNamespace
-  MCP_AGENT?: DurableObjectNamespace
-  AI: Ai
-  DB: D1Database
-}
-```
+<AutoTypeTable path="packages/agent/src/router.ts" name="HareAgentEnv" />

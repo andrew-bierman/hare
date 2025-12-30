@@ -7,7 +7,7 @@ description: Expose Hare tools via Model Context Protocol (MCP)
 
 `HareMcpAgent` implements the Model Context Protocol (MCP), allowing external AI clients like Claude Desktop or Cursor to use Hare's tools.
 
-**Workers-only**: This class requires the Cloudflare Workers runtime.
+**Workers-only**: This class requires the Cloudflare Workers runtime. Import from `hareai/workers`.
 
 ## What is MCP?
 
@@ -20,7 +20,7 @@ description: Expose Hare tools via Model Context Protocol (MCP)
 ## Usage
 
 ```ts
-import { HareMcpAgent } from '@hare/agent/workers'
+import { HareMcpAgent } from 'hareai/workers'
 
 // Export as Durable Object
 export { HareMcpAgent }
@@ -87,27 +87,25 @@ Add to Cursor settings:
 
 ## Available Tools
 
-HareMcpAgent automatically exposes all system tools:
+HareMcpAgent automatically exposes all 59+ system tools:
 
-### Storage Tools
-- `kv_get`, `kv_set`, `kv_delete`, `kv_list`
-- `r2_get`, `r2_put`, `r2_delete`, `r2_list`
-- `d1_query`, `d1_execute`
-
-### HTTP Tools
-- `http_get`, `http_post`, `http_put`, `http_delete`
-- `graphql_query`
+### Cloudflare Native
+- `kv_get`, `kv_put`, `kv_delete`, `kv_list`
+- `r2_get`, `r2_put`, `r2_delete`, `r2_list`, `r2_head`
+- `sql_query`, `sql_execute`, `sql_batch`
+- `http_request`, `http_get`, `http_post`
+- `ai_search`, `ai_search_answer`
 
 ### AI Tools
-- `text_generation`, `text_embedding`
-- `image_generation`, `image_classification`
-- `summarization`, `translation`
+- `sentiment`, `summarize`, `translate`, `image_generate`
+- `classify`, `ner`, `embedding`, `question_answer`
 
 ### Utility Tools
-- `json_parse`, `json_stringify`
-- `base64_encode`, `base64_decode`
-- `hash`, `uuid`
-- `datetime_format`, `datetime_parse`
+- `datetime`, `json`, `text`, `math`, `uuid`
+- `hash`, `base64`, `url`, `delay`
+
+### And more...
+See [Tools Reference](/docs/sdk/tools) for the complete list.
 
 ## Resources
 
@@ -126,13 +124,7 @@ The MCP agent also exposes resources:
 
 ### McpAgentState
 
-```ts
-interface McpAgentState {
-  workspaceId: string
-  connectedClients: number
-  lastActivity: number
-}
-```
+<AutoTypeTable path="packages/agent/src/types.ts" name="McpAgentState" />
 
 ### Methods
 
@@ -149,7 +141,8 @@ await mcpAgent.configure('workspace-123')
 Add custom tools by extending the class:
 
 ```ts
-import { HareMcpAgent, type McpAgentEnv } from '@hare/agent/workers'
+import { HareMcpAgent } from 'hareai/workers'
+import type { McpAgentEnv } from 'hareai/workers'
 
 class MyMcpAgent extends HareMcpAgent {
   async init(): Promise<void> {
