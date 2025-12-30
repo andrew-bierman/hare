@@ -27,7 +27,8 @@ export default defineConfig({
 		},
 	],
 	webServer: {
-		command: 'bun run dev',
+		// In CI, force local mode to avoid requiring wrangler login
+		command: process.env.CI ? 'WRANGLER_DEV_LOCAL=true bun run dev' : 'bun run dev',
 		url: `http://localhost:${DEFAULT_PORT}`,
 		reuseExistingServer: !process.env.CI,
 		timeout: 120 * 1000,

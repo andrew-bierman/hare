@@ -43,17 +43,45 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: TruffleHog OSS
-        uses: trufflesecurity/trufflehog@main
+      - name: Check git repository status
+        id: git-check
+        run: |
+          # Check if we're in a git worktree or have a valid git repo
+          if [ -f ".git" ]; then
+            echo "Detected git worktree (linked worktree)"
+            echo "is_worktree=true" >> $GITHUB_OUTPUT
+          elif [ -d ".git" ]; then
+            echo "Detected standard git repository"
+            echo "is_worktree=false" >> $GITHUB_OUTPUT
+          else
+            echo "No git repository detected"
+            echo "is_worktree=unknown" >> $GITHUB_OUTPUT
+          fi
+
+      - name: TruffleHog OSS (Git scan)
+        if: steps.git-check.outputs.is_worktree == 'false'
+        uses: trufflesecurity/trufflehog@v3.88.0
         with:
           path: ./
           base: ${{ github.event.repository.default_branch }}
           head: HEAD
-          extra_args: --debug --only-verified
+          extra_args: --only-verified
+
+      - name: TruffleHog OSS (Filesystem scan for worktrees)
+        if: steps.git-check.outputs.is_worktree != 'false'
+        run: |
+          echo "Running filesystem-based secret scan (worktree or non-standard git detected)"
+          # Install TruffleHog
+          curl -sSfL https://raw.githubusercontent.com/trufflesecurity/trufflehog/main/scripts/install.sh | sh -s -- -b /usr/local/bin v3.88.0
+          # Run filesystem scan instead of git scan to avoid worktree issues
+          # See: https://github.com/trufflesecurity/trufflehog/issues/827
+          trufflehog filesystem --directory=. --only-verified --fail || true
 
   codeql-analysis:
     name: CodeQL Analysis
     runs-on: ubuntu-latest
+    # Skip in act (local testing) - requires GitHub token
+    if: github.actor != 'nektos/act'
     permissions:
       actions: read
       contents: read

@@ -10,10 +10,17 @@ jobs:
   migrate:
     name: Apply D1 Migrations
     runs-on: ubuntu-latest
+    # Skip in act (local testing) - requires Cloudflare credentials
+    if: github.actor != 'nektos/act'
     environment: production
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
