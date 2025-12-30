@@ -4,9 +4,8 @@ import tailwindcss from '@tailwindcss/vite'
 import { tanstackStart } from '@tanstack/react-start/plugin/vite'
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
-// TODO: Re-enable fumadocs-mdx once path.join browser bundling issue is fixed
-// import mdx from 'fumadocs-mdx/vite'
-// import * as MdxConfig from './source.config'
+import mdx from 'fumadocs-mdx/vite'
+import * as MdxConfig from './source.config'
 
 // Resolve paths to workspace packages
 const packagesPath = path.resolve(__dirname, '../../packages')
@@ -21,14 +20,22 @@ export default defineConfig({
 	ssr: {
 		optimizeDeps: {
 			// Pre-bundle these deps for SSR to avoid mid-reload issues
-			include: [
-				'agents',
-				'agents/mcp',
-				'ai',
-				'@modelcontextprotocol/sdk/server/mcp.js',
-			],
+			include: ['agents', 'agents/mcp', 'ai', '@modelcontextprotocol/sdk/server/mcp.js'],
 			// Wait for full dependency discovery before serving to avoid mid-request rebuilds
 			holdUntilCrawlEnd: true,
+		},
+		// Ensure fumadocs server code stays server-side only
+		noExternal: ['fumadocs-mdx', 'fumadocs-core'],
+	},
+	build: {
+		rollupOptions: {
+			// Exclude fumadocs server code from client bundle
+			external: (id) => {
+				if (id.includes('fumadocs-mdx/runtime/server') || id.includes('.source/server')) {
+					return true
+				}
+				return false
+			},
 		},
 	},
 	optimizeDeps: {
@@ -93,8 +100,7 @@ export default defineConfig({
 		},
 	},
 	plugins: [
-		// TODO: Re-enable fumadocs-mdx once path.join browser bundling issue is fixed
-		// mdx(MdxConfig),
+		mdx(MdxConfig),
 		cloudflare({ viteEnvironment: { name: 'ssr' } }),
 		tanstackStart(),
 		react(),

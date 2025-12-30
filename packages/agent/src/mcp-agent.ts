@@ -68,10 +68,24 @@ export class HareMcpAgent<TEnv extends McpAgentEnv = McpAgentEnv> extends McpAge
 	 * Called when the agent starts - load tools.
 	 */
 	async onStart(): Promise<void> {
-		// Load system tools with a default context for initialization
-		const initContext = this.createToolContext()
-		const systemTools = getSystemTools(initContext)
-		this.toolRegistry.registerAll(systemTools)
+		// Load system tools only if enabled
+		this.reloadTools()
+	}
+
+	/**
+	 * Reload tools based on current state.
+	 * Called on startup and when systemToolsEnabled changes.
+	 */
+	private reloadTools(): void {
+		// Clear existing tools
+		this.toolRegistry = new ToolRegistry()
+
+		// Load system tools only if enabled
+		if (this.state.systemToolsEnabled) {
+			const context = this.createToolContext()
+			const systemTools = getSystemTools(context)
+			this.toolRegistry.registerAll(systemTools)
+		}
 	}
 
 	/**
@@ -142,12 +156,24 @@ export class HareMcpAgent<TEnv extends McpAgentEnv = McpAgentEnv> extends McpAge
 	/**
 	 * Configure the MCP agent.
 	 */
-	async configure(workspaceId: string): Promise<void> {
+	async configure(options: { workspaceId?: string; systemToolsEnabled?: boolean }): Promise<void> {
+		const systemToolsChanged =
+			options.systemToolsEnabled !== undefined &&
+			options.systemToolsEnabled !== this.state.systemToolsEnabled
+
 		this.setState({
 			...this.state,
-			workspaceId,
+			...(options.workspaceId !== undefined && { workspaceId: options.workspaceId }),
+			...(options.systemToolsEnabled !== undefined && {
+				systemToolsEnabled: options.systemToolsEnabled,
+			}),
 			lastActivity: Date.now(),
 		})
+
+		// Reload tools if systemToolsEnabled changed
+		if (systemToolsChanged) {
+			this.reloadTools()
+		}
 	}
 
 	/**

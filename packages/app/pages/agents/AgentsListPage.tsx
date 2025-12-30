@@ -50,7 +50,7 @@ function EmptyState() {
 				<p className="text-muted-foreground text-center text-sm max-w-xs mb-6">
 					AI agents can understand context, use tools, and complete tasks.
 				</p>
-				<Link to="/dashboard/agents/new" className="w-full sm:w-auto">
+				<Link to="/dashboard/agents/templates" className="w-full sm:w-auto">
 					<Button className="w-full sm:w-auto gap-2 h-11">
 						<Plus className="h-4 w-4" />
 						Create Agent
@@ -138,7 +138,7 @@ export function AgentsListPage() {
 						Manage and monitor your AI agents
 					</p>
 				</div>
-				<Link to="/dashboard/agents/new" className="w-full sm:w-auto">
+				<Link to="/dashboard/agents/templates" className="w-full sm:w-auto">
 					<Button className="w-full sm:w-auto gap-2 h-11">
 						<Plus className="h-4 w-4" />
 						New Agent
@@ -149,7 +149,7 @@ export function AgentsListPage() {
 			{/* Filters */}
 			<div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
 				<div className="relative flex-1 max-w-lg">
-					<SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+					<SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
 					<Input
 						placeholder="Search agents..."
 						className="pl-9 h-11"
@@ -266,7 +266,7 @@ export function AgentsListPage() {
 					))}
 
 					{/* Create New Card */}
-					<Link to="/dashboard/agents/new">
+					<Link to="/dashboard/agents/templates">
 						<Card className="h-full border-dashed border-2 hover:bg-muted/50 transition-colors">
 							<CardContent className="flex flex-col items-center justify-center h-full min-h-[220px] p-4">
 								<div className="flex h-12 w-12 items-center justify-center rounded-lg bg-muted mb-3">

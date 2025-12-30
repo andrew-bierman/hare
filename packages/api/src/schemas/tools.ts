@@ -1,19 +1,5 @@
 import { z } from '@hono/zod-openapi'
-import { JsonSchemaSchema } from './common'
-
-/**
- * JSON value schema for tool config.
- */
-const JsonValueSchema: z.ZodType<unknown> = z.lazy(() =>
-	z.union([
-		z.string(),
-		z.number(),
-		z.boolean(),
-		z.null(),
-		z.array(JsonValueSchema),
-		z.record(z.string(), JsonValueSchema),
-	]),
-)
+import { JsonSchemaSchema, JsonValueSchema } from './common'
 
 /**
  * Tool configuration schema.

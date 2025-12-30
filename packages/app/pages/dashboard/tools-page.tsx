@@ -95,7 +95,7 @@ export function ToolsPage({ renderLink, routes, useToolsQuery }: ToolsPageProps)
 
 			{/* Search */}
 			<div className="relative w-full sm:w-64">
-				<SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+				<SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
 				<Input
 					placeholder="Search tools..."
 					value={search}
