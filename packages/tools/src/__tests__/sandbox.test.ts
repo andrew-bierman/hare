@@ -277,7 +277,7 @@ describe('Sandbox Tools', () => {
 				)
 				const data = expectResultData(result, ResultSchemas.sandboxValidation)
 				expect(data.valid).toBe(false)
-				expect((data.issues as unknown[]).length).toBeGreaterThan(0)
+				expect(data.issues?.length).toBeGreaterThan(0)
 			})
 
 			it('detects potential infinite loops', async () => {
@@ -302,7 +302,7 @@ describe('Sandbox Tools', () => {
 				)
 				const data = expectResultData(result, ResultSchemas.sandboxValidation)
 				expect(data.valid).toBe(false)
-				expect((data.issues as string[]).some((i) => i.includes('Syntax error'))).toBe(true)
+				expect(data.issues?.some((i) => i.includes('Syntax error'))).toBe(true)
 			})
 
 			it('reports code statistics', async () => {

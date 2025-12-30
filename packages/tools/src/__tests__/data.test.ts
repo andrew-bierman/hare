@@ -289,12 +289,10 @@ describe('Data Tools', () => {
 					},
 					context,
 				)
-				expect(result.success).toBe(true)
-				// Extract returns a custom shape with extracted array
-				const data = result.data as { extracted: Array<{ user: string; domain: string }> }
-				expect(data?.extracted).toHaveLength(2)
-				expect(data?.extracted[0].user).toBe('user')
-				expect(data?.extracted[0].domain).toBe('example.com')
+				const data = expectResultData(result, ResultSchemas.regexExtract)
+				expect(data.extracted).toHaveLength(2)
+				expect(data.extracted[0].user).toBe('user')
+				expect(data.extracted[0].domain).toBe('example.com')
 			})
 		})
 

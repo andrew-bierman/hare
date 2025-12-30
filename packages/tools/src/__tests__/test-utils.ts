@@ -178,9 +178,11 @@ export const ResultSchemas = {
 	// Sandbox code validation outputs
 	sandboxValidation: z.object({
 		valid: z.boolean().optional(),
-		issues: z.array(z.unknown()).optional(),
+		issues: z.array(z.string()).optional(),
 		length: z.number().optional(),
 		lines: z.number().optional(),
+		language: z.string().optional(),
+		maxAllowedSize: z.number().optional(),
 	}),
 
 	transform: z.object({
