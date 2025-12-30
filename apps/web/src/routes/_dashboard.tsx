@@ -9,7 +9,7 @@ import {
 	UserNav,
 	WorkspaceSwitcher,
 } from '@hare/app/widgets'
-import { createFileRoute, Link, Outlet, useLocation } from '@tanstack/react-router'
+import { createFileRoute, Link, Outlet, useLocation, useNavigate } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/_dashboard')({
 	component: DashboardLayout,
@@ -20,6 +20,7 @@ export const Route = createFileRoute('/_dashboard')({
 
 function DashboardLayout() {
 	const { pathname } = useLocation()
+	const navigate = useNavigate()
 
 	return (
 		<WorkspaceProvider>
@@ -31,7 +32,11 @@ function DashboardLayout() {
 
 				{/* Main content */}
 				<main className="md:pl-72 flex-1 flex flex-col min-h-screen">
-					<Header Link={Link} UserNav={() => <UserNav Link={Link} />} />
+					<Header
+						Link={Link}
+						UserNav={() => <UserNav Link={Link} />}
+						onNavigate={(path) => navigate({ to: path })}
+					/>
 					<div className="flex-1 overflow-y-auto bg-muted/20">
 						<Outlet />
 					</div>

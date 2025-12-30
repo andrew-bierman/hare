@@ -11,7 +11,7 @@
  * - All tests use the Chromium project defined in playwright.config.ts
  */
 
-import { test, expect } from './fixtures'
+import { expect, test } from './fixtures'
 
 test.describe('Environment Seed', () => {
 	/**

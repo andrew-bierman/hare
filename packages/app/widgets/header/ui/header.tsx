@@ -1,70 +1,138 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import { Button } from '@hare/ui/components/button'
-import { Input } from '@hare/ui/components/input'
-import { Bell, Menu, Rabbit, Search } from 'lucide-react'
-import { APP_CONFIG, DASHBOARD_CONTENT } from '@hare/config'
+import {
+	CommandDialog,
+	CommandEmpty,
+	CommandGroup,
+	CommandInput,
+	CommandItem,
+	CommandList,
+} from '@hare/ui/components/command'
+import { Bot, Home, Menu, Plus, Rabbit, Search, Settings, Wrench } from 'lucide-react'
+import { APP_CONFIG } from '@hare/config'
 
 export interface HeaderProps {
 	Link: React.ComponentType<{ to: string; className?: string; children: React.ReactNode }>
 	UserNav?: React.ComponentType
+	onMobileMenuToggle?: () => void
+	onNavigate?: (path: string) => void
 }
 
 /**
  * Header widget for dashboard.
- *
- * @param Link - Router Link component
- * @param UserNav - Optional user navigation component
+ * Mobile: hamburger + logo + user nav
+ * Desktop: command search + user nav (sidebar provides logo)
  */
-export function Header({ Link, UserNav }: HeaderProps) {
+export function Header({ Link, UserNav, onMobileMenuToggle, onNavigate }: HeaderProps) {
+	const [open, setOpen] = useState(false)
+
+	// Cmd+K to open search
+	useEffect(() => {
+		const down = (e: KeyboardEvent) => {
+			if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
+				e.preventDefault()
+				setOpen((open) => !open)
+			}
+		}
+		document.addEventListener('keydown', down)
+		return () => document.removeEventListener('keydown', down)
+	}, [])
+
+	const handleSelect = (path: string) => {
+		setOpen(false)
+		onNavigate?.(path)
+	}
+
 	return (
-		<header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-			<div className="flex h-14 items-center justify-between gap-4 px-4 sm:px-6">
-				{/* Left side - Mobile menu + Logo on mobile */}
-				<div className="flex items-center gap-3">
-					<Button variant="ghost" size="icon" className="md:hidden h-10 w-10">
-						<Menu className="h-5 w-5" />
-					</Button>
+		<>
+			<header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+				<div className="flex h-14 items-center gap-4 px-4 sm:px-6">
+					{/* Mobile: hamburger + logo */}
+					<div className="flex items-center gap-3 md:hidden">
+						{onMobileMenuToggle && (
+							<Button variant="ghost" size="icon" className="h-10 w-10" onClick={onMobileMenuToggle}>
+								<Menu className="h-5 w-5" />
+							</Button>
+						)}
+						<Link to="/dashboard" className="flex items-center gap-2">
+							<div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-orange-500 to-amber-500 shadow-sm">
+								<Rabbit className="h-4 w-4 text-white" />
+							</div>
+							<span className="font-bold text-lg bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">
+								{APP_CONFIG.name}
+							</span>
+						</Link>
+					</div>
 
-					{/* Mobile logo */}
-					<Link to="/dashboard" className="flex items-center gap-2 md:hidden">
-						<div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-orange-500 to-amber-500">
-							<Rabbit className="h-4 w-4 text-white" />
-						</div>
-						<span className="font-bold text-lg bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">
-							{APP_CONFIG.name}
-						</span>
-					</Link>
-				</div>
+					{/* Desktop: Command search trigger */}
+					<div className="hidden md:flex flex-1 max-w-md">
+						<Button
+							variant="outline"
+							className="w-full justify-start text-sm text-muted-foreground h-10 bg-muted/50 border-transparent hover:bg-muted hover:border-border"
+							onClick={() => setOpen(true)}
+						>
+							<Search className="mr-2 h-4 w-4" />
+							<span className="flex-1 text-left">Search...</span>
+							<kbd className="pointer-events-none hidden sm:inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground">
+								<span className="text-xs">&#8984;</span>K
+							</kbd>
+						</Button>
+					</div>
 
-				{/* Center - Search (hidden on mobile) */}
-				<div className="hidden md:flex flex-1 max-w-md">
-					<div className="relative w-full">
-						<Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-						<Input
-							placeholder={DASHBOARD_CONTENT.header.searchPlaceholder}
-							className="pl-9 h-10 bg-muted/50 border-transparent focus:border-orange-300 focus:bg-background transition-colors"
-						/>
+					{/* Spacer */}
+					<div className="flex-1" />
+
+					{/* Right side */}
+					<div className="flex items-center gap-2">
+						{/* Mobile search button */}
+						<Button
+							variant="ghost"
+							size="icon"
+							className="md:hidden h-10 w-10"
+							onClick={() => setOpen(true)}
+						>
+							<Search className="h-5 w-5" />
+						</Button>
+
+						{/* User nav */}
+						{UserNav && <UserNav />}
 					</div>
 				</div>
+			</header>
 
-				{/* Right side */}
-				<div className="flex items-center gap-1 sm:gap-2">
-					{/* Mobile search */}
-					<Button variant="ghost" size="icon" className="md:hidden h-10 w-10">
-						<Search className="h-5 w-5" />
-					</Button>
-
-					{/* Notifications */}
-					<Button variant="ghost" size="icon" className="relative h-10 w-10">
-						<Bell className="h-5 w-5" />
-						<span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-orange-500 ring-2 ring-background" />
-					</Button>
-
-					{/* User */}
-					{UserNav && <UserNav />}
-				</div>
-			</div>
-		</header>
+			{/* Command Dialog for search */}
+			<CommandDialog open={open} onOpenChange={setOpen}>
+				<CommandInput placeholder="Search agents, tools, settings..." />
+				<CommandList>
+					<CommandEmpty>No results found.</CommandEmpty>
+					<CommandGroup heading="Quick Actions">
+						<CommandItem onSelect={() => handleSelect('/dashboard/agents/new')}>
+							<Plus className="mr-2 h-4 w-4" />
+							<span>Create new agent</span>
+						</CommandItem>
+					</CommandGroup>
+					<CommandGroup heading="Navigation">
+						<CommandItem onSelect={() => handleSelect('/dashboard')}>
+							<Home className="mr-2 h-4 w-4" />
+							<span>Dashboard</span>
+						</CommandItem>
+						<CommandItem onSelect={() => handleSelect('/dashboard/agents')}>
+							<Bot className="mr-2 h-4 w-4" />
+							<span>Agents</span>
+						</CommandItem>
+						<CommandItem onSelect={() => handleSelect('/dashboard/tools')}>
+							<Wrench className="mr-2 h-4 w-4" />
+							<span>Tools</span>
+						</CommandItem>
+						<CommandItem onSelect={() => handleSelect('/dashboard/settings')}>
+							<Settings className="mr-2 h-4 w-4" />
+							<span>Settings</span>
+						</CommandItem>
+					</CommandGroup>
+				</CommandList>
+			</CommandDialog>
+		</>
 	)
 }

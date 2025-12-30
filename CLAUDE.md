@@ -11,12 +11,12 @@ Hare is an AI agent platform deployed on Cloudflare's edge network. This guide e
 ## Tech Stack
 
 - **Runtime**: Bun 1.3.5 (use `bun` for all package management)
-- **Frontend**: Next.js 15, React 19, App Router, shadcn/ui, Tailwind CSS
+- **Frontend**: Vite 7, React 19, TanStack Router, shadcn/ui, Tailwind CSS
 - **API**: Hono with OpenAPI/Zod validation
 - **Database**: Cloudflare D1 (SQLite) + Drizzle ORM
 - **AI**: Vercel AI SDK + Workers AI (Llama, Mistral, etc.)
 - **Auth**: Better Auth
-- **Infra**: Cloudflare Pages, D1, KV, R2, Vectorize, Agents SDK
+- **Infra**: Cloudflare Workers, D1, KV, R2, Vectorize, Agents SDK
 
 ## Commands
 
@@ -48,10 +48,9 @@ bun run db:studio        # Open Drizzle Studio
 
 ```
 apps/web/src/
-├── app/                    # Next.js App Router pages
+├── routes/                 # TanStack Router pages
 │   ├── (auth)/             # Auth pages (login, signup)
-│   ├── (dashboard)/        # Protected routes
-│   └── api/[[...route]]/   # Hono API (catch-all)
+│   └── (dashboard)/        # Protected routes
 ├── lib/
 │   ├── agents/             # Agent implementations
 │   │   ├── hare-agent.ts   # Main Agents SDK agent
@@ -268,14 +267,14 @@ this.server.resource('my-resource', 'Description', async () => ({
 
 ### Local Development
 ```sh
-bun run dev              # Start with Turbo (uses Next.js + Miniflare)
+bun run dev              # Start with Turbo (uses Vite + Miniflare)
 bun run preview          # Test on local Cloudflare runtime
 ```
 
-### Production (Cloudflare Pages)
+### Production (Cloudflare Workers)
 ```sh
-bun run build            # Build Next.js
-bun run deploy           # Deploy to Cloudflare Pages
+bun run build            # Build with Vite
+bun run deploy           # Deploy to Cloudflare Workers
 ```
 
 ### Database Migrations
