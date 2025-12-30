@@ -69,7 +69,7 @@ Update `.env.local`:
 
 ```bash
 BETTER_AUTH_URL=http://localhost:$PORT
-NEXT_PUBLIC_APP_URL=http://localhost:$PORT
+VITE_APP_URL=http://localhost:$PORT
 ```
 
 Then regenerate environment files:
@@ -144,6 +144,6 @@ Before starting development, verify:
 - [ ] `.env.local` exists with `BETTER_AUTH_SECRET` set
 - [ ] `apps/web/.env.local` and `apps/web/.dev.vars` exist
 - [ ] Port is unique (no conflicts with other worktrees)
-- [ ] Both `BETTER_AUTH_URL` and `NEXT_PUBLIC_APP_URL` use the same port
+- [ ] Both `BETTER_AUTH_URL` and `VITE_APP_URL` use the same port
 - [ ] Local database migrations applied
 - [ ] Dev server starts without errors
