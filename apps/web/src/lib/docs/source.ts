@@ -1,10 +1,7 @@
-// TODO: fumadocs-mdx causes CF build timeout - needs investigation
-// import { docs } from 'fumadocs-mdx:collections/server'
-// import { loader } from 'fumadocs-core/source'
+import { docs } from 'fumadocs-mdx:collections/server'
+import { loader } from 'fumadocs-core/source'
 
-// Temporary stub while fumadocs is disabled
-export const source = {
+export const source = loader({
 	baseUrl: '/docs',
-	getPage: () => null,
-	pageTree: { name: 'docs', children: [] },
-}
+	source: docs.toFumadocsSource(),
+})
