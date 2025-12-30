@@ -6,7 +6,7 @@
  */
 
 import { z } from 'zod'
-import { httpRequestTool } from './http'
+import { httpRequestTool, HttpResponseOutputSchema } from './http'
 import {
 	type AnyTool,
 	createTool,
@@ -14,6 +14,22 @@ import {
 	type ToolConfig,
 	type ToolContext,
 } from './types'
+
+/**
+ * Generic output schema for custom tools that return unknown data.
+ */
+const CustomToolOutputSchema = z.unknown()
+
+/**
+ * Zod schema for validating HTTP tool database configuration.
+ */
+const HttpToolDbConfigSchema = z
+	.object({
+		url: z.string().optional(),
+		method: z.string().optional(),
+		headers: z.record(z.string(), z.string()).optional(),
+	})
+	.nullable()
 
 /**
  * Build a Zod schema from a JSON Schema-like configuration.
@@ -68,19 +84,25 @@ export async function loadAgentTools(input: LoadAgentToolsInput): Promise<AnyToo
 
 	// Convert to executable tools
 	return toolConfigs
-		.map((config) => createToolFromConfig(config, context))
+		.map((config) => createToolFromConfig({ config, context }))
 		.filter((t): t is AnyTool => t !== null)
 }
 
 /**
  * Create an executable tool from a database configuration.
  */
-export function createToolFromConfig(config: ToolConfig, context: ToolContext): AnyTool | null {
+export function createToolFromConfig({
+	config,
+	context,
+}: {
+	config: ToolConfig
+	context: ToolContext
+}): AnyTool | null {
 	switch (config.type) {
 		case 'http':
-			return createHTTPToolFromConfig(config, context)
+			return createHTTPToolFromConfig({ config, context })
 		case 'custom':
-			return createCustomToolFromConfig(config, context)
+			return createCustomToolFromConfig({ config, context })
 		default:
 			console.warn(`Unknown tool type "${config.type}" for tool ${config.id}`)
 			return null
@@ -89,18 +111,29 @@ export function createToolFromConfig(config: ToolConfig, context: ToolContext): 
 
 /**
  * Create an HTTP tool from configuration.
+ * Returns null if the configuration is invalid.
  */
-function createHTTPToolFromConfig(config: ToolConfig, _context: ToolContext): AnyTool {
-	const toolConfig = config.config as {
-		url?: string
-		method?: string
-		headers?: Record<string, string>
-	} | null
+function createHTTPToolFromConfig({
+	config,
+	context: _context,
+}: {
+	config: ToolConfig
+	context: ToolContext
+}): AnyTool | null {
+	const parseResult = HttpToolDbConfigSchema.safeParse(config.config)
+	if (!parseResult.success) {
+		console.warn(
+			`Invalid HTTP tool config for ${config.id}: ${parseResult.error.message}`,
+		)
+		return null
+	}
+	const toolConfig = parseResult.data
 
 	return createTool({
 		id: config.id,
 		description: config.description || '',
 		inputSchema: httpRequestTool.inputSchema,
+		outputSchema: HttpResponseOutputSchema,
 		execute: async (params, ctx) => {
 			// Merge config defaults with runtime params
 			const mergedParams = {
@@ -122,7 +155,13 @@ function createHTTPToolFromConfig(config: ToolConfig, _context: ToolContext): An
  * Currently, custom tools will return an error indicating they need to be
  * executed in a Cloudflare Worker or similar isolated environment.
  */
-function createCustomToolFromConfig(config: ToolConfig, _context: ToolContext): AnyTool {
+function createCustomToolFromConfig({
+	config,
+	context: _context,
+}: {
+	config: ToolConfig
+	context: ToolContext
+}): AnyTool {
 	// Use the tool's own input schema, not a misleading HTTP fallback
 	const inputSchema = buildInputSchema(config.inputSchema)
 
@@ -130,6 +169,7 @@ function createCustomToolFromConfig(config: ToolConfig, _context: ToolContext): 
 		id: config.id,
 		description: config.description || '',
 		inputSchema,
+		outputSchema: CustomToolOutputSchema,
 		execute: async (_params, _ctx) => {
 			if (!config.code) {
 				return failure('No code provided for custom tool')
@@ -147,55 +187,29 @@ function createCustomToolFromConfig(config: ToolConfig, _context: ToolContext): 
 }
 
 /**
- * Create a Drizzle-compatible database adapter.
- * Use this with Drizzle ORM to load tools from D1.
+ * NOTE: createDrizzleToolDatabase has been removed.
+ *
+ * SDK users should implement the ToolDatabase interface directly with their
+ * specific Drizzle schema. This provides proper type safety and avoids
+ * unsafe type assertions.
+ *
+ * @example
+ * ```ts
+ * import { eq, inArray } from 'drizzle-orm'
+ * import type { ToolDatabase } from '@hare/tools'
+ *
+ * const toolDb: ToolDatabase = {
+ *   getAgentToolIds: async (agentId) => {
+ *     const results = await db
+ *       .select({ toolId: agentTools.toolId })
+ *       .from(agentTools)
+ *       .where(eq(agentTools.agentId, agentId))
+ *     return results.map(r => r.toolId)
+ *   },
+ *   getToolConfigs: async (toolIds) => {
+ *     if (toolIds.length === 0) return []
+ *     return db.select().from(tools).where(inArray(tools.id, toolIds))
+ *   }
+ * }
+ * ```
  */
-export function createDrizzleToolDatabase(options: {
-	db: unknown // Drizzle database instance
-	agentToolsTable: unknown // agentTools table
-	toolsTable: unknown // tools table
-}): ToolDatabase {
-	const { db, agentToolsTable, toolsTable } = options
-
-	return {
-		async getAgentToolIds(agentId: string): Promise<string[]> {
-			// This will be implemented by the caller using Drizzle
-			// We provide the interface, they provide the implementation
-			const drizzleDb = db as {
-				select: (fields: Record<string, unknown>) => {
-					from: (table: unknown) => {
-						where: (condition: unknown) => Promise<Array<{ toolId: string }>>
-					}
-				}
-			}
-
-			try {
-				const results = await drizzleDb
-					.select({ toolId: (agentToolsTable as { toolId: unknown }).toolId })
-					.from(agentToolsTable)
-					.where(null) // Caller needs to add proper eq() condition
-				return results.map((r) => r.toolId)
-			} catch {
-				// Fallback for when this is called without proper Drizzle setup
-				return []
-			}
-		},
-
-		async getToolConfigs(toolIds: string[]): Promise<ToolConfig[]> {
-			if (toolIds.length === 0) return []
-
-			const drizzleDb = db as {
-				select: () => {
-					from: (table: unknown) => Promise<ToolConfig[]>
-				}
-			}
-
-			try {
-				const allTools = await drizzleDb.select().from(toolsTable)
-				return allTools.filter((t) => toolIds.includes(t.id))
-			} catch {
-				return []
-			}
-		},
-	}
-}

@@ -12,10 +12,13 @@ import type { Mock } from 'vitest'
  * Create a typed result validator for tool outputs.
  * Returns the data property with proper typing if validation succeeds.
  */
-export function expectResultData<T extends z.ZodTypeAny>(
-	result: ToolResult<unknown>,
-	schema: T,
-): z.infer<T> {
+export function expectResultData<T extends z.ZodTypeAny>({
+	result,
+	schema,
+}: {
+	result: ToolResult<unknown>
+	schema: T
+}): z.infer<T> {
 	if (!result.success) {
 		throw new Error(`Expected success but got error: ${result.error}`)
 	}
@@ -96,7 +99,11 @@ export const ResultSchemas = {
 	}),
 
 	regex: z.object({
-		matches: z.array(z.unknown()).optional(),
+		matches: z.union([z.boolean(), z.array(z.unknown())]).optional(),
+		result: z.string().optional(),
+		extracted: z
+			.array(z.record(z.string(), z.string()))
+			.optional(),
 	}),
 
 	random: z.object({
@@ -112,7 +119,7 @@ export const ResultSchemas = {
 		algorithm: z.string().optional(),
 		hex: z.string().optional(),
 		base64: z.string().optional(),
-		bytes: z.array(z.number()).optional(),
+		bytes: z.number().optional(),
 		encrypted: z.string().optional(),
 		decrypted: z.string().optional(),
 		iv: z.string().optional(),
@@ -122,6 +129,10 @@ export const ResultSchemas = {
 		data: z.array(z.record(z.string(), z.unknown())).optional(),
 		headers: z.array(z.string()).optional(),
 		rowCount: z.number().optional(),
+	}),
+
+	csvStringify: z.object({
+		csv: z.string(),
 	}),
 
 	kv: z.object({
@@ -230,6 +241,39 @@ export const ResultSchemas = {
 		type: z.string().optional(),
 		contentLength: z.number().optional(),
 		message: z.string().optional(),
+	}),
+
+	// Recall memory tool outputs
+	recallMemory: z.object({
+		found: z.boolean(),
+		query: z.string(),
+		memories: z.array(
+			z.object({
+				id: z.string(),
+				content: z.string(),
+				type: z.string(),
+				relevance: z.number().optional(),
+				createdAt: z.string(),
+				tags: z.array(z.string()).optional(),
+			}),
+		),
+		count: z.number().optional(),
+		message: z.string().optional(),
+	}),
+
+	// Code validate tool outputs
+	codeValidate: z.object({
+		valid: z.boolean(),
+		issues: z.array(z.string()),
+		length: z.number().optional(),
+		lines: z.number().optional(),
+	}),
+
+	// Sandbox file tool outputs
+	sandboxFile: z.object({
+		content: z.string().optional(),
+		written: z.boolean().optional(),
+		listing: z.unknown().optional(),
 	}),
 }
 

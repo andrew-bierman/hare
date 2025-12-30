@@ -41,6 +41,201 @@ function hasAgentControlCapabilities(
 	return context.env && 'DB' in context.env && context.env.DB !== undefined
 }
 
+// Output Schemas
+
+const AgentSchema = z.object({
+	id: z.string(),
+	name: z.string(),
+	description: z.string().nullable(),
+	model: z.string(),
+	status: z.string(),
+	workspaceId: z.string(),
+	hasInstructions: z.boolean(),
+	config: z.unknown(),
+	createdAt: z.number(),
+	updatedAt: z.number(),
+})
+
+const ListAgentsOutputSchema = z.object({
+	agents: z.array(AgentSchema),
+	total: z.number(),
+	workspaceId: z.string(),
+})
+
+const MessageSchema = z.object({
+	role: z.string(),
+	content: z.string(),
+})
+
+const ToolInfoSchema = z.object({
+	id: z.unknown(),
+	name: z.unknown(),
+	description: z.unknown(),
+	type: z.unknown(),
+})
+
+const MessageWithMetaSchema = z.object({
+	id: z.unknown(),
+	role: z.unknown(),
+	content: z.unknown(),
+	createdAt: z.unknown(),
+})
+
+const ScheduledTaskSchema = z.object({
+	id: z.unknown(),
+	type: z.unknown(),
+	action: z.unknown(),
+	executeAt: z.unknown(),
+	cron: z.unknown(),
+	status: z.unknown(),
+})
+
+const GetAgentOutputSchema = z.object({
+	id: z.unknown(),
+	name: z.unknown(),
+	description: z.unknown(),
+	model: z.unknown(),
+	status: z.unknown(),
+	instructions: z.unknown(),
+	config: z.unknown(),
+	workspaceId: z.string(),
+	createdBy: z.unknown(),
+	createdAt: z.unknown(),
+	updatedAt: z.unknown(),
+	tools: z.array(ToolInfoSchema).optional(),
+	messages: z.array(MessageWithMetaSchema).optional(),
+	messageCount: z.number().optional(),
+	scheduledTasks: z.array(ScheduledTaskSchema),
+})
+
+const SendMessageOutputSchema = z.object({
+	agentId: z.string(),
+	messageId: z.string(),
+	userMessage: z.string(),
+	assistantResponse: z.string(),
+	timestamp: z.number(),
+	completed: z.boolean(),
+	note: z.string().optional(),
+})
+
+const ConfigureAgentOutputSchema = z.object({
+	agentId: z.string(),
+	workspaceId: z.string(),
+	changes: z.object({
+		name: z.string().optional(),
+		instructions: z.string().optional(),
+		model: z.string().optional(),
+	}),
+	updatedAt: z.number(),
+})
+
+const CreateAgentOutputSchema = z.object({
+	id: z.string(),
+	name: z.string(),
+	description: z.string().nullable(),
+	instructions: z.string().nullable(),
+	model: z.string(),
+	config: z
+		.object({
+			temperature: z.number().optional(),
+			maxTokens: z.number().optional(),
+		})
+		.nullable(),
+	workspaceId: z.string(),
+	status: z.string(),
+	createdAt: z.number(),
+	createdBy: z.string(),
+})
+
+const DeleteAgentOutputSchema = z.object({
+	agentId: z.string(),
+	name: z.unknown(),
+	deleted: z.boolean(),
+	deletedAt: z.number(),
+})
+
+const ScheduleTaskOutputSchema = z.object({
+	id: z.string(),
+	agentId: z.string(),
+	action: z.string(),
+	type: z.string(),
+	executeAt: z.number().optional(),
+	cron: z.string().optional(),
+	payload: z.record(z.string(), z.unknown()).optional(),
+	status: z.string(),
+	createdAt: z.number(),
+})
+
+const ExecuteToolOutputSchema = z.object({
+	agentId: z.string(),
+	toolId: z.string(),
+	result: z.union([
+		z.object({
+			success: z.boolean(),
+			data: z.record(z.string(), z.unknown()),
+		}),
+		z.object({
+			success: z.literal(false),
+			error: z.string(),
+		}),
+		z.unknown(),
+	]),
+	executedAt: z.number(),
+})
+
+const CustomToolSchema = z.object({
+	id: z.string(),
+	name: z.string(),
+	description: z.string().nullable(),
+	type: z.string(),
+	inputSchema: z.unknown(),
+})
+
+const SystemToolSchema = z.object({
+	id: z.string(),
+	type: z.string(),
+	description: z.string(),
+})
+
+const ListAgentToolsOutputSchema = z.object({
+	agentId: z.string(),
+	customTools: z.array(CustomToolSchema),
+	systemTools: z.array(SystemToolSchema),
+	total: z.number(),
+})
+
+const TokensUsedSchema = z.object({
+	input: z.number(),
+	output: z.number(),
+	total: z.number(),
+})
+
+const ScheduleExecutionsSchema = z.object({
+	total: z.number(),
+	completed: z.number(),
+	failed: z.number(),
+})
+
+const GetAgentMetricsOutputSchema = z.object({
+	agentId: z.string(),
+	agentName: z.unknown(),
+	period: z.string(),
+	timeRange: z.object({
+		start: z.number(),
+		end: z.number(),
+	}),
+	metrics: z.object({
+		totalApiCalls: z.number(),
+		totalMessages: z.number(),
+		totalConversations: z.number(),
+		averageResponseTime: z.number(),
+		tokensUsed: TokensUsedSchema,
+		estimatedCost: z.number(),
+		scheduleExecutions: ScheduleExecutionsSchema,
+	}),
+	generatedAt: z.number(),
+})
+
 /**
  * List all agents in a workspace
  */
@@ -55,6 +250,7 @@ export const listAgentsTool = createTool({
 			.describe('Filter agents by status'),
 		limit: z.number().optional().default(50).describe('Maximum number of agents to return'),
 	}),
+	outputSchema: ListAgentsOutputSchema,
 	execute: async (params, context: ToolContext) => {
 		try {
 			if (!hasAgentControlCapabilities(context)) {
@@ -125,6 +321,7 @@ export const getAgentTool = createTool({
 		includeHistory: z.boolean().optional().default(false).describe('Include conversation history'),
 		includeTools: z.boolean().optional().default(true).describe('Include attached tools'),
 	}),
+	outputSchema: GetAgentOutputSchema,
 	execute: async (params, context: ToolContext) => {
 		try {
 			if (!hasAgentControlCapabilities(context)) {
@@ -254,6 +451,7 @@ export const sendMessageTool = createTool({
 			.optional()
 			.describe('Additional metadata for the message'),
 	}),
+	outputSchema: SendMessageOutputSchema,
 	execute: async (params, context: ToolContext) => {
 		try {
 			if (!hasAgentControlCapabilities(context)) {
@@ -381,6 +579,7 @@ export const configureAgentTool = createTool({
 			.optional()
 			.describe('Model configuration parameters'),
 	}),
+	outputSchema: ConfigureAgentOutputSchema,
 	execute: async (params, context: ToolContext) => {
 		try {
 			if (!hasAgentControlCapabilities(context)) {
@@ -512,6 +711,7 @@ export const createAgentTool = createTool({
 			.optional()
 			.describe('Model configuration'),
 	}),
+	outputSchema: CreateAgentOutputSchema,
 	execute: async (params, context: ToolContext) => {
 		try {
 			if (!hasAgentControlCapabilities(context)) {
@@ -577,6 +777,7 @@ export const deleteAgentTool = createTool({
 		agentId: z.string().describe('The agent to delete'),
 		force: z.boolean().optional().default(false).describe('Force delete even if agent is deployed'),
 	}),
+	outputSchema: DeleteAgentOutputSchema,
 	execute: async (params, context: ToolContext) => {
 		try {
 			if (!hasAgentControlCapabilities(context)) {
@@ -645,6 +846,7 @@ export const scheduleTaskTool = createTool({
 		cron: z.string().optional().describe('Cron expression for recurring tasks'),
 		payload: z.record(z.string(), z.unknown()).optional().describe('Task payload'),
 	}),
+	outputSchema: ScheduleTaskOutputSchema,
 	execute: async (params, context: ToolContext) => {
 		try {
 			if (!hasAgentControlCapabilities(context)) {
@@ -753,6 +955,7 @@ export const executeToolTool = createTool({
 		toolId: z.string().describe('The tool to execute'),
 		params: z.record(z.string(), z.unknown()).describe('Tool parameters'),
 	}),
+	outputSchema: ExecuteToolOutputSchema,
 	execute: async (params, context: ToolContext) => {
 		try {
 			if (!hasAgentControlCapabilities(context)) {
@@ -853,6 +1056,7 @@ export const listAgentToolsTool = createTool({
 		agentId: z.string().describe('The agent to list tools for'),
 		category: z.string().optional().describe('Filter by tool category/type'),
 	}),
+	outputSchema: ListAgentToolsOutputSchema,
 	execute: async (params, context: ToolContext) => {
 		try {
 			if (!hasAgentControlCapabilities(context)) {
@@ -946,6 +1150,7 @@ export const getAgentMetricsTool = createTool({
 			.default('day')
 			.describe('Time period for metrics'),
 	}),
+	outputSchema: GetAgentMetricsOutputSchema,
 	execute: async (params, context: ToolContext) => {
 		try {
 			if (!hasAgentControlCapabilities(context)) {
@@ -1086,6 +1291,7 @@ export type ExecutableTool = {
 	id: string
 	description: string
 	inputSchema: z.ZodTypeAny
+	outputSchema: z.ZodTypeAny
 	// biome-ignore lint/suspicious/noExplicitAny: Required for heterogeneous tool collections
 	execute: (params: any, context: ToolContext) => Promise<ToolResult<any>>
 }

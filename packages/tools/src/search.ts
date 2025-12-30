@@ -1,6 +1,26 @@
 import { z } from 'zod'
 import { createTool, failure, success, type ToolContext } from './types'
 
+// Output schemas for search tools
+const SearchResultSchema = z.object({
+	content: z.string().describe('The content of the search result'),
+	filename: z.string().describe('The filename of the source document'),
+	score: z.number().describe('Relevance score of the result'),
+})
+
+const AiSearchOutputSchema = z.object({
+	query: z.string().describe('The original search query'),
+	results: z.array(SearchResultSchema).describe('Array of search results'),
+	count: z.number().describe('Number of results returned'),
+})
+
+const AiSearchAnswerOutputSchema = z.object({
+	query: z.string().describe('The original search query'),
+	answer: z.string().describe('AI-generated answer based on retrieved context'),
+	sources: z.array(SearchResultSchema).describe('Source documents used for the answer'),
+	sourceCount: z.number().describe('Number of source documents used'),
+})
+
 /**
  * AI Search Tool - Search using Cloudflare AutoRAG/AI Search.
  * Retrieves relevant results from indexed data sources.
@@ -20,6 +40,7 @@ export const aiSearchTool = createTool({
 			.describe('Optimize query for better retrieval'),
 		scoreThreshold: z.number().optional().default(0.5).describe('Minimum relevance score (0-1)'),
 	}),
+	outputSchema: AiSearchOutputSchema,
 	execute: async (params, context) => {
 		const ai = context.env.AI
 		if (!ai) {
@@ -85,6 +106,7 @@ export const aiSearchAnswerTool = createTool({
 		maxResults: z.number().optional().default(10).describe('Maximum context results (1-50)'),
 		systemPrompt: z.string().optional().describe('Custom system prompt for the AI response'),
 	}),
+	outputSchema: AiSearchAnswerOutputSchema,
 	execute: async (params, context) => {
 		const ai = context.env.AI
 		if (!ai) {

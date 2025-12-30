@@ -41,7 +41,7 @@ export type ToolResult<T = unknown> = {
  * const tool = registry.get('kv_get')
  * console.log(tool?.id, tool?.description)
  *
- * // Execute via registry (validates input)
+ * // Execute via registry (validates input and output)
  * const result = await registry.execute({ id: 'kv_get', params: { key: 'foo' }, context })
  * ```
  */
@@ -54,6 +54,9 @@ export interface AnyTool {
 
 	/** Zod schema for validating input parameters (type-erased) */
 	inputSchema: z.ZodTypeAny
+
+	/** Zod schema for validating output data (type-erased) */
+	outputSchema: z.ZodTypeAny
 }
 
 /**
@@ -78,16 +81,38 @@ export interface AnyTool {
  * await myTool.execute({ query: 'hello' }, ctx)
  * ```
  */
-export interface Tool<TInput = unknown, TOutput = unknown> extends AnyTool {
+export interface Tool<TInput, TOutput> extends AnyTool {
 	/** Zod schema for validating input parameters */
 	inputSchema: z.ZodType<TInput>
+
+	/** Zod schema for validating output data */
+	outputSchema: z.ZodType<TOutput>
 
 	/** Execute the tool with typed, validated input */
 	execute: (params: TInput, context: ToolContext<HareEnv>) => Promise<ToolResult<TOutput>>
 }
 
 /**
- * Create a type-safe tool definition.
+ * Configuration for creating a tool.
+ */
+export interface ToolDefinition<TInput, TOutput> {
+	/** Unique tool identifier */
+	id: string
+	/** Human-readable description of what the tool does */
+	description: string
+	/** Zod schema for validating input parameters */
+	inputSchema: z.ZodType<TInput>
+	/** Zod schema for validating output data at runtime */
+	outputSchema: z.ZodType<TOutput>
+	/** Execute the tool with typed, validated input */
+	execute: (params: TInput, context: ToolContext<HareEnv>) => Promise<ToolResult<TOutput>>
+}
+
+/**
+ * Create a type-safe tool definition with input and output validation.
+ *
+ * The tool's execute function is wrapped to validate output data at runtime,
+ * returning a failure if validation fails.
  *
  * Uses Zod's input type for the execute parameter, allowing optional fields
  * with defaults to be omitted when calling the tool.
@@ -98,6 +123,7 @@ export interface Tool<TInput = unknown, TOutput = unknown> extends AnyTool {
  *   id: 'my-tool',
  *   description: 'Does something useful',
  *   inputSchema: z.object({ query: z.string(), limit: z.number().default(10) }),
+ *   outputSchema: z.object({ result: z.string() }),
  *   execute: async (params, ctx) => {
  *     // params.limit is number (default applied by Zod)
  *     return success({ result: 'done' })
@@ -108,13 +134,27 @@ export interface Tool<TInput = unknown, TOutput = unknown> extends AnyTool {
  * await myTool.execute({ query: 'hello' }, ctx)
  * ```
  */
-export function createTool<TInput, TOutput = unknown>(config: {
-	id: string
-	description: string
-	inputSchema: z.ZodType<TInput>
-	execute: (params: TInput, context: ToolContext<HareEnv>) => Promise<ToolResult<TOutput>>
-}): Tool<TInput, TOutput> {
-	return config
+export function createTool<TInput, TOutput>(
+	config: ToolDefinition<TInput, TOutput>,
+): Tool<TInput, TOutput> {
+	const originalExecute = config.execute
+	const { outputSchema } = config
+
+	return {
+		...config,
+		execute: async (params, context) => {
+			const result = await originalExecute(params, context)
+			// Validate output if execution succeeded and has data (skip for undefined/null)
+			if (result.success && result.data !== undefined && result.data !== null) {
+				const parseResult = outputSchema.safeParse(result.data)
+				if (!parseResult.success) {
+					return failure(`Output validation failed: ${parseResult.error.message}`)
+				}
+				return { ...result, data: parseResult.data }
+			}
+			return result
+		},
+	}
 }
 
 /**

@@ -1,6 +1,74 @@
 import { z } from 'zod'
 import { createTool, success, type ToolContext } from './types'
 
+// Output schema constants
+const EmailValidationOutputSchema = z.object({
+	valid: z.boolean(),
+	email: z.string(),
+	errors: z.array(z.string()),
+	suggestion: z.string().optional(),
+	domain: z.string().optional(),
+	localPart: z.string().optional(),
+})
+
+const PhoneValidationOutputSchema = z.object({
+	valid: z.boolean(),
+	original: z.string(),
+	formatted: z.string().optional(),
+	country: z.string().optional(),
+	errors: z.array(z.string()),
+})
+
+const UrlValidationOutputSchema = z.object({
+	valid: z.boolean(),
+	url: z.string(),
+	parsed: z
+		.object({
+			protocol: z.string(),
+			host: z.string(),
+			pathname: z.string(),
+			search: z.string(),
+			hash: z.string(),
+		})
+		.optional(),
+	reachable: z.boolean().optional(),
+	statusCode: z.number().optional(),
+	errors: z.array(z.string()),
+})
+
+const CreditCardValidationOutputSchema = z.object({
+	valid: z.boolean(),
+	number: z.string(),
+	cardType: z.string().optional(),
+	lastFour: z.string().optional(),
+	expiryValid: z.boolean().optional(),
+	errors: z.array(z.string()),
+})
+
+const IpValidationOutputSchema = z.object({
+	valid: z.boolean(),
+	ip: z.string(),
+	version: z.union([z.literal(4), z.literal(6)]).optional(),
+	type: z.string().optional(),
+	isPrivate: z.boolean().optional(),
+	isLoopback: z.boolean().optional(),
+	isReserved: z.boolean().optional(),
+	errors: z.array(z.string()),
+})
+
+const JsonValidationOutputSchema = z.object({
+	valid: z.boolean(),
+	parsed: z.unknown().optional(),
+	type: z.string().optional(),
+	errors: z.array(z.string()),
+	position: z
+		.object({
+			line: z.number(),
+			column: z.number(),
+		})
+		.optional(),
+})
+
 /**
  * Email Validation Tool
  */
@@ -17,6 +85,7 @@ export const validateEmailTool = createTool({
 			.default(true)
 			.describe('Suggest corrections for common typos'),
 	}),
+	outputSchema: EmailValidationOutputSchema,
 	execute: async (params, _context) => {
 		const { email, checkMx: _checkMx, suggestCorrection } = params
 
@@ -116,6 +185,7 @@ export const validatePhoneTool = createTool({
 			.default('e164')
 			.describe('Output format'),
 	}),
+	outputSchema: PhoneValidationOutputSchema,
 	execute: async (params, _context) => {
 		const { phone, country, format } = params
 
@@ -220,6 +290,7 @@ export const validateUrlTool = createTool({
 			.describe('Check if URL is reachable (HEAD request)'),
 		timeout: z.number().optional().default(5000).describe('Timeout for reachability check'),
 	}),
+	outputSchema: UrlValidationOutputSchema,
 	execute: async (params, _context) => {
 		const { url, allowedProtocols, checkReachable, timeout } = params
 
@@ -317,6 +388,7 @@ export const validateCreditCardTool = createTool({
 		expiryMonth: z.number().optional().describe('Expiry month (1-12)'),
 		expiryYear: z.number().optional().describe('Expiry year (2-digit or 4-digit)'),
 	}),
+	outputSchema: CreditCardValidationOutputSchema,
 	execute: async (params, _context) => {
 		const { number, validateExpiry, expiryMonth, expiryYear } = params
 
@@ -432,6 +504,7 @@ export const validateIpTool = createTool({
 		ip: z.string().describe('IP address to validate'),
 		checkType: z.boolean().optional().default(true).describe('Detect IP type and range'),
 	}),
+	outputSchema: IpValidationOutputSchema,
 	execute: async (params, _context) => {
 		const { ip, checkType } = params
 
@@ -565,6 +638,7 @@ export const validateJsonTool = createTool({
 			.default(false)
 			.describe('Strict mode (no trailing commas, no comments)'),
 	}),
+	outputSchema: JsonValidationOutputSchema,
 	execute: async (params, _context) => {
 		const { json, strict: _strict } = params
 
