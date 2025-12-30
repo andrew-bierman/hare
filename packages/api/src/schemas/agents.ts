@@ -111,7 +111,7 @@ export const AgentSchema = z
 		name: z.string().openapi({ example: 'Customer Support Agent' }),
 		description: z.string().nullable().openapi({ example: 'Handles customer inquiries' }),
 		model: z.string().openapi({ example: 'llama-3.3-70b-instruct' }),
-		instructions: z.string().openapi({ example: 'You are a helpful customer support agent.' }),
+		instructions: z.string().nullable().openapi({ example: 'You are a helpful customer support agent.' }),
 		config: AgentConfigSchema.optional(),
 		status: AgentStatusSchema,
 		toolIds: z

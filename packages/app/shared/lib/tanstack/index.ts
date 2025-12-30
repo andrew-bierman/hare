@@ -14,6 +14,9 @@ export * from './table'
 // Virtual list utilities
 export * from './virtual'
 
+// TanStack DB (reactive collections and live queries)
+export * from './db'
+
 // Note: Server functions are exported separately from './server-functions'
 // They should be imported directly in server context
 export type { ServerFnInput } from './server-functions'
