@@ -36,7 +36,7 @@ test.describe('Tools Page - Authenticated', () => {
 	test('shows system tools section', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/tools')
 		await authenticatedPage.waitForLoadState('networkidle')
-		await expect(authenticatedPage.getByText('System Tools')).toBeVisible()
+		await expect(authenticatedPage.getByRole('heading', { name: 'System Tools' })).toBeVisible()
 	})
 
 	test('can view all system tools', async ({ authenticatedPage }) => {
@@ -44,7 +44,7 @@ test.describe('Tools Page - Authenticated', () => {
 		await authenticatedPage.waitForLoadState('networkidle')
 
 		// Should show system tools section
-		await expect(authenticatedPage.getByText('System Tools')).toBeVisible()
+		await expect(authenticatedPage.getByRole('heading', { name: 'System Tools' })).toBeVisible()
 
 		// Should have multiple tool cards
 		const toolCards = authenticatedPage.locator('[class*="card"]')
@@ -71,7 +71,8 @@ test.describe('Tools Page - Authenticated', () => {
 	test('has search functionality', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/tools')
 		await authenticatedPage.waitForLoadState('networkidle')
-		const searchInput = authenticatedPage.getByPlaceholder(/search/i)
+		// Use specific placeholder for tools page search
+		const searchInput = authenticatedPage.getByPlaceholder('Search tools...')
 		await expect(searchInput).toBeVisible()
 	})
 
@@ -92,7 +93,8 @@ test.describe('Tools Page - Authenticated', () => {
 		await authenticatedPage.goto('/dashboard/tools')
 		await authenticatedPage.waitForLoadState('networkidle')
 
-		const searchInput = authenticatedPage.getByPlaceholder(/search/i)
+		// Use specific placeholder for tools page search
+		const searchInput = authenticatedPage.getByPlaceholder('Search tools...')
 		await searchInput.fill('KV')
 		await authenticatedPage.waitForTimeout(500)
 

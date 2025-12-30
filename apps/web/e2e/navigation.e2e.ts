@@ -31,7 +31,8 @@ baseTest.describe('Sidebar Navigation - Unauthenticated', () => {
 	baseTest('navigates to tools page from sidebar', async ({ page }: { page: Page }) => {
 		await page.getByRole('link', { name: 'Tools' }).click()
 		await page.waitForURL(/\/dashboard\/tools/, { timeout: 10000 })
-		await expect(page.getByRole('heading', { name: 'Tools', exact: true })).toBeVisible()
+		// Use locator for the main page heading (h2)
+		await expect(page.locator('h2').filter({ hasText: 'Tools' })).toBeVisible()
 	})
 
 	baseTest('navigates to analytics page from sidebar', async ({ page }: { page: Page }) => {
