@@ -664,8 +664,8 @@ describe('Utility Tools', () => {
 					},
 					context,
 				)
-				expect(result.success).toBe(true)
-				expect((result.data as Record<string, unknown>)?.url).toBe('https://example.com/api/users?id=123')
+				const data = expectResultData(result, ResultSchemas.url)
+				expect(data.url).toBe('https://example.com/api/users?id=123')
 			})
 
 			it('encodes URL components', async () => {
@@ -673,8 +673,8 @@ describe('Utility Tools', () => {
 					{ operation: 'encode', text: 'hello world' },
 					context,
 				)
-				expect(result.success).toBe(true)
-				expect((result.data as Record<string, unknown>)?.encoded).toBe('hello%20world')
+				const data = expectResultData(result, ResultSchemas.url)
+				expect(data.encoded).toBe('hello%20world')
 			})
 
 			it('decodes URL components', async () => {
@@ -682,8 +682,8 @@ describe('Utility Tools', () => {
 					{ operation: 'decode', text: 'hello%20world' },
 					context,
 				)
-				expect(result.success).toBe(true)
-				expect((result.data as Record<string, unknown>)?.decoded).toBe('hello world')
+				const data = expectResultData(result, ResultSchemas.url)
+				expect(data.decoded).toBe('hello world')
 			})
 
 			it('adds params to URL', async () => {
@@ -695,9 +695,9 @@ describe('Utility Tools', () => {
 					},
 					context,
 				)
-				expect(result.success).toBe(true)
-				expect((result.data as Record<string, unknown>)?.url).toContain('foo=bar')
-				expect((result.data as Record<string, unknown>)?.url).toContain('baz=qux')
+				const data = expectResultData(result, ResultSchemas.url)
+				expect(data.url).toContain('foo=bar')
+				expect(data.url).toContain('baz=qux')
 			})
 		})
 	})

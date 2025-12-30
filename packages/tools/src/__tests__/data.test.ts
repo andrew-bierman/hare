@@ -155,8 +155,8 @@ describe('Data Tools', () => {
 					context,
 				)
 
-				expect(result.success).toBe(true)
-				expect((result.data as Record<string, unknown>)?.text).toContain('Hello World')
+				const data = expectResultData(result, ResultSchemas.scrape)
+				expect(data.text).toContain('Hello World')
 			})
 
 			it('extracts links from page', async () => {
@@ -171,10 +171,9 @@ describe('Data Tools', () => {
 					context,
 				)
 
-				expect(result.success).toBe(true)
-				const data = result.data as unknown as Record<string, { href: string }[]>
-				expect(data?.links).toHaveLength(1)
-				expect(data?.links[0].href).toBe('https://test.com')
+				const data = expectResultData(result, ResultSchemas.scrape)
+				expect(data.links).toHaveLength(1)
+				expect(data.links?.[0].href).toBe('https://test.com')
 			})
 
 			it('extracts meta tags', async () => {
@@ -197,10 +196,9 @@ describe('Data Tools', () => {
 					context,
 				)
 
-				expect(result.success).toBe(true)
-				const data = result.data as unknown as Record<string, Record<string, string>>
-				expect(data?.meta?.title).toBe('Test Page')
-				expect(data?.meta?.description).toBe('Test description')
+				const data = expectResultData(result, ResultSchemas.scrape)
+				expect(data.meta?.title).toBe('Test Page')
+				expect(data.meta?.description).toBe('Test description')
 			})
 		})
 	})
@@ -237,8 +235,8 @@ describe('Data Tools', () => {
 					{ operation: 'test', text: 'hello world', pattern: 'hello', flags: 'g' },
 					context,
 				)
-				expect(result.success).toBe(true)
-				expect((result.data as Record<string, unknown>)?.matches).toBe(true)
+				const data = expectResultData(result, ResultSchemas.regex)
+				expect(data.matches).toBe(true)
 			})
 
 			it('tests pattern no match', async () => {
@@ -246,8 +244,8 @@ describe('Data Tools', () => {
 					{ operation: 'test', text: 'hello world', pattern: 'foo', flags: 'g' },
 					context,
 				)
-				expect(result.success).toBe(true)
-				expect((result.data as Record<string, unknown>)?.matches).toBe(false)
+				const data = expectResultData(result, ResultSchemas.regex)
+				expect(data.matches).toBe(false)
 			})
 		})
 
@@ -257,8 +255,8 @@ describe('Data Tools', () => {
 					{ operation: 'matchAll', text: 'cat bat rat', pattern: '\\w+at', flags: 'g' },
 					context,
 				)
-				expect(result.success).toBe(true)
-				expect((result.data as Record<string, unknown[]>)?.matches).toHaveLength(3)
+				const data = expectResultData(result, ResultSchemas.regex)
+				expect(data.matches).toHaveLength(3)
 			})
 		})
 
@@ -274,8 +272,8 @@ describe('Data Tools', () => {
 					},
 					context,
 				)
-				expect(result.success).toBe(true)
-				expect((result.data as Record<string, unknown>)?.result).toBe('hello there')
+				const data = expectResultData(result, ResultSchemas.regex)
+				expect(data.result).toBe('hello there')
 			})
 		})
 
@@ -292,7 +290,8 @@ describe('Data Tools', () => {
 					context,
 				)
 				expect(result.success).toBe(true)
-				const data = result.data as Record<string, Record<string, string>[]>
+				// Extract returns a custom shape with extracted array
+				const data = result.data as { extracted: Array<{ user: string; domain: string }> }
 				expect(data?.extracted).toHaveLength(2)
 				expect(data?.extracted[0].user).toBe('user')
 				expect(data?.extracted[0].domain).toBe('example.com')
@@ -339,10 +338,9 @@ describe('Data Tools', () => {
 					{ operation: 'generateKey', bytes: 32 },
 					context,
 				)
-				expect(result.success).toBe(true)
-				const data = result.data as Record<string, unknown>
-				expect(data?.key).toBeDefined()
-				expect(data?.algorithm).toBe('AES-GCM')
+				const data = expectResultData(result, ResultSchemas.crypto)
+				expect(data.key).toBeDefined()
+				expect(data.algorithm).toBe('AES-GCM')
 			})
 
 			it('generates random bytes', async () => {
@@ -350,11 +348,10 @@ describe('Data Tools', () => {
 					{ operation: 'randomBytes', bytes: 16 },
 					context,
 				)
-				expect(result.success).toBe(true)
-				const data = result.data as Record<string, unknown>
-				expect(data?.hex).toBeDefined()
-				expect(data?.base64).toBeDefined()
-				expect(data?.bytes).toBe(16)
+				const data = expectResultData(result, ResultSchemas.crypto)
+				expect(data.hex).toBeDefined()
+				expect(data.base64).toBeDefined()
+				expect(data.bytes).toBe(16)
 			})
 
 			it('encrypts and decrypts data', async () => {
@@ -363,30 +360,29 @@ describe('Data Tools', () => {
 					{ operation: 'generateKey', bytes: 32 },
 					context,
 				)
-				const keyData = keyResult.data as Record<string, unknown>
-				const key = keyData?.key as string
+				const keyData = expectResultData(keyResult, ResultSchemas.crypto)
+				const key = keyData.key as string
 
 				// Encrypt
 				const encryptResult = await cryptoTool.execute(
 					{ operation: 'encrypt', data: 'secret message', key, bytes: 32 },
 					context,
 				)
-				expect(encryptResult.success).toBe(true)
-				const encryptData = encryptResult.data as Record<string, string>
+				const encryptData = expectResultData(encryptResult, ResultSchemas.crypto)
 
 				// Decrypt
 				const decryptResult = await cryptoTool.execute(
 					{
 						operation: 'decrypt',
-						data: encryptData?.encrypted,
+						data: encryptData.encrypted,
 						key,
-						iv: encryptData?.iv,
+						iv: encryptData.iv,
 						bytes: 32,
 					},
 					context,
 				)
-				expect(decryptResult.success).toBe(true)
-				expect((decryptResult.data as Record<string, unknown>)?.decrypted).toBe('secret message')
+				const decryptData = expectResultData(decryptResult, ResultSchemas.crypto)
+				expect(decryptData.decrypted).toBe('secret message')
 			})
 		})
 	})

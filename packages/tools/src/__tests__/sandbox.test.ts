@@ -7,6 +7,7 @@ import {
 	executeSandboxed,
 } from '../sandbox'
 import type { ToolContext } from '../types'
+import { expectResultData, ResultSchemas } from './test-utils'
 
 // Mock sandbox binding
 const createMockSandbox = () => ({
@@ -392,8 +393,8 @@ describe('Sandbox Tools', () => {
 					},
 					sandboxContext,
 				)
-				expect(result.success).toBe(true)
-				expect((result.data as Record<string, unknown>)?.content).toBeDefined()
+				const data = expectResultData(result, ResultSchemas.sandboxFile)
+				expect(data.content).toBeDefined()
 			})
 
 			it('writes file', async () => {
@@ -407,8 +408,8 @@ describe('Sandbox Tools', () => {
 					},
 					sandboxContext,
 				)
-				expect(result.success).toBe(true)
-				expect((result.data as Record<string, unknown>)?.written).toBe(true)
+				const data = expectResultData(result, ResultSchemas.sandboxFile)
+				expect(data.written).toBe(true)
 			})
 
 			it('lists directory', async () => {
@@ -421,8 +422,8 @@ describe('Sandbox Tools', () => {
 					},
 					sandboxContext,
 				)
-				expect(result.success).toBe(true)
-				expect((result.data as Record<string, unknown>)?.listing).toBeDefined()
+				const data = expectResultData(result, ResultSchemas.sandboxFile)
+				expect(data.listing).toBeDefined()
 			})
 		})
 	})

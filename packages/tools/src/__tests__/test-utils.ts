@@ -96,7 +96,15 @@ export const ResultSchemas = {
 	}),
 
 	regex: z.object({
-		matches: z.array(z.unknown()).optional(),
+		matches: z.union([z.boolean(), z.array(z.unknown())]).optional(),
+		match: z.string().nullable().optional(),
+		found: z.boolean().optional(),
+		index: z.number().optional(),
+		groups: z.record(z.string(), z.string()).optional(),
+		result: z.string().optional(),
+		parts: z.array(z.string()).optional(),
+		pattern: z.string().optional(),
+		flags: z.string().optional(),
 	}),
 
 	random: z.object({
@@ -110,9 +118,10 @@ export const ResultSchemas = {
 	crypto: z.object({
 		key: z.string().optional(),
 		algorithm: z.string().optional(),
+		keyLength: z.number().optional(),
 		hex: z.string().optional(),
 		base64: z.string().optional(),
-		bytes: z.array(z.number()).optional(),
+		bytes: z.number().optional(),
 		encrypted: z.string().optional(),
 		decrypted: z.string().optional(),
 		iv: z.string().optional(),
@@ -122,6 +131,7 @@ export const ResultSchemas = {
 		data: z.array(z.record(z.string(), z.unknown())).optional(),
 		headers: z.array(z.string()).optional(),
 		rowCount: z.number().optional(),
+		csv: z.string().optional(),
 	}),
 
 	kv: z.object({
@@ -131,13 +141,13 @@ export const ResultSchemas = {
 		deleted: z.boolean().optional(),
 	}),
 
-	memory: z.object({
-		stored: z.boolean().optional(),
-		key: z.string().optional(),
-		value: z.unknown().optional(),
-		results: z.array(z.unknown()).optional(),
-		conversations: z.array(z.unknown()).optional(),
-		messages: z.array(z.unknown()).optional(),
+	// Recall memory tool outputs
+	recallMemory: z.object({
+		found: z.boolean().optional(),
+		count: z.number().optional(),
+		message: z.string().optional(),
+		query: z.string().optional(),
+		memories: z.array(z.unknown()).optional(),
 	}),
 
 	sandbox: z.object({
@@ -145,6 +155,22 @@ export const ResultSchemas = {
 		stderr: z.string().optional(),
 		result: z.unknown().optional(),
 		exitCode: z.number().optional(),
+	}),
+
+	// Sandbox file tool outputs
+	sandboxFile: z.object({
+		path: z.string().optional(),
+		content: z.string().optional(),
+		written: z.boolean().optional(),
+		listing: z.string().optional(),
+	}),
+
+	// Sandbox code validation outputs
+	sandboxValidation: z.object({
+		valid: z.boolean().optional(),
+		issues: z.array(z.unknown()).optional(),
+		length: z.number().optional(),
+		lines: z.number().optional(),
 	}),
 
 	transform: z.object({
