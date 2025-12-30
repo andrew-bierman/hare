@@ -82,7 +82,6 @@ function validateServerEnv() {
 	const appUrl =
 		getEnv('APP_URL') ||
 		getEnv('VITE_APP_URL') ||
-		getEnv('NEXT_PUBLIC_APP_URL') ||
 		'http://localhost:3000'
 
 	const result = serverEnvSchema.safeParse({

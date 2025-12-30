@@ -281,7 +281,7 @@ const startTime = Date.now()
 const app = new OpenAPIHono<HonoEnv>()
 
 app.openapi(healthRoute, async (c) => {
-	// Try to get env from Hono context, fall back to Cloudflare context for Next.js dev mode
+	// Try to get env from Hono context, fall back to Cloudflare context for dev mode
 	let env = c.env as CloudflareEnv | undefined
 	if (!env?.DB) {
 		try {

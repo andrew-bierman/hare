@@ -78,8 +78,7 @@ jobs:
     env:
       BETTER_AUTH_SECRET: test-secret-for-ci
       BETTER_AUTH_URL: http://localhost:3000
-      NEXT_PUBLIC_APP_URL: http://localhost:3000
-      NEXT_PUBLIC_API_URL: http://localhost:3000
+      VITE_APP_URL: http://localhost:3000
     steps:
       - name: Checkout
         uses: actions/checkout@v4

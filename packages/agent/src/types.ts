@@ -2,7 +2,7 @@
  * Agent Types
  *
  * Type definitions for Hare Agents that can be safely imported
- * in any environment (Next.js, Workers, etc.)
+ * in any environment (Vite, Workers, etc.)
  */
 
 import type { ModelMessage } from 'ai'
