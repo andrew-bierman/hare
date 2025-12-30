@@ -19,7 +19,7 @@ import {
 	TableHeader,
 	TableRow,
 } from '@hare/ui/components/table'
-import { ChevronDown, Globe, Plus, Search, Trash2, Wrench } from 'lucide-react'
+import { ChevronDown, Globe, Plus, SearchIcon, Trash2, Wrench } from 'lucide-react'
 import { type ChangeEvent, useState } from 'react'
 import type { Tool, ToolType } from '@hare/types'
 import { useToolsQuery } from '../../shared/api/hooks'
@@ -119,7 +119,7 @@ export function ToolsListPage() {
 
 			{/* Search */}
 			<div className="relative max-w-sm">
-				<Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+				<SearchIcon className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
 				<Input
 					placeholder="Search tools..."
 					className="pl-8"
