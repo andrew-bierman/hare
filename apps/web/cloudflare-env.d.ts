@@ -11,7 +11,6 @@ interface CloudflareEnv {
 	KV: KVNamespace
 	ENVIRONMENT: string
 	BETTER_AUTH_SECRET: string
-	BETTER_AUTH_URL: string
 	NODE_ENV?: string
 	R2: R2Bucket
 	DB: D1Database
