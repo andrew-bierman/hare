@@ -7,8 +7,7 @@ import { serverEnv } from '@hare/config'
  * Security headers middleware
  * Adds security-related HTTP headers to all responses
  *
- * Note: unsafe-eval is required for Next.js in development mode.
- * In production, Next.js uses static optimization which doesn't require unsafe-eval.
+ * Note: unsafe-eval is allowed in development mode for better debugging.
  */
 export const securityHeadersMiddleware: MiddlewareHandler = secureHeaders({
 	// Content Security Policy

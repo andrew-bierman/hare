@@ -16,7 +16,7 @@ Hare is an AI agent platform deployed on Cloudflare's edge network. This guide e
 - **Database**: Cloudflare D1 (SQLite) + Drizzle ORM
 - **AI**: Vercel AI SDK + Workers AI (Llama, Mistral, etc.)
 - **Auth**: Better Auth
-- **Infra**: Cloudflare Pages, D1, KV, R2, Vectorize, Agents SDK
+- **Infra**: Cloudflare Workers, D1, KV, R2, Vectorize, Agents SDK
 
 ## Commands
 

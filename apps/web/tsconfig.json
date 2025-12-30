@@ -1,5 +1,5 @@
 {
-	"extends": "@hare/typescript-config/nextjs.json",
+	"extends": "@hare/typescript-config/vite.json",
 	"compilerOptions": {
 		"baseUrl": ".",
 		"paths": {

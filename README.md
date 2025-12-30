@@ -3,7 +3,7 @@
 > **Fast as a hare**—Build and deploy AI agents to Cloudflare's edge in minutes
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
-[![Next.js](https://img.shields.io/badge/Next.js-15-black)](https://nextjs.org/)
+[![Vite](https://img.shields.io/badge/Vite-7-646CFF)](https://vitejs.dev/)
 [![Cloudflare](https://img.shields.io/badge/Cloudflare-Workers-orange)](https://workers.cloudflare.com/)
 [![Workers AI](https://img.shields.io/badge/Workers_AI-Native-F38020)](https://developers.cloudflare.com/workers-ai/)
 
@@ -122,7 +122,7 @@ Hare provides a **visual builder** for AI agents that deploy instantly to Cloudf
 | **🧠 AI Models** | Workers AI | Llama 3.3, Mistral, embeddings |
 | **🔐 Auth** | Better Auth | Open source, self-hosted |
 | **💳 Payments** | Stripe | Subscriptions, usage billing |
-| **⚛️ Frontend** | Next.js 15 | React 19, App Router, RSC |
+| **⚛️ Frontend** | Vite 7 + TanStack | React 19, TanStack Router, TanStack Query |
 | **🎨 UI** | shadcn/ui + Tailwind | Accessible, customizable components |
 | **🔌 API** | Hono | Lightweight, Workers-native framework |
 | **📚 API Docs** | Scalar | Beautiful OpenAPI documentation |
@@ -138,17 +138,15 @@ Hare provides a **visual builder** for AI agents that deploy instantly to Cloudf
 ```
 hare/
 ├── apps/
-│   └── web/                    # Next.js 15 app (Cloudflare Pages)
+│   └── web/                    # Vite + TanStack app (Cloudflare Workers)
 │       ├── src/
-│       │   ├── app/
+│       │   ├── routes/               # TanStack Router pages
 │       │   │   ├── (auth)/           # Auth pages (sign-in, sign-up)
 │       │   │   ├── (dashboard)/      # Protected dashboard routes
 │       │   │   │   ├── agents/       # Agent management
 │       │   │   │   ├── settings/     # Workspace settings
 │       │   │   │   └── billing/      # Subscription management
-│       │   │   ├── (marketing)/      # Landing, pricing, docs
-│       │   │   └── api/
-│       │   │       └── [[...route]]/ # Hono API (catch-all)
+│       │   │   └── (marketing)/      # Landing, pricing, docs
 │       │   ├── components/           # React components
 │       │   │   ├── ui/               # shadcn/ui primitives
 │       │   │   ├── agent/            # Agent-specific components
@@ -174,8 +172,8 @@ hare/
 │       │   └── hooks/                # Custom React hooks
 │       ├── migrations/               # SQL migrations (D1)
 │       ├── drizzle.config.ts         # Drizzle configuration
-│       ├── next.config.ts            # Next.js configuration
-│       ├── wrangler.jsonc            # Cloudflare Pages config
+│       ├── vite.config.ts            # Vite configuration
+│       ├── wrangler.jsonc            # Cloudflare Workers config
 │       └── package.json
 │
 ├── packages/                   # Shared packages
@@ -193,7 +191,7 @@ hare/
 
 ### 🏗️ Current Architecture
 
-The application is built as a **single Next.js application** deployed to Cloudflare Pages using `@opennextjs/cloudflare`. The database schema lives inside `apps/web/src/db/` and is designed to work with Cloudflare D1 (SQLite-compatible).
+The application is built as a **Vite + TanStack Router application** deployed to Cloudflare Workers. The database schema lives in `packages/db/src/schema/` and is designed to work with Cloudflare D1 (SQLite-compatible).
 
 ---
 
@@ -224,7 +222,7 @@ cp .env.local.example .env.local
 
 Hare uses an environment shim script to automatically generate app-specific environment files from a single root `.env.local` file. When you run `bun install`:
 
-- `.env.local` → `apps/web/.env.local` (for Vite, with `VITE_` prefix for client-side)
+- `.env.local` → `apps/web/.env.local` (for Vite, `VITE_*` prefix exposes to client)
 - `.env.local` → `apps/web/.dev.vars` (for Cloudflare Workers, server-side only)
 
 This ensures consistency across your monorepo and follows Cloudflare's convention of using `.dev.vars` for local development instead of `.env`.
@@ -355,16 +353,16 @@ bun run scripts/env.ts
 
 ### 🏗️ System Overview
 
-The entire app runs as a single Next.js application deployed to Cloudflare Pages with `@opennextjs/cloudflare`:
+The entire app runs as a single Vite + TanStack application deployed to Cloudflare Workers:
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                  🐇 apps/web (Next.js 15)                       │
+│                  🐇 apps/web (Vite + TanStack)                  │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                 │
 │  ┌─────────────────────────────────────────────────────────┐   │
 │  │                 ⚛️ React Frontend                        │   │
-│  │  • Dashboard pages (RSC + Client Components)             │   │
+│  │  • Dashboard pages (TanStack Router)                     │   │
 │  │  • shadcn/ui components                                  │   │
 │  │  • Hono RPC client for type-safe API calls               │   │
 │  │  • TanStack Query for data fetching                      │   │
@@ -392,19 +390,15 @@ The entire app runs as a single Next.js application deployed to Cloudflare Pages
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-### 🔌 Hono in Next.js
+### 🔌 Hono API
 
-The API is built with Hono and mounted in a Next.js catch-all route for maximum flexibility:
+The API is built with Hono and runs directly on Cloudflare Workers via the Vite plugin:
 
 ```typescript
-// apps/web/src/app/api/[[...route]]/route.ts
-import { handle } from 'hono/vercel'
+// apps/web/src/server.ts
 import { app } from '@hare/api'
 
-export const GET = handle(app)
-export const POST = handle(app)
-export const PUT = handle(app)
-export const DELETE = handle(app)
+export default app
 ```
 
 ### 🎯 Hono RPC Client
@@ -429,7 +423,7 @@ const agent = await client.agents[':id'].$get({ param: { id: 'xxx' } })
 User Request (Browser)
     │
     ▼
-⚛️ Next.js Page (RSC)
+⚛️ React Page (TanStack Router)
     │
     ▼
 🔌 Hono RPC Client (Type-safe)
@@ -721,7 +715,7 @@ cp .env.local.example .env.local
 
 # Edit with your credentials
 # The postinstall script will automatically generate:
-# - apps/web/.env.local (for Next.js)
+# - apps/web/.env.local (for Vite)
 # - apps/web/.dev.vars (for Cloudflare Workers)
 ```
 
@@ -761,7 +755,7 @@ VITE_APP_URL=http://localhost:3000
 The environment shim script (`scripts/env.ts`) runs automatically during `bun install` and:
 
 1. **Reads** the root `.env.local` file
-2. **Generates** `apps/web/.env.local` with all variables (VITE_* prefix exposes to client)
+2. **Generates** `apps/web/.env.local` with all variables (`VITE_*` prefix exposes to client)
 3. **Generates** `apps/web/.dev.vars` with only server-side variables (excludes `VITE_*`)
 
 This approach:
@@ -776,7 +770,7 @@ This approach:
 - Generate a secure auth secret: `openssl rand -base64 32`
 - Get your Cloudflare credentials from the [Cloudflare Dashboard](https://dash.cloudflare.com/)
 - OAuth credentials can be obtained from [Google Cloud Console](https://console.cloud.google.com/) and [GitHub Settings](https://github.com/settings/developers)
-- To manually regenerate environment files: `bun run .github/scripts/env.ts`
+- To manually regenerate environment files: `bun run scripts/env.ts`
 
 ---
 
@@ -934,7 +928,7 @@ bun run test:ui          # Open Vitest UI
 
 ```bash
 bun run clean            # Remove all node_modules and build artifacts
-bun run clean:cache      # Remove build caches (.next, .turbo)
+bun run clean:cache      # Remove build caches (.turbo)
 ```
 
 ---
@@ -1108,12 +1102,12 @@ E2E tests are in dedicated directories:
 
 ## Deployment
 
-### ☁️ Cloudflare Pages
+### ☁️ Cloudflare Workers
 
-Hare deploys to Cloudflare Pages using `@opennextjs/cloudflare` for Next.js compatibility:
+Hare deploys to Cloudflare Workers using the Vite Cloudflare plugin:
 
 ```bash
-# Build and deploy to Cloudflare Pages
+# Build and deploy to Cloudflare Workers
 bun run deploy
 
 # Build without deploying (for CI/CD)
@@ -1240,7 +1234,7 @@ Enterprise    ░░░░░░░░░░░░░░░░░░░░   0% 
 All core infrastructure is in place and production-ready:
 
 - [x] 🏗️ **Monorepo Setup** - Turborepo + Bun 1.3.5 for blazing-fast builds
-- [x] ⚡ **Next.js 15 App** - Deployed to Cloudflare Pages with `@opennextjs/cloudflare`
+- [x] ⚡ **Vite + TanStack App** - Deployed to Cloudflare Workers with @cloudflare/vite-plugin
 - [x] 💾 **Database Layer** - Complete D1 schema with Drizzle ORM
   - [x] Multi-tenant workspaces with role-based access
   - [x] Agent configurations with versioning support
@@ -1469,7 +1463,7 @@ Key architecture choices and the reasoning behind them:
 | **Auth** | Better Auth | Open source, self-hosted, TypeScript-first |
 | **AI SDK** | Vercel AI SDK | Streaming primitives, tool calling, provider-agnostic |
 | **MCP** | Model Context Protocol | Standard for AI client integration (Claude, Cursor) |
-| **Frontend** | Next.js 15 | RSC, App Router, excellent Cloudflare Pages support |
+| **Frontend** | Vite + TanStack | Fast builds, TanStack Router, excellent Cloudflare Workers support |
 | **Styling** | Tailwind + shadcn/ui | Accessible, customizable, consistent design |
 | **Monorepo** | Turborepo + Bun | Fast builds, workspace management, native TS |
 
@@ -1669,7 +1663,8 @@ MIT License - see [LICENSE](LICENSE) for details.
 
 **Powered by amazing open source projects:**
 
-- 🚀 [Next.js](https://nextjs.org/) - The React framework for production
+- ⚡ [Vite](https://vitejs.dev/) - Next generation frontend tooling
+- 🛤️ [TanStack Router](https://tanstack.com/router) - Type-safe routing for React
 - ☁️ [Cloudflare Workers](https://workers.cloudflare.com/) - Lightning-fast edge compute
 - 🤖 [Workers AI](https://developers.cloudflare.com/workers-ai/) - AI inference at the edge
 - ⚡ [Vercel AI SDK](https://sdk.vercel.ai/) - Unified AI streaming interface
