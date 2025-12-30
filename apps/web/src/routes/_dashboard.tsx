@@ -9,9 +9,16 @@ import {
 	UserNav,
 	WorkspaceSwitcher,
 } from '@hare/app/widgets'
-import { createFileRoute, Link, Outlet, useLocation, useNavigate } from '@tanstack/react-router'
+import { getSession } from '@hare/auth/client'
+import { createFileRoute, Link, Outlet, redirect, useLocation, useNavigate } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/_dashboard')({
+	beforeLoad: async () => {
+		const session = await getSession()
+		if (!session.data?.user) {
+			throw redirect({ to: '/sign-in' })
+		}
+	},
 	component: DashboardLayout,
 	errorComponent: DashboardErrorComponent,
 	notFoundComponent: DashboardNotFound,
