@@ -4,8 +4,8 @@ import { defineDocs, defineConfig } from 'fumadocs-mdx/config'
 // This avoids client-side bundling issues with Node.js modules
 
 export const docs = defineDocs({
-	// Content lives in packages/docs for better separation
-	dir: '../../packages/docs/content',
+	// Content lives in apps/web/content
+	dir: './content',
 })
 
 export default defineConfig()
