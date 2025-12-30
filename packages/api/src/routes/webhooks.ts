@@ -56,7 +56,7 @@ const CreateWebhookSchema = z
 	.object({
 		url: z.string().url().describe('The URL to send webhook payloads to'),
 		events: z.array(WebhookEventTypeSchema).min(1).describe('List of event types to subscribe to'),
-		description: z.string().optional().describe('Optional description for the webhook'),
+		description: z.string().nullish().describe('Optional description for the webhook'),
 	})
 	.openapi('CreateWebhook')
 
@@ -69,7 +69,7 @@ const UpdateWebhookSchema = z
 			.optional()
 			.describe('List of event types to subscribe to'),
 		status: WebhookStatusSchema.optional().describe('Webhook status'),
-		description: z.string().optional().describe('Optional description for the webhook'),
+		description: z.string().nullish().describe('Optional description for the webhook'),
 	})
 	.openapi('UpdateWebhook')
 
