@@ -1,6 +1,34 @@
 import { z } from 'zod'
 import { createTool, failure, success, type ToolContext } from './types'
 
+// ============================================================================
+// Output Schemas
+// ============================================================================
+
+const SqlQueryOutputSchema = z.object({
+	rows: z.array(z.record(z.string(), z.unknown())),
+	rowCount: z.number(),
+	meta: z.record(z.string(), z.unknown()).optional(),
+})
+
+const SqlExecuteOutputSchema = z.object({
+	success: z.boolean(),
+	rowsAffected: z.number(),
+	lastRowId: z.number().optional(),
+	meta: z.record(z.string(), z.unknown()).optional(),
+})
+
+const SqlBatchOutputSchema = z.object({
+	results: z.array(
+		z.object({
+			index: z.number(),
+			success: z.boolean(),
+			rowsAffected: z.number(),
+		}),
+	),
+	totalStatements: z.number(),
+})
+
 /**
  * Tables that agents are allowed to query.
  * These are "agent data" tables, not system tables.
@@ -35,7 +63,25 @@ const BLOCKED_TABLES = new Set([
 
 /**
  * Check if a query accesses only allowed tables.
- * This is a basic check - for production, consider using a SQL parser.
+ *
+ * SECURITY NOTE: This implementation uses regex pattern matching which has
+ * known limitations:
+ *
+ * - Cannot parse complex SQL with subqueries, CTEs, or dynamic table references
+ * - May have false positives/negatives with unusual SQL formatting
+ * - String literals containing table names could trigger false positives
+ *
+ * Defense in depth is achieved by:
+ * 1. This regex-based table blocking (first line of defense)
+ * 2. D1's parameterized query support (prevents SQL injection)
+ * 3. Workspace ID filtering requirement (enforces multi-tenant isolation)
+ * 4. Blocked dangerous operations (DROP, TRUNCATE, ALTER, etc.)
+ *
+ * For production environments with higher security requirements, consider:
+ * - Using a proper SQL parser like `node-sql-parser` for precise AST analysis
+ * - Implementing allowlist-based table access at the database level
+ * - Using database views to restrict accessible data
+ * - Adding query auditing and rate limiting
  */
 function validateQueryTables(query: string): { valid: boolean; error?: string } {
 	const lowerQuery = query.toLowerCase()
@@ -70,6 +116,7 @@ export const sqlQueryTool = createTool({
 			.optional()
 			.describe('Query parameters for prepared statement'),
 	}),
+	outputSchema: SqlQueryOutputSchema,
 	execute: async (params, context) => {
 		const db = context.env.DB
 		if (!db) {
@@ -149,6 +196,7 @@ export const sqlExecuteTool = createTool({
 			.optional()
 			.describe('Statement parameters for prepared statement'),
 	}),
+	outputSchema: SqlExecuteOutputSchema,
 	execute: async (params, context) => {
 		const db = context.env.DB
 		if (!db) {
@@ -222,6 +270,7 @@ export const sqlBatchTool = createTool({
 			)
 			.describe('Array of SQL statements to execute'),
 	}),
+	outputSchema: SqlBatchOutputSchema,
 	execute: async (params, context) => {
 		const db = context.env.DB
 		if (!db) {

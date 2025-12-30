@@ -1,6 +1,217 @@
 import { z } from 'zod'
 import { createTool, failure, success, type ToolContext, type ToolResult } from './types'
 
+// ============================================================================
+// Output Schemas
+// ============================================================================
+
+/** RSS feed item schema for Atom feeds */
+const AtomEntrySchema = z.object({
+	title: z.string(),
+	link: z.string(),
+	published: z.string(),
+	summary: z.string(),
+	content: z.string().optional(),
+	author: z.string().optional(),
+})
+
+/** RSS feed item schema for RSS 2.0 feeds */
+const RssItemSchema = z.object({
+	title: z.string(),
+	link: z.string(),
+	pubDate: z.string(),
+	description: z.string(),
+	content: z.string().optional(),
+	author: z.string().optional(),
+	categories: z.array(z.string()).optional(),
+})
+
+/** RSS tool output schema */
+const RssOutputSchema = z.object({
+	type: z.enum(['atom', 'rss']),
+	title: z.string(),
+	link: z.string().nullable(),
+	updated: z.string().nullable().optional(),
+	description: z.string().optional(),
+	lastBuildDate: z.string().nullable().optional(),
+	items: z.array(z.union([AtomEntrySchema, RssItemSchema])),
+	itemCount: z.number(),
+	fetchedAt: z.string(),
+})
+
+/** Scrape tool link schema */
+const ScrapeLinkSchema = z.object({
+	text: z.string(),
+	href: z.string(),
+})
+
+/** Scrape tool image schema */
+const ScrapeImageSchema = z.object({
+	src: z.string(),
+	alt: z.string(),
+})
+
+/** Scrape tool heading schema */
+const ScrapeHeadingSchema = z.object({
+	level: z.number(),
+	text: z.string(),
+})
+
+/** Scrape tool meta schema */
+const ScrapeMetaSchema = z.object({
+	title: z.string(),
+	description: z.string(),
+	keywords: z.string(),
+	ogTitle: z.string(),
+	ogDescription: z.string(),
+	ogImage: z.string(),
+})
+
+/** Scrape tool output schema - union of possible outputs */
+const ScrapeOutputSchema = z
+	.object({
+		url: z.string(),
+		fetchedAt: z.string(),
+		// Optional fields based on extraction type
+		text: z.string().optional(),
+		links: z.array(ScrapeLinkSchema).optional(),
+		images: z.array(ScrapeImageSchema).optional(),
+		headings: z.array(ScrapeHeadingSchema).optional(),
+		meta: ScrapeMetaSchema.optional(),
+		selector: z.string().optional(),
+		matches: z.array(z.string()).optional(),
+	})
+	.passthrough()
+
+/** Regex test operation output */
+const RegexTestOutputSchema = z.object({
+	matches: z.boolean(),
+	pattern: z.string(),
+	flags: z.string(),
+})
+
+/** Regex match operation output */
+const RegexMatchOutputSchema = z.object({
+	match: z.string().nullable(),
+	found: z.boolean(),
+	index: z.number().optional(),
+	groups: z.record(z.string(), z.string()).optional(),
+})
+
+/** Regex matchAll operation output */
+const RegexMatchAllOutputSchema = z.object({
+	matches: z.array(
+		z.object({
+			match: z.string(),
+			index: z.number(),
+			groups: z.record(z.string(), z.string()).optional(),
+		}),
+	),
+	count: z.number(),
+})
+
+/** Regex replace operation output */
+const RegexReplaceOutputSchema = z.object({
+	result: z.string(),
+	originalLength: z.number(),
+	newLength: z.number(),
+	changed: z.boolean(),
+})
+
+/** Regex split operation output */
+const RegexSplitOutputSchema = z.object({
+	parts: z.array(z.string()),
+	count: z.number(),
+})
+
+/** Regex extract operation output */
+const RegexExtractOutputSchema = z.object({
+	extracted: z.array(z.record(z.string(), z.string())),
+	count: z.number(),
+})
+
+/** Regex tool output schema - union of all operations */
+const RegexOutputSchema = z.union([
+	RegexTestOutputSchema,
+	RegexMatchOutputSchema,
+	RegexMatchAllOutputSchema,
+	RegexReplaceOutputSchema,
+	RegexSplitOutputSchema,
+	RegexExtractOutputSchema,
+])
+
+/** Crypto generateKey operation output */
+const CryptoGenerateKeyOutputSchema = z.object({
+	key: z.string(),
+	algorithm: z.literal('AES-GCM'),
+	keyLength: z.literal(256),
+})
+
+/** Crypto randomBytes operation output */
+const CryptoRandomBytesOutputSchema = z.object({
+	hex: z.string(),
+	base64: z.string(),
+	bytes: z.number(),
+})
+
+/** Crypto encrypt operation output */
+const CryptoEncryptOutputSchema = z.object({
+	encrypted: z.string(),
+	iv: z.string(),
+	algorithm: z.literal('AES-GCM'),
+})
+
+/** Crypto decrypt operation output */
+const CryptoDecryptOutputSchema = z.object({
+	decrypted: z.string(),
+	algorithm: z.literal('AES-GCM'),
+})
+
+/** Crypto tool output schema - union of all operations */
+const CryptoOutputSchema = z.union([
+	CryptoGenerateKeyOutputSchema,
+	CryptoRandomBytesOutputSchema,
+	CryptoEncryptOutputSchema,
+	CryptoDecryptOutputSchema,
+])
+
+/** JSON Schema validation error */
+const JsonSchemaErrorSchema = z.object({
+	path: z.string(),
+	message: z.string(),
+})
+
+/** JSON Schema tool output schema */
+const JsonSchemaOutputSchema = z.object({
+	valid: z.boolean(),
+	errors: z.array(JsonSchemaErrorSchema),
+	errorCount: z.number(),
+})
+
+/** CSV parse operation output */
+const CsvParseOutputSchema = z.object({
+	data: z.array(z.record(z.string(), z.string())),
+	headers: z.array(z.string()).optional(),
+	rowCount: z.number(),
+})
+
+/** CSV stringify operation output */
+const CsvStringifyOutputSchema = z.object({
+	csv: z.string(),
+	headers: z.array(z.string()).optional(),
+	rowCount: z.number(),
+})
+
+/** CSV tool output schema - union of operations */
+const CsvOutputSchema = z.union([CsvParseOutputSchema, CsvStringifyOutputSchema])
+
+/** Template tool output schema */
+const TemplateOutputSchema = z.object({
+	result: z.string(),
+	missingVariables: z.array(z.string()),
+	variableCount: z.number(),
+})
+
 /**
  * RSS Feed Tool - Fetch and parse RSS/Atom feeds.
  */
@@ -12,7 +223,8 @@ export const rssTool = createTool({
 		limit: z.number().optional().default(10).describe('Maximum number of items to return'),
 		includeContent: z.boolean().optional().default(false).describe('Include full content of items'),
 	}),
-	execute: async (params, _context): Promise<ToolResult<unknown>> => {
+	outputSchema: RssOutputSchema,
+	execute: async (params, _context) => {
 		try {
 			const { url, limit, includeContent } = params
 
@@ -84,7 +296,7 @@ export const rssTool = createTool({
 					}
 
 					return {
-						type: 'atom',
+						type: 'atom' as const,
 						title: getCdataContent(title ?? ''),
 						link,
 						updated,
@@ -142,7 +354,7 @@ export const rssTool = createTool({
 					}
 
 					return {
-						type: 'rss',
+						type: 'rss' as const,
 						title: getCdataContent(title ?? ''),
 						link,
 						description: getCdataContent(description ?? ''),
@@ -186,7 +398,8 @@ export const scrapeTool = createTool({
 		maxLength: z.number().optional().default(10000).describe('Maximum content length to return'),
 		timeout: z.number().optional().default(10000).describe('Request timeout in milliseconds'),
 	}),
-	execute: async (params, _context): Promise<ToolResult<unknown>> => {
+	outputSchema: ScrapeOutputSchema,
+	execute: async (params, _context) => {
 		try {
 			const { url, extract, selector, maxLength, timeout } = params
 
@@ -399,7 +612,8 @@ export const regexTool = createTool({
 		replacement: z.string().optional().describe('Replacement string for replace operation'),
 		groupNames: z.array(z.string()).optional().describe('Names for captured groups in extract'),
 	}),
-	execute: async (params, _context): Promise<ToolResult<unknown>> => {
+	outputSchema: RegexOutputSchema,
+	execute: async (params, _context): Promise<ToolResult<z.infer<typeof RegexOutputSchema>>> => {
 		try {
 			const { operation, text, pattern, flags, replacement, groupNames } = params
 
@@ -528,7 +742,8 @@ export const cryptoTool = createTool({
 		iv: z.string().optional().describe('Base64-encoded initialization vector (for decrypt)'),
 		bytes: z.number().optional().default(32).describe('Number of random bytes to generate'),
 	}),
-	execute: async (params, _context): Promise<ToolResult<unknown>> => {
+	outputSchema: CryptoOutputSchema,
+	execute: async (params, _context): Promise<ToolResult<z.infer<typeof CryptoOutputSchema>>> => {
 		try {
 			const { operation, data, key, iv, bytes } = params
 
@@ -656,7 +871,8 @@ export const jsonSchemaTool = createTool({
 			.passthrough()
 			.describe('JSON Schema to validate against'),
 	}),
-	execute: async (params, _context): Promise<ToolResult<unknown>> => {
+	outputSchema: JsonSchemaOutputSchema,
+	execute: async (params, _context) => {
 		try {
 			const { data, schema } = params
 
@@ -804,7 +1020,8 @@ export const csvTool = createTool({
 			})
 			.optional(),
 	}),
-	execute: async (params, _context): Promise<ToolResult<unknown>> => {
+	outputSchema: CsvOutputSchema,
+	execute: async (params, _context): Promise<ToolResult<z.infer<typeof CsvOutputSchema>>> => {
 		try {
 			const { operation, data, options } = params
 			const {
@@ -950,7 +1167,8 @@ export const templateTool = createTool({
 			})
 			.optional(),
 	}),
-	execute: async (params, _context): Promise<ToolResult<unknown>> => {
+	outputSchema: TemplateOutputSchema,
+	execute: async (params, _context) => {
 		try {
 			const { template, variables, options } = params
 			const { missingBehavior = 'empty', escapeHtml = false } = options || {}

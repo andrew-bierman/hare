@@ -2,6 +2,53 @@ import { z } from 'zod'
 import { createTool, failure, success, type HareEnv, type ToolContext, type ToolResult } from './types'
 
 /**
+ * Output schema for code execution tool
+ * Supports both Cloudflare Sandbox (stdout/stderr/exitCode) and in-Worker execution (result/logs)
+ */
+const CodeExecuteOutputSchema = z.union([
+	z.object({
+		stdout: z.string().describe('Standard output from execution'),
+		stderr: z.string().describe('Standard error output'),
+		exitCode: z.number().describe('Exit code (0 = success)'),
+		success: z.boolean().describe('Whether execution succeeded'),
+	}),
+	z.object({
+		result: z.unknown().describe('Result from in-Worker execution'),
+		logs: z.array(z.string()).describe('Console logs captured during execution'),
+	}),
+])
+
+/**
+ * Output schema for code validation tool
+ */
+const CodeValidateOutputSchema = z.object({
+	valid: z.boolean().describe('Whether the code passed all validation checks'),
+	issues: z.array(z.string()).describe('List of validation issues found'),
+	language: z.string().describe('Programming language validated'),
+	length: z.number().describe('Code length in bytes'),
+	lines: z.number().describe('Number of lines in code'),
+	maxAllowedSize: z.number().describe('Maximum allowed code size in bytes'),
+})
+
+/**
+ * Output schema for sandbox file operations
+ */
+const SandboxFileOutputSchema = z.union([
+	z.object({
+		path: z.string().describe('File path'),
+		content: z.string().describe('File content (for read operation)'),
+	}),
+	z.object({
+		path: z.string().describe('File path'),
+		written: z.boolean().describe('Whether write succeeded'),
+	}),
+	z.object({
+		path: z.string().describe('Directory path'),
+		listing: z.string().describe('Directory listing output'),
+	}),
+])
+
+/**
  * Sandbox binding interface for type safety
  */
 interface SandboxBinding {
@@ -208,12 +255,17 @@ function hasSandbox(env: HareEnv): env is HareEnvWithSandbox {
  * - Audit logging
  * - Bash disabled by default (requires explicit opt-in)
  */
-export async function executeSandboxed<T = unknown>(
-	code: string,
-	language: 'javascript' | 'python' | 'bash',
-	context: ToolContext,
-	config: Partial<SandboxConfig> = {},
-): Promise<ToolResult<T>> {
+export async function executeSandboxed<T = unknown>({
+	code,
+	language,
+	context,
+	config = {},
+}: {
+	code: string
+	language: 'javascript' | 'python' | 'bash'
+	context: ToolContext
+	config?: Partial<SandboxConfig>
+}): Promise<ToolResult<T>> {
 	const cfg = { ...DEFAULT_CONFIG, ...config }
 
 	// Security: Bash is disabled for safety - too many attack vectors
@@ -467,9 +519,13 @@ print(json.dumps({"sum": sum(data), "avg": sum(data)/len(data)}))
 			.describe('Programming language (bash is disabled for security)'),
 		timeout: z.number().min(1000).max(30000).optional().default(30000).describe('Timeout in ms'),
 	}),
-	execute: async (input, context): Promise<ToolResult<unknown>> => {
-		return executeSandboxed(input.code, input.language, context, {
-			timeout: input.timeout,
+	outputSchema: CodeExecuteOutputSchema,
+	execute: async (input, context) => {
+		return executeSandboxed({
+			code: input.code,
+			language: input.language,
+			context,
+			config: { timeout: input.timeout },
 		})
 	},
 })
@@ -490,6 +546,7 @@ Validates against:
 		code: z.string().min(1).max(RATE_LIMIT.maxCodeSizeBytes).describe('Code to validate'),
 		language: z.enum(['javascript', 'python']).default('javascript'),
 	}),
+	outputSchema: CodeValidateOutputSchema,
 	execute: async (input, _context) => {
 		const { code, language } = input
 
@@ -545,7 +602,8 @@ Requires SANDBOX binding.`,
 			.describe('Relative file path in sandbox workspace'),
 		content: z.string().max(RATE_LIMIT.maxCodeSizeBytes).optional().describe('Content for write'),
 	}),
-	execute: async (input, context): Promise<ToolResult<unknown>> => {
+	outputSchema: SandboxFileOutputSchema,
+	execute: async (input, context): Promise<ToolResult<z.infer<typeof SandboxFileOutputSchema>>> => {
 		// Security: Check rate limit
 		const rateLimit = checkRateLimit(context.workspaceId)
 		if (!rateLimit.allowed) {

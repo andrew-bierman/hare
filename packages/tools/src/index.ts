@@ -34,8 +34,12 @@ export {
 	type HareEnv,
 	type Tool,
 	type ToolContext,
+	type ToolDefinition,
 	type ToolResult,
 } from './types'
+
+// Tool delegation utilities
+export { delegateTo, delegateToWithValidation } from './delegate'
 
 // ==========================================
 // CLOUDFLARE NATIVE TOOLS
@@ -51,7 +55,7 @@ export { getR2Tools, r2DeleteTool, r2GetTool, r2HeadTool, r2ListTool, r2PutTool 
 export { getSQLTools, sqlBatchTool, sqlExecuteTool, sqlQueryTool } from './sql'
 
 // HTTP tools
-export { getHTTPTools, httpGetTool, httpPostTool, httpRequestTool } from './http'
+export { getHTTPTools, httpGetTool, httpPostTool, httpRequestTool, HttpResponseOutputSchema } from './http'
 
 // Search tools (AutoRAG/AI Search)
 export { aiSearchAnswerTool, aiSearchTool, getSearchTools } from './search'
@@ -208,7 +212,6 @@ export {
 // ==========================================
 
 export {
-	createDrizzleToolDatabase,
 	createToolFromConfig,
 	loadAgentTools,
 	type LoadAgentToolsInput,
@@ -301,7 +304,13 @@ export function getSystemTools(context: ToolContext): AnyTool[] {
  * const storageTools = getToolsByCategory('storage', context)
  * ```
  */
-export function getToolsByCategory(category: ToolCategory, context: ToolContext): AnyTool[] {
+export function getToolsByCategory({
+	category,
+	context,
+}: {
+	category: ToolCategory
+	context: ToolContext
+}): AnyTool[] {
 	switch (category) {
 		case 'storage':
 			return [...getKVTools(context), ...getR2Tools(context)]

@@ -262,7 +262,7 @@ describe('Sandbox Tools', () => {
 					},
 					context,
 				)
-				const data = expectResultData(result, ResultSchemas.sandboxValidation)
+				const data = expectResultData({ result, schema: ResultSchemas.codeValidate })
 				expect(data.valid).toBe(true)
 				expect(data.issues).toHaveLength(0)
 			})
@@ -275,9 +275,9 @@ describe('Sandbox Tools', () => {
 					},
 					context,
 				)
-				const data = expectResultData(result, ResultSchemas.sandboxValidation)
+				const data = expectResultData({ result, schema: ResultSchemas.codeValidate })
 				expect(data.valid).toBe(false)
-				expect(data.issues?.length).toBeGreaterThan(0)
+				expect(data.issues.length).toBeGreaterThan(0)
 			})
 
 			it('detects potential infinite loops', async () => {
@@ -288,7 +288,7 @@ describe('Sandbox Tools', () => {
 					},
 					context,
 				)
-				const data = expectResultData(result, ResultSchemas.sandboxValidation)
+				const data = expectResultData({ result, schema: ResultSchemas.codeValidate })
 				expect(data.issues).toContain('Potential infinite loop detected')
 			})
 
@@ -300,9 +300,9 @@ describe('Sandbox Tools', () => {
 					},
 					context,
 				)
-				const data = expectResultData(result, ResultSchemas.sandboxValidation)
+				const data = expectResultData({ result, schema: ResultSchemas.codeValidate })
 				expect(data.valid).toBe(false)
-				expect(data.issues?.some((i) => i.includes('Syntax error'))).toBe(true)
+				expect(data.issues.some((i) => i.includes('Syntax error'))).toBe(true)
 			})
 
 			it('reports code statistics', async () => {
@@ -313,7 +313,7 @@ describe('Sandbox Tools', () => {
 					},
 					context,
 				)
-				const data = expectResultData(result, ResultSchemas.sandboxValidation)
+				const data = expectResultData({ result, schema: ResultSchemas.codeValidate })
 				expect(data.length).toBeGreaterThan(0)
 				expect(data.lines).toBe(2)
 			})
@@ -393,7 +393,7 @@ describe('Sandbox Tools', () => {
 					},
 					sandboxContext,
 				)
-				const data = expectResultData(result, ResultSchemas.sandboxFile)
+				const data = expectResultData({ result, schema: ResultSchemas.sandboxFile })
 				expect(data.content).toBeDefined()
 			})
 
@@ -408,7 +408,7 @@ describe('Sandbox Tools', () => {
 					},
 					sandboxContext,
 				)
-				const data = expectResultData(result, ResultSchemas.sandboxFile)
+				const data = expectResultData({ result, schema: ResultSchemas.sandboxFile })
 				expect(data.written).toBe(true)
 			})
 
@@ -422,7 +422,7 @@ describe('Sandbox Tools', () => {
 					},
 					sandboxContext,
 				)
-				const data = expectResultData(result, ResultSchemas.sandboxFile)
+				const data = expectResultData({ result, schema: ResultSchemas.sandboxFile })
 				expect(data.listing).toBeDefined()
 			})
 		})
@@ -430,11 +430,11 @@ describe('Sandbox Tools', () => {
 
 	describe('executeSandboxed', () => {
 		it('rejects bash execution', async () => {
-			const result = await executeSandboxed(
-				'echo "hello"',
-				'bash',
+			const result = await executeSandboxed({
+				code: 'echo "hello"',
+				language: 'bash',
 				context,
-			)
+			})
 			expect(result.success).toBe(false)
 			expect(result.error).toContain('Bash execution is disabled')
 		})

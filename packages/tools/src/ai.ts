@@ -45,6 +45,73 @@ function isEntityType(value: string): value is EntityType {
 	return EntityTypeSchema.safeParse(value).success
 }
 
+// Output schemas for AI tools
+const SentimentOutputSchema = z.object({
+	sentiment: z.string().describe('The detected sentiment (positive, negative, or neutral)'),
+	confidence: z.number().describe('Confidence score (0-1)'),
+	label: z.string().describe('Raw label from the model'),
+	allScores: z
+		.array(z.object({ label: z.string(), score: z.number() }))
+		.optional()
+		.describe('All scores when detailed mode is enabled'),
+})
+
+const SummarizeOutputSchema = z.object({
+	summary: z.string().describe('The generated summary'),
+	originalLength: z.number().describe('Character length of the original text'),
+	summaryLength: z.number().describe('Character length of the summary'),
+	compressionRatio: z.number().describe('Percentage of text reduced'),
+	style: z.enum(['brief', 'detailed', 'bullets']).describe('The summary style used'),
+})
+
+const TranslateOutputSchema = z.object({
+	translatedText: z.string().describe('The translated text'),
+	sourceLanguage: z.string().describe('Source language code or auto-detected'),
+	targetLanguage: z.string().describe('Target language code'),
+	originalLength: z.number().describe('Character length of the original text'),
+	translatedLength: z.number().describe('Character length of the translated text'),
+})
+
+const ImageGenerateOutputSchema = z.object({
+	image: z.string().describe('Base64-encoded image data'),
+	mimeType: z.string().describe('MIME type of the image (e.g., image/png)'),
+	width: z.number().describe('Width of the generated image'),
+	height: z.number().describe('Height of the generated image'),
+	prompt: z.string().describe('The prompt used to generate the image'),
+	dataUrl: z.string().describe('Data URL for embedding the image directly'),
+})
+
+const ClassifyOutputSchema = z.object({
+	categories: z.array(z.string()).describe('Matched categories'),
+	allCategories: z.array(z.string()).describe('All possible categories provided'),
+	confidence: z.enum(['high', 'low']).describe('Confidence level of the classification'),
+	rawResponse: z.string().describe('Raw response from the model'),
+})
+
+const NerOutputSchema = z.object({
+	entities: z
+		.record(z.string(), z.array(z.string()))
+		.describe('Extracted entities grouped by type'),
+	totalCount: z.number().describe('Total number of entities found'),
+	typesFound: z.array(z.string()).describe('Types of entities that were found'),
+})
+
+const EmbeddingOutputSchema = z.object({
+	embeddings: z.array(z.array(z.number())).describe('Vector embeddings for each input text'),
+	dimensions: z.number().describe('Dimensionality of the embedding vectors'),
+	count: z.number().describe('Number of embeddings generated'),
+	model: z
+		.enum(['bge-base-en', 'bge-small-en', 'bge-large-en'])
+		.optional()
+		.describe('The embedding model used'),
+})
+
+const QaOutputSchema = z.object({
+	answer: z.string().describe('The answer to the question'),
+	question: z.string().describe('The original question'),
+	quote: z.string().optional().describe('Relevant quote from the context if requested'),
+})
+
 /**
  * AI model constants - using valid model names from @cloudflare/workers-types AiModels interface.
  * These are the actual model identifiers that Cloudflare Workers AI accepts.
@@ -75,6 +142,7 @@ export const sentimentTool = createTool({
 		text: z.string().min(1).max(5000).describe('Text to analyze for sentiment'),
 		detailed: z.boolean().optional().default(false).describe('Return detailed emotion breakdown'),
 	}),
+	outputSchema: SentimentOutputSchema,
 	execute: async (params, context) => {
 		try {
 			if (!requireAI(context)) {
@@ -138,6 +206,7 @@ export const summarizeTool = createTool({
 			.default('brief')
 			.describe('Summary style'),
 	}),
+	outputSchema: SummarizeOutputSchema,
 	execute: async (params, context) => {
 		try {
 			if (!requireAI(context)) {
@@ -202,6 +271,7 @@ export const translateTool = createTool({
 			.optional()
 			.describe('Source language code (auto-detect if not specified)'),
 	}),
+	outputSchema: TranslateOutputSchema,
 	execute: async (params, context) => {
 		try {
 			if (!requireAI(context)) {
@@ -253,6 +323,7 @@ export const imageGenerateTool = createTool({
 		steps: z.number().optional().default(20).describe('Number of diffusion steps (1-50)'),
 		guidance: z.number().optional().default(7.5).describe('Guidance scale (1-20)'),
 	}),
+	outputSchema: ImageGenerateOutputSchema,
 	execute: async (params, context) => {
 		try {
 			if (!requireAI(context)) {
@@ -334,6 +405,7 @@ export const classifyTool = createTool({
 			.default(false)
 			.describe('Allow multiple categories to match'),
 	}),
+	outputSchema: ClassifyOutputSchema,
 	execute: async (params, context) => {
 		try {
 			if (!requireAI(context)) {
@@ -406,6 +478,7 @@ export const nerTool = createTool({
 			.optional()
 			.describe('Specific entity types to extract (all if not specified)'),
 	}),
+	outputSchema: NerOutputSchema,
 	execute: async (params, context) => {
 		try {
 			const { text, entityTypes } = params
@@ -499,6 +572,7 @@ export const embeddingTool = createTool({
 			.default('bge-base-en')
 			.describe('Embedding model to use'),
 	}),
+	outputSchema: EmbeddingOutputSchema,
 	execute: async (params, context) => {
 		try {
 			if (!requireAI(context)) {
@@ -557,6 +631,7 @@ export const qaTool = createTool({
 			})
 			.optional(),
 	}),
+	outputSchema: QaOutputSchema,
 	execute: async (params, context) => {
 		try {
 			if (!requireAI(context)) {

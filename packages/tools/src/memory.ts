@@ -20,6 +20,46 @@ const MemoryTypeSchema = z
 type MemoryType = z.infer<typeof MemoryTypeSchema>
 
 /**
+ * Output schema for recall_memory tool.
+ */
+const RecallMemoryOutputSchema = z.object({
+	found: z.boolean().describe('Whether any relevant memories were found'),
+	message: z.string().optional().describe('Message when no memories found'),
+	query: z.string().describe('The original search query'),
+	memories: z
+		.array(
+			z.object({
+				id: z.string().describe('Unique memory identifier'),
+				content: z.string().describe('The stored memory content'),
+				type: MemoryTypeSchema.describe('Type of memory'),
+				relevance: z.number().optional().describe('Relevance score (0-100)'),
+				createdAt: z.string().describe('ISO timestamp when memory was created'),
+				tags: z.array(z.string()).optional().describe('Tags associated with memory'),
+			}),
+		)
+		.describe('List of matching memories'),
+	count: z.number().optional().describe('Number of memories returned'),
+})
+
+/**
+ * Output schema for store_memory tool.
+ */
+const StoreMemoryOutputSchema = z.object({
+	stored: z.literal(true).describe('Indicates memory was stored successfully'),
+	memoryId: z.string().describe('Unique identifier for the stored memory'),
+	type: MemoryTypeSchema.describe('Type of memory stored'),
+	contentLength: z.number().describe('Length of stored content in characters'),
+	message: z.string().describe('Success confirmation message'),
+})
+
+/**
+ * Zod schema for validating Workers AI embedding response.
+ */
+const EmbeddingResponseSchema = z.object({
+	data: z.array(z.array(z.number())),
+})
+
+/**
  * Helper to check required bindings for memory tools.
  */
 function requireMemoryBindings(
@@ -30,14 +70,21 @@ function requireMemoryBindings(
 
 /**
  * Generate an embedding for text using Workers AI.
+ * Validates the API response shape using Zod.
  */
-async function generateEmbedding(ai: Ai, text: string): Promise<number[]> {
+async function generateEmbedding({ ai, text }: { ai: Ai; text: string }): Promise<number[]> {
 	const response = await ai.run('@cf/baai/bge-base-en-v1.5', { text: [text] })
-	const data = response as { data: number[][] }
-	if (!data.data?.[0]) {
-		throw new Error('Failed to generate embedding')
+	const parseResult = EmbeddingResponseSchema.safeParse(response)
+	if (!parseResult.success) {
+		throw new Error(
+			`Invalid embedding response: ${parseResult.error.message}. Response: ${JSON.stringify(response).slice(0, 200)}`,
+		)
 	}
-	return data.data[0]
+	const embedding = parseResult.data.data[0]
+	if (!embedding) {
+		throw new Error('Failed to generate embedding: empty response data')
+	}
+	return embedding
 }
 
 /**
@@ -79,6 +126,7 @@ export const recallMemoryTool = createTool({
 		type: MemoryTypeSchema.optional().describe('Filter by memory type'),
 		tags: z.array(z.string()).optional().describe('Filter by specific tags'),
 	}),
+	outputSchema: RecallMemoryOutputSchema,
 	execute: async (params, context): Promise<ToolResult<unknown>> => {
 		try {
 			if (!requireMemoryBindings(context)) {
@@ -91,7 +139,7 @@ export const recallMemoryTool = createTool({
 			const agentId = context.workspaceId
 
 			// Generate embedding for the query
-			const queryVector = await generateEmbedding(context.env.AI, query)
+			const queryVector = await generateEmbedding({ ai: context.env.AI, text: query })
 
 			// Build filter for Vectorize query
 			const filter: VectorizeVectorMetadataFilter = { agentId }
@@ -170,7 +218,8 @@ export const storeMemoryTool = createTool({
 		tags: z.array(z.string()).max(10).optional().describe('Tags for categorization and filtering'),
 		source: z.string().optional().describe('Source of this information (e.g., conversation ID)'),
 	}),
-	execute: async (params, context): Promise<ToolResult<unknown>> => {
+	outputSchema: StoreMemoryOutputSchema,
+	execute: async (params, context) => {
 		try {
 			if (!requireMemoryBindings(context)) {
 				return failure(
@@ -183,7 +232,7 @@ export const storeMemoryTool = createTool({
 			const memoryId = `mem_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`
 
 			// Generate embedding for the content
-			const embedding = await generateEmbedding(context.env.AI, content)
+			const embedding = await generateEmbedding({ ai: context.env.AI, text: content })
 
 			// Prepare metadata
 			const metadata: MemoryMetadata = {
