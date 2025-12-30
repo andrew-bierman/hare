@@ -1,0 +1,241 @@
+---
+title: Tools
+description: 59+ built-in tools for AI agents
+---
+
+# Tools
+
+The `hareai` SDK includes 59+ built-in tools that agents can use to interact with Cloudflare services and perform various operations.
+
+## Getting Tools
+
+```ts
+import { getSystemTools, getToolsByCategory } from 'hareai/tools'
+
+// Get all system tools
+const allTools = getSystemTools({
+  env,
+  workspaceId: 'my-workspace',
+  userId: 'user-123'
+})
+
+// Get tools by category
+const kvTools = getToolsByCategory({
+  category: 'kv',
+  context: { env, workspaceId: 'my-workspace', userId: 'user-123' }
+})
+```
+
+## Tool Categories
+
+### Cloudflare Native (17 tools)
+
+Tools for working with Cloudflare services.
+
+**KV Storage**
+| Tool | Description |
+|------|-------------|
+| `kv_get` | Get a value from KV storage |
+| `kv_put` | Set a value in KV storage |
+| `kv_delete` | Delete a value from KV storage |
+| `kv_list` | List keys in KV storage |
+
+**R2 Object Storage**
+| Tool | Description |
+|------|-------------|
+| `r2_get` | Get an object from R2 storage |
+| `r2_put` | Put an object in R2 storage |
+| `r2_delete` | Delete an object from R2 storage |
+| `r2_list` | List objects in R2 bucket |
+| `r2_head` | Get object metadata |
+
+**D1 Database**
+| Tool | Description |
+|------|-------------|
+| `sql_query` | Execute a read query on D1 |
+| `sql_execute` | Execute a write query on D1 |
+| `sql_batch` | Execute multiple queries in a batch |
+
+**HTTP**
+| Tool | Description |
+|------|-------------|
+| `http_request` | Make an HTTP request |
+| `http_get` | Make a GET request |
+| `http_post` | Make a POST request |
+
+**AI Search**
+| Tool | Description |
+|------|-------------|
+| `ai_search` | Search using AI |
+| `ai_search_answer` | Get AI-powered answers |
+
+### AI Tools (8 tools)
+
+Tools for AI operations using Workers AI.
+
+| Tool | Description |
+|------|-------------|
+| `sentiment` | Analyze text sentiment |
+| `summarize` | Summarize text content |
+| `translate` | Translate text between languages |
+| `image_generate` | Generate images from text |
+| `classify` | Classify text into categories |
+| `ner` | Named entity recognition |
+| `embedding` | Generate text embeddings |
+| `question_answer` | Answer questions about text |
+
+### Utility Tools (9 tools)
+
+General utility tools.
+
+| Tool | Description |
+|------|-------------|
+| `datetime` | Date/time operations |
+| `json` | JSON parsing and manipulation |
+| `text` | Text manipulation |
+| `math` | Mathematical operations |
+| `uuid` | Generate UUIDs |
+| `hash` | Generate hashes (MD5, SHA-256, etc.) |
+| `base64` | Base64 encoding/decoding |
+| `url` | URL parsing and manipulation |
+| `delay` | Wait for specified time |
+
+### Data Tools (7 tools)
+
+Tools for data processing.
+
+| Tool | Description |
+|------|-------------|
+| `rss` | Parse RSS feeds |
+| `scrape` | Web scraping |
+| `regex` | Regular expression operations |
+| `crypto` | Cryptographic operations |
+| `json_schema` | JSON Schema validation |
+| `csv` | CSV parsing and generation |
+| `template` | Template rendering |
+
+### Validation Tools (6 tools)
+
+Tools for data validation.
+
+| Tool | Description |
+|------|-------------|
+| `validate_email` | Validate email format |
+| `validate_phone` | Validate phone number format |
+| `validate_url` | Validate URL format |
+| `validate_credit_card` | Validate credit card numbers |
+| `validate_ip` | Validate IP addresses |
+| `validate_json` | Validate JSON structure |
+
+### Transform Tools (5 tools)
+
+Tools for data transformation.
+
+| Tool | Description |
+|------|-------------|
+| `markdown` | Markdown processing |
+| `diff` | Generate text diffs |
+| `qrcode` | Generate QR codes |
+| `compression` | Compress/decompress data |
+| `color` | Color format conversion |
+
+### Sandbox Tools (3 tools)
+
+Tools for code execution.
+
+| Tool | Description |
+|------|-------------|
+| `code_execute` | Execute code in a sandbox |
+| `code_validate` | Validate code syntax |
+| `sandbox_file` | File operations in sandbox |
+
+### Memory Tools (2 tools)
+
+Tools for vector memory storage.
+
+| Tool | Description |
+|------|-------------|
+| `store_memory` | Store data in Vectorize |
+| `recall_memory` | Recall data from Vectorize |
+
+### Integration Tools (2 tools)
+
+Tools for external integrations.
+
+| Tool | Description |
+|------|-------------|
+| `zapier` | Trigger Zapier webhooks |
+| `webhook` | Send webhook requests |
+
+## Creating Custom Tools
+
+```ts
+import { createTool, success, failure } from 'hareai/tools'
+import { z } from 'zod'
+
+const weatherTool = createTool({
+  id: 'get_weather',
+  description: 'Get current weather for a location',
+  inputSchema: z.object({
+    city: z.string().describe('City name'),
+    units: z.enum(['celsius', 'fahrenheit']).default('celsius')
+  }),
+  execute: async (params, context) => {
+    try {
+      const weather = await fetchWeather(params.city, params.units)
+      return success({ temperature: weather.temp, conditions: weather.conditions })
+    } catch (error) {
+      return failure(`Failed to fetch weather: ${error.message}`)
+    }
+  }
+})
+```
+
+## Tool Context
+
+Every tool receives a `ToolContext` with access to Cloudflare bindings:
+
+<AutoTypeTable path="packages/tools/src/types.ts" name="ToolContext" />
+
+## Tool Result
+
+Tools return a `ToolResult`:
+
+<AutoTypeTable path="packages/tools/src/types.ts" name="ToolResult" />
+
+## Using Tools with Agents
+
+### With HareEdgeAgent
+
+```ts
+import { HareEdgeAgent } from 'hareai'
+import { getSystemTools } from 'hareai/tools'
+
+const tools = getSystemTools({
+  env,
+  workspaceId: 'my-workspace',
+  userId: 'user-123'
+})
+
+const agent = new HareEdgeAgent({
+  name: 'My Agent',
+  instructions: 'You are a helpful assistant with access to many tools.',
+  model: '@cf/meta/llama-3.3-70b-instruct-fp8-fast',
+  ai: env.AI,
+  tools,
+})
+```
+
+### With HareAgent (Durable Object)
+
+HareAgent automatically loads system tools. To execute a tool via WebSocket:
+
+```ts
+ws.send(JSON.stringify({
+  type: 'execute_tool',
+  payload: {
+    toolId: 'kv_get',
+    params: { key: 'my-key' }
+  }
+}))
+```

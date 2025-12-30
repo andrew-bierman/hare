@@ -1,0 +1,169 @@
+---
+title: HareEdgeAgent
+description: Universal agent that works in any JavaScript environment
+---
+
+# HareEdgeAgent
+
+`HareEdgeAgent` is a lightweight, universal agent that works in any JavaScript environment - Edge, Node.js, or browser.
+
+## Usage
+
+```ts
+import { HareEdgeAgent, createWorkersAIModel } from 'hareai'
+
+const agent = new HareEdgeAgent({
+  name: 'My Agent',
+  instructions: 'You are a helpful assistant.',
+  model: '@cf/meta/llama-3.3-70b-instruct-fp8-fast',
+  ai: env.AI,
+})
+
+// Stream responses
+const response = await agent.stream([
+  { role: 'user', content: 'Hello!' }
+])
+
+for await (const chunk of response.textStream) {
+  console.log(chunk)
+}
+```
+
+## API Reference
+
+### Constructor Options
+
+<AutoTypeTable path="packages/agent/src/edge-agent.ts" name="AgentOptions" />
+
+### AgentStreamResponse
+
+The response from `agent.stream()`:
+
+<AutoTypeTable path="packages/agent/src/edge-agent.ts" name="AgentStreamResponse" />
+
+### AgentTool
+
+Tool definition for the agent:
+
+<AutoTypeTable path="packages/agent/src/edge-agent.ts" name="AgentTool" />
+
+## Factory Function
+
+For convenience, you can use the factory function:
+
+```ts
+import { createHareEdgeAgent, createWorkersAIModel } from 'hareai'
+
+const agent = createHareEdgeAgent({
+  name: 'My Agent',
+  instructions: 'You are a helpful assistant.',
+  model: '@cf/meta/llama-3.3-70b-instruct-fp8-fast',
+  ai: env.AI,
+})
+```
+
+## Methods
+
+### stream(messages)
+
+Stream a response from the agent.
+
+```ts
+const response = await agent.stream([
+  { role: 'user', content: 'Hello!' }
+])
+
+// Get streaming text
+for await (const chunk of response.textStream) {
+  process.stdout.write(chunk)
+}
+
+// Or get full text
+const fullText = await response.text
+```
+
+### generate(messages)
+
+Generate a non-streaming response.
+
+```ts
+const text = await agent.generate([
+  { role: 'user', content: 'Hello!' }
+])
+console.log(text)
+```
+
+### streamRaw(messages)
+
+Get the raw AI SDK result for use with `toDataStreamResponse()`:
+
+```ts
+const result = agent.streamRaw([
+  { role: 'user', content: 'Hello!' }
+])
+
+// Use with Vercel AI SDK response helpers
+return result.toDataStreamResponse()
+```
+
+## Examples
+
+### With Tools
+
+```ts
+import { z } from 'zod'
+import { HareEdgeAgent } from 'hareai'
+
+const weatherTool = {
+  id: 'get_weather',
+  description: 'Get current weather for a location',
+  inputSchema: {
+    type: 'object',
+    properties: {
+      location: { type: 'string', description: 'City name' }
+    }
+  },
+  execute: async ({ location }) => {
+    return { temperature: 72, condition: 'sunny' }
+  },
+}
+
+const agent = new HareEdgeAgent({
+  name: 'Weather Agent',
+  instructions: 'You can check the weather.',
+  model: '@cf/meta/llama-3.3-70b-instruct-fp8-fast',
+  ai: env.AI,
+  tools: [weatherTool],
+})
+
+const response = await agent.stream([
+  { role: 'user', content: 'What is the weather in San Francisco?' }
+])
+```
+
+### With Memory
+
+```ts
+import { createMemoryStore, toAgentMessages, HareEdgeAgent } from 'hareai'
+
+const memory = createMemoryStore({ db: env.DB })
+
+// Load conversation history
+const messages = await memory.getMessages({
+  conversationId: 'conv_123',
+  limit: 50,
+})
+
+const agent = new HareEdgeAgent({
+  name: 'My Agent',
+  instructions: 'You are helpful.',
+  model: '@cf/meta/llama-3.3-70b-instruct-fp8-fast',
+  ai: env.AI,
+})
+
+// Include previous messages in the stream
+const response = await agent.stream([
+  ...toAgentMessages(messages),
+  { role: 'user', content: 'Continue our conversation' }
+])
+```

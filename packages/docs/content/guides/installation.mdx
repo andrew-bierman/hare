@@ -1,0 +1,113 @@
+---
+title: Installation
+description: Install and configure the hareai SDK
+---
+
+# Installation
+
+## Requirements
+
+- **Runtime**: Bun 1.3+ or Node.js 20+
+- **Cloudflare Account**: With Workers AI enabled
+- **TypeScript**: 5.0+
+
+## Install the SDK
+
+```bash
+# Using npm
+npm install hareai
+
+# Using bun
+bun add hareai
+
+# Using pnpm
+pnpm add hareai
+```
+
+## Peer Dependencies
+
+The SDK requires these peer dependencies:
+
+```bash
+npm install ai zod agents
+```
+
+Optional peer dependencies for additional features:
+
+```bash
+# For MCP (Model Context Protocol) support
+npm install @modelcontextprotocol/sdk
+
+# For conversation persistence
+npm install drizzle-orm
+```
+
+## Cloudflare Bindings
+
+Configure your `wrangler.toml` with required bindings:
+
+```toml
+name = "my-agent"
+main = "src/index.ts"
+compatibility_date = "2024-12-01"
+compatibility_flags = ["nodejs_compat"]
+
+# Workers AI (required)
+[ai]
+binding = "AI"
+
+# D1 Database (for memory/persistence)
+[[d1_databases]]
+binding = "DB"
+database_name = "my-agent-db"
+database_id = "your-database-id"
+
+# KV Storage (optional, for caching)
+[[kv_namespaces]]
+binding = "KV"
+id = "your-kv-id"
+```
+
+## TypeScript Configuration
+
+Add the Cloudflare types:
+
+```json
+{
+  "compilerOptions": {
+    "types": ["@cloudflare/workers-types"]
+  }
+}
+```
+
+## Environment Types
+
+Create a types file for your environment:
+
+```ts
+// src/env.d.ts
+interface Env {
+  AI: Ai
+  DB: D1Database
+  KV?: KVNamespace
+}
+```
+
+## Verify Installation
+
+```ts
+import { HareEdgeAgent } from 'hareai'
+
+// This should compile without errors
+const agent = new HareEdgeAgent({
+  name: 'Test Agent',
+  instructions: 'Hello',
+  model: '@cf/meta/llama-3.3-70b-instruct-fp8-fast',
+  ai: {} as Ai,
+})
+```
+
+## Next Steps
+
+- [Getting Started Guide](/docs/guides/getting-started)
+- [HareEdgeAgent Reference](/docs/sdk/edge-agent)

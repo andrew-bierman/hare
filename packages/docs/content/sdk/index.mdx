@@ -1,0 +1,113 @@
+---
+title: SDK Reference
+description: Complete reference for the hareai SDK
+---
+
+# hareai SDK
+
+The `hareai` package provides everything you need to build AI agents on Cloudflare's edge network.
+
+## Installation
+
+```bash
+npm install hareai
+# or
+bun add hareai
+```
+
+### Peer Dependencies
+
+```bash
+npm install ai zod agents
+```
+
+## Entry Points
+
+The SDK provides multiple entry points for different use cases:
+
+| Import Path | Description |
+|-------------|-------------|
+| `hareai` | Main entry - universal exports (HareEdgeAgent, tools, types) |
+| `hareai/workers` | Workers-only exports (HareAgent, HareMcpAgent with Durable Objects) |
+| `hareai/tools` | All 59+ tools organized by category |
+| `hareai/types` | Complete type definitions |
+
+## Quick Example
+
+```ts
+import { createSimpleAgent, createWorkersAIModel } from 'hareai'
+import { getSystemTools } from 'hareai/tools'
+
+export default {
+  async fetch(request: Request, env: Env) {
+    const tools = getSystemTools({
+      env,
+      workspaceId: 'my-workspace',
+      userId: 'user-123'
+    })
+
+    const agent = createSimpleAgent({
+      model: createWorkersAIModel({
+        modelId: '@cf/meta/llama-3.3-70b-instruct-fp8-fast',
+        ai: env.AI
+      }),
+      tools,
+      systemPrompt: 'You are a helpful assistant.'
+    })
+
+    const response = await agent.chat('Hello!')
+    return new Response(response.text)
+  }
+}
+```
+
+## Core Exports
+
+### Agents
+
+- [HareEdgeAgent](/docs/sdk/edge-agent) - Universal agent that works anywhere
+- [HareAgent](/docs/sdk/hare-agent) - Full-featured Durable Object agent
+- [HareMcpAgent](/docs/sdk/mcp-agent) - MCP protocol support
+
+### Providers
+
+- [Workers AI](/docs/sdk/providers) - Cloudflare Workers AI integration
+
+### Utilities
+
+- [Memory Store](/docs/sdk/memory) - Conversation persistence with D1
+- [Router](/docs/sdk/router) - Request routing utilities
+- [Tools](/docs/sdk/tools) - 59+ built-in tools
+
+## TypeScript Types
+
+```ts
+import type {
+  HareAgentState,
+  ToolContext,
+  Tool,
+  AnyTool,
+  AgentConfig
+} from 'hareai/types'
+```
+
+## Durable Object Agents
+
+For stateful agents with persistence:
+
+```ts
+import { HareAgent, routeToHareAgent } from 'hareai/workers'
+
+// Export the Durable Object class
+export { HareAgent }
+
+export default {
+  async fetch(request: Request, env: Env) {
+    return routeToHareAgent({
+      request,
+      env,
+      agentId: 'my-agent'
+    })
+  }
+}
+```

@@ -1,0 +1,136 @@
+---
+title: Workers AI Provider
+description: Use Cloudflare Workers AI models with the Vercel AI SDK
+---
+
+# Workers AI Provider
+
+The Workers AI provider integrates Cloudflare's AI models with the Vercel AI SDK.
+
+## Usage
+
+```ts
+import { createWorkersAIModel, WORKERS_AI_MODELS } from 'hareai'
+
+const model = createWorkersAIModel({
+  modelId: '@cf/meta/llama-3.3-70b-instruct-fp8-fast',
+  ai: env.AI,
+})
+
+// Use with HareEdgeAgent
+import { HareEdgeAgent } from 'hareai'
+
+const agent = new HareEdgeAgent({
+  name: 'My Agent',
+  instructions: 'You are helpful.',
+  model: '@cf/meta/llama-3.3-70b-instruct-fp8-fast',
+  ai: env.AI,
+})
+
+// Or use directly with Vercel AI SDK
+import { generateText } from 'ai'
+
+const result = await generateText({
+  model,
+  prompt: 'Hello!',
+})
+```
+
+## Available Models
+
+### Chat Models
+
+| Model ID | Description |
+|----------|-------------|
+| `@cf/meta/llama-3.3-70b-instruct-fp8-fast` | Llama 3.3 70B (fast, recommended) |
+| `@cf/meta/llama-3.1-70b-instruct` | Llama 3.1 70B |
+| `@cf/meta/llama-3.1-8b-instruct` | Llama 3.1 8B (smaller, faster) |
+| `@cf/meta/llama-3.2-3b-instruct` | Llama 3.2 3B |
+| `@cf/meta/llama-3.2-1b-instruct` | Llama 3.2 1B |
+| `@cf/mistral/mistral-7b-instruct-v0.2` | Mistral 7B |
+| `@hf/thebloke/deepseek-coder-6.7b-instruct-awq` | DeepSeek Coder |
+
+### Embedding Models
+
+| Model ID | Dimensions |
+|----------|------------|
+| `@cf/baai/bge-base-en-v1.5` | 768 |
+| `@cf/baai/bge-large-en-v1.5` | 1024 |
+| `@cf/baai/bge-small-en-v1.5` | 384 |
+
+## API Reference
+
+### createWorkersAIModel
+
+<AutoTypeTable path="packages/agent/src/providers/workers-ai.ts" name="CreateWorkersAIModelInput" />
+
+```ts
+function createWorkersAIModel(input: CreateWorkersAIModelInput): LanguageModel
+```
+
+### generateEmbedding
+
+Generate an embedding for a single text:
+
+<AutoTypeTable path="packages/agent/src/providers/workers-ai.ts" name="GenerateEmbeddingInput" />
+
+```ts
+import { generateEmbedding } from 'hareai'
+
+const embedding = await generateEmbedding({
+  ai: env.AI,
+  text: 'Hello world',
+})
+// Returns: number[]
+```
+
+### generateEmbeddings
+
+Generate embeddings for multiple texts:
+
+<AutoTypeTable path="packages/agent/src/providers/workers-ai.ts" name="GenerateEmbeddingsInput" />
+
+```ts
+import { generateEmbeddings } from 'hareai'
+
+const embeddings = await generateEmbeddings({
+  ai: env.AI,
+  texts: ['Hello', 'World'],
+})
+// Returns: number[][]
+```
+
+## Constants
+
+```ts
+import { WORKERS_AI_MODELS, EMBEDDING_MODELS } from 'hareai'
+
+// All available chat model IDs
+console.log(WORKERS_AI_MODELS)
+
+// All available embedding model IDs
+console.log(EMBEDDING_MODELS)
+```
+
+## Wrangler Configuration
+
+Add the AI binding to your `wrangler.toml`:
+
+```toml
+[ai]
+binding = "AI"
+```
+
+Then access it in your worker:
+
+```ts
+export default {
+  async fetch(request: Request, env: Env) {
+    const model = createWorkersAIModel({
+      modelId: '@cf/meta/llama-3.3-70b-instruct-fp8-fast',
+      ai: env.AI,
+    })
+    // ...
+  }
+}
+```
