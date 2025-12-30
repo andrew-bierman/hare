@@ -25,7 +25,7 @@ const EmbedAgentParamSchema = z.object({
 
 const EmbedChatRequestSchema = z.object({
 	message: z.string().min(1, 'Message is required').max(10000),
-	sessionId: z.string().optional(),
+	sessionId: z.string().nullish(),
 })
 
 const EmbedAgentResponseSchema = z.object({
