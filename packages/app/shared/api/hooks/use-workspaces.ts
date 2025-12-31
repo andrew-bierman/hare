@@ -75,7 +75,10 @@ export function useCreateWorkspaceMutation() {
 export function useEnsureDefaultWorkspaceMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: () => apiClient.workspaces.ensureDefault(),
+		mutationFn: async () => {
+			const res = await api.workspaces['ensure-default'].$post()
+			return handleResponse(res)
+		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: workspaceKeys.list() })
 		},
