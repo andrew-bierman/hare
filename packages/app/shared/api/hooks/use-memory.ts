@@ -5,7 +5,7 @@
  */
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { api, handleResponse } from '../client'
+import { api } from '../client'
 
 // =============================================================================
 // Types
@@ -101,7 +101,8 @@ export function useMemoriesQuery(options: {
 					offset: offset.toString(),
 				},
 			})
-			return handleResponse(res)
+			if (!res.ok) throw new Error('Request failed')
+			return res.json()
 		},
 		enabled: enabled && !!workspaceId,
 	})
@@ -121,7 +122,8 @@ export function useCreateMemoryMutation(options: { agentId: string; workspaceId?
 				query: { workspaceId: workspaceId! },
 				json: data,
 			})
-			return handleResponse(res)
+			if (!res.ok) throw new Error('Request failed')
+			return res.json()
 		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({
@@ -144,7 +146,8 @@ export function useSearchMemoriesMutation(options: { agentId: string; workspaceI
 				query: { workspaceId: workspaceId! },
 				json: data,
 			})
-			return handleResponse(res)
+			if (!res.ok) throw new Error('Request failed')
+			return res.json()
 		},
 	})
 }
@@ -163,7 +166,8 @@ export function useUpdateMemoryMutation(options: { agentId: string; workspaceId?
 				query: { workspaceId: workspaceId! },
 				json: input.data,
 			})
-			return handleResponse(res)
+			if (!res.ok) throw new Error('Request failed')
+			return res.json()
 		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({
@@ -186,7 +190,8 @@ export function useDeleteMemoryMutation(options: { agentId: string; workspaceId?
 				param: { id: agentId, memoryId },
 				query: { workspaceId: workspaceId! },
 			})
-			return handleResponse(res)
+			if (!res.ok) throw new Error('Request failed')
+			return res.json()
 		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({
@@ -209,7 +214,8 @@ export function useClearMemoriesMutation(options: { agentId: string; workspaceId
 				param: { id: agentId },
 				query: { workspaceId: workspaceId! },
 			})
-			return handleResponse(res)
+			if (!res.ok) throw new Error('Request failed')
+			return res.json()
 		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({

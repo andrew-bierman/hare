@@ -1,7 +1,7 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
-import { api, handleResponse } from '../client'
+import { api } from '../client'
 import { analyticsKeys } from './query-keys'
 
 export interface AnalyticsParams {
@@ -24,7 +24,8 @@ export function useAnalyticsQuery(workspaceId: string | undefined, params?: Anal
 					groupBy: params?.groupBy,
 				},
 			})
-			return handleResponse(res)
+			if (!res.ok) throw new Error('Request failed')
+			return res.json()
 		},
 		enabled: !!workspaceId,
 		staleTime: 1000 * 60 * 5, // Cache for 5 minutes
