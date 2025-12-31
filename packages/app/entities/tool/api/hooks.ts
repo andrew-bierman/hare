@@ -91,22 +91,9 @@ export function useDeleteTool(workspaceId: string | undefined) {
 
 export function useTestTool(workspaceId: string | undefined) {
 	return useMutation({
-		mutationFn: async (data: {
-			config: {
-				url: string
-				method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
-				headers?: Record<string, string>
-				body?: string
-				bodyType?: 'json' | 'form' | 'text'
-				timeout?: number
-			}
-			inputSchema?: {
-				type: 'object'
-				properties?: Record<string, unknown>
-				required?: string[]
-			}
-			testInput?: Record<string, unknown>
-		}) => {
+		mutationFn: async (
+			data: Parameters<typeof api.tools.test.$post>[0]['json'],
+		) => {
 			const res = await api.tools.test.$post({
 				query: { workspaceId: workspaceId! },
 				json: data,
