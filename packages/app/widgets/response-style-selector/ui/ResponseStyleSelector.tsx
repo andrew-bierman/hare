@@ -8,7 +8,7 @@ import {
 	SelectValue,
 } from '@hare/ui/components/select'
 import { Label } from '@hare/ui/components/label'
-import { RESPONSE_STYLE_PRESETS, type ResponseStyle } from '@hare/config'
+import { Config, type ResponseStyle } from '@hare/config'
 
 export interface ResponseStyleSelectorProps {
 	value: ResponseStyle
@@ -23,7 +23,7 @@ export function ResponseStyleSelector({
 	disabled = false,
 	showLabel = true,
 }: ResponseStyleSelectorProps) {
-	const selectedPreset = RESPONSE_STYLE_PRESETS.find((p) => p.id === value)
+	const selectedPreset = Config.agents.responseStyles.find((p) => p.id === value)
 
 	return (
 		<div className="space-y-2">
@@ -44,7 +44,7 @@ export function ResponseStyleSelector({
 					</SelectValue>
 				</SelectTrigger>
 				<SelectContent>
-					{RESPONSE_STYLE_PRESETS.map((preset) => (
+					{Config.agents.responseStyles.map((preset) => (
 						<SelectItem key={preset.id} value={preset.id}>
 							<div className="flex flex-col gap-0.5">
 								<span className="font-medium">{preset.name}</span>

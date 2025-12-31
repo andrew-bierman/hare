@@ -8,11 +8,11 @@ import { Label } from '@hare/ui/components/label'
 import { ArrowRight, Github, Loader2, Rabbit } from 'lucide-react'
 import { type ChangeEvent, type FormEvent, useState } from 'react'
 import { toast } from 'sonner'
-import { APP_CONFIG, AUTH_CONTENT } from '@hare/config'
+import { Config } from '@hare/config'
 import { useOAuthProvidersQuery } from '../../shared/api/hooks'
 import { useSignInActions } from '../../features/auth'
 
-const { signIn: content, fields } = AUTH_CONTENT
+const { signIn: content, fields } = Config.content.auth
 
 // Google icon component (not available in lucide-react)
 function GoogleIcon({ className }: { className?: string }) {
@@ -81,7 +81,7 @@ export function SignInPage() {
 				return
 			}
 
-			toast.success(AUTH_CONTENT.success.signIn)
+			toast.success(Config.content.auth.success.signIn)
 			navigate({ to: '/dashboard' })
 		} catch (error) {
 			toast.error('An unexpected error occurred')
@@ -100,7 +100,7 @@ export function SignInPage() {
 						<Rabbit className="h-6 w-6 text-white" />
 					</div>
 					<span className="font-bold text-2xl bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">
-						{APP_CONFIG.name}
+						{Config.app.name}
 					</span>
 				</Link>
 			</div>

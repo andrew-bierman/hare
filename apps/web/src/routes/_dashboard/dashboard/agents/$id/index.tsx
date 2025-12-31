@@ -14,7 +14,7 @@ import { AgentInstructionsEditor } from '@hare/app/widgets/agent-builder'
 import { MemoryViewer } from '@hare/app/widgets/memory-viewer'
 import { ScheduledTasksSection } from '@hare/app/widgets/scheduled-tasks'
 import { ToolPicker } from '@hare/app/widgets/tool-picker'
-import { AGENT_LIMITS, AI_MODELS } from '@hare/config'
+import { Config } from '@hare/config'
 import { Badge } from '@hare/ui/components/badge'
 import { Button } from '@hare/ui/components/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@hare/ui/components/card'
@@ -61,6 +61,10 @@ import {
 import { type ChangeEvent, useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
 import { z } from 'zod'
+
+// Local references for cleaner code
+const AGENT_LIMITS = Config.agents.limits
+const AI_MODELS = Config.models.list
 
 export const Route = createFileRoute('/_dashboard/dashboard/agents/$id/')({
 	component: AgentBuilderPage,

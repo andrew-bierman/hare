@@ -1,6 +1,6 @@
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
 import { and, eq } from 'drizzle-orm'
-import { AGENT_LIMITS, AI_MODELS, getModelById } from '@hare/config'
+import { Config, getModelById } from '@hare/config'
 import { agents, agentTools, deployments, tools as toolsTable } from '@hare/db/schema'
 import type { Database } from '@hare/db'
 import { routeHttpToAgent } from '@hare/agent'
@@ -988,18 +988,18 @@ app.openapi(validateConfigRoute, async (c) => {
 
 	// Validate name
 	if (data.name !== undefined) {
-		if (data.name.length < AGENT_LIMITS.nameMinLength) {
+		if (data.name.length < Config.agents.limits.nameMinLength) {
 			errors.push({
 				field: 'name',
 				type: 'error',
-				message: `Name must be at least ${AGENT_LIMITS.nameMinLength} character`,
+				message: `Name must be at least ${Config.agents.limits.nameMinLength} character`,
 			})
 		}
-		if (data.name.length > AGENT_LIMITS.nameMaxLength) {
+		if (data.name.length > Config.agents.limits.nameMaxLength) {
 			errors.push({
 				field: 'name',
 				type: 'error',
-				message: `Name must be at most ${AGENT_LIMITS.nameMaxLength} characters`,
+				message: `Name must be at most ${Config.agents.limits.nameMaxLength} characters`,
 			})
 		}
 	} else {
@@ -1011,11 +1011,11 @@ app.openapi(validateConfigRoute, async (c) => {
 	}
 
 	// Validate description
-	if (data.description && data.description.length > AGENT_LIMITS.descriptionMaxLength) {
+	if (data.description && data.description.length > Config.agents.limits.descriptionMaxLength) {
 		warnings.push({
 			field: 'description',
 			type: 'warning',
-			message: `Description exceeds recommended length of ${AGENT_LIMITS.descriptionMaxLength} characters`,
+			message: `Description exceeds recommended length of ${Config.agents.limits.descriptionMaxLength} characters`,
 		})
 	}
 
@@ -1027,7 +1027,7 @@ app.openapi(validateConfigRoute, async (c) => {
 			errors.push({
 				field: 'model',
 				type: 'error',
-				message: `Unknown model: ${data.model}. Available models: ${AI_MODELS.map((m) => m.id).join(', ')}`,
+				message: `Unknown model: ${data.model}. Available models: ${Config.models.list.map((m) => m.id).join(', ')}`,
 			})
 		} else if (!modelInfo.supportsTools && data.toolIds && data.toolIds.length > 0) {
 			warnings.push({
@@ -1056,11 +1056,11 @@ app.openapi(validateConfigRoute, async (c) => {
 				type: 'error',
 				message: 'Instructions are required for deployment',
 			})
-		} else if (instructionsLength > AGENT_LIMITS.instructionsMaxLength) {
+		} else if (instructionsLength > Config.agents.limits.instructionsMaxLength) {
 			errors.push({
 				field: 'instructions',
 				type: 'error',
-				message: `Instructions exceed maximum length of ${AGENT_LIMITS.instructionsMaxLength} characters`,
+				message: `Instructions exceed maximum length of ${Config.agents.limits.instructionsMaxLength} characters`,
 			})
 		}
 
@@ -1129,11 +1129,11 @@ app.openapi(validateConfigRoute, async (c) => {
 	let toolsValid = true
 	const toolIds = data.toolIds || []
 
-	if (toolIds.length > AGENT_LIMITS.maxToolsPerAgent) {
+	if (toolIds.length > Config.agents.limits.maxToolsPerAgent) {
 		errors.push({
 			field: 'toolIds',
 			type: 'error',
-			message: `Too many tools. Maximum is ${AGENT_LIMITS.maxToolsPerAgent}`,
+			message: `Too many tools. Maximum is ${Config.agents.limits.maxToolsPerAgent}`,
 		})
 		toolsValid = false
 	}

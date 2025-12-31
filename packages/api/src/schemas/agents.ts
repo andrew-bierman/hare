@@ -1,8 +1,7 @@
 import { z } from '@hono/zod-openapi'
 import {
-	AGENT_LIMITS,
 	AGENT_STATUSES,
-	AI_MODELS,
+	Config,
 	DEPLOYMENT_STATUSES,
 	VALIDATION_ISSUE_SEVERITIES,
 } from '@hare/config'
@@ -12,20 +11,20 @@ import {
 // =============================================================================
 
 /**
- * Agent validation limits - derived from AGENT_LIMITS in @hare/config
+ * Agent validation limits - derived from Config.agents.limits in @hare/config
  * Additional validation constraints for config parameters are defined here
  */
 export const AGENT_VALIDATION = {
 	name: {
-		min: AGENT_LIMITS.nameMinLength,
-		max: AGENT_LIMITS.nameMaxLength,
+		min: Config.agents.limits.nameMinLength,
+		max: Config.agents.limits.nameMaxLength,
 	},
 	description: {
-		max: AGENT_LIMITS.descriptionMaxLength,
+		max: Config.agents.limits.descriptionMaxLength,
 	},
 	instructions: {
 		min: 1,
-		max: AGENT_LIMITS.instructionsMaxLength,
+		max: Config.agents.limits.instructionsMaxLength,
 	},
 	config: {
 		temperature: {
@@ -44,13 +43,13 @@ export const AGENT_VALIDATION = {
 			min: 0,
 		},
 	},
-	maxToolsPerAgent: AGENT_LIMITS.maxToolsPerAgent,
+	maxToolsPerAgent: Config.agents.limits.maxToolsPerAgent,
 } as const
 
 /**
- * Allowed AI model IDs - derived from AI_MODELS in @hare/config
+ * Allowed AI model IDs - derived from Config.models.list in @hare/config
  */
-export const ALLOWED_MODEL_IDS = AI_MODELS.map((m) => m.id)
+export const ALLOWED_MODEL_IDS = Config.models.list.map((m) => m.id)
 
 export type AllowedModelId = (typeof ALLOWED_MODEL_IDS)[number]
 

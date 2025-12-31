@@ -4,7 +4,7 @@ import {
 	InstructionsEditor,
 	type InstructionsEditorProps,
 } from '@hare/ui/components/instructions-editor'
-import { AGENT_LIMITS } from '@hare/config'
+import { Config } from '@hare/config'
 
 interface AgentInstructionsEditorProps extends Omit<InstructionsEditorProps, 'maxLength'> {
 	maxLength?: number
@@ -17,7 +17,7 @@ export function AgentInstructionsEditor({
 	placeholder = 'Write your agent instructions here. You can use Markdown formatting and template variables like {{user_name}}.',
 	minHeight = '300px',
 	maxHeight = '600px',
-	maxLength = AGENT_LIMITS.instructionsMaxLength,
+	maxLength = Config.agents.limits.instructionsMaxLength,
 	...props
 }: AgentInstructionsEditorProps) {
 	return (

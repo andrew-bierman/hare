@@ -1,6 +1,6 @@
 import { useWorkspace } from '@hare/app'
 import { useAgentQuery, useUpdateAgentMutation } from '@hare/app/shared/api'
-import { EMBED_COLOR_PRESETS, EMBED_COLORS, EMBED_POSITIONS, UI_TIMING } from '@hare/config'
+import { Config } from '@hare/config'
 import { Badge } from '@hare/ui/components/badge'
 import { Button } from '@hare/ui/components/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@hare/ui/components/card'
@@ -32,6 +32,16 @@ import {
 } from 'lucide-react'
 import { type ChangeEvent, useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
+
+// Local references for cleaner code
+const EMBED_COLOR_PRESETS = Config.ui.embed.colorPresets
+const EMBED_POSITIONS = Config.ui.embed.positions
+const EMBED_COLORS = {
+	DEFAULT_PRIMARY: Config.ui.embed.colors.defaultPrimary,
+	DARK_BG: Config.ui.embed.colors.dark.bg,
+	LIGHT_INPUT_BG: Config.ui.embed.colors.light.inputBg,
+} as const
+const UI_TIMING = Config.ui.timing
 
 export const Route = createFileRoute('/_dashboard/dashboard/agents/$id/embed')({
 	component: EmbedConfigPage,
@@ -159,7 +169,7 @@ function EmbedConfigPage() {
 			await navigator.clipboard.writeText(embedCode)
 			setCopied(true)
 			toast.success('Embed code copied to clipboard')
-			setTimeout(() => setCopied(false), UI_TIMING.CLIPBOARD_FEEDBACK_MS)
+			setTimeout(() => setCopied(false), UI_TIMING.clipboardFeedbackMs)
 		} catch {
 			toast.error('Failed to copy to clipboard')
 		}

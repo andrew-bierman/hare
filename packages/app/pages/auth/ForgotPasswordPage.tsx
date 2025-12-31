@@ -8,10 +8,10 @@ import { Label } from '@hare/ui/components/label'
 import { ArrowLeft, ArrowRight, CheckCircle, Loader2, Mail, Rabbit } from 'lucide-react'
 import { type ChangeEvent, type FormEvent, useState } from 'react'
 import { toast } from 'sonner'
-import { APP_CONFIG, AUTH_CONTENT } from '@hare/config'
+import { Config } from '@hare/config'
 import { requestPasswordReset } from '@hare/auth/client'
 
-const { forgotPassword: content, fields } = AUTH_CONTENT
+const { forgotPassword: content, fields } = Config.content.auth
 
 export function ForgotPasswordPage() {
 	const [isLoading, setIsLoading] = useState(false)
@@ -34,7 +34,7 @@ export function ForgotPasswordPage() {
 			}
 
 			setEmailSent(true)
-			toast.success(AUTH_CONTENT.success.passwordResetSent)
+			toast.success(Config.content.auth.success.passwordResetSent)
 		} catch (error) {
 			toast.error('An unexpected error occurred')
 			console.error(error)
@@ -50,7 +50,7 @@ export function ForgotPasswordPage() {
 				email,
 				redirectTo: `${window.location.origin}/reset-password`,
 			})
-			toast.success(AUTH_CONTENT.success.passwordResetSent)
+			toast.success(Config.content.auth.success.passwordResetSent)
 		} catch (error) {
 			toast.error('Failed to resend email')
 			console.error(error)
@@ -69,7 +69,7 @@ export function ForgotPasswordPage() {
 							<Rabbit className="h-6 w-6 text-white" />
 						</div>
 						<span className="font-bold text-2xl bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">
-							{APP_CONFIG.name}
+							{Config.app.name}
 						</span>
 					</Link>
 				</div>
@@ -126,7 +126,7 @@ export function ForgotPasswordPage() {
 						<Rabbit className="h-6 w-6 text-white" />
 					</div>
 					<span className="font-bold text-2xl bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">
-						{APP_CONFIG.name}
+						{Config.app.name}
 					</span>
 				</Link>
 			</div>

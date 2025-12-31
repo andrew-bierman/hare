@@ -1,6 +1,6 @@
 'use client'
 
-import { AGENT_TEMPLATES } from '@hare/config'
+import { Config } from '@hare/config'
 import { TemplateCard, ScratchCard } from './TemplateCard'
 import { Separator } from '@hare/ui/components/separator'
 
@@ -17,7 +17,7 @@ export function TemplateGallery({
 		<div className="space-y-8">
 			{/* Template Cards */}
 			<div className="grid gap-4 sm:grid-cols-2">
-				{AGENT_TEMPLATES.map((template) => (
+				{Config.agents.templates.map((template) => (
 					<TemplateCard
 						key={template.id}
 						template={template}

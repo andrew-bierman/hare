@@ -1,5 +1,5 @@
 import { createId } from '@hare/db'
-import { LOGGING_CONFIG } from '@hare/config'
+import { Config } from '@hare/config'
 import type { Context, Next } from 'hono'
 import type { HonoEnv } from '@hare/types'
 
@@ -44,7 +44,7 @@ export interface GetLogKeyOptions {
 function getLogKey(options: GetLogKeyOptions): string {
 	const { workspaceId, timestamp, id } = options
 	const ws = workspaceId || 'global'
-	return `${LOGGING_CONFIG.KEY_PREFIX}${ws}:${timestamp}:${id}`
+	return `${Config.logging.keyPrefix}${ws}:${timestamp}:${id}`
 }
 
 /**
@@ -100,20 +100,20 @@ async function storeLog(env: CloudflareEnv, log: RequestLog): Promise<void> {
 
 	try {
 		const key = getLogKey({ workspaceId: log.workspaceId, timestamp: log.timestamp, id: log.id })
-		await env.KV.put(key, JSON.stringify(log), { expirationTtl: LOGGING_CONFIG.TTL_SECONDS })
+		await env.KV.put(key, JSON.stringify(log), { expirationTtl: Config.logging.ttlSeconds })
 
 		// Also maintain a recent logs list for the workspace
-		const listKey = `${LOGGING_CONFIG.KEY_PREFIX}list:${log.workspaceId || 'global'}`
+		const listKey = `${Config.logging.keyPrefix}list:${log.workspaceId || 'global'}`
 		const existing = await env.KV.get(listKey)
 		const logIds: string[] = existing ? JSON.parse(existing) : []
 
 		// Add new log ID and keep only the most recent
 		logIds.unshift(log.id)
-		if (logIds.length > LOGGING_CONFIG.BATCH_SIZE) {
+		if (logIds.length > Config.logging.batchSize) {
 			logIds.pop()
 		}
 
-		await env.KV.put(listKey, JSON.stringify(logIds), { expirationTtl: LOGGING_CONFIG.TTL_SECONDS })
+		await env.KV.put(listKey, JSON.stringify(logIds), { expirationTtl: Config.logging.ttlSeconds })
 	} catch (error) {
 		console.error('Failed to store request log:', error)
 	}
@@ -209,13 +209,13 @@ export async function getLogs(
 	}
 
 	const workspaceId = params.workspaceId || 'global'
-	const limit = Math.min(params.limit || LOGGING_CONFIG.DEFAULT_LIMIT, LOGGING_CONFIG.MAX_LIMIT)
+	const limit = Math.min(params.limit || Config.logging.defaultLimit, Config.logging.maxLimit)
 	const offset = params.offset || 0
 
 	try {
 		// List all log keys for the workspace
-		const prefix = `${LOGGING_CONFIG.KEY_PREFIX}${workspaceId}:`
-		const list = await env.KV.list({ prefix, limit: LOGGING_CONFIG.STATS_LIMIT })
+		const prefix = `${Config.logging.keyPrefix}${workspaceId}:`
+		const list = await env.KV.list({ prefix, limit: Config.logging.statsLimit })
 
 		const allLogs: RequestLog[] = []
 
@@ -281,7 +281,7 @@ export interface LogStats {
  * Calculate stats from logs.
  */
 export async function getLogStats(env: CloudflareEnv, params: LogQueryParams): Promise<LogStats> {
-	const { logs } = await getLogs(env, { ...params, limit: LOGGING_CONFIG.STATS_LIMIT })
+	const { logs } = await getLogs(env, { ...params, limit: Config.logging.statsLimit })
 
 	const stats: LogStats = {
 		totalRequests: logs.length,
