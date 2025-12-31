@@ -306,6 +306,7 @@
       "name": "@hare/db",
       "version": "0.1.0",
       "dependencies": {
+        "@hare/config": "workspace:*",
         "@hare/types": "workspace:*",
         "zod": "^4.2.1",
       },
