@@ -1,7 +1,7 @@
-import { createFileRoute, Link, notFound } from '@tanstack/react-router'
 import { MDXProvider } from '@mdx-js/react'
+import { createFileRoute, Link, notFound } from '@tanstack/react-router'
 import type { ComponentType } from 'react'
-import { getDocPage, getDocCategories, type DocCategory } from '../../lib/docs/simple-docs'
+import { type DocCategory, getDocCategories, getDocPage } from '../../lib/docs/simple-docs'
 import 'highlight.js/styles/github-dark.css'
 
 // Custom MDX components
@@ -31,12 +31,7 @@ const mdxComponents = {
 	code: (props: React.HTMLAttributes<HTMLElement>) => {
 		const isInline = !props.className?.includes('hljs')
 		if (isInline) {
-			return (
-				<code
-					className="px-1.5 py-0.5 rounded bg-muted font-mono text-sm"
-					{...props}
-				/>
-			)
+			return <code className="px-1.5 py-0.5 rounded bg-muted font-mono text-sm" {...props} />
 		}
 		return <code {...props} />
 	},
@@ -47,10 +42,7 @@ const mdxComponents = {
 		/>
 	),
 	blockquote: (props: React.HTMLAttributes<HTMLQuoteElement>) => (
-		<blockquote
-			className="my-4 pl-4 border-l-4 border-muted-foreground/30 italic"
-			{...props}
-		/>
+		<blockquote className="my-4 pl-4 border-l-4 border-muted-foreground/30 italic" {...props} />
 	),
 	table: (props: React.HTMLAttributes<HTMLTableElement>) => (
 		<div className="my-4 overflow-x-auto">
@@ -92,8 +84,8 @@ function Sidebar({ categories, currentSlug }: { categories: DocCategory[]; curre
 						</h3>
 						<ul className="space-y-1">
 							{category.pages.map((page) => {
-								const isActive = page.slug === currentSlug ||
-									(currentSlug === '' && page.slug === 'index')
+								const isActive =
+									page.slug === currentSlug || (currentSlug === '' && page.slug === 'index')
 								return (
 									<li key={page.slug}>
 										<Link
