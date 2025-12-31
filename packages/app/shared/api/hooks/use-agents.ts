@@ -2,31 +2,8 @@
 
 import { queryOptions, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type { Agent, CreateAgentInput, UpdateAgentInput } from '@hare/types'
-import { api, ApiClientError } from '../client'
+import { api, handleResponse } from '../client'
 import { agentKeys } from './query-keys'
-
-/**
- * Helper to handle Hono RPC response with proper error handling.
- * Types are inferred from the response automatically.
- */
-async function handleResponse<T>(res: Response & { json(): Promise<T> }): Promise<T> {
-	if (!res.ok) {
-		let errorMessage = `Request failed with status ${res.status}`
-		let errorCode: string | undefined
-
-		try {
-			const error = (await res.json()) as { error: string; code?: string }
-			errorMessage = error.error ?? errorMessage
-			errorCode = error.code
-		} catch {
-			// Response wasn't JSON
-		}
-
-		throw new ApiClientError(errorMessage, res.status, errorCode)
-	}
-
-	return res.json()
-}
 
 /**
  * Query options for listing agents in a workspace.

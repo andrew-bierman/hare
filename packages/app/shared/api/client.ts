@@ -5,7 +5,7 @@
  * Types are inferred from the route definitions - no manual type maintenance needed.
  */
 
-import { hc } from 'hono/client'
+import { hc, type ClientResponse } from 'hono/client'
 import type { AppType } from '@hare/api'
 
 // =============================================================================
@@ -41,9 +41,11 @@ export function createApiClient(baseUrl?: string) {
 
 /**
  * Default API client instance.
- * Uses the auto-detected base URL.
+ * The `.api` accessor accounts for the basePath('/api') in the server routes,
+ * allowing clean access like `api.tools` instead of `client.api.tools`.
  */
-export const api = createApiClient()
+const client = createApiClient()
+export const api = client.api
 
 // =============================================================================
 // Error Handling
@@ -61,15 +63,33 @@ export class ApiClientError extends Error {
 }
 
 /**
- * Helper to handle response and extract JSON with proper error handling.
+ * Infer the success response type from a ClientResponse union.
+ * Extracts the data type from a 200 status response.
  */
-export async function handleResponse<T>(response: Response): Promise<T> {
+type InferSuccessData<T> = T extends ClientResponse<infer D, 200, string>
+	? D
+	: T extends ClientResponse<infer D, 201, string>
+		? D
+		: never
+
+/**
+ * Helper to handle response and extract JSON with proper error handling.
+ * Works with Hono's ClientResponse type for full type inference.
+ *
+ * @example
+ * const res = await api.agents.$get({ query: { workspaceId } })
+ * const data = await handleResponse(res)
+ * // data is typed as { agents: Agent[] }
+ */
+export async function handleResponse<T extends ClientResponse<unknown, number, string>>(
+	response: T,
+): Promise<InferSuccessData<T>> {
 	if (!response.ok) {
 		let errorMessage = `Request failed with status ${response.status}`
 		let errorCode: string | undefined
 
 		try {
-			const error = (await response.json()) as { error: string; code?: string }
+			const error = (await response.clone().json()) as { error: string; code?: string }
 			errorMessage = error.error
 			errorCode = error.code
 		} catch {
@@ -79,7 +99,7 @@ export async function handleResponse<T>(response: Response): Promise<T> {
 		throw new ApiClientError(errorMessage, response.status, errorCode)
 	}
 
-	return response.json() as Promise<T>
+	return response.json() as Promise<InferSuccessData<T>>
 }
 
 // Re-export the client type for convenience

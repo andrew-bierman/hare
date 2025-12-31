@@ -247,23 +247,23 @@ const exportConversationRoute = createRoute({
 })
 
 // Create app with proper typing (includes Bindings and Variables)
-const app = new OpenAPIHono<AuthEnv>()
+const baseApp = new OpenAPIHono<AuthEnv>()
 
 // Apply middleware stack for chat endpoint
 // 1. Require authentication
 // 2. Check if AI chat feature is enabled (feature flag)
 // 3. Enforce rate limiting
-app.use('/agents/:id/chat', authMiddleware)
-app.use('/agents/:id/chat', aiChatFeatureMiddleware)
-app.use('/agents/:id/chat', chatRateLimiter)
+baseApp.use('/agents/:id/chat', authMiddleware)
+baseApp.use('/agents/:id/chat', aiChatFeatureMiddleware)
+baseApp.use('/agents/:id/chat', chatRateLimiter)
 
 // List conversations, get messages, and export only need auth
-app.use('/agents/:id/conversations', authMiddleware)
-app.use('/conversations/:id/messages', authMiddleware)
-app.use('/conversations/:id/export', authMiddleware)
+baseApp.use('/agents/:id/conversations', authMiddleware)
+baseApp.use('/conversations/:id/messages', authMiddleware)
+baseApp.use('/conversations/:id/export', authMiddleware)
 
 // Chat with agent
-app.openapi(chatWithAgentRoute, async (c) => {
+const app = baseApp.openapi(chatWithAgentRoute, async (c) => {
 	const { id: agentId } = c.req.valid('param')
 	const { message, sessionId, metadata } = c.req.valid('json')
 	const db = getDb(c)
@@ -384,9 +384,8 @@ app.openapi(chatWithAgentRoute, async (c) => {
 		},
 	})
 })
-
 // List conversations
-app.openapi(listConversationsRoute, async (c) => {
+.openapi(listConversationsRoute, async (c) => {
 	const { id: agentId } = c.req.valid('param')
 	const db = getDb(c)
 
@@ -415,9 +414,8 @@ app.openapi(listConversationsRoute, async (c) => {
 
 	return c.json({ conversations: conversationsData }, 200)
 })
-
 // Get conversation messages
-app.openapi(getConversationMessagesRoute, async (c) => {
+.openapi(getConversationMessagesRoute, async (c) => {
 	const { id: conversationId } = c.req.valid('param')
 	const db = getDb(c)
 
@@ -439,9 +437,8 @@ app.openapi(getConversationMessagesRoute, async (c) => {
 
 	return c.json({ messages: messagesData }, 200)
 })
-
 // Export conversation
-app.openapi(exportConversationRoute, async (c) => {
+.openapi(exportConversationRoute, async (c) => {
 	const { id: conversationId } = c.req.valid('param')
 	const { format = 'json', includeMetadata = false } = c.req.valid('query')
 	const db = getDb(c)

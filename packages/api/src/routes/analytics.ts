@@ -92,14 +92,14 @@ const getAnalyticsRoute = createRoute({
 })
 
 // Create app with proper typing
-const app = new OpenAPIHono<WorkspaceEnv>()
+const baseApp = new OpenAPIHono<WorkspaceEnv>()
 
 // Apply middleware
-app.use('*', authMiddleware)
-app.use('*', workspaceMiddleware)
+baseApp.use('*', authMiddleware)
+baseApp.use('*', workspaceMiddleware)
 
 // Register routes
-app.openapi(getAnalyticsRoute, async (c) => {
+const app = baseApp.openapi(getAnalyticsRoute, async (c) => {
 	const { startDate, endDate, agentId, groupBy = 'day' } = c.req.valid('query')
 	const db = getDb(c)
 	const workspace = c.get('workspace')

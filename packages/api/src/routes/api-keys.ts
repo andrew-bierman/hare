@@ -214,14 +214,14 @@ const deleteApiKeyRoute = createRoute({
 // Route Handlers
 // =============================================================================
 
-const app = new OpenAPIHono<WorkspaceEnv>()
+const baseApp = new OpenAPIHono<WorkspaceEnv>()
 
 // Apply middleware
-app.use('*', authMiddleware)
-app.use('*', workspaceMiddleware)
+baseApp.use('*', authMiddleware)
+baseApp.use('*', workspaceMiddleware)
 
 // List API keys
-app.openapi(listApiKeysRoute, async (c) => {
+const app = baseApp.openapi(listApiKeysRoute, async (c) => {
 	const db = getDb(c)
 	const workspace = c.get('workspace')
 
@@ -229,9 +229,8 @@ app.openapi(listApiKeysRoute, async (c) => {
 
 	return c.json({ apiKeys: keys.map(serializeApiKey) }, 200)
 })
-
 // Create API key
-app.openapi(createApiKeyRoute, async (c) => {
+.openapi(createApiKeyRoute, async (c) => {
 	const data = c.req.valid('json')
 	const db = getDb(c)
 	const user = c.get('user')
@@ -279,9 +278,8 @@ app.openapi(createApiKeyRoute, async (c) => {
 		201,
 	)
 })
-
 // Get API key
-app.openapi(getApiKeyRoute, async (c) => {
+.openapi(getApiKeyRoute, async (c) => {
 	const { id } = c.req.valid('param')
 	const db = getDb(c)
 	const workspace = c.get('workspace')
@@ -297,9 +295,8 @@ app.openapi(getApiKeyRoute, async (c) => {
 
 	return c.json(serializeApiKey(key), 200)
 })
-
 // Update API key
-app.openapi(updateApiKeyRoute, async (c) => {
+.openapi(updateApiKeyRoute, async (c) => {
 	const { id } = c.req.valid('param')
 	const data = c.req.valid('json')
 	const db = getDb(c)
@@ -339,9 +336,8 @@ app.openapi(updateApiKeyRoute, async (c) => {
 
 	return c.json(serializeApiKey(updated), 200)
 })
-
 // Delete/revoke API key
-app.openapi(deleteApiKeyRoute, async (c) => {
+.openapi(deleteApiKeyRoute, async (c) => {
 	const { id } = c.req.valid('param')
 	const db = getDb(c)
 	const workspace = c.get('workspace')
