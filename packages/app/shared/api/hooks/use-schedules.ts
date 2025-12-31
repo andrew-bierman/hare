@@ -2,7 +2,7 @@
 
 import type { CreateScheduleInput, UpdateScheduleInput } from '@hare/types'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { api, handleResponse } from '../client'
+import { api } from '@hare/api-client'
 
 export interface ScheduleListParams {
 	status?: 'pending' | 'active' | 'paused' | 'completed' | 'cancelled'
@@ -34,7 +34,8 @@ export function useSchedulesQuery(input: UseSchedulesInput) {
 				param: { id: agentId! },
 				query: { workspaceId: workspaceId!, status: params?.status },
 			})
-			return handleResponse(res)
+			if (!res.ok) throw new Error('Request failed')
+			return res.json()
 		},
 		enabled: !!agentId && !!workspaceId,
 	})
@@ -61,7 +62,8 @@ export function useScheduleQuery(input: UseScheduleInput) {
 				param: { id: agentId!, scheduleId: scheduleId! },
 				query: { workspaceId: workspaceId! },
 			})
-			return handleResponse(res)
+			if (!res.ok) throw new Error('Request failed')
+			return res.json()
 		},
 		enabled: !!agentId && !!scheduleId && !!workspaceId,
 	})
@@ -79,7 +81,8 @@ export function useCreateScheduleMutation(agentId: string | undefined, workspace
 				query: { workspaceId: workspaceId! },
 				json: data,
 			})
-			return handleResponse(res)
+			if (!res.ok) throw new Error('Request failed')
+			return res.json()
 		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['schedules', workspaceId, agentId] })
@@ -99,7 +102,8 @@ export function useUpdateScheduleMutation(agentId: string | undefined, workspace
 				query: { workspaceId: workspaceId! },
 				json: data,
 			})
-			return handleResponse(res)
+			if (!res.ok) throw new Error('Request failed')
+			return res.json()
 		},
 		onSuccess: (_, { scheduleId }) => {
 			queryClient.invalidateQueries({ queryKey: ['schedules', workspaceId, agentId] })
@@ -119,7 +123,8 @@ export function useDeleteScheduleMutation(agentId: string | undefined, workspace
 				param: { id: agentId!, scheduleId },
 				query: { workspaceId: workspaceId! },
 			})
-			return handleResponse(res)
+			if (!res.ok) throw new Error('Request failed')
+			return res.json()
 		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['schedules', workspaceId, agentId] })
@@ -153,7 +158,8 @@ export function useScheduleExecutionsQuery(input: UseScheduleExecutionsInput) {
 					offset: params?.offset?.toString(),
 				},
 			})
-			return handleResponse(res)
+			if (!res.ok) throw new Error('Request failed')
+			return res.json()
 		},
 		enabled: !!agentId && !!scheduleId && !!workspaceId,
 	})
@@ -184,7 +190,8 @@ export function useAgentExecutionsQuery(input: UseAgentExecutionsInput) {
 					offset: params?.offset?.toString(),
 				},
 			})
-			return handleResponse(res)
+			if (!res.ok) throw new Error('Request failed')
+			return res.json()
 		},
 		enabled: !!agentId && !!workspaceId,
 	})

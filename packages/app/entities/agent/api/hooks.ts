@@ -1,7 +1,7 @@
 'use client'
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { api, handleResponse } from '../../../shared/api/client'
+import { api } from '@hare/api-client'
 import type { Agent, CreateAgentInput, UpdateAgentInput } from '@hare/types'
 
 // Re-export types for convenience
@@ -12,7 +12,8 @@ export function useAgents(workspaceId: string | undefined) {
 		queryKey: ['agents', workspaceId],
 		queryFn: async () => {
 			const res = await api.agents.$get({ query: { workspaceId: workspaceId! } })
-			return handleResponse(res)
+			if (!res.ok) throw new Error('Request failed')
+			return res.json()
 		},
 		enabled: !!workspaceId,
 	})
@@ -26,7 +27,8 @@ export function useAgent(id: string | undefined, workspaceId: string | undefined
 				param: { id: id! },
 				query: { workspaceId: workspaceId! },
 			})
-			return handleResponse(res)
+			if (!res.ok) throw new Error('Request failed')
+			return res.json()
 		},
 		enabled: !!id && !!workspaceId,
 	})
@@ -40,7 +42,8 @@ export function useCreateAgent(workspaceId: string | undefined) {
 				query: { workspaceId: workspaceId! },
 				json: data,
 			})
-			return handleResponse(res)
+			if (!res.ok) throw new Error('Request failed')
+			return res.json()
 		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['agents', workspaceId] })
@@ -57,7 +60,8 @@ export function useUpdateAgent(workspaceId: string | undefined) {
 				query: { workspaceId: workspaceId! },
 				json: data,
 			})
-			return handleResponse(res)
+			if (!res.ok) throw new Error('Request failed')
+			return res.json()
 		},
 		onSuccess: (_, { id }) => {
 			queryClient.invalidateQueries({ queryKey: ['agents', workspaceId] })
@@ -74,7 +78,8 @@ export function useDeleteAgent(workspaceId: string | undefined) {
 				param: { id },
 				query: { workspaceId: workspaceId! },
 			})
-			return handleResponse(res)
+			if (!res.ok) throw new Error('Request failed')
+			return res.json()
 		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['agents', workspaceId] })
@@ -91,7 +96,8 @@ export function useDeployAgent(workspaceId: string | undefined) {
 				query: { workspaceId: workspaceId! },
 				json: { version },
 			})
-			return handleResponse(res)
+			if (!res.ok) throw new Error('Request failed')
+			return res.json()
 		},
 		onSuccess: (_, { id }) => {
 			queryClient.invalidateQueries({ queryKey: ['agents', workspaceId] })
@@ -116,7 +122,8 @@ export function useAgentPreview(options: {
 				query: { workspaceId: workspaceId! },
 				json: overrides ?? {},
 			})
-			return handleResponse(res)
+			if (!res.ok) throw new Error('Request failed')
+			return res.json()
 		},
 	})
 }
@@ -141,7 +148,8 @@ export function useAgentPreviewQuery(options: {
 				query: { workspaceId: workspaceId! },
 				json: overrides ?? {},
 			})
-			return handleResponse(res)
+			if (!res.ok) throw new Error('Request failed')
+			return res.json()
 		},
 		enabled: enabled && !!agentId && !!workspaceId,
 		staleTime: 30000,

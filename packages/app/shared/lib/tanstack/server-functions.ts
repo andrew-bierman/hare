@@ -14,15 +14,17 @@
  * // In a route file
  * import { createServerFn } from '@tanstack/react-start/server'
  *
+ * import { api } from '@hare/api-client'
+ *
  * const getAgent = createServerFn({ method: 'GET' })
  *   .validator((input: { id: string; workspaceId: string }) => input)
  *   .handler(async ({ data }) => {
- *     const { api, handleResponse } = await import('../api/client')
  *     const res = await api.agents[':id'].$get({
  *       param: { id: data.id },
  *       query: { workspaceId: data.workspaceId },
  *     })
- *     return handleResponse(res)
+ *     if (!res.ok) throw new Error('Failed to fetch agent')
+ *     return res.json()
  *   })
  *
  * // In a route component with loader
@@ -52,58 +54,63 @@ export interface ServerFnInput<T> {
  * const listAgents = createServerFn({ method: 'GET' })
  *   .validator((input: { workspaceId: string }) => input)
  *   .handler(async ({ data }) => {
- *     const { api, handleResponse } = await import('../api/client')
+ *     // api imported at top of file
  *     const res = await api.agents.$get({ query: { workspaceId: data.workspaceId } })
- *     return handleResponse(res)
+ *     if (!res.ok) throw new Error('Failed to list agents')
+ *     return res.json()
  *   })
  *
  * 2. Get single resource:
  * const getAgent = createServerFn({ method: 'GET' })
  *   .validator((input: { id: string; workspaceId: string }) => input)
  *   .handler(async ({ data }) => {
- *     const { api, handleResponse } = await import('../api/client')
+ *     // api imported at top of file
  *     const res = await api.agents[':id'].$get({
  *       param: { id: data.id },
  *       query: { workspaceId: data.workspaceId },
  *     })
- *     return handleResponse(res)
+ *     if (!res.ok) throw new Error('Failed to get agent')
+ *     return res.json()
  *   })
  *
  * 3. Create resource:
  * const createAgent = createServerFn({ method: 'POST' })
  *   .validator((input: { workspaceId: string; data: CreateAgentInput }) => input)
  *   .handler(async ({ data }) => {
- *     const { api, handleResponse } = await import('../api/client')
+ *     // api imported at top of file
  *     const res = await api.agents.$post({
  *       query: { workspaceId: data.workspaceId },
  *       json: data.data,
  *     })
- *     return handleResponse(res)
+ *     if (!res.ok) throw new Error('Failed to create agent')
+ *     return res.json()
  *   })
  *
  * 4. Update resource:
  * const updateAgent = createServerFn({ method: 'POST' })
  *   .validator((input: { id: string; workspaceId: string; data: UpdateAgentInput }) => input)
  *   .handler(async ({ data }) => {
- *     const { api, handleResponse } = await import('../api/client')
+ *     // api imported at top of file
  *     const res = await api.agents[':id'].$patch({
  *       param: { id: data.id },
  *       query: { workspaceId: data.workspaceId },
  *       json: data.data,
  *     })
- *     return handleResponse(res)
+ *     if (!res.ok) throw new Error('Failed to update agent')
+ *     return res.json()
  *   })
  *
  * 5. Delete resource:
  * const deleteAgent = createServerFn({ method: 'POST' })
  *   .validator((input: { id: string; workspaceId: string }) => input)
  *   .handler(async ({ data }) => {
- *     const { api, handleResponse } = await import('../api/client')
+ *     // api imported at top of file
  *     const res = await api.agents[':id'].$delete({
  *       param: { id: data.id },
  *       query: { workspaceId: data.workspaceId },
  *     })
- *     return handleResponse(res)
+ *     if (!res.ok) throw new Error('Failed to delete agent')
+ *     return res.json()
  *   })
  */
 

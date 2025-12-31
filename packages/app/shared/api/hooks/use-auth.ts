@@ -1,7 +1,7 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
-import { api, handleResponse } from '../client'
+import { api } from '@hare/api-client'
 import { authKeys } from './query-keys'
 
 /** Auth provider cache TTL (1 hour) - providers don't change at runtime */
@@ -12,7 +12,8 @@ export function useOAuthProvidersQuery() {
 		queryKey: authKeys.providers(),
 		queryFn: async () => {
 			const res = await api.auth.providers.$get()
-			const result = await handleResponse(res)
+			if (!res.ok) throw new Error('Request failed')
+			const result = await res.json()
 			return result.providers
 		},
 		staleTime: AUTH_PROVIDER_CACHE_TTL_MS,
