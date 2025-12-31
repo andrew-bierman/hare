@@ -1,7 +1,7 @@
 import { createId } from '@hare/db'
 import { config } from '@hare/config'
 import type { Context, Next } from 'hono'
-import type { HonoEnv } from '@hare/types'
+import type { CloudflareEnv, HonoEnv } from '@hare/types'
 
 // =============================================================================
 // Types
