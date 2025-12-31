@@ -8,10 +8,10 @@ import { Label } from '@hare/ui/components/label'
 import { ArrowRight, CheckCircle, Loader2, Rabbit, XCircle } from 'lucide-react'
 import { type ChangeEvent, type FormEvent, useState } from 'react'
 import { toast } from 'sonner'
-import { APP_CONFIG, AUTH_CONTENT } from '@hare/config'
+import { config } from '@hare/config'
 import { resetPassword } from '@hare/auth/client'
 
-const { resetPassword: content, validation } = AUTH_CONTENT
+const { resetPassword: content, validation } = config.content.auth
 
 interface ResetPasswordPageProps {
 	token: string | null
@@ -34,7 +34,7 @@ export function ResetPasswordPage({ token }: ResetPasswordPageProps) {
 							<Rabbit className="h-6 w-6 text-white" />
 						</div>
 						<span className="font-bold text-2xl bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">
-							{APP_CONFIG.name}
+							{config.app.name}
 						</span>
 					</Link>
 				</div>
@@ -77,7 +77,7 @@ export function ResetPasswordPage({ token }: ResetPasswordPageProps) {
 							<Rabbit className="h-6 w-6 text-white" />
 						</div>
 						<span className="font-bold text-2xl bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">
-							{APP_CONFIG.name}
+							{config.app.name}
 						</span>
 					</Link>
 				</div>
@@ -143,7 +143,7 @@ export function ResetPasswordPage({ token }: ResetPasswordPageProps) {
 			}
 
 			setResetComplete(true)
-			toast.success(AUTH_CONTENT.success.passwordReset)
+			toast.success(config.content.auth.success.passwordReset)
 		} catch (error) {
 			toast.error('An unexpected error occurred')
 			console.error(error)
@@ -161,7 +161,7 @@ export function ResetPasswordPage({ token }: ResetPasswordPageProps) {
 						<Rabbit className="h-6 w-6 text-white" />
 					</div>
 					<span className="font-bold text-2xl bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">
-						{APP_CONFIG.name}
+						{config.app.name}
 					</span>
 				</Link>
 			</div>

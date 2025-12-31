@@ -17,11 +17,11 @@ import {
 	Wrench,
 } from 'lucide-react'
 import { useWorkspace } from '../../app/providers'
-import { AI_MODELS, DASHBOARD_CONTENT, UI_TEXT } from '@hare/config'
+import { config } from '@hare/config'
 import type { Agent } from '@hare/types'
 import { useAgentsQuery, useUsageQuery } from '../../shared/api/hooks'
 
-const { home: content } = DASHBOARD_CONTENT
+const { home: content } = config.content.dashboard
 
 function StatCardSkeleton() {
 	return (
@@ -77,9 +77,12 @@ export function DashboardPage() {
 	}
 
 	const getModelName = (modelId: string) => {
-		const model = AI_MODELS.find((m) => m.id === modelId)
+		const model = config.models.list.find((m) => m.id === modelId)
 		return model?.name || modelId
 	}
+
+	const usage = usageData?.usage
+	const totalTokens = (usage?.totalTokensIn ?? 0) + (usage?.totalTokensOut ?? 0)
 
 	const stats = [
 		{
@@ -92,7 +95,7 @@ export function DashboardPage() {
 		},
 		{
 			title: content.stats.apiCalls.title,
-			value: formatNumber(usageData?.totalCalls ?? 0),
+			value: formatNumber(usage?.totalMessages ?? 0),
 			description: content.stats.apiCalls.description,
 			icon: MessageSquare,
 			color: 'bg-blue-500',
@@ -100,8 +103,8 @@ export function DashboardPage() {
 		},
 		{
 			title: content.stats.tokensUsed.title,
-			value: formatNumber(usageData?.totalTokens ?? 0),
-			description: `${formatNumber(usageData?.inputTokens ?? 0)} ${content.stats.tokensUsed.description.replace('in / out', '')} ${formatNumber(usageData?.outputTokens ?? 0)}`,
+			value: formatNumber(totalTokens),
+			description: `${formatNumber(usage?.totalTokensIn ?? 0)} ${content.stats.tokensUsed.description.replace('in / out', '')} ${formatNumber(usage?.totalTokensOut ?? 0)}`,
 			icon: TrendingUp,
 			color: 'bg-emerald-500',
 			trend: null,
@@ -122,7 +125,7 @@ export function DashboardPage() {
 				return (
 					<Badge className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 gap-1">
 						<span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-						{DASHBOARD_CONTENT.agents.status.deployed}
+						{config.content.dashboard.agents.status.deployed}
 					</Badge>
 				)
 			case 'draft':
@@ -131,7 +134,7 @@ export function DashboardPage() {
 						variant="secondary"
 						className="bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20"
 					>
-						{DASHBOARD_CONTENT.agents.status.draft}
+						{config.content.dashboard.agents.status.draft}
 					</Badge>
 				)
 			default:
@@ -285,13 +288,13 @@ export function DashboardPage() {
 											{getStatusBadge(agent.status)}
 										</div>
 										<p className="text-xs sm:text-sm text-muted-foreground line-clamp-2 mb-3">
-											{agent.description || UI_TEXT.noDescription}
+											{agent.description || config.ui.text.noDescription}
 										</p>
 										<div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
 											<div className="flex items-center gap-1 bg-muted/50 px-2 py-1 rounded-full">
 												<Wrench className="h-3 w-3" />
 												<span>
-													{agent.toolIds?.length || 0} {UI_TEXT.tools}
+													{agent.toolIds?.length || 0} {config.ui.text.tools}
 												</span>
 											</div>
 											<div className="flex items-center gap-1 bg-muted/50 px-2 py-1 rounded-full">

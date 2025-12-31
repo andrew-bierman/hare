@@ -26,8 +26,9 @@ export const JsonSchemaPropertySchema = z
 /**
  * JSON Schema object.
  * Represents the inputSchema for tools, allowing arbitrary JSON Schema properties.
+ * Uses z.unknown() for values to be compatible with Record<string, unknown> from @hare/types.
  */
-export const JsonSchemaSchema = z.record(z.string(), JsonSchemaPropertySchema)
+export const JsonSchemaSchema = z.record(z.string(), z.unknown())
 
 /**
  * Metadata schema for chat messages.

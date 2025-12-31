@@ -11,7 +11,7 @@
  */
 
 import type { AgentStatus } from '@hare/types'
-import { useLiveQuery, eq, or } from '@tanstack/react-db'
+import { useLiveQuery, eq } from '@tanstack/react-db'
 import { useMemo } from 'react'
 import {
 	useAgentCollection,
@@ -60,15 +60,20 @@ export function useLiveAgentsByStatus(options: {
 	const { workspaceId, status } = options
 	const collection = useAgentCollection(workspaceId)
 	const statuses = Array.isArray(status) ? status : [status]
+	const statusSet = new Set(statuses)
 
-	return useLiveQuery(
-		(q) =>
-			q
-				.from({ agent: collection })
-				.where((row) => or(...statuses.map((s) => eq(row.agent.status, s))))
-				.orderBy((row) => row.agent.updatedAt, 'desc'),
-		[workspaceId, ...statuses],
+	// Use client-side filtering for multiple statuses to avoid tuple type issues with or()
+	const result = useLiveQuery(
+		(q) => q.from({ agent: collection }).orderBy((row) => row.agent.updatedAt, 'desc'),
+		[workspaceId],
 	)
+
+	const filteredData = useMemo(() => {
+		if (!result.data) return result.data
+		return result.data.filter((row) => statusSet.has(row.status))
+	}, [result.data, statusSet])
+
+	return { ...result, data: filteredData }
 }
 
 /**
@@ -97,7 +102,7 @@ export function useLiveAgentsWithTool(options: { workspaceId: string; toolId: st
 
 	const filteredData = useMemo(() => {
 		if (!result.data) return []
-		return result.data.filter(({ agent }) => agent.toolIds?.includes(toolId))
+		return result.data.filter((row) => row.toolIds?.includes(toolId))
 	}, [result.data, toolId])
 
 	return { ...result, data: filteredData }
