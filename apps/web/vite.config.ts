@@ -33,8 +33,7 @@ export default defineConfig({
 	},
 	resolve: {
 		alias: {
-			// Polyfill Node.js path module for browser (fumadocs-mdx needs it)
-			path: 'path-browserify',
+			// Note: path-browserify removed - causes CommonJS compatibility issues in Workers
 			// Note: fumadocs-mdx:collections/* aliases removed - using relative imports instead
 			// to avoid absolute path bundling issues with Cloudflare Workers
 			'web-app': path.resolve(__dirname, './src'),
