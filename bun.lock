@@ -351,6 +351,20 @@
         "drizzle-zod": "^0.8.0",
       },
     },
+    "packages/docs": {
+      "name": "@hare/docs",
+      "version": "0.1.0",
+      "bin": {
+        "hare-docs": "./src/cli.ts",
+      },
+      "dependencies": {
+        "typescript": "^5",
+      },
+      "devDependencies": {
+        "@hare/typescript-config": "workspace:*",
+        "@types/node": "^25.0.3",
+      },
+    },
     "packages/sdk": {
       "name": "hareai",
       "version": "0.1.0",
@@ -786,6 +800,8 @@
     "@hare/config": ["@hare/config@workspace:packages/config"],
 
     "@hare/db": ["@hare/db@workspace:packages/db"],
+
+    "@hare/docs": ["@hare/docs@workspace:packages/docs"],
 
     "@hare/scripts": ["@hare/scripts@workspace:scripts"],
 

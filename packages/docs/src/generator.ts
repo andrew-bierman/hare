@@ -1,11 +1,8 @@
-#!/usr/bin/env bun
 /**
- * Auto-generate MDX documentation from TypeScript source files.
+ * Documentation generator using TypeScript AST.
  *
- * Usage: bun run scripts/generate-docs.ts
- *
- * This script extracts JSDoc comments, interfaces, classes, and functions
- * from the SDK packages and generates MDX documentation files.
+ * Extracts JSDoc comments, interfaces, classes, functions, and tool definitions
+ * from TypeScript source files and generates MDX documentation.
  */
 
 import * as ts from 'typescript'
@@ -16,14 +13,14 @@ import * as path from 'node:path'
 // Types
 // ============================================================================
 
-interface DocProperty {
+export interface DocProperty {
 	name: string
 	type: string
 	description: string
 	optional: boolean
 }
 
-interface DocMethod {
+export interface DocMethod {
 	name: string
 	description: string
 	params: { name: string; type: string; description: string }[]
@@ -31,14 +28,14 @@ interface DocMethod {
 	example?: string
 }
 
-interface DocInterface {
+export interface DocInterface {
 	name: string
 	description: string
 	properties: DocProperty[]
 	example?: string
 }
 
-interface DocClass {
+export interface DocClass {
 	name: string
 	description: string
 	properties: DocProperty[]
@@ -46,7 +43,7 @@ interface DocClass {
 	example?: string
 }
 
-interface DocFunction {
+export interface DocFunction {
 	name: string
 	description: string
 	params: { name: string; type: string; description: string }[]
@@ -54,18 +51,32 @@ interface DocFunction {
 	example?: string
 }
 
-interface DocTool {
+export interface DocTool {
 	id: string
 	description: string
 	inputSchema: DocProperty[]
 	outputSchema?: DocProperty[]
 }
 
-interface ExtractedDocs {
+export interface ExtractedDocs {
 	interfaces: DocInterface[]
 	classes: DocClass[]
 	functions: DocFunction[]
 	tools: DocTool[]
+}
+
+export interface PackageConfig {
+	name: string
+	path: string
+	outputFile: string
+	title: string
+	description: string
+}
+
+export interface GeneratorOptions {
+	packages: PackageConfig[]
+	baseDir: string
+	verbose?: boolean
 }
 
 // ============================================================================
@@ -311,7 +322,7 @@ function extractToolFromVariable(
 // File Processing
 // ============================================================================
 
-function extractDocsFromFile(filePath: string): ExtractedDocs {
+export function extractDocsFromFile(filePath: string): ExtractedDocs {
 	const program = ts.createProgram([filePath], {
 		target: ts.ScriptTarget.ESNext,
 		module: ts.ModuleKind.ESNext,
@@ -335,28 +346,28 @@ function extractDocsFromFile(filePath: string): ExtractedDocs {
 				node.name.text.startsWith('Hare') ||
 				node.name.text.startsWith('Agent')
 			) {
-				const iface = extractInterface(node, sourceFile)
+				const iface = extractInterface(node, sourceFile!)
 				if (iface) docs.interfaces.push(iface)
 			}
 		}
 
 		if (ts.isClassDeclaration(node)) {
 			if (node.modifiers?.some((m) => m.kind === ts.SyntaxKind.ExportKeyword)) {
-				const cls = extractClass(node, sourceFile)
+				const cls = extractClass(node, sourceFile!)
 				if (cls) docs.classes.push(cls)
 			}
 		}
 
 		if (ts.isFunctionDeclaration(node)) {
 			if (node.modifiers?.some((m) => m.kind === ts.SyntaxKind.ExportKeyword)) {
-				const fn = extractFunction(node, sourceFile)
+				const fn = extractFunction(node, sourceFile!)
 				if (fn) docs.functions.push(fn)
 			}
 		}
 
 		if (ts.isVariableStatement(node)) {
 			if (node.modifiers?.some((m) => m.kind === ts.SyntaxKind.ExportKeyword)) {
-				const tool = extractToolFromVariable(node, sourceFile)
+				const tool = extractToolFromVariable(node, sourceFile!)
 				if (tool) docs.tools.push(tool)
 			}
 		}
@@ -372,7 +383,7 @@ function extractDocsFromFile(filePath: string): ExtractedDocs {
 // MDX Generation
 // ============================================================================
 
-function generateInterfaceMDX(iface: DocInterface): string {
+export function generateInterfaceMDX(iface: DocInterface): string {
 	let mdx = `### ${iface.name}\n\n`
 
 	if (iface.description) {
@@ -397,7 +408,7 @@ function generateInterfaceMDX(iface: DocInterface): string {
 	return mdx
 }
 
-function generateClassMDX(cls: DocClass): string {
+export function generateClassMDX(cls: DocClass): string {
 	let mdx = `## ${cls.name}\n\n`
 
 	if (cls.description) {
@@ -433,7 +444,7 @@ function generateClassMDX(cls: DocClass): string {
 	return mdx
 }
 
-function generateToolMDX(tool: DocTool): string {
+export function generateToolMDX(tool: DocTool): string {
 	let mdx = `### ${tool.id}\n\n`
 
 	if (tool.description) {
@@ -454,7 +465,7 @@ function generateToolMDX(tool: DocTool): string {
 	return mdx
 }
 
-function generateFunctionMDX(fn: DocFunction): string {
+export function generateFunctionMDX(fn: DocFunction): string {
 	const params = fn.params.map((p) => `${p.name}: ${p.type}`).join(', ')
 	let mdx = `### \`${fn.name}(${params}): ${fn.returnType}\`\n\n`
 
@@ -469,42 +480,72 @@ function generateFunctionMDX(fn: DocFunction): string {
 	return mdx
 }
 
-// ============================================================================
-// Main
-// ============================================================================
-
-interface PackageConfig {
-	name: string
-	path: string
-	outputFile: string
+export function generatePackageMDX(options: {
 	title: string
 	description: string
+	docs: ExtractedDocs
+}): string {
+	const { title, description, docs } = options
+
+	let mdx = `---
+title: ${title}
+description: ${description}
+---
+
+# ${title}
+
+> This documentation is auto-generated from TypeScript source files.
+
+`
+
+	if (docs.classes.length > 0) {
+		mdx += `## Classes\n\n`
+		for (const cls of docs.classes) {
+			mdx += generateClassMDX(cls)
+		}
+	}
+
+	if (docs.interfaces.length > 0) {
+		mdx += `## Types\n\n`
+		for (const iface of docs.interfaces) {
+			mdx += generateInterfaceMDX(iface)
+		}
+	}
+
+	if (docs.functions.length > 0) {
+		mdx += `## Functions\n\n`
+		for (const fn of docs.functions) {
+			mdx += generateFunctionMDX(fn)
+		}
+	}
+
+	if (docs.tools.length > 0) {
+		mdx += `## Tools\n\n`
+		for (const tool of docs.tools) {
+			mdx += generateToolMDX(tool)
+		}
+	}
+
+	return mdx
 }
 
-const packages: PackageConfig[] = [
-	{
-		name: '@hare/agent',
-		path: '../../packages/agent/src',
-		outputFile: 'content/sdk/_generated/agent.mdx',
-		title: 'Agent SDK Reference',
-		description: 'Auto-generated API documentation for @hare/agent',
-	},
-	{
-		name: '@hare/tools',
-		path: '../../packages/tools/src',
-		outputFile: 'content/sdk/_generated/tools.mdx',
-		title: 'Tools Reference',
-		description: 'Auto-generated documentation for all available agent tools',
-	},
-]
+// ============================================================================
+// Main Generator
+// ============================================================================
 
-async function main() {
-	const baseDir = process.cwd()
+export async function generateDocs(options: GeneratorOptions): Promise<void> {
+	const { packages, baseDir, verbose } = options
 
 	for (const pkg of packages) {
-		console.log(`\nProcessing ${pkg.name}...`)
+		if (verbose) console.log(`\nProcessing ${pkg.name}...`)
 
 		const pkgPath = path.resolve(baseDir, pkg.path)
+
+		if (!fs.existsSync(pkgPath)) {
+			console.warn(`  Warning: Path not found: ${pkgPath}`)
+			continue
+		}
+
 		const files = fs
 			.readdirSync(pkgPath)
 			.filter((f) => f.endsWith('.ts') && !f.endsWith('.test.ts') && !f.startsWith('__'))
@@ -518,7 +559,7 @@ async function main() {
 
 		for (const file of files) {
 			const filePath = path.join(pkgPath, file)
-			console.log(`  Extracting from ${file}...`)
+			if (verbose) console.log(`  Extracting from ${file}...`)
 
 			const docs = extractDocsFromFile(filePath)
 			allDocs.interfaces.push(...docs.interfaces)
@@ -528,44 +569,11 @@ async function main() {
 		}
 
 		// Generate MDX
-		let mdx = `---
-title: ${pkg.title}
-description: ${pkg.description}
----
-
-# ${pkg.title}
-
-> This documentation is auto-generated from TypeScript source files.
-
-`
-
-		if (allDocs.classes.length > 0) {
-			mdx += `## Classes\n\n`
-			for (const cls of allDocs.classes) {
-				mdx += generateClassMDX(cls)
-			}
-		}
-
-		if (allDocs.interfaces.length > 0) {
-			mdx += `## Types\n\n`
-			for (const iface of allDocs.interfaces) {
-				mdx += generateInterfaceMDX(iface)
-			}
-		}
-
-		if (allDocs.functions.length > 0) {
-			mdx += `## Functions\n\n`
-			for (const fn of allDocs.functions) {
-				mdx += generateFunctionMDX(fn)
-			}
-		}
-
-		if (allDocs.tools.length > 0) {
-			mdx += `## Tools\n\n`
-			for (const tool of allDocs.tools) {
-				mdx += generateToolMDX(tool)
-			}
-		}
+		const mdx = generatePackageMDX({
+			title: pkg.title,
+			description: pkg.description,
+			docs: allDocs,
+		})
 
 		// Write output
 		const outputPath = path.resolve(baseDir, pkg.outputFile)
@@ -576,14 +584,15 @@ description: ${pkg.description}
 		}
 
 		fs.writeFileSync(outputPath, mdx)
-		console.log(`  Generated ${pkg.outputFile}`)
-		console.log(`    - ${allDocs.classes.length} classes`)
-		console.log(`    - ${allDocs.interfaces.length} interfaces`)
-		console.log(`    - ${allDocs.functions.length} functions`)
-		console.log(`    - ${allDocs.tools.length} tools`)
+
+		if (verbose) {
+			console.log(`  Generated ${pkg.outputFile}`)
+			console.log(`    - ${allDocs.classes.length} classes`)
+			console.log(`    - ${allDocs.interfaces.length} interfaces`)
+			console.log(`    - ${allDocs.functions.length} functions`)
+			console.log(`    - ${allDocs.tools.length} tools`)
+		}
 	}
 
-	console.log('\nDone!')
+	if (verbose) console.log('\nDone!')
 }
-
-main().catch(console.error)
