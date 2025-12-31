@@ -52,7 +52,7 @@ export function useToolPicker({
 	const selectedTools = useMemo(() => {
 		return selectedToolIds
 			.map((id) => tools.find((t) => t.id === id))
-			.filter((t): t is Tool => t !== undefined)
+			.filter(<T>(t: T | undefined): t is T => t !== undefined)
 	}, [selectedToolIds, tools])
 
 	const filteredTools = useMemo(() => {
