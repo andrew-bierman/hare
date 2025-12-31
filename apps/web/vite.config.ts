@@ -6,6 +6,7 @@ import react from '@vitejs/plugin-react'
 import mdx from 'fumadocs-mdx/vite'
 import { defineConfig } from 'vite'
 import * as MdxConfig from './source.config'
+import { fumadocsPathPolyfill } from './src/lib/polyfills/fumadocs-path-plugin'
 
 // Resolve paths to workspace packages
 const packagesPath = path.resolve(__dirname, '../../packages')
@@ -89,6 +90,7 @@ export default defineConfig({
 		},
 	},
 	plugins: [
+		fumadocsPathPolyfill(),
 		mdx(MdxConfig),
 		cloudflare({ viteEnvironment: { name: 'ssr' } }),
 		tanstackStart(),
