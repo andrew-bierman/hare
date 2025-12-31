@@ -81,6 +81,9 @@ export function DashboardPage() {
 		return model?.name || modelId
 	}
 
+	const usage = usageData?.usage
+	const totalTokens = (usage?.totalTokensIn ?? 0) + (usage?.totalTokensOut ?? 0)
+
 	const stats = [
 		{
 			title: content.stats.totalAgents.title,
@@ -92,7 +95,7 @@ export function DashboardPage() {
 		},
 		{
 			title: content.stats.apiCalls.title,
-			value: formatNumber(usageData?.totalCalls ?? 0),
+			value: formatNumber(usage?.totalMessages ?? 0),
 			description: content.stats.apiCalls.description,
 			icon: MessageSquare,
 			color: 'bg-blue-500',
@@ -100,8 +103,8 @@ export function DashboardPage() {
 		},
 		{
 			title: content.stats.tokensUsed.title,
-			value: formatNumber(usageData?.totalTokens ?? 0),
-			description: `${formatNumber(usageData?.inputTokens ?? 0)} ${content.stats.tokensUsed.description.replace('in / out', '')} ${formatNumber(usageData?.outputTokens ?? 0)}`,
+			value: formatNumber(totalTokens),
+			description: `${formatNumber(usage?.totalTokensIn ?? 0)} ${content.stats.tokensUsed.description.replace('in / out', '')} ${formatNumber(usage?.totalTokensOut ?? 0)}`,
 			icon: TrendingUp,
 			color: 'bg-emerald-500',
 			trend: null,

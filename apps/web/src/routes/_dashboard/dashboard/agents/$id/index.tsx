@@ -617,13 +617,16 @@ function AgentBuilderPage() {
 									<div className="flex justify-between items-center">
 										<span className="text-sm text-muted-foreground">Messages</span>
 										<span className="text-sm font-medium">
-											{usageData?.totalCalls?.toLocaleString() ?? 0}
+											{usageData?.usage?.totalMessages?.toLocaleString() ?? 0}
 										</span>
 									</div>
 									<div className="flex justify-between items-center">
 										<span className="text-sm text-muted-foreground">Tokens</span>
 										<span className="text-sm font-medium">
-											{usageData?.totalTokens?.toLocaleString() ?? 0}
+											{(
+												(usageData?.usage?.totalTokensIn ?? 0) +
+												(usageData?.usage?.totalTokensOut ?? 0)
+											).toLocaleString()}
 										</span>
 									</div>
 									<div className="flex justify-between items-center">
@@ -912,19 +915,19 @@ function AgentBuilderPage() {
 							<div className="grid gap-4 md:grid-cols-3">
 								<div className="p-4 border rounded-lg">
 									<div className="text-2xl font-bold">
-										{usageData?.totalCalls?.toLocaleString() ?? 0}
+										{usageData?.usage?.totalMessages?.toLocaleString() ?? 0}
 									</div>
 									<p className="text-sm text-muted-foreground">Total API Calls</p>
 								</div>
 								<div className="p-4 border rounded-lg">
 									<div className="text-2xl font-bold">
-										{usageData?.inputTokens?.toLocaleString() ?? 0}
+										{usageData?.usage?.totalTokensIn?.toLocaleString() ?? 0}
 									</div>
 									<p className="text-sm text-muted-foreground">Input Tokens</p>
 								</div>
 								<div className="p-4 border rounded-lg">
 									<div className="text-2xl font-bold">
-										{usageData?.outputTokens?.toLocaleString() ?? 0}
+										{usageData?.usage?.totalTokensOut?.toLocaleString() ?? 0}
 									</div>
 									<p className="text-sm text-muted-foreground">Output Tokens</p>
 								</div>
