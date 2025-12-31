@@ -2,7 +2,7 @@
 
 import { queryOptions, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type { CreateToolInput, Tool, ToolType } from '@hare/types'
-import { api, handleResponse } from '../client'
+import { api } from '@hare/api-client'
 import { toolKeys } from './query-keys'
 
 /**
@@ -31,7 +31,8 @@ export const toolQueryOptions = (options: { id: string; workspaceId: string }) =
 				param: { id: options.id },
 				query: { workspaceId: options.workspaceId },
 			})
-			return handleResponse(res)
+			if (!res.ok) throw new Error('Request failed')
+			return res.json()
 		},
 	})
 
@@ -57,7 +58,8 @@ export function useCreateToolMutation(workspaceId: string | undefined) {
 				query: { workspaceId: workspaceId! },
 				json: data,
 			})
-			return handleResponse(res)
+			if (!res.ok) throw new Error('Request failed')
+			return res.json()
 		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: toolKeys.list(workspaceId ?? '') })
@@ -74,7 +76,8 @@ export function useUpdateToolMutation(workspaceId: string | undefined) {
 				query: { workspaceId: workspaceId! },
 				json: data,
 			})
-			return handleResponse(res)
+			if (!res.ok) throw new Error('Request failed')
+			return res.json()
 		},
 		// Optimistic update
 		onMutate: async ({ id, data }) => {
@@ -110,7 +113,8 @@ export function useDeleteToolMutation(workspaceId: string | undefined) {
 				param: { id },
 				query: { workspaceId: workspaceId! },
 			})
-			return handleResponse(res)
+			if (!res.ok) throw new Error('Request failed')
+			return res.json()
 		},
 		// Optimistic update
 		onMutate: async (id) => {
@@ -161,7 +165,8 @@ export function useTestToolMutation(workspaceId: string | undefined) {
 				query: { workspaceId: workspaceId! },
 				json: data,
 			})
-			return handleResponse(res)
+			if (!res.ok) throw new Error('Request failed')
+			return res.json()
 		},
 	})
 }
@@ -177,7 +182,8 @@ export function useTestExistingToolMutation(workspaceId: string | undefined) {
 				query: { workspaceId: workspaceId! },
 				json: { testInput },
 			})
-			return handleResponse(res)
+			if (!res.ok) throw new Error('Request failed')
+			return res.json()
 		},
 	})
 }

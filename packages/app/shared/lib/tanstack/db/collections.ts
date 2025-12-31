@@ -11,7 +11,7 @@ import type { Agent, Schedule, Tool, Workspace } from '@hare/types'
 import type { QueryClient } from '@tanstack/react-query'
 import { createCollection, type Collection } from '@tanstack/db'
 import { queryCollectionOptions } from '@tanstack/query-db-collection'
-import { api, handleResponse } from '../../../api/client'
+import { api } from '@hare/api-client'
 import { agentKeys, scheduleKeys, toolKeys, workspaceKeys } from '../../../api/hooks/query-keys'
 
 // =============================================================================
@@ -51,7 +51,8 @@ export function createAgentCollection(options: {
 		queryKey: agentKeys.list(workspaceId),
 		queryFn: async (): Promise<AgentRow[]> => {
 			const res = await api.agents.$get({ query: { workspaceId } })
-			const response = await handleResponse<{ agents: Agent[] }>(res)
+			if (!res.ok) throw new Error('Request failed')
+			const response = await res.json()
 			return response.agents.map((agent) => ({
 				...agent,
 				_workspaceId: workspaceId,
@@ -76,7 +77,7 @@ export function createAgentCollection(options: {
 							toolIds: data.toolIds,
 						},
 					})
-					await handleResponse(res)
+					if (!res.ok) throw new Error('Request failed')
 				}
 			}
 		},
@@ -110,7 +111,7 @@ export function createAgentCollection(options: {
 							status,
 						},
 					})
-					await handleResponse(res)
+					if (!res.ok) throw new Error('Request failed')
 				}
 			}
 		},
@@ -124,7 +125,7 @@ export function createAgentCollection(options: {
 						param: { id },
 						query: { workspaceId: _workspaceId },
 					})
-					await handleResponse(res)
+					if (!res.ok) throw new Error('Request failed')
 				}
 			}
 		},
@@ -151,7 +152,8 @@ export function createToolCollection(options: {
 		queryKey: toolKeys.list(workspaceId),
 		queryFn: async (): Promise<ToolRow[]> => {
 			const res = await api.tools.$get({ query: { workspaceId } })
-			const response = await handleResponse<{ tools: Tool[] }>(res)
+			if (!res.ok) throw new Error('Request failed')
+			const response = await res.json()
 			return response.tools.map((tool) => ({
 				...tool,
 				_workspaceId: workspaceId,
@@ -174,7 +176,7 @@ export function createToolCollection(options: {
 							config: data.config ?? undefined,
 						},
 					})
-					await handleResponse(res)
+					if (!res.ok) throw new Error('Request failed')
 				}
 			}
 		},
@@ -196,7 +198,7 @@ export function createToolCollection(options: {
 							config: config ?? undefined,
 						},
 					})
-					await handleResponse(res)
+					if (!res.ok) throw new Error('Request failed')
 				}
 			}
 		},
@@ -210,7 +212,7 @@ export function createToolCollection(options: {
 						param: { id },
 						query: { workspaceId: _workspaceId },
 					})
-					await handleResponse(res)
+					if (!res.ok) throw new Error('Request failed')
 				}
 			}
 		},
@@ -236,7 +238,8 @@ export function createWorkspaceCollection(options: {
 		queryKey: workspaceKeys.list(),
 		queryFn: async (): Promise<WorkspaceRow[]> => {
 			const res = await api.workspaces.$get()
-			const response = await handleResponse<{ workspaces: Workspace[] }>(res)
+			if (!res.ok) throw new Error('Request failed')
+			const response = await res.json()
 			return response.workspaces
 		},
 		getKey: (workspace) => workspace.id,
@@ -253,7 +256,7 @@ export function createWorkspaceCollection(options: {
 							slug,
 						},
 					})
-					await handleResponse(res)
+					if (!res.ok) throw new Error('Request failed')
 				}
 			}
 		},
@@ -271,7 +274,7 @@ export function createWorkspaceCollection(options: {
 							description: description ?? undefined,
 						},
 					})
-					await handleResponse(res)
+					if (!res.ok) throw new Error('Request failed')
 				}
 			}
 		},
@@ -282,7 +285,7 @@ export function createWorkspaceCollection(options: {
 				if (mutation.type === 'delete' && mutation.original) {
 					const { id } = mutation.original
 					const res = await api.workspaces[':id'].$delete({ param: { id } })
-					await handleResponse(res)
+					if (!res.ok) throw new Error('Request failed')
 				}
 			}
 		},
@@ -313,7 +316,8 @@ export function createScheduleCollection(options: {
 				param: { id: agentId },
 				query: { workspaceId },
 			})
-			const response = await handleResponse<{ schedules: Schedule[] }>(res)
+			if (!res.ok) throw new Error('Request failed')
+			const response = await res.json()
 			return response.schedules.map((schedule) => ({
 				...schedule,
 				_workspaceId: workspaceId,
@@ -338,7 +342,7 @@ export function createScheduleCollection(options: {
 							payload: payload ?? undefined,
 						},
 					})
-					await handleResponse(res)
+					if (!res.ok) throw new Error('Request failed')
 				}
 			}
 		},
@@ -359,7 +363,7 @@ export function createScheduleCollection(options: {
 							payload: payload ?? undefined,
 						},
 					})
-					await handleResponse(res)
+					if (!res.ok) throw new Error('Request failed')
 				}
 			}
 		},
@@ -373,7 +377,7 @@ export function createScheduleCollection(options: {
 						param: { id: aId, scheduleId: id },
 						query: { workspaceId: _workspaceId },
 					})
-					await handleResponse(res)
+					if (!res.ok) throw new Error('Request failed')
 				}
 			}
 		},

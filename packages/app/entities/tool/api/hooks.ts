@@ -1,7 +1,7 @@
 'use client'
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { api, handleResponse, ApiClientError } from '../../../shared/api/client'
+import { api } from '@hare/api-client'
 import type { CreateToolInput, Tool, ToolType } from '@hare/types'
 
 // Re-export types for convenience
@@ -14,7 +14,8 @@ export function useTools(workspaceId: string | undefined) {
 		queryKey: ['tools', workspaceId],
 		queryFn: async () => {
 			const res = await api.tools.$get({ query: { workspaceId: workspaceId! } })
-			return handleResponse(res)
+			if (!res.ok) throw new Error('Request failed')
+			return res.json()
 		},
 		enabled: !!workspaceId,
 	})
@@ -28,7 +29,8 @@ export function useTool(id: string | undefined, workspaceId: string | undefined)
 				param: { id: id! },
 				query: { workspaceId: workspaceId! },
 			})
-			return handleResponse(res)
+			if (!res.ok) throw new Error('Request failed')
+			return res.json()
 		},
 		enabled: !!id && !!workspaceId,
 	})
@@ -42,7 +44,8 @@ export function useCreateTool(workspaceId: string | undefined) {
 				query: { workspaceId: workspaceId! },
 				json: data,
 			})
-			return handleResponse(res)
+			if (!res.ok) throw new Error('Request failed')
+			return res.json()
 		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['tools', workspaceId] })
@@ -59,7 +62,8 @@ export function useUpdateTool(workspaceId: string | undefined) {
 				query: { workspaceId: workspaceId! },
 				json: data,
 			})
-			return handleResponse(res)
+			if (!res.ok) throw new Error('Request failed')
+			return res.json()
 		},
 		onSuccess: (_, { id }) => {
 			queryClient.invalidateQueries({ queryKey: ['tools', workspaceId] })
@@ -76,7 +80,8 @@ export function useDeleteTool(workspaceId: string | undefined) {
 				param: { id },
 				query: { workspaceId: workspaceId! },
 			})
-			return handleResponse(res)
+			if (!res.ok) throw new Error('Request failed')
+			return res.json()
 		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['tools', workspaceId] })
@@ -106,7 +111,8 @@ export function useTestTool(workspaceId: string | undefined) {
 				query: { workspaceId: workspaceId! },
 				json: data,
 			})
-			return handleResponse(res)
+			if (!res.ok) throw new Error('Request failed')
+			return res.json()
 		},
 	})
 }
@@ -119,7 +125,8 @@ export function useTestExistingTool(workspaceId: string | undefined) {
 				query: { workspaceId: workspaceId! },
 				json: { testInput },
 			})
-			return handleResponse(res)
+			if (!res.ok) throw new Error('Request failed')
+			return res.json()
 		},
 	})
 }

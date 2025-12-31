@@ -2,7 +2,7 @@
 
 import type { MemberRole, SendInvitationInput, WorkspaceInvitation, WorkspaceMember } from '@hare/types'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { api, handleResponse } from '../client'
+import { api } from '@hare/api-client'
 
 // Re-export types for convenience
 export type {
@@ -22,7 +22,8 @@ export function useWorkspaceMembersQuery(workspaceId: string | undefined) {
 			const res = await api.workspaces[':id'].members.$get({
 				param: { id: workspaceId! },
 			})
-			return handleResponse(res)
+			if (!res.ok) throw new Error('Request failed')
+			return res.json()
 		},
 		enabled: !!workspaceId,
 	})
@@ -38,7 +39,8 @@ export function useWorkspaceInvitationsQuery(workspaceId: string | undefined) {
 			const res = await api.workspaces[':id'].invites.$get({
 				param: { id: workspaceId! },
 			})
-			return handleResponse(res)
+			if (!res.ok) throw new Error('Request failed')
+			return res.json()
 		},
 		enabled: !!workspaceId,
 	})
@@ -55,7 +57,8 @@ export function useSendInvitationMutation() {
 				param: { id: workspaceId },
 				json: data,
 			})
-			return handleResponse(res)
+			if (!res.ok) throw new Error('Request failed')
+			return res.json()
 		},
 		onSuccess: (_, { workspaceId }) => {
 			queryClient.invalidateQueries({ queryKey: ['workspaces', workspaceId, 'invitations'] })
@@ -73,7 +76,8 @@ export function useRevokeInvitationMutation() {
 			const res = await api.workspaces[':id'].invites[':inviteId'].$delete({
 				param: { id: workspaceId, inviteId },
 			})
-			return handleResponse(res)
+			if (!res.ok) throw new Error('Request failed')
+			return res.json()
 		},
 		onSuccess: (_, { workspaceId }) => {
 			queryClient.invalidateQueries({ queryKey: ['workspaces', workspaceId, 'invitations'] })
@@ -91,7 +95,8 @@ export function useRemoveMemberMutation() {
 			const res = await api.workspaces[':id'].members[':userId'].$delete({
 				param: { id: workspaceId, userId },
 			})
-			return handleResponse(res)
+			if (!res.ok) throw new Error('Request failed')
+			return res.json()
 		},
 		onSuccess: (_, { workspaceId }) => {
 			queryClient.invalidateQueries({ queryKey: ['workspaces', workspaceId, 'members'] })
@@ -118,7 +123,8 @@ export function useUpdateMemberRoleMutation() {
 				param: { id: workspaceId, userId },
 				json: { role },
 			})
-			return handleResponse(res)
+			if (!res.ok) throw new Error('Request failed')
+			return res.json()
 		},
 		onSuccess: (_, { workspaceId }) => {
 			queryClient.invalidateQueries({ queryKey: ['workspaces', workspaceId, 'members'] })

@@ -1,7 +1,7 @@
 'use client'
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { api, handleResponse } from '../../../shared/api/client'
+import { api } from '@hare/api-client'
 
 // Types for API keys
 export interface ApiKey {
@@ -47,7 +47,8 @@ export function useApiKeys(workspaceId: string | undefined) {
 		queryKey: ['api-keys', workspaceId],
 		queryFn: async () => {
 			const res = await api['api-keys'].$get({ query: { workspaceId: workspaceId! } })
-			return handleResponse(res)
+			if (!res.ok) throw new Error('Request failed')
+			return res.json()
 		},
 		enabled: !!workspaceId,
 	})
@@ -64,7 +65,8 @@ export function useApiKey(id: string | undefined, workspaceId: string | undefine
 				param: { id: id! },
 				query: { workspaceId: workspaceId! },
 			})
-			return handleResponse(res)
+			if (!res.ok) throw new Error('Request failed')
+			return res.json()
 		},
 		enabled: !!id && !!workspaceId,
 	})
@@ -82,7 +84,8 @@ export function useCreateApiKey(workspaceId: string | undefined) {
 				query: { workspaceId: workspaceId! },
 				json: data,
 			})
-			return handleResponse(res)
+			if (!res.ok) throw new Error('Request failed')
+			return res.json()
 		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['api-keys', workspaceId] })
@@ -102,7 +105,8 @@ export function useUpdateApiKey(workspaceId: string | undefined) {
 				query: { workspaceId: workspaceId! },
 				json: data,
 			})
-			return handleResponse(res)
+			if (!res.ok) throw new Error('Request failed')
+			return res.json()
 		},
 		onSuccess: (_, { id }) => {
 			queryClient.invalidateQueries({ queryKey: ['api-keys', workspaceId] })
@@ -122,7 +126,8 @@ export function useDeleteApiKey(workspaceId: string | undefined) {
 				param: { id },
 				query: { workspaceId: workspaceId! },
 			})
-			return handleResponse(res)
+			if (!res.ok) throw new Error('Request failed')
+			return res.json()
 		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['api-keys', workspaceId] })
