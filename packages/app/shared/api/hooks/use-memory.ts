@@ -5,6 +5,26 @@
  */
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { api, ApiClientError } from '../client'
+
+/**
+ * Helper to handle Hono RPC response with proper error handling.
+ */
+async function handleResponse<T>(res: Response & { json(): Promise<T> }): Promise<T> {
+	if (!res.ok) {
+		let errorMessage = `Request failed with status ${res.status}`
+		let errorCode: string | undefined
+		try {
+			const error = (await res.json()) as { error: string; code?: string }
+			errorMessage = error.error ?? errorMessage
+			errorCode = error.code
+		} catch {
+			// Response wasn't JSON
+		}
+		throw new ApiClientError(errorMessage, res.status, errorCode)
+	}
+	return res.json()
+}
 
 // =============================================================================
 // Types
@@ -74,149 +94,6 @@ export const memoryQueryKeys = {
 }
 
 // =============================================================================
-// API Functions
-// =============================================================================
-
-async function fetchMemories(options: {
-	agentId: string
-	workspaceId: string
-	limit?: number
-	offset?: number
-}): Promise<MemoryListResponse> {
-	const { agentId, workspaceId, limit = 20, offset = 0 } = options
-
-	const params = new URLSearchParams({
-		workspaceId,
-		limit: String(limit),
-		offset: String(offset),
-	})
-
-	const response = await fetch(`/api/agents/${agentId}/memories?${params}`, {
-		credentials: 'include',
-	})
-
-	if (!response.ok) {
-		const error = (await response.json()) as { error?: string }
-		throw new Error(error.error || 'Failed to fetch memories')
-	}
-
-	return response.json()
-}
-
-async function createMemory(options: {
-	agentId: string
-	workspaceId: string
-	data: CreateMemoryInput
-}): Promise<Memory> {
-	const { agentId, workspaceId, data } = options
-
-	const response = await fetch(`/api/agents/${agentId}/memories?workspaceId=${workspaceId}`, {
-		method: 'POST',
-		headers: { 'Content-Type': 'application/json' },
-		credentials: 'include',
-		body: JSON.stringify(data),
-	})
-
-	if (!response.ok) {
-		const error = (await response.json()) as { error?: string }
-		throw new Error(error.error || 'Failed to create memory')
-	}
-
-	return response.json()
-}
-
-async function searchMemories(options: {
-	agentId: string
-	workspaceId: string
-	data: SearchMemoryInput
-}): Promise<SearchResult> {
-	const { agentId, workspaceId, data } = options
-
-	const response = await fetch(
-		`/api/agents/${agentId}/memories/search?workspaceId=${workspaceId}`,
-		{
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			credentials: 'include',
-			body: JSON.stringify(data),
-		},
-	)
-
-	if (!response.ok) {
-		const error = (await response.json()) as { error?: string }
-		throw new Error(error.error || 'Failed to search memories')
-	}
-
-	return response.json()
-}
-
-async function updateMemory(options: {
-	agentId: string
-	workspaceId: string
-	memoryId: string
-	data: UpdateMemoryInput
-}): Promise<Memory> {
-	const { agentId, workspaceId, memoryId, data } = options
-
-	const response = await fetch(
-		`/api/agents/${agentId}/memories/${memoryId}?workspaceId=${workspaceId}`,
-		{
-			method: 'PATCH',
-			headers: { 'Content-Type': 'application/json' },
-			credentials: 'include',
-			body: JSON.stringify(data),
-		},
-	)
-
-	if (!response.ok) {
-		const error = (await response.json()) as { error?: string }
-		throw new Error(error.error || 'Failed to update memory')
-	}
-
-	return response.json()
-}
-
-async function deleteMemory(options: {
-	agentId: string
-	workspaceId: string
-	memoryId: string
-}): Promise<void> {
-	const { agentId, workspaceId, memoryId } = options
-
-	const response = await fetch(
-		`/api/agents/${agentId}/memories/${memoryId}?workspaceId=${workspaceId}`,
-		{
-			method: 'DELETE',
-			credentials: 'include',
-		},
-	)
-
-	if (!response.ok) {
-		const error = (await response.json()) as { error?: string }
-		throw new Error(error.error || 'Failed to delete memory')
-	}
-}
-
-async function clearMemories(options: {
-	agentId: string
-	workspaceId: string
-}): Promise<{ deleted: number }> {
-	const { agentId, workspaceId } = options
-
-	const response = await fetch(`/api/agents/${agentId}/memories?workspaceId=${workspaceId}`, {
-		method: 'DELETE',
-		credentials: 'include',
-	})
-
-	if (!response.ok) {
-		const error = (await response.json()) as { error?: string }
-		throw new Error(error.error || 'Failed to clear memories')
-	}
-
-	return response.json()
-}
-
-// =============================================================================
 // Hooks
 // =============================================================================
 
@@ -230,17 +107,21 @@ export function useMemoriesQuery(options: {
 	offset?: number
 	enabled?: boolean
 }) {
-	const { agentId, workspaceId, limit, offset, enabled = true } = options
+	const { agentId, workspaceId, limit = 20, offset = 0, enabled = true } = options
 
 	return useQuery({
 		queryKey: memoryQueryKeys.list(agentId, workspaceId || ''),
-		queryFn: () =>
-			fetchMemories({
-				agentId,
-				workspaceId: workspaceId!,
-				limit,
-				offset,
-			}),
+		queryFn: async () => {
+			const res = await api.agents[':id'].memories.$get({
+				param: { id: agentId },
+				query: {
+					workspaceId: workspaceId!,
+					limit: limit.toString(),
+					offset: offset.toString(),
+				},
+			})
+			return handleResponse(res)
+		},
 		enabled: enabled && !!workspaceId,
 	})
 }
@@ -253,12 +134,14 @@ export function useCreateMemoryMutation(options: { agentId: string; workspaceId?
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationFn: (data: CreateMemoryInput) =>
-			createMemory({
-				agentId,
-				workspaceId: workspaceId!,
-				data,
-			}),
+		mutationFn: async (data: CreateMemoryInput) => {
+			const res = await api.agents[':id'].memories.$post({
+				param: { id: agentId },
+				query: { workspaceId: workspaceId! },
+				json: data,
+			})
+			return handleResponse(res)
+		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({
 				queryKey: memoryQueryKeys.list(agentId, workspaceId || ''),
@@ -274,12 +157,14 @@ export function useSearchMemoriesMutation(options: { agentId: string; workspaceI
 	const { agentId, workspaceId } = options
 
 	return useMutation({
-		mutationFn: (data: SearchMemoryInput) =>
-			searchMemories({
-				agentId,
-				workspaceId: workspaceId!,
-				data,
-			}),
+		mutationFn: async (data: SearchMemoryInput) => {
+			const res = await api.agents[':id'].memories.search.$post({
+				param: { id: agentId },
+				query: { workspaceId: workspaceId! },
+				json: data,
+			})
+			return handleResponse(res)
+		},
 	})
 }
 
@@ -291,13 +176,14 @@ export function useUpdateMemoryMutation(options: { agentId: string; workspaceId?
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationFn: (input: { memoryId: string; data: UpdateMemoryInput }) =>
-			updateMemory({
-				agentId,
-				workspaceId: workspaceId!,
-				memoryId: input.memoryId,
-				data: input.data,
-			}),
+		mutationFn: async (input: { memoryId: string; data: UpdateMemoryInput }) => {
+			const res = await api.agents[':id'].memories[':memoryId'].$patch({
+				param: { id: agentId, memoryId: input.memoryId },
+				query: { workspaceId: workspaceId! },
+				json: input.data,
+			})
+			return handleResponse(res)
+		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({
 				queryKey: memoryQueryKeys.list(agentId, workspaceId || ''),
@@ -314,12 +200,13 @@ export function useDeleteMemoryMutation(options: { agentId: string; workspaceId?
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationFn: (memoryId: string) =>
-			deleteMemory({
-				agentId,
-				workspaceId: workspaceId!,
-				memoryId,
-			}),
+		mutationFn: async (memoryId: string) => {
+			const res = await api.agents[':id'].memories[':memoryId'].$delete({
+				param: { id: agentId, memoryId },
+				query: { workspaceId: workspaceId! },
+			})
+			return handleResponse(res)
+		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({
 				queryKey: memoryQueryKeys.list(agentId, workspaceId || ''),
@@ -336,11 +223,13 @@ export function useClearMemoriesMutation(options: { agentId: string; workspaceId
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationFn: () =>
-			clearMemories({
-				agentId,
-				workspaceId: workspaceId!,
-			}),
+		mutationFn: async () => {
+			const res = await api.agents[':id'].memories.$delete({
+				param: { id: agentId },
+				query: { workspaceId: workspaceId! },
+			})
+			return handleResponse(res)
+		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({
 				queryKey: memoryQueryKeys.list(agentId, workspaceId || ''),

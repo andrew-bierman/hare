@@ -3,9 +3,9 @@
 import { Badge } from '@hare/ui/components/badge'
 import { Button } from '@hare/ui/components/button'
 import { Card, CardContent } from '@hare/ui/components/card'
-import { Input } from '@hare/ui/components/input'
+import { SearchInput } from '@hare/ui/components/search-input'
 import { Skeleton } from '@hare/ui/components/skeleton'
-import { Plus, Search, Wrench } from 'lucide-react'
+import { Plus, SearchIcon, Wrench } from 'lucide-react'
 import { type ChangeEvent, useState, type ReactNode } from 'react'
 import { useWorkspace } from '../../app/providers/workspace-provider'
 import type { Tool } from '../../shared/api'
@@ -94,15 +94,12 @@ export function ToolsPage({ renderLink, routes, useToolsQuery }: ToolsPageProps)
 			</div>
 
 			{/* Search */}
-			<div className="relative w-full sm:w-64">
-				<Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-				<Input
-					placeholder="Search tools..."
-					value={search}
-					onChange={(e: ChangeEvent<HTMLInputElement>) => setSearch(e.target.value)}
-					className="pl-9"
-				/>
-			</div>
+			<SearchInput
+				placeholder="Search tools..."
+				value={search}
+				onChange={(e: ChangeEvent<HTMLInputElement>) => setSearch(e.target.value)}
+				containerClassName="w-full sm:w-64"
+			/>
 
 			{/* Content */}
 			{isLoading ? (
@@ -136,7 +133,7 @@ export function ToolsPage({ renderLink, routes, useToolsQuery }: ToolsPageProps)
 			) : filteredTools.length === 0 ? (
 				<Card>
 					<CardContent className="flex flex-col items-center justify-center py-12 px-4">
-						<Search className="h-12 w-12 text-muted-foreground mb-4" />
+						<SearchIcon className="h-12 w-12 text-muted-foreground mb-4" />
 						<h3 className="text-lg font-semibold mb-2">No tools found</h3>
 						<p className="text-muted-foreground text-center text-sm">
 							Try adjusting your search

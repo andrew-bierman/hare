@@ -1,0 +1,1 @@
+ALTER TABLE `agents` ADD `systemToolsEnabled` integer DEFAULT true NOT NULL;

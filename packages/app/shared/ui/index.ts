@@ -13,3 +13,6 @@ export * from './tables'
 
 // Forms - Reusable form components built on TanStack Form
 export * from './forms'
+
+// Empty State - Reusable empty state component
+export * from './empty-state'

@@ -1,8 +1,16 @@
 'use client'
 
-import { createContext, type ReactNode, useCallback, useContext, useEffect, useState } from 'react'
+import {
+	createContext,
+	type ReactNode,
+	useCallback,
+	useContext,
+	useEffect,
+	useRef,
+	useState,
+} from 'react'
 import type { Workspace, WorkspaceRole } from '../../shared/api'
-import { useWorkspacesQuery, useCreateWorkspaceMutation } from '../../shared/api'
+import { useWorkspacesQuery, useEnsureDefaultWorkspaceMutation } from '../../shared/api'
 import { useAuth } from '../../features/auth'
 
 interface WorkspaceWithRole extends Workspace {
@@ -15,6 +23,7 @@ interface WorkspaceContextValue {
 	workspaceRole: WorkspaceRole | undefined
 	setActiveWorkspace: (workspace: WorkspaceWithRole) => void
 	isLoading: boolean
+	isCreatingWorkspace: boolean
 	error: Error | null
 }
 
@@ -25,8 +34,9 @@ const ACTIVE_WORKSPACE_KEY = 'hare-active-workspace'
 export function WorkspaceProvider({ children }: { children: ReactNode }) {
 	const { data: session } = useAuth()
 	const { data, isLoading, error } = useWorkspacesQuery()
-	const createWorkspace = useCreateWorkspaceMutation()
+	const ensureDefaultWorkspace = useEnsureDefaultWorkspaceMutation()
 	const [activeWorkspace, setActiveWorkspaceState] = useState<WorkspaceWithRole | null>(null)
+	const hasEnsuredDefault = useRef(false)
 
 	const workspaces: WorkspaceWithRole[] = data?.workspaces ?? []
 
@@ -37,17 +47,20 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
 		}
 	}, [])
 
-	// Auto-create default workspace if user has none
+	// Ensure default workspace exists (idempotent - safe to call multiple times)
+	// Uses server-side atomic check-and-create to prevent duplicates
 	useEffect(() => {
-		if (!isLoading && session?.user && workspaces.length === 0 && !createWorkspace.isPending) {
-			// Add random suffix to avoid slug collisions in concurrent signup scenarios
-			const suffix = Math.random().toString(36).substring(2, 8)
-			createWorkspace.mutate({
-				name: 'My Workspace',
-				slug: `my-workspace-${suffix}`,
-			})
+		if (
+			!isLoading &&
+			session?.user &&
+			workspaces.length === 0 &&
+			!ensureDefaultWorkspace.isPending &&
+			!hasEnsuredDefault.current
+		) {
+			hasEnsuredDefault.current = true
+			ensureDefaultWorkspace.mutate()
 		}
-	}, [isLoading, session?.user, workspaces.length, createWorkspace])
+	}, [isLoading, session?.user, workspaces.length, ensureDefaultWorkspace])
 
 	// Restore or set active workspace
 	useEffect(() => {
@@ -72,6 +85,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
 				workspaceRole: activeWorkspace?.role,
 				setActiveWorkspace,
 				isLoading,
+				isCreatingWorkspace: ensureDefaultWorkspace.isPending,
 				error: error as Error | null,
 			}}
 		>

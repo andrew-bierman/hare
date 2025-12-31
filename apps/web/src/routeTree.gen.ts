@@ -10,9 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TermsRouteImport } from './routes/terms'
-import { Route as SignupRouteImport } from './routes/signup'
 import { Route as PrivacyRouteImport } from './routes/privacy'
-import { Route as LoginRouteImport } from './routes/login'
 import { Route as EmbedRouteImport } from './routes/embed'
 import { Route as DocsRouteImport } from './routes/docs'
 import { Route as DashboardRouteImport } from './routes/_dashboard'
@@ -35,6 +33,7 @@ import { Route as DashboardDashboardToolsNewRouteImport } from './routes/_dashbo
 import { Route as DashboardDashboardSettingsTeamRouteImport } from './routes/_dashboard/dashboard/settings/team'
 import { Route as DashboardDashboardSettingsBillingRouteImport } from './routes/_dashboard/dashboard/settings/billing'
 import { Route as DashboardDashboardSettingsApiKeysRouteImport } from './routes/_dashboard/dashboard/settings/api-keys'
+import { Route as DashboardDashboardAgentsTemplatesRouteImport } from './routes/_dashboard/dashboard/agents/templates'
 import { Route as DashboardDashboardAgentsNewRouteImport } from './routes/_dashboard/dashboard/agents/new'
 import { Route as DashboardDashboardAgentsIdIndexRouteImport } from './routes/_dashboard/dashboard/agents/$id/index'
 import { Route as DashboardDashboardAgentsIdWebhooksRouteImport } from './routes/_dashboard/dashboard/agents/$id/webhooks'
@@ -46,19 +45,9 @@ const TermsRoute = TermsRouteImport.update({
   path: '/terms',
   getParentRoute: () => rootRouteImport,
 } as any)
-const SignupRoute = SignupRouteImport.update({
-  id: '/signup',
-  path: '/signup',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const PrivacyRoute = PrivacyRouteImport.update({
   id: '/privacy',
   path: '/privacy',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LoginRoute = LoginRouteImport.update({
-  id: '/login',
-  path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EmbedRoute = EmbedRouteImport.update({
@@ -178,6 +167,12 @@ const DashboardDashboardSettingsApiKeysRoute =
     path: '/dashboard/settings/api-keys',
     getParentRoute: () => DashboardRoute,
   } as any)
+const DashboardDashboardAgentsTemplatesRoute =
+  DashboardDashboardAgentsTemplatesRouteImport.update({
+    id: '/dashboard/agents/templates',
+    path: '/dashboard/agents/templates',
+    getParentRoute: () => DashboardRoute,
+  } as any)
 const DashboardDashboardAgentsNewRoute =
   DashboardDashboardAgentsNewRouteImport.update({
     id: '/dashboard/agents/new',
@@ -213,9 +208,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/docs': typeof DocsRouteWithChildren
   '/embed': typeof EmbedRouteWithChildren
-  '/login': typeof LoginRoute
   '/privacy': typeof PrivacyRoute
-  '/signup': typeof SignupRoute
   '/terms': typeof TermsRoute
   '/forgot-password': typeof AuthForgotPasswordRoute
   '/reset-password': typeof AuthResetPasswordRoute
@@ -226,6 +219,7 @@ export interface FileRoutesByFullPath {
   '/docs/': typeof DocsIndexRoute
   '/dashboard': typeof DashboardDashboardIndexRoute
   '/dashboard/agents/new': typeof DashboardDashboardAgentsNewRoute
+  '/dashboard/agents/templates': typeof DashboardDashboardAgentsTemplatesRoute
   '/dashboard/settings/api-keys': typeof DashboardDashboardSettingsApiKeysRoute
   '/dashboard/settings/billing': typeof DashboardDashboardSettingsBillingRoute
   '/dashboard/settings/team': typeof DashboardDashboardSettingsTeamRoute
@@ -243,9 +237,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/embed': typeof EmbedRouteWithChildren
-  '/login': typeof LoginRoute
   '/privacy': typeof PrivacyRoute
-  '/signup': typeof SignupRoute
   '/terms': typeof TermsRoute
   '/forgot-password': typeof AuthForgotPasswordRoute
   '/reset-password': typeof AuthResetPasswordRoute
@@ -256,6 +248,7 @@ export interface FileRoutesByTo {
   '/docs': typeof DocsIndexRoute
   '/dashboard': typeof DashboardDashboardIndexRoute
   '/dashboard/agents/new': typeof DashboardDashboardAgentsNewRoute
+  '/dashboard/agents/templates': typeof DashboardDashboardAgentsTemplatesRoute
   '/dashboard/settings/api-keys': typeof DashboardDashboardSettingsApiKeysRoute
   '/dashboard/settings/billing': typeof DashboardDashboardSettingsBillingRoute
   '/dashboard/settings/team': typeof DashboardDashboardSettingsTeamRoute
@@ -277,9 +270,7 @@ export interface FileRoutesById {
   '/_dashboard': typeof DashboardRouteWithChildren
   '/docs': typeof DocsRouteWithChildren
   '/embed': typeof EmbedRouteWithChildren
-  '/login': typeof LoginRoute
   '/privacy': typeof PrivacyRoute
-  '/signup': typeof SignupRoute
   '/terms': typeof TermsRoute
   '/_auth/forgot-password': typeof AuthForgotPasswordRoute
   '/_auth/reset-password': typeof AuthResetPasswordRoute
@@ -290,6 +281,7 @@ export interface FileRoutesById {
   '/docs/': typeof DocsIndexRoute
   '/_dashboard/dashboard/': typeof DashboardDashboardIndexRoute
   '/_dashboard/dashboard/agents/new': typeof DashboardDashboardAgentsNewRoute
+  '/_dashboard/dashboard/agents/templates': typeof DashboardDashboardAgentsTemplatesRoute
   '/_dashboard/dashboard/settings/api-keys': typeof DashboardDashboardSettingsApiKeysRoute
   '/_dashboard/dashboard/settings/billing': typeof DashboardDashboardSettingsBillingRoute
   '/_dashboard/dashboard/settings/team': typeof DashboardDashboardSettingsTeamRoute
@@ -310,9 +302,7 @@ export interface FileRouteTypes {
     | '/'
     | '/docs'
     | '/embed'
-    | '/login'
     | '/privacy'
-    | '/signup'
     | '/terms'
     | '/forgot-password'
     | '/reset-password'
@@ -323,6 +313,7 @@ export interface FileRouteTypes {
     | '/docs/'
     | '/dashboard'
     | '/dashboard/agents/new'
+    | '/dashboard/agents/templates'
     | '/dashboard/settings/api-keys'
     | '/dashboard/settings/billing'
     | '/dashboard/settings/team'
@@ -340,9 +331,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/embed'
-    | '/login'
     | '/privacy'
-    | '/signup'
     | '/terms'
     | '/forgot-password'
     | '/reset-password'
@@ -353,6 +342,7 @@ export interface FileRouteTypes {
     | '/docs'
     | '/dashboard'
     | '/dashboard/agents/new'
+    | '/dashboard/agents/templates'
     | '/dashboard/settings/api-keys'
     | '/dashboard/settings/billing'
     | '/dashboard/settings/team'
@@ -373,9 +363,7 @@ export interface FileRouteTypes {
     | '/_dashboard'
     | '/docs'
     | '/embed'
-    | '/login'
     | '/privacy'
-    | '/signup'
     | '/terms'
     | '/_auth/forgot-password'
     | '/_auth/reset-password'
@@ -386,6 +374,7 @@ export interface FileRouteTypes {
     | '/docs/'
     | '/_dashboard/dashboard/'
     | '/_dashboard/dashboard/agents/new'
+    | '/_dashboard/dashboard/agents/templates'
     | '/_dashboard/dashboard/settings/api-keys'
     | '/_dashboard/dashboard/settings/billing'
     | '/_dashboard/dashboard/settings/team'
@@ -407,9 +396,7 @@ export interface RootRouteChildren {
   DashboardRoute: typeof DashboardRouteWithChildren
   DocsRoute: typeof DocsRouteWithChildren
   EmbedRoute: typeof EmbedRouteWithChildren
-  LoginRoute: typeof LoginRoute
   PrivacyRoute: typeof PrivacyRoute
-  SignupRoute: typeof SignupRoute
   TermsRoute: typeof TermsRoute
 }
 
@@ -422,25 +409,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TermsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/signup': {
-      id: '/signup'
-      path: '/signup'
-      fullPath: '/signup'
-      preLoaderRoute: typeof SignupRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/privacy': {
       id: '/privacy'
       path: '/privacy'
       fullPath: '/privacy'
       preLoaderRoute: typeof PrivacyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/login': {
-      id: '/login'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/embed': {
@@ -597,6 +570,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardDashboardSettingsApiKeysRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/_dashboard/dashboard/agents/templates': {
+      id: '/_dashboard/dashboard/agents/templates'
+      path: '/dashboard/agents/templates'
+      fullPath: '/dashboard/agents/templates'
+      preLoaderRoute: typeof DashboardDashboardAgentsTemplatesRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/_dashboard/dashboard/agents/new': {
       id: '/_dashboard/dashboard/agents/new'
       path: '/dashboard/agents/new'
@@ -654,6 +634,7 @@ const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
 interface DashboardRouteChildren {
   DashboardDashboardIndexRoute: typeof DashboardDashboardIndexRoute
   DashboardDashboardAgentsNewRoute: typeof DashboardDashboardAgentsNewRoute
+  DashboardDashboardAgentsTemplatesRoute: typeof DashboardDashboardAgentsTemplatesRoute
   DashboardDashboardSettingsApiKeysRoute: typeof DashboardDashboardSettingsApiKeysRoute
   DashboardDashboardSettingsBillingRoute: typeof DashboardDashboardSettingsBillingRoute
   DashboardDashboardSettingsTeamRoute: typeof DashboardDashboardSettingsTeamRoute
@@ -672,6 +653,8 @@ interface DashboardRouteChildren {
 const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardDashboardIndexRoute: DashboardDashboardIndexRoute,
   DashboardDashboardAgentsNewRoute: DashboardDashboardAgentsNewRoute,
+  DashboardDashboardAgentsTemplatesRoute:
+    DashboardDashboardAgentsTemplatesRoute,
   DashboardDashboardSettingsApiKeysRoute:
     DashboardDashboardSettingsApiKeysRoute,
   DashboardDashboardSettingsBillingRoute:
@@ -723,9 +706,7 @@ const rootRouteChildren: RootRouteChildren = {
   DashboardRoute: DashboardRouteWithChildren,
   DocsRoute: DocsRouteWithChildren,
   EmbedRoute: EmbedRouteWithChildren,
-  LoginRoute: LoginRoute,
   PrivacyRoute: PrivacyRoute,
-  SignupRoute: SignupRoute,
   TermsRoute: TermsRoute,
 }
 export const routeTree = rootRouteImport

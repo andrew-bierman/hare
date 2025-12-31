@@ -53,3 +53,21 @@ export * from './dev-tools'
 
 // Public page layout widget
 export * from './public-page-layout'
+
+// Response style selector widget
+export * from './response-style-selector'
+
+// Advanced settings widget
+export * from './advanced-settings'
+
+// Template picker widget
+export * from './template-picker'
+
+// Model selector widget
+export * from './model-selector'
+
+// Onboarding wizard widget
+export * from './onboarding-wizard'
+
+// Prompt generator widget
+export * from './prompt-generator'

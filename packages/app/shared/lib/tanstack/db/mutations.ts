@@ -55,6 +55,7 @@ export function useAgentMutations(workspaceId: string) {
 					instructions: data.instructions ?? '',
 					config: data.config ?? null,
 					status: 'draft',
+					systemToolsEnabled: data.systemToolsEnabled ?? true,
 					toolIds: data.toolIds ?? [],
 					createdAt: now,
 					updatedAt: now,

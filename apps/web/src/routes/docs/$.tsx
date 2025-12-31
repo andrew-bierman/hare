@@ -1,11 +1,13 @@
 import { createFileRoute, notFound } from '@tanstack/react-router'
+import type { Root } from 'fumadocs-core/page-tree'
+import type { InferPageType } from 'fumadocs-core/source'
 import { DocsLayout } from 'fumadocs-ui/layouts/docs'
+import defaultMdxComponents from 'fumadocs-ui/mdx'
 import { DocsBody, DocsPage } from 'fumadocs-ui/page'
 import { RootProvider } from 'fumadocs-ui/provider/tanstack'
-import defaultMdxComponents from 'fumadocs-ui/mdx'
-import { source } from '../../lib/docs/source'
 import { getLayoutOptions } from '../../lib/docs/layout.shared'
 import { getMDXComponents } from '../../lib/docs/mdx-components'
+import { source } from '../../lib/docs/source'
 import '../../styles/docs.css'
 
 export const Route = createFileRoute('/docs/$')({
@@ -20,7 +22,7 @@ export const Route = createFileRoute('/docs/$')({
 			throw notFound()
 		}
 
-		return { page, slugs }
+		return { page, slugs, pageTree: source.pageTree }
 	},
 	head: ({ loaderData }) => ({
 		title: loaderData?.page?.data.title
@@ -34,8 +36,10 @@ export const Route = createFileRoute('/docs/$')({
 
 function DocsPageComponent() {
 	// Page is guaranteed to exist since loader throws notFound() for missing pages
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	const { page } = Route.useLoaderData() as { page: any }
+	const { page, pageTree } = Route.useLoaderData() as {
+		page: InferPageType<typeof source>
+		pageTree: Root
+	}
 	const MDX = page.data.body
 
 	// Combine default fumadocs components with our custom ones (AutoTypeTable, etc.)
@@ -48,7 +52,7 @@ function DocsPageComponent() {
 
 	return (
 		<RootProvider>
-			<DocsLayout tree={source.pageTree} {...getLayoutOptions()}>
+			<DocsLayout tree={pageTree} {...getLayoutOptions()}>
 				<DocsPage toc={toc}>
 					<DocsBody>
 						<h1>{page.data.title}</h1>

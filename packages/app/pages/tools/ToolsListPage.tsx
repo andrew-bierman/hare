@@ -9,7 +9,7 @@ import {
 	CollapsibleContent,
 	CollapsibleTrigger,
 } from '@hare/ui/components/collapsible'
-import { Input } from '@hare/ui/components/input'
+import { SearchInput } from '@hare/ui/components/search-input'
 import { Skeleton } from '@hare/ui/components/skeleton'
 import {
 	Table,
@@ -19,13 +19,14 @@ import {
 	TableHeader,
 	TableRow,
 } from '@hare/ui/components/table'
-import { ChevronDown, Globe, Plus, Search, Trash2, Wrench } from 'lucide-react'
+import { ChevronDown, Globe, Plus, Trash2, Wrench } from 'lucide-react'
 import { type ChangeEvent, useState } from 'react'
 import type { Tool, ToolType } from '@hare/types'
 import { useToolsQuery } from '../../shared/api/hooks'
 import { CreateToolDialog, DeleteToolDialog } from '../../features/create-tool'
 import { useWorkspace } from '../../app/providers'
 import { TOOL_TYPE_ICONS } from '../../widgets/tool-picker/ui/tool-icons'
+import { EmptyState } from '../../shared/ui/empty-state'
 
 function ToolTableSkeleton() {
 	return (
@@ -37,21 +38,21 @@ function ToolTableSkeleton() {
 	)
 }
 
-function EmptyState({ onAdd }: { onAdd: () => void }) {
+function ToolsEmptyState({ onAdd }: { onAdd: () => void }) {
 	return (
-		<Card className="border-dashed">
-			<CardContent className="flex flex-col items-center justify-center py-8 text-center">
-				<Wrench className="h-10 w-10 text-muted-foreground mb-3" />
-				<h3 className="font-semibold">No custom tools</h3>
-				<p className="text-sm text-muted-foreground mt-1 mb-4">
-					Create custom tools to extend your agents' capabilities.
-				</p>
-				<Button size="sm" onClick={onAdd}>
-					<Plus className="mr-2 h-4 w-4" />
-					Add Tool
-				</Button>
-			</CardContent>
-		</Card>
+		<EmptyState
+			icon={Wrench}
+			title="No custom tools"
+			description="Create custom tools to extend your agents' capabilities."
+			iconBgColor="bg-muted"
+			iconColor="text-muted-foreground"
+			size="sm"
+			action={{
+				label: 'Add Tool',
+				icon: Plus,
+				onClick: onAdd,
+			}}
+		/>
 	)
 }
 
@@ -118,15 +119,12 @@ export function ToolsListPage() {
 			</div>
 
 			{/* Search */}
-			<div className="relative max-w-sm">
-				<Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-				<Input
-					placeholder="Search tools..."
-					className="pl-8"
-					value={search}
-					onChange={(e: ChangeEvent<HTMLInputElement>) => setSearch(e.target.value)}
-				/>
-			</div>
+			<SearchInput
+				placeholder="Search tools..."
+				value={search}
+				onChange={(e: ChangeEvent<HTMLInputElement>) => setSearch(e.target.value)}
+				containerClassName="w-full sm:w-64"
+			/>
 
 			{isLoading ? (
 				<ToolTableSkeleton />
@@ -207,7 +205,7 @@ export function ToolsListPage() {
 						<CollapsibleContent>
 							<div className="mt-2">
 								{customTools.length === 0 ? (
-									<EmptyState onAdd={() => setIsCreateOpen(true)} />
+									<ToolsEmptyState onAdd={() => setIsCreateOpen(true)} />
 								) : (
 									<div className="rounded-lg border">
 										<Table>

@@ -6,8 +6,8 @@
  * from TypeScript files via the fumadocs-typescript remarkAutoTypeTable plugin.
  */
 
-import type { ComponentType } from 'react'
 import { TypeTable } from 'fumadocs-ui/components/type-table'
+import type { ComponentType } from 'react'
 
 /**
  * Get MDX components for documentation pages.

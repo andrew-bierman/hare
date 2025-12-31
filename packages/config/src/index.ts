@@ -14,11 +14,18 @@ export { APP_CONFIG, BETA_ACCESS, FEATURES, type AppConfig, type BetaAccess, typ
 // AI Models
 export {
 	AI_MODELS,
+	COST_TIER_LABELS,
 	DEFAULT_MODEL_ID,
 	getModelById,
 	getModelName,
+	getModelsByProvider,
+	getProviderLabel,
+	PROVIDER_LABELS,
+	SPEED_TIER_LABELS,
 	type AIModel,
+	type CostTier,
 	type ModelProvider,
+	type SpeedTier,
 } from './models'
 
 // Tools & Agents
@@ -31,6 +38,19 @@ export {
 	type SystemTool,
 	type SystemToolType,
 } from './tools'
+
+// Agent Templates & Response Styles
+export {
+	AGENT_TEMPLATES,
+	getResponseStyleById,
+	getResponseStyleFromConfig,
+	getTemplateById,
+	RESPONSE_STYLE_PRESETS,
+	type AgentTemplate,
+	type AgentTemplateId,
+	type ResponseStyle,
+	type ResponseStylePreset,
+} from './templates'
 
 // Navigation
 export { NAV_ITEMS, type NavItems } from './navigation'
