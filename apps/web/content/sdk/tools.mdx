@@ -28,11 +28,12 @@ const kvTools = getToolsByCategory({
 
 ## Tool Categories
 
-### Cloudflare Native (17 tools)
+### Storage Tools
 
-Tools for working with Cloudflare services.
+Tools for working with Cloudflare storage services.
 
-**KV Storage**
+#### KV Storage
+
 | Tool | Description |
 |------|-------------|
 | `kv_get` | Get a value from KV storage |
@@ -40,7 +41,8 @@ Tools for working with Cloudflare services.
 | `kv_delete` | Delete a value from KV storage |
 | `kv_list` | List keys in KV storage |
 
-**R2 Object Storage**
+#### R2 Object Storage
+
 | Tool | Description |
 |------|-------------|
 | `r2_get` | Get an object from R2 storage |
@@ -49,27 +51,32 @@ Tools for working with Cloudflare services.
 | `r2_list` | List objects in R2 bucket |
 | `r2_head` | Get object metadata |
 
-**D1 Database**
+#### D1 Database
+
 | Tool | Description |
 |------|-------------|
 | `sql_query` | Execute a read query on D1 |
 | `sql_execute` | Execute a write query on D1 |
 | `sql_batch` | Execute multiple queries in a batch |
 
-**HTTP**
+### HTTP Tools
+
+Tools for making HTTP requests.
+
 | Tool | Description |
 |------|-------------|
 | `http_request` | Make an HTTP request |
 | `http_get` | Make a GET request |
 | `http_post` | Make a POST request |
 
-**AI Search**
+### AI Search
+
 | Tool | Description |
 |------|-------------|
 | `ai_search` | Search using AI |
 | `ai_search_answer` | Get AI-powered answers |
 
-### AI Tools (8 tools)
+### AI Tools
 
 Tools for AI operations using Workers AI.
 
@@ -84,7 +91,7 @@ Tools for AI operations using Workers AI.
 | `embedding` | Generate text embeddings |
 | `question_answer` | Answer questions about text |
 
-### Utility Tools (9 tools)
+### Utility Tools
 
 General utility tools.
 
@@ -100,7 +107,7 @@ General utility tools.
 | `url` | URL parsing and manipulation |
 | `delay` | Wait for specified time |
 
-### Data Tools (7 tools)
+### Data Tools
 
 Tools for data processing.
 
@@ -114,7 +121,7 @@ Tools for data processing.
 | `csv` | CSV parsing and generation |
 | `template` | Template rendering |
 
-### Validation Tools (6 tools)
+### Validation Tools
 
 Tools for data validation.
 
@@ -127,7 +134,7 @@ Tools for data validation.
 | `validate_ip` | Validate IP addresses |
 | `validate_json` | Validate JSON structure |
 
-### Transform Tools (5 tools)
+### Transform Tools
 
 Tools for data transformation.
 
@@ -139,7 +146,7 @@ Tools for data transformation.
 | `compression` | Compress/decompress data |
 | `color` | Color format conversion |
 
-### Sandbox Tools (3 tools)
+### Sandbox Tools
 
 Tools for code execution.
 
@@ -149,7 +156,7 @@ Tools for code execution.
 | `code_validate` | Validate code syntax |
 | `sandbox_file` | File operations in sandbox |
 
-### Memory Tools (2 tools)
+### Memory Tools
 
 Tools for vector memory storage.
 
@@ -158,7 +165,7 @@ Tools for vector memory storage.
 | `store_memory` | Store data in Vectorize |
 | `recall_memory` | Recall data from Vectorize |
 
-### Integration Tools (2 tools)
+### Integration Tools
 
 Tools for external integrations.
 

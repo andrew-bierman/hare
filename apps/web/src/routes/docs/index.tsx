@@ -32,7 +32,7 @@ const DOCS_SECTIONS = [
 		links: [
 			{ label: 'Quick Start Guide', href: '/docs/guides/getting-started' },
 			{ label: 'Installation', href: '/docs/guides/installation' },
-			{ label: 'Your First Agent', href: '/docs/guides/first-agent' },
+			{ label: 'HareEdgeAgent', href: '/docs/sdk/edge-agent' },
 		],
 	},
 	{
@@ -41,7 +41,7 @@ const DOCS_SECTIONS = [
 		icon: Code,
 		href: '/docs/sdk',
 		links: [
-			{ label: 'HareEdgeAgent', href: '/docs/sdk/edge-agent' },
+			{ label: 'HareAgent', href: '/docs/sdk/hare-agent' },
 			{ label: 'Memory Store', href: '/docs/sdk/memory' },
 			{ label: 'Workers AI Provider', href: '/docs/sdk/providers' },
 		],
@@ -52,9 +52,9 @@ const DOCS_SECTIONS = [
 		icon: Wrench,
 		href: '/docs/sdk/tools',
 		links: [
-			{ label: 'Storage Tools', href: '/docs/sdk/tools#storage' },
-			{ label: 'HTTP Tools', href: '/docs/sdk/tools#http' },
-			{ label: 'AI Tools', href: '/docs/sdk/tools#ai' },
+			{ label: 'Storage Tools', href: '/docs/sdk/tools#storage-tools' },
+			{ label: 'HTTP Tools', href: '/docs/sdk/tools#http-tools' },
+			{ label: 'AI Tools', href: '/docs/sdk/tools#ai-tools' },
 		],
 	},
 	{
@@ -64,8 +64,8 @@ const DOCS_SECTIONS = [
 		href: '/api/docs',
 		links: [
 			{ label: 'REST API', href: '/api/docs' },
-			{ label: 'MCP Protocol', href: '/docs/guides/mcp' },
-			{ label: 'Webhooks', href: '/docs/guides/webhooks' },
+			{ label: 'MCP Agent', href: '/docs/sdk/mcp-agent' },
+			{ label: 'Integrations', href: '/docs/sdk/tools#integration-tools' },
 		],
 	},
 ]
