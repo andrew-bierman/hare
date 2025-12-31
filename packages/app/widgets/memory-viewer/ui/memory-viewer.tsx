@@ -18,6 +18,7 @@ import {
 	DialogTitle,
 } from '@hare/ui/components/dialog'
 import { Input } from '@hare/ui/components/input'
+import { SearchInput } from '@hare/ui/components/search-input'
 import { Label } from '@hare/ui/components/label'
 import {
 	Select,
@@ -34,7 +35,6 @@ import {
 	MessageSquare,
 	Pencil,
 	Plus,
-	SearchIcon,
 	Settings,
 	Sparkles,
 	Tag,
@@ -335,16 +335,13 @@ export function MemoryViewer(props: MemoryViewerProps) {
 			<CardContent className="space-y-4">
 				{/* Search Bar */}
 				<div className="flex gap-2">
-					<div className="relative flex-1">
-						<SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-						<Input
-							placeholder="Search memories semantically..."
-							value={searchQuery}
-							onChange={(e: ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
-							onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-							className="pl-9"
-						/>
-					</div>
+					<SearchInput
+						placeholder="Search memories semantically..."
+						value={searchQuery}
+						onChange={(e: ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
+						onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+						containerClassName="flex-1"
+					/>
 					<Button onClick={handleSearch} disabled={isSearching || !searchQuery.trim()}>
 						{isSearching ? 'Searching...' : 'Search'}
 					</Button>

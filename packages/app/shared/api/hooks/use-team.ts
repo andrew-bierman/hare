@@ -1,8 +1,8 @@
 'use client'
 
 import type { MemberRole, SendInvitationInput, WorkspaceInvitation, WorkspaceMember } from '@hare/types'
-import { apiClient } from '../client'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { api, ApiClientError } from '../client'
 
 // Re-export types for convenience
 export type {
@@ -13,12 +13,36 @@ export type {
 } from '@hare/types'
 
 /**
+ * Helper to handle Hono RPC response with proper error handling.
+ */
+async function handleResponse<T>(res: Response & { json(): Promise<T> }): Promise<T> {
+	if (!res.ok) {
+		let errorMessage = `Request failed with status ${res.status}`
+		let errorCode: string | undefined
+		try {
+			const error = (await res.json()) as { error: string; code?: string }
+			errorMessage = error.error ?? errorMessage
+			errorCode = error.code
+		} catch {
+			// Response wasn't JSON
+		}
+		throw new ApiClientError(errorMessage, res.status, errorCode)
+	}
+	return res.json()
+}
+
+/**
  * Hook to fetch workspace members
  */
 export function useWorkspaceMembersQuery(workspaceId: string | undefined) {
 	return useQuery({
 		queryKey: ['workspaces', workspaceId, 'members'],
-		queryFn: () => apiClient.workspaces.members.list(workspaceId!),
+		queryFn: async () => {
+			const res = await api.workspaces[':id'].members.$get({
+				param: { id: workspaceId! },
+			})
+			return handleResponse(res)
+		},
 		enabled: !!workspaceId,
 	})
 }
@@ -29,7 +53,12 @@ export function useWorkspaceMembersQuery(workspaceId: string | undefined) {
 export function useWorkspaceInvitationsQuery(workspaceId: string | undefined) {
 	return useQuery({
 		queryKey: ['workspaces', workspaceId, 'invitations'],
-		queryFn: () => apiClient.workspaces.invitations.list(workspaceId!),
+		queryFn: async () => {
+			const res = await api.workspaces[':id'].invites.$get({
+				param: { id: workspaceId! },
+			})
+			return handleResponse(res)
+		},
 		enabled: !!workspaceId,
 	})
 }
@@ -40,8 +69,13 @@ export function useWorkspaceInvitationsQuery(workspaceId: string | undefined) {
 export function useSendInvitationMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: ({ workspaceId, data }: { workspaceId: string; data: SendInvitationInput }) =>
-			apiClient.workspaces.invitations.send(workspaceId, data),
+		mutationFn: async ({ workspaceId, data }: { workspaceId: string; data: SendInvitationInput }) => {
+			const res = await api.workspaces[':id'].invites.$post({
+				param: { id: workspaceId },
+				json: data,
+			})
+			return handleResponse(res)
+		},
 		onSuccess: (_, { workspaceId }) => {
 			queryClient.invalidateQueries({ queryKey: ['workspaces', workspaceId, 'invitations'] })
 		},
@@ -54,8 +88,12 @@ export function useSendInvitationMutation() {
 export function useRevokeInvitationMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: ({ workspaceId, inviteId }: { workspaceId: string; inviteId: string }) =>
-			apiClient.workspaces.invitations.revoke(workspaceId, inviteId),
+		mutationFn: async ({ workspaceId, inviteId }: { workspaceId: string; inviteId: string }) => {
+			const res = await api.workspaces[':id'].invites[':inviteId'].$delete({
+				param: { id: workspaceId, inviteId },
+			})
+			return handleResponse(res)
+		},
 		onSuccess: (_, { workspaceId }) => {
 			queryClient.invalidateQueries({ queryKey: ['workspaces', workspaceId, 'invitations'] })
 		},
@@ -68,8 +106,12 @@ export function useRevokeInvitationMutation() {
 export function useRemoveMemberMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: ({ workspaceId, userId }: { workspaceId: string; userId: string }) =>
-			apiClient.workspaces.members.remove(workspaceId, userId),
+		mutationFn: async ({ workspaceId, userId }: { workspaceId: string; userId: string }) => {
+			const res = await api.workspaces[':id'].members[':userId'].$delete({
+				param: { id: workspaceId, userId },
+			})
+			return handleResponse(res)
+		},
 		onSuccess: (_, { workspaceId }) => {
 			queryClient.invalidateQueries({ queryKey: ['workspaces', workspaceId, 'members'] })
 		},
@@ -82,7 +124,7 @@ export function useRemoveMemberMutation() {
 export function useUpdateMemberRoleMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: ({
+		mutationFn: async ({
 			workspaceId,
 			userId,
 			role,
@@ -90,7 +132,13 @@ export function useUpdateMemberRoleMutation() {
 			workspaceId: string
 			userId: string
 			role: MemberRole
-		}) => apiClient.workspaces.members.updateRole(workspaceId, userId, role),
+		}) => {
+			const res = await api.workspaces[':id'].members[':userId'].$patch({
+				param: { id: workspaceId, userId },
+				json: { role },
+			})
+			return handleResponse(res)
+		},
 		onSuccess: (_, { workspaceId }) => {
 			queryClient.invalidateQueries({ queryKey: ['workspaces', workspaceId, 'members'] })
 		},
