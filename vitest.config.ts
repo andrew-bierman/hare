@@ -6,7 +6,7 @@ export default defineWorkersConfig({
     alias: {
       // Mock cuid2 to avoid CF Workers global scope random generation error
       // cuid2 calls crypto.getRandomValues() at import time, which fails in Workers global scope
-      "@paralleldrive/cuid2": path.resolve(__dirname, "./test/mocks/cuid2.ts"),
+      "@paralleldrive/cuid2": path.resolve(__dirname, "./packages/testing/src/mocks/cuid2.ts"),
       // @hare/* package aliases
       "@hare/api": path.resolve(__dirname, "./packages/api/src/index.ts"),
       "@hare/auth/server": path.resolve(__dirname, "./packages/auth/src/server.ts"),
@@ -20,6 +20,7 @@ export default defineWorkersConfig({
       "@hare/ui": path.resolve(__dirname, "./packages/ui/src/index.ts"),
       "@hare/agent": path.resolve(__dirname, "./packages/agent/src/index.ts"),
       "@hare/security": path.resolve(__dirname, "./packages/security/src/index.ts"),
+      "@hare/testing": path.resolve(__dirname, "./packages/testing/src/index.ts"),
       "@hare/app/shared/lib": path.resolve(__dirname, "./packages/app/shared/lib/index.ts"),
       "@hare/app": path.resolve(__dirname, "./packages/app/index.ts"),
       // Map web-app imports to new package structure
