@@ -8,6 +8,7 @@ import { useVirtualizer } from '@tanstack/react-virtual'
 import { cn } from '@hare/ui/lib/utils'
 import { Bot, Loader2, User } from 'lucide-react'
 import { useCallback, useEffect, useRef } from 'react'
+import { MarkdownContent } from './markdown-content'
 
 export interface VirtualizedMessage {
 	id: string
@@ -246,10 +247,17 @@ export function MessageBubble({ message, isStreaming }: MessageBubbleProps) {
 				className={cn(
 					'max-w-[80%] rounded-2xl px-4 py-2',
 					isUser ? 'bg-primary text-primary-foreground' : 'bg-muted',
-					isStreaming && 'animate-pulse',
 				)}
 			>
-				<p className="whitespace-pre-wrap text-sm">{message.content}</p>
+				{isUser ? (
+					<p className="whitespace-pre-wrap text-sm">{message.content}</p>
+				) : (
+					<MarkdownContent
+						content={message.content}
+						isStreaming={isStreaming}
+						className="text-sm"
+					/>
+				)}
 				{!isStreaming && (
 					<time className="mt-1 block text-xs opacity-60">
 						{new Date(message.createdAt).toLocaleTimeString()}
