@@ -6,7 +6,7 @@
  */
 
 import { z } from 'zod'
-import { AI_MODELS, AGENT_TEMPLATES, getModelById } from '@hare/config'
+import { config, getModelById } from '@hare/config'
 import { createTool, failure, success, type AnyTool, type ToolContext } from './types'
 import { getAgentControlTools } from './agent-control'
 
@@ -140,7 +140,7 @@ export const agentListModelsTool = createTool({
 	outputSchema: ListModelsOutputSchema,
 	execute: async (params, _context: ToolContext) => {
 		try {
-			let models = [...AI_MODELS]
+			let models = [...config.models.list]
 
 			// Filter by provider if specified
 			if (params.provider) {
@@ -189,7 +189,7 @@ export const agentListTemplatesTool = createTool({
 	outputSchema: ListTemplatesOutputSchema,
 	execute: async (_params, _context: ToolContext) => {
 		try {
-			const templates = AGENT_TEMPLATES.map((t) => ({
+			const templates = config.agents.templates.map((t) => ({
 				id: t.id,
 				name: t.name,
 				description: t.description,
@@ -197,7 +197,7 @@ export const agentListTemplatesTool = createTool({
 				color: t.color,
 				model: t.model,
 				responseStyle: t.responseStyle,
-				suggestedToolTypes: t.suggestedToolTypes,
+				suggestedToolTypes: [...t.suggestedToolTypes],
 				// Provide a preview of instructions (first 200 chars)
 				instructionsPreview:
 					t.instructions.length > 200
