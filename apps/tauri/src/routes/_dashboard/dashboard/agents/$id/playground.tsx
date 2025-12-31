@@ -1,6 +1,6 @@
 import { useWorkspace } from '@hare/app/providers'
 import { useAgentQuery, useChat } from '@hare/app/shared/api'
-import { ToolCallList } from '@hare/app/widgets/chat-interface'
+import { MarkdownContent, ToolCallList } from '@hare/app/widgets/chat-interface'
 import { getModelName } from '@hare/config'
 import { Avatar, AvatarFallback } from '@hare/ui/components/avatar'
 import { Badge } from '@hare/ui/components/badge'
@@ -296,62 +296,84 @@ function PlaygroundPage() {
 						<EmptyState />
 					) : (
 						<div className="p-4 space-y-4">
-							{messages.map((message) => (
-								<div
-									key={message.id}
-									className={`flex gap-3 ${message.role === 'user' ? 'flex-row-reverse' : ''}`}
-								>
-									<Avatar className="h-8 w-8 flex-shrink-0">
-										<AvatarFallback
-											className={
-												message.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted'
-											}
-										>
-											{message.role === 'user' ? (
-												<User className="h-4 w-4" />
-											) : (
-												<Bot className="h-4 w-4" />
-											)}
-										</AvatarFallback>
-									</Avatar>
+							{messages
+								.filter((msg) => {
+									// Filter out empty assistant messages while streaming (prevents double indicator)
+									if (isStreaming && msg.role === 'assistant' && !msg.content) {
+										return false
+									}
+									return true
+								})
+								.map((message) => (
 									<div
-										className={`flex-1 max-w-[80%] ${message.role === 'user' ? 'text-right' : ''}`}
+										key={message.id}
+										className={`flex gap-3 ${message.role === 'user' ? 'flex-row-reverse' : ''}`}
 									>
-										<div
-											className={`inline-block rounded-lg px-4 py-2 ${
-												message.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted'
-											}`}
-										>
-											<p className="text-sm whitespace-pre-wrap">{message.content}</p>
-										</div>
-										{/* Tool Calls */}
-										{message.role === 'assistant' &&
-											message.toolCalls &&
-											message.toolCalls.length > 0 && (
-												<ToolCallList toolCalls={message.toolCalls} />
-											)}
-									</div>
-								</div>
-							))}
-
-							{/* Streaming Indicator */}
-							{isStreaming &&
-								messages[messages.length - 1]?.role === 'assistant' &&
-								!messages[messages.length - 1]?.content && (
-									<div className="flex gap-3">
 										<Avatar className="h-8 w-8 flex-shrink-0">
-											<AvatarFallback className="bg-muted">
-												<Bot className="h-4 w-4" />
+											<AvatarFallback
+												className={
+													message.role === 'user'
+														? 'bg-primary text-primary-foreground'
+														: 'bg-muted'
+												}
+											>
+												{message.role === 'user' ? (
+													<User className="h-4 w-4" />
+												) : (
+													<Bot className="h-4 w-4" />
+												)}
 											</AvatarFallback>
 										</Avatar>
-										<div className="flex-1">
-											<div className="inline-flex items-center gap-2 rounded-lg bg-muted px-4 py-2">
-												<Loader2 className="h-4 w-4 animate-spin" />
-												<span className="text-sm text-muted-foreground">Thinking...</span>
+										<div
+											className={`flex-1 max-w-[80%] ${message.role === 'user' ? 'text-right' : ''}`}
+										>
+											<div
+												className={`inline-block rounded-lg px-4 py-2 ${
+													message.role === 'user'
+														? 'bg-primary text-primary-foreground'
+														: 'bg-muted'
+												}`}
+											>
+												{message.role === 'user' ? (
+													<p className="text-sm whitespace-pre-wrap">{message.content}</p>
+												) : (
+													<MarkdownContent
+														content={message.content}
+														isStreaming={isStreaming && message === messages[messages.length - 1]}
+														className="text-sm"
+													/>
+												)}
 											</div>
+											{/* Tool Calls */}
+											{message.role === 'assistant' &&
+												message.toolCalls &&
+												message.toolCalls.length > 0 && (
+													<ToolCallList toolCalls={message.toolCalls} />
+												)}
 										</div>
 									</div>
-								)}
+								))}
+
+							{/* Streaming Indicator - show when streaming and no content yet */}
+							{isStreaming && !messages.some((m) => m.role === 'assistant' && m.content) && (
+								<div className="flex gap-3">
+									<Avatar className="h-8 w-8 flex-shrink-0">
+										<AvatarFallback className="bg-muted">
+											<Bot className="h-4 w-4" />
+										</AvatarFallback>
+									</Avatar>
+									<div className="flex-1">
+										<div className="inline-flex items-center gap-2 rounded-lg bg-muted px-4 py-2">
+											<div className="flex gap-1">
+												<span className="h-2 w-2 animate-bounce rounded-full bg-muted-foreground" />
+												<span className="h-2 w-2 animate-bounce rounded-full bg-muted-foreground [animation-delay:150ms]" />
+												<span className="h-2 w-2 animate-bounce rounded-full bg-muted-foreground [animation-delay:300ms]" />
+											</div>
+											<span className="text-sm text-muted-foreground">Thinking...</span>
+										</div>
+									</div>
+								</div>
+							)}
 
 							{/* Error Display */}
 							{chatError && (

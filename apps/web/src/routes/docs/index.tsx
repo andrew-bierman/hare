@@ -35,7 +35,6 @@ const DOCS_SECTIONS = [
 		links: [
 			{ label: 'Quick Start Guide', href: '/docs/guides/getting-started' },
 			{ label: 'Installation', href: '/docs/guides/installation' },
-			{ label: 'Your First Agent', href: '/docs/guides/first-agent' },
 		],
 	},
 	{

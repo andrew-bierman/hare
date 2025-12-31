@@ -226,13 +226,13 @@ const agentSchedulesRoute = createRoute({
 })
 
 // Create app
-const app = new OpenAPIHono<OptionalAuthEnv>()
+const baseApp = new OpenAPIHono<OptionalAuthEnv>()
 
 // Apply optional auth middleware
-app.use('*', optionalAuthMiddleware)
+baseApp.use('*', optionalAuthMiddleware)
 
 // WebSocket upgrade handler
-app.openapi(agentWebSocketRoute, async (c) => {
+const app = baseApp.openapi(agentWebSocketRoute, async (c) => {
 	const { id: agentId } = c.req.valid('param')
 	const db = getDb(c)
 	const env = getCloudflareEnv(c)
@@ -275,9 +275,8 @@ app.openapi(agentWebSocketRoute, async (c) => {
 	// Route to the HareAgent Durable Object
 	return routeWebSocketToAgent({ request, env, agentId })
 })
-
 // Get agent state handler
-app.openapi(agentStateRoute, async (c) => {
+.openapi(agentStateRoute, async (c) => {
 	const { id: agentId } = c.req.valid('param')
 	const db = getDb(c)
 	const env = getCloudflareEnv(c)
@@ -315,9 +314,8 @@ app.openapi(agentStateRoute, async (c) => {
 
 	return c.json(state, 200)
 })
-
 // Configure agent handler
-app.openapi(configureAgentRoute, async (c) => {
+.openapi(configureAgentRoute, async (c) => {
 	const { id: agentId } = c.req.valid('param')
 	const config = c.req.valid('json')
 	const db = getDb(c)
@@ -364,9 +362,8 @@ app.openapi(configureAgentRoute, async (c) => {
 
 	return c.json({ success: true, state }, 200)
 })
-
 // Get agent schedules handler
-app.openapi(agentSchedulesRoute, async (c) => {
+.openapi(agentSchedulesRoute, async (c) => {
 	const { id: agentId } = c.req.valid('param')
 	const db = getDb(c)
 	const env = getCloudflareEnv(c)
@@ -461,7 +458,7 @@ const agentChatRoute = createRoute({
 })
 
 // Chat handler - routes to Durable Object
-app.openapi(agentChatRoute, async (c) => {
+const app2 = app.openapi(agentChatRoute, async (c) => {
 	const { id: agentId } = c.req.valid('param')
 	const body = c.req.valid('json')
 	const db = getDb(c)
@@ -523,4 +520,4 @@ app.openapi(agentChatRoute, async (c) => {
 	return c.json(result, 200)
 })
 
-export default app
+export default app2

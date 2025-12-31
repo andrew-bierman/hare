@@ -232,13 +232,13 @@ const mcpRpcRoute = createRoute({
 })
 
 // Create app
-const app = new OpenAPIHono<OptionalAuthEnv>()
+const baseApp = new OpenAPIHono<OptionalAuthEnv>()
 
 // Apply optional auth middleware
-app.use('*', optionalAuthMiddleware)
+baseApp.use('*', optionalAuthMiddleware)
 
 // MCP WebSocket connection
-app.openapi(mcpConnectRoute, async (c) => {
+const app = baseApp.openapi(mcpConnectRoute, async (c) => {
 	const { workspaceId } = c.req.valid('param')
 	const db = getDb(c)
 	const env = getCloudflareEnv(c)
@@ -260,9 +260,8 @@ app.openapi(mcpConnectRoute, async (c) => {
 	// Route to the MCP Agent Durable Object
 	return routeToMcpAgent({ request: c.req.raw, env, workspaceId })
 })
-
 // MCP info
-app.openapi(mcpInfoRoute, async (c) => {
+.openapi(mcpInfoRoute, async (c) => {
 	const { workspaceId } = c.req.valid('param')
 
 	return c.json(
@@ -318,7 +317,7 @@ async function createToolContext(
 }
 
 // MCP tools list (HTTP)
-app.openapi(mcpToolsRoute, async (c) => {
+const app2 = app.openapi(mcpToolsRoute, async (c) => {
 	const { workspaceId } = c.req.valid('param')
 	const db = getDb(c)
 	const user = c.get('user')
@@ -338,9 +337,8 @@ app.openapi(mcpToolsRoute, async (c) => {
 
 	return c.json({ tools }, 200)
 })
-
 // MCP tool execute (HTTP)
-app.openapi(mcpToolExecuteRoute, async (c) => {
+.openapi(mcpToolExecuteRoute, async (c) => {
 	const { workspaceId, toolId } = c.req.valid('param')
 	const db = getDb(c)
 	const user = c.get('user')
@@ -363,9 +361,8 @@ app.openapi(mcpToolExecuteRoute, async (c) => {
 
 	return c.json({ success: result.success, data: result.data, error: result.error }, 200)
 })
-
 // MCP JSON-RPC (HTTP)
-app.openapi(mcpRpcRoute, async (c) => {
+.openapi(mcpRpcRoute, async (c) => {
 	const { workspaceId } = c.req.valid('param')
 	const { id, method, params } = c.req.valid('json')
 	const db = getDb(c)
@@ -459,4 +456,4 @@ app.openapi(mcpRpcRoute, async (c) => {
 	}
 })
 
-export default app
+export default app2

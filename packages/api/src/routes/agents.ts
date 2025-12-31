@@ -585,15 +585,15 @@ async function findAgentByIdAndWorkspace(input: FindAgentByIdAndWorkspaceInput) 
 	return agent || null
 }
 
-// Create app with proper typing
-const app = new OpenAPIHono<WorkspaceEnv>()
+// Create base app with proper typing
+const baseApp = new OpenAPIHono<WorkspaceEnv>()
 
 // Apply middleware
-app.use('*', authMiddleware)
-app.use('*', workspaceMiddleware)
+baseApp.use('*', authMiddleware)
+baseApp.use('*', workspaceMiddleware)
 
-// Register routes
-app.openapi(listAgentsRoute, async (c) => {
+// Register routes - chain all .openapi() calls for type inference
+const app = baseApp.openapi(listAgentsRoute, async (c) => {
 	const db = getDb(c)
 	const workspace = c.get('workspace')
 
@@ -606,9 +606,7 @@ app.openapi(listAgentsRoute, async (c) => {
 	)
 
 	return c.json({ agents: agentsData }, 200)
-})
-
-app.openapi(createAgentRoute, async (c) => {
+}).openapi(createAgentRoute, async (c) => {
 	const data = c.req.valid('json')
 	const db = getDb(c)
 	const user = c.get('user')
@@ -649,9 +647,7 @@ app.openapi(createAgentRoute, async (c) => {
 	}
 
 	return c.json(serializeAgent({ agent, toolIds: data.toolIds || [] }), 201)
-})
-
-app.openapi(getAgentRoute, async (c) => {
+}).openapi(getAgentRoute, async (c) => {
 	const { id } = c.req.valid('param')
 	const db = getDb(c)
 	const workspace = c.get('workspace')
@@ -663,9 +659,7 @@ app.openapi(getAgentRoute, async (c) => {
 
 	const toolIds = await getAgentToolIds({ agentId: agent.id, db })
 	return c.json(serializeAgent({ agent, toolIds }), 200)
-})
-
-app.openapi(updateAgentRoute, async (c) => {
+}).openapi(updateAgentRoute, async (c) => {
 	const { id } = c.req.valid('param')
 	const data = c.req.valid('json')
 	const db = getDb(c)
@@ -715,9 +709,7 @@ app.openapi(updateAgentRoute, async (c) => {
 
 	const toolIds = await getAgentToolIds({ agentId: id, db })
 	return c.json(serializeAgent({ agent, toolIds }), 200)
-})
-
-app.openapi(deleteAgentRoute, async (c) => {
+}).openapi(deleteAgentRoute, async (c) => {
 	const { id } = c.req.valid('param')
 	const db = getDb(c)
 	const workspace = c.get('workspace')
@@ -735,9 +727,7 @@ app.openapi(deleteAgentRoute, async (c) => {
 	}
 
 	return c.json({ success: true }, 200)
-})
-
-app.openapi(deployAgentRoute, async (c) => {
+}).openapi(deployAgentRoute, async (c) => {
 	const { id } = c.req.valid('param')
 	const data = c.req.valid('json')
 	const db = getDb(c)
@@ -837,9 +827,7 @@ app.openapi(deployAgentRoute, async (c) => {
 		},
 		200,
 	)
-})
-
-app.openapi(getDeploymentRoute, async (c) => {
+}).openapi(getDeploymentRoute, async (c) => {
 	const { id } = c.req.valid('param')
 	const db = getDb(c)
 	const workspace = c.get('workspace')
@@ -889,9 +877,7 @@ app.openapi(getDeploymentRoute, async (c) => {
 		},
 		200,
 	)
-})
-
-app.openapi(undeployAgentRoute, async (c) => {
+}).openapi(undeployAgentRoute, async (c) => {
 	const { id } = c.req.valid('param')
 	const db = getDb(c)
 	const workspace = c.get('workspace')
@@ -906,9 +892,7 @@ app.openapi(undeployAgentRoute, async (c) => {
 
 	const result = await deactivateDeployment({ db, agentId: id })
 	return c.json(result, 200)
-})
-
-app.openapi(rollbackAgentRoute, async (c) => {
+}).openapi(rollbackAgentRoute, async (c) => {
 	const { id } = c.req.valid('param')
 	const data = c.req.valid('json')
 	const db = getDb(c)
@@ -931,9 +915,7 @@ app.openapi(rollbackAgentRoute, async (c) => {
 	})
 
 	return c.json(result, 200)
-})
-
-app.openapi(deploymentHistoryRoute, async (c) => {
+}).openapi(deploymentHistoryRoute, async (c) => {
 	const { id } = c.req.valid('param')
 	const { limit } = c.req.valid('query')
 	const db = getDb(c)
@@ -972,13 +954,12 @@ app.openapi(deploymentHistoryRoute, async (c) => {
 		},
 		200,
 	)
-})
 
 // =============================================================================
 // Validation Route Handler
 // =============================================================================
 
-app.openapi(validateConfigRoute, async (c) => {
+}).openapi(validateConfigRoute, async (c) => {
 	const data = c.req.valid('json')
 	const db = getDb(c)
 	const workspace = c.get('workspace')
@@ -1233,13 +1214,12 @@ app.openapi(validateConfigRoute, async (c) => {
 		},
 		200,
 	)
-})
 
 // =============================================================================
 // Preview Route Handler (per-agent validation with overrides)
 // =============================================================================
 
-app.openapi(previewAgentRoute, async (c) => {
+}).openapi(previewAgentRoute, async (c) => {
 	const { id } = c.req.valid('param')
 	const overrides = c.req.valid('json')
 	const db = getDb(c)
