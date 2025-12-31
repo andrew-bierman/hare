@@ -25,7 +25,7 @@ import {
 	DropdownMenuContent,
 	DropdownMenuTrigger,
 } from '@hare/ui/components/dropdown-menu'
-import { Input } from '@hare/ui/components/input'
+import { SearchInput } from '@hare/ui/components/search-input'
 import {
 	Select,
 	SelectContent,
@@ -50,7 +50,6 @@ import {
 	ChevronRight,
 	ChevronsLeft,
 	ChevronsRight,
-	SearchIcon,
 	Settings2,
 } from 'lucide-react'
 import { useState } from 'react'
@@ -199,25 +198,22 @@ export function DataTable<TData, TValue>({
 			<div className="flex items-center justify-between gap-4">
 				{/* Search */}
 				{enableSearch && (
-					<div className="relative flex-1 max-w-sm">
-						<SearchIcon className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-						<Input
-							placeholder={searchPlaceholder}
-							value={
-								searchColumn
-									? ((table.getColumn(searchColumn)?.getFilterValue() as string) ?? '')
-									: globalFilter
+					<SearchInput
+						placeholder={searchPlaceholder}
+						value={
+							searchColumn
+								? ((table.getColumn(searchColumn)?.getFilterValue() as string) ?? '')
+								: globalFilter
+						}
+						onChange={(event) => {
+							if (searchColumn) {
+								table.getColumn(searchColumn)?.setFilterValue(event.target.value)
+							} else {
+								setGlobalFilter(event.target.value)
 							}
-							onChange={(event) => {
-								if (searchColumn) {
-									table.getColumn(searchColumn)?.setFilterValue(event.target.value)
-								} else {
-									setGlobalFilter(event.target.value)
-								}
-							}}
-							className="pl-9"
-						/>
-					</div>
+						}}
+						containerClassName="flex-1 max-w-sm"
+					/>
 				)}
 
 				<div className="flex items-center gap-2">
