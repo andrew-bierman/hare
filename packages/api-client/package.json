@@ -23,8 +23,7 @@
 		"src"
 	],
 	"dependencies": {
-		"@hare/api": "workspace:*",
-		"hono": "^4.11.3"
+		"@hare/api": "workspace:*"
 	},
 	"devDependencies": {
 		"@hare/typescript-config": "workspace:*",
