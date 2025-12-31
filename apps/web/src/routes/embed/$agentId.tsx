@@ -1,13 +1,38 @@
 import { generatePrefixedId } from '@hare/app/shared'
-import {
-	CHAT_STREAM_TYPES,
-	type ChatStreamType,
-	EMBED_COLORS,
-	WIDGET_MESSAGE_TYPES,
-} from '@hare/config'
+import { config } from '@hare/config'
 import { createFileRoute } from '@tanstack/react-router'
 import { Bot, Loader2, Send, User, X } from 'lucide-react'
 import { type FormEvent, type KeyboardEvent, useCallback, useEffect, useRef, useState } from 'react'
+
+// Local references to Config values for cleaner code
+const EMBED_COLORS = {
+	DEFAULT_PRIMARY: config.ui.embed.colors.defaultPrimary,
+	DARK_BG: config.ui.embed.colors.dark.bg,
+	LIGHT_BG: config.ui.embed.colors.light.bg,
+	DARK_BORDER: config.ui.embed.colors.dark.border,
+	LIGHT_BORDER: config.ui.embed.colors.light.border,
+	DARK_SECONDARY_BG: config.ui.embed.colors.dark.secondaryBg,
+	LIGHT_SECONDARY_BG: config.ui.embed.colors.light.secondaryBg,
+	DARK_TEXT: config.ui.embed.colors.dark.text,
+	LIGHT_TEXT: config.ui.embed.colors.light.text,
+	DARK_TEXT_LIGHT: config.ui.embed.colors.dark.textLight,
+	DARK_MESSAGE_BG: config.ui.embed.colors.dark.messageBg,
+	LIGHT_MESSAGE_BG: config.ui.embed.colors.light.messageBg,
+	LIGHT_ASSISTANT_BG: config.ui.embed.colors.light.assistantBg,
+	DARK_INPUT_BG: config.ui.embed.colors.dark.inputBg,
+	LIGHT_INPUT_BG: config.ui.embed.colors.light.inputBg,
+	DARK_INPUT_BORDER: config.ui.embed.colors.dark.inputBorder,
+	LIGHT_INPUT_BORDER: config.ui.embed.colors.light.inputBorder,
+	DARK_FOOTER_TEXT: config.ui.embed.colors.dark.footerText,
+	LIGHT_FOOTER_TEXT: config.ui.embed.colors.light.footerText,
+	ERROR_BG: config.ui.embed.colors.error.bg,
+	ERROR_TEXT: config.ui.embed.colors.error.text,
+} as const
+
+const CHAT_STREAM_TYPES = config.http.chatStream
+const WIDGET_MESSAGE_TYPES = config.http.widget
+
+type ChatStreamType = (typeof CHAT_STREAM_TYPES)[keyof typeof CHAT_STREAM_TYPES]
 
 export const Route = createFileRoute('/embed/$agentId')({
 	component: EmbedChatPage,

@@ -4,9 +4,6 @@
   "workspaces": {
     "": {
       "name": "hare",
-      "dependencies": {
-        "fumadocs-openapi": "^10.2.2",
-      },
       "devDependencies": {
         "@biomejs/biome": "^2.3.10",
         "@cloudflare/vitest-pool-workers": "^0.11.1",
@@ -21,6 +18,7 @@
         "@vitest/coverage-v8": "^3.2.4",
         "fumadocs-core": "^16.4.1",
         "fumadocs-mdx": "^14.2.3",
+        "fumadocs-openapi": "^10.2.2",
         "fumadocs-typescript": "^5.0.0",
         "fumadocs-ui": "^16.4.1",
         "miniflare": "^4.20251217.0",
@@ -105,7 +103,7 @@
         "@mdx-js/react": "^3.1.1",
         "@mdx-js/rollup": "^3.1.1",
         "@modelcontextprotocol/sdk": "^1.25.1",
-        "@paralleldrive/cuid2": "^3.0.4",
+        "@paralleldrive/cuid2": "^3.0.6",
         "@radix-ui/react-avatar": "^1.1.11",
         "@radix-ui/react-collapsible": "^1.1.12",
         "@radix-ui/react-dialog": "^1.1.15",
@@ -240,6 +238,7 @@
       },
       "devDependencies": {
         "@hare/typescript-config": "workspace:*",
+        "hono": "^4.11.3",
         "typescript": "^5",
       },
       "peerDependencies": {
@@ -400,7 +399,7 @@
       "version": "0.1.0",
       "dependencies": {
         "@hare/types": "workspace:*",
-        "hono": "^4.7.9",
+        "hono": "^4.11.3",
       },
       "devDependencies": {
         "@hare/typescript-config": "workspace:*",

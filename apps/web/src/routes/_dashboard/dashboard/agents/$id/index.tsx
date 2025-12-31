@@ -21,7 +21,7 @@ import { AgentInstructionsEditor } from '@hare/app/widgets/agent-builder'
 import { MemoryViewer } from '@hare/app/widgets/memory-viewer'
 import { ScheduledTasksSection } from '@hare/app/widgets/scheduled-tasks'
 import { ToolPicker } from '@hare/app/widgets/tool-picker'
-import { AGENT_LIMITS, AI_MODELS } from '@hare/config'
+import { config } from '@hare/config'
 import { Badge } from '@hare/ui/components/badge'
 import { Button } from '@hare/ui/components/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@hare/ui/components/card'
@@ -70,6 +70,10 @@ import {
 import { type ChangeEvent, useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
 import { z } from 'zod'
+
+// Local references for cleaner code
+const AGENT_LIMITS = config.agents.limits
+const AI_MODELS = config.models.list
 
 export const Route = createFileRoute('/_dashboard/dashboard/agents/$id/')({
 	component: AgentBuilderPage,
@@ -613,13 +617,16 @@ function AgentBuilderPage() {
 									<div className="flex justify-between items-center">
 										<span className="text-sm text-muted-foreground">Messages</span>
 										<span className="text-sm font-medium">
-											{usageData?.totalCalls?.toLocaleString() ?? 0}
+											{usageData?.usage?.totalMessages?.toLocaleString() ?? 0}
 										</span>
 									</div>
 									<div className="flex justify-between items-center">
 										<span className="text-sm text-muted-foreground">Tokens</span>
 										<span className="text-sm font-medium">
-											{usageData?.totalTokens?.toLocaleString() ?? 0}
+											{(
+												(usageData?.usage?.totalTokensIn ?? 0) +
+												(usageData?.usage?.totalTokensOut ?? 0)
+											).toLocaleString()}
 										</span>
 									</div>
 									<div className="flex justify-between items-center">
@@ -908,19 +915,19 @@ function AgentBuilderPage() {
 							<div className="grid gap-4 md:grid-cols-3">
 								<div className="p-4 border rounded-lg">
 									<div className="text-2xl font-bold">
-										{usageData?.totalCalls?.toLocaleString() ?? 0}
+										{usageData?.usage?.totalMessages?.toLocaleString() ?? 0}
 									</div>
 									<p className="text-sm text-muted-foreground">Total API Calls</p>
 								</div>
 								<div className="p-4 border rounded-lg">
 									<div className="text-2xl font-bold">
-										{usageData?.inputTokens?.toLocaleString() ?? 0}
+										{usageData?.usage?.totalTokensIn?.toLocaleString() ?? 0}
 									</div>
 									<p className="text-sm text-muted-foreground">Input Tokens</p>
 								</div>
 								<div className="p-4 border rounded-lg">
 									<div className="text-2xl font-bold">
-										{usageData?.outputTokens?.toLocaleString() ?? 0}
+										{usageData?.usage?.totalTokensOut?.toLocaleString() ?? 0}
 									</div>
 									<p className="text-sm text-muted-foreground">Output Tokens</p>
 								</div>

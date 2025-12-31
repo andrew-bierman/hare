@@ -104,7 +104,6 @@ export function useCreatePortalMutation() {
 		mutationFn: async (params: { workspaceId: string }) => {
 			const res = await api.billing.portal.$post({
 				query: { workspaceId: params.workspaceId },
-				json: {},
 			})
 			if (!res.ok) throw new Error('Request failed')
 			return res.json()

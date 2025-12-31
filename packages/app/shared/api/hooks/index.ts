@@ -144,7 +144,7 @@ export {
 } from './use-tools'
 
 // Usage hooks (UsageParams exported from client.ts to avoid duplicates)
-export { useAgentUsageQuery, useUsageQuery, useUsageByAgentQuery } from './use-usage'
+export { useAgentUsageQuery, useUsageQuery } from './use-usage'
 
 // Workspace hooks
 export {

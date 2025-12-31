@@ -1,5 +1,5 @@
 import {
-	ENUM_DEFAULTS,
+	config,
 	INVITATION_STATUSES,
 	InvitationStatus,
 	MEMBER_ROLES,
@@ -25,7 +25,7 @@ export const workspaces = sqliteTable('workspaces', {
 	// Billing fields
 	stripeCustomerId: text('stripeCustomerId'),
 	stripeSubscriptionId: text('stripeSubscriptionId'),
-	planId: text('planId').default(ENUM_DEFAULTS.planId).$type<PlanId>(),
+	planId: text('planId').default(config.defaults.planId).$type<PlanId>(),
 	currentPeriodEnd: integer('currentPeriodEnd', { mode: 'timestamp' }),
 	createdAt: integer('createdAt', { mode: 'timestamp' })
 		.notNull()
@@ -47,7 +47,7 @@ export const workspaceMembers = sqliteTable('workspace_members', {
 		.references(() => users.id, { onDelete: 'cascade' }),
 	role: text('role', { enum: WORKSPACE_ROLES })
 		.notNull()
-		.default(ENUM_DEFAULTS.workspaceRole)
+		.default(config.defaults.workspaceRole)
 		.$type<WorkspaceRole>(),
 	createdAt: integer('createdAt', { mode: 'timestamp' })
 		.notNull()
@@ -67,7 +67,7 @@ export const workspaceInvitations = sqliteTable('workspace_invitations', {
 	email: text('email').notNull(),
 	role: text('role', { enum: MEMBER_ROLES })
 		.notNull()
-		.default(ENUM_DEFAULTS.memberRole)
+		.default(config.defaults.memberRole)
 		.$type<MemberRole>(),
 	token: text('token')
 		.notNull()
@@ -78,7 +78,7 @@ export const workspaceInvitations = sqliteTable('workspace_invitations', {
 		.references(() => users.id, { onDelete: 'cascade' }),
 	status: text('status', { enum: INVITATION_STATUSES })
 		.notNull()
-		.default(ENUM_DEFAULTS.invitationStatus)
+		.default(config.defaults.invitationStatus)
 		.$type<InvitationStatus>(),
 	expiresAt: integer('expiresAt', { mode: 'timestamp' }).notNull(),
 	createdAt: integer('createdAt', { mode: 'timestamp' })
