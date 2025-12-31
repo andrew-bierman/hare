@@ -1,186 +1,188 @@
-import { createFileRoute } from '@tanstack/react-router'
-import type { Root, TreeNode } from 'fumadocs-core/page-tree'
-import { DocsLayout } from 'fumadocs-ui/layouts/docs'
-import defaultMdxComponents from 'fumadocs-ui/mdx'
-import { DocsBody, DocsDescription, DocsPage, DocsTitle } from 'fumadocs-ui/page'
-import { RootProvider } from 'fumadocs-ui/provider/tanstack'
-import { useState, useEffect, type ComponentType } from 'react'
-import { getLayoutOptions } from '../../lib/docs/layout.shared'
-import { getMDXComponents } from '../../lib/docs/mdx-components'
-import '../../styles/docs.css'
+import { createFileRoute, Link, notFound } from '@tanstack/react-router'
+import { MDXProvider } from '@mdx-js/react'
+import type { ComponentType } from 'react'
+import { getDocPage, getDocCategories, type DocCategory } from '../../lib/docs/simple-docs'
+import 'highlight.js/styles/github-dark.css'
 
-// Static page tree - built at compile time from content folder structure
-const pageTree: Root = {
-	name: 'Docs',
-	children: [
-		{ type: 'page', name: 'Introduction', url: '/docs' },
-		{
-			type: 'folder',
-			name: 'Guides',
-			children: [
-				{ type: 'page', name: 'Getting Started', url: '/docs/guides/getting-started' },
-				{ type: 'page', name: 'Installation', url: '/docs/guides/installation' },
-			],
-		},
-		{
-			type: 'folder',
-			name: 'SDK Reference',
-			children: [
-				{ type: 'page', name: 'Overview', url: '/docs/sdk' },
-				{ type: 'page', name: 'HareEdgeAgent', url: '/docs/sdk/edge-agent' },
-				{ type: 'page', name: 'HareAgent', url: '/docs/sdk/hare-agent' },
-				{ type: 'page', name: 'McpAgent', url: '/docs/sdk/mcp-agent' },
-				{ type: 'page', name: 'Memory', url: '/docs/sdk/memory' },
-				{ type: 'page', name: 'Providers', url: '/docs/sdk/providers' },
-				{ type: 'page', name: 'Router', url: '/docs/sdk/router' },
-				{ type: 'page', name: 'Tools', url: '/docs/sdk/tools' },
-				{ type: 'page', name: 'Types', url: '/docs/sdk/types' },
-			],
-		},
-		{
-			type: 'folder',
-			name: 'API Reference',
-			children: [{ type: 'page', name: 'Overview', url: '/docs/api' }],
-		},
-	],
-}
-
-// Map URL paths to content file paths
-function getContentPath(urlPath: string): string {
-	const slug = urlPath.replace('/docs/', '').replace('/docs', '')
-	if (!slug || slug === '/') return 'index'
-	return slug
-}
-
-// Find page info from tree
-function findPage(tree: TreeNode[], url: string): { name: string; url: string } | null {
-	for (const node of tree) {
-		if (node.type === 'page' && node.url === url) {
-			return { name: node.name, url: node.url }
+// Custom MDX components
+const mdxComponents = {
+	h1: (props: React.HTMLAttributes<HTMLHeadingElement>) => (
+		<h1 className="text-3xl font-bold mt-8 mb-4 first:mt-0" {...props} />
+	),
+	h2: (props: React.HTMLAttributes<HTMLHeadingElement>) => (
+		<h2 className="text-2xl font-semibold mt-8 mb-3 pb-2 border-b" {...props} />
+	),
+	h3: (props: React.HTMLAttributes<HTMLHeadingElement>) => (
+		<h3 className="text-xl font-semibold mt-6 mb-2" {...props} />
+	),
+	p: (props: React.HTMLAttributes<HTMLParagraphElement>) => (
+		<p className="my-4 leading-7" {...props} />
+	),
+	ul: (props: React.HTMLAttributes<HTMLUListElement>) => (
+		<ul className="my-4 ml-6 list-disc space-y-2" {...props} />
+	),
+	ol: (props: React.HTMLAttributes<HTMLOListElement>) => (
+		<ol className="my-4 ml-6 list-decimal space-y-2" {...props} />
+	),
+	li: (props: React.HTMLAttributes<HTMLLIElement>) => <li className="leading-7" {...props} />,
+	a: (props: React.AnchorHTMLAttributes<HTMLAnchorElement>) => (
+		<a className="text-primary underline hover:no-underline" {...props} />
+	),
+	code: (props: React.HTMLAttributes<HTMLElement>) => {
+		const isInline = !props.className?.includes('hljs')
+		if (isInline) {
+			return (
+				<code
+					className="px-1.5 py-0.5 rounded bg-muted font-mono text-sm"
+					{...props}
+				/>
+			)
 		}
-		if (node.type === 'folder' && node.children) {
-			const found = findPage(node.children, url)
-			if (found) return found
-		}
-	}
-	return null
+		return <code {...props} />
+	},
+	pre: (props: React.HTMLAttributes<HTMLPreElement>) => (
+		<pre
+			className="my-4 p-4 rounded-lg bg-zinc-900 text-zinc-100 overflow-x-auto text-sm"
+			{...props}
+		/>
+	),
+	blockquote: (props: React.HTMLAttributes<HTMLQuoteElement>) => (
+		<blockquote
+			className="my-4 pl-4 border-l-4 border-muted-foreground/30 italic"
+			{...props}
+		/>
+	),
+	table: (props: React.HTMLAttributes<HTMLTableElement>) => (
+		<div className="my-4 overflow-x-auto">
+			<table className="w-full border-collapse" {...props} />
+		</div>
+	),
+	th: (props: React.HTMLAttributes<HTMLTableCellElement>) => (
+		<th className="border px-4 py-2 bg-muted text-left font-semibold" {...props} />
+	),
+	td: (props: React.HTMLAttributes<HTMLTableCellElement>) => (
+		<td className="border px-4 py-2" {...props} />
+	),
 }
 
 export const Route = createFileRoute('/docs/$')({
-	component: Page,
-	// Client-only - no SSR to avoid Node.js path dependencies
-	ssr: false,
+	component: DocsPage,
+	loader: ({ params }) => {
+		const slug = params._splat || ''
+		const page = getDocPage(slug)
+		if (!page) throw notFound()
+		return { page, categories: getDocCategories() }
+	},
+	head: ({ loaderData }) => ({
+		meta: [
+			{ title: `${loaderData?.page.title} | Hare Docs` },
+			{ name: 'description', content: loaderData?.page.description || '' },
+		],
+	}),
 })
 
-function Page() {
+function Sidebar({ categories, currentSlug }: { categories: DocCategory[]; currentSlug: string }) {
+	return (
+		<aside className="w-64 shrink-0 border-r h-[calc(100vh-4rem)] sticky top-16 overflow-y-auto p-4">
+			<nav className="space-y-6">
+				{categories.map((category) => (
+					<div key={category.slug}>
+						<h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide mb-2">
+							{category.name}
+						</h3>
+						<ul className="space-y-1">
+							{category.pages.map((page) => {
+								const isActive = page.slug === currentSlug ||
+									(currentSlug === '' && page.slug === 'index')
+								return (
+									<li key={page.slug}>
+										<Link
+											to={`/docs/${page.slug === 'index' ? '' : page.slug}`}
+											className={`block px-3 py-1.5 rounded-md text-sm transition-colors ${
+												isActive
+													? 'bg-primary/10 text-primary font-medium'
+													: 'text-muted-foreground hover:text-foreground hover:bg-muted'
+											}`}
+										>
+											{page.title}
+										</Link>
+									</li>
+								)
+							})}
+						</ul>
+					</div>
+				))}
+			</nav>
+		</aside>
+	)
+}
+
+function DocsPage() {
+	const { page, categories } = Route.useLoaderData()
 	const params = Route.useParams()
-	const slugPath = params._splat || ''
-	const fullPath = `/docs${slugPath ? `/${slugPath}` : ''}`
+	const currentSlug = params._splat || ''
 
-	const [MDX, setMDX] = useState<ComponentType | null>(null)
-	const [loading, setLoading] = useState(true)
-	const [error, setError] = useState<string | null>(null)
-	const [pageData, setPageData] = useState<{
-		title: string
-		description?: string
-		toc?: Array<{ title: string; url: string; depth: number }>
-	} | null>(null)
-
-	useEffect(() => {
-		async function loadContent() {
-			setLoading(true)
-			setError(null)
-
-			try {
-				const browserCollections = (await import('fumadocs-mdx:collections/browser')).default
-				const contentPath = getContentPath(fullPath)
-
-				// Get the loader function for this content
-				const loaderKey = Object.keys(browserCollections.docs.raw).find((key) => {
-					const normalizedKey = key.replace(/\.(mdx|md)$/, '').replace(/^\.\//, '')
-					return normalizedKey === contentPath || normalizedKey === `${contentPath}/index`
-				})
-
-				if (!loaderKey) {
-					setError('Page not found')
-					setLoading(false)
-					return
-				}
-
-				const content = await browserCollections.docs.raw[loaderKey]()
-				if (!content?.default) {
-					setError('Failed to load content')
-					setLoading(false)
-					return
-				}
-
-				// Get page info from tree
-				const pageInfo = findPage(pageTree.children, fullPath)
-
-				setMDX(() => content.default)
-				setPageData({
-					title: content.frontmatter?.title || pageInfo?.name || 'Documentation',
-					description: content.frontmatter?.description,
-					toc: content.toc || [],
-				})
-			} catch (err) {
-				console.error('Failed to load docs page:', err)
-				setError('Failed to load page')
-			} finally {
-				setLoading(false)
-			}
-		}
-
-		loadContent()
-	}, [fullPath])
-
-	if (loading) {
-		return (
-			<RootProvider>
-				<DocsLayout {...getLayoutOptions()} tree={pageTree}>
-					<DocsPage>
-						<DocsBody>
-							<div className="flex items-center justify-center py-12">
-								<div className="animate-pulse text-muted-foreground">Loading...</div>
-							</div>
-						</DocsBody>
-					</DocsPage>
-				</DocsLayout>
-			</RootProvider>
-		)
-	}
-
-	if (error || !MDX || !pageData) {
-		return (
-			<RootProvider>
-				<DocsLayout {...getLayoutOptions()} tree={pageTree}>
-					<DocsPage>
-						<DocsTitle>Not Found</DocsTitle>
-						<DocsBody>
-							<p>The requested documentation page could not be found.</p>
-						</DocsBody>
-					</DocsPage>
-				</DocsLayout>
-			</RootProvider>
-		)
-	}
+	const Content = page.Component as ComponentType
 
 	return (
-		<RootProvider>
-			<DocsLayout {...getLayoutOptions()} tree={pageTree}>
-				<DocsPage toc={pageData.toc}>
-					<DocsTitle>{pageData.title}</DocsTitle>
-					{pageData.description && <DocsDescription>{pageData.description}</DocsDescription>}
-					<DocsBody>
-						<MDX
-							components={{
-								...defaultMdxComponents,
-								...getMDXComponents(),
-							}}
-						/>
-					</DocsBody>
-				</DocsPage>
-			</DocsLayout>
-		</RootProvider>
+		<div className="min-h-screen bg-background">
+			{/* Header */}
+			<header className="h-16 border-b sticky top-0 bg-background/95 backdrop-blur z-50">
+				<div className="h-full max-w-7xl mx-auto px-4 flex items-center justify-between">
+					<Link to="/" className="flex items-center gap-2">
+						<div className="h-8 w-8 rounded-lg bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center">
+							<span className="text-white font-bold">H</span>
+						</div>
+						<span className="font-semibold">Hare Docs</span>
+					</Link>
+					<nav className="flex items-center gap-4">
+						<Link to="/dashboard" className="text-sm text-muted-foreground hover:text-foreground">
+							Dashboard
+						</Link>
+						<a
+							href="https://github.com/andrew-bierman/hare"
+							target="_blank"
+							rel="noopener noreferrer"
+							className="text-sm text-muted-foreground hover:text-foreground"
+						>
+							GitHub
+						</a>
+					</nav>
+				</div>
+			</header>
+
+			{/* Main content */}
+			<div className="max-w-7xl mx-auto flex">
+				<Sidebar categories={categories} currentSlug={currentSlug} />
+
+				<main className="flex-1 min-w-0 px-8 py-8">
+					<article className="max-w-3xl">
+						{/* Breadcrumb */}
+						{page.category && (
+							<div className="text-sm text-muted-foreground mb-4">
+								<Link to="/docs" className="hover:text-foreground">
+									Docs
+								</Link>
+								<span className="mx-2">/</span>
+								<span className="capitalize">{page.category}</span>
+							</div>
+						)}
+
+						{/* Title */}
+						<h1 className="text-4xl font-bold mb-2">{page.title}</h1>
+						{page.description && (
+							<p className="text-xl text-muted-foreground mb-8">{page.description}</p>
+						)}
+
+						{/* Content */}
+						<div className="prose prose-zinc dark:prose-invert max-w-none">
+							<MDXProvider components={mdxComponents}>
+								<Content />
+							</MDXProvider>
+						</div>
+					</article>
+				</main>
+			</div>
+		</div>
 	)
 }

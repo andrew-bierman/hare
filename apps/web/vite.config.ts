@@ -1,12 +1,15 @@
 import path from 'node:path'
 import { cloudflare } from '@cloudflare/vite-plugin'
+import mdx from '@mdx-js/rollup'
 import tailwindcss from '@tailwindcss/vite'
 import { tanstackStart } from '@tanstack/react-start/plugin/vite'
 import react from '@vitejs/plugin-react'
-import mdx from 'fumadocs-mdx/vite'
+import rehypeHighlight from 'rehype-highlight'
+import remarkFrontmatter from 'remark-frontmatter'
+import remarkGfm from 'remark-gfm'
+import remarkMdxFrontmatter from 'remark-mdx-frontmatter'
 import { defineConfig } from 'vite'
 import tsconfigPaths from 'vite-tsconfig-paths'
-import * as MdxConfig from './source.config'
 
 // Resolve paths to workspace packages
 const packagesPath = path.resolve(__dirname, '../../packages')
@@ -16,8 +19,6 @@ export default defineConfig({
 	server: {
 		port: Number(process.env.PORT) || 3000,
 	},
-	// SSR and client-side optimizations are configured separately in Vite.
-	// Both are needed for TanStack Start which runs code in both environments.
 	ssr: {
 		optimizeDeps: {
 			// Pre-bundle these deps for SSR to avoid mid-reload issues
@@ -25,8 +26,6 @@ export default defineConfig({
 			// Wait for full dependency discovery before serving to avoid mid-request rebuilds
 			holdUntilCrawlEnd: true,
 		},
-		// Keep fumadocs packages on server side only
-		noExternal: ['fumadocs-core', 'fumadocs-mdx'],
 	},
 	optimizeDeps: {
 		// Pre-bundle the same deps for client-side
@@ -34,9 +33,6 @@ export default defineConfig({
 	},
 	resolve: {
 		alias: {
-			// Fumadocs MDX collections - needed for Vite dependency scan
-			'fumadocs-mdx:collections/server': path.resolve(__dirname, './.source/server.ts'),
-			'fumadocs-mdx:collections/browser': path.resolve(__dirname, './.source/browser.ts'),
 			'web-app': path.resolve(__dirname, './src'),
 			// Core packages - subpaths must come before main paths
 			'@hare/db/schema': path.join(packagesPath, 'db/src/schema/index.ts'),
@@ -90,7 +86,12 @@ export default defineConfig({
 	},
 	plugins: [
 		tsconfigPaths(),
-		mdx(MdxConfig),
+		// MDX support with frontmatter extraction
+		mdx({
+			remarkPlugins: [remarkGfm, remarkFrontmatter, remarkMdxFrontmatter],
+			rehypePlugins: [rehypeHighlight],
+			providerImportSource: '@mdx-js/react',
+		}),
 		cloudflare({ viteEnvironment: { name: 'ssr' } }),
 		tanstackStart(),
 		react(),
