@@ -44,7 +44,7 @@ export default {
 
 Routes an HTTP request to a HareAgent Durable Object.
 
-<AutoTypeTable path="packages/agent/src/router.ts" name="RouteToHareAgentInput" />
+> See the TypeScript source for type definitions.
 
 ```ts
 function routeToHareAgent(input: RouteToHareAgentInput): Promise<Response>
@@ -54,7 +54,7 @@ function routeToHareAgent(input: RouteToHareAgentInput): Promise<Response>
 
 Routes a request to a HareMcpAgent for MCP protocol handling.
 
-<AutoTypeTable path="packages/agent/src/router.ts" name="RouteToMcpAgentInput" />
+> See the TypeScript source for type definitions.
 
 ```ts
 function routeToMcpAgent(input: RouteToMcpAgentInput): Promise<Response>
@@ -64,7 +64,7 @@ function routeToMcpAgent(input: RouteToMcpAgentInput): Promise<Response>
 
 Handles WebSocket upgrade and routes to an agent.
 
-<AutoTypeTable path="packages/agent/src/router.ts" name="RouteWebSocketToAgentInput" />
+> See the TypeScript source for type definitions.
 
 ```ts
 function routeWebSocketToAgent(input: RouteWebSocketToAgentInput): Promise<Response>
@@ -100,4 +100,4 @@ function createAgentHeaders(): Headers
 
 Required environment bindings for routing:
 
-<AutoTypeTable path="packages/agent/src/router.ts" name="HareAgentEnv" />
+> See the TypeScript source for type definitions.

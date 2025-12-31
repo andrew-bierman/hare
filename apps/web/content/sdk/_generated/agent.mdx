@@ -1,0 +1,588 @@
+---
+title: Agent SDK Reference
+description: Auto-generated API documentation for @hare/agent
+---
+
+# Agent SDK Reference
+
+> This documentation is auto-generated from TypeScript source files.
+
+## Classes
+
+## HareAgent
+
+HareAgent - A Cloudflare Agents SDK implementation.
+
+This class extends the Agent base class to provide:
+- Stateful conversations with persistence
+- Real-time WebSocket communication
+- Tool execution
+- Scheduled tasks
+
+### Example
+
+```ts
+```ts
+import { HareAgent } from '@hare/agent/workers'
+
+export { HareAgent }
+
+export default {
+  async fetch(request: Request, env: Env) {
+    const id = env.HARE_AGENT.idFromName('default')
+    return env.HARE_AGENT.get(id).fetch(request)
+  }
+}
+```
+```
+
+### Properties
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `toolRegistry` | `ToolRegistry` | - |
+| `connectionUserMap` | `Map<Connection, string>` | - |
+| `initialState` | `HareAgentState` | Initialize the agent with default state. |
+
+### Methods
+
+#### `onStart(): Promise<void>`
+
+Called when the agent is created or loaded.
+
+#### `onRequest(request: Request): Promise<Response>`
+
+Handle HTTP requests to the agent.
+
+#### `onConnect(connection: Connection, ctx: ConnectionContext): Promise<void>`
+
+Handle new WebSocket connection.
+
+#### `onMessage(connection: Connection, message: WSMessage): Promise<void>`
+
+Handle WebSocket message from client.
+
+#### `onClose(connection: Connection): Promise<void>`
+
+Handle WebSocket disconnection.
+
+#### `onStateUpdate(state: HareAgentState): void`
+
+Called when state is updated (for custom logic).
+
+#### `configure(config: Partial<HareAgentState>): Promise<void>`
+
+Configure the agent with new settings.
+
+#### `executeScheduledTask(data: { action: string; [key: string]: unknown }): Promise<void>`
+
+Dispatcher for scheduled tasks.
+Routes to the appropriate handler based on the action in the payload.
+
+#### `sendReminder(data: { message: string; userId: string }): Promise<void>`
+
+Scheduled task handlers.
+
+#### `runMaintenance(_data: Record<string, unknown>): Promise<void>`
+
+## D1MemoryStore
+
+D1 memory store implementation.
+Uses Drizzle ORM for type-safe database operations.
+
+### Methods
+
+#### `getOrCreateConversation(input: GetOrCreateConversationInput): Promise<string>`
+
+Get or create a conversation for an agent and user.
+For anonymous sessions (null userId), always creates a new conversation.
+
+#### `saveMessage(input: SaveMessageInput): Promise<string>`
+
+Save a message to the conversation.
+
+#### `getMessages(input: GetMessagesInput): Promise<ConversationMessage[]>`
+
+Get messages for a conversation.
+
+#### `searchMessages(input: SearchMessagesInput): Promise<ConversationMessage[]>`
+
+Search messages using text search.
+
+#### `deleteConversation(conversationId: string): Promise<void>`
+
+Delete a conversation and all its messages.
+
+## HareEdgeAgent
+
+Edge-compatible AI Agent.
+
+### Example
+
+```ts
+```ts
+import { HareEdgeAgent } from 'hare'
+
+const agent = new HareEdgeAgent({
+  name: 'My Agent',
+  instructions: 'You are a helpful assistant.',
+  model: 'llama-3.3-70b',
+  ai: env.AI,
+})
+
+const response = await agent.stream([
+  { role: 'user', content: 'Hello!' }
+])
+
+for await (const chunk of response.textStream) {
+  console.log(chunk)
+}
+```
+```
+
+### Properties
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `name` | `string` | - |
+| `instructions` | `string` | - |
+| `model` | `LanguageModel` | - |
+| `tools` | `Map<string, AgentTool>` | - |
+
+### Methods
+
+#### `stream(messages: ModelMessage[]): Promise<AgentStreamResponse>`
+
+Stream a response from the agent.
+
+#### `generate(messages: ModelMessage[]): Promise<string>`
+
+Generate a non-streaming response.
+
+#### `streamRaw(messages: ModelMessage[]): void`
+
+Stream with raw AI SDK result for use with toDataStreamResponse().
+Returns the streamText result directly for maximum flexibility.
+
+## HareMcpAgent
+
+HareMcpAgent - Exposes Hare tools via Model Context Protocol.
+
+MCP allows external AI clients (Claude, Cursor, etc.) to use
+Hare's tools in a standardized way.
+
+### Example
+
+```ts
+```ts
+import { HareMcpAgent } from '@hare/agent/workers'
+
+export { HareMcpAgent }
+
+export default {
+  async fetch(request: Request, env: Env) {
+    const id = env.MCP_AGENT.idFromName('default')
+    return env.MCP_AGENT.get(id).fetch(request)
+  }
+}
+```
+```
+
+### Properties
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `server` | `unknown` | Server configuration required by McpAgent |
+| `toolRegistry` | `ToolRegistry` | Available tools |
+| `initialState` | `McpAgentState` | Initial state. |
+
+### Methods
+
+#### `onStart(): Promise<void>`
+
+Called when the agent starts - load tools.
+
+#### `init(): Promise<void>`
+
+Initialize MCP tools - called by the MCP server.
+This is where we register tools and resources with the MCP protocol.
+
+#### `onStateUpdate(_state: McpAgentState): void`
+
+Called when state is updated.
+Override this method to add custom state change handling.
+
+#### `configure(options: { workspaceId?: string; systemToolsEnabled?: boolean }): Promise<void>`
+
+Configure the MCP agent.
+
+## Types
+
+### HareAgentEnv
+
+Extended environment with Durable Object bindings.
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `HARE_AGENT` | `DurableObjectNamespace` | - |
+| `MCP_AGENT` (optional) | `DurableObjectNamespace` | - |
+
+### AgentRouteConfig
+
+Route configuration for agents.
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `agentId` | `string` | The agent ID (used as Durable Object ID) |
+| `workspaceId` | `string` | Workspace ID for context |
+| `userId` (optional) | `string` | Optional user ID |
+
+### RouteToHareAgentInput
+
+Input for routing to a HareAgent.
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `request` | `Request` | - |
+| `env` | `HareAgentEnv` | - |
+| `agentId` | `string` | - |
+
+### RouteWebSocketToAgentInput
+
+Input for routing a WebSocket to an agent.
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `request` | `Request` | - |
+| `env` | `HareAgentEnv` | - |
+| `agentId` | `string` | - |
+
+### RouteHttpToAgentInput
+
+Input for routing HTTP to an agent.
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `request` | `Request` | - |
+| `env` | `HareAgentEnv` | - |
+| `agentId` | `string` | - |
+| `path` | `string` | - |
+
+### RouteToMcpAgentInput
+
+Input for routing to the MCP agent.
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `request` | `Request` | - |
+| `env` | `HareAgentEnv` | - |
+| `workspaceId` | `string` | - |
+
+### AgentConfig
+
+Agent configuration from database.
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `id` | `string` | - |
+| `workspaceId` | `string` | - |
+| `name` | `string` | - |
+| `description` | `string \| null` | - |
+| `instructions` | `string \| null` | - |
+| `model` | `string` | - |
+| `status` | `'draft' \| 'deployed' \| 'archived'` | - |
+| `config` | `{
+		temperature?: number
+		maxTokens?: number
+		topP?: number
+		topK?: number
+		stopSequences?: string[]
+	} \| null` | - |
+
+### CreateAgentFromConfigInput
+
+Input for creating an agent from config.
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `agentConfig` | `AgentConfig` | Agent configuration from database |
+| `db` | `Database` | Database instance |
+| `env` | `CloudflareEnv` | Cloudflare environment |
+| `includeSystemTools` (optional) | `boolean` | Include system tools (KV, R2, Vectorize, etc.) |
+| `userId` (optional) | `string \| null` | User ID for tool context (optional for anonymous sessions) |
+
+### LoadAgentToolsInput
+
+Input for loading agent tools.
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `agentId` | `string` | - |
+| `db` | `Database` | - |
+| `context` | `ToolContext` | - |
+
+### CreateSimpleAgentInput
+
+Input for creating a simple agent.
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `name` | `string` | Agent name |
+| `instructions` | `string` | Agent instructions |
+| `model` | `string` | Model to use |
+| `env` | `CloudflareEnv` | Cloudflare environment |
+| `tools` (optional) | `AgentTool[]` | Optional tools |
+
+### HareAgentEnv
+
+Environment interface for HareAgent.
+SDK users should extend this with their own bindings.
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `AI` | `Ai` | - |
+
+### ConversationMessage
+
+Conversation message structure.
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `id` | `string` | - |
+| `conversationId` | `string` | - |
+| `role` | `MessageRole` | - |
+| `content` | `string` | - |
+| `createdAt` | `Date` | - |
+| `metadata` (optional) | `MessageMetadata` | - |
+
+### SaveMessageInput
+
+Input for saving a message.
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `conversationId` | `string` | - |
+| `role` | `MessageRole` | - |
+| `content` | `string` | - |
+| `metadata` (optional) | `MessageMetadata` | - |
+
+### GetMessagesInput
+
+Input for getting messages.
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `conversationId` | `string` | - |
+| `limit` (optional) | `number` | - |
+
+### GetOrCreateConversationInput
+
+Input for getting or creating a conversation.
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `agentId` | `string` | - |
+| `userId` | `string \| null` | - |
+| `title` (optional) | `string` | - |
+
+### SearchMessagesInput
+
+Input for searching messages.
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `conversationId` | `string` | - |
+| `query` | `string` | - |
+| `limit` (optional) | `number` | - |
+
+### MemoryStore
+
+Memory store interface for conversation history.
+
+### AgentTool
+
+Tool definition for the agent.
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `id` | `string` | - |
+| `description` | `string` | - |
+| `inputSchema` | `Record<string, unknown>` | - |
+| `execute` | `(params: Record<string, unknown>) => Promise<unknown>` | - |
+
+### AgentOptions
+
+Agent configuration.
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `name` | `string` | - |
+| `instructions` | `string` | - |
+| `model` | `string` | - |
+| `ai` | `Ai` | - |
+| `tools` (optional) | `AgentTool[]` | - |
+
+### AgentStreamResponse
+
+Streaming response from the agent.
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `textStream` | `AsyncIterable<string>` | - |
+| `text` | `Promise<string>` | - |
+
+### HareAgentState
+
+Agent state that is persisted and synced with clients.
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `agentId` | `string` | Agent configuration ID |
+| `workspaceId` | `string` | Workspace ID |
+| `name` | `string` | Agent name |
+| `instructions` | `string` | Agent instructions/system prompt |
+| `model` | `string` | Model to use |
+| `messages` | `ModelMessage[]` | Conversation history |
+| `isProcessing` | `boolean` | Whether the agent is currently processing |
+| `lastActivity` | `number` | Last activity timestamp |
+| `connectedUsers` | `string[]` | Connected user IDs |
+| `scheduledTasks` | `ScheduledTask[]` | Scheduled tasks |
+| `status` | `'idle' \| 'processing' \| 'error'` | Agent status |
+| `lastError` (optional) | `string` | Last error if any |
+
+### ScheduledTask
+
+Scheduled task definition.
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `id` | `string` | - |
+| `type` | `'one-time' \| 'recurring'` | - |
+| `executeAt` (optional) | `number` | - |
+| `cron` (optional) | `string` | - |
+| `action` | `string` | - |
+| `payload` (optional) | `Record<string, unknown>` | - |
+
+### ClientMessage
+
+Message sent from client to agent.
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `type` | `'chat' \| 'configure' \| 'execute_tool' \| 'get_state' \| 'schedule'` | - |
+| `payload` | `unknown` | - |
+
+### ChatPayload
+
+Chat message payload.
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `message` | `string` | - |
+| `userId` | `string` | - |
+| `sessionId` (optional) | `string` | - |
+| `metadata` (optional) | `Record<string, unknown>` | - |
+
+### ToolExecutePayload
+
+Tool execution payload.
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `toolId` | `string` | - |
+| `params` | `Record<string, unknown>` | - |
+
+### SchedulePayload
+
+Schedule payload.
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `action` | `string` | - |
+| `executeAt` (optional) | `number` | - |
+| `cron` (optional) | `string` | - |
+| `payload` (optional) | `Record<string, unknown>` | - |
+
+### ServerMessage
+
+Server message sent to clients.
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `type` | `'text' \| 'tool_call' \| 'tool_result' \| 'state_update' \| 'error' \| 'done'` | - |
+| `data` | `unknown` | - |
+| `timestamp` | `number` | - |
+
+### McpAgentState
+
+MCP Agent state.
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `workspaceId` | `string` | - |
+| `connectedClients` | `number` | - |
+| `lastActivity` | `number` | - |
+
+### McpAgentEnv
+
+Environment interface for HareMcpAgent.
+Extends HareEnv but requires AI binding.
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `AI` | `Ai` | - |
+
+## Functions
+
+### `routeToHareAgent(input: RouteToHareAgentInput): Promise<Response>`
+
+Route a request to a HareAgent Durable Object.
+
+### `routeWebSocketToAgent(input: RouteWebSocketToAgentInput): Promise<Response>`
+
+Route a WebSocket connection to an agent.
+
+### `routeHttpToAgent(input: RouteHttpToAgentInput): Promise<Response>`
+
+Route an HTTP request to an agent.
+
+### `routeToMcpAgent(input: RouteToMcpAgentInput): Promise<Response>`
+
+Route a request to the MCP agent.
+
+### `isWebSocketRequest(request: Request): boolean`
+
+Check if a request is a WebSocket upgrade request.
+
+### `getAgentIdFromRequest(request: Request): string | null`
+
+Get agent ID from request (from headers or URL).
+
+### `createAgentHeaders(config: AgentRouteConfig): Headers`
+
+Create headers for agent context.
+
+### `loadAgentTools(input: LoadAgentToolsInput): Promise<AnyTool[]>`
+
+Load tools attached to an agent from the database.
+
+### `createAgentFromConfig(input: CreateAgentFromConfigInput): Promise<HareEdgeAgent>`
+
+Create an Edge-compatible Agent from a database configuration.
+
+### `createSimpleAgent(input: CreateSimpleAgentInput): HareEdgeAgent`
+
+Create a simple agent without database tools.
+
+### `createMemoryStore(db: Database, workspaceId: string): MemoryStore`
+
+Create a memory store instance.
+
+### `toAgentMessages(messages: ConversationMessage[]): ModelMessage[]`
+
+Convert conversation messages to the format expected by AI SDK agents.
+
+### `createHareEdgeAgent(options: AgentOptions): HareEdgeAgent`
+
+Create a new Edge-compatible agent.
+
