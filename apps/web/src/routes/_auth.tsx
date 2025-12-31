@@ -1,10 +1,11 @@
 import { SignInActionsProvider } from '@hare/app/features'
 import { signIn, signInWithGitHub, signInWithGoogle } from '@hare/auth/client'
-import { APP_CONFIG, AUTH_CONTENT } from '@hare/config'
+import { config } from '@hare/config'
 import { createFileRoute, Link, Outlet } from '@tanstack/react-router'
 import { Rabbit } from 'lucide-react'
 
-const { layout } = AUTH_CONTENT
+const APP_CONFIG = config.app
+const { layout } = config.content.auth
 
 // Provide auth actions to child pages (SignInPage needs these)
 const signInActions = {

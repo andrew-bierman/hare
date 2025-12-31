@@ -14,7 +14,7 @@ import { AgentInstructionsEditor } from '@hare/app/widgets/agent-builder'
 import { MemoryViewer } from '@hare/app/widgets/memory-viewer'
 import { ScheduledTasksSection } from '@hare/app/widgets/scheduled-tasks'
 import { ToolPicker } from '@hare/app/widgets/tool-picker'
-import { AGENT_LIMITS, AI_MODELS } from '@hare/config'
+import { config } from '@hare/config'
 import { Badge } from '@hare/ui/components/badge'
 import { Button } from '@hare/ui/components/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@hare/ui/components/card'
@@ -71,14 +71,14 @@ const agentConfigSchema = z.object({
 		.string()
 		.min(1, 'Name is required')
 		.max(
-			AGENT_LIMITS.nameMaxLength,
-			`Name must be at most ${AGENT_LIMITS.nameMaxLength} characters`,
+			config.agents.limits.nameMaxLength,
+			`Name must be at most ${config.agents.limits.nameMaxLength} characters`,
 		),
 	description: z
 		.string()
 		.max(
-			AGENT_LIMITS.descriptionMaxLength,
-			`Description must be at most ${AGENT_LIMITS.descriptionMaxLength} characters`,
+			config.agents.limits.descriptionMaxLength,
+			`Description must be at most ${config.agents.limits.descriptionMaxLength} characters`,
 		)
 		.optional()
 		.or(z.literal('')),
@@ -86,8 +86,8 @@ const agentConfigSchema = z.object({
 		.string()
 		.min(1, 'Instructions are required')
 		.max(
-			AGENT_LIMITS.instructionsMaxLength,
-			`Instructions must be at most ${AGENT_LIMITS.instructionsMaxLength} characters`,
+			config.agents.limits.instructionsMaxLength,
+			`Instructions must be at most ${config.agents.limits.instructionsMaxLength} characters`,
 		),
 	model: z.string().min(1, 'Model is required'),
 })
@@ -291,7 +291,7 @@ function AgentBuilderPage() {
 
 	// Check if model is valid
 	const isValidModel = useMemo(() => {
-		return AI_MODELS.some((m) => m.id === model)
+		return config.models.list.some((m) => m.id === model)
 	}, [model])
 
 	// Check if there are any validation errors
@@ -324,7 +324,7 @@ function AgentBuilderPage() {
 
 	// Get model display name
 	const selectedModel = useMemo(() => {
-		return AI_MODELS.find((m) => m.id === model)
+		return config.models.list.find((m) => m.id === model)
 	}, [model])
 
 	const handleSave = async () => {
@@ -515,7 +515,7 @@ function AgentBuilderPage() {
 												<SelectValue />
 											</SelectTrigger>
 											<SelectContent>
-												{AI_MODELS.map((m) => (
+												{config.models.list.map((m) => (
 													<SelectItem key={m.id} value={m.id}>
 														<div className="flex flex-col">
 															<span>{m.name}</span>

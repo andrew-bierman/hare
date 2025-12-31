@@ -1,6 +1,6 @@
 'use client'
 
-import { APP_CONFIG } from '@hare/config'
+import { config } from '@hare/config'
 import { Button } from '@hare/ui/components/button'
 import { Rabbit } from 'lucide-react'
 
@@ -22,7 +22,7 @@ export function PublicPageHeader({ Link }: PublicPageHeaderProps) {
 						<Rabbit className="h-5 w-5 text-white" />
 					</div>
 					<span className="font-bold text-lg bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">
-						{APP_CONFIG.name}
+						{config.app.name}
 					</span>
 				</Link>
 

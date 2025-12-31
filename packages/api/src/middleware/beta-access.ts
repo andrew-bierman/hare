@@ -1,5 +1,5 @@
 import type { MiddlewareHandler } from 'hono'
-import { BETA_ACCESS, FEATURES } from '@hare/config'
+import { config } from '@hare/config'
 import type { AuthEnv } from '@hare/types'
 
 /**
@@ -8,7 +8,7 @@ import type { AuthEnv } from '@hare/types'
  */
 export const aiChatFeatureMiddleware: MiddlewareHandler<AuthEnv> = async (c, next) => {
 	// Check global feature flag
-	if (!FEATURES.aiChat) {
+	if (!config.features.aiChat) {
 		return c.json(
 			{
 				error: 'Feature not available',
@@ -19,14 +19,14 @@ export const aiChatFeatureMiddleware: MiddlewareHandler<AuthEnv> = async (c, nex
 	}
 
 	// If beta mode is enabled, check user allowlist
-	if (BETA_ACCESS.enabled) {
+	if (config.beta.enabled) {
 		const user = c.get('user')
 		if (!user) {
 			return c.json({ error: 'Authentication required' }, 401)
 		}
 
 		const userEmail = user.email.toLowerCase()
-		const isAllowed = BETA_ACCESS.allowedEmails.includes(userEmail)
+		const isAllowed = config.beta.allowedEmails.includes(userEmail)
 
 		if (!isAllowed) {
 			return c.json(

@@ -12,7 +12,7 @@ import { type ChangeEvent, useState, useCallback } from 'react'
 import { useWorkspace } from '../../app/providers'
 import type { Agent } from '@hare/types'
 import { useAgentsQuery } from '../../shared/api/hooks'
-import { AI_MODELS } from '@hare/config'
+import { config } from '@hare/config'
 import { EmptyState } from '../../shared/ui/empty-state'
 import { OnboardingWizard } from '../../widgets/onboarding-wizard'
 
@@ -97,7 +97,7 @@ export function AgentsListPage() {
 	const draftCount = agents.filter((a) => a.status === 'draft').length
 
 	const getModelName = (modelId: string) => {
-		const model = AI_MODELS.find((m) => m.id === modelId)
+		const model = config.models.list.find((m) => m.id === modelId)
 		return model?.name || modelId
 	}
 
