@@ -50,7 +50,7 @@ import {
 	ChevronRight,
 	ChevronsLeft,
 	ChevronsRight,
-	Search,
+	SearchIcon,
 	Settings2,
 } from 'lucide-react'
 import { useState } from 'react'
@@ -200,7 +200,7 @@ export function DataTable<TData, TValue>({
 				{/* Search */}
 				{enableSearch && (
 					<div className="relative flex-1 max-w-sm">
-						<Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+						<SearchIcon className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
 						<Input
 							placeholder={searchPlaceholder}
 							value={
