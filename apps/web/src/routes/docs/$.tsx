@@ -1,4 +1,6 @@
 import { createFileRoute, notFound } from '@tanstack/react-router'
+import type { Root } from 'fumadocs-core/page-tree'
+import type { InferPageType } from 'fumadocs-core/source'
 import { DocsLayout } from 'fumadocs-ui/layouts/docs'
 import defaultMdxComponents from 'fumadocs-ui/mdx'
 import { DocsBody, DocsPage } from 'fumadocs-ui/page'
@@ -34,7 +36,10 @@ export const Route = createFileRoute('/docs/$')({
 
 function DocsPageComponent() {
 	// Page is guaranteed to exist since loader throws notFound() for missing pages
-	const { page, pageTree } = Route.useLoaderData() as { page: any; pageTree: any }
+	const { page, pageTree } = Route.useLoaderData() as {
+		page: InferPageType<typeof source>
+		pageTree: Root
+	}
 	const MDX = page.data.body
 
 	// Combine default fumadocs components with our custom ones (AutoTypeTable, etc.)
