@@ -1,7 +1,7 @@
 import { eq } from 'drizzle-orm'
 import type { MiddlewareHandler } from 'hono'
 import { apiKeys, workspaces } from '@hare/db'
-import { Config } from '@hare/config'
+import { config } from '@hare/config'
 import { getDb } from '../db'
 import type { ApiKeyEnv, ApiKeyInfo } from '@hare/types'
 
@@ -147,18 +147,18 @@ export async function generateApiKey(): Promise<{
 	hashedKey: string
 	prefix: string
 }> {
-	const randomBytes = new Uint8Array(Config.security.apiKey.randomBytes)
+	const randomBytes = new Uint8Array(config.security.apiKey.randomBytes)
 	crypto.getRandomValues(randomBytes)
 
 	const key =
-		Config.security.apiKey.prefix +
+		config.security.apiKey.prefix +
 		btoa(String.fromCharCode(...randomBytes))
 			.replace(/\+/g, '-')
 			.replace(/\//g, '_')
 			.replace(/=/g, '')
 
 	const hashedKey = await hashApiKey(key)
-	const prefix = key.substring(0, Config.security.apiKey.prefixDisplayLength)
+	const prefix = key.substring(0, config.security.apiKey.prefixDisplayLength)
 
 	return { key, hashedKey, prefix }
 }

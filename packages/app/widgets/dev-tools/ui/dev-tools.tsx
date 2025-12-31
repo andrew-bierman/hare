@@ -1,7 +1,7 @@
 'use client'
 
 import { authClient } from '@hare/auth/client'
-import { Config } from '@hare/config'
+import { config } from '@hare/config'
 import { Badge } from '@hare/ui/components/badge'
 import { Button } from '@hare/ui/components/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@hare/ui/components/card'
@@ -26,7 +26,7 @@ import { toast } from 'sonner'
 import { useWorkspace } from '../../../app/providers'
 import { useCreateAgentMutation, useCreateWorkspaceMutation } from '../../../shared/api'
 
-const { sections, agentNames, agentDescriptions, defaultInstructions } = Config.content.devTools
+const { sections, agentNames, agentDescriptions, defaultInstructions } = config.content.devTools
 
 export function DevTools() {
 	const [isOpen, setIsOpen] = useState(false)
@@ -40,7 +40,7 @@ export function DevTools() {
 	const createWorkspace = useCreateWorkspaceMutation()
 
 	// Only render in dev mode
-	if (!Config.features.devMode) {
+	if (!config.features.devMode) {
 		return null
 	}
 
@@ -50,8 +50,8 @@ export function DevTools() {
 	const handleQuickSignIn = async () => {
 		try {
 			const result = await authClient.signIn.email({
-				email: Config.content.devTools.testUser.email,
-				password: Config.content.devTools.testUser.password,
+				email: config.content.devTools.testUser.email,
+				password: config.content.devTools.testUser.password,
 			})
 			if (result.error) {
 				toast.error(`Sign in failed: ${result.error.message}`)
@@ -167,12 +167,12 @@ export function DevTools() {
 			<CardHeader className="py-3 px-4 flex flex-row items-center justify-between space-y-0 bg-gradient-to-r from-orange-500/10 to-amber-500/10">
 				<div className="flex items-center gap-2">
 					<Rabbit className="h-4 w-4 text-orange-500" />
-					<CardTitle className="text-sm font-medium">{Config.content.devTools.title}</CardTitle>
+					<CardTitle className="text-sm font-medium">{config.content.devTools.title}</CardTitle>
 					<Badge
 						variant="outline"
 						className="text-[10px] px-1.5 py-0 text-orange-600 border-orange-500/50 bg-orange-500/10"
 					>
-						{Config.content.devTools.badge}
+						{config.content.devTools.badge}
 					</Badge>
 				</div>
 				<div className="flex items-center gap-1">
@@ -285,7 +285,7 @@ export function DevTools() {
 
 					{/* Info */}
 					<div className="pt-2 border-t text-[10px] text-muted-foreground space-y-0.5">
-						<p>Test: {Config.content.devTools.testUser.email} / password123</p>
+						<p>Test: {config.content.devTools.testUser.email} / password123</p>
 						{activeWorkspace && <p>Workspace: {activeWorkspace.name}</p>}
 					</div>
 				</CardContent>

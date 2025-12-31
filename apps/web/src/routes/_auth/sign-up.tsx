@@ -1,6 +1,6 @@
 import { useOAuthProvidersQuery } from '@hare/app/shared/api'
 import { signInWithGitHub, signInWithGoogle, signUp } from '@hare/auth/client'
-import { Config } from '@hare/config'
+import { config } from '@hare/config'
 import { Button } from '@hare/ui/components/button'
 import { Card, CardContent, CardFooter } from '@hare/ui/components/card'
 import { Input } from '@hare/ui/components/input'
@@ -10,8 +10,8 @@ import { ArrowRight, Github, Loader2, Rabbit } from 'lucide-react'
 import { type ChangeEvent, type FormEvent, useState } from 'react'
 import { toast } from 'sonner'
 
-const APP_CONFIG = Config.app
-const AUTH_CONTENT = Config.content.auth
+const APP_CONFIG = config.app
+const AUTH_CONTENT = config.content.auth
 const { signUp: content, fields, validation } = AUTH_CONTENT
 
 // Google icon component (not available in lucide-react)

@@ -127,7 +127,7 @@ Once saved, trigger it anytime with just the name - no URL needed!`,
 		name: z
 			.string()
 			.min(1)
-			.max(ZapierConfig.NAME_MAX_LENGTH)
+			.max(Zapierconfig.NAME_MAX_LENGTH)
 			.regex(
 				/^[a-z0-9]+(-[a-z0-9]+)*$/,
 				'Use lowercase letters, numbers, and hyphens (must start/end with alphanumeric)',
@@ -136,7 +136,7 @@ Once saved, trigger it anytime with just the name - no URL needed!`,
 		webhookUrl: z.string().url().describe('Zapier webhook URL (https://hooks.zapier.com/...)'),
 		description: z
 			.string()
-			.max(ZapierConfig.DESCRIPTION_MAX_LENGTH)
+			.max(Zapierconfig.DESCRIPTION_MAX_LENGTH)
 			.describe('What does this integration do?'),
 		defaultData: z
 			.record(z.string(), z.unknown())
@@ -159,12 +159,12 @@ Once saved, trigger it anytime with just the name - no URL needed!`,
 				parsedUrl = new URL(webhookUrl)
 			} catch {
 				return failure(
-					`Invalid URL format. Zapier webhooks must be from ${ZapierConfig.WEBHOOK_HOSTNAME}`,
+					`Invalid URL format. Zapier webhooks must be from ${Zapierconfig.WEBHOOK_HOSTNAME}`,
 				)
 			}
 
-			if (parsedUrl.hostname !== ZapierConfig.WEBHOOK_HOSTNAME) {
-				return failure(`Invalid URL. Zapier webhooks must be from ${ZapierConfig.WEBHOOK_HOSTNAME}`)
+			if (parsedUrl.hostname !== Zapierconfig.WEBHOOK_HOSTNAME) {
+				return failure(`Invalid URL. Zapier webhooks must be from ${Zapierconfig.WEBHOOK_HOSTNAME}`)
 			}
 
 			const key = integrationKey({ workspaceId: context.workspaceId, name })
@@ -341,12 +341,12 @@ If the saved integration has defaultData, it will be merged (your data takes pre
 				parsedUrl = new URL(webhookUrl)
 			} catch {
 				return failure(
-					`Invalid URL format. Zapier webhooks must be from ${ZapierConfig.WEBHOOK_HOSTNAME}`,
+					`Invalid URL format. Zapier webhooks must be from ${Zapierconfig.WEBHOOK_HOSTNAME}`,
 				)
 			}
 
-			if (parsedUrl.hostname !== ZapierConfig.WEBHOOK_HOSTNAME) {
-				return failure(`Invalid URL. Zapier webhooks must be from ${ZapierConfig.WEBHOOK_HOSTNAME}`)
+			if (parsedUrl.hostname !== Zapierconfig.WEBHOOK_HOSTNAME) {
+				return failure(`Invalid URL. Zapier webhooks must be from ${Zapierconfig.WEBHOOK_HOSTNAME}`)
 			}
 
 			// Merge default data with provided data (provided takes precedence)

@@ -2,16 +2,16 @@
  * Shared Configuration
  *
  * Single unified Config object for all application configuration.
- * Access via `Config.section.value` for full type safety.
+ * Access via `config.section.value` for full type safety.
  *
  * @example
  * ```ts
- * import { Config } from '@hare/config'
+ * import { config } from '@hare/config'
  *
  * // Access configuration
- * Config.app.name // 'Hare'
- * Config.models.defaultId // 'claude-3-5-sonnet-20241022'
- * Config.enums.agentStatus.DRAFT // 'draft'
+ * config.app.name // 'Hare'
+ * config.models.defaultId // 'claude-3-5-sonnet-20241022'
+ * config.enums.agentStatus.DRAFT // 'draft'
  *
  * // Use enum arrays for schema validation
  * z.enum(AGENT_STATUSES)
@@ -20,7 +20,7 @@
 
 export {
 	// Main config object
-	Config,
+	config,
 	// Helper functions
 	getModelById,
 	getModelName,
@@ -50,7 +50,7 @@ export {
 	PLAN_IDS,
 	WIDGET_POSITIONS,
 	// Types
-	type Config as ConfigType,
+	type config as ConfigType,
 	type AppConfig,
 	type Features,
 	type ModelsConfig,

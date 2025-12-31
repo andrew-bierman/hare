@@ -1,5 +1,5 @@
 import { useAuth } from '@hare/app'
-import { Config } from '@hare/config'
+import { config } from '@hare/config'
 import { Badge } from '@hare/ui/components/badge'
 import { Button } from '@hare/ui/components/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@hare/ui/components/card'
@@ -22,10 +22,10 @@ import {
 } from 'lucide-react'
 
 // Local references for cleaner code
-const APP_CONFIG = Config.app
-const LANDING_PAGE = Config.content.landing
-const NAV_ITEMS = Config.navigation
-const UI_TEXT = Config.ui.text
+const APP_CONFIG = config.app
+const LANDING_PAGE = config.content.landing
+const NAV_ITEMS = config.navigation
+const UI_TEXT = config.ui.text
 
 export const Route = createFileRoute('/')({
 	component: LandingPage,

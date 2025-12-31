@@ -10,7 +10,7 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from '@hare/ui/components/dialog'
-import { Config, type AgentTemplate } from '@hare/config'
+import { config, type AgentTemplate } from '@hare/config'
 import { Bot, ChevronRight, Rocket, Sparkles, Wand2, X } from 'lucide-react'
 import { cn } from '@hare/ui/lib/utils'
 
@@ -177,7 +177,7 @@ export function OnboardingWizard({
 							</DialogDescription>
 						</DialogHeader>
 						<div className="grid gap-3 my-4">
-							{Config.agents.templates.map((template) => (
+							{config.agents.templates.map((template) => (
 								<TemplateOption
 									key={template.id}
 									template={template}

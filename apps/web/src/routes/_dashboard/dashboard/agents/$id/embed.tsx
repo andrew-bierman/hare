@@ -1,6 +1,6 @@
 import { useWorkspace } from '@hare/app'
 import { useAgentQuery, useUpdateAgentMutation } from '@hare/app/shared/api'
-import { Config } from '@hare/config'
+import { config } from '@hare/config'
 import { Badge } from '@hare/ui/components/badge'
 import { Button } from '@hare/ui/components/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@hare/ui/components/card'
@@ -34,14 +34,14 @@ import { type ChangeEvent, useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
 
 // Local references for cleaner code
-const EMBED_COLOR_PRESETS = Config.ui.embed.colorPresets
-const EMBED_POSITIONS = Config.ui.embed.positions
+const EMBED_COLOR_PRESETS = config.ui.embed.colorPresets
+const EMBED_POSITIONS = config.ui.embed.positions
 const EMBED_COLORS = {
-	DEFAULT_PRIMARY: Config.ui.embed.colors.defaultPrimary,
-	DARK_BG: Config.ui.embed.colors.dark.bg,
-	LIGHT_INPUT_BG: Config.ui.embed.colors.light.inputBg,
+	DEFAULT_PRIMARY: config.ui.embed.colors.defaultPrimary,
+	DARK_BG: config.ui.embed.colors.dark.bg,
+	LIGHT_INPUT_BG: config.ui.embed.colors.light.inputBg,
 } as const
-const UI_TIMING = Config.ui.timing
+const UI_TIMING = config.ui.timing
 
 export const Route = createFileRoute('/_dashboard/dashboard/agents/$id/embed')({
 	component: EmbedConfigPage,

@@ -1,5 +1,5 @@
 import { PublicPageFooter, PublicPageHeader } from '@hare/app'
-import { Config } from '@hare/config'
+import { config } from '@hare/config'
 import { Badge } from '@hare/ui/components/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@hare/ui/components/card'
 import { createFileRoute, Link } from '@tanstack/react-router'
@@ -16,7 +16,7 @@ import {
 } from 'lucide-react'
 
 // Local references for cleaner code
-const APP_CONFIG = Config.app
+const APP_CONFIG = config.app
 
 export const Route = createFileRoute('/docs/')({
 	component: DocsPage,

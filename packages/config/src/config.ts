@@ -2,7 +2,7 @@
  * Unified Application Configuration
  *
  * Single source of truth for all application configuration.
- * Access via `Config.section.value` for full type safety.
+ * Access via `config.section.value` for full type safety.
  */
 
 import { serverEnv } from './env'
@@ -65,7 +65,7 @@ interface AgentTemplate {
 // Unified Configuration Object
 // =============================================================================
 
-export const Config = {
+export const config = {
 	// =========================================================================
 	// App Metadata & Branding
 	// =========================================================================
@@ -790,34 +790,34 @@ await agent.deploy()`,
 // Type Exports
 // =============================================================================
 
-export type Config = typeof Config
-export type AppConfig = typeof Config.app
-export type Features = typeof Config.features
-export type ModelsConfig = typeof Config.models
-export type AgentsConfig = typeof Config.agents
-export type ToolsConfig = typeof Config.tools
-export type EnumsConfig = typeof Config.enums
-export type UIConfig = typeof Config.ui
-export type ContentConfig = typeof Config.content
-export type NavigationConfig = typeof Config.navigation
+export type Config = typeof config
+export type AppConfig = typeof config.app
+export type Features = typeof config.features
+export type ModelsConfig = typeof config.models
+export type AgentsConfig = typeof config.agents
+export type ToolsConfig = typeof config.tools
+export type EnumsConfig = typeof config.enums
+export type UIConfig = typeof config.ui
+export type ContentConfig = typeof config.content
+export type NavigationConfig = typeof config.navigation
 
 // Enum value types
-export type AgentStatus = typeof Config.enums.agentStatus[keyof typeof Config.enums.agentStatus]
-export type DeploymentStatus = typeof Config.enums.deploymentStatus[keyof typeof Config.enums.deploymentStatus]
-export type ScheduleStatus = typeof Config.enums.scheduleStatus[keyof typeof Config.enums.scheduleStatus]
-export type ExecutionStatus = typeof Config.enums.executionStatus[keyof typeof Config.enums.executionStatus]
-export type InvitationStatus = typeof Config.enums.invitationStatus[keyof typeof Config.enums.invitationStatus]
-export type WorkspaceRole = typeof Config.enums.workspaceRole[keyof typeof Config.enums.workspaceRole]
-export type MemberRole = typeof Config.enums.memberRole[keyof typeof Config.enums.memberRole]
-export type MessageRole = typeof Config.enums.messageRole[keyof typeof Config.enums.messageRole]
-export type ScheduleType = typeof Config.enums.scheduleType[keyof typeof Config.enums.scheduleType]
-export type ExportFormat = typeof Config.enums.exportFormat[keyof typeof Config.enums.exportFormat]
-export type ToolType = typeof Config.enums.toolType[keyof typeof Config.enums.toolType]
-export type ToolCategory = typeof Config.enums.toolCategory[keyof typeof Config.enums.toolCategory]
-export type HttpMethod = typeof Config.enums.httpMethod[keyof typeof Config.enums.httpMethod]
-export type NodeEnv = typeof Config.enums.nodeEnv[keyof typeof Config.enums.nodeEnv]
-export type PlanId = typeof Config.enums.planId[keyof typeof Config.enums.planId]
-export type WidgetPosition = typeof Config.enums.widgetPosition[keyof typeof Config.enums.widgetPosition]
+export type AgentStatus = typeof config.enums.agentStatus[keyof typeof config.enums.agentStatus]
+export type DeploymentStatus = typeof config.enums.deploymentStatus[keyof typeof config.enums.deploymentStatus]
+export type ScheduleStatus = typeof config.enums.scheduleStatus[keyof typeof config.enums.scheduleStatus]
+export type ExecutionStatus = typeof config.enums.executionStatus[keyof typeof config.enums.executionStatus]
+export type InvitationStatus = typeof config.enums.invitationStatus[keyof typeof config.enums.invitationStatus]
+export type WorkspaceRole = typeof config.enums.workspaceRole[keyof typeof config.enums.workspaceRole]
+export type MemberRole = typeof config.enums.memberRole[keyof typeof config.enums.memberRole]
+export type MessageRole = typeof config.enums.messageRole[keyof typeof config.enums.messageRole]
+export type ScheduleType = typeof config.enums.scheduleType[keyof typeof config.enums.scheduleType]
+export type ExportFormat = typeof config.enums.exportFormat[keyof typeof config.enums.exportFormat]
+export type ToolType = typeof config.enums.toolType[keyof typeof config.enums.toolType]
+export type ToolCategory = typeof config.enums.toolCategory[keyof typeof config.enums.toolCategory]
+export type HttpMethod = typeof config.enums.httpMethod[keyof typeof config.enums.httpMethod]
+export type NodeEnv = typeof config.enums.nodeEnv[keyof typeof config.enums.nodeEnv]
+export type PlanId = typeof config.enums.planId[keyof typeof config.enums.planId]
+export type WidgetPosition = typeof config.enums.widgetPosition[keyof typeof config.enums.widgetPosition]
 
 // Re-export types used in config
 export type { AIModel, SystemTool, ResponseStylePreset, AgentTemplate, ModelProvider, SpeedTier, CostTier, ResponseStyle, SystemToolType, AgentTemplateId }
@@ -827,7 +827,7 @@ export type { AIModel, SystemTool, ResponseStylePreset, AgentTemplate, ModelProv
 // =============================================================================
 
 export function getModelById(id: string): AIModel | undefined {
-	return Config.models.list.find((m) => m.id === id)
+	return config.models.list.find((m) => m.id === id)
 }
 
 export function getModelName(id: string): string {
@@ -836,7 +836,7 @@ export function getModelName(id: string): string {
 
 export function getModelsByProvider(): Map<ModelProvider, AIModel[]> {
 	const grouped = new Map<ModelProvider, AIModel[]>()
-	for (const model of Config.models.list) {
+	for (const model of config.models.list) {
 		const existing = grouped.get(model.provider) ?? []
 		grouped.set(model.provider, [...existing, model])
 	}
@@ -844,19 +844,19 @@ export function getModelsByProvider(): Map<ModelProvider, AIModel[]> {
 }
 
 export function getProviderLabel(provider: ModelProvider): string {
-	return Config.models.labels.provider[provider]
+	return config.models.labels.provider[provider]
 }
 
 export function getAvailableTools(): SystemTool[] {
-	return Config.tools.system.filter((t) => t.available)
+	return config.tools.system.filter((t) => t.available)
 }
 
 export function getTemplateById(id: string): AgentTemplate | undefined {
-	return Config.agents.templates.find((t) => t.id === id)
+	return config.agents.templates.find((t) => t.id === id)
 }
 
 export function getResponseStyleById(id: ResponseStyle): ResponseStylePreset | undefined {
-	return Config.agents.responseStyles.find((s) => s.id === id)
+	return config.agents.responseStyles.find((s) => s.id === id)
 }
 
 export function getResponseStyleFromConfig(temperature: number): ResponseStyle {
@@ -866,23 +866,23 @@ export function getResponseStyleFromConfig(temperature: number): ResponseStyle {
 }
 
 // Tool type arrays for schema validation
-export const TOOL_TYPES = Object.values(Config.enums.toolType)
-export const AGENT_STATUSES = Object.values(Config.enums.agentStatus)
-export const DEPLOYMENT_STATUSES = Object.values(Config.enums.deploymentStatus)
-export const SCHEDULE_STATUSES = Object.values(Config.enums.scheduleStatus)
-export const EXECUTION_STATUSES = Object.values(Config.enums.executionStatus)
-export const INVITATION_STATUSES = Object.values(Config.enums.invitationStatus)
-export const WORKSPACE_ROLES = Object.values(Config.enums.workspaceRole)
-export const MEMBER_ROLES = Object.values(Config.enums.memberRole)
-export const MESSAGE_ROLES = Object.values(Config.enums.messageRole)
-export const SCHEDULE_TYPES = Object.values(Config.enums.scheduleType)
-export const EXPORT_FORMATS = Object.values(Config.enums.exportFormat)
-export const USAGE_GROUP_BY_OPTIONS = Object.values(Config.enums.usageGroupBy)
-export const VALIDATION_ISSUE_SEVERITIES = Object.values(Config.enums.validationSeverity)
-export const HTTP_METHODS = Object.values(Config.enums.httpMethod)
-export const NODE_ENVS = Object.values(Config.enums.nodeEnv)
-export const PLAN_IDS = Object.values(Config.enums.planId)
-export const WIDGET_POSITIONS = Object.values(Config.enums.widgetPosition)
+export const TOOL_TYPES = Object.values(config.enums.toolType)
+export const AGENT_STATUSES = Object.values(config.enums.agentStatus)
+export const DEPLOYMENT_STATUSES = Object.values(config.enums.deploymentStatus)
+export const SCHEDULE_STATUSES = Object.values(config.enums.scheduleStatus)
+export const EXECUTION_STATUSES = Object.values(config.enums.executionStatus)
+export const INVITATION_STATUSES = Object.values(config.enums.invitationStatus)
+export const WORKSPACE_ROLES = Object.values(config.enums.workspaceRole)
+export const MEMBER_ROLES = Object.values(config.enums.memberRole)
+export const MESSAGE_ROLES = Object.values(config.enums.messageRole)
+export const SCHEDULE_TYPES = Object.values(config.enums.scheduleType)
+export const EXPORT_FORMATS = Object.values(config.enums.exportFormat)
+export const USAGE_GROUP_BY_OPTIONS = Object.values(config.enums.usageGroupBy)
+export const VALIDATION_ISSUE_SEVERITIES = Object.values(config.enums.validationSeverity)
+export const HTTP_METHODS = Object.values(config.enums.httpMethod)
+export const NODE_ENVS = Object.values(config.enums.nodeEnv)
+export const PLAN_IDS = Object.values(config.enums.planId)
+export const WIDGET_POSITIONS = Object.values(config.enums.widgetPosition)
 
 // API message roles (excludes tool)
-export const API_MESSAGE_ROLES = [Config.enums.messageRole.USER, Config.enums.messageRole.ASSISTANT, Config.enums.messageRole.SYSTEM] as const
+export const API_MESSAGE_ROLES = [config.enums.messageRole.USER, config.enums.messageRole.ASSISTANT, config.enums.messageRole.SYSTEM] as const

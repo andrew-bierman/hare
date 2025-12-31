@@ -1,6 +1,6 @@
 import type { Context } from 'hono'
 import type { WorkspaceRole } from '@hare/types'
-import { Config } from '@hare/config'
+import { config } from '@hare/config'
 
 // =============================================================================
 // Types
@@ -92,11 +92,11 @@ export function requireOwner(role: WorkspaceRole): void {
 export function handleRouteError(options: HandleRouteErrorOptions) {
 	const { c, error } = options
 	if (error instanceof ForbiddenError) {
-		return c.json({ error: error.message }, Config.http.status.FORBIDDEN)
+		return c.json({ error: error.message }, config.http.status.FORBIDDEN)
 	}
 	if (error instanceof NotFoundError) {
-		return c.json({ error: error.message }, Config.http.status.NOT_FOUND)
+		return c.json({ error: error.message }, config.http.status.NOT_FOUND)
 	}
 	console.error('Unhandled route error:', error)
-	return c.json({ error: 'Internal server error' }, Config.http.status.INTERNAL_SERVER_ERROR)
+	return c.json({ error: 'Internal server error' }, config.http.status.INTERNAL_SERVER_ERROR)
 }

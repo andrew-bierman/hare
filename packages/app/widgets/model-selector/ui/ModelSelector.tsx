@@ -38,7 +38,7 @@ export interface ModelSelectorProps {
 }
 
 function ModelBadge({ tier, type }: { tier: string; type: 'speed' | 'cost' }) {
-	const config = type === 'speed' ? Config.models.labels.speed : Config.models.labels.cost
+	const config = type === 'speed' ? config.models.labels.speed : config.models.labels.cost
 	const { label, color } = config[tier as keyof typeof config] ?? { label: tier, color: '' }
 
 	return (
@@ -113,12 +113,12 @@ export function ModelSelector({
 
 	const flatModels = useMemo(() => {
 		if (providers?.length) {
-			return Config.models.list.filter((m) => providers.includes(m.provider))
+			return config.models.list.filter((m) => providers.includes(m.provider))
 		}
-		return Config.models.list
+		return config.models.list
 	}, [providers])
 
-	const selectedModel = Config.models.list.find((m) => m.id === value)
+	const selectedModel = config.models.list.find((m) => m.id === value)
 
 	return (
 		<div className={cn('space-y-2', className)}>

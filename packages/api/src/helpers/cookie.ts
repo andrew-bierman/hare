@@ -1,6 +1,6 @@
 import type { Context } from 'hono'
 import { deleteCookie, getCookie, getSignedCookie, setCookie, setSignedCookie } from 'hono/cookie'
-import { Config, serverEnv } from '@hare/config'
+import { config, serverEnv } from '@hare/config'
 
 /**
  * Cookie helpers using Hono's cookie helper.
@@ -77,8 +77,8 @@ export interface SetWorkspaceCookieOptions {
 // =============================================================================
 
 const DEFAULT_COOKIE_OPTIONS: SecureCookieOptions = {
-	maxAge: Config.cookies.config.sessionExpirySeconds,
-	path: Config.cookies.config.defaultPath,
+	maxAge: config.cookies.config.sessionExpirySeconds,
+	path: config.cookies.config.defaultPath,
 	httpOnly: true,
 	secure: serverEnv.NODE_ENV === 'production',
 	sameSite: 'lax',
@@ -116,7 +116,7 @@ export function setSecureCookie(opts: SetCookieOptions): void {
  * Delete a cookie.
  */
 export function removeCookie(options: RemoveCookieOptions): void {
-	const { c, name, path = Config.cookies.config.defaultPath } = options
+	const { c, name, path = config.cookies.config.defaultPath } = options
 	deleteCookie(c, name, { path })
 }
 
@@ -143,15 +143,15 @@ export async function setSignedSecureCookie(opts: SignedCookieOptions): Promise<
 
 /**
  * Common cookie names used in the application.
- * @deprecated Use Config.cookies.names from @hare/config instead
+ * @deprecated Use config.cookies.names from @hare/config instead
  */
-export const CookieNames = Config.cookies.names
+export const CookieNames = config.cookies.names
 
 /**
  * Helper to get the current workspace ID from cookie.
  */
 export function getWorkspaceCookie(c: Context): string | undefined {
-	return getCookieValue({ c, name: Config.cookies.names.WORKSPACE })
+	return getCookieValue({ c, name: config.cookies.names.WORKSPACE })
 }
 
 /**
@@ -161,10 +161,10 @@ export function setWorkspaceCookie(options: SetWorkspaceCookieOptions): void {
 	const { c, workspaceId } = options
 	setSecureCookie({
 		c,
-		name: Config.cookies.names.WORKSPACE,
+		name: config.cookies.names.WORKSPACE,
 		value: workspaceId,
 		options: {
-			maxAge: Config.cookies.config.workspaceExpirySeconds,
+			maxAge: config.cookies.config.workspaceExpirySeconds,
 			httpOnly: false, // Allow JS access for client-side workspace switching
 		},
 	})

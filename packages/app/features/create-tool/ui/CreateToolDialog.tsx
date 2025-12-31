@@ -62,7 +62,7 @@ export function CreateToolDialog({ workspaceId, open, onOpenChange }: CreateTool
 
 		try {
 			let config: Record<string, unknown> | undefined
-			if (newConfig.trim()) {
+			if (newconfig.trim()) {
 				try {
 					config = JSON.parse(newConfig)
 				} catch {

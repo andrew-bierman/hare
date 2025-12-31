@@ -1,6 +1,6 @@
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
 import { and, eq } from 'drizzle-orm'
-import { Config, getModelById } from '@hare/config'
+import { config, getModelById } from '@hare/config'
 import { agents, agentTools, deployments, tools as toolsTable } from '@hare/db/schema'
 import type { Database } from '@hare/db'
 import { routeHttpToAgent } from '@hare/agent'
@@ -988,18 +988,18 @@ app.openapi(validateConfigRoute, async (c) => {
 
 	// Validate name
 	if (data.name !== undefined) {
-		if (data.name.length < Config.agents.limits.nameMinLength) {
+		if (data.name.length < config.agents.limits.nameMinLength) {
 			errors.push({
 				field: 'name',
 				type: 'error',
-				message: `Name must be at least ${Config.agents.limits.nameMinLength} character`,
+				message: `Name must be at least ${config.agents.limits.nameMinLength} character`,
 			})
 		}
-		if (data.name.length > Config.agents.limits.nameMaxLength) {
+		if (data.name.length > config.agents.limits.nameMaxLength) {
 			errors.push({
 				field: 'name',
 				type: 'error',
-				message: `Name must be at most ${Config.agents.limits.nameMaxLength} characters`,
+				message: `Name must be at most ${config.agents.limits.nameMaxLength} characters`,
 			})
 		}
 	} else {
@@ -1011,11 +1011,11 @@ app.openapi(validateConfigRoute, async (c) => {
 	}
 
 	// Validate description
-	if (data.description && data.description.length > Config.agents.limits.descriptionMaxLength) {
+	if (data.description && data.description.length > config.agents.limits.descriptionMaxLength) {
 		warnings.push({
 			field: 'description',
 			type: 'warning',
-			message: `Description exceeds recommended length of ${Config.agents.limits.descriptionMaxLength} characters`,
+			message: `Description exceeds recommended length of ${config.agents.limits.descriptionMaxLength} characters`,
 		})
 	}
 
@@ -1027,7 +1027,7 @@ app.openapi(validateConfigRoute, async (c) => {
 			errors.push({
 				field: 'model',
 				type: 'error',
-				message: `Unknown model: ${data.model}. Available models: ${Config.models.list.map((m) => m.id).join(', ')}`,
+				message: `Unknown model: ${data.model}. Available models: ${config.models.list.map((m) => m.id).join(', ')}`,
 			})
 		} else if (!modelInfo.supportsTools && data.toolIds && data.toolIds.length > 0) {
 			warnings.push({
@@ -1056,11 +1056,11 @@ app.openapi(validateConfigRoute, async (c) => {
 				type: 'error',
 				message: 'Instructions are required for deployment',
 			})
-		} else if (instructionsLength > Config.agents.limits.instructionsMaxLength) {
+		} else if (instructionsLength > config.agents.limits.instructionsMaxLength) {
 			errors.push({
 				field: 'instructions',
 				type: 'error',
-				message: `Instructions exceed maximum length of ${Config.agents.limits.instructionsMaxLength} characters`,
+				message: `Instructions exceed maximum length of ${config.agents.limits.instructionsMaxLength} characters`,
 			})
 		}
 
@@ -1129,11 +1129,11 @@ app.openapi(validateConfigRoute, async (c) => {
 	let toolsValid = true
 	const toolIds = data.toolIds || []
 
-	if (toolIds.length > Config.agents.limits.maxToolsPerAgent) {
+	if (toolIds.length > config.agents.limits.maxToolsPerAgent) {
 		errors.push({
 			field: 'toolIds',
 			type: 'error',
-			message: `Too many tools. Maximum is ${Config.agents.limits.maxToolsPerAgent}`,
+			message: `Too many tools. Maximum is ${config.agents.limits.maxToolsPerAgent}`,
 		})
 		toolsValid = false
 	}
@@ -1370,11 +1370,11 @@ app.openapi(previewAgentRoute, async (c) => {
 
 	// Validate config parameters
 	const temperature =
-		typeof effectiveConfig.temperature === 'number' ? effectiveConfig.temperature : undefined
+		typeof effectiveconfig.temperature === 'number' ? effectiveconfig.temperature : undefined
 	const maxTokens =
-		typeof effectiveConfig.maxTokens === 'number' ? effectiveConfig.maxTokens : undefined
-	const topP = typeof effectiveConfig.topP === 'number' ? effectiveConfig.topP : undefined
-	const topK = typeof effectiveConfig.topK === 'number' ? effectiveConfig.topK : undefined
+		typeof effectiveconfig.maxTokens === 'number' ? effectiveconfig.maxTokens : undefined
+	const topP = typeof effectiveconfig.topP === 'number' ? effectiveconfig.topP : undefined
+	const topK = typeof effectiveconfig.topK === 'number' ? effectiveconfig.topK : undefined
 
 	if (temperature !== undefined) {
 		if (

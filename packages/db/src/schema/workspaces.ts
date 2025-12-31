@@ -25,7 +25,7 @@ export const workspaces = sqliteTable('workspaces', {
 	// Billing fields
 	stripeCustomerId: text('stripeCustomerId'),
 	stripeSubscriptionId: text('stripeSubscriptionId'),
-	planId: text('planId').default(Config.defaults.planId).$type<PlanId>(),
+	planId: text('planId').default(config.defaults.planId).$type<PlanId>(),
 	currentPeriodEnd: integer('currentPeriodEnd', { mode: 'timestamp' }),
 	createdAt: integer('createdAt', { mode: 'timestamp' })
 		.notNull()

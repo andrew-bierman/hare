@@ -11,20 +11,20 @@ import {
 // =============================================================================
 
 /**
- * Agent validation limits - derived from Config.agents.limits in @hare/config
+ * Agent validation limits - derived from config.agents.limits in @hare/config
  * Additional validation constraints for config parameters are defined here
  */
 export const AGENT_VALIDATION = {
 	name: {
-		min: Config.agents.limits.nameMinLength,
-		max: Config.agents.limits.nameMaxLength,
+		min: config.agents.limits.nameMinLength,
+		max: config.agents.limits.nameMaxLength,
 	},
 	description: {
-		max: Config.agents.limits.descriptionMaxLength,
+		max: config.agents.limits.descriptionMaxLength,
 	},
 	instructions: {
 		min: 1,
-		max: Config.agents.limits.instructionsMaxLength,
+		max: config.agents.limits.instructionsMaxLength,
 	},
 	config: {
 		temperature: {
@@ -43,13 +43,13 @@ export const AGENT_VALIDATION = {
 			min: 0,
 		},
 	},
-	maxToolsPerAgent: Config.agents.limits.maxToolsPerAgent,
+	maxToolsPerAgent: config.agents.limits.maxToolsPerAgent,
 } as const
 
 /**
- * Allowed AI model IDs - derived from Config.models.list in @hare/config
+ * Allowed AI model IDs - derived from config.models.list in @hare/config
  */
-export const ALLOWED_MODEL_IDS = Config.models.list.map((m) => m.id)
+export const ALLOWED_MODEL_IDS = config.models.list.map((m) => m.id)
 
 export type AllowedModelId = (typeof ALLOWED_MODEL_IDS)[number]
 
