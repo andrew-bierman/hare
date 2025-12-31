@@ -1,7 +1,7 @@
 'use client'
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { api, handleResponse } from '../client'
+import { api } from '../client'
 import { billingKeys } from './query-keys'
 
 export interface CheckoutRequest {
@@ -22,7 +22,8 @@ export function usePlansQuery(workspaceId: string | undefined) {
 		queryKey: billingKeys.plans(),
 		queryFn: async () => {
 			const res = await api.billing.plans.$get({ query: { workspaceId: workspaceId! } })
-			return handleResponse(res)
+			if (!res.ok) throw new Error('Request failed')
+			return res.json()
 		},
 		enabled: !!workspaceId,
 	})
@@ -36,7 +37,8 @@ export function useBillingStatusQuery(workspaceId: string | undefined) {
 		queryKey: billingKeys.status(workspaceId ?? ''),
 		queryFn: async () => {
 			const res = await api.billing.status.$get({ query: { workspaceId: workspaceId! } })
-			return handleResponse(res)
+			if (!res.ok) throw new Error('Request failed')
+			return res.json()
 		},
 		enabled: !!workspaceId,
 	})
@@ -60,7 +62,8 @@ export function usePaymentHistoryQuery(options: {
 					starting_after: options.startingAfter,
 				},
 			})
-			return handleResponse(res)
+			if (!res.ok) throw new Error('Request failed')
+			return res.json()
 		},
 		enabled: !!options.workspaceId,
 	})
@@ -82,7 +85,8 @@ export function useCreateCheckoutMutation() {
 					cancelUrl: params.cancelUrl,
 				},
 			})
-			return handleResponse(res)
+			if (!res.ok) throw new Error('Request failed')
+			return res.json()
 		},
 		onSuccess: (_, { workspaceId }) => {
 			// Invalidate billing queries after checkout
@@ -102,7 +106,8 @@ export function useCreatePortalMutation() {
 				query: { workspaceId: params.workspaceId },
 				json: {},
 			})
-			return handleResponse(res)
+			if (!res.ok) throw new Error('Request failed')
+			return res.json()
 		},
 	})
 }

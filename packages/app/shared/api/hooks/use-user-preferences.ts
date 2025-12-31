@@ -1,7 +1,7 @@
 'use client'
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { api, handleResponse } from '../client'
+import { api } from '../client'
 
 export interface UserPreferences {
 	id: string
@@ -33,7 +33,8 @@ export function useUserPreferencesQuery() {
 		queryKey: userPreferencesKeys.detail(),
 		queryFn: async () => {
 			const res = await api['user-settings'].$get()
-			return handleResponse(res)
+			if (!res.ok) throw new Error('Request failed')
+			return res.json()
 		},
 	})
 }
@@ -47,7 +48,8 @@ export function useUpdateUserPreferencesMutation() {
 	return useMutation({
 		mutationFn: async (data: UpdateUserPreferencesInput) => {
 			const res = await api['user-settings'].$patch({ json: data })
-			return handleResponse(res)
+			if (!res.ok) throw new Error('Request failed')
+			return res.json()
 		},
 		onSuccess: (data) => {
 			queryClient.setQueryData(userPreferencesKeys.detail(), data)

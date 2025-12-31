@@ -1,7 +1,7 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
-import { api, handleResponse } from '../client'
+import { api } from '../client'
 
 export interface UsageParams {
 	startDate?: string
@@ -21,7 +21,8 @@ export function useUsageQuery(workspaceId: string | undefined, params?: UsagePar
 					agentId: params?.agentId,
 				},
 			})
-			return handleResponse(res)
+			if (!res.ok) throw new Error('Request failed')
+			return res.json()
 		},
 		enabled: !!workspaceId,
 	})
@@ -34,7 +35,8 @@ export function useUsageByAgentQuery(workspaceId: string | undefined) {
 			const res = await api.usage['by-agent'].$get({
 				query: { workspaceId: workspaceId! },
 			})
-			return handleResponse(res)
+			if (!res.ok) throw new Error('Request failed')
+			return res.json()
 		},
 		enabled: !!workspaceId,
 	})
@@ -51,7 +53,8 @@ export function useAgentUsageQuery(agentId: string | undefined, workspaceId: str
 					agentId,
 				},
 			})
-			return handleResponse(res)
+			if (!res.ok) throw new Error('Request failed')
+			return res.json()
 		},
 		enabled: !!agentId && !!workspaceId,
 	})

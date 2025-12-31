@@ -1,7 +1,7 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
-import { api, handleResponse } from '../client'
+import { api } from '../client'
 
 // =============================================================================
 // Types
@@ -72,7 +72,8 @@ export function useLogsQuery(workspaceId: string | undefined, params?: LogsParam
 					offset: params?.offset?.toString(),
 				},
 			})
-			return handleResponse(res)
+			if (!res.ok) throw new Error('Request failed')
+			return res.json()
 		},
 		enabled: !!workspaceId,
 		staleTime: 1000 * 30, // Cache for 30 seconds
@@ -94,7 +95,8 @@ export function useLogStatsQuery(workspaceId: string | undefined, params?: LogsP
 					endDate: params?.endDate,
 				},
 			})
-			return handleResponse(res)
+			if (!res.ok) throw new Error('Request failed')
+			return res.json()
 		},
 		enabled: !!workspaceId,
 		staleTime: 1000 * 60, // Cache for 1 minute
