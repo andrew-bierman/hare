@@ -1,95 +1,92 @@
 /**
  * Shared Configuration
  *
- * Central export point for all application configuration.
- * Following Feature-Sliced Design, this is the public API for the config segment.
+ * Single unified Config object for all application configuration.
+ * Access via `config.section.value` for full type safety.
+ *
+ * @example
+ * ```ts
+ * import { config } from '@hare/config'
+ *
+ * // Access configuration
+ * config.app.name // 'Hare'
+ * config.models.defaultId // 'claude-3-5-sonnet-20241022'
+ * config.enums.agentStatus.DRAFT // 'draft'
+ *
+ * // Use enum arrays for schema validation
+ * z.enum(AGENT_STATUSES)
+ * ```
  */
 
-// Environment
-export { clientEnv, serverEnv, type ClientEnv, type ServerEnv } from './env'
-
-// App Configuration
-export { APP_CONFIG, BETA_ACCESS, FEATURES, type AppConfig, type BetaAccess, type Features } from './app'
-
-// AI Models
 export {
-	AI_MODELS,
-	COST_TIER_LABELS,
-	DEFAULT_MODEL_ID,
+	// Main config object
+	config,
+	// Helper functions
 	getModelById,
 	getModelName,
 	getModelsByProvider,
 	getProviderLabel,
-	PROVIDER_LABELS,
-	SPEED_TIER_LABELS,
-	type AIModel,
-	type CostTier,
-	type ModelProvider,
-	type SpeedTier,
-} from './models'
-
-// Tools & Agents
-export {
-	AGENT_DEFAULTS,
-	AGENT_LIMITS,
 	getAvailableTools,
-	SYSTEM_TOOLS,
-	type AgentDefaults,
-	type SystemTool,
-	type SystemToolType,
-} from './tools'
-
-// Agent Templates & Response Styles
-export {
-	AGENT_TEMPLATES,
+	getTemplateById,
 	getResponseStyleById,
 	getResponseStyleFromConfig,
-	getTemplateById,
-	RESPONSE_STYLE_PRESETS,
-	type AgentTemplate,
-	type AgentTemplateId,
-	type ResponseStyle,
+	// Enum arrays for Zod schema validation
+	TOOL_TYPES,
+	AGENT_STATUSES,
+	DEPLOYMENT_STATUSES,
+	SCHEDULE_STATUSES,
+	EXECUTION_STATUSES,
+	INVITATION_STATUSES,
+	WORKSPACE_ROLES,
+	MEMBER_ROLES,
+	MESSAGE_ROLES,
+	API_MESSAGE_ROLES,
+	SCHEDULE_TYPES,
+	EXPORT_FORMATS,
+	USAGE_GROUP_BY_OPTIONS,
+	VALIDATION_ISSUE_SEVERITIES,
+	HTTP_METHODS,
+	NODE_ENVS,
+	PLAN_IDS,
+	WIDGET_POSITIONS,
+	// Types
+	type config as ConfigType,
+	type AppConfig,
+	type Features,
+	type ModelsConfig,
+	type AgentsConfig,
+	type ToolsConfig,
+	type EnumsConfig,
+	type UIConfig,
+	type ContentConfig,
+	type NavigationConfig,
+	type AIModel,
+	type SystemTool,
 	type ResponseStylePreset,
-} from './templates'
+	type AgentTemplate,
+	type ModelProvider,
+	type SpeedTier,
+	type CostTier,
+	type ResponseStyle,
+	type SystemToolType,
+	type AgentTemplateId,
+	type AgentStatus,
+	type DeploymentStatus,
+	type ScheduleStatus,
+	type ExecutionStatus,
+	type InvitationStatus,
+	type WorkspaceRole,
+	type MemberRole,
+	type MessageRole,
+	type ScheduleType,
+	type ExportFormat,
+	type ToolType,
+	type ToolCategory,
+	type HttpMethod,
+	type NodeEnv,
+	type PlanId,
+	type WidgetPosition,
+} from './config'
 
-// Navigation
-export { NAV_ITEMS, type NavItems } from './navigation'
-
-// Content
-export {
-	AUTH_CONTENT,
-	DASHBOARD_CONTENT,
-	DEV_CONFIG,
-	DEV_TOOLS_CONTENT,
-	ERROR_MESSAGES,
-	LANDING_PAGE,
-	UI_TEXT,
-	type AuthContent,
-	type DashboardContent,
-	type DevConfig,
-	type ErrorMessages,
-	type LandingPage,
-} from './content'
-
-// Constants
-export {
-	API_KEY_CONFIG,
-	CHAT_STREAM_TYPES,
-	COOKIE_CONFIG,
-	COOKIE_NAMES,
-	DISPLAY_TRUNCATION,
-	EMBED_COLOR_PRESETS,
-	EMBED_COLORS,
-	EMBED_POSITIONS,
-	ENCRYPTION_CONFIG,
-	HTTP_STATUS,
-	LOGGING_CONFIG,
-	ROUTER_TIMING,
-	UI_TIMING,
-	VALIDATION,
-	WIDGET_MESSAGE_TYPES,
-	type ChatStreamType,
-	type CookieName,
-	type EmbedColorPreset,
-	type EmbedPosition,
-} from './constants'
+// Environment (separate due to runtime dynamic values)
+export { clientEnv, serverEnv, type ClientEnv, type ServerEnv } from './env'

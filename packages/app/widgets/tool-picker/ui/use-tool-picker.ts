@@ -52,7 +52,7 @@ export function useToolPicker({
 	const selectedTools = useMemo(() => {
 		return selectedToolIds
 			.map((id) => tools.find((t) => t.id === id))
-			.filter((t): t is Tool => t !== undefined)
+			.filter(<T>(t: T | undefined): t is T => t !== undefined)
 	}, [selectedToolIds, tools])
 
 	const filteredTools = useMemo(() => {
@@ -64,7 +64,7 @@ export function useToolPicker({
 			filtered = filtered.filter(
 				(tool) =>
 					tool.name.toLowerCase().includes(query) ||
-					tool.description.toLowerCase().includes(query) ||
+					(tool.description?.toLowerCase().includes(query) ?? false) ||
 					tool.type.toLowerCase().includes(query),
 			)
 		}
@@ -114,7 +114,7 @@ export function useToolPicker({
 			toolsToGroup = toolsToGroup.filter(
 				(tool) =>
 					tool.name.toLowerCase().includes(query) ||
-					tool.description.toLowerCase().includes(query) ||
+					(tool.description?.toLowerCase().includes(query) ?? false) ||
 					tool.type.toLowerCase().includes(query),
 			)
 		}

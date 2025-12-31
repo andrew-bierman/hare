@@ -3,7 +3,7 @@
 import { Badge } from '@hare/ui/components/badge'
 import { cn } from '@hare/ui/lib/utils'
 import { Activity, BarChart3, Bot, ExternalLink, Home, Rabbit, Settings, Wrench } from 'lucide-react'
-import { APP_CONFIG, DASHBOARD_CONTENT, FEATURES, NAV_ITEMS } from '@hare/config'
+import { config } from '@hare/config'
 
 const ICONS = { Home, Bot, Wrench, Activity, Settings, BarChart3 } as const
 
@@ -35,7 +35,7 @@ export interface SidebarProps {
  * @param WorkspaceSwitcher - Optional workspace switcher component
  */
 export function Sidebar({ pathname, Link, WorkspaceSwitcher }: SidebarProps) {
-	const routes: RouteItem[] = NAV_ITEMS.dashboard.map((item) => ({
+	const routes: RouteItem[] = config.navigation.dashboard.map((item) => ({
 		label: item.label,
 		icon: ICONS[item.icon as IconName],
 		href: item.href,
@@ -55,14 +55,14 @@ export function Sidebar({ pathname, Link, WorkspaceSwitcher }: SidebarProps) {
 						<Rabbit className="h-5 w-5 text-white" />
 					</div>
 					<span className="font-bold text-lg bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">
-						{APP_CONFIG.name}
+						{config.app.name}
 					</span>
-					{FEATURES.showBetaBadge && (
+					{config.features.showBetaBadge && (
 						<Badge
 							variant="secondary"
 							className="bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400"
 						>
-							{APP_CONFIG.stage}
+							{config.app.stage}
 						</Badge>
 					)}
 				</Link>
@@ -102,13 +102,13 @@ export function Sidebar({ pathname, Link, WorkspaceSwitcher }: SidebarProps) {
 			{/* Help */}
 			<div className="p-3 border-t">
 				<a
-					href={APP_CONFIG.docs}
+					href={config.app.docs}
 					target="_blank"
 					rel="noopener noreferrer"
 					className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-muted hover:text-foreground min-h-[44px] transition-colors"
 				>
 					<ExternalLink className="h-4 w-4" />
-					<span>{DASHBOARD_CONTENT.sidebar.docsLink}</span>
+					<span>{config.content.dashboard.sidebar.docsLink}</span>
 				</a>
 			</div>
 		</div>

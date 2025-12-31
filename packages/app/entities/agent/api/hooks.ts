@@ -1,22 +1,20 @@
 'use client'
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import {
-	apiClient,
-	type Agent,
-	type AgentPreviewInput,
-	type AgentPreviewResponse,
-	type CreateAgentInput,
-	type UpdateAgentInput,
-} from '../../../shared/api'
+import { api } from '@hare/api-client'
+import type { Agent, CreateAgentInput, UpdateAgentInput } from '@hare/types'
 
 // Re-export types for convenience
-export type { Agent, CreateAgentInput, UpdateAgentInput, AgentPreviewInput, AgentPreviewResponse }
+export type { Agent, CreateAgentInput, UpdateAgentInput }
 
 export function useAgents(workspaceId: string | undefined) {
 	return useQuery({
 		queryKey: ['agents', workspaceId],
-		queryFn: () => apiClient.agents.list(workspaceId!),
+		queryFn: async () => {
+			const res = await api.agents.$get({ query: { workspaceId: workspaceId! } })
+			if (!res.ok) throw new Error('Request failed')
+			return res.json()
+		},
 		enabled: !!workspaceId,
 	})
 }
@@ -24,7 +22,14 @@ export function useAgents(workspaceId: string | undefined) {
 export function useAgent(id: string | undefined, workspaceId: string | undefined) {
 	return useQuery({
 		queryKey: ['agents', workspaceId, id],
-		queryFn: () => apiClient.agents.get(id!, workspaceId!),
+		queryFn: async () => {
+			const res = await api.agents[':id'].$get({
+				param: { id: id! },
+				query: { workspaceId: workspaceId! },
+			})
+			if (!res.ok) throw new Error('Request failed')
+			return res.json()
+		},
 		enabled: !!id && !!workspaceId,
 	})
 }
@@ -32,7 +37,14 @@ export function useAgent(id: string | undefined, workspaceId: string | undefined
 export function useCreateAgent(workspaceId: string | undefined) {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: (data: CreateAgentInput) => apiClient.agents.create(workspaceId!, data),
+		mutationFn: async (data: CreateAgentInput) => {
+			const res = await api.agents.$post({
+				query: { workspaceId: workspaceId! },
+				json: data,
+			})
+			if (!res.ok) throw new Error('Request failed')
+			return res.json()
+		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['agents', workspaceId] })
 		},
@@ -42,8 +54,15 @@ export function useCreateAgent(workspaceId: string | undefined) {
 export function useUpdateAgent(workspaceId: string | undefined) {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: ({ id, data }: { id: string; data: UpdateAgentInput }) =>
-			apiClient.agents.update(id, workspaceId!, data),
+		mutationFn: async ({ id, data }: { id: string; data: UpdateAgentInput }) => {
+			const res = await api.agents[':id'].$patch({
+				param: { id },
+				query: { workspaceId: workspaceId! },
+				json: data,
+			})
+			if (!res.ok) throw new Error('Request failed')
+			return res.json()
+		},
 		onSuccess: (_, { id }) => {
 			queryClient.invalidateQueries({ queryKey: ['agents', workspaceId] })
 			queryClient.invalidateQueries({ queryKey: ['agents', workspaceId, id] })
@@ -54,7 +73,14 @@ export function useUpdateAgent(workspaceId: string | undefined) {
 export function useDeleteAgent(workspaceId: string | undefined) {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: (id: string) => apiClient.agents.delete(id, workspaceId!),
+		mutationFn: async (id: string) => {
+			const res = await api.agents[':id'].$delete({
+				param: { id },
+				query: { workspaceId: workspaceId! },
+			})
+			if (!res.ok) throw new Error('Request failed')
+			return res.json()
+		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['agents', workspaceId] })
 		},
@@ -64,8 +90,15 @@ export function useDeleteAgent(workspaceId: string | undefined) {
 export function useDeployAgent(workspaceId: string | undefined) {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: ({ id, version }: { id: string; version?: string }) =>
-			apiClient.agents.deploy(id, workspaceId!, version),
+		mutationFn: async ({ id, version }: { id: string; version?: string }) => {
+			const res = await api.agents[':id'].deploy.$post({
+				param: { id },
+				query: { workspaceId: workspaceId! },
+				json: { version },
+			})
+			if (!res.ok) throw new Error('Request failed')
+			return res.json()
+		},
 		onSuccess: (_, { id }) => {
 			queryClient.invalidateQueries({ queryKey: ['agents', workspaceId] })
 			queryClient.invalidateQueries({ queryKey: ['agents', workspaceId, id] })
@@ -83,8 +116,15 @@ export function useAgentPreview(options: {
 }) {
 	const { agentId, workspaceId } = options
 	return useMutation({
-		mutationFn: (overrides?: AgentPreviewInput) =>
-			apiClient.agents.preview(agentId!, workspaceId!, overrides),
+		mutationFn: async (overrides?: CreateAgentInput) => {
+			const res = await api.agents[':id'].preview.$post({
+				param: { id: agentId! },
+				query: { workspaceId: workspaceId! },
+				json: overrides ?? {},
+			})
+			if (!res.ok) throw new Error('Request failed')
+			return res.json()
+		},
 	})
 }
 
@@ -95,14 +135,22 @@ export function useAgentPreview(options: {
 export function useAgentPreviewQuery(options: {
 	agentId: string | undefined
 	workspaceId: string | undefined
-	overrides?: AgentPreviewInput
+	overrides?: CreateAgentInput
 	enabled?: boolean
 }) {
 	const { agentId, workspaceId, overrides, enabled = true } = options
 
-	return useQuery<AgentPreviewResponse>({
+	return useQuery({
 		queryKey: ['agent-preview', workspaceId, agentId, overrides],
-		queryFn: () => apiClient.agents.preview(agentId!, workspaceId!, overrides),
+		queryFn: async () => {
+			const res = await api.agents[':id'].preview.$post({
+				param: { id: agentId! },
+				query: { workspaceId: workspaceId! },
+				json: overrides ?? {},
+			})
+			if (!res.ok) throw new Error('Request failed')
+			return res.json()
+		},
 		enabled: enabled && !!agentId && !!workspaceId,
 		staleTime: 30000,
 		refetchOnWindowFocus: false,

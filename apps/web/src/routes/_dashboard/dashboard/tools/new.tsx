@@ -1,13 +1,48 @@
 import { useWorkspace } from '@hare/app'
 import { generatePrefixedId } from '@hare/app/shared'
-import {
-	type HttpToolConfig,
-	type InputSchema,
-	type InputSchemaProperty,
-	type ToolTestResult,
-	useCreateToolMutation,
-	useTestToolMutation,
-} from '@hare/app/shared/api'
+import { useCreateToolMutation, useTestToolMutation } from '@hare/app/shared/api'
+
+// Local types for tool configuration
+interface HttpToolConfig {
+	url: string
+	method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
+	headers?: Record<string, string>
+	body?: string
+	bodyType?: 'json' | 'form' | 'text'
+	timeout?: number
+	responseMapping?: { path: string }
+}
+
+interface InputSchemaProperty {
+	type: 'string' | 'number' | 'boolean' | 'object' | 'array'
+	description?: string
+	enum?: string[]
+	default?: unknown
+	required?: boolean
+}
+
+interface InputSchema {
+	type: 'object'
+	properties?: Record<string, InputSchemaProperty>
+	required?: string[]
+}
+
+interface ToolTestResult {
+	success: boolean
+	duration: number
+	status?: number
+	statusText?: string
+	headers?: Record<string, string>
+	data?: unknown
+	error?: string
+	requestDetails: {
+		url: string
+		method: string
+		headers?: Record<string, string>
+		body?: string
+	}
+}
+
 import { Badge } from '@hare/ui/components/badge'
 import { Button } from '@hare/ui/components/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@hare/ui/components/card'
@@ -254,7 +289,7 @@ function NewToolPage() {
 
 			await createTool.mutateAsync({
 				name: name.trim(),
-				description: description.trim() || undefined,
+				description: description.trim() || '',
 				type: 'http',
 				config: config as unknown as Record<string, unknown>,
 				inputSchema: inputSchema as unknown as Record<string, unknown>,

@@ -115,14 +115,14 @@ const getLogStatsRoute = createRoute({
 })
 
 // Create app with proper typing
-const app = new OpenAPIHono<WorkspaceEnv>()
+const baseApp = new OpenAPIHono<WorkspaceEnv>()
 
 // Apply middleware
-app.use('*', authMiddleware)
-app.use('*', workspaceMiddleware)
+baseApp.use('*', authMiddleware)
+baseApp.use('*', workspaceMiddleware)
 
 // Register routes
-app.openapi(getLogsRoute, async (c) => {
+const app = baseApp.openapi(getLogsRoute, async (c) => {
 	const query = c.req.valid('query')
 	const workspace = c.get('workspace')
 
@@ -149,8 +149,7 @@ app.openapi(getLogsRoute, async (c) => {
 		200,
 	)
 })
-
-app.openapi(getLogStatsRoute, async (c) => {
+.openapi(getLogStatsRoute, async (c) => {
 	const query = c.req.valid('query')
 	const workspace = c.get('workspace')
 

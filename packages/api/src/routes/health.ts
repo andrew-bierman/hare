@@ -1,6 +1,6 @@
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
 import { getCloudflareEnv } from '../db'
-import type { HonoEnv } from '@hare/types'
+import type { CloudflareEnv, HonoEnv } from '@hare/types'
 
 // =============================================================================
 // Health Check Schemas
@@ -278,9 +278,9 @@ const startTime = Date.now()
 // Route Handlers
 // =============================================================================
 
-const app = new OpenAPIHono<HonoEnv>()
+const baseApp = new OpenAPIHono<HonoEnv>()
 
-app.openapi(healthRoute, async (c) => {
+const app = baseApp.openapi(healthRoute, async (c) => {
 	// Try to get env from Hono context, fall back to Cloudflare context for dev mode
 	let env = c.env as CloudflareEnv | undefined
 	if (!env?.DB) {
@@ -338,12 +338,10 @@ app.openapi(healthRoute, async (c) => {
 	const statusCode = overallStatus === 'unhealthy' ? 503 : 200
 	return c.json(response, statusCode)
 })
-
-app.openapi(livenessRoute, (c) => {
+.openapi(livenessRoute, (c) => {
 	return c.json({ status: 'ok' as const }, 200)
 })
-
-app.openapi(readinessRoute, async (c) => {
+.openapi(readinessRoute, async (c) => {
 	const env = c.env
 
 	try {

@@ -3,7 +3,7 @@
 import { Badge } from '@hare/ui/components/badge'
 import { Button } from '@hare/ui/components/button'
 import { Card, CardContent } from '@hare/ui/components/card'
-import { Input } from '@hare/ui/components/input'
+import { SearchInput } from '@hare/ui/components/search-input'
 import { Skeleton } from '@hare/ui/components/skeleton'
 import { Tabs, TabsList, TabsTrigger } from '@hare/ui/components/tabs'
 import { Bot, Clock, Plus, SearchIcon, Wrench } from 'lucide-react'
@@ -167,15 +167,12 @@ export function AgentsPage({ renderLink, routes, useAgentsQuery }: AgentsPagePro
 						<TabsTrigger value="draft">Draft</TabsTrigger>
 					</TabsList>
 				</Tabs>
-				<div className="relative w-full sm:w-64">
-					<SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-					<Input
-						placeholder="Search agents..."
-						value={search}
-						onChange={(e: ChangeEvent<HTMLInputElement>) => setSearch(e.target.value)}
-						className="pl-9"
-					/>
-				</div>
+				<SearchInput
+					placeholder="Search agents..."
+					value={search}
+					onChange={(e: ChangeEvent<HTMLInputElement>) => setSearch(e.target.value)}
+					containerClassName="w-full sm:w-64"
+				/>
 			</div>
 
 			{/* Content */}

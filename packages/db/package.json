@@ -24,6 +24,7 @@
 		"src"
 	],
 	"dependencies": {
+		"@hare/config": "workspace:*",
 		"@hare/types": "workspace:*",
 		"zod": "^4.2.1"
 	},

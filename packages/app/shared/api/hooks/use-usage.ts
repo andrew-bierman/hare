@@ -1,20 +1,29 @@
 'use client'
 
-import { apiClient, type UsageParams } from '../client'
 import { useQuery } from '@tanstack/react-query'
+import { api } from '@hare/api-client'
+
+export interface UsageParams {
+	startDate?: string
+	endDate?: string
+	agentId?: string
+}
 
 export function useUsageQuery(workspaceId: string | undefined, params?: UsageParams) {
 	return useQuery({
 		queryKey: ['usage', workspaceId, params],
-		queryFn: () => apiClient.usage.getSummary(workspaceId!, params),
-		enabled: !!workspaceId,
-	})
-}
-
-export function useUsageByAgentQuery(workspaceId: string | undefined) {
-	return useQuery({
-		queryKey: ['usage', 'by-agent', workspaceId],
-		queryFn: () => apiClient.usage.getByAgent(workspaceId!),
+		queryFn: async () => {
+			const res = await api.usage.$get({
+				query: {
+					workspaceId: workspaceId!,
+					startDate: params?.startDate,
+					endDate: params?.endDate,
+					agentId: params?.agentId,
+				},
+			})
+			if (!res.ok) throw new Error('Request failed')
+			return res.json()
+		},
 		enabled: !!workspaceId,
 	})
 }
@@ -23,7 +32,16 @@ export function useUsageByAgentQuery(workspaceId: string | undefined) {
 export function useAgentUsageQuery(agentId: string | undefined, workspaceId: string | undefined) {
 	return useQuery({
 		queryKey: ['usage', 'agent', agentId, workspaceId],
-		queryFn: () => apiClient.usage.getSummary(workspaceId!, { agentId }),
+		queryFn: async () => {
+			const res = await api.usage.$get({
+				query: {
+					workspaceId: workspaceId!,
+					agentId,
+				},
+			})
+			if (!res.ok) throw new Error('Request failed')
+			return res.json()
+		},
 		enabled: !!agentId && !!workspaceId,
 	})
 }

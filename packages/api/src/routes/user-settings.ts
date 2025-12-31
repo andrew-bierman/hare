@@ -97,13 +97,13 @@ function serializePreferences(prefs: typeof userPreferences.$inferSelect) {
 }
 
 // Create app with proper typing
-const app = new OpenAPIHono<AuthEnv>()
+const baseApp = new OpenAPIHono<AuthEnv>()
 
 // Apply middleware
-app.use('*', authMiddleware)
+baseApp.use('*', authMiddleware)
 
 // Get user preferences - creates default if not exists
-app.openapi(getUserPreferencesRoute, async (c) => {
+const app = baseApp.openapi(getUserPreferencesRoute, async (c) => {
 	const db = getDb(c)
 	const user = c.get('user')
 
@@ -124,9 +124,8 @@ app.openapi(getUserPreferencesRoute, async (c) => {
 
 	return c.json(serializePreferences(prefs), 200)
 })
-
 // Update user preferences
-app.openapi(updateUserPreferencesRoute, async (c) => {
+.openapi(updateUserPreferencesRoute, async (c) => {
 	const data = c.req.valid('json')
 	const db = getDb(c)
 	const user = c.get('user')

@@ -2,7 +2,7 @@
 
 import { queryOptions, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type { CreateToolInput, Tool, ToolType } from '@hare/types'
-import { apiClient, type ToolTestRequest } from '../client'
+import { api } from '@hare/api-client'
 import { toolKeys } from './query-keys'
 
 /**
@@ -11,7 +11,13 @@ import { toolKeys } from './query-keys'
 export const toolsQueryOptions = (workspaceId: string) =>
 	queryOptions({
 		queryKey: toolKeys.list(workspaceId),
-		queryFn: () => apiClient.tools.list(workspaceId),
+		queryFn: async () => {
+			const res = await api.tools.$get({ query: { workspaceId } })
+			if (!res.ok) {
+				throw new Error(`Failed to fetch tools: ${res.status}`)
+			}
+			return res.json()
+		},
 	})
 
 /**
@@ -20,7 +26,14 @@ export const toolsQueryOptions = (workspaceId: string) =>
 export const toolQueryOptions = (options: { id: string; workspaceId: string }) =>
 	queryOptions({
 		queryKey: toolKeys.detail(options.workspaceId, options.id),
-		queryFn: () => apiClient.tools.get(options.id, options.workspaceId),
+		queryFn: async () => {
+			const res = await api.tools[':id'].$get({
+				param: { id: options.id },
+				query: { workspaceId: options.workspaceId },
+			})
+			if (!res.ok) throw new Error('Request failed')
+			return res.json()
+		},
 	})
 
 export function useToolsQuery(workspaceId: string | undefined) {
@@ -40,7 +53,14 @@ export function useToolQuery(id: string | undefined, workspaceId: string | undef
 export function useCreateToolMutation(workspaceId: string | undefined) {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: (data: CreateToolInput) => apiClient.tools.create(workspaceId!, data),
+		mutationFn: async (data: CreateToolInput) => {
+			const res = await api.tools.$post({
+				query: { workspaceId: workspaceId! },
+				json: data,
+			})
+			if (!res.ok) throw new Error('Request failed')
+			return res.json()
+		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: toolKeys.list(workspaceId ?? '') })
 		},
@@ -50,8 +70,15 @@ export function useCreateToolMutation(workspaceId: string | undefined) {
 export function useUpdateToolMutation(workspaceId: string | undefined) {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: ({ id, data }: { id: string; data: Partial<CreateToolInput> }) =>
-			apiClient.tools.update(id, workspaceId!, data),
+		mutationFn: async ({ id, data }: { id: string; data: Partial<CreateToolInput> }) => {
+			const res = await api.tools[':id'].$patch({
+				param: { id },
+				query: { workspaceId: workspaceId! },
+				json: data,
+			})
+			if (!res.ok) throw new Error('Request failed')
+			return res.json()
+		},
 		// Optimistic update
 		onMutate: async ({ id, data }) => {
 			await queryClient.cancelQueries({ queryKey: toolKeys.detail(workspaceId ?? '', id) })
@@ -81,7 +108,14 @@ export function useUpdateToolMutation(workspaceId: string | undefined) {
 export function useDeleteToolMutation(workspaceId: string | undefined) {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: (id: string) => apiClient.tools.delete(id, workspaceId!),
+		mutationFn: async (id: string) => {
+			const res = await api.tools[':id'].$delete({
+				param: { id },
+				query: { workspaceId: workspaceId! },
+			})
+			if (!res.ok) throw new Error('Request failed')
+			return res.json()
+		},
 		// Optimistic update
 		onMutate: async (id) => {
 			await queryClient.cancelQueries({ queryKey: toolKeys.list(workspaceId ?? '') })
@@ -108,10 +142,20 @@ export function useDeleteToolMutation(workspaceId: string | undefined) {
 
 /**
  * Test an HTTP tool configuration before saving.
+ * Uses types inferred from the API route.
  */
 export function useTestToolMutation(workspaceId: string | undefined) {
 	return useMutation({
-		mutationFn: (data: ToolTestRequest) => apiClient.tools.test(workspaceId!, data),
+		mutationFn: async (
+			data: Parameters<typeof api.tools.test.$post>[0]['json'],
+		) => {
+			const res = await api.tools.test.$post({
+				query: { workspaceId: workspaceId! },
+				json: data,
+			})
+			if (!res.ok) throw new Error('Request failed')
+			return res.json()
+		},
 	})
 }
 
@@ -120,8 +164,15 @@ export function useTestToolMutation(workspaceId: string | undefined) {
  */
 export function useTestExistingToolMutation(workspaceId: string | undefined) {
 	return useMutation({
-		mutationFn: ({ id, testInput }: { id: string; testInput?: Record<string, unknown> }) =>
-			apiClient.tools.testExisting(id, workspaceId!, testInput),
+		mutationFn: async ({ id, testInput }: { id: string; testInput?: Record<string, unknown> }) => {
+			const res = await api.tools[':id'].test.$post({
+				param: { id },
+				query: { workspaceId: workspaceId! },
+				json: { testInput },
+			})
+			if (!res.ok) throw new Error('Request failed')
+			return res.json()
+		},
 	})
 }
 

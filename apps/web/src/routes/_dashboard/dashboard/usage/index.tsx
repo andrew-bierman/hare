@@ -45,18 +45,22 @@ function UsagePage() {
 		return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 	}
 
+	const usage = usageData?.usage
+	const period = usageData?.period
+	const totalTokens = (usage?.totalTokensIn ?? 0) + (usage?.totalTokensOut ?? 0)
+
 	const stats = [
 		{
-			title: 'Total API Calls',
-			value: formatNumber(usageData?.totalCalls ?? 0),
+			title: 'Total Messages',
+			value: formatNumber(usage?.totalMessages ?? 0),
 			description: 'This billing period',
 			icon: Activity,
 			color: 'text-blue-500',
 		},
 		{
 			title: 'Total Tokens',
-			value: formatNumber(usageData?.totalTokens ?? 0),
-			description: `${formatNumber(usageData?.inputTokens ?? 0)} input / ${formatNumber(usageData?.outputTokens ?? 0)} output`,
+			value: formatNumber(totalTokens),
+			description: `${formatNumber(usage?.totalTokensIn ?? 0)} input / ${formatNumber(usage?.totalTokensOut ?? 0)} output`,
 			icon: TrendingUp,
 			color: 'text-emerald-500',
 		},
@@ -69,8 +73,8 @@ function UsagePage() {
 		},
 		{
 			title: 'Period',
-			value: usageData?.periodStart ? formatDate(usageData.periodStart) : 'N/A',
-			description: usageData?.periodEnd ? `to ${formatDate(usageData.periodEnd)}` : '',
+			value: period?.startDate ? formatDate(period.startDate) : 'N/A',
+			description: period?.endDate ? `to ${formatDate(period.endDate)}` : '',
 			icon: Calendar,
 			color: 'text-orange-500',
 		},
@@ -121,7 +125,7 @@ function UsagePage() {
 										<div className="text-sm text-muted-foreground">Tokens sent to the model</div>
 									</div>
 									<div className="text-2xl font-bold">
-										{formatNumber(usageData?.inputTokens ?? 0)}
+										{formatNumber(usage?.totalTokensIn ?? 0)}
 									</div>
 								</div>
 								<div className="flex items-center justify-between p-4 border rounded-lg">
@@ -132,7 +136,7 @@ function UsagePage() {
 										</div>
 									</div>
 									<div className="text-2xl font-bold">
-										{formatNumber(usageData?.outputTokens ?? 0)}
+										{formatNumber(usage?.totalTokensOut ?? 0)}
 									</div>
 								</div>
 							</div>
@@ -167,7 +171,7 @@ function UsagePage() {
 										<div>
 											<div className="font-medium">{agent.name}</div>
 											<div className="text-sm text-muted-foreground">
-												{agent.toolIds.length} tools
+												{agent.toolIds?.length ?? 0} tools
 											</div>
 										</div>
 										<div className="text-right">

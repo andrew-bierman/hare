@@ -1,3 +1,12 @@
+import {
+	config,
+	EXECUTION_STATUSES,
+	ExecutionStatus,
+	SCHEDULE_STATUSES,
+	SCHEDULE_TYPES,
+	ScheduleStatus,
+	ScheduleType,
+} from '@hare/config'
 import { createId } from '../id'
 import { integer, sqliteTable, text } from 'drizzle-orm/sqlite-core'
 import { agents } from './agents'
@@ -16,8 +25,7 @@ export const scheduledTasks = sqliteTable('scheduled_tasks', {
 	agentId: text('agentId')
 		.notNull()
 		.references(() => agents.id, { onDelete: 'cascade' }),
-	// Type: 'one-time' or 'recurring'
-	type: text('type').notNull().$type<'one-time' | 'recurring'>(),
+	type: text('type', { enum: SCHEDULE_TYPES }).notNull().$type<ScheduleType>(),
 	// For one-time schedules: timestamp when to execute
 	executeAt: integer('executeAt', { mode: 'timestamp' }),
 	// For recurring schedules: cron expression
@@ -26,11 +34,10 @@ export const scheduledTasks = sqliteTable('scheduled_tasks', {
 	action: text('action').notNull(),
 	// JSON payload for the action
 	payload: text('payload', { mode: 'json' }).$type<Record<string, unknown>>(),
-	// Status: 'pending', 'active', 'paused', 'completed', 'cancelled'
-	status: text('status')
+	status: text('status', { enum: SCHEDULE_STATUSES })
 		.notNull()
-		.default('pending')
-		.$type<'pending' | 'active' | 'paused' | 'completed' | 'cancelled'>(),
+		.default(config.defaults.scheduleStatus)
+		.$type<ScheduleStatus>(),
 	// Last execution timestamp
 	lastExecutedAt: integer('lastExecutedAt', { mode: 'timestamp' }),
 	// Next execution timestamp (calculated for recurring)
@@ -64,8 +71,7 @@ export const scheduleExecutions = sqliteTable('schedule_executions', {
 	agentId: text('agentId')
 		.notNull()
 		.references(() => agents.id, { onDelete: 'cascade' }),
-	// Status: 'running', 'completed', 'failed'
-	status: text('status').notNull().$type<'running' | 'completed' | 'failed'>(),
+	status: text('status', { enum: EXECUTION_STATUSES }).notNull().$type<ExecutionStatus>(),
 	// Start and end timestamps
 	startedAt: integer('startedAt', { mode: 'timestamp' })
 		.notNull()

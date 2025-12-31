@@ -30,12 +30,24 @@ import {
 } from '@hare/ui/components/select'
 import { Separator } from '@hare/ui/components/separator'
 import { Skeleton } from '@hare/ui/components/skeleton'
-import { Clock, Mail, MoreVertical, Shield, Trash2, UserMinus, UserPlus, Users } from 'lucide-react'
+import {
+	AlertTriangle,
+	Clock,
+	Mail,
+	MoreVertical,
+	Shield,
+	Trash2,
+	UserMinus,
+	UserPlus,
+	Users,
+} from 'lucide-react'
 import { useState } from 'react'
+import { useNavigate } from '@tanstack/react-router'
 import { toast } from 'sonner'
 import { useAuth } from '../../features/auth'
 import { useWorkspace } from '../../app/providers'
 import {
+	useDeleteWorkspaceMutation,
 	useRemoveMemberMutation,
 	useRevokeInvitationMutation,
 	useSendInvitationMutation,
@@ -319,7 +331,11 @@ function InviteForm({ workspaceId, onSuccess }: { workspaceId: string; onSuccess
 
 export function TeamPage() {
 	const { data: session } = useAuth()
-	const { activeWorkspace, workspaceRole } = useWorkspace()
+	const { activeWorkspace, workspaceRole, workspaces } = useWorkspace()
+	const navigate = useNavigate()
+
+	const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+	const [deleteConfirmation, setDeleteConfirmation] = useState('')
 
 	const {
 		data: membersData,
@@ -336,8 +352,11 @@ export function TeamPage() {
 	const removeMember = useRemoveMemberMutation()
 	const updateMemberRole = useUpdateMemberRoleMutation()
 	const revokeInvitation = useRevokeInvitationMutation()
+	const deleteWorkspace = useDeleteWorkspaceMutation()
 
 	const canManageTeam = workspaceRole === 'owner' || workspaceRole === 'admin'
+	const isOwner = workspaceRole === 'owner'
+	const hasMultipleWorkspaces = workspaces.length > 1
 
 	const handleRemoveMember = async (userId: string) => {
 		if (!activeWorkspace) return
@@ -382,6 +401,20 @@ export function TeamPage() {
 			refetchInvitations()
 		} catch (error) {
 			toast.error(error instanceof Error ? error.message : 'Failed to revoke invitation')
+		}
+	}
+
+	const handleDeleteWorkspace = async () => {
+		if (!activeWorkspace || deleteConfirmation !== activeWorkspace.name) return
+
+		try {
+			await deleteWorkspace.mutateAsync(activeWorkspace.id)
+			toast.success('Workspace deleted')
+			setIsDeleteDialogOpen(false)
+			setDeleteConfirmation('')
+			navigate({ to: '/' })
+		} catch (error) {
+			toast.error(error instanceof Error ? error.message : 'Failed to delete workspace')
 		}
 	}
 
@@ -541,6 +574,90 @@ export function TeamPage() {
 						</div>
 					</CardContent>
 				</Card>
+
+				{isOwner && (
+					<Card className="border-destructive/50">
+						<CardHeader>
+							<div className="flex items-center gap-2">
+								<AlertTriangle className="h-5 w-5 text-destructive" />
+								<CardTitle className="text-destructive">Danger Zone</CardTitle>
+							</div>
+							<CardDescription>
+								Irreversible actions that affect your entire workspace
+							</CardDescription>
+						</CardHeader>
+						<CardContent>
+							<div className="flex items-center justify-between p-4 border border-destructive/50 rounded-lg">
+								<div>
+									<p className="font-medium">Delete this workspace</p>
+									<p className="text-sm text-muted-foreground">
+										Permanently delete this workspace and all its data including agents, tools, and
+										conversations.
+									</p>
+								</div>
+								<Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+									<DialogTrigger asChild>
+										<Button variant="destructive">Delete Workspace</Button>
+									</DialogTrigger>
+									<DialogContent>
+										<DialogHeader>
+											<DialogTitle>Delete Workspace</DialogTitle>
+											<DialogDescription>
+												This action cannot be undone. This will permanently delete the workspace{' '}
+												<span className="font-semibold">{activeWorkspace?.name}</span> and all of
+												its data.
+											</DialogDescription>
+										</DialogHeader>
+										<div className="grid gap-4 py-4">
+											{!hasMultipleWorkspaces && (
+												<div className="flex items-center gap-2 p-3 bg-destructive/10 border border-destructive/50 rounded-lg">
+													<AlertTriangle className="h-4 w-4 text-destructive" />
+													<p className="text-sm text-destructive">
+														This is your only workspace. A new default workspace will be created
+														after deletion.
+													</p>
+												</div>
+											)}
+											<div className="grid gap-2">
+												<Label htmlFor="confirm-delete">
+													Type <span className="font-semibold">{activeWorkspace?.name}</span> to
+													confirm
+												</Label>
+												<Input
+													id="confirm-delete"
+													value={deleteConfirmation}
+													onChange={(e) => setDeleteConfirmation(e.target.value)}
+													placeholder="Enter workspace name"
+												/>
+											</div>
+										</div>
+										<DialogFooter>
+											<Button
+												variant="outline"
+												onClick={() => {
+													setIsDeleteDialogOpen(false)
+													setDeleteConfirmation('')
+												}}
+											>
+												Cancel
+											</Button>
+											<Button
+												variant="destructive"
+												onClick={handleDeleteWorkspace}
+												disabled={
+													deleteConfirmation !== activeWorkspace?.name ||
+													deleteWorkspace.isPending
+												}
+											>
+												{deleteWorkspace.isPending ? 'Deleting...' : 'Delete Workspace'}
+											</Button>
+										</DialogFooter>
+									</DialogContent>
+								</Dialog>
+							</div>
+						</CardContent>
+					</Card>
+				)}
 			</div>
 		</div>
 	)

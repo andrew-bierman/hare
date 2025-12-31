@@ -8,6 +8,7 @@
 import { eq } from 'drizzle-orm'
 import { z } from 'zod'
 import { type Database, agentTools, tools as toolsTable } from '@hare/db'
+import type { CloudflareEnv } from '@hare/types'
 import {
 	type AnyTool,
 	createRegistry,
