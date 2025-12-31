@@ -2,8 +2,27 @@
 
 import { queryOptions, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type { CreateWorkspaceInput, Workspace } from '@hare/types'
-import { apiClient } from '../client'
+import { api, ApiClientError } from '../client'
 import { workspaceKeys } from './query-keys'
+
+/**
+ * Helper to handle Hono RPC response with proper error handling.
+ */
+async function handleResponse<T>(res: Response & { json(): Promise<T> }): Promise<T> {
+	if (!res.ok) {
+		let errorMessage = `Request failed with status ${res.status}`
+		let errorCode: string | undefined
+		try {
+			const error = (await res.json()) as { error: string; code?: string }
+			errorMessage = error.error ?? errorMessage
+			errorCode = error.code
+		} catch {
+			// Response wasn't JSON
+		}
+		throw new ApiClientError(errorMessage, res.status, errorCode)
+	}
+	return res.json()
+}
 
 /**
  * Query options for listing all workspaces.
@@ -11,7 +30,10 @@ import { workspaceKeys } from './query-keys'
 export const workspacesQueryOptions = () =>
 	queryOptions({
 		queryKey: workspaceKeys.list(),
-		queryFn: () => apiClient.workspaces.list(),
+		queryFn: async () => {
+			const res = await api.workspaces.$get()
+			return handleResponse(res)
+		},
 	})
 
 /**
@@ -20,7 +42,10 @@ export const workspacesQueryOptions = () =>
 export const workspaceQueryOptions = (id: string) =>
 	queryOptions({
 		queryKey: workspaceKeys.detail(id),
-		queryFn: () => apiClient.workspaces.get(id),
+		queryFn: async () => {
+			const res = await api.workspaces[':id'].$get({ param: { id } })
+			return handleResponse(res)
+		},
 	})
 
 export function useWorkspacesQuery() {
@@ -37,7 +62,10 @@ export function useWorkspaceByIdQuery(id: string | undefined) {
 export function useCreateWorkspaceMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: (data: CreateWorkspaceInput) => apiClient.workspaces.create(data),
+		mutationFn: async (data: CreateWorkspaceInput) => {
+			const res = await api.workspaces.$post({ json: data })
+			return handleResponse(res)
+		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: workspaceKeys.list() })
 		},
@@ -47,8 +75,10 @@ export function useCreateWorkspaceMutation() {
 export function useUpdateWorkspaceMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: ({ id, data }: { id: string; data: Partial<CreateWorkspaceInput> }) =>
-			apiClient.workspaces.update(id, data),
+		mutationFn: async ({ id, data }: { id: string; data: Partial<CreateWorkspaceInput> }) => {
+			const res = await api.workspaces[':id'].$patch({ param: { id }, json: data })
+			return handleResponse(res)
+		},
 		// Optimistic update
 		onMutate: async ({ id, data }) => {
 			await queryClient.cancelQueries({ queryKey: workspaceKeys.detail(id) })
@@ -76,7 +106,10 @@ export function useUpdateWorkspaceMutation() {
 export function useDeleteWorkspaceMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: (id: string) => apiClient.workspaces.delete(id),
+		mutationFn: async (id: string) => {
+			const res = await api.workspaces[':id'].$delete({ param: { id } })
+			return handleResponse(res)
+		},
 		// Optimistic update
 		onMutate: async (id) => {
 			await queryClient.cancelQueries({ queryKey: workspaceKeys.list() })
