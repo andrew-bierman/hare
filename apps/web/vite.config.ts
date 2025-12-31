@@ -35,10 +35,8 @@ export default defineConfig({
 		alias: {
 			// Polyfill Node.js path module for browser (fumadocs-mdx needs it)
 			path: 'path-browserify',
-			// Fumadocs MDX generated files - use relative paths with .ts extension for proper bundling
-			'fumadocs-mdx:collections/server': path.resolve(__dirname, './.source/server.ts'),
-			'fumadocs-mdx:collections/browser': path.resolve(__dirname, './.source/browser.ts'),
-			'fumadocs-mdx:collections/dynamic': path.resolve(__dirname, './.source/dynamic.ts'),
+			// Note: fumadocs-mdx:collections/* aliases removed - using relative imports instead
+			// to avoid absolute path bundling issues with Cloudflare Workers
 			'web-app': path.resolve(__dirname, './src'),
 			// Core packages - subpaths must come before main paths
 			'@hare/db/schema': path.join(packagesPath, 'db/src/schema/index.ts'),
