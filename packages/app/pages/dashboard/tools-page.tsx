@@ -6,10 +6,18 @@ import { Card, CardContent } from '@hare/ui/components/card'
 import { SearchInput } from '@hare/ui/components/search-input'
 import { Skeleton } from '@hare/ui/components/skeleton'
 import { Plus, SearchIcon, Wrench } from 'lucide-react'
-import { type ChangeEvent, useState, type ReactNode } from 'react'
+import { type ChangeEvent, useState, useMemo, type ReactNode } from 'react'
 import { useWorkspace } from '../../app/providers/workspace-provider'
 import type { Tool } from '../../shared/api'
 import type { UseQueryResult } from '@tanstack/react-query'
+import {
+	getToolIcon,
+	getToolCategory,
+	getToolTypeLabel,
+	getCategoryIcon,
+	TOOL_CATEGORY_LABELS,
+} from '../../widgets/tool-picker/ui/tool-icons'
+import type { ToolCategory } from '../../widgets/tool-picker/ui/types'
 
 export interface ToolsPageProps {
 	/** Render prop for navigation links */
@@ -46,6 +54,23 @@ function ToolCardSkeleton() {
 	)
 }
 
+/**
+ * Category display order (most commonly used first).
+ */
+const CATEGORY_ORDER: ToolCategory[] = [
+	'storage',
+	'database',
+	'http',
+	'ai',
+	'utility',
+	'search',
+	'integrations',
+	'data',
+	'sandbox',
+	'validation',
+	'transform',
+]
+
 export function ToolsPage({ renderLink, routes, useToolsQuery }: ToolsPageProps) {
 	const r = routes ?? defaultRoutes
 	const { activeWorkspace } = useWorkspace()
@@ -56,8 +81,37 @@ export function ToolsPage({ renderLink, routes, useToolsQuery }: ToolsPageProps)
 	const filteredTools = tools.filter(
 		(tool) =>
 			tool.name.toLowerCase().includes(search.toLowerCase()) ||
-			tool.description?.toLowerCase().includes(search.toLowerCase()),
+			tool.description?.toLowerCase().includes(search.toLowerCase()) ||
+			tool.type.toLowerCase().includes(search.toLowerCase()),
 	)
+
+	// Group filtered tools by category
+	const groupedTools = useMemo(() => {
+		const groups: Record<ToolCategory, Tool[]> = {
+			all: [],
+			storage: [],
+			database: [],
+			http: [],
+			search: [],
+			ai: [],
+			utility: [],
+			integrations: [],
+			data: [],
+			sandbox: [],
+			validation: [],
+			transform: [],
+		}
+
+		filteredTools.forEach((tool) => {
+			const category = getToolCategory(tool.type)
+			groups[category].push(tool)
+		})
+
+		return CATEGORY_ORDER.map((category) => ({
+			category,
+			tools: groups[category],
+		})).filter((group) => group.tools.length > 0)
+	}, [filteredTools])
 
 	if (error) {
 		return (
@@ -141,36 +195,66 @@ export function ToolsPage({ renderLink, routes, useToolsQuery }: ToolsPageProps)
 					</CardContent>
 				</Card>
 			) : (
-				<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-					{filteredTools.map((tool) => (
-						<div key={tool.id}>
-							{renderLink({
-								to: r.toolDetail(tool.id),
-								children: (
-									<Card className="h-full hover:bg-muted/50 transition-colors cursor-pointer">
-										<CardContent className="p-4 sm:p-6">
-											<div className="flex items-start gap-3 mb-3">
-												<div className="flex h-10 w-10 items-center justify-center rounded-lg bg-orange-500">
-													<Wrench className="h-5 w-5 text-white" />
-												</div>
-												<div className="flex-1 min-w-0">
-													<h3 className="font-semibold text-sm sm:text-base truncate">
-														{tool.name}
-													</h3>
-													<Badge variant="secondary" className="text-xs">
-														{tool.type}
-													</Badge>
-												</div>
+				<div className="space-y-8">
+					{groupedTools.map(({ category, tools: categoryTools }) => {
+						const CategoryIcon = getCategoryIcon(category)
+						return (
+							<div key={category}>
+								{/* Category Header */}
+								<div className="flex items-center gap-2 mb-4">
+									<CategoryIcon className="h-5 w-5 text-muted-foreground" />
+									<h2 className="text-lg font-semibold">
+										{TOOL_CATEGORY_LABELS[category]}
+									</h2>
+									<span className="text-sm text-muted-foreground">
+										({categoryTools.length})
+									</span>
+								</div>
+								{/* Tools Grid */}
+								<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+									{categoryTools.map((tool) => {
+										const ToolIcon = getToolIcon(tool.type)
+										return (
+											<div key={tool.id}>
+												{renderLink({
+													to: r.toolDetail(tool.id),
+													children: (
+														<Card className="h-full hover:bg-muted/50 transition-colors cursor-pointer">
+															<CardContent className="p-4 sm:p-6">
+																<div className="flex items-start gap-3 mb-3">
+																	<div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+																		<ToolIcon className="h-5 w-5 text-primary" />
+																	</div>
+																	<div className="flex-1 min-w-0">
+																		<h3 className="font-semibold text-sm sm:text-base truncate">
+																			{tool.name}
+																		</h3>
+																		<div className="flex items-center gap-1.5 flex-wrap">
+																			<Badge variant="secondary" className="text-xs">
+																				{getToolTypeLabel(tool.type)}
+																			</Badge>
+																			{tool.isSystem && (
+																				<Badge variant="outline" className="text-xs text-muted-foreground">
+																					Built-in
+																				</Badge>
+																			)}
+																		</div>
+																	</div>
+																</div>
+																<p className="text-xs sm:text-sm text-muted-foreground line-clamp-2">
+																	{tool.description || 'No description'}
+																</p>
+															</CardContent>
+														</Card>
+													),
+												})}
 											</div>
-											<p className="text-xs sm:text-sm text-muted-foreground line-clamp-2">
-												{tool.description || 'No description'}
-											</p>
-										</CardContent>
-									</Card>
-								),
-							})}
-						</div>
-					))}
+										)
+									})}
+								</div>
+							</div>
+						)
+					})}
 				</div>
 			)}
 		</div>
