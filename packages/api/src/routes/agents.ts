@@ -1370,11 +1370,11 @@ app.openapi(previewAgentRoute, async (c) => {
 
 	// Validate config parameters
 	const temperature =
-		typeof effectiveconfig.temperature === 'number' ? effectiveconfig.temperature : undefined
+		typeof effectiveConfig.temperature === 'number' ? effectiveConfig.temperature : undefined
 	const maxTokens =
-		typeof effectiveconfig.maxTokens === 'number' ? effectiveconfig.maxTokens : undefined
-	const topP = typeof effectiveconfig.topP === 'number' ? effectiveconfig.topP : undefined
-	const topK = typeof effectiveconfig.topK === 'number' ? effectiveconfig.topK : undefined
+		typeof effectiveConfig.maxTokens === 'number' ? effectiveConfig.maxTokens : undefined
+	const topP = typeof effectiveConfig.topP === 'number' ? effectiveConfig.topP : undefined
+	const topK = typeof effectiveConfig.topK === 'number' ? effectiveConfig.topK : undefined
 
 	if (temperature !== undefined) {
 		if (

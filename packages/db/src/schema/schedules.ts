@@ -1,5 +1,5 @@
 import {
-	Config,
+	config,
 	EXECUTION_STATUSES,
 	ExecutionStatus,
 	SCHEDULE_STATUSES,
