@@ -1,12 +1,11 @@
 import { z } from '@hono/zod-openapi'
+import { API_MESSAGE_ROLES, EXPORT_FORMATS, MESSAGE_ROLES } from '@hare/config'
 import { MetadataSchema } from './common'
 
 /**
- * Message role enum.
+ * Message role enum (for API - excludes tool role).
  */
-export const MessageRoleSchema = z
-	.enum(['user', 'assistant', 'system'])
-	.openapi({ example: 'user' })
+export const MessageRoleSchema = z.enum(API_MESSAGE_ROLES).openapi({ example: 'user' })
 
 /**
  * Schema for chat request body.
@@ -50,10 +49,7 @@ export const ConversationSchema = z
 /**
  * Export format enum for conversation exports.
  */
-export const ExportFormatSchema = z
-	.enum(['json', 'markdown'])
-	.default('json')
-	.openapi({ example: 'json' })
+export const ExportFormatSchema = z.enum(EXPORT_FORMATS).default('json').openapi({ example: 'json' })
 
 /**
  * Export query parameters schema.
@@ -75,7 +71,7 @@ export const ExportQuerySchema = z
 export const ExportedMessageSchema = z
 	.object({
 		id: z.string(),
-		role: z.enum(['user', 'assistant', 'system', 'tool']),
+		role: z.enum(MESSAGE_ROLES),
 		content: z.string(),
 		createdAt: z.string().datetime(),
 		metadata: z.record(z.string(), z.unknown()).optional(),

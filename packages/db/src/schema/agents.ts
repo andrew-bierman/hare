@@ -1,3 +1,4 @@
+import { AGENT_STATUSES, AgentStatus, ENUM_DEFAULTS } from '@hare/config'
 import { createId } from '../id'
 import { integer, sqliteTable, text } from 'drizzle-orm/sqlite-core'
 import { users } from './auth'
@@ -13,10 +14,11 @@ export const agents = sqliteTable('agents', {
 	name: text('name').notNull(),
 	description: text('description'),
 	instructions: text('instructions'),
-	model: text('model').notNull().default('llama-3.3-70b'),
-	status: text('status', { enum: ['draft', 'deployed', 'archived'] })
+	model: text('model').notNull(),
+	status: text('status', { enum: AGENT_STATUSES })
 		.notNull()
-		.default('draft'),
+		.default(ENUM_DEFAULTS.agentStatus)
+		.$type<AgentStatus>(),
 	systemToolsEnabled: integer('systemToolsEnabled', { mode: 'boolean' }).notNull().default(true),
 	config: text('config', { mode: 'json' }).$type<{
 		temperature?: number

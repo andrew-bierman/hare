@@ -1,3 +1,4 @@
+import { TOOL_TYPES, ToolType } from '@hare/config'
 import { createId } from '../id'
 import { integer, sqliteTable, text } from 'drizzle-orm/sqlite-core'
 import { agents } from './agents'
@@ -13,72 +14,7 @@ export const tools = sqliteTable('tools', {
 		.references(() => workspaces.id, { onDelete: 'cascade' }),
 	name: text('name').notNull(),
 	description: text('description'),
-	type: text('type', {
-		enum: [
-			// Cloudflare native
-			'http',
-			'sql',
-			'kv',
-			'r2',
-			'search',
-			// Utility
-			'datetime',
-			'json',
-			'text',
-			'math',
-			'uuid',
-			'hash',
-			'base64',
-			'url',
-			'delay',
-			// Integrations
-			'zapier',
-			'webhook',
-			'slack',
-			'discord',
-			'email',
-			'teams',
-			'twilio_sms',
-			'make',
-			'n8n',
-			// AI
-			'sentiment',
-			'summarize',
-			'translate',
-			'image_generate',
-			'classify',
-			'ner',
-			'embedding',
-			'question_answer',
-			// Data
-			'rss',
-			'scrape',
-			'regex',
-			'crypto',
-			'json_schema',
-			'csv',
-			'template',
-			// Sandbox
-			'code_execute',
-			'code_validate',
-			'sandbox_file',
-			// Validation
-			'validate_email',
-			'validate_phone',
-			'validate_url',
-			'validate_credit_card',
-			'validate_ip',
-			'validate_json',
-			// Transform
-			'markdown',
-			'diff',
-			'qrcode',
-			'compression',
-			'color',
-			// Custom code
-			'custom',
-		],
-	}).notNull(),
+	type: text('type', { enum: TOOL_TYPES }).notNull().$type<ToolType>(),
 	inputSchema: text('inputSchema', { mode: 'json' }).$type<{
 		type: 'object'
 		properties?: Record<
