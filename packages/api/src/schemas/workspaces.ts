@@ -1,23 +1,20 @@
 import { z } from '@hono/zod-openapi'
+import { INVITATION_STATUSES, MEMBER_ROLES, WORKSPACE_ROLES } from '@hare/config'
 
 /**
  * Workspace role enum.
  */
-export const WorkspaceRoleSchema = z
-	.enum(['owner', 'admin', 'member', 'viewer'])
-	.openapi({ example: 'owner' })
+export const WorkspaceRoleSchema = z.enum(WORKSPACE_ROLES).openapi({ example: 'owner' })
 
 /**
  * Member role enum (excludes owner - used for invitations and role updates).
  */
-export const MemberRoleSchema = z.enum(['admin', 'member', 'viewer']).openapi({ example: 'member' })
+export const MemberRoleSchema = z.enum(MEMBER_ROLES).openapi({ example: 'member' })
 
 /**
  * Invitation status enum.
  */
-export const InvitationStatusSchema = z
-	.enum(['pending', 'accepted', 'expired', 'revoked'])
-	.openapi({ example: 'pending' })
+export const InvitationStatusSchema = z.enum(INVITATION_STATUSES).openapi({ example: 'pending' })
 
 /**
  * Full workspace schema for API responses.
