@@ -8,8 +8,15 @@ import {
 	useDeployAgentMutation,
 	useToolsQuery,
 	useUpdateAgentMutation,
-	type ValidationIssue,
 } from '@hare/app/shared/api'
+
+// Local type for validation issues (matches API schema)
+interface ValidationIssue {
+	field: string
+	type: 'error' | 'warning'
+	message: string
+}
+
 import { AgentInstructionsEditor } from '@hare/app/widgets/agent-builder'
 import { MemoryViewer } from '@hare/app/widgets/memory-viewer'
 import { ScheduledTasksSection } from '@hare/app/widgets/scheduled-tasks'

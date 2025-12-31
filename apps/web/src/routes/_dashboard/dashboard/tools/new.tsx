@@ -1,13 +1,30 @@
 import { useWorkspace } from '@hare/app'
 import { generatePrefixedId } from '@hare/app/shared'
-import {
-	type HttpToolConfig,
-	type InputSchema,
-	type InputSchemaProperty,
-	type ToolTestResult,
-	useCreateToolMutation,
-	useTestToolMutation,
-} from '@hare/app/shared/api'
+import { useCreateToolMutation, useTestToolMutation } from '@hare/app/shared/api'
+
+// Local types for tool configuration
+interface HttpToolConfig {
+	url: string
+	method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
+	headers?: Record<string, string>
+	body?: Record<string, unknown>
+}
+
+interface InputSchemaProperty {
+	type: string
+	description?: string
+	enum?: string[]
+}
+
+type InputSchema = Record<string, InputSchemaProperty>
+
+interface ToolTestResult {
+	success: boolean
+	duration: number
+	output?: unknown
+	error?: string
+}
+
 import { Badge } from '@hare/ui/components/badge'
 import { Button } from '@hare/ui/components/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@hare/ui/components/card'
