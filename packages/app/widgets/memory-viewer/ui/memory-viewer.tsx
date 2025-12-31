@@ -34,7 +34,7 @@ import {
 	MessageSquare,
 	Pencil,
 	Plus,
-	Search,
+	SearchIcon,
 	Settings,
 	Sparkles,
 	Tag,
@@ -336,7 +336,7 @@ export function MemoryViewer(props: MemoryViewerProps) {
 				{/* Search Bar */}
 				<div className="flex gap-2">
 					<div className="relative flex-1">
-						<Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+						<SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
 						<Input
 							placeholder="Search memories semantically..."
 							value={searchQuery}
