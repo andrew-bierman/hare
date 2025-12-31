@@ -28,20 +28,6 @@ export function useUsageQuery(workspaceId: string | undefined, params?: UsagePar
 	})
 }
 
-export function useUsageByAgentQuery(workspaceId: string | undefined) {
-	return useQuery({
-		queryKey: ['usage', 'by-agent', workspaceId],
-		queryFn: async () => {
-			const res = await api.usage['by-agent'].$get({
-				query: { workspaceId: workspaceId! },
-			})
-			if (!res.ok) throw new Error('Request failed')
-			return res.json()
-		},
-		enabled: !!workspaceId,
-	})
-}
-
 /** Get usage stats for a specific agent */
 export function useAgentUsageQuery(agentId: string | undefined, workspaceId: string | undefined) {
 	return useQuery({

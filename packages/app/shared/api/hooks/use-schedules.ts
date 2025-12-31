@@ -30,8 +30,8 @@ export function useSchedulesQuery(input: UseSchedulesInput) {
 	return useQuery({
 		queryKey: ['schedules', workspaceId, agentId, params?.status],
 		queryFn: async () => {
-			const res = await api.agents[':id'].schedules.$get({
-				param: { id: agentId! },
+			const res = await api.agents[':agentId'].schedules.$get({
+				param: { agentId: agentId! },
 				query: { workspaceId: workspaceId!, status: params?.status },
 			})
 			if (!res.ok) throw new Error('Request failed')
@@ -58,8 +58,8 @@ export function useScheduleQuery(input: UseScheduleInput) {
 	return useQuery({
 		queryKey: ['schedules', workspaceId, agentId, scheduleId],
 		queryFn: async () => {
-			const res = await api.agents[':id'].schedules[':scheduleId'].$get({
-				param: { id: agentId!, scheduleId: scheduleId! },
+			const res = await api.agents[':agentId'].schedules[':scheduleId'].$get({
+				param: { agentId: agentId!, scheduleId: scheduleId! },
 				query: { workspaceId: workspaceId! },
 			})
 			if (!res.ok) throw new Error('Request failed')
@@ -76,8 +76,8 @@ export function useCreateScheduleMutation(agentId: string | undefined, workspace
 	const queryClient = useQueryClient()
 	return useMutation({
 		mutationFn: async (data: CreateScheduleInput) => {
-			const res = await api.agents[':id'].schedules.$post({
-				param: { id: agentId! },
+			const res = await api.agents[':agentId'].schedules.$post({
+				param: { agentId: agentId! },
 				query: { workspaceId: workspaceId! },
 				json: data,
 			})
@@ -97,8 +97,8 @@ export function useUpdateScheduleMutation(agentId: string | undefined, workspace
 	const queryClient = useQueryClient()
 	return useMutation({
 		mutationFn: async ({ scheduleId, data }: { scheduleId: string; data: UpdateScheduleInput }) => {
-			const res = await api.agents[':id'].schedules[':scheduleId'].$patch({
-				param: { id: agentId!, scheduleId },
+			const res = await api.agents[':agentId'].schedules[':scheduleId'].$patch({
+				param: { agentId: agentId!, scheduleId },
 				query: { workspaceId: workspaceId! },
 				json: data,
 			})
@@ -119,8 +119,8 @@ export function useDeleteScheduleMutation(agentId: string | undefined, workspace
 	const queryClient = useQueryClient()
 	return useMutation({
 		mutationFn: async (scheduleId: string) => {
-			const res = await api.agents[':id'].schedules[':scheduleId'].$delete({
-				param: { id: agentId!, scheduleId },
+			const res = await api.agents[':agentId'].schedules[':scheduleId'].$delete({
+				param: { agentId: agentId!, scheduleId },
 				query: { workspaceId: workspaceId! },
 			})
 			if (!res.ok) throw new Error('Request failed')
@@ -150,8 +150,8 @@ export function useScheduleExecutionsQuery(input: UseScheduleExecutionsInput) {
 	return useQuery({
 		queryKey: ['executions', workspaceId, agentId, scheduleId, params?.limit, params?.offset],
 		queryFn: async () => {
-			const res = await api.agents[':id'].schedules[':scheduleId'].executions.$get({
-				param: { id: agentId!, scheduleId: scheduleId! },
+			const res = await api.agents[':agentId'].schedules[':scheduleId'].executions.$get({
+				param: { agentId: agentId!, scheduleId: scheduleId! },
 				query: {
 					workspaceId: workspaceId!,
 					limit: params?.limit?.toString(),
@@ -182,8 +182,8 @@ export function useAgentExecutionsQuery(input: UseAgentExecutionsInput) {
 	return useQuery({
 		queryKey: ['executions', workspaceId, agentId, 'all', params?.limit, params?.offset],
 		queryFn: async () => {
-			const res = await api.agents[':id'].executions.$get({
-				param: { id: agentId! },
+			const res = await api.agents[':agentId'].executions.$get({
+				param: { agentId: agentId! },
 				query: {
 					workspaceId: workspaceId!,
 					limit: params?.limit?.toString(),

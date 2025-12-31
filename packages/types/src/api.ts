@@ -76,6 +76,44 @@ export const ApiKeyPermissionsSchema = z
 export type ApiKeyPermissions = z.infer<typeof ApiKeyPermissionsSchema>
 
 /**
+ * API key response schema (without secret).
+ */
+export const ApiKeySchema = z.object({
+	id: z.string(),
+	name: z.string(),
+	prefix: z.string(),
+	permissions: ApiKeyPermissionsSchema,
+	createdAt: z.string(),
+	expiresAt: z.string().nullable(),
+})
+
+export type ApiKey = z.infer<typeof ApiKeySchema>
+
+/**
+ * API key response schema with secret (only returned on creation).
+ */
+export const ApiKeyWithSecretSchema = z.object({
+	id: z.string(),
+	name: z.string(),
+	key: z.string(),
+	prefix: z.string(),
+	permissions: ApiKeyPermissionsSchema,
+	createdAt: z.string(),
+	expiresAt: z.string().nullable(),
+})
+
+export type ApiKeyWithSecret = z.infer<typeof ApiKeyWithSecretSchema>
+
+/**
+ * OAuth providers configuration.
+ */
+export interface OAuthProviders {
+	github: boolean
+	google: boolean
+	discord: boolean
+}
+
+/**
  * API key information stored in context.
  */
 export const ApiKeyInfoSchema = z.object({
@@ -231,11 +269,11 @@ export const AgentSchema = z.object({
 	name: z.string(),
 	description: z.string().nullable(),
 	model: z.string(),
-	instructions: z.string(),
-	config: AgentConfigSchema.nullable(),
+	instructions: z.string().nullable(),
+	config: AgentConfigSchema.optional(),
 	status: AgentStatusSchema,
 	systemToolsEnabled: z.boolean(),
-	toolIds: z.array(z.string()),
+	toolIds: z.array(z.string()).optional(),
 	createdAt: z.string(),
 	updatedAt: z.string(),
 })
@@ -249,7 +287,7 @@ export const CreateAgentInputSchema = z.object({
 	name: z.string().min(1).max(100),
 	description: z.string().optional(),
 	model: z.string(),
-	instructions: z.string().optional(),
+	instructions: z.string(),
 	config: AgentConfigSchema.optional(),
 	systemToolsEnabled: z.boolean().optional(),
 	toolIds: z.array(z.string()).optional(),
@@ -282,13 +320,13 @@ export type UpdateAgentInput = z.infer<typeof UpdateAgentInputSchema>
  */
 export const ToolSchema = z.object({
 	id: z.string(),
-	workspaceId: z.string(),
+	workspaceId: z.string().optional(),
 	name: z.string(),
-	description: z.string(),
+	description: z.string().nullable(),
 	type: ToolTypeSchema,
-	isSystem: z.boolean(),
-	inputSchema: z.record(z.string(), z.unknown()),
-	config: z.record(z.string(), z.unknown()).nullable(),
+	isSystem: z.boolean().optional(),
+	inputSchema: z.record(z.string(), z.unknown()).optional(),
+	config: z.record(z.string(), z.unknown()).optional(),
 	createdAt: z.string(),
 	updatedAt: z.string(),
 })
@@ -300,9 +338,9 @@ export type Tool = z.infer<typeof ToolSchema>
  */
 export const CreateToolInputSchema = z.object({
 	name: z.string().min(1).max(100),
-	description: z.string().optional(),
+	description: z.string(),
 	type: ToolTypeSchema,
-	inputSchema: z.record(z.string(), z.unknown()).optional(),
+	inputSchema: z.record(z.string(), z.unknown()),
 	config: z.record(z.string(), z.unknown()).optional(),
 	code: z.string().optional(),
 })

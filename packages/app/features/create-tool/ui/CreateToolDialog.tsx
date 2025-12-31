@@ -73,8 +73,9 @@ export function CreateToolDialog({ workspaceId, open, onOpenChange }: CreateTool
 
 			await createTool.mutateAsync({
 				name: newName.trim(),
-				description: newDescription.trim() || undefined,
+				description: newDescription.trim(),
 				type: newType,
+				inputSchema: {},
 				config,
 			})
 

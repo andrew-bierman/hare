@@ -130,7 +130,7 @@ export function CreateAgentForm({ workspaceId, templateId }: CreateAgentFormProp
 				name: name.trim(),
 				description: description.trim() || undefined,
 				model,
-				instructions: instructions.trim() || undefined,
+				instructions: instructions.trim(),
 				systemToolsEnabled,
 				toolIds: selectedToolIds.length > 0 ? selectedToolIds : undefined,
 				config: {
