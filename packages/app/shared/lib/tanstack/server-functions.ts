@@ -14,10 +14,11 @@
  * // In a route file
  * import { createServerFn } from '@tanstack/react-start/server'
  *
+ * import { api } from '@hare/api-client'
+ *
  * const getAgent = createServerFn({ method: 'GET' })
  *   .validator((input: { id: string; workspaceId: string }) => input)
  *   .handler(async ({ data }) => {
- *     const { api } = await import('@hare/api-client')
  *     const res = await api.agents[':id'].$get({
  *       param: { id: data.id },
  *       query: { workspaceId: data.workspaceId },
@@ -53,7 +54,7 @@ export interface ServerFnInput<T> {
  * const listAgents = createServerFn({ method: 'GET' })
  *   .validator((input: { workspaceId: string }) => input)
  *   .handler(async ({ data }) => {
- *     const { api } = await import('@hare/api-client')
+ *     // api imported at top of file
  *     const res = await api.agents.$get({ query: { workspaceId: data.workspaceId } })
  *     if (!res.ok) throw new Error('Failed to list agents')
  *     return res.json()
@@ -63,7 +64,7 @@ export interface ServerFnInput<T> {
  * const getAgent = createServerFn({ method: 'GET' })
  *   .validator((input: { id: string; workspaceId: string }) => input)
  *   .handler(async ({ data }) => {
- *     const { api } = await import('@hare/api-client')
+ *     // api imported at top of file
  *     const res = await api.agents[':id'].$get({
  *       param: { id: data.id },
  *       query: { workspaceId: data.workspaceId },
@@ -76,7 +77,7 @@ export interface ServerFnInput<T> {
  * const createAgent = createServerFn({ method: 'POST' })
  *   .validator((input: { workspaceId: string; data: CreateAgentInput }) => input)
  *   .handler(async ({ data }) => {
- *     const { api } = await import('@hare/api-client')
+ *     // api imported at top of file
  *     const res = await api.agents.$post({
  *       query: { workspaceId: data.workspaceId },
  *       json: data.data,
@@ -89,7 +90,7 @@ export interface ServerFnInput<T> {
  * const updateAgent = createServerFn({ method: 'POST' })
  *   .validator((input: { id: string; workspaceId: string; data: UpdateAgentInput }) => input)
  *   .handler(async ({ data }) => {
- *     const { api } = await import('@hare/api-client')
+ *     // api imported at top of file
  *     const res = await api.agents[':id'].$patch({
  *       param: { id: data.id },
  *       query: { workspaceId: data.workspaceId },
@@ -103,7 +104,7 @@ export interface ServerFnInput<T> {
  * const deleteAgent = createServerFn({ method: 'POST' })
  *   .validator((input: { id: string; workspaceId: string }) => input)
  *   .handler(async ({ data }) => {
- *     const { api } = await import('@hare/api-client')
+ *     // api imported at top of file
  *     const res = await api.agents[':id'].$delete({
  *       param: { id: data.id },
  *       query: { workspaceId: data.workspaceId },
