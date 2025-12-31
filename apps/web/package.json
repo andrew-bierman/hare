@@ -5,7 +5,6 @@
 	"type": "module",
 	"scripts": {
 		"build": "NODE_OPTIONS='--max-old-space-size=4096' vite build",
-		"docs:generate": "bun run scripts/generate-docs.ts",
 		"cf-typegen": "wrangler types --env-interface CloudflareEnv ./cloudflare-env.d.ts",
 		"db:generate": "drizzle-kit generate",
 		"db:migrate": "drizzle-kit migrate",
@@ -15,6 +14,7 @@
 		"db:studio": "drizzle-kit studio",
 		"deploy": "bun run build && wrangler deploy",
 		"dev": "vite dev",
+		"docs:generate": "bun run scripts/generate-docs.ts",
 		"preview": "bun run build && vite preview",
 		"start": "bun .output/server/index.mjs",
 		"test": "playwright test",
