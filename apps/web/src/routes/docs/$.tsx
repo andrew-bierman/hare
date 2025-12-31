@@ -4,10 +4,9 @@ import { DocsLayout } from 'fumadocs-ui/layouts/docs'
 import defaultMdxComponents from 'fumadocs-ui/mdx'
 import { DocsBody, DocsDescription, DocsPage, DocsTitle } from 'fumadocs-ui/page'
 import { RootProvider } from 'fumadocs-ui/provider/tanstack'
-import { Suspense, use, useState, useEffect, type ComponentType } from 'react'
+import { source } from '../../lib/docs/source'
 import { getLayoutOptions } from '../../lib/docs/layout.shared'
 import { getMDXComponents } from '../../lib/docs/mdx-components'
-import { source, loadPage, serializePageTree, pageTree, getPageFrontmatter } from '../../lib/docs/custom-loader'
 import '../../styles/docs.css'
 
 export const Route = createFileRoute('/docs/$')({
@@ -17,69 +16,34 @@ export const Route = createFileRoute('/docs/$')({
 		const page = source.getPage(slugs)
 		if (!page) throw notFound()
 
-		// Get frontmatter from the pre-loaded data (not the async loaded content)
-		const frontmatter = getPageFrontmatter(page.path)
-		if (!frontmatter) throw notFound()
+		const MDX = page.data.body
 
 		return {
-			path: page.path,
-			pageTree: serializePageTree(pageTree),
-			frontmatter,
+			title: page.data.title,
+			description: page.data.description,
+			toc: page.data.toc,
+			pageTree: source.pageTree,
+			MDX,
 		}
 	},
 })
 
-// Hook to load MDX content on client
-function useDocContent(path: string) {
-	const [content, setContent] = useState<{
-		MDX: ComponentType
-		toc: { title: string; url: string; depth: number }[]
-	} | null>(null)
-
-	useEffect(() => {
-		loadPage(path).then((mod) => {
-			if (mod) {
-				setContent({ MDX: mod.default, toc: mod.toc })
-			}
-		})
-	}, [path])
-
-	return content
-}
-
-function MDXContent({ path }: { path: string }) {
-	const content = useDocContent(path)
-
-	if (!content) {
-		return <div>Loading...</div>
-	}
-
-	const { MDX } = content
-	return (
-		<MDX
-			components={{
-				...defaultMdxComponents,
-				...getMDXComponents(),
-			}}
-		/>
-	)
-}
-
 function Page() {
-	const { path, pageTree: serializedTree, frontmatter } = Route.useLoaderData()
-	const content = useDocContent(path)
-
-	// Cast back to Root type (it's already in the right shape)
-	const tree = serializedTree as Root
+	const { title, description, toc, pageTree, MDX } = Route.useLoaderData()
 
 	return (
 		<RootProvider>
-			<DocsLayout {...getLayoutOptions()} tree={tree}>
-				<DocsPage toc={content?.toc ?? []}>
-					<DocsTitle>{frontmatter.title}</DocsTitle>
-					<DocsDescription>{frontmatter.description}</DocsDescription>
+			<DocsLayout {...getLayoutOptions()} tree={pageTree as Root}>
+				<DocsPage toc={toc}>
+					<DocsTitle>{title}</DocsTitle>
+					<DocsDescription>{description}</DocsDescription>
 					<DocsBody>
-						<MDXContent path={path} />
+						<MDX
+							components={{
+								...defaultMdxComponents,
+								...getMDXComponents(),
+							}}
+						/>
 					</DocsBody>
 				</DocsPage>
 			</DocsLayout>

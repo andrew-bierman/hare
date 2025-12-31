@@ -5,6 +5,7 @@ import { tanstackStart } from '@tanstack/react-start/plugin/vite'
 import react from '@vitejs/plugin-react'
 import mdx from 'fumadocs-mdx/vite'
 import { defineConfig } from 'vite'
+import tsconfigPaths from 'vite-tsconfig-paths'
 import * as MdxConfig from './source.config'
 
 // Resolve paths to workspace packages
@@ -24,8 +25,8 @@ export default defineConfig({
 			// Wait for full dependency discovery before serving to avoid mid-request rebuilds
 			holdUntilCrawlEnd: true,
 		},
-		// Keep fumadocs packages on server side
-		noExternal: ['fumadocs-core'],
+		// Keep fumadocs packages on server side only
+		noExternal: ['fumadocs-core', 'fumadocs-mdx'],
 	},
 	optimizeDeps: {
 		// Pre-bundle the same deps for client-side
@@ -33,6 +34,9 @@ export default defineConfig({
 	},
 	resolve: {
 		alias: {
+			// Fumadocs MDX collections - needed for Vite dependency scan
+			'fumadocs-mdx:collections/server': path.resolve(__dirname, './.source/server.ts'),
+			'fumadocs-mdx:collections/browser': path.resolve(__dirname, './.source/browser.ts'),
 			'web-app': path.resolve(__dirname, './src'),
 			// Core packages - subpaths must come before main paths
 			'@hare/db/schema': path.join(packagesPath, 'db/src/schema/index.ts'),
@@ -85,6 +89,7 @@ export default defineConfig({
 		},
 	},
 	plugins: [
+		tsconfigPaths(),
 		mdx(MdxConfig),
 		cloudflare({ viteEnvironment: { name: 'ssr' } }),
 		tanstackStart(),
