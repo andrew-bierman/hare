@@ -8,8 +8,8 @@
 // All types and schemas - re-exported from @hare/types
 export * from '@hare/types'
 
-// API Client
-export * from './client'
+// API Client - re-exported from @hare/api-client
+export * from '@hare/api-client'
 
 // API Hooks
 export * from './hooks'

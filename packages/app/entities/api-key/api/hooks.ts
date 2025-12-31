@@ -1,7 +1,7 @@
 'use client'
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { api } from '../../../shared/api/client'
+import { api } from '@hare/api-client'
 
 // Types for API keys
 export interface ApiKey {
