@@ -1,3 +1,4 @@
+import { MESSAGE_ROLES, MessageRole } from '@hare/config'
 import { createId } from '../id'
 import { integer, sqliteTable, text } from 'drizzle-orm/sqlite-core'
 import { agents } from './agents'
@@ -32,7 +33,7 @@ export const messages = sqliteTable('messages', {
 	conversationId: text('conversationId')
 		.notNull()
 		.references(() => conversations.id, { onDelete: 'cascade' }),
-	role: text('role', { enum: ['user', 'assistant', 'system', 'tool'] }).notNull(),
+	role: text('role', { enum: MESSAGE_ROLES }).notNull().$type<MessageRole>(),
 	content: text('content').notNull(),
 	metadata: text('metadata', { mode: 'json' }).$type<MessageMetadata>(),
 	createdAt: integer('createdAt', { mode: 'timestamp' })

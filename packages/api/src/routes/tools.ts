@@ -338,12 +338,12 @@ const testExistingToolRoute = createRoute({
 	},
 })
 
-// Create app with proper typing
-const app = new OpenAPIHono<WorkspaceEnv>()
+// Create base app with proper typing
+const baseApp = new OpenAPIHono<WorkspaceEnv>()
 
 // Apply middleware
-app.use('*', authMiddleware)
-app.use('*', workspaceMiddleware)
+baseApp.use('*', authMiddleware)
+baseApp.use('*', workspaceMiddleware)
 
 /**
  * Create a minimal tool context for serialization purposes.
@@ -364,8 +364,8 @@ function createMinimalToolContext(): ToolContext {
 	}
 }
 
-// Register routes
-app.openapi(listToolsRoute, async (c) => {
+// Register routes - chain all .openapi() calls for type inference
+const app = baseApp.openapi(listToolsRoute, async (c) => {
 	const { includeSystem } = c.req.valid('query')
 	const db = getDb(c)
 	const workspace = c.get('workspace')
@@ -383,9 +383,7 @@ app.openapi(listToolsRoute, async (c) => {
 	}
 
 	return c.json({ tools: [...systemToolsData, ...customToolsData] }, 200)
-})
-
-app.openapi(createToolRoute, async (c) => {
+}).openapi(createToolRoute, async (c) => {
 	const data = c.req.valid('json')
 	const db = getDb(c)
 	const user = c.get('user')
@@ -432,9 +430,7 @@ app.openapi(createToolRoute, async (c) => {
 	}
 
 	return c.json(serializeTool(tool, { inputSchema: data.inputSchema, code: data.code }), 201)
-})
-
-app.openapi(getToolRoute, async (c) => {
+}).openapi(getToolRoute, async (c) => {
 	const { id } = c.req.valid('param')
 	const db = getDb(c)
 	const workspace = c.get('workspace')
@@ -460,9 +456,7 @@ app.openapi(getToolRoute, async (c) => {
 	}
 
 	return c.json(serializeTool(tool), 200)
-})
-
-app.openapi(updateToolRoute, async (c) => {
+}).openapi(updateToolRoute, async (c) => {
 	const { id } = c.req.valid('param')
 	const data = c.req.valid('json')
 	const db = getDb(c)
@@ -523,9 +517,7 @@ app.openapi(updateToolRoute, async (c) => {
 	}
 
 	return c.json(serializeTool(tool, { inputSchema: data.inputSchema, code: data.code }), 200)
-})
-
-app.openapi(deleteToolRoute, async (c) => {
+}).openapi(deleteToolRoute, async (c) => {
 	const { id } = c.req.valid('param')
 	const db = getDb(c)
 	const workspace = c.get('workspace')
@@ -549,10 +541,9 @@ app.openapi(deleteToolRoute, async (c) => {
 	}
 
 	return c.json({ success: true }, 200)
-})
 
 // Test tool configuration (before saving)
-app.openapi(testToolRoute, async (c) => {
+}).openapi(testToolRoute, async (c) => {
 	const data = c.req.valid('json')
 	const role = c.get('workspaceRole')
 
@@ -568,10 +559,9 @@ app.openapi(testToolRoute, async (c) => {
 	const result = await testHttpTool(data)
 
 	return c.json(result, 200)
-})
 
 // Test existing tool
-app.openapi(testExistingToolRoute, async (c) => {
+}).openapi(testExistingToolRoute, async (c) => {
 	const { id } = c.req.valid('param')
 	const data = c.req.valid('json')
 	const db = getDb(c)
