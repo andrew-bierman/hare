@@ -1,7 +1,7 @@
 'use client'
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { api, handleResponse } from '../client'
+import { api } from '../client'
 import { apiKeyKeys } from './query-keys'
 
 // Types for API keys
@@ -48,7 +48,8 @@ export function useApiKeysQuery(workspaceId: string | undefined) {
 		queryKey: apiKeyKeys.list(workspaceId ?? ''),
 		queryFn: async () => {
 			const res = await api['api-keys'].$get({ query: { workspaceId: workspaceId! } })
-			return handleResponse(res)
+			if (!res.ok) throw new Error('Request failed')
+			return res.json()
 		},
 		enabled: !!workspaceId,
 	})
@@ -65,7 +66,8 @@ export function useApiKeyQuery(id: string | undefined, workspaceId: string | und
 				param: { id: id! },
 				query: { workspaceId: workspaceId! },
 			})
-			return handleResponse(res)
+			if (!res.ok) throw new Error('Request failed')
+			return res.json()
 		},
 		enabled: !!id && !!workspaceId,
 	})
@@ -83,7 +85,8 @@ export function useCreateApiKeyMutation(workspaceId: string | undefined) {
 				query: { workspaceId: workspaceId! },
 				json: data,
 			})
-			return handleResponse(res)
+			if (!res.ok) throw new Error('Request failed')
+			return res.json()
 		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: apiKeyKeys.list(workspaceId ?? '') })
@@ -103,7 +106,8 @@ export function useUpdateApiKeyMutation(workspaceId: string | undefined) {
 				query: { workspaceId: workspaceId! },
 				json: data,
 			})
-			return handleResponse(res)
+			if (!res.ok) throw new Error('Request failed')
+			return res.json()
 		},
 		onSuccess: (_, { id }) => {
 			queryClient.invalidateQueries({ queryKey: apiKeyKeys.list(workspaceId ?? '') })
@@ -123,7 +127,8 @@ export function useDeleteApiKeyMutation(workspaceId: string | undefined) {
 				param: { id },
 				query: { workspaceId: workspaceId! },
 			})
-			return handleResponse(res)
+			if (!res.ok) throw new Error('Request failed')
+			return res.json()
 		},
 		// Optimistic update
 		onMutate: async (id) => {

@@ -2,7 +2,7 @@
 
 import { queryOptions, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type { CreateWorkspaceInput, Workspace } from '@hare/types'
-import { api, handleResponse } from '../client'
+import { api } from '../client'
 import { workspaceKeys } from './query-keys'
 
 /**
@@ -13,7 +13,8 @@ export const workspacesQueryOptions = () =>
 		queryKey: workspaceKeys.list(),
 		queryFn: async () => {
 			const res = await api.workspaces.$get()
-			return handleResponse(res)
+			if (!res.ok) throw new Error('Request failed')
+			return res.json()
 		},
 	})
 
@@ -25,7 +26,8 @@ export const workspaceQueryOptions = (id: string) =>
 		queryKey: workspaceKeys.detail(id),
 		queryFn: async () => {
 			const res = await api.workspaces[':id'].$get({ param: { id } })
-			return handleResponse(res)
+			if (!res.ok) throw new Error('Request failed')
+			return res.json()
 		},
 	})
 
@@ -45,7 +47,8 @@ export function useCreateWorkspaceMutation() {
 	return useMutation({
 		mutationFn: async (data: CreateWorkspaceInput) => {
 			const res = await api.workspaces.$post({ json: data })
-			return handleResponse(res)
+			if (!res.ok) throw new Error('Request failed')
+			return res.json()
 		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: workspaceKeys.list() })
@@ -58,7 +61,8 @@ export function useEnsureDefaultWorkspaceMutation() {
 	return useMutation({
 		mutationFn: async () => {
 			const res = await api.workspaces['ensure-default'].$post()
-			return handleResponse(res)
+			if (!res.ok) throw new Error('Request failed')
+			return res.json()
 		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: workspaceKeys.list() })
@@ -71,7 +75,8 @@ export function useUpdateWorkspaceMutation() {
 	return useMutation({
 		mutationFn: async ({ id, data }: { id: string; data: Partial<CreateWorkspaceInput> }) => {
 			const res = await api.workspaces[':id'].$patch({ param: { id }, json: data })
-			return handleResponse(res)
+			if (!res.ok) throw new Error('Request failed')
+			return res.json()
 		},
 		// Optimistic update
 		onMutate: async ({ id, data }) => {
@@ -102,7 +107,8 @@ export function useDeleteWorkspaceMutation() {
 	return useMutation({
 		mutationFn: async (id: string) => {
 			const res = await api.workspaces[':id'].$delete({ param: { id } })
-			return handleResponse(res)
+			if (!res.ok) throw new Error('Request failed')
+			return res.json()
 		},
 		// Optimistic update
 		onMutate: async (id) => {
