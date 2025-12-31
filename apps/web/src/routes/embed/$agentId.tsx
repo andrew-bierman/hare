@@ -4,6 +4,7 @@ import {
 	EMBED_COLORS,
 	WIDGET_MESSAGE_TYPES,
 } from '@hare/config'
+import { generatePrefixedId } from '@hare/app/shared'
 import { createFileRoute } from '@tanstack/react-router'
 import { Bot, Loader2, Send, User, X } from 'lucide-react'
 import { type FormEvent, type KeyboardEvent, useCallback, useEffect, useRef, useState } from 'react'
@@ -109,7 +110,7 @@ function EmbedChatPage() {
 
 			// Add user message
 			const userMessage: Message = {
-				id: `user-${Date.now()}`,
+				id: generatePrefixedId('user'),
 				role: 'user',
 				content: content.trim(),
 				createdAt: new Date().toISOString(),
@@ -119,7 +120,7 @@ function EmbedChatPage() {
 
 			// Add placeholder for assistant
 			const assistantMessage: Message = {
-				id: `assistant-${Date.now()}`,
+				id: generatePrefixedId('assistant'),
 				role: 'assistant',
 				content: '',
 				createdAt: new Date().toISOString(),

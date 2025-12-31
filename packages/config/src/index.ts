@@ -14,11 +14,18 @@ export { APP_CONFIG, BETA_ACCESS, FEATURES, type AppConfig, type BetaAccess, typ
 // AI Models
 export {
 	AI_MODELS,
+	COST_TIER_LABELS,
 	DEFAULT_MODEL_ID,
 	getModelById,
 	getModelName,
+	getModelsByProvider,
+	getProviderLabel,
+	PROVIDER_LABELS,
+	SPEED_TIER_LABELS,
 	type AIModel,
+	type CostTier,
 	type ModelProvider,
+	type SpeedTier,
 } from './models'
 
 // Tools & Agents

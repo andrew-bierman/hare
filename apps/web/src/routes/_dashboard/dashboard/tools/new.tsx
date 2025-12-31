@@ -7,6 +7,7 @@ import {
 	useCreateToolMutation,
 	useTestToolMutation,
 } from '@hare/app/shared/api'
+import { generatePrefixedId } from '@hare/app/shared'
 import { Badge } from '@hare/ui/components/badge'
 import { Button } from '@hare/ui/components/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@hare/ui/components/card'
@@ -52,7 +53,7 @@ interface SchemaField {
 }
 
 function generateFieldId() {
-	return `field_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`
+	return generatePrefixedId('field')
 }
 
 function NewToolPage() {

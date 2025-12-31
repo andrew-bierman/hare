@@ -1,6 +1,6 @@
 'use client'
 
-import { Link } from '@tanstack/react-router'
+import { Link, useNavigate } from '@tanstack/react-router'
 import { Badge } from '@hare/ui/components/badge'
 import { Button } from '@hare/ui/components/button'
 import { Card, CardContent } from '@hare/ui/components/card'
@@ -8,11 +8,13 @@ import { Input } from '@hare/ui/components/input'
 import { Skeleton } from '@hare/ui/components/skeleton'
 import { Tabs, TabsList, TabsTrigger } from '@hare/ui/components/tabs'
 import { Bot, Clock, Plus, SearchIcon, Settings, Wrench } from 'lucide-react'
-import { type ChangeEvent, useState } from 'react'
+import { type ChangeEvent, useState, useCallback } from 'react'
 import { useWorkspace } from '../../app/providers'
 import type { Agent } from '@hare/types'
 import { useAgentsQuery } from '../../shared/api/hooks'
 import { AI_MODELS } from '@hare/config'
+import { EmptyState } from '../../shared/ui/empty-state'
+import { OnboardingWizard } from '../../widgets/onboarding-wizard'
 
 function AgentCardSkeleton() {
 	return (
@@ -39,35 +41,47 @@ function AgentCardSkeleton() {
 	)
 }
 
-function EmptyState() {
+function AgentsEmptyState() {
 	return (
-		<Card className="border-dashed border-2">
-			<CardContent className="flex flex-col items-center justify-center py-12 px-4">
-				<div className="flex h-16 w-16 items-center justify-center rounded-xl bg-primary/10 mb-4">
-					<Bot className="h-8 w-8 text-primary" />
-				</div>
-				<h3 className="text-lg font-semibold mb-2">Create your first agent</h3>
-				<p className="text-muted-foreground text-center text-sm max-w-xs mb-6">
-					AI agents can understand context, use tools, and complete tasks.
-				</p>
-				<Link to="/dashboard/agents/templates" className="w-full sm:w-auto">
-					<Button className="w-full sm:w-auto gap-2 h-11">
-						<Plus className="h-4 w-4" />
-						Create Agent
-					</Button>
-				</Link>
-			</CardContent>
-		</Card>
+		<EmptyState
+			icon={Bot}
+			title="Create your first agent"
+			description="AI agents can understand context, use tools, and complete tasks."
+			action={{
+				label: 'Create Agent',
+				icon: Plus,
+				href: '/dashboard/agents/templates',
+			}}
+		/>
 	)
 }
 
 export function AgentsListPage() {
+	const navigate = useNavigate()
 	const { activeWorkspace } = useWorkspace()
 	const { data, isLoading, error } = useAgentsQuery(activeWorkspace?.id)
 	const [search, setSearch] = useState('')
 	const [filter, setFilter] = useState<'all' | 'deployed' | 'draft'>('all')
+	const [hasSkippedOnboarding, setHasSkippedOnboarding] = useState(false)
 
 	const agents: Agent[] = data?.agents ?? []
+	const isNewUser = !isLoading && agents.length === 0 && !hasSkippedOnboarding
+
+	// Onboarding handlers
+	const handleSelectTemplate = useCallback(
+		(templateId: string) => {
+			navigate({ to: '/dashboard/agents/new', search: { template: templateId } })
+		},
+		[navigate],
+	)
+
+	const handleSkipOnboarding = useCallback(() => {
+		setHasSkippedOnboarding(true)
+	}, [])
+
+	const handleStartFromScratch = useCallback(() => {
+		navigate({ to: '/dashboard/agents/new' })
+	}, [navigate])
 	const filteredAgents = agents.filter((agent) => {
 		const matchesSearch =
 			agent.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -130,6 +144,14 @@ export function AgentsListPage() {
 
 	return (
 		<div className="flex-1 p-4 sm:p-6 md:p-8 space-y-4 sm:space-y-6">
+			{/* Onboarding Wizard for new users */}
+			<OnboardingWizard
+				isNewUser={isNewUser}
+				onSelectTemplate={handleSelectTemplate}
+				onSkip={handleSkipOnboarding}
+				onStartFromScratch={handleStartFromScratch}
+			/>
+
 			{/* Header */}
 			<div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
 				<div>
@@ -190,29 +212,23 @@ export function AgentsListPage() {
 				</div>
 			) : filteredAgents.length === 0 ? (
 				search || filter !== 'all' ? (
-					<Card className="border-dashed border-2">
-						<CardContent className="flex flex-col items-center justify-center py-12 px-4">
-							<div className="flex h-14 w-14 items-center justify-center rounded-xl bg-muted mb-4">
-								<SearchIcon className="h-6 w-6 text-muted-foreground" />
-							</div>
-							<h3 className="font-semibold mb-1">No agents found</h3>
-							<p className="text-muted-foreground text-sm text-center mb-4">
-								{search ? `No agents match "${search}"` : 'No agents in this category'}
-							</p>
-							<Button
-								variant="outline"
-								className="gap-2 h-11"
-								onClick={() => {
-									setSearch('')
-									setFilter('all')
-								}}
-							>
-								Clear filters
-							</Button>
-						</CardContent>
-					</Card>
+					<EmptyState
+						icon={SearchIcon}
+						title="No agents found"
+						description={search ? `No agents match "${search}"` : 'No agents in this category'}
+						iconBgColor="bg-muted"
+						iconColor="text-muted-foreground"
+						action={{
+							label: 'Clear filters',
+							variant: 'outline',
+							onClick: () => {
+								setSearch('')
+								setFilter('all')
+							},
+						}}
+					/>
 				) : (
-					<EmptyState />
+					<AgentsEmptyState />
 				)
 			) : (
 				<div className="grid gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3">

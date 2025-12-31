@@ -7,6 +7,8 @@
 // =============================================================================
 
 export type ModelProvider = 'anthropic' | 'openai' | 'workers-ai'
+export type SpeedTier = 'fast' | 'medium' | 'slow'
+export type CostTier = 'free' | 'low' | 'medium' | 'high'
 
 export interface AIModel {
 	id: string
@@ -21,6 +23,29 @@ export interface AIModel {
 	inputCostPer1M: number
 	/** Cost per 1M output tokens in USD */
 	outputCostPer1M: number
+	/** Speed tier for UI display */
+	speedTier: SpeedTier
+	/** Cost tier for UI display */
+	costTier: CostTier
+}
+
+export const PROVIDER_LABELS: Record<ModelProvider, string> = {
+	'anthropic': 'Anthropic',
+	'openai': 'OpenAI',
+	'workers-ai': 'Cloudflare Workers AI',
+}
+
+export const SPEED_TIER_LABELS: Record<SpeedTier, { label: string; color: string }> = {
+	fast: { label: 'Fast', color: 'text-green-600 bg-green-100 dark:text-green-400 dark:bg-green-900/30' },
+	medium: { label: 'Medium', color: 'text-amber-600 bg-amber-100 dark:text-amber-400 dark:bg-amber-900/30' },
+	slow: { label: 'Slow', color: 'text-red-600 bg-red-100 dark:text-red-400 dark:bg-red-900/30' },
+}
+
+export const COST_TIER_LABELS: Record<CostTier, { label: string; color: string }> = {
+	free: { label: 'Free', color: 'text-emerald-600 bg-emerald-100 dark:text-emerald-400 dark:bg-emerald-900/30' },
+	low: { label: 'Low Cost', color: 'text-blue-600 bg-blue-100 dark:text-blue-400 dark:bg-blue-900/30' },
+	medium: { label: 'Medium Cost', color: 'text-amber-600 bg-amber-100 dark:text-amber-400 dark:bg-amber-900/30' },
+	high: { label: 'Premium', color: 'text-violet-600 bg-violet-100 dark:text-violet-400 dark:bg-violet-900/30' },
 }
 
 export const AI_MODELS: AIModel[] = [
@@ -35,6 +60,8 @@ export const AI_MODELS: AIModel[] = [
 		supportsTools: true,
 		inputCostPer1M: 3.0,
 		outputCostPer1M: 15.0,
+		speedTier: 'medium',
+		costTier: 'medium',
 	},
 	{
 		id: 'claude-3-5-haiku-20241022',
@@ -47,6 +74,8 @@ export const AI_MODELS: AIModel[] = [
 		supportsTools: true,
 		inputCostPer1M: 0.8,
 		outputCostPer1M: 4.0,
+		speedTier: 'fast',
+		costTier: 'low',
 	},
 	{
 		id: 'claude-3-opus-20240229',
@@ -59,6 +88,8 @@ export const AI_MODELS: AIModel[] = [
 		supportsTools: true,
 		inputCostPer1M: 15.0,
 		outputCostPer1M: 75.0,
+		speedTier: 'slow',
+		costTier: 'high',
 	},
 	{
 		id: 'gpt-4o',
@@ -71,6 +102,8 @@ export const AI_MODELS: AIModel[] = [
 		supportsTools: true,
 		inputCostPer1M: 2.5,
 		outputCostPer1M: 10.0,
+		speedTier: 'medium',
+		costTier: 'medium',
 	},
 	{
 		id: 'gpt-4o-mini',
@@ -83,6 +116,8 @@ export const AI_MODELS: AIModel[] = [
 		supportsTools: true,
 		inputCostPer1M: 0.15,
 		outputCostPer1M: 0.6,
+		speedTier: 'fast',
+		costTier: 'low',
 	},
 	{
 		id: '@cf/meta/llama-3.3-70b-instruct-fp8-fast',
@@ -95,8 +130,10 @@ export const AI_MODELS: AIModel[] = [
 		supportsTools: false,
 		inputCostPer1M: 0,
 		outputCostPer1M: 0,
+		speedTier: 'fast',
+		costTier: 'free',
 	},
-] as const
+]
 
 export const DEFAULT_MODEL_ID = 'claude-3-5-sonnet-20241022'
 
@@ -106,5 +143,24 @@ export function getModelById(id: string): AIModel | undefined {
 
 export function getModelName(id: string): string {
 	return getModelById(id)?.name ?? id
+}
+
+/**
+ * Get models grouped by provider
+ */
+export function getModelsByProvider(): Map<ModelProvider, AIModel[]> {
+	const grouped = new Map<ModelProvider, AIModel[]>()
+	for (const model of AI_MODELS) {
+		const existing = grouped.get(model.provider) ?? []
+		grouped.set(model.provider, [...existing, model])
+	}
+	return grouped
+}
+
+/**
+ * Get provider display label
+ */
+export function getProviderLabel(provider: ModelProvider): string {
+	return PROVIDER_LABELS[provider]
 }
 
