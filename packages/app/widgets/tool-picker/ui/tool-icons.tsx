@@ -145,6 +145,81 @@ export const TOOL_CATEGORY_LABELS: Record<ToolCategory, string> = {
 }
 
 /**
+ * Human-readable labels for tool types.
+ */
+export const TOOL_TYPE_LABELS: Record<ToolType, string> = {
+	// Cloudflare native
+	http: 'HTTP Request',
+	sql: 'SQL Database',
+	kv: 'Key-Value Store',
+	r2: 'Object Storage',
+	search: 'Search',
+	// Utility
+	datetime: 'Date & Time',
+	json: 'JSON',
+	text: 'Text',
+	math: 'Math',
+	uuid: 'UUID Generator',
+	hash: 'Hash',
+	base64: 'Base64',
+	url: 'URL',
+	delay: 'Delay',
+	// Integrations
+	zapier: 'Zapier',
+	webhook: 'Webhook',
+	slack: 'Slack',
+	discord: 'Discord',
+	email: 'Email',
+	teams: 'Microsoft Teams',
+	twilio_sms: 'Twilio SMS',
+	make: 'Make',
+	n8n: 'n8n',
+	// AI
+	sentiment: 'Sentiment Analysis',
+	summarize: 'Summarize',
+	translate: 'Translate',
+	image_generate: 'Image Generation',
+	classify: 'Classify',
+	ner: 'Named Entity Recognition',
+	embedding: 'Embedding',
+	question_answer: 'Q&A',
+	// Data
+	rss: 'RSS Feed',
+	scrape: 'Web Scrape',
+	regex: 'Regex',
+	crypto: 'Crypto',
+	json_schema: 'JSON Schema',
+	csv: 'CSV',
+	template: 'Template',
+	// Sandbox
+	code_execute: 'Code Execute',
+	code_validate: 'Code Validate',
+	sandbox_file: 'Sandbox File',
+	// Validation
+	validate_email: 'Validate Email',
+	validate_phone: 'Validate Phone',
+	validate_url: 'Validate URL',
+	validate_credit_card: 'Validate Credit Card',
+	validate_ip: 'Validate IP',
+	validate_json: 'Validate JSON',
+	// Transform
+	markdown: 'Markdown',
+	diff: 'Diff',
+	qrcode: 'QR Code',
+	compression: 'Compression',
+	color: 'Color',
+	// Custom
+	custom: 'Custom',
+}
+
+/**
+ * Get the human-readable label for a tool type.
+ */
+export function getToolTypeLabel(type: ToolType): string {
+	return TOOL_TYPE_LABELS[type] || type
+}
+
+/**
  * Map tool type to its category.
  */
 export function getToolCategory(type: ToolType): ToolCategory {
