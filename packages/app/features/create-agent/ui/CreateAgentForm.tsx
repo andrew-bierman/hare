@@ -14,13 +14,6 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@hare/ui/co
 import { Input } from '@hare/ui/components/input'
 import { Label } from '@hare/ui/components/label'
 import { Switch } from '@hare/ui/components/switch'
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from '@hare/ui/components/select'
 import { Textarea } from '@hare/ui/components/textarea'
 import { type ChangeEvent, useState, useEffect } from 'react'
 import { toast } from 'sonner'
@@ -30,8 +23,9 @@ import { useCreateAgentMutation, useToolsQuery } from '../../../shared/api/hooks
 import { AgentInstructionsEditor } from '../../../widgets/agent-builder'
 import { ResponseStyleSelector } from '../../../widgets/response-style-selector'
 import { AdvancedSettings } from '../../../widgets/advanced-settings'
+import { ModelSelector } from '../../../widgets/model-selector'
+import { PromptGenerator } from '../../../widgets/prompt-generator'
 import {
-	AI_MODELS,
 	getTemplateById,
 	getResponseStyleById,
 	getResponseStyleFromConfig,
@@ -195,24 +189,12 @@ export function CreateAgentForm({ workspaceId, templateId }: CreateAgentFormProp
 					</CardHeader>
 					<CardContent className="space-y-4">
 						<div className="grid gap-4 sm:grid-cols-2">
-							<div className="space-y-2">
-								<Label htmlFor="model">Model *</Label>
-								<Select value={model} onValueChange={setModel}>
-									<SelectTrigger id="model">
-										<SelectValue placeholder="Select a model" />
-									</SelectTrigger>
-									<SelectContent>
-										{AI_MODELS.map((m) => (
-											<SelectItem key={m.id} value={m.id}>
-												<div className="flex flex-col">
-													<span>{m.name}</span>
-													<span className="text-xs text-muted-foreground">{m.description}</span>
-												</div>
-											</SelectItem>
-										))}
-									</SelectContent>
-								</Select>
-							</div>
+							<ModelSelector
+								value={model}
+								onValueChange={setModel}
+								disabled={createAgent.isPending}
+								label="Model *"
+							/>
 							<ResponseStyleSelector
 								value={responseStyle}
 								onValueChange={handleResponseStyleChange}
@@ -221,7 +203,13 @@ export function CreateAgentForm({ workspaceId, templateId }: CreateAgentFormProp
 						</div>
 
 						<div className="space-y-2">
-							<Label htmlFor="system-prompt">System Prompt</Label>
+							<div className="flex items-center justify-between">
+								<Label htmlFor="system-prompt">System Prompt</Label>
+								<PromptGenerator
+									onGenerate={setInstructions}
+									disabled={createAgent.isPending}
+								/>
+							</div>
 							<AgentInstructionsEditor
 								value={instructions}
 								onChange={setInstructions}
