@@ -184,6 +184,35 @@ const deleteWorkspaceRoute = createRoute({
 	},
 })
 
+const ensureDefaultWorkspaceRoute = createRoute({
+	method: 'post',
+	path: '/ensure-default',
+	tags: ['Workspaces'],
+	summary: 'Ensure default workspace exists',
+	description:
+		'Idempotent endpoint that returns the existing default workspace or creates one if none exists. Safe to call multiple times.',
+	responses: {
+		200: {
+			description: 'Workspace returned (existing or newly created)',
+			content: {
+				'application/json': {
+					schema: z.object({
+						workspace: WorkspaceSchema,
+						created: z.boolean().openapi({
+							description: 'True if a new workspace was created, false if existing',
+						}),
+					}),
+				},
+			},
+		},
+		500: {
+			description: 'Failed to ensure workspace',
+			content: { 'application/json': { schema: ErrorSchema } },
+		},
+		...commonResponses,
+	},
+})
+
 /**
  * Input for getting user workspace role.
  */
@@ -233,7 +262,60 @@ const app = new OpenAPIHono<AuthEnv>()
 // Apply middleware
 app.use('*', authMiddleware)
 
-// Register routes
+// Register routes - order matters: specific paths before parameterized paths
+app.openapi(ensureDefaultWorkspaceRoute, async (c) => {
+	const db = getDb(c)
+	const user = c.get('user')
+
+	// Check if user already has any workspaces (owned)
+	const existingWorkspaces = await db
+		.select()
+		.from(workspaces)
+		.where(eq(workspaces.ownerId, user.id))
+		.limit(1)
+
+	if (existingWorkspaces.length > 0 && existingWorkspaces[0]) {
+		// Return existing workspace
+		return c.json(
+			{
+				workspace: serializeWorkspace(existingWorkspaces[0], 'owner'),
+				created: false,
+			},
+			200,
+		)
+	}
+
+	// No workspace exists - create one
+	const baseSlug = await generateUniqueSlug({
+		name: 'My Workspace',
+		checkExists: (s) => slugExists(db, s),
+	})
+	const randomSuffix = Math.random().toString(36).substring(2, 8)
+	const slug = `${baseSlug}-${randomSuffix}`
+
+	const [workspace] = await db
+		.insert(workspaces)
+		.values({
+			name: 'My Workspace',
+			slug,
+			description: null,
+			ownerId: user.id,
+		})
+		.returning()
+
+	if (!workspace) {
+		return c.json({ error: 'Failed to create workspace' }, 500)
+	}
+
+	return c.json(
+		{
+			workspace: serializeWorkspace(workspace, 'owner'),
+			created: true,
+		},
+		200,
+	)
+})
+
 app.openapi(listWorkspacesRoute, async (c) => {
 	const db = getDb(c)
 	const user = c.get('user')

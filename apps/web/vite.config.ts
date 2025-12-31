@@ -3,11 +3,9 @@ import { cloudflare } from '@cloudflare/vite-plugin'
 import tailwindcss from '@tailwindcss/vite'
 import { tanstackStart } from '@tanstack/react-start/plugin/vite'
 import react from '@vitejs/plugin-react'
+import mdx from 'fumadocs-mdx/vite'
 import { defineConfig } from 'vite'
-
-// TODO: Re-enable fumadocs-mdx once path.join browser bundling issue is fixed
-// import mdx from 'fumadocs-mdx/vite'
-// import * as MdxConfig from './source.config'
+import * as MdxConfig from './source.config'
 
 // Resolve paths to workspace packages
 const packagesPath = path.resolve(__dirname, '../../packages')
@@ -26,6 +24,8 @@ export default defineConfig({
 			// Wait for full dependency discovery before serving to avoid mid-request rebuilds
 			holdUntilCrawlEnd: true,
 		},
+		// Ensure fumadocs server code stays server-side only
+		noExternal: ['fumadocs-mdx', 'fumadocs-core'],
 	},
 	optimizeDeps: {
 		// Pre-bundle the same deps for client-side
@@ -33,10 +33,9 @@ export default defineConfig({
 	},
 	resolve: {
 		alias: {
-			// Fumadocs MDX generated files
-			'fumadocs-mdx:collections/server': path.resolve(__dirname, './.source/server'),
-			'fumadocs-mdx:collections/browser': path.resolve(__dirname, './.source/browser'),
-			'fumadocs-mdx:collections/dynamic': path.resolve(__dirname, './.source/dynamic'),
+			// Note: path-browserify removed - causes CommonJS compatibility issues in Workers
+			// Note: fumadocs-mdx:collections/* aliases removed - using relative imports instead
+			// to avoid absolute path bundling issues with Cloudflare Workers
 			'web-app': path.resolve(__dirname, './src'),
 			// Core packages - subpaths must come before main paths
 			'@hare/db/schema': path.join(packagesPath, 'db/src/schema/index.ts'),
@@ -89,8 +88,7 @@ export default defineConfig({
 		},
 	},
 	plugins: [
-		// TODO: Re-enable fumadocs-mdx once path.join browser bundling issue is fixed
-		// mdx(MdxConfig),
+		mdx(MdxConfig),
 		cloudflare({ viteEnvironment: { name: 'ssr' } }),
 		tanstackStart(),
 		react(),

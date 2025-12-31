@@ -18,5 +18,7 @@ export interface RouterContext {
 	auth: {
 		isAuthenticated: boolean
 		user: AuthUser | null
+		/** True when auth state is from SSR (cookies not available) */
+		_isSSR?: boolean
 	}
 }

@@ -23,6 +23,8 @@ export {
 	nameToSlug,
 	exportToCSV,
 	exportToJSON,
+	generateId,
+	generatePrefixedId,
 	// TanStack DB provider (but not the hooks that conflict with api/hooks)
 	TanStackDBProvider,
 	useTanStackDB,

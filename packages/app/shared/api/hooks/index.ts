@@ -150,6 +150,7 @@ export { useAgentUsageQuery, useUsageQuery, useUsageByAgentQuery } from './use-u
 export {
 	useCreateWorkspaceMutation,
 	useDeleteWorkspaceMutation,
+	useEnsureDefaultWorkspaceMutation,
 	useUpdateWorkspaceMutation,
 	useWorkspaceByIdQuery,
 	useWorkspacesQuery,

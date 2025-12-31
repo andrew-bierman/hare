@@ -19,13 +19,29 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 	}),
 	beforeLoad: async () => {
 		// Fetch session and provide auth context for all routes
-		// This runs on both server (SSR) and client (navigation)
+		// During SSR, we can't access browser cookies, so we skip the check
+		// and let the client-side handle authentication
+		const isServer = typeof window === 'undefined'
+
+		if (isServer) {
+			// During SSR, return unknown auth state - client will verify
+			return {
+				auth: {
+					isAuthenticated: false,
+					user: null,
+					_isSSR: true, // Flag to indicate SSR state
+				},
+			}
+		}
+
+		// Client-side: fetch session with proper cookies
 		try {
 			const session = await getSession()
 			return {
 				auth: {
 					isAuthenticated: !!session.data?.user,
 					user: session.data?.user ?? null,
+					_isSSR: false,
 				},
 			}
 		} catch {
@@ -34,6 +50,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 				auth: {
 					isAuthenticated: false,
 					user: null,
+					_isSSR: false,
 				},
 			}
 		}
