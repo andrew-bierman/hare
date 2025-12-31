@@ -1,14 +1,13 @@
-import browserCollections from 'fumadocs-mdx:collections/browser'
 import { createFileRoute, notFound } from '@tanstack/react-router'
-import { useFumadocsLoader } from 'fumadocs-core/source/client'
+import type { Root } from 'fumadocs-core/page-tree'
 import { DocsLayout } from 'fumadocs-ui/layouts/docs'
 import defaultMdxComponents from 'fumadocs-ui/mdx'
 import { DocsBody, DocsDescription, DocsPage, DocsTitle } from 'fumadocs-ui/page'
 import { RootProvider } from 'fumadocs-ui/provider/tanstack'
-import type { ComponentType } from 'react'
+import { Suspense, use, useState, useEffect, type ComponentType } from 'react'
 import { getLayoutOptions } from '../../lib/docs/layout.shared'
 import { getMDXComponents } from '../../lib/docs/mdx-components'
-import { source } from '../../lib/docs/source'
+import { source, loadPage, serializePageTree, pageTree, getPageFrontmatter } from '../../lib/docs/custom-loader'
 import '../../styles/docs.css'
 
 export const Route = createFileRoute('/docs/$')({
@@ -18,50 +17,71 @@ export const Route = createFileRoute('/docs/$')({
 		const page = source.getPage(slugs)
 		if (!page) throw notFound()
 
-		// Preload the MDX content on the client
-		await clientLoader.preload(page.path)
+		// Get frontmatter from the pre-loaded data (not the async loaded content)
+		const frontmatter = getPageFrontmatter(page.path)
+		if (!frontmatter) throw notFound()
 
 		return {
 			path: page.path,
-			pageTree: await source.serializePageTree(source.pageTree),
+			pageTree: serializePageTree(pageTree),
+			frontmatter,
 		}
 	},
 })
 
-interface DocsComponentProps {
-	toc: { title: string; url: string; depth: number }[]
-	frontmatter: { title: string; description?: string }
-	default: ComponentType
+// Hook to load MDX content on client
+function useDocContent(path: string) {
+	const [content, setContent] = useState<{
+		MDX: ComponentType
+		toc: { title: string; url: string; depth: number }[]
+	} | null>(null)
+
+	useEffect(() => {
+		loadPage(path).then((mod) => {
+			if (mod) {
+				setContent({ MDX: mod.default, toc: mod.toc })
+			}
+		})
+	}, [path])
+
+	return content
 }
 
-const clientLoader = browserCollections.docs.createClientLoader({
-	component({ toc, frontmatter, default: MDX }: DocsComponentProps) {
-		return (
-			<DocsPage toc={toc}>
-				<DocsTitle>{frontmatter.title}</DocsTitle>
-				<DocsDescription>{frontmatter.description}</DocsDescription>
-				<DocsBody>
-					<MDX
-						components={{
-							...defaultMdxComponents,
-							...getMDXComponents(),
-						}}
-					/>
-				</DocsBody>
-			</DocsPage>
-		)
-	},
-})
+function MDXContent({ path }: { path: string }) {
+	const content = useDocContent(path)
+
+	if (!content) {
+		return <div>Loading...</div>
+	}
+
+	const { MDX } = content
+	return (
+		<MDX
+			components={{
+				...defaultMdxComponents,
+				...getMDXComponents(),
+			}}
+		/>
+	)
+}
 
 function Page() {
-	const data = Route.useLoaderData()
-	const { pageTree } = useFumadocsLoader(data)
-	const Content = clientLoader.getComponent(data.path)
+	const { path, pageTree: serializedTree, frontmatter } = Route.useLoaderData()
+	const content = useDocContent(path)
+
+	// Cast back to Root type (it's already in the right shape)
+	const tree = serializedTree as Root
 
 	return (
 		<RootProvider>
-			<DocsLayout {...getLayoutOptions()} tree={pageTree}>
-				<Content />
+			<DocsLayout {...getLayoutOptions()} tree={tree}>
+				<DocsPage toc={content?.toc ?? []}>
+					<DocsTitle>{frontmatter.title}</DocsTitle>
+					<DocsDescription>{frontmatter.description}</DocsDescription>
+					<DocsBody>
+						<MDXContent path={path} />
+					</DocsBody>
+				</DocsPage>
 			</DocsLayout>
 		</RootProvider>
 	)
