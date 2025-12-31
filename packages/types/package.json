@@ -33,6 +33,10 @@
 		"./ai": {
 			"types": "./src/ai.ts",
 			"import": "./src/ai.ts"
+		},
+		"./cloudflare": {
+			"types": "./src/cloudflare.ts",
+			"import": "./src/cloudflare.ts"
 		}
 	},
 	"main": "./src/index.ts",
@@ -41,9 +45,11 @@
 		"src"
 	],
 	"dependencies": {
+		"@elithrar/workers-hono-rate-limit": "^0.3.0",
 		"ai": "^6.0.3"
 	},
 	"devDependencies": {
+		"@cloudflare/workers-types": "^4.20251224.0",
 		"@hare/typescript-config": "workspace:*",
 		"typescript": "^5",
 		"zod": "^4.2.1"
