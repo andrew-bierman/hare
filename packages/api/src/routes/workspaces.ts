@@ -256,14 +256,14 @@ async function slugExists(db: Database, slug: string, excludeId?: string): Promi
 	return !!existing && existing.id !== excludeId
 }
 
-// Create app with proper typing
-const app = new OpenAPIHono<AuthEnv>()
+// Create base app with proper typing
+const baseApp = new OpenAPIHono<AuthEnv>()
 
 // Apply middleware
-app.use('*', authMiddleware)
+baseApp.use('*', authMiddleware)
 
-// Register routes - order matters: specific paths before parameterized paths
-app.openapi(ensureDefaultWorkspaceRoute, async (c) => {
+// Register routes - chain all .openapi() calls for type inference
+const app = baseApp.openapi(ensureDefaultWorkspaceRoute, async (c) => {
 	const db = getDb(c)
 	const user = c.get('user')
 
@@ -314,9 +314,7 @@ app.openapi(ensureDefaultWorkspaceRoute, async (c) => {
 		},
 		200,
 	)
-})
-
-app.openapi(listWorkspacesRoute, async (c) => {
+}).openapi(listWorkspacesRoute, async (c) => {
 	const db = getDb(c)
 	const user = c.get('user')
 
@@ -357,9 +355,7 @@ app.openapi(listWorkspacesRoute, async (c) => {
 	})
 
 	return c.json({ workspaces: workspacesData }, 200)
-})
-
-app.openapi(createWorkspaceRoute, async (c) => {
+}).openapi(createWorkspaceRoute, async (c) => {
 	const data = c.req.valid('json')
 	const db = getDb(c)
 	const user = c.get('user')
@@ -384,9 +380,7 @@ app.openapi(createWorkspaceRoute, async (c) => {
 	}
 
 	return c.json(serializeWorkspace(workspace, 'owner'), 201)
-})
-
-app.openapi(getWorkspaceRoute, async (c) => {
+}).openapi(getWorkspaceRoute, async (c) => {
 	const { id } = c.req.valid('param')
 	const db = getDb(c)
 	const user = c.get('user')
@@ -403,9 +397,7 @@ app.openapi(getWorkspaceRoute, async (c) => {
 	}
 
 	return c.json(serializeWorkspace(workspace, role), 200)
-})
-
-app.openapi(updateWorkspaceRoute, async (c) => {
+}).openapi(updateWorkspaceRoute, async (c) => {
 	const { id } = c.req.valid('param')
 	const data = c.req.valid('json')
 	const db = getDb(c)
@@ -444,9 +436,7 @@ app.openapi(updateWorkspaceRoute, async (c) => {
 	}
 
 	return c.json(serializeWorkspace(workspace, role), 200)
-})
-
-app.openapi(deleteWorkspaceRoute, async (c) => {
+}).openapi(deleteWorkspaceRoute, async (c) => {
 	const { id } = c.req.valid('param')
 	const db = getDb(c)
 	const user = c.get('user')

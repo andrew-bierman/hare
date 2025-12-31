@@ -263,15 +263,15 @@ async function getUserWorkspaceRole(
 // App Setup
 // =============================================================================
 
-const app = new OpenAPIHono<AuthEnv>()
+const baseApp = new OpenAPIHono<AuthEnv>()
 
-app.use('*', authMiddleware)
+baseApp.use('*', authMiddleware)
 
 // =============================================================================
 // Route Handlers
 // =============================================================================
 
-app.openapi(listMembersRoute, async (c) => {
+const app = baseApp.openapi(listMembersRoute, async (c) => {
 	const { id } = c.req.valid('param')
 	const db = getDb(c)
 	const user = c.get('user')
@@ -339,8 +339,7 @@ app.openapi(listMembersRoute, async (c) => {
 
 	return c.json({ members }, 200)
 })
-
-app.openapi(sendInvitationRoute, async (c) => {
+.openapi(sendInvitationRoute, async (c) => {
 	const { id } = c.req.valid('param')
 	const { email, role } = c.req.valid('json')
 	const db = getDb(c)
@@ -433,8 +432,7 @@ app.openapi(sendInvitationRoute, async (c) => {
 		201,
 	)
 })
-
-app.openapi(listInvitationsRoute, async (c) => {
+.openapi(listInvitationsRoute, async (c) => {
 	const { id } = c.req.valid('param')
 	const db = getDb(c)
 	const user = c.get('user')
@@ -482,8 +480,7 @@ app.openapi(listInvitationsRoute, async (c) => {
 
 	return c.json({ invitations: formattedInvitations }, 200)
 })
-
-app.openapi(revokeInvitationRoute, async (c) => {
+.openapi(revokeInvitationRoute, async (c) => {
 	const { id, inviteId } = c.req.valid('param')
 	const db = getDb(c)
 	const user = c.get('user')
@@ -519,8 +516,7 @@ app.openapi(revokeInvitationRoute, async (c) => {
 
 	return c.json({ success: true }, 200)
 })
-
-app.openapi(removeMemberRoute, async (c) => {
+.openapi(removeMemberRoute, async (c) => {
 	const { id, userId } = c.req.valid('param')
 	const db = getDb(c)
 	const user = c.get('user')
@@ -555,8 +551,7 @@ app.openapi(removeMemberRoute, async (c) => {
 
 	return c.json({ success: true }, 200)
 })
-
-app.openapi(updateMemberRoleRoute, async (c) => {
+.openapi(updateMemberRoleRoute, async (c) => {
 	const { id, userId } = c.req.valid('param')
 	const { role: newRole } = c.req.valid('json')
 	const db = getDb(c)

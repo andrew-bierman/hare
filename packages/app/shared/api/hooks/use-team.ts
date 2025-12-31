@@ -2,7 +2,7 @@
 
 import type { MemberRole, SendInvitationInput, WorkspaceInvitation, WorkspaceMember } from '@hare/types'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { api, ApiClientError } from '../client'
+import { api, handleResponse } from '../client'
 
 // Re-export types for convenience
 export type {
@@ -11,25 +11,6 @@ export type {
 	WorkspaceInvitation,
 	WorkspaceMember,
 } from '@hare/types'
-
-/**
- * Helper to handle Hono RPC response with proper error handling.
- */
-async function handleResponse<T>(res: Response & { json(): Promise<T> }): Promise<T> {
-	if (!res.ok) {
-		let errorMessage = `Request failed with status ${res.status}`
-		let errorCode: string | undefined
-		try {
-			const error = (await res.json()) as { error: string; code?: string }
-			errorMessage = error.error ?? errorMessage
-			errorCode = error.code
-		} catch {
-			// Response wasn't JSON
-		}
-		throw new ApiClientError(errorMessage, res.status, errorCode)
-	}
-	return res.json()
-}
 
 /**
  * Hook to fetch workspace members
