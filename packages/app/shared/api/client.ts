@@ -33,11 +33,9 @@ function getBaseURL(): string {
  */
 export function createApiClient(baseUrl?: string) {
 	return hc<AppType>(baseUrl ?? getBaseURL(), {
-		fetch: (input: RequestInfo | URL, init?: RequestInit) =>
-			fetch(input, {
-				...init,
-				credentials: 'include',
-			}),
+		init: {
+			credentials: 'include',
+		},
 	})
 }
 
