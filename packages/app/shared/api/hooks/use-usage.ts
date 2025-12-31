@@ -1,7 +1,7 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
-import { api } from '../client'
+import { api } from '@hare/api-client'
 
 export interface UsageParams {
 	startDate?: string

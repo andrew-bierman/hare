@@ -2,7 +2,7 @@
 
 import { queryOptions, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type { Agent, CreateAgentInput, UpdateAgentInput } from '@hare/types'
-import { api } from '../client'
+import { api } from '@hare/api-client'
 import { agentKeys } from './query-keys'
 
 /**

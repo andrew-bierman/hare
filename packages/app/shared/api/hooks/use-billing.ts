@@ -1,7 +1,7 @@
 'use client'
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { api } from '../client'
+import { api } from '@hare/api-client'
 import { billingKeys } from './query-keys'
 
 export interface CheckoutRequest {

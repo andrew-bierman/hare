@@ -2,7 +2,7 @@
 
 import type { MemberRole, SendInvitationInput, WorkspaceInvitation, WorkspaceMember } from '@hare/types'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { api } from '../client'
+import { api } from '@hare/api-client'
 
 // Re-export types for convenience
 export type {
