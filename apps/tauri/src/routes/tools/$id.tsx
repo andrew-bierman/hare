@@ -1,4 +1,5 @@
 import { useWorkspace } from '@hare/app/providers'
+import { generatePrefixedId } from '@hare/app/shared'
 import {
 	type HttpToolConfig,
 	type InputSchema,
@@ -9,7 +10,6 @@ import {
 	useToolQuery,
 	useUpdateToolMutation,
 } from '@hare/app/shared/api'
-import { generatePrefixedId } from '@hare/app/shared'
 import { Badge } from '@hare/ui/components/badge'
 import { Button } from '@hare/ui/components/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@hare/ui/components/card'

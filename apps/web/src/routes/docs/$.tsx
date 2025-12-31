@@ -9,6 +9,8 @@ import '../../styles/docs.css'
 
 export const Route = createFileRoute('/docs/$')({
 	component: DocsPageComponent,
+	// @ts-expect-error - Dynamic import causes type inference issues with TanStack Router
+	// The loader works correctly at runtime; this is a known limitation with async dynamic imports
 	loader: async ({ params }) => {
 		// Dynamic import to keep fumadocs server code out of client bundle
 		const { source } = await import('../../lib/docs/source')
@@ -37,6 +39,7 @@ export const Route = createFileRoute('/docs/$')({
 
 function DocsPageComponent() {
 	// Page is guaranteed to exist since loader throws notFound() for missing pages
+	// biome-ignore lint/suspicious/noExplicitAny: Fumadocs types are complex and dynamically generated
 	const { page, pageTree } = Route.useLoaderData() as { page: any; pageTree: any }
 	const MDX = page.data.body
 
