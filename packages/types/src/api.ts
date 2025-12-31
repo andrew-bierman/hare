@@ -325,7 +325,7 @@ export const ToolSchema = z.object({
 	description: z.string().nullable(),
 	type: ToolTypeSchema,
 	isSystem: z.boolean().optional(),
-	inputSchema: z.record(z.string(), z.unknown()).optional(),
+	inputSchema: z.record(z.string(), z.unknown()),
 	config: z.record(z.string(), z.unknown()).optional(),
 	createdAt: z.string(),
 	updatedAt: z.string(),
