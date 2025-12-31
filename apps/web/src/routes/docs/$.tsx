@@ -1,18 +1,29 @@
 import { createFileRoute, notFound } from '@tanstack/react-router'
 import type { Root } from 'fumadocs-core/page-tree'
-import type { InferPageType } from 'fumadocs-core/source'
 import { DocsLayout } from 'fumadocs-ui/layouts/docs'
 import defaultMdxComponents from 'fumadocs-ui/mdx'
 import { DocsBody, DocsPage } from 'fumadocs-ui/page'
 import { RootProvider } from 'fumadocs-ui/provider/tanstack'
 import { getLayoutOptions } from '../../lib/docs/layout.shared'
 import { getMDXComponents } from '../../lib/docs/mdx-components'
-import { source } from '../../lib/docs/source'
 import '../../styles/docs.css'
+
+// Type for the page data returned from loader
+interface DocsPageData {
+	data: {
+		title: string
+		description?: string
+		body: React.ComponentType<{ components?: Record<string, React.ComponentType> }>
+		toc: unknown
+	}
+}
 
 export const Route = createFileRoute('/docs/$')({
 	component: DocsPageComponent,
 	loader: async ({ params }) => {
+		// Dynamic import - only loads on server to avoid bundling Node.js path module for client
+		const { source } = await import('../../lib/docs/source')
+
 		// _splat is available for catch-all routes
 		const splat = (params as { _splat?: string })._splat
 		const slugs = splat?.split('/').filter(Boolean) ?? []
@@ -37,7 +48,7 @@ export const Route = createFileRoute('/docs/$')({
 function DocsPageComponent() {
 	// Page is guaranteed to exist since loader throws notFound() for missing pages
 	const { page, pageTree } = Route.useLoaderData() as {
-		page: InferPageType<typeof source>
+		page: DocsPageData
 		pageTree: Root
 	}
 	const MDX = page.data.body

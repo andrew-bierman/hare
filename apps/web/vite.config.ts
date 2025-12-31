@@ -30,6 +30,8 @@ export default defineConfig({
 	optimizeDeps: {
 		// Pre-bundle the same deps for client-side
 		include: ['agents', 'agents/mcp', 'ai', '@modelcontextprotocol/sdk/server/mcp.js'],
+		// Exclude Node.js server-only modules from client bundling
+		exclude: ['fumadocs-mdx/runtime/server'],
 	},
 	resolve: {
 		alias: {
