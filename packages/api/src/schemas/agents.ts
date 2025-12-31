@@ -1,5 +1,11 @@
 import { z } from '@hono/zod-openapi'
-import { AGENT_LIMITS, AI_MODELS } from '@hare/config'
+import {
+	AGENT_LIMITS,
+	AGENT_STATUSES,
+	AI_MODELS,
+	DEPLOYMENT_STATUSES,
+	VALIDATION_ISSUE_SEVERITIES,
+} from '@hare/config'
 
 // =============================================================================
 // Validation Constants
@@ -97,9 +103,7 @@ export const AgentConfigSchema = z
 /**
  * Agent status enum.
  */
-export const AgentStatusSchema = z
-	.enum(['draft', 'deployed', 'archived'])
-	.openapi({ example: 'draft' })
+export const AgentStatusSchema = z.enum(AGENT_STATUSES).openapi({ example: 'draft' })
 
 /**
  * Full agent schema for API responses.
@@ -280,9 +284,7 @@ export const DeploymentEndpointsSchema = z
 export const DeploymentSchema = z
 	.object({
 		id: z.string().openapi({ example: 'deploy_abc123' }),
-		status: z.enum(['deployed', 'active', 'pending', 'failed', 'inactive', 'rolled_back']).openapi({
-			example: 'deployed',
-		}),
+		status: z.enum(DEPLOYMENT_STATUSES).openapi({ example: 'deployed' }),
 		deployedAt: z.string().datetime().openapi({ example: '2024-12-01T00:00:00Z' }),
 		version: z.string().openapi({ example: '1.0.0' }),
 		url: z.string().url().openapi({
@@ -303,7 +305,7 @@ export const DeploymentSchema = z
 export const ValidationIssueSchema = z
 	.object({
 		field: z.string().describe('Field that has the issue'),
-		type: z.enum(['error', 'warning']).describe('Issue severity'),
+		type: z.enum(VALIDATION_ISSUE_SEVERITIES).describe('Issue severity'),
 		message: z.string().describe('Issue description'),
 	})
 	.openapi('ValidationIssue')

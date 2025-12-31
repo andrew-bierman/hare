@@ -8,8 +8,15 @@ import {
 	useDeployAgentMutation,
 	useToolsQuery,
 	useUpdateAgentMutation,
-	type ValidationIssue,
 } from '@hare/app/shared/api'
+
+// Local type for validation issues (matches API schema)
+interface ValidationIssue {
+	field: string
+	type: 'error' | 'warning'
+	message: string
+}
+
 import { AgentInstructionsEditor } from '@hare/app/widgets/agent-builder'
 import { MemoryViewer } from '@hare/app/widgets/memory-viewer'
 import { ScheduledTasksSection } from '@hare/app/widgets/scheduled-tasks'
@@ -51,6 +58,8 @@ import {
 	Globe,
 	HardDrive,
 	Layers,
+	MessageSquare,
+	Play,
 	Plug,
 	RefreshCw,
 	Rocket,
@@ -431,31 +440,45 @@ function AgentBuilderPage() {
 					<p className="text-muted-foreground mt-2">Configure your agent's settings and behavior</p>
 				</div>
 				<div className="flex gap-2">
+					{/* Primary actions */}
+					{agent.status === 'deployed' && (
+						<Link to="/dashboard/agents/$id/playground" params={{ id: agentId }}>
+							<Button className="gap-2">
+								<Play className="h-4 w-4" />
+								Test Agent
+							</Button>
+						</Link>
+					)}
 					{agent.status !== 'deployed' && (
 						<Button
-							variant="outline"
 							onClick={handleDeploy}
 							disabled={deployAgent.isPending || !instructions.trim()}
+							className="gap-2"
 						>
-							<Rocket className="mr-2 h-4 w-4" />
+							<Rocket className="h-4 w-4" />
 							{deployAgent.isPending ? 'Deploying...' : 'Deploy'}
 						</Button>
 					)}
-					<Link to="/dashboard/agents/$id/embed" params={{ id: agentId }}>
-						<Button variant="outline">
-							<CodeXml className="mr-2 h-4 w-4" />
-							Embed
-						</Button>
-					</Link>
-					<Button variant="outline" onClick={() => setIsDeleteOpen(true)}>
-						<Trash2 className="mr-2 h-4 w-4" />
-						Delete
-					</Button>
 					<Button
 						onClick={handleSave}
+						variant={agent.status === 'deployed' ? 'default' : 'secondary'}
 						disabled={updateAgent.isPending || !hasChanges || hasValidationErrors}
 					>
 						{updateAgent.isPending ? 'Saving...' : 'Save Changes'}
+					</Button>
+					{/* Secondary actions */}
+					<Link to="/dashboard/agents/$id/embed" params={{ id: agentId }}>
+						<Button variant="outline" size="icon" title="Embed Code">
+							<CodeXml className="h-4 w-4" />
+						</Button>
+					</Link>
+					<Button
+						variant="outline"
+						size="icon"
+						onClick={() => setIsDeleteOpen(true)}
+						title="Delete Agent"
+					>
+						<Trash2 className="h-4 w-4" />
 					</Button>
 				</div>
 			</div>
@@ -544,26 +567,64 @@ function AgentBuilderPage() {
 						</div>
 
 						<div className="space-y-4">
+							{/* Quick Actions Card */}
 							<Card>
-								<CardHeader>
-									<CardTitle>Statistics</CardTitle>
+								<CardHeader className="pb-3">
+									<CardTitle className="text-base">Quick Actions</CardTitle>
 								</CardHeader>
-								<CardContent className="space-y-4">
-									<div>
-										<div className="text-2xl font-bold">
+								<CardContent className="space-y-2">
+									{agent.status === 'deployed' ? (
+										<Link
+											to="/dashboard/agents/$id/playground"
+											params={{ id: agentId }}
+											className="block"
+										>
+											<Button variant="outline" className="w-full justify-start gap-2">
+												<MessageSquare className="h-4 w-4" />
+												Open Playground
+											</Button>
+										</Link>
+									) : (
+										<Button
+											variant="outline"
+											className="w-full justify-start gap-2"
+											onClick={handleDeploy}
+											disabled={deployAgent.isPending || !instructions.trim()}
+										>
+											<Rocket className="h-4 w-4" />
+											Deploy to Test
+										</Button>
+									)}
+									<Link to="/dashboard/agents/$id/embed" params={{ id: agentId }} className="block">
+										<Button variant="outline" className="w-full justify-start gap-2">
+											<CodeXml className="h-4 w-4" />
+											Get Embed Code
+										</Button>
+									</Link>
+								</CardContent>
+							</Card>
+
+							{/* Statistics Card */}
+							<Card>
+								<CardHeader className="pb-3">
+									<CardTitle className="text-base">Statistics</CardTitle>
+								</CardHeader>
+								<CardContent className="space-y-3">
+									<div className="flex justify-between items-center">
+										<span className="text-sm text-muted-foreground">Messages</span>
+										<span className="text-sm font-medium">
 											{usageData?.totalCalls?.toLocaleString() ?? 0}
-										</div>
-										<p className="text-xs text-muted-foreground">Total messages</p>
+										</span>
 									</div>
-									<div>
-										<div className="text-2xl font-bold">
+									<div className="flex justify-between items-center">
+										<span className="text-sm text-muted-foreground">Tokens</span>
+										<span className="text-sm font-medium">
 											{usageData?.totalTokens?.toLocaleString() ?? 0}
-										</div>
-										<p className="text-xs text-muted-foreground">Tokens used</p>
+										</span>
 									</div>
-									<div>
-										<div className="text-2xl font-bold">{selectedToolIds.length}</div>
-										<p className="text-xs text-muted-foreground">Tools enabled</p>
+									<div className="flex justify-between items-center">
+										<span className="text-sm text-muted-foreground">Tools</span>
+										<span className="text-sm font-medium">{selectedToolIds.length}</span>
 									</div>
 								</CardContent>
 							</Card>

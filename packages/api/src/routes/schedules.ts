@@ -333,17 +333,17 @@ const getAgentExecutionsRoute = createRoute({
 // App Setup
 // =============================================================================
 
-const app = new OpenAPIHono<WorkspaceEnv>()
+const baseApp = new OpenAPIHono<WorkspaceEnv>()
 
 // Apply middleware
-app.use('*', authMiddleware)
-app.use('*', workspaceMiddleware)
+baseApp.use('*', authMiddleware)
+baseApp.use('*', workspaceMiddleware)
 
 // =============================================================================
 // Route Handlers
 // =============================================================================
 
-app.openapi(listSchedulesRoute, async (c) => {
+const app = baseApp.openapi(listSchedulesRoute, async (c) => {
 	const { agentId } = c.req.valid('param')
 	const { status } = c.req.valid('query')
 	const db = getDb(c)
@@ -373,8 +373,7 @@ app.openapi(listSchedulesRoute, async (c) => {
 
 	return c.json({ schedules: schedules.map(serializeSchedule) }, 200)
 })
-
-app.openapi(createScheduleRoute, async (c) => {
+.openapi(createScheduleRoute, async (c) => {
 	const { agentId } = c.req.valid('param')
 	const data = c.req.valid('json')
 	const db = getDb(c)
@@ -456,8 +455,7 @@ app.openapi(createScheduleRoute, async (c) => {
 
 	return c.json(serializeSchedule(schedule), 201)
 })
-
-app.openapi(getScheduleRoute, async (c) => {
+.openapi(getScheduleRoute, async (c) => {
 	const { agentId, scheduleId } = c.req.valid('param')
 	const db = getDb(c)
 	const workspace = c.get('workspace')
@@ -483,8 +481,7 @@ app.openapi(getScheduleRoute, async (c) => {
 
 	return c.json(serializeSchedule(schedule), 200)
 })
-
-app.openapi(updateScheduleRoute, async (c) => {
+.openapi(updateScheduleRoute, async (c) => {
 	const { agentId, scheduleId } = c.req.valid('param')
 	const data = c.req.valid('json')
 	const db = getDb(c)
@@ -543,8 +540,7 @@ app.openapi(updateScheduleRoute, async (c) => {
 
 	return c.json(serializeSchedule(schedule), 200)
 })
-
-app.openapi(deleteScheduleRoute, async (c) => {
+.openapi(deleteScheduleRoute, async (c) => {
 	const { agentId, scheduleId } = c.req.valid('param')
 	const db = getDb(c)
 	const workspace = c.get('workspace')
@@ -573,8 +569,7 @@ app.openapi(deleteScheduleRoute, async (c) => {
 
 	return c.json({ success: true }, 200)
 })
-
-app.openapi(getExecutionHistoryRoute, async (c) => {
+.openapi(getExecutionHistoryRoute, async (c) => {
 	const { agentId, scheduleId } = c.req.valid('param')
 	const { limit, offset } = c.req.valid('query')
 	const db = getDb(c)
@@ -622,8 +617,7 @@ app.openapi(getExecutionHistoryRoute, async (c) => {
 		200,
 	)
 })
-
-app.openapi(getAgentExecutionsRoute, async (c) => {
+.openapi(getAgentExecutionsRoute, async (c) => {
 	const { agentId } = c.req.valid('param')
 	const { limit, offset } = c.req.valid('query')
 	const db = getDb(c)

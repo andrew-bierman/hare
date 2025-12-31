@@ -5,6 +5,77 @@
  * Following Feature-Sliced Design, this is the public API for the config segment.
  */
 
+// Enums (centralized single source of truth)
+export {
+	// Status enums
+	AgentStatus,
+	AGENT_STATUSES,
+	DeploymentStatus,
+	DEPLOYMENT_STATUSES,
+	ScheduleStatus,
+	SCHEDULE_STATUSES,
+	ExecutionStatus,
+	EXECUTION_STATUSES,
+	InvitationStatus,
+	INVITATION_STATUSES,
+	// Role enums
+	WorkspaceRole,
+	WORKSPACE_ROLES,
+	MemberRole,
+	MEMBER_ROLES,
+	MessageRole,
+	MESSAGE_ROLES,
+	API_MESSAGE_ROLES,
+	// Type enums
+	ScheduleType,
+	SCHEDULE_TYPES,
+	ExportFormat,
+	EXPORT_FORMATS,
+	ValidationIssueSeverity,
+	VALIDATION_ISSUE_SEVERITIES,
+	UsageGroupBy,
+	USAGE_GROUP_BY_OPTIONS,
+	// Tool enums
+	ToolCategory,
+	ToolType,
+	TOOL_TYPES,
+	TOOL_TYPE_CATEGORIES,
+	getToolsByCategory,
+	// HTTP
+	HttpMethod,
+	HTTP_METHODS,
+	// Environment
+	NodeEnv,
+	NODE_ENVS,
+	// Billing
+	PlanId,
+	PLAN_IDS,
+	// Widget
+	WidgetPosition,
+	WIDGET_POSITIONS,
+	// Defaults
+	ENUM_DEFAULTS,
+	// Types
+	type AgentStatus as AgentStatusType,
+	type DeploymentStatus as DeploymentStatusType,
+	type ScheduleStatus as ScheduleStatusType,
+	type ExecutionStatus as ExecutionStatusType,
+	type InvitationStatus as InvitationStatusType,
+	type WorkspaceRole as WorkspaceRoleType,
+	type MemberRole as MemberRoleType,
+	type MessageRole as MessageRoleType,
+	type ScheduleType as ScheduleTypeType,
+	type ExportFormat as ExportFormatType,
+	type ValidationIssueSeverity as ValidationIssueSeverityType,
+	type UsageGroupBy as UsageGroupByType,
+	type ToolCategory as ToolCategoryType,
+	type ToolType as ToolTypeType,
+	type HttpMethod as HttpMethodType,
+	type NodeEnv as NodeEnvType,
+	type PlanId as PlanIdType,
+	type WidgetPosition as WidgetPositionType,
+} from './enums'
+
 // Environment
 export { clientEnv, serverEnv, type ClientEnv, type ServerEnv } from './env'
 

@@ -2,7 +2,7 @@
 
 import { queryOptions, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type { CreateWorkspaceInput, Workspace } from '@hare/types'
-import { apiClient } from '../client'
+import { api } from '@hare/api-client'
 import { workspaceKeys } from './query-keys'
 
 /**
@@ -11,7 +11,11 @@ import { workspaceKeys } from './query-keys'
 export const workspacesQueryOptions = () =>
 	queryOptions({
 		queryKey: workspaceKeys.list(),
-		queryFn: () => apiClient.workspaces.list(),
+		queryFn: async () => {
+			const res = await api.workspaces.$get()
+			if (!res.ok) throw new Error('Request failed')
+			return res.json()
+		},
 	})
 
 /**
@@ -20,7 +24,11 @@ export const workspacesQueryOptions = () =>
 export const workspaceQueryOptions = (id: string) =>
 	queryOptions({
 		queryKey: workspaceKeys.detail(id),
-		queryFn: () => apiClient.workspaces.get(id),
+		queryFn: async () => {
+			const res = await api.workspaces[':id'].$get({ param: { id } })
+			if (!res.ok) throw new Error('Request failed')
+			return res.json()
+		},
 	})
 
 export function useWorkspacesQuery() {
@@ -37,7 +45,11 @@ export function useWorkspaceByIdQuery(id: string | undefined) {
 export function useCreateWorkspaceMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: (data: CreateWorkspaceInput) => apiClient.workspaces.create(data),
+		mutationFn: async (data: CreateWorkspaceInput) => {
+			const res = await api.workspaces.$post({ json: data })
+			if (!res.ok) throw new Error('Request failed')
+			return res.json()
+		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: workspaceKeys.list() })
 		},
@@ -47,7 +59,11 @@ export function useCreateWorkspaceMutation() {
 export function useEnsureDefaultWorkspaceMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: () => apiClient.workspaces.ensureDefault(),
+		mutationFn: async () => {
+			const res = await api.workspaces['ensure-default'].$post()
+			if (!res.ok) throw new Error('Request failed')
+			return res.json()
+		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: workspaceKeys.list() })
 		},
@@ -57,8 +73,11 @@ export function useEnsureDefaultWorkspaceMutation() {
 export function useUpdateWorkspaceMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: ({ id, data }: { id: string; data: Partial<CreateWorkspaceInput> }) =>
-			apiClient.workspaces.update(id, data),
+		mutationFn: async ({ id, data }: { id: string; data: Partial<CreateWorkspaceInput> }) => {
+			const res = await api.workspaces[':id'].$patch({ param: { id }, json: data })
+			if (!res.ok) throw new Error('Request failed')
+			return res.json()
+		},
 		// Optimistic update
 		onMutate: async ({ id, data }) => {
 			await queryClient.cancelQueries({ queryKey: workspaceKeys.detail(id) })
@@ -86,7 +105,11 @@ export function useUpdateWorkspaceMutation() {
 export function useDeleteWorkspaceMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: (id: string) => apiClient.workspaces.delete(id),
+		mutationFn: async (id: string) => {
+			const res = await api.workspaces[':id'].$delete({ param: { id } })
+			if (!res.ok) throw new Error('Request failed')
+			return res.json()
+		},
 		// Optimistic update
 		onMutate: async (id) => {
 			await queryClient.cancelQueries({ queryKey: workspaceKeys.list() })

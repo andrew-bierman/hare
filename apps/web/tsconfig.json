@@ -6,8 +6,7 @@
 			"web-app/*": ["./src/*"],
 			"@hare/ui/*": ["../../packages/ui/src/*"],
 			"@hare/api": ["../../packages/api/src/index.ts"],
-			"@hare/api/*": ["../../packages/api/src/*"],
-			"fumadocs-mdx:collections/*": ["./.source/*"]
+			"@hare/api/*": ["../../packages/api/src/*"]
 		},
 		"types": ["bun", "vite/client", "@cloudflare/workers-types"]
 	},

@@ -82,14 +82,14 @@ const getAgentUsageRoute = createRoute({
 })
 
 // Create app with proper typing (includes Bindings and Variables)
-const app = new OpenAPIHono<WorkspaceEnv>()
+const baseApp = new OpenAPIHono<WorkspaceEnv>()
 
 // Apply middleware
-app.use('*', authMiddleware)
-app.use('*', workspaceMiddleware)
+baseApp.use('*', authMiddleware)
+baseApp.use('*', workspaceMiddleware)
 
 // Register routes
-app.openapi(getWorkspaceUsageRoute, async (c) => {
+const app = baseApp.openapi(getWorkspaceUsageRoute, async (c) => {
 	const { startDate, endDate } = c.req.valid('query')
 	const db = getDb(c)
 	const workspace = c.get('workspace')
@@ -177,8 +177,7 @@ app.openapi(getWorkspaceUsageRoute, async (c) => {
 		200,
 	)
 })
-
-app.openapi(getAgentUsageRoute, async (c) => {
+.openapi(getAgentUsageRoute, async (c) => {
 	const { id: agentId } = c.req.valid('param')
 	const db = getDb(c)
 	const workspace = c.get('workspace')
