@@ -28,6 +28,7 @@ import { workspaceMembers, workspaces } from './workspaces'
 /** Schema for selecting users from the database */
 export const selectUserSchema = createSelectSchema(users)
 /** Schema for inserting users into the database */
+// @ts-expect-error - drizzle-zod createInsertSchema causes deep type instantiation
 export const insertUserSchema = createInsertSchema(users, {
 	email: z.string().email(),
 	name: z.string().min(1).max(100),
