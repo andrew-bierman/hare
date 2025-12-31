@@ -1,8 +1,16 @@
 'use client'
 
-import { createContext, type ReactNode, useCallback, useContext, useEffect, useState } from 'react'
+import {
+	createContext,
+	type ReactNode,
+	useCallback,
+	useContext,
+	useEffect,
+	useRef,
+	useState,
+} from 'react'
 import type { Workspace, WorkspaceRole } from '../../shared/api'
-import { useWorkspacesQuery, useCreateWorkspaceMutation } from '../../shared/api'
+import { useWorkspacesQuery, useEnsureDefaultWorkspaceMutation } from '../../shared/api'
 import { useAuth } from '../../features/auth'
 
 interface WorkspaceWithRole extends Workspace {
@@ -26,8 +34,9 @@ const ACTIVE_WORKSPACE_KEY = 'hare-active-workspace'
 export function WorkspaceProvider({ children }: { children: ReactNode }) {
 	const { data: session } = useAuth()
 	const { data, isLoading, error } = useWorkspacesQuery()
-	const createWorkspace = useCreateWorkspaceMutation()
+	const ensureDefaultWorkspace = useEnsureDefaultWorkspaceMutation()
 	const [activeWorkspace, setActiveWorkspaceState] = useState<WorkspaceWithRole | null>(null)
+	const hasEnsuredDefault = useRef(false)
 
 	const workspaces: WorkspaceWithRole[] = data?.workspaces ?? []
 
@@ -38,16 +47,20 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
 		}
 	}, [])
 
-	// Auto-create default workspace if user has none (fallback for OAuth users)
-	// Server handles slug uniqueness, so we don't need client-side suffix
+	// Ensure default workspace exists (idempotent - safe to call multiple times)
+	// Uses server-side atomic check-and-create to prevent duplicates
 	useEffect(() => {
-		if (!isLoading && session?.user && workspaces.length === 0 && !createWorkspace.isPending) {
-			createWorkspace.mutate({
-				name: 'My Workspace',
-				slug: 'my-workspace',
-			})
+		if (
+			!isLoading &&
+			session?.user &&
+			workspaces.length === 0 &&
+			!ensureDefaultWorkspace.isPending &&
+			!hasEnsuredDefault.current
+		) {
+			hasEnsuredDefault.current = true
+			ensureDefaultWorkspace.mutate()
 		}
-	}, [isLoading, session?.user, workspaces.length, createWorkspace])
+	}, [isLoading, session?.user, workspaces.length, ensureDefaultWorkspace])
 
 	// Restore or set active workspace
 	useEffect(() => {
@@ -72,7 +85,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
 				workspaceRole: activeWorkspace?.role,
 				setActiveWorkspace,
 				isLoading,
-				isCreatingWorkspace: createWorkspace.isPending,
+				isCreatingWorkspace: ensureDefaultWorkspace.isPending,
 				error: error as Error | null,
 			}}
 		>

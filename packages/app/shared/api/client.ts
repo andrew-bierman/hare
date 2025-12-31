@@ -319,6 +319,12 @@ export const workspaces = {
 
 	delete: (id: string) => del<{ success: true }>(`/api/workspaces/${id}`),
 
+	ensureDefault: () =>
+		post<{ workspace: Workspace; created: boolean }, Record<string, never>>(
+			'/api/workspaces/ensure-default',
+			{},
+		),
+
 	members: {
 		list: (workspaceId: string) =>
 			get<{ members: WorkspaceMember[] }>(`/api/workspaces/${workspaceId}/members`),
