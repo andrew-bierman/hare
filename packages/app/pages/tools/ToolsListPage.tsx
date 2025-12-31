@@ -9,7 +9,7 @@ import {
 	CollapsibleContent,
 	CollapsibleTrigger,
 } from '@hare/ui/components/collapsible'
-import { Input } from '@hare/ui/components/input'
+import { SearchInput } from '@hare/ui/components/search-input'
 import { Skeleton } from '@hare/ui/components/skeleton'
 import {
 	Table,
@@ -19,7 +19,7 @@ import {
 	TableHeader,
 	TableRow,
 } from '@hare/ui/components/table'
-import { ChevronDown, Globe, Plus, SearchIcon, Trash2, Wrench } from 'lucide-react'
+import { ChevronDown, Globe, Plus, Trash2, Wrench } from 'lucide-react'
 import { type ChangeEvent, useState } from 'react'
 import type { Tool, ToolType } from '@hare/types'
 import { useToolsQuery } from '../../shared/api/hooks'
@@ -118,15 +118,12 @@ export function ToolsListPage() {
 			</div>
 
 			{/* Search */}
-			<div className="relative max-w-sm">
-				<SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-				<Input
-					placeholder="Search tools..."
-					className="pl-9"
-					value={search}
-					onChange={(e: ChangeEvent<HTMLInputElement>) => setSearch(e.target.value)}
-				/>
-			</div>
+			<SearchInput
+				placeholder="Search tools..."
+				value={search}
+				onChange={(e: ChangeEvent<HTMLInputElement>) => setSearch(e.target.value)}
+				containerClassName="w-full sm:w-64"
+			/>
 
 			{isLoading ? (
 				<ToolTableSkeleton />
