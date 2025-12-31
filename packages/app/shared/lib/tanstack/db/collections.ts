@@ -11,7 +11,7 @@ import type { Agent, Schedule, Tool, Workspace } from '@hare/types'
 import type { QueryClient } from '@tanstack/react-query'
 import { createCollection, type Collection } from '@tanstack/db'
 import { queryCollectionOptions } from '@tanstack/query-db-collection'
-import { api } from '../../../api/client'
+import { api } from '@hare/api-client'
 import { agentKeys, scheduleKeys, toolKeys, workspaceKeys } from '../../../api/hooks/query-keys'
 
 // =============================================================================

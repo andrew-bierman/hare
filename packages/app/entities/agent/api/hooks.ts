@@ -1,7 +1,7 @@
 'use client'
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { api } from '../../../shared/api/client'
+import { api } from '@hare/api-client'
 import type { Agent, CreateAgentInput, UpdateAgentInput } from '@hare/types'
 
 // Re-export types for convenience

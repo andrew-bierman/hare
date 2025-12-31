@@ -1,8 +1,8 @@
 /**
- * Type-safe API Client
+ * @hare/api-client
  *
+ * Type-safe Hono RPC client for the Hare API.
  * Uses Hono's `hc` client for automatic type inference from routes.
- * Types are inferred from the route definitions - no manual type maintenance needed.
  */
 
 import { hc } from 'hono/client'
@@ -23,8 +23,11 @@ function getBaseURL(): string {
 }
 
 /**
- * Create the type-safe Hono RPC client.
+ * Create a type-safe Hono RPC client.
  * All types are automatically inferred from route definitions.
+ *
+ * @param baseUrl - Optional base URL for the API. Defaults to auto-detection.
+ * @returns The Hono RPC client with full type inference.
  */
 export function createApiClient(baseUrl?: string) {
 	return hc<AppType>(baseUrl ?? getBaseURL(), {
@@ -37,11 +40,19 @@ export function createApiClient(baseUrl?: string) {
  * The `.api` accessor accounts for the basePath('/api') in the server routes.
  *
  * @example
+ * ```ts
+ * import { api } from '@hare/api-client'
+ *
  * const res = await api.agents.$get({ query: { workspaceId } })
  * if (!res.ok) throw new Error('Failed to fetch agents')
  * const { agents } = await res.json()
+ * ```
  */
 const client = createApiClient()
 export const api = client.api
 
+/** Type of the API client */
 export type ApiClient = ReturnType<typeof createApiClient>
+
+/** Type of the api accessor (with basePath applied) */
+export type Api = typeof api

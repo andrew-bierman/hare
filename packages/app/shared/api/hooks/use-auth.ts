@@ -1,7 +1,7 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
-import { api } from '../client'
+import { api } from '@hare/api-client'
 import { authKeys } from './query-keys'
 
 /** Auth provider cache TTL (1 hour) - providers don't change at runtime */

@@ -2,7 +2,7 @@
 
 import type { CreateScheduleInput, UpdateScheduleInput } from '@hare/types'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { api } from '../client'
+import { api } from '@hare/api-client'
 
 export interface ScheduleListParams {
 	status?: 'pending' | 'active' | 'paused' | 'completed' | 'cancelled'
