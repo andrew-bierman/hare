@@ -1,7 +1,7 @@
 import { z } from '@hono/zod-openapi'
 import {
 	AGENT_STATUSES,
-	Config,
+	config,
 	DEPLOYMENT_STATUSES,
 	VALIDATION_ISSUE_SEVERITIES,
 } from '@hare/config'
