@@ -4,6 +4,7 @@
  * A widget for chat/conversation interactions.
  */
 
+export { MarkdownContent, type MarkdownContentProps } from './ui/markdown-content'
 export { ToolCallBlock, type ToolCallBlockProps } from './ui/tool-call-block'
 export { ToolCallList, type ToolCallListProps } from './ui/tool-call-list'
 export {

@@ -11,7 +11,7 @@ import type { Agent, Schedule, Tool, Workspace } from '@hare/types'
 import type { QueryClient } from '@tanstack/react-query'
 import { createCollection, type Collection } from '@tanstack/db'
 import { queryCollectionOptions } from '@tanstack/query-db-collection'
-import { apiClient } from '../../../api/client'
+import { api } from '@hare/api-client'
 import { agentKeys, scheduleKeys, toolKeys, workspaceKeys } from '../../../api/hooks/query-keys'
 
 // =============================================================================
@@ -50,7 +50,9 @@ export function createAgentCollection(options: {
 		queryClient,
 		queryKey: agentKeys.list(workspaceId),
 		queryFn: async (): Promise<AgentRow[]> => {
-			const response = await apiClient.agents.list(workspaceId)
+			const res = await api.agents.$get({ query: { workspaceId } })
+			if (!res.ok) throw new Error('Request failed')
+			const response = await res.json()
 			return response.agents.map((agent) => ({
 				...agent,
 				_workspaceId: workspaceId,
@@ -63,15 +65,19 @@ export function createAgentCollection(options: {
 			for (const mutation of mutations) {
 				if (mutation.type === 'insert' && mutation.modified) {
 					const { _workspaceId, ...data } = mutation.modified
-					await apiClient.agents.create(_workspaceId, {
-						name: data.name,
-						description: data.description ?? undefined,
-						model: data.model,
-						instructions: data.instructions,
-						config: data.config ?? undefined,
-						systemToolsEnabled: data.systemToolsEnabled,
-						toolIds: data.toolIds,
+					const res = await api.agents.$post({
+						query: { workspaceId: _workspaceId },
+						json: {
+							name: data.name,
+							description: data.description ?? undefined,
+							model: data.model,
+							instructions: data.instructions,
+							config: data.config ?? undefined,
+							systemToolsEnabled: data.systemToolsEnabled,
+							toolIds: data.toolIds,
+						},
 					})
+					if (!res.ok) throw new Error('Request failed')
 				}
 			}
 		},
@@ -91,16 +97,21 @@ export function createAgentCollection(options: {
 						toolIds,
 						status,
 					} = mutation.modified
-					await apiClient.agents.update(id, _workspaceId, {
-						name,
-						description: description ?? undefined,
-						model,
-						instructions,
-						config: config ?? undefined,
-						systemToolsEnabled,
-						toolIds,
-						status,
+					const res = await api.agents[':id'].$patch({
+						param: { id },
+						query: { workspaceId: _workspaceId },
+						json: {
+							name,
+							description: description ?? undefined,
+							model,
+							instructions,
+							config: config ?? undefined,
+							systemToolsEnabled,
+							toolIds,
+							status,
+						},
 					})
+					if (!res.ok) throw new Error('Request failed')
 				}
 			}
 		},
@@ -110,7 +121,11 @@ export function createAgentCollection(options: {
 			for (const mutation of mutations) {
 				if (mutation.type === 'delete' && mutation.original) {
 					const { id, _workspaceId } = mutation.original
-					await apiClient.agents.delete(id, _workspaceId)
+					const res = await api.agents[':id'].$delete({
+						param: { id },
+						query: { workspaceId: _workspaceId },
+					})
+					if (!res.ok) throw new Error('Request failed')
 				}
 			}
 		},
@@ -136,7 +151,9 @@ export function createToolCollection(options: {
 		queryClient,
 		queryKey: toolKeys.list(workspaceId),
 		queryFn: async (): Promise<ToolRow[]> => {
-			const response = await apiClient.tools.list(workspaceId)
+			const res = await api.tools.$get({ query: { workspaceId } })
+			if (!res.ok) throw new Error('Request failed')
+			const response = await res.json()
 			return response.tools.map((tool) => ({
 				...tool,
 				_workspaceId: workspaceId,
@@ -149,13 +166,17 @@ export function createToolCollection(options: {
 			for (const mutation of mutations) {
 				if (mutation.type === 'insert' && mutation.modified) {
 					const { _workspaceId, ...data } = mutation.modified
-					await apiClient.tools.create(_workspaceId, {
-						name: data.name,
-						description: data.description ?? undefined,
-						type: data.type,
-						inputSchema: data.inputSchema ?? undefined,
-						config: data.config ?? undefined,
+					const res = await api.tools.$post({
+						query: { workspaceId: _workspaceId },
+						json: {
+							name: data.name,
+							description: data.description ?? undefined,
+							type: data.type,
+							inputSchema: data.inputSchema ?? undefined,
+							config: data.config ?? undefined,
+						},
 					})
+					if (!res.ok) throw new Error('Request failed')
 				}
 			}
 		},
@@ -166,13 +187,18 @@ export function createToolCollection(options: {
 				if (mutation.type === 'update' && mutation.original && mutation.modified) {
 					const { id, _workspaceId } = mutation.original
 					const { name, description, type, inputSchema, config } = mutation.modified
-					await apiClient.tools.update(id, _workspaceId, {
-						name,
-						description: description ?? undefined,
-						type,
-						inputSchema: inputSchema ?? undefined,
-						config: config ?? undefined,
+					const res = await api.tools[':id'].$patch({
+						param: { id },
+						query: { workspaceId: _workspaceId },
+						json: {
+							name,
+							description: description ?? undefined,
+							type,
+							inputSchema: inputSchema ?? undefined,
+							config: config ?? undefined,
+						},
 					})
+					if (!res.ok) throw new Error('Request failed')
 				}
 			}
 		},
@@ -182,7 +208,11 @@ export function createToolCollection(options: {
 			for (const mutation of mutations) {
 				if (mutation.type === 'delete' && mutation.original) {
 					const { id, _workspaceId } = mutation.original
-					await apiClient.tools.delete(id, _workspaceId)
+					const res = await api.tools[':id'].$delete({
+						param: { id },
+						query: { workspaceId: _workspaceId },
+					})
+					if (!res.ok) throw new Error('Request failed')
 				}
 			}
 		},
@@ -207,7 +237,9 @@ export function createWorkspaceCollection(options: {
 		queryClient,
 		queryKey: workspaceKeys.list(),
 		queryFn: async (): Promise<WorkspaceRow[]> => {
-			const response = await apiClient.workspaces.list()
+			const res = await api.workspaces.$get()
+			if (!res.ok) throw new Error('Request failed')
+			const response = await res.json()
 			return response.workspaces
 		},
 		getKey: (workspace) => workspace.id,
@@ -217,11 +249,14 @@ export function createWorkspaceCollection(options: {
 			for (const mutation of mutations) {
 				if (mutation.type === 'insert' && mutation.modified) {
 					const { name, description, slug } = mutation.modified
-					await apiClient.workspaces.create({
-						name,
-						description: description ?? undefined,
-						slug,
+					const res = await api.workspaces.$post({
+						json: {
+							name,
+							description: description ?? undefined,
+							slug,
+						},
 					})
+					if (!res.ok) throw new Error('Request failed')
 				}
 			}
 		},
@@ -232,10 +267,14 @@ export function createWorkspaceCollection(options: {
 				if (mutation.type === 'update' && mutation.original && mutation.modified) {
 					const { id } = mutation.original
 					const { name, description } = mutation.modified
-					await apiClient.workspaces.update(id, {
-						name,
-						description: description ?? undefined,
+					const res = await api.workspaces[':id'].$patch({
+						param: { id },
+						json: {
+							name,
+							description: description ?? undefined,
+						},
 					})
+					if (!res.ok) throw new Error('Request failed')
 				}
 			}
 		},
@@ -245,7 +284,8 @@ export function createWorkspaceCollection(options: {
 			for (const mutation of mutations) {
 				if (mutation.type === 'delete' && mutation.original) {
 					const { id } = mutation.original
-					await apiClient.workspaces.delete(id)
+					const res = await api.workspaces[':id'].$delete({ param: { id } })
+					if (!res.ok) throw new Error('Request failed')
 				}
 			}
 		},
@@ -272,7 +312,12 @@ export function createScheduleCollection(options: {
 		queryClient,
 		queryKey: scheduleKeys.list(agentId, workspaceId),
 		queryFn: async (): Promise<ScheduleRow[]> => {
-			const response = await apiClient.schedules.list(agentId, workspaceId)
+			const res = await api.agents[':id'].schedules.$get({
+				param: { id: agentId },
+				query: { workspaceId },
+			})
+			if (!res.ok) throw new Error('Request failed')
+			const response = await res.json()
 			return response.schedules.map((schedule) => ({
 				...schedule,
 				_workspaceId: workspaceId,
@@ -286,13 +331,18 @@ export function createScheduleCollection(options: {
 				if (mutation.type === 'insert' && mutation.modified) {
 					const { agentId: aId, _workspaceId, type, executeAt, cron, action, payload } =
 						mutation.modified
-					await apiClient.schedules.create(aId, _workspaceId, {
-						type,
-						executeAt: executeAt ?? undefined,
-						cron: cron ?? undefined,
-						action,
-						payload: payload ?? undefined,
+					const res = await api.agents[':id'].schedules.$post({
+						param: { id: aId },
+						query: { workspaceId: _workspaceId },
+						json: {
+							type,
+							executeAt: executeAt ?? undefined,
+							cron: cron ?? undefined,
+							action,
+							payload: payload ?? undefined,
+						},
 					})
+					if (!res.ok) throw new Error('Request failed')
 				}
 			}
 		},
@@ -303,12 +353,17 @@ export function createScheduleCollection(options: {
 				if (mutation.type === 'update' && mutation.original && mutation.modified) {
 					const { id, agentId: aId, _workspaceId } = mutation.original
 					const { status, executeAt, cron, payload } = mutation.modified
-					await apiClient.schedules.update(aId, id, _workspaceId, {
-						status,
-						executeAt: executeAt ?? undefined,
-						cron: cron ?? undefined,
-						payload: payload ?? undefined,
+					const res = await api.agents[':id'].schedules[':scheduleId'].$patch({
+						param: { id: aId, scheduleId: id },
+						query: { workspaceId: _workspaceId },
+						json: {
+							status,
+							executeAt: executeAt ?? undefined,
+							cron: cron ?? undefined,
+							payload: payload ?? undefined,
+						},
 					})
+					if (!res.ok) throw new Error('Request failed')
 				}
 			}
 		},
@@ -318,7 +373,11 @@ export function createScheduleCollection(options: {
 			for (const mutation of mutations) {
 				if (mutation.type === 'delete' && mutation.original) {
 					const { id, agentId: aId, _workspaceId } = mutation.original
-					await apiClient.schedules.delete(aId, id, _workspaceId)
+					const res = await api.agents[':id'].schedules[':scheduleId'].$delete({
+						param: { id: aId, scheduleId: id },
+						query: { workspaceId: _workspaceId },
+					})
+					if (!res.ok) throw new Error('Request failed')
 				}
 			}
 		},

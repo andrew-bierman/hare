@@ -1,4 +1,5 @@
 import { z } from '@hono/zod-openapi'
+import { TOOL_TYPES } from '@hare/config'
 import { JsonSchemaSchema, JsonValueSchema } from './common'
 
 /**
@@ -9,65 +10,7 @@ export const ToolConfigSchema = z.record(z.string(), JsonValueSchema)
 /**
  * All supported tool types.
  */
-export const ToolTypeSchema = z
-	.enum([
-		// Cloudflare native
-		'http',
-		'sql',
-		'kv',
-		'r2',
-		'search',
-		// Utility
-		'datetime',
-		'json',
-		'text',
-		'math',
-		'uuid',
-		'hash',
-		'base64',
-		'url',
-		'delay',
-		// Integrations (Zapier = single hub for externals)
-		'zapier',
-		'webhook',
-		// AI (Workers AI)
-		'sentiment',
-		'summarize',
-		'translate',
-		'image_generate',
-		'classify',
-		'ner',
-		'embedding',
-		'question_answer',
-		// Data
-		'rss',
-		'scrape',
-		'regex',
-		'crypto',
-		'json_schema',
-		'csv',
-		'template',
-		// Sandbox
-		'code_execute',
-		'code_validate',
-		'sandbox_file',
-		// Validation
-		'validate_email',
-		'validate_phone',
-		'validate_url',
-		'validate_credit_card',
-		'validate_ip',
-		'validate_json',
-		// Transform
-		'markdown',
-		'diff',
-		'qrcode',
-		'compression',
-		'color',
-		// Custom
-		'custom',
-	])
-	.openapi({ example: 'http' })
+export const ToolTypeSchema = z.enum(TOOL_TYPES).openapi({ example: 'http' })
 
 /**
  * Full tool schema for API responses.
