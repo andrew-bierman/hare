@@ -28,6 +28,7 @@
 	},
 	"devDependencies": {
 		"@hare/typescript-config": "workspace:*",
+		"hono": "^4.11.3",
 		"typescript": "^5"
 	},
 	"peerDependencies": {
