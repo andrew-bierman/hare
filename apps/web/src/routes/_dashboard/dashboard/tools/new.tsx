@@ -7,22 +7,40 @@ interface HttpToolConfig {
 	url: string
 	method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
 	headers?: Record<string, string>
-	body?: Record<string, unknown>
+	body?: string
+	bodyType?: 'json' | 'form' | 'text'
+	timeout?: number
+	responseMapping?: { path: string }
 }
 
 interface InputSchemaProperty {
-	type: string
+	type: 'string' | 'number' | 'boolean' | 'object' | 'array'
 	description?: string
 	enum?: string[]
+	default?: unknown
+	required?: boolean
 }
 
-type InputSchema = Record<string, InputSchemaProperty>
+interface InputSchema {
+	type: 'object'
+	properties?: Record<string, InputSchemaProperty>
+	required?: string[]
+}
 
 interface ToolTestResult {
 	success: boolean
 	duration: number
-	output?: unknown
+	status?: number
+	statusText?: string
+	headers?: Record<string, string>
+	data?: unknown
 	error?: string
+	requestDetails: {
+		url: string
+		method: string
+		headers?: Record<string, string>
+		body?: string
+	}
 }
 
 import { Badge } from '@hare/ui/components/badge'
@@ -271,7 +289,7 @@ function NewToolPage() {
 
 			await createTool.mutateAsync({
 				name: name.trim(),
-				description: description.trim() || undefined,
+				description: description.trim() || '',
 				type: 'http',
 				config: config as unknown as Record<string, unknown>,
 				inputSchema: inputSchema as unknown as Record<string, unknown>,

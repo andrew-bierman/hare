@@ -18,16 +18,19 @@ export interface DocCategory {
 	pages: DocPage[]
 }
 
-// Import all MDX files at build time
-// The ?frontmatter query extracts frontmatter without rendering
-const mdxModules = import.meta.glob<{
+// MDX module type
+interface MdxModule {
 	default: ComponentType
 	frontmatter?: {
 		title?: string
 		description?: string
 		order?: number
 	}
-}>('/content/**/*.mdx', { eager: true })
+}
+
+// Import all MDX files at build time
+// @ts-expect-error - import.meta.glob is a Vite-specific feature
+const mdxModules: Record<string, MdxModule> = import.meta.glob('/content/**/*.mdx', { eager: true })
 
 // Parse slug from file path
 function getSlugFromPath(path: string): string {

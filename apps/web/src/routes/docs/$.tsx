@@ -1,7 +1,7 @@
-import { createFileRoute, Link, notFound } from '@tanstack/react-router'
 import { MDXProvider } from '@mdx-js/react'
+import { createFileRoute, Link, notFound } from '@tanstack/react-router'
 import type { ComponentType } from 'react'
-import { getDocPage, getDocCategories, type DocCategory } from '../../lib/docs/simple-docs'
+import { getDocCategories, getDocPage } from '../../lib/docs/simple-docs'
 import 'highlight.js/styles/github-dark.css'
 
 // Custom MDX components
@@ -31,12 +31,7 @@ const mdxComponents = {
 	code: (props: React.HTMLAttributes<HTMLElement>) => {
 		const isInline = !props.className?.includes('hljs')
 		if (isInline) {
-			return (
-				<code
-					className="px-1.5 py-0.5 rounded bg-muted font-mono text-sm"
-					{...props}
-				/>
-			)
+			return <code className="px-1.5 py-0.5 rounded bg-muted font-mono text-sm" {...props} />
 		}
 		return <code {...props} />
 	},
@@ -47,10 +42,7 @@ const mdxComponents = {
 		/>
 	),
 	blockquote: (props: React.HTMLAttributes<HTMLQuoteElement>) => (
-		<blockquote
-			className="my-4 pl-4 border-l-4 border-muted-foreground/30 italic"
-			{...props}
-		/>
+		<blockquote className="my-4 pl-4 border-l-4 border-muted-foreground/30 italic" {...props} />
 	),
 	table: (props: React.HTMLAttributes<HTMLTableElement>) => (
 		<div className="my-4 overflow-x-auto">
@@ -67,21 +59,58 @@ const mdxComponents = {
 
 export const Route = createFileRoute('/docs/$')({
 	component: DocsPage,
+	ssr: false, // Disable SSR because MDX components aren't serializable
 	loader: ({ params }) => {
 		const slug = params._splat || ''
 		const page = getDocPage(slug)
 		if (!page) throw notFound()
-		return { page, categories: getDocCategories() }
+		// Return serializable data only - Component is accessed directly in the component
+		return {
+			slug: page.slug,
+			title: page.title,
+			description: page.description,
+			category: page.category,
+			categories: getDocCategories().map((c) => ({
+				name: c.name,
+				slug: c.slug,
+				pages: c.pages.map((p) => ({
+					slug: p.slug,
+					title: p.title,
+					description: p.description,
+					category: p.category,
+				})),
+			})),
+		}
 	},
 	head: ({ loaderData }) => ({
 		meta: [
-			{ title: `${loaderData?.page.title} | Hare Docs` },
-			{ name: 'description', content: loaderData?.page.description || '' },
+			{ title: `${loaderData?.title} | Hare Docs` },
+			{ name: 'description', content: loaderData?.description || '' },
 		],
 	}),
 })
 
-function Sidebar({ categories, currentSlug }: { categories: DocCategory[]; currentSlug: string }) {
+// Serializable page data (without Component)
+interface SidebarPage {
+	slug: string
+	title: string
+	description: string | undefined
+	category: string | undefined
+}
+
+interface SidebarCategory {
+	name: string
+	slug: string
+	pages: SidebarPage[]
+}
+
+function Sidebar({
+	categories,
+	currentSlug,
+}: {
+	categories: SidebarCategory[]
+	currentSlug: string
+}) {
 	return (
 		<aside className="w-64 shrink-0 border-r h-[calc(100vh-4rem)] sticky top-16 overflow-y-auto p-4">
 			<nav className="space-y-6">
@@ -92,12 +121,13 @@ function Sidebar({ categories, currentSlug }: { categories: DocCategory[]; curre
 						</h3>
 						<ul className="space-y-1">
 							{category.pages.map((page) => {
-								const isActive = page.slug === currentSlug ||
-									(currentSlug === '' && page.slug === 'index')
+								const isActive =
+									page.slug === currentSlug || (currentSlug === '' && page.slug === 'index')
 								return (
 									<li key={page.slug}>
 										<Link
-											to={`/docs/${page.slug === 'index' ? '' : page.slug}`}
+											to="/docs/$"
+											params={{ _splat: page.slug === 'index' ? '' : page.slug }}
 											className={`block px-3 py-1.5 rounded-md text-sm transition-colors ${
 												isActive
 													? 'bg-primary/10 text-primary font-medium'
@@ -118,11 +148,16 @@ function Sidebar({ categories, currentSlug }: { categories: DocCategory[]; curre
 }
 
 function DocsPage() {
-	const { page, categories } = Route.useLoaderData()
+	const loaderData = Route.useLoaderData()
 	const params = Route.useParams()
 	const currentSlug = params._splat || ''
 
+	// Get the actual page with Component (not from loader since Components aren't serializable)
+	const page = getDocPage(loaderData.slug)
+	if (!page) return null
+
 	const Content = page.Component as ComponentType
+	const categories = loaderData.categories
 
 	return (
 		<div className="min-h-screen bg-background">
