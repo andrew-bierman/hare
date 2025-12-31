@@ -4,9 +4,9 @@ import tailwindcss from '@tailwindcss/vite'
 import { tanstackStart } from '@tanstack/react-start/plugin/vite'
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
-// TODO: Re-enable fumadocs-mdx once path.join browser bundling issue is fixed
-// import mdx from 'fumadocs-mdx/vite'
-// import * as MdxConfig from './source.config'
+import tsconfigPaths from 'vite-tsconfig-paths'
+import mdx from 'fumadocs-mdx/vite'
+import * as MdxConfig from './source.config'
 
 // Resolve paths to workspace packages
 const packagesPath = path.resolve(__dirname, '../../packages')
@@ -37,10 +37,8 @@ export default defineConfig({
 	},
 	resolve: {
 		alias: {
-			// Fumadocs MDX generated files
-			'fumadocs-mdx:collections/server': path.resolve(__dirname, './.source/server'),
-			'fumadocs-mdx:collections/browser': path.resolve(__dirname, './.source/browser'),
-			'fumadocs-mdx:collections/dynamic': path.resolve(__dirname, './.source/dynamic'),
+			// fumadocs-mdx virtual modules are resolved via vite-tsconfig-paths
+			// using the tsconfig.json paths: "fumadocs-mdx:collections/*": ["./.source/*"]
 			'web-app': path.resolve(__dirname, './src'),
 			// Core packages - subpaths must come before main paths
 			'@hare/db/schema': path.join(packagesPath, 'db/src/schema/index.ts'),
@@ -93,8 +91,10 @@ export default defineConfig({
 		},
 	},
 	plugins: [
-		// TODO: Re-enable fumadocs-mdx once path.join browser bundling issue is fixed
-		// mdx(MdxConfig),
+		// tsconfigPaths resolves fumadocs-mdx:collections/* via tsconfig.json paths
+		tsconfigPaths(),
+		// fumadocs-mdx generates .source directory with MDX collections
+		mdx(MdxConfig),
 		cloudflare({ viteEnvironment: { name: 'ssr' } }),
 		tanstackStart(),
 		react(),
