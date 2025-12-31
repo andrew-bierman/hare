@@ -17,8 +17,12 @@
  * const getAgent = createServerFn({ method: 'GET' })
  *   .validator((input: { id: string; workspaceId: string }) => input)
  *   .handler(async ({ data }) => {
- *     const { apiClient } = await import('@hare/api/client')
- *     return apiClient.agents.get(data.id, data.workspaceId)
+ *     const { api, handleResponse } = await import('../api/client')
+ *     const res = await api.agents[':id'].$get({
+ *       param: { id: data.id },
+ *       query: { workspaceId: data.workspaceId },
+ *     })
+ *     return handleResponse(res)
  *   })
  *
  * // In a route component with loader
@@ -48,40 +52,58 @@ export interface ServerFnInput<T> {
  * const listAgents = createServerFn({ method: 'GET' })
  *   .validator((input: { workspaceId: string }) => input)
  *   .handler(async ({ data }) => {
- *     const { apiClient } = await import('@hare/api/client')
- *     return apiClient.agents.list(data.workspaceId)
+ *     const { api, handleResponse } = await import('../api/client')
+ *     const res = await api.agents.$get({ query: { workspaceId: data.workspaceId } })
+ *     return handleResponse(res)
  *   })
  *
  * 2. Get single resource:
  * const getAgent = createServerFn({ method: 'GET' })
  *   .validator((input: { id: string; workspaceId: string }) => input)
  *   .handler(async ({ data }) => {
- *     const { apiClient } = await import('@hare/api/client')
- *     return apiClient.agents.get(data.id, data.workspaceId)
+ *     const { api, handleResponse } = await import('../api/client')
+ *     const res = await api.agents[':id'].$get({
+ *       param: { id: data.id },
+ *       query: { workspaceId: data.workspaceId },
+ *     })
+ *     return handleResponse(res)
  *   })
  *
  * 3. Create resource:
  * const createAgent = createServerFn({ method: 'POST' })
  *   .validator((input: { workspaceId: string; data: CreateAgentInput }) => input)
  *   .handler(async ({ data }) => {
- *     const { apiClient } = await import('@hare/api/client')
- *     return apiClient.agents.create(data.workspaceId, data.data)
+ *     const { api, handleResponse } = await import('../api/client')
+ *     const res = await api.agents.$post({
+ *       query: { workspaceId: data.workspaceId },
+ *       json: data.data,
+ *     })
+ *     return handleResponse(res)
  *   })
  *
  * 4. Update resource:
  * const updateAgent = createServerFn({ method: 'POST' })
  *   .validator((input: { id: string; workspaceId: string; data: UpdateAgentInput }) => input)
  *   .handler(async ({ data }) => {
- *     const { apiClient } = await import('@hare/api/client')
- *     return apiClient.agents.update(data.id, data.workspaceId, data.data)
+ *     const { api, handleResponse } = await import('../api/client')
+ *     const res = await api.agents[':id'].$patch({
+ *       param: { id: data.id },
+ *       query: { workspaceId: data.workspaceId },
+ *       json: data.data,
+ *     })
+ *     return handleResponse(res)
  *   })
  *
  * 5. Delete resource:
  * const deleteAgent = createServerFn({ method: 'POST' })
  *   .validator((input: { id: string; workspaceId: string }) => input)
  *   .handler(async ({ data }) => {
- *     const { apiClient } = await import('@hare/api/client')
- *     return apiClient.agents.delete(data.id, data.workspaceId)
+ *     const { api, handleResponse } = await import('../api/client')
+ *     const res = await api.agents[':id'].$delete({
+ *       param: { id: data.id },
+ *       query: { workspaceId: data.workspaceId },
+ *     })
+ *     return handleResponse(res)
  *   })
  */
 

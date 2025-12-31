@@ -1,8 +1,36 @@
 'use client'
 
 import type { CreateScheduleInput, UpdateScheduleInput } from '@hare/types'
-import { apiClient, type ExecutionHistoryParams, type ScheduleListParams } from '../client'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { api, ApiClientError } from '../client'
+
+/**
+ * Helper to handle Hono RPC response with proper error handling.
+ */
+async function handleResponse<T>(res: Response & { json(): Promise<T> }): Promise<T> {
+	if (!res.ok) {
+		let errorMessage = `Request failed with status ${res.status}`
+		let errorCode: string | undefined
+		try {
+			const error = (await res.json()) as { error: string; code?: string }
+			errorMessage = error.error ?? errorMessage
+			errorCode = error.code
+		} catch {
+			// Response wasn't JSON
+		}
+		throw new ApiClientError(errorMessage, res.status, errorCode)
+	}
+	return res.json()
+}
+
+export interface ScheduleListParams {
+	status?: 'pending' | 'active' | 'paused' | 'completed' | 'cancelled'
+}
+
+export interface ExecutionHistoryParams {
+	limit?: number
+	offset?: number
+}
 
 /**
  * Input for useSchedules hook.
@@ -20,7 +48,13 @@ export function useSchedulesQuery(input: UseSchedulesInput) {
 	const { agentId, workspaceId, params } = input
 	return useQuery({
 		queryKey: ['schedules', workspaceId, agentId, params?.status],
-		queryFn: () => apiClient.schedules.list(agentId!, workspaceId!, params),
+		queryFn: async () => {
+			const res = await api.agents[':id'].schedules.$get({
+				param: { id: agentId! },
+				query: { workspaceId: workspaceId!, status: params?.status },
+			})
+			return handleResponse(res)
+		},
 		enabled: !!agentId && !!workspaceId,
 	})
 }
@@ -41,7 +75,13 @@ export function useScheduleQuery(input: UseScheduleInput) {
 	const { agentId, scheduleId, workspaceId } = input
 	return useQuery({
 		queryKey: ['schedules', workspaceId, agentId, scheduleId],
-		queryFn: () => apiClient.schedules.get(agentId!, scheduleId!, workspaceId!),
+		queryFn: async () => {
+			const res = await api.agents[':id'].schedules[':scheduleId'].$get({
+				param: { id: agentId!, scheduleId: scheduleId! },
+				query: { workspaceId: workspaceId! },
+			})
+			return handleResponse(res)
+		},
 		enabled: !!agentId && !!scheduleId && !!workspaceId,
 	})
 }
@@ -52,8 +92,14 @@ export function useScheduleQuery(input: UseScheduleInput) {
 export function useCreateScheduleMutation(agentId: string | undefined, workspaceId: string | undefined) {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: (data: CreateScheduleInput) =>
-			apiClient.schedules.create(agentId!, workspaceId!, data),
+		mutationFn: async (data: CreateScheduleInput) => {
+			const res = await api.agents[':id'].schedules.$post({
+				param: { id: agentId! },
+				query: { workspaceId: workspaceId! },
+				json: data,
+			})
+			return handleResponse(res)
+		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['schedules', workspaceId, agentId] })
 		},
@@ -66,8 +112,14 @@ export function useCreateScheduleMutation(agentId: string | undefined, workspace
 export function useUpdateScheduleMutation(agentId: string | undefined, workspaceId: string | undefined) {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: ({ scheduleId, data }: { scheduleId: string; data: UpdateScheduleInput }) =>
-			apiClient.schedules.update(agentId!, scheduleId, workspaceId!, data),
+		mutationFn: async ({ scheduleId, data }: { scheduleId: string; data: UpdateScheduleInput }) => {
+			const res = await api.agents[':id'].schedules[':scheduleId'].$patch({
+				param: { id: agentId!, scheduleId },
+				query: { workspaceId: workspaceId! },
+				json: data,
+			})
+			return handleResponse(res)
+		},
 		onSuccess: (_, { scheduleId }) => {
 			queryClient.invalidateQueries({ queryKey: ['schedules', workspaceId, agentId] })
 			queryClient.invalidateQueries({ queryKey: ['schedules', workspaceId, agentId, scheduleId] })
@@ -81,8 +133,13 @@ export function useUpdateScheduleMutation(agentId: string | undefined, workspace
 export function useDeleteScheduleMutation(agentId: string | undefined, workspaceId: string | undefined) {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: (scheduleId: string) =>
-			apiClient.schedules.delete(agentId!, scheduleId, workspaceId!),
+		mutationFn: async (scheduleId: string) => {
+			const res = await api.agents[':id'].schedules[':scheduleId'].$delete({
+				param: { id: agentId!, scheduleId },
+				query: { workspaceId: workspaceId! },
+			})
+			return handleResponse(res)
+		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['schedules', workspaceId, agentId] })
 		},
@@ -106,7 +163,17 @@ export function useScheduleExecutionsQuery(input: UseScheduleExecutionsInput) {
 	const { agentId, scheduleId, workspaceId, params } = input
 	return useQuery({
 		queryKey: ['executions', workspaceId, agentId, scheduleId, params?.limit, params?.offset],
-		queryFn: () => apiClient.schedules.getExecutions(agentId!, scheduleId!, workspaceId!, params),
+		queryFn: async () => {
+			const res = await api.agents[':id'].schedules[':scheduleId'].executions.$get({
+				param: { id: agentId!, scheduleId: scheduleId! },
+				query: {
+					workspaceId: workspaceId!,
+					limit: params?.limit?.toString(),
+					offset: params?.offset?.toString(),
+				},
+			})
+			return handleResponse(res)
+		},
 		enabled: !!agentId && !!scheduleId && !!workspaceId,
 	})
 }
@@ -127,7 +194,17 @@ export function useAgentExecutionsQuery(input: UseAgentExecutionsInput) {
 	const { agentId, workspaceId, params } = input
 	return useQuery({
 		queryKey: ['executions', workspaceId, agentId, 'all', params?.limit, params?.offset],
-		queryFn: () => apiClient.schedules.getAgentExecutions(agentId!, workspaceId!, params),
+		queryFn: async () => {
+			const res = await api.agents[':id'].executions.$get({
+				param: { id: agentId! },
+				query: {
+					workspaceId: workspaceId!,
+					limit: params?.limit?.toString(),
+					offset: params?.offset?.toString(),
+				},
+			})
+			return handleResponse(res)
+		},
 		enabled: !!agentId && !!workspaceId,
 	})
 }
