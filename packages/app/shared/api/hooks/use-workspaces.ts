@@ -72,6 +72,16 @@ export function useCreateWorkspaceMutation() {
 	})
 }
 
+export function useEnsureDefaultWorkspaceMutation() {
+	const queryClient = useQueryClient()
+	return useMutation({
+		mutationFn: () => apiClient.workspaces.ensureDefault(),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: workspaceKeys.list() })
+		},
+	})
+}
+
 export function useUpdateWorkspaceMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({

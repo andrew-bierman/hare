@@ -3,8 +3,8 @@ import { cloudflare } from '@cloudflare/vite-plugin'
 import tailwindcss from '@tailwindcss/vite'
 import { tanstackStart } from '@tanstack/react-start/plugin/vite'
 import react from '@vitejs/plugin-react'
-import { defineConfig } from 'vite'
 import mdx from 'fumadocs-mdx/vite'
+import { defineConfig } from 'vite'
 import * as MdxConfig from './source.config'
 
 // Resolve paths to workspace packages
@@ -27,17 +27,6 @@ export default defineConfig({
 		// Ensure fumadocs server code stays server-side only
 		noExternal: ['fumadocs-mdx', 'fumadocs-core'],
 	},
-	build: {
-		rollupOptions: {
-			// Exclude fumadocs server code from client bundle
-			external: (id) => {
-				if (id.includes('fumadocs-mdx/runtime/server') || id.includes('.source/server')) {
-					return true
-				}
-				return false
-			},
-		},
-	},
 	optimizeDeps: {
 		// Pre-bundle the same deps for client-side
 		include: ['agents', 'agents/mcp', 'ai', '@modelcontextprotocol/sdk/server/mcp.js'],
@@ -46,10 +35,10 @@ export default defineConfig({
 		alias: {
 			// Polyfill Node.js path module for browser (fumadocs-mdx needs it)
 			path: 'path-browserify',
-			// Fumadocs MDX generated files
-			'fumadocs-mdx:collections/server': path.resolve(__dirname, './.source/server'),
-			'fumadocs-mdx:collections/browser': path.resolve(__dirname, './.source/browser'),
-			'fumadocs-mdx:collections/dynamic': path.resolve(__dirname, './.source/dynamic'),
+			// Fumadocs MDX generated files - use relative paths with .ts extension for proper bundling
+			'fumadocs-mdx:collections/server': path.resolve(__dirname, './.source/server.ts'),
+			'fumadocs-mdx:collections/browser': path.resolve(__dirname, './.source/browser.ts'),
+			'fumadocs-mdx:collections/dynamic': path.resolve(__dirname, './.source/dynamic.ts'),
 			'web-app': path.resolve(__dirname, './src'),
 			// Core packages - subpaths must come before main paths
 			'@hare/db/schema': path.join(packagesPath, 'db/src/schema/index.ts'),

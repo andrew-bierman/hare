@@ -1,4 +1,4 @@
-import { WorkspaceProvider, WorkspaceGate } from '@hare/app'
+import { WorkspaceGate, WorkspaceProvider } from '@hare/app'
 import {
 	DashboardErrorComponent,
 	DashboardNotFound,

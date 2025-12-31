@@ -1,4 +1,5 @@
 import { useWorkspace } from '@hare/app/providers'
+import { generatePrefixedId } from '@hare/app/shared'
 import {
 	type HttpToolConfig,
 	type InputSchema,
@@ -64,7 +65,7 @@ interface SchemaField {
 }
 
 function generateFieldId() {
-	return `field_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`
+	return generatePrefixedId('field')
 }
 
 function LoadingSkeleton() {
