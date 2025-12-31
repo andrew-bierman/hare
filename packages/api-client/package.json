@@ -2,7 +2,13 @@
 	"name": "@hare/api-client",
 	"version": "0.1.0",
 	"description": "Type-safe Hono RPC client for Hare API",
-	"keywords": ["hono", "client", "rpc", "api", "typescript"],
+	"keywords": [
+		"hono",
+		"client",
+		"rpc",
+		"api",
+		"typescript"
+	],
 	"license": "MIT",
 	"type": "module",
 	"exports": {
@@ -13,7 +19,9 @@
 	},
 	"main": "./src/index.ts",
 	"types": "./src/index.ts",
-	"files": ["src"],
+	"files": [
+		"src"
+	],
 	"dependencies": {
 		"@hare/api": "workspace:*",
 		"hono": "^4.11.3"
