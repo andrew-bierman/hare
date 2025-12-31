@@ -119,10 +119,10 @@ export function ToolsListPage() {
 
 			{/* Search */}
 			<div className="relative max-w-sm">
-				<SearchIcon className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
+				<SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
 				<Input
 					placeholder="Search tools..."
-					className="pl-8"
+					className="pl-9"
 					value={search}
 					onChange={(e: ChangeEvent<HTMLInputElement>) => setSearch(e.target.value)}
 				/>
