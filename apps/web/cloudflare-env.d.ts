@@ -5,5 +5,3 @@ import type { CloudflareEnv } from '@hare/types'
 declare module 'cloudflare:test' {
 	export const env: CloudflareEnv
 }
-
-export {}

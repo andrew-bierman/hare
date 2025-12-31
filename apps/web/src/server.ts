@@ -8,8 +8,8 @@
  */
 
 import { app } from '@hare/api'
-import tanstackHandler from '@tanstack/react-start/server-entry'
 import type { CloudflareEnv } from '@hare/types'
+import tanstackHandler from '@tanstack/react-start/server-entry'
 
 // Combined fetch handler
 const handler: ExportedHandler<CloudflareEnv> = {
