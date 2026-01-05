@@ -1,7 +1,7 @@
 'use client'
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { api } from '@hare/api-client'
+import { billing } from '@hare/api-client'
 import { billingKeys } from './query-keys'
 
 export interface CheckoutRequest {
@@ -21,7 +21,7 @@ export function usePlansQuery(workspaceId: string | undefined) {
 	return useQuery({
 		queryKey: billingKeys.plans(),
 		queryFn: async () => {
-			const res = await api.billing.plans.$get({ query: { workspaceId: workspaceId! } })
+			const res = await billing.plans.$get({ query: { workspaceId: workspaceId! } })
 			if (!res.ok) throw new Error('Request failed')
 			return res.json()
 		},
@@ -36,7 +36,7 @@ export function useBillingStatusQuery(workspaceId: string | undefined) {
 	return useQuery({
 		queryKey: billingKeys.status(workspaceId ?? ''),
 		queryFn: async () => {
-			const res = await api.billing.status.$get({ query: { workspaceId: workspaceId! } })
+			const res = await billing.status.$get({ query: { workspaceId: workspaceId! } })
 			if (!res.ok) throw new Error('Request failed')
 			return res.json()
 		},
@@ -55,7 +55,7 @@ export function usePaymentHistoryQuery(options: {
 	return useQuery({
 		queryKey: billingKeys.invoices(options.workspaceId ?? ''),
 		queryFn: async () => {
-			const res = await api.billing.history.$get({
+			const res = await billing.history.$get({
 				query: {
 					workspaceId: options.workspaceId!,
 					limit: options.limit,
@@ -77,7 +77,7 @@ export function useCreateCheckoutMutation() {
 
 	return useMutation({
 		mutationFn: async (params: { workspaceId: string } & CheckoutRequest) => {
-			const res = await api.billing.checkout.$post({
+			const res = await billing.checkout.$post({
 				query: { workspaceId: params.workspaceId },
 				json: {
 					planId: params.planId,
@@ -102,7 +102,7 @@ export function useCreateCheckoutMutation() {
 export function useCreatePortalMutation() {
 	return useMutation({
 		mutationFn: async (params: { workspaceId: string }) => {
-			const res = await api.billing.portal.$post({
+			const res = await billing.portal.$post({
 				query: { workspaceId: params.workspaceId },
 			})
 			if (!res.ok) throw new Error('Request failed')

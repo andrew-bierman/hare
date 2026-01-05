@@ -1,13 +1,13 @@
 'use client'
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { api } from '@hare/api-client'
+import { tools } from '@hare/api-client'
 import type { ToolType } from '@hare/types'
 
 // Infer types from the API client for proper type compatibility
-type ApiToolsResponse = Awaited<ReturnType<Awaited<ReturnType<typeof api.tools.$get>>['json']>>
+type ApiToolsResponse = Awaited<ReturnType<Awaited<ReturnType<typeof tools.$get>>['json']>>
 type ApiTool = ApiToolsResponse['tools'][number]
-type ApiCreateToolInput = Parameters<typeof api.tools.$post>[0]['json']
+type ApiCreateToolInput = Parameters<typeof tools.$post>[0]['json']
 
 // Re-export types for convenience
 export type { ToolType }
@@ -20,7 +20,7 @@ export function useTools(workspaceId: string | undefined) {
 	return useQuery({
 		queryKey: ['tools', workspaceId],
 		queryFn: async () => {
-			const res = await api.tools.$get({ query: { workspaceId: workspaceId! } })
+			const res = await tools.$get({ query: { workspaceId: workspaceId! } })
 			if (!res.ok) throw new Error('Request failed')
 			return res.json()
 		},
@@ -32,7 +32,7 @@ export function useTool(id: string | undefined, workspaceId: string | undefined)
 	return useQuery({
 		queryKey: ['tools', workspaceId, id],
 		queryFn: async () => {
-			const res = await api.tools[':id'].$get({
+			const res = await tools[':id'].$get({
 				param: { id: id! },
 				query: { workspaceId: workspaceId! },
 			})
@@ -47,7 +47,7 @@ export function useCreateTool(workspaceId: string | undefined) {
 	const queryClient = useQueryClient()
 	return useMutation({
 		mutationFn: async (data: CreateToolInput) => {
-			const res = await api.tools.$post({
+			const res = await tools.$post({
 				query: { workspaceId: workspaceId! },
 				json: data,
 			})
@@ -64,7 +64,7 @@ export function useUpdateTool(workspaceId: string | undefined) {
 	const queryClient = useQueryClient()
 	return useMutation({
 		mutationFn: async ({ id, data }: { id: string; data: Partial<CreateToolInput> }) => {
-			const res = await api.tools[':id'].$patch({
+			const res = await tools[':id'].$patch({
 				param: { id },
 				query: { workspaceId: workspaceId! },
 				json: data,
@@ -83,7 +83,7 @@ export function useDeleteTool(workspaceId: string | undefined) {
 	const queryClient = useQueryClient()
 	return useMutation({
 		mutationFn: async (id: string) => {
-			const res = await api.tools[':id'].$delete({
+			const res = await tools[':id'].$delete({
 				param: { id },
 				query: { workspaceId: workspaceId! },
 			})
@@ -97,12 +97,12 @@ export function useDeleteTool(workspaceId: string | undefined) {
 }
 
 // Infer test tool input type from API
-type ApiTestToolInput = Parameters<typeof api.tools.test.$post>[0]['json']
+type ApiTestToolInput = Parameters<typeof tools.test.$post>[0]['json']
 
 export function useTestTool(workspaceId: string | undefined) {
 	return useMutation({
 		mutationFn: async (data: ApiTestToolInput) => {
-			const res = await api.tools.test.$post({
+			const res = await tools.test.$post({
 				query: { workspaceId: workspaceId! },
 				json: data,
 			})
@@ -115,7 +115,7 @@ export function useTestTool(workspaceId: string | undefined) {
 export function useTestExistingTool(workspaceId: string | undefined) {
 	return useMutation({
 		mutationFn: async ({ id, testInput }: { id: string; testInput?: Record<string, unknown> }) => {
-			const res = await api.tools[':id'].test.$post({
+			const res = await tools[':id'].test.$post({
 				param: { id },
 				query: { workspaceId: workspaceId! },
 				json: { testInput },

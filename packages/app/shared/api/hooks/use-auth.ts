@@ -1,7 +1,7 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
-import { api } from '@hare/api-client'
+import { auth } from '@hare/api-client'
 import { authKeys } from './query-keys'
 
 /** OAuth provider availability */
@@ -17,7 +17,7 @@ export function useOAuthProvidersQuery() {
 	return useQuery({
 		queryKey: authKeys.providers(),
 		queryFn: async () => {
-			const res = await api.auth.providers.$get()
+			const res = await auth.providers.$get()
 			if (!res.ok) throw new Error('Request failed')
 			const result = await res.json()
 			return result.providers

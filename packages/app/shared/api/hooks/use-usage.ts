@@ -1,7 +1,7 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
-import { api } from '@hare/api-client'
+import { usage } from '@hare/api-client'
 
 export interface UsageParams {
 	startDate?: string
@@ -13,7 +13,7 @@ export function useUsageQuery(workspaceId: string | undefined, params?: UsagePar
 	return useQuery({
 		queryKey: ['usage', workspaceId, params],
 		queryFn: async () => {
-			const res = await api.usage.$get({
+			const res = await usage.$get({
 				query: {
 					workspaceId: workspaceId!,
 					startDate: params?.startDate,
@@ -33,7 +33,7 @@ export function useAgentUsageQuery(agentId: string | undefined, workspaceId: str
 	return useQuery({
 		queryKey: ['usage', 'agent', agentId, workspaceId],
 		queryFn: async () => {
-			const res = await api.usage.agents[':id'].$get({
+			const res = await usage.agents[':id'].$get({
 				param: { id: agentId! },
 				query: { workspaceId: workspaceId! },
 			})
