@@ -5,6 +5,18 @@
  * Falls back to console logging when no provider is configured.
  */
 
+/**
+ * Escape HTML special characters to prevent XSS in email templates
+ */
+function escapeHtml(str: string): string {
+	return str
+		.replace(/&/g, '&amp;')
+		.replace(/</g, '&lt;')
+		.replace(/>/g, '&gt;')
+		.replace(/"/g, '&quot;')
+		.replace(/'/g, '&#039;')
+}
+
 export interface EmailMessage {
 	to: string
 	subject: string
@@ -179,6 +191,8 @@ export class EmailService {
 	 */
 	async sendPasswordReset(options: { to: string; resetUrl: string }) {
 		const { to, resetUrl } = options
+		const safeAppName = escapeHtml(this.appName)
+		const safeResetUrl = escapeHtml(resetUrl)
 
 		return this.provider.send({
 			to,
@@ -203,10 +217,10 @@ If you didn't request this, you can safely ignore this email.
 <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 20px; max-width: 600px; margin: 0 auto;">
   <h1 style="color: #333; font-size: 24px;">Reset Your Password</h1>
   <p style="color: #555; font-size: 16px; line-height: 1.5;">
-    You requested a password reset for your ${this.appName} account.
+    You requested a password reset for your ${safeAppName} account.
   </p>
   <p style="margin: 30px 0;">
-    <a href="${resetUrl}" style="background-color: #000; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
+    <a href="${safeResetUrl}" style="background-color: #000; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
       Reset Password
     </a>
   </p>
@@ -218,7 +232,7 @@ If you didn't request this, you can safely ignore this email.
   </p>
   <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
   <p style="color: #888; font-size: 12px;">
-    &mdash; The ${this.appName} Team
+    &mdash; The ${safeAppName} Team
   </p>
 </body>
 </html>`,
@@ -238,6 +252,14 @@ If you didn't request this, you can safely ignore this email.
 		expiresAt: Date
 	}) {
 		const { to, workspaceName, inviterName, inviterEmail, role, inviteUrl, expiresAt } = options
+
+		// Escape user-controlled values for HTML
+		const safeWorkspaceName = escapeHtml(workspaceName)
+		const safeInviterName = escapeHtml(inviterName)
+		const safeInviterEmail = escapeHtml(inviterEmail)
+		const safeRole = escapeHtml(role)
+		const safeInviteUrl = escapeHtml(inviteUrl)
+		const safeAppName = escapeHtml(this.appName)
 
 		return this.provider.send({
 			to,
@@ -260,11 +282,11 @@ This invitation expires on ${expiresAt.toLocaleDateString()}.
 <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 20px; max-width: 600px; margin: 0 auto;">
   <h1 style="color: #333; font-size: 24px;">You're Invited!</h1>
   <p style="color: #555; font-size: 16px; line-height: 1.5;">
-    <strong>${inviterName}</strong> (${inviterEmail}) has invited you to join the
-    <strong>"${workspaceName}"</strong> workspace on ${this.appName} as a <strong>${role}</strong>.
+    <strong>${safeInviterName}</strong> (${safeInviterEmail}) has invited you to join the
+    <strong>"${safeWorkspaceName}"</strong> workspace on ${safeAppName} as a <strong>${safeRole}</strong>.
   </p>
   <p style="margin: 30px 0;">
-    <a href="${inviteUrl}" style="background-color: #000; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
+    <a href="${safeInviteUrl}" style="background-color: #000; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
       Accept Invitation
     </a>
   </p>
@@ -273,7 +295,7 @@ This invitation expires on ${expiresAt.toLocaleDateString()}.
   </p>
   <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
   <p style="color: #888; font-size: 12px;">
-    &mdash; The ${this.appName} Team
+    &mdash; The ${safeAppName} Team
   </p>
 </body>
 </html>`,

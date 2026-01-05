@@ -356,13 +356,14 @@ app.openapi(sendInvitationRoute, async (c) => {
 		return c.json({ error: 'Admin access required' }, 403)
 	}
 
+	// Fetch workspace once for reuse (owner check and email)
+	const [workspace] = await db.select().from(workspaces).where(eq(workspaces.id, id))
+
 	// Check if user already exists and is a member
 	const [existingUser] = await db.select().from(users).where(eq(users.email, email))
 
 	if (existingUser) {
 		// Check if they're the owner
-		const [workspace] = await db.select().from(workspaces).where(eq(workspaces.id, id))
-
 		if (workspace?.ownerId === existingUser.id) {
 			return c.json({ error: 'User is already the workspace owner' }, 400)
 		}
@@ -415,10 +416,7 @@ app.openapi(sendInvitationRoute, async (c) => {
 		return c.json({ error: 'Failed to create invitation' }, 500)
 	}
 
-	// Get workspace name for email
-	const [workspace] = await db.select().from(workspaces).where(eq(workspaces.id, id))
-
-	// Send email notification
+	// Send email notification (workspace already fetched above)
 	const emailService = createEmailService(c.env as EmailEnv)
 	const appUrl = (c.env as { APP_URL?: string }).APP_URL || 'http://localhost:3000'
 	const inviteUrl = `${appUrl}/accept-invite?token=${invitation.id}`

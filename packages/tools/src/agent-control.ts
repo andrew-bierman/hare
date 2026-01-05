@@ -921,7 +921,7 @@ export const scheduleTaskTool = createTool({
 					const stub = hareAgent.get(id)
 
 					// Send schedule request to the Durable Object via HTTP
-					await stub.fetch(
+					const doResponse = await stub.fetch(
 						new Request('http://internal/schedule', {
 							method: 'POST',
 							headers: { 'Content-Type': 'application/json' },
@@ -933,8 +933,17 @@ export const scheduleTaskTool = createTool({
 							}),
 						}),
 					)
-				} catch {
+					if (!doResponse.ok) {
+						console.warn(
+							`[agent_schedule] DO scheduling failed for agent ${params.agentId}: ${await doResponse.text()}`,
+						)
+					}
+				} catch (error) {
 					// DO scheduling is optional - database record is still created
+					console.warn(
+						`[agent_schedule] DO scheduling error for agent ${params.agentId}:`,
+						error instanceof Error ? error.message : error,
+					)
 				}
 			}
 

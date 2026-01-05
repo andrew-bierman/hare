@@ -195,16 +195,28 @@ export class HareAgent<TEnv extends HareAgentEnv = HareAgentEnv> extends Agent<
 
 		// Schedule a task via HTTP
 		if (url.pathname === '/schedule' && request.method === 'POST') {
-			const payload = (await request.json()) as SchedulePayload
-			const result = await this.handleScheduleHTTP(payload)
-			return result
+			const rawPayload = await request.json()
+			const parseResult = SchedulePayloadSchema.safeParse(rawPayload)
+			if (!parseResult.success) {
+				return Response.json(
+					{ error: `Invalid schedule payload: ${parseResult.error.message}` },
+					{ status: 400 },
+				)
+			}
+			return this.handleScheduleHTTP(parseResult.data)
 		}
 
 		// Execute a tool via HTTP
 		if (url.pathname === '/execute-tool' && request.method === 'POST') {
-			const payload = (await request.json()) as ToolExecutePayload
-			const result = await this.handleToolExecuteHTTP(payload)
-			return result
+			const rawPayload = await request.json()
+			const parseResult = ToolExecutePayloadSchema.safeParse(rawPayload)
+			if (!parseResult.success) {
+				return Response.json(
+					{ error: `Invalid tool execution payload: ${parseResult.error.message}` },
+					{ status: 400 },
+				)
+			}
+			return this.handleToolExecuteHTTP(parseResult.data)
 		}
 
 		return new Response('Not found', { status: 404 })
