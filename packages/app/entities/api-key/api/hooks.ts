@@ -1,7 +1,7 @@
 'use client'
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { api } from '@hare/api-client'
+import { apiKeys } from '@hare/api-client'
 
 // Types for API keys
 export interface ApiKey {
@@ -46,7 +46,7 @@ export function useApiKeys(workspaceId: string | undefined) {
 	return useQuery({
 		queryKey: ['api-keys', workspaceId],
 		queryFn: async () => {
-			const res = await api['api-keys'].$get({ query: { workspaceId: workspaceId! } })
+			const res = await apiKeys.$get({ query: { workspaceId: workspaceId! } })
 			if (!res.ok) throw new Error('Request failed')
 			return res.json()
 		},
@@ -61,7 +61,7 @@ export function useApiKey(id: string | undefined, workspaceId: string | undefine
 	return useQuery({
 		queryKey: ['api-keys', workspaceId, id],
 		queryFn: async () => {
-			const res = await api['api-keys'][':id'].$get({
+			const res = await apiKeys[':id'].$get({
 				param: { id: id! },
 				query: { workspaceId: workspaceId! },
 			})
@@ -80,7 +80,7 @@ export function useCreateApiKey(workspaceId: string | undefined) {
 	const queryClient = useQueryClient()
 	return useMutation({
 		mutationFn: async (data: CreateApiKeyInput) => {
-			const res = await api['api-keys'].$post({
+			const res = await apiKeys.$post({
 				query: { workspaceId: workspaceId! },
 				json: data,
 			})
@@ -100,7 +100,7 @@ export function useUpdateApiKey(workspaceId: string | undefined) {
 	const queryClient = useQueryClient()
 	return useMutation({
 		mutationFn: async ({ id, data }: { id: string; data: UpdateApiKeyInput }) => {
-			const res = await api['api-keys'][':id'].$patch({
+			const res = await apiKeys[':id'].$patch({
 				param: { id },
 				query: { workspaceId: workspaceId! },
 				json: data,
@@ -122,7 +122,7 @@ export function useDeleteApiKey(workspaceId: string | undefined) {
 	const queryClient = useQueryClient()
 	return useMutation({
 		mutationFn: async (id: string) => {
-			const res = await api['api-keys'][':id'].$delete({
+			const res = await apiKeys[':id'].$delete({
 				param: { id },
 				query: { workspaceId: workspaceId! },
 			})

@@ -1,7 +1,7 @@
 'use client'
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { api } from '@hare/api-client'
+import { agents } from '@hare/api-client'
 import type { Agent, CreateAgentInput, UpdateAgentInput } from '@hare/types'
 
 // Re-export types for convenience
@@ -11,7 +11,7 @@ export function useAgents(workspaceId: string | undefined) {
 	return useQuery({
 		queryKey: ['agents', workspaceId],
 		queryFn: async () => {
-			const res = await api.agents.$get({ query: { workspaceId: workspaceId! } })
+			const res = await agents.$get({ query: { workspaceId: workspaceId! } })
 			if (!res.ok) throw new Error('Request failed')
 			return res.json()
 		},
@@ -23,7 +23,7 @@ export function useAgent(id: string | undefined, workspaceId: string | undefined
 	return useQuery({
 		queryKey: ['agents', workspaceId, id],
 		queryFn: async () => {
-			const res = await api.agents[':id'].$get({
+			const res = await agents[':id'].$get({
 				param: { id: id! },
 				query: { workspaceId: workspaceId! },
 			})
@@ -38,7 +38,7 @@ export function useCreateAgent(workspaceId: string | undefined) {
 	const queryClient = useQueryClient()
 	return useMutation({
 		mutationFn: async (data: CreateAgentInput) => {
-			const res = await api.agents.$post({
+			const res = await agents.$post({
 				query: { workspaceId: workspaceId! },
 				json: data,
 			})
@@ -55,7 +55,7 @@ export function useUpdateAgent(workspaceId: string | undefined) {
 	const queryClient = useQueryClient()
 	return useMutation({
 		mutationFn: async ({ id, data }: { id: string; data: UpdateAgentInput }) => {
-			const res = await api.agents[':id'].$patch({
+			const res = await agents[':id'].$patch({
 				param: { id },
 				query: { workspaceId: workspaceId! },
 				json: data,
@@ -74,7 +74,7 @@ export function useDeleteAgent(workspaceId: string | undefined) {
 	const queryClient = useQueryClient()
 	return useMutation({
 		mutationFn: async (id: string) => {
-			const res = await api.agents[':id'].$delete({
+			const res = await agents[':id'].$delete({
 				param: { id },
 				query: { workspaceId: workspaceId! },
 			})
@@ -91,7 +91,7 @@ export function useDeployAgent(workspaceId: string | undefined) {
 	const queryClient = useQueryClient()
 	return useMutation({
 		mutationFn: async ({ id, version }: { id: string; version?: string }) => {
-			const res = await api.agents[':id'].deploy.$post({
+			const res = await agents[':id'].deploy.$post({
 				param: { id },
 				query: { workspaceId: workspaceId! },
 				json: { version },
@@ -117,7 +117,7 @@ export function useAgentPreview(options: {
 	const { agentId, workspaceId } = options
 	return useMutation({
 		mutationFn: async (overrides?: CreateAgentInput) => {
-			const res = await api.agents[':id'].preview.$post({
+			const res = await agents[':id'].preview.$post({
 				param: { id: agentId! },
 				query: { workspaceId: workspaceId! },
 				json: overrides ?? {},
@@ -143,7 +143,7 @@ export function useAgentPreviewQuery(options: {
 	return useQuery({
 		queryKey: ['agent-preview', workspaceId, agentId, overrides],
 		queryFn: async () => {
-			const res = await api.agents[':id'].preview.$post({
+			const res = await agents[':id'].preview.$post({
 				param: { id: agentId! },
 				query: { workspaceId: workspaceId! },
 				json: overrides ?? {},

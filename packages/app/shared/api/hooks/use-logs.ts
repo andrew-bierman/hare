@@ -1,7 +1,7 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
-import { api } from '@hare/api-client'
+import { logs } from '@hare/api-client'
 
 // =============================================================================
 // Types
@@ -60,7 +60,7 @@ export function useLogsQuery(workspaceId: string | undefined, params?: LogsParam
 	return useQuery({
 		queryKey: ['logs', workspaceId, params],
 		queryFn: async () => {
-			const res = await api.logs.$get({
+			const res = await logs.$get({
 				query: {
 					workspaceId: workspaceId!,
 					userId: params?.userId,
@@ -85,7 +85,7 @@ export function useLogStatsQuery(workspaceId: string | undefined, params?: LogsP
 	return useQuery({
 		queryKey: ['logs', 'stats', workspaceId, params],
 		queryFn: async () => {
-			const res = await api.logs.stats.$get({
+			const res = await logs.stats.$get({
 				query: {
 					workspaceId: workspaceId!,
 					userId: params?.userId,

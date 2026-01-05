@@ -1,7 +1,7 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
-import { api } from '@hare/api-client'
+import { analytics } from '@hare/api-client'
 import { analyticsKeys } from './query-keys'
 
 export interface AnalyticsParams {
@@ -15,7 +15,7 @@ export function useAnalyticsQuery(workspaceId: string | undefined, params?: Anal
 	return useQuery({
 		queryKey: analyticsKeys.overview(workspaceId ?? '', params?.startDate),
 		queryFn: async () => {
-			const res = await api.analytics.$get({
+			const res = await analytics.$get({
 				query: {
 					workspaceId: workspaceId!,
 					startDate: params?.startDate,

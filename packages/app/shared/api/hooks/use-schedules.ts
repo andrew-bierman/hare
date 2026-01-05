@@ -2,7 +2,7 @@
 
 import type { CreateScheduleInput, UpdateScheduleInput } from '@hare/types'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { api } from '@hare/api-client'
+import { agents } from '@hare/api-client'
 
 export interface ScheduleListParams {
 	status?: 'pending' | 'active' | 'paused' | 'completed' | 'cancelled'
@@ -30,7 +30,7 @@ export function useSchedulesQuery(input: UseSchedulesInput) {
 	return useQuery({
 		queryKey: ['schedules', workspaceId, agentId, params?.status],
 		queryFn: async () => {
-			const res = await api.agents[':agentId'].schedules.$get({
+			const res = await agents[':agentId'].schedules.$get({
 				param: { agentId: agentId! },
 				query: { workspaceId: workspaceId!, status: params?.status },
 			})
@@ -58,7 +58,7 @@ export function useScheduleQuery(input: UseScheduleInput) {
 	return useQuery({
 		queryKey: ['schedules', workspaceId, agentId, scheduleId],
 		queryFn: async () => {
-			const res = await api.agents[':agentId'].schedules[':scheduleId'].$get({
+			const res = await agents[':agentId'].schedules[':scheduleId'].$get({
 				param: { agentId: agentId!, scheduleId: scheduleId! },
 				query: { workspaceId: workspaceId! },
 			})
@@ -76,7 +76,7 @@ export function useCreateScheduleMutation(agentId: string | undefined, workspace
 	const queryClient = useQueryClient()
 	return useMutation({
 		mutationFn: async (data: CreateScheduleInput) => {
-			const res = await api.agents[':agentId'].schedules.$post({
+			const res = await agents[':agentId'].schedules.$post({
 				param: { agentId: agentId! },
 				query: { workspaceId: workspaceId! },
 				json: data,
@@ -97,7 +97,7 @@ export function useUpdateScheduleMutation(agentId: string | undefined, workspace
 	const queryClient = useQueryClient()
 	return useMutation({
 		mutationFn: async ({ scheduleId, data }: { scheduleId: string; data: UpdateScheduleInput }) => {
-			const res = await api.agents[':agentId'].schedules[':scheduleId'].$patch({
+			const res = await agents[':agentId'].schedules[':scheduleId'].$patch({
 				param: { agentId: agentId!, scheduleId },
 				query: { workspaceId: workspaceId! },
 				json: data,
@@ -119,7 +119,7 @@ export function useDeleteScheduleMutation(agentId: string | undefined, workspace
 	const queryClient = useQueryClient()
 	return useMutation({
 		mutationFn: async (scheduleId: string) => {
-			const res = await api.agents[':agentId'].schedules[':scheduleId'].$delete({
+			const res = await agents[':agentId'].schedules[':scheduleId'].$delete({
 				param: { agentId: agentId!, scheduleId },
 				query: { workspaceId: workspaceId! },
 			})
@@ -150,7 +150,7 @@ export function useScheduleExecutionsQuery(input: UseScheduleExecutionsInput) {
 	return useQuery({
 		queryKey: ['executions', workspaceId, agentId, scheduleId, params?.limit, params?.offset],
 		queryFn: async () => {
-			const res = await api.agents[':agentId'].schedules[':scheduleId'].executions.$get({
+			const res = await agents[':agentId'].schedules[':scheduleId'].executions.$get({
 				param: { agentId: agentId!, scheduleId: scheduleId! },
 				query: {
 					workspaceId: workspaceId!,
@@ -182,7 +182,7 @@ export function useAgentExecutionsQuery(input: UseAgentExecutionsInput) {
 	return useQuery({
 		queryKey: ['executions', workspaceId, agentId, 'all', params?.limit, params?.offset],
 		queryFn: async () => {
-			const res = await api.agents[':agentId'].executions.$get({
+			const res = await agents[':agentId'].executions.$get({
 				param: { agentId: agentId! },
 				query: {
 					workspaceId: workspaceId!,

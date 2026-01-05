@@ -49,6 +49,62 @@ import workspaces from './routes/workspaces'
 import type { HonoEnv } from '@hare/types'
 
 // =============================================================================
+// ROUTE TYPE EXPORTS (for split RPC clients)
+// =============================================================================
+
+/** Agents routes: /api/agents/* (includes schedules, memory, webhooks) */
+export type AgentsRoute = typeof agents
+export type SchedulesRoute = typeof schedules
+export type MemoryRoute = typeof memory
+export type WebhooksRoute = typeof webhooksRoutes
+
+/** Tools routes: /api/tools/* */
+export type ToolsRoute = typeof tools
+
+/** Workspaces routes: /api/workspaces/* */
+export type WorkspacesRoute = typeof workspaces
+export type WorkspaceMembersRoute = typeof workspaceMembers
+
+/** Auth routes: /api/auth/* */
+export type AuthRoute = typeof auth
+
+/** Billing routes: /api/billing/* */
+export type BillingRoute = typeof billing
+
+/** Analytics routes: /api/analytics/* */
+export type AnalyticsRoute = typeof analytics
+
+/** Usage routes: /api/usage/* */
+export type UsageRoute = typeof usage
+
+/** Chat routes: /api/chat/* */
+export type ChatRoute = typeof chat
+
+/** API Keys routes: /api/api-keys/* */
+export type ApiKeysRoute = typeof apiKeysRoutes
+
+/** User settings routes: /api/user/* */
+export type UserRoute = typeof userSettings
+
+/** Health routes: /api/health/* */
+export type HealthRoute = typeof health
+
+/** Logs routes: /api/logs/* */
+export type LogsRoute = typeof logs
+
+/** Embed routes: /api/embed/* */
+export type EmbedRoute = typeof embed
+
+/** Dev routes: /api/dev/* */
+export type DevRoute = typeof dev
+
+/** MCP routes: /api/mcp/* */
+export type McpRoute = typeof mcp
+
+/** Agent WebSocket routes: /api/agent-ws/* */
+export type AgentWsRoute = typeof agentWs
+
+// =============================================================================
 // APP CREATION
 // =============================================================================
 
