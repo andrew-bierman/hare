@@ -1,7 +1,7 @@
 import { MDXProvider } from '@mdx-js/react'
 import { createFileRoute, Link, notFound } from '@tanstack/react-router'
 import type { ComponentType } from 'react'
-import { type DocCategory, getDocCategories, getDocPage } from '../../lib/docs/simple-docs'
+import { getDocCategories, getDocPage } from '../../lib/docs/simple-docs'
 import 'highlight.js/styles/github-dark.css'
 
 // Custom MDX components
@@ -57,26 +57,29 @@ const mdxComponents = {
 	),
 }
 
-// Serializable loader data - Component is looked up at render time
-interface LoaderData {
-	slug: string
-	title: string
-	description?: string
-	category?: string
-}
-
 export const Route = createFileRoute('/docs/$')({
 	component: DocsPage,
-	loader: ({ params }): LoaderData => {
+	ssr: false, // Disable SSR because MDX components aren't serializable
+	loader: ({ params }) => {
 		const slug = params._splat || ''
 		const page = getDocPage(slug)
 		if (!page) throw notFound()
-		// Return only serializable data
+		// Return serializable data only - Component is accessed directly in the component
 		return {
 			slug: page.slug,
 			title: page.title,
 			description: page.description,
 			category: page.category,
+			categories: getDocCategories().map((c) => ({
+				name: c.name,
+				slug: c.slug,
+				pages: c.pages.map((p) => ({
+					slug: p.slug,
+					title: p.title,
+					description: p.description,
+					category: p.category,
+				})),
+			})),
 		}
 	},
 	head: ({ loaderData }) => ({
@@ -87,7 +90,27 @@ export const Route = createFileRoute('/docs/$')({
 	}),
 })
 
-function Sidebar({ categories, currentSlug }: { categories: DocCategory[]; currentSlug: string }) {
+// Serializable page data (without Component)
+interface SidebarPage {
+	slug: string
+	title: string
+	description: string | undefined
+	category: string | undefined
+}
+
+interface SidebarCategory {
+	name: string
+	slug: string
+	pages: SidebarPage[]
+}
+
+function Sidebar({
+	categories,
+	currentSlug,
+}: {
+	categories: SidebarCategory[]
+	currentSlug: string
+}) {
 	return (
 		<aside className="w-64 shrink-0 border-r h-[calc(100vh-4rem)] sticky top-16 overflow-y-auto p-4">
 			<nav className="space-y-6">
@@ -103,8 +126,8 @@ function Sidebar({ categories, currentSlug }: { categories: DocCategory[]; curre
 								return (
 									<li key={page.slug}>
 										<Link
-											// Dynamic splat routes need type assertion
-											to={`/docs/${page.slug === 'index' ? '' : page.slug}` as '/docs/$'}
+											to="/docs/$"
+											params={{ _splat: page.slug === 'index' ? '' : page.slug }}
 											className={`block px-3 py-1.5 rounded-md text-sm transition-colors ${
 												isActive
 													? 'bg-primary/10 text-primary font-medium'
@@ -129,13 +152,12 @@ function DocsPage() {
 	const params = Route.useParams()
 	const currentSlug = params._splat || ''
 
-	// Look up full page data at render time (Component isn't serializable)
+	// Get the actual page with Component (not from loader since Components aren't serializable)
 	const page = getDocPage(loaderData.slug)
-	const categories = getDocCategories()
-
 	if (!page) return null
 
 	const Content = page.Component as ComponentType
+	const categories = loaderData.categories
 
 	return (
 		<div className="min-h-screen bg-background">
