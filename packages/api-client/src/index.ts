@@ -2,7 +2,9 @@
  * @hare/api-client
  *
  * Type-safe Hono RPC client for the Hare API.
- * Uses Hono's `hc` client for automatic type inference from routes.
+ * Uses Hono's `hc` client with pre-compiled types for better IDE performance.
+ *
+ * @see https://hono.dev/docs/guides/rpc#compile-your-code-before-using-it-recommended
  */
 
 import { hc } from 'hono/client'
@@ -23,17 +25,40 @@ function getBaseURL(): string {
 }
 
 /**
+ * Pre-compiled client type for better IDE performance.
+ * This allows TypeScript to resolve types at compile time rather than
+ * during development, significantly improving IDE responsiveness.
+ *
+ * @see https://hono.dev/docs/guides/rpc#compile-your-code-before-using-it-recommended
+ */
+type Client = ReturnType<typeof hc<AppType>>
+
+/**
+ * Type-safe Hono client factory with pre-compiled types.
+ * Use this instead of `hc` directly for proper type inference.
+ */
+function hcWithType(...args: Parameters<typeof hc>): Client {
+	return hc<AppType>(...args)
+}
+
+/**
  * Create a type-safe Hono RPC client.
  * All types are automatically inferred from route definitions.
  *
  * @param baseUrl - Optional base URL for the API. Defaults to auto-detection.
  * @returns The Hono RPC client with full type inference.
  */
-export function createApiClient(baseUrl?: string) {
-	return hc<AppType>(baseUrl ?? getBaseURL(), {
+export function createApiClient(baseUrl?: string): Client {
+	return hcWithType(baseUrl ?? getBaseURL(), {
 		init: { credentials: 'include' },
 	})
 }
+
+/**
+ * Pre-compiled API type for the `/api` basePath.
+ * This resolves the type once at compile time.
+ */
+type ApiType = Client['api']
 
 /**
  * Default API client instance.
@@ -49,10 +74,10 @@ export function createApiClient(baseUrl?: string) {
  * ```
  */
 const client = createApiClient()
-export const api = client.api
+export const api: ApiType = client.api
 
 /** Type of the API client */
-export type ApiClient = ReturnType<typeof createApiClient>
+export type ApiClient = Client
 
 /** Type of the api accessor (with basePath applied) */
-export type Api = typeof api
+export type Api = ApiType
