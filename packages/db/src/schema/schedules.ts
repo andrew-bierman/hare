@@ -1,5 +1,5 @@
 import {
-	ENUM_DEFAULTS,
+	config,
 	EXECUTION_STATUSES,
 	ExecutionStatus,
 	SCHEDULE_STATUSES,
@@ -36,7 +36,7 @@ export const scheduledTasks = sqliteTable('scheduled_tasks', {
 	payload: text('payload', { mode: 'json' }).$type<Record<string, unknown>>(),
 	status: text('status', { enum: SCHEDULE_STATUSES })
 		.notNull()
-		.default(ENUM_DEFAULTS.scheduleStatus)
+		.default(config.defaults.scheduleStatus)
 		.$type<ScheduleStatus>(),
 	// Last execution timestamp
 	lastExecutedAt: integer('lastExecutedAt', { mode: 'timestamp' }),

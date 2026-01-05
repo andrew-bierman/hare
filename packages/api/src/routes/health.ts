@@ -1,6 +1,6 @@
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
 import { getCloudflareEnv } from '../db'
-import type { HonoEnv } from '@hare/types'
+import type { CloudflareEnv, HonoEnv } from '@hare/types'
 
 // =============================================================================
 // Health Check Schemas

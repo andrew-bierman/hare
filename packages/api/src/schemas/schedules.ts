@@ -5,7 +5,7 @@
  */
 
 import { z } from '@hono/zod-openapi'
-import { EXECUTION_STATUSES, SCHEDULE_STATUSES, SCHEDULE_TYPES, ScheduleType } from '@hare/config'
+import { config, EXECUTION_STATUSES, SCHEDULE_STATUSES, SCHEDULE_TYPES } from '@hare/config'
 
 // Schedule type enum
 export const ScheduleTypeSchema = z.enum(SCHEDULE_TYPES).openapi('ScheduleType')
@@ -27,10 +27,10 @@ export const CreateScheduleSchema = z
 	})
 	.refine(
 		(data) => {
-			if (data.type === ScheduleType.ONE_TIME && !data.executeAt) {
+			if (data.type === config.enums.scheduleType.ONE_TIME && !data.executeAt) {
 				return false
 			}
-			if (data.type === ScheduleType.RECURRING && !data.cron) {
+			if (data.type === config.enums.scheduleType.RECURRING && !data.cron) {
 				return false
 			}
 			return true

@@ -3,7 +3,7 @@
  * Uses Web Crypto API for encryption/decryption
  */
 
-import { ENCRYPTION_CONFIG } from '@hare/config'
+import { config } from '@hare/config'
 
 // =============================================================================
 // Types
@@ -52,11 +52,11 @@ async function deriveKey(password: string, salt: Uint8Array): Promise<CryptoKey>
 		{
 			name: 'PBKDF2',
 			salt: salt.buffer as ArrayBuffer,
-			iterations: ENCRYPTION_CONFIG.PBKDF2_ITERATIONS,
+			iterations: config.security.encryption.pbkdf2Iterations,
 			hash: 'SHA-256',
 		},
 		passwordKey,
-		{ name: 'AES-GCM', length: ENCRYPTION_CONFIG.AES_KEY_LENGTH },
+		{ name: 'AES-GCM', length: config.security.encryption.aesKeyLength },
 		false,
 		['encrypt', 'decrypt'],
 	)
@@ -76,10 +76,10 @@ export async function encryptData(options: EncryptDataOptions): Promise<string> 
 	const dataBuffer = encoder.encode(data)
 
 	// Generate random IV (12 bytes for GCM)
-	const iv = crypto.getRandomValues(new Uint8Array(ENCRYPTION_CONFIG.IV_SIZE))
+	const iv = crypto.getRandomValues(new Uint8Array(config.security.encryption.ivSize))
 
 	// Generate random salt for key derivation
-	const salt = crypto.getRandomValues(new Uint8Array(ENCRYPTION_CONFIG.SALT_SIZE))
+	const salt = crypto.getRandomValues(new Uint8Array(config.security.encryption.saltSize))
 
 	// Derive encryption key
 	const key = await deriveKey(secret, salt)
@@ -114,9 +114,14 @@ export async function decryptData(options: DecryptDataOptions): Promise<string> 
 	const combined = Uint8Array.from(atob(encryptedData), (c) => c.charCodeAt(0))
 
 	// Extract salt, IV, and ciphertext
-	const salt = combined.slice(0, ENCRYPTION_CONFIG.SALT_SIZE)
-	const iv = combined.slice(ENCRYPTION_CONFIG.SALT_SIZE, ENCRYPTION_CONFIG.SALT_SIZE + ENCRYPTION_CONFIG.IV_SIZE)
-	const ciphertext = combined.slice(ENCRYPTION_CONFIG.SALT_SIZE + ENCRYPTION_CONFIG.IV_SIZE)
+	const salt = combined.slice(0, config.security.encryption.saltSize)
+	const iv = combined.slice(
+		config.security.encryption.saltSize,
+		config.security.encryption.saltSize + config.security.encryption.ivSize,
+	)
+	const ciphertext = combined.slice(
+		config.security.encryption.saltSize + config.security.encryption.ivSize,
+	)
 
 	// Derive decryption key
 	const key = await deriveKey(secret, salt)
@@ -158,7 +163,7 @@ export interface GenerateSecretOptions {
  * Returns base64-encoded key
  */
 export function generateSecret(options: GenerateSecretOptions = {}): string {
-	const { length = ENCRYPTION_CONFIG.DEFAULT_SECRET_LENGTH } = options
+	const { length = config.security.encryption.defaultSecretLength } = options
 	const array = new Uint8Array(length)
 	crypto.getRandomValues(array)
 	return btoa(String.fromCharCode(...array))

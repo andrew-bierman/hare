@@ -107,15 +107,15 @@ export function EmptyState({
 		variant === 'dashed' ? 'border-dashed border-2' : variant === 'solid' ? 'border' : 'border-0'
 
 	const renderAction = (actionConfig: EmptyStateAction, isPrimary = true) => {
-		const buttonVariant = actionConfig.variant ?? (isPrimary ? 'default' : 'outline')
-		const ActionIcon = actionConfig.icon
+		const buttonVariant = actionconfig.variant ?? (isPrimary ? 'default' : 'outline')
+		const ActionIcon = actionconfig.icon
 
-		if (actionConfig.href) {
+		if (actionconfig.href) {
 			return (
-				<a href={actionConfig.href} className={isPrimary ? 'w-full sm:w-auto' : ''}>
+				<a href={actionconfig.href} className={isPrimary ? 'w-full sm:w-auto' : ''}>
 					<Button variant={buttonVariant} className={cn('gap-2 h-11', isPrimary && 'w-full sm:w-auto')}>
 						{ActionIcon && <ActionIcon className="h-4 w-4" />}
-						{actionConfig.label}
+						{actionconfig.label}
 					</Button>
 				</a>
 			)
@@ -125,10 +125,10 @@ export function EmptyState({
 			<Button
 				variant={buttonVariant}
 				className={cn('gap-2 h-11', isPrimary && 'w-full sm:w-auto')}
-				onClick={actionConfig.onClick}
+				onClick={actionconfig.onClick}
 			>
 				{ActionIcon && <ActionIcon className="h-4 w-4" />}
-				{actionConfig.label}
+				{actionconfig.label}
 			</Button>
 		)
 	}

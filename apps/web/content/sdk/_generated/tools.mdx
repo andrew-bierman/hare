@@ -293,6 +293,11 @@ Load tools attached to an agent from the database.
 
 Create an executable tool from a database configuration.
 
+### `getAgentBuilderTools(context: ToolContext): AnyTool[]`
+
+Get all tools for the Agent Builder agent.
+Includes both builder-specific tools and agent-control tools.
+
 ### `getAITools(_context: ToolContext): void`
 
 Get all AI tools.
@@ -710,6 +715,58 @@ Execute multiple SQL statements in a batch. All statements run in a transaction.
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `statements` (optional) | `object` | The SQL statement |
+
+### agent_list_models
+
+List all available AI models with their capabilities, costs, speed tiers, and context windows. Use this to help users choose the right model for their agent.
+
+**Parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `provider` (optional) | `unknown` | Filter by provider (optional) |
+| `supportsTools` (optional) | `unknown` | Only show models that support tool calling |
+
+### agent_list_templates
+
+List all pre-built agent templates that can be used as starting points. Templates include instructions, suggested tools, and model configurations.
+
+### agent_validate_config
+
+Validate an agent configuration before creation. Returns errors, warnings, and a preview of what will be created.
+
+**Parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `name` | `string` | Agent name (1-100 characters) |
+| `description` (optional) | `string` | Agent description (max 500 chars) |
+| `instructions` | `unknown` | System instructions (1-10000 characters) |
+| `model` | `string` | Model ID to use |
+| `config` (optional) | `number` | Model configuration parameters |
+| `toolIds` (optional) | `array` | Tool IDs to attach (max 20) |
+
+### agent_export_config
+
+Export agent configuration as JSON, TypeScript SDK code, or cURL command. Useful for version control, sharing, or programmatic creation.
+
+**Parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `config` (optional) | `string` | Agent configuration to export |
+| `format` | `unknown` | Export format: json, typescript (SDK code), or curl (API command) |
+
+### agent_suggest_tools
+
+Suggest appropriate tools based on the agent use case. Analyzes the use case description and recommends relevant tools with explanations.
+
+**Parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `useCase` | `unknown` | - |
+| `description` (optional) | `unknown` | Additional details about what the agent needs to do |
 
 ### sentiment
 

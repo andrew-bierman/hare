@@ -7,7 +7,7 @@
 	},
 	"dependencies": {
 		"@hare/types": "workspace:*",
-		"hono": "^4.7.9"
+		"hono": "^4.11.3"
 	},
 	"devDependencies": {
 		"@hare/typescript-config": "workspace:*",

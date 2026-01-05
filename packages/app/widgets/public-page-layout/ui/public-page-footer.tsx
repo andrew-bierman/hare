@@ -1,6 +1,6 @@
 'use client'
 
-import { APP_CONFIG } from '@hare/config'
+import { config } from '@hare/config'
 import { Rabbit } from 'lucide-react'
 
 export interface PublicPageFooterProps {
@@ -25,7 +25,7 @@ export function PublicPageFooter({ Link, maxWidth = 'max-w-4xl' }: PublicPageFoo
 							<Rabbit className="h-3.5 w-3.5 text-white" />
 						</div>
 						<span className="font-semibold bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">
-							{APP_CONFIG.name}
+							{config.app.name}
 						</span>
 					</div>
 					<nav className="flex gap-4 text-sm text-muted-foreground">

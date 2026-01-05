@@ -81,15 +81,15 @@ function MemoryCard(props: {
 }) {
 	const { memory, onEdit, onDelete } = props
 	const typeConfig = MEMORY_TYPE_CONFIG[memory.metadata.type] || MEMORY_TYPE_CONFIG.custom
-	const IconComponent = typeConfig.icon
+	const IconComponent = typeconfig.icon
 
 	return (
 		<div className="border rounded-lg p-4 space-y-3 hover:border-primary/50 transition-colors">
 			<div className="flex items-start justify-between gap-2">
 				<div className="flex items-center gap-2">
-					<Badge className={typeConfig.color}>
+					<Badge className={typeconfig.color}>
 						<IconComponent className="h-3 w-3 mr-1" />
-						{typeConfig.label}
+						{typeconfig.label}
 					</Badge>
 					{memory.score !== undefined && (
 						<Badge variant="outline" className="text-xs">

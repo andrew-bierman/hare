@@ -29,7 +29,7 @@
 			"@hare/app": ["./packages/app/index.ts"],
 			"@hare/app/*": ["./packages/app/*"]
 		},
-		"types": ["bun", "vite/client"]
+		"types": ["bun", "vite/client", "@cloudflare/workers-types"]
 	},
 	"include": [
 		"apps/web/**/*.ts",

@@ -1,13 +1,11 @@
 {
-	"name": "@hare/api-client",
+	"name": "@hare/testing",
 	"version": "0.1.0",
-	"description": "Type-safe Hono RPC client for Hare API",
+	"description": "Shared test utilities and mocks for Hare platform",
 	"keywords": [
-		"hono",
-		"client",
-		"rpc",
-		"api",
-		"typescript"
+		"hare",
+		"testing",
+		"mocks"
 	],
 	"license": "MIT",
 	"type": "module",
@@ -15,6 +13,10 @@
 		".": {
 			"types": "./src/index.ts",
 			"import": "./src/index.ts"
+		},
+		"./mocks/cuid2": {
+			"types": "./src/mocks/cuid2.ts",
+			"import": "./src/mocks/cuid2.ts"
 		}
 	},
 	"main": "./src/index.ts",
@@ -22,15 +24,8 @@
 	"files": [
 		"src"
 	],
-	"dependencies": {
-		"@hare/api": "workspace:*"
-	},
 	"devDependencies": {
 		"@hare/typescript-config": "workspace:*",
-		"hono": "^4.11.3",
 		"typescript": "^5"
-	},
-	"peerDependencies": {
-		"hono": "^4.0.0"
 	}
 }
