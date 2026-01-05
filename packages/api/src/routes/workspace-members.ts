@@ -19,6 +19,7 @@ import {
 	WorkspaceMemberSchema,
 } from '../schemas'
 import { type AuthEnv, isWorkspaceRole, type WorkspaceRole } from '@hare/types'
+import { createEmailService, type EmailEnv } from '../services/email'
 
 // =============================================================================
 // Route Definitions
@@ -354,13 +355,14 @@ const app = baseApp.openapi(listMembersRoute, async (c) => {
 		return c.json({ error: 'Admin access required' }, 403)
 	}
 
+	// Fetch workspace once for reuse (owner check and email)
+	const [workspace] = await db.select().from(workspaces).where(eq(workspaces.id, id))
+
 	// Check if user already exists and is a member
 	const [existingUser] = await db.select().from(users).where(eq(users.email, email))
 
 	if (existingUser) {
 		// Check if they're the owner
-		const [workspace] = await db.select().from(workspaces).where(eq(workspaces.id, id))
-
 		if (workspace?.ownerId === existingUser.id) {
 			return c.json({ error: 'User is already the workspace owner' }, 400)
 		}
@@ -413,7 +415,26 @@ const app = baseApp.openapi(listMembersRoute, async (c) => {
 		return c.json({ error: 'Failed to create invitation' }, 500)
 	}
 
-	// TODO: Send email notification (not implemented in this PR)
+	// Send email notification (workspace already fetched above)
+	const emailService = createEmailService(c.env as EmailEnv)
+	const appUrl = (c.env as { APP_URL?: string }).APP_URL || 'http://localhost:3000'
+	const inviteUrl = `${appUrl}/accept-invite?token=${invitation.id}`
+
+	const emailResult = await emailService.sendWorkspaceInvitation({
+		to: email,
+		workspaceName: workspace?.name || 'Unknown Workspace',
+		inviterName: user.name || 'A team member',
+		inviterEmail: user.email,
+		role: role || 'member',
+		inviteUrl,
+		expiresAt,
+	})
+
+	if (!emailResult.success) {
+		console.error(`[Workspace] Failed to send invitation email to ${email}:`, emailResult.error)
+	} else {
+		console.log(`[Workspace] Invitation email sent to ${email} (${emailResult.messageId})`)
+	}
 
 	return c.json(
 		{
