@@ -27,6 +27,7 @@
 		"@hare/db": "workspace:*"
 	},
 	"devDependencies": {
+		"@cloudflare/workers-types": "^4.20251224.0",
 		"@hare/typescript-config": "workspace:*",
 		"better-auth": "^1.4.9",
 		"typescript": "^5"

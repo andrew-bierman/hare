@@ -71,21 +71,30 @@ export {
 	type AuthVariables,
 	ApiKeyPermissionsSchema,
 	type ApiKeyPermissions,
-	ApiKeySchema,
-	type ApiKey,
-	ApiKeyWithSecretSchema,
-	type ApiKeyWithSecret,
-	type OAuthProviders,
 	ApiKeyInfoSchema,
 	type ApiKeyInfo,
 	ApiKeyVariablesSchema,
 	type ApiKeyVariables,
+	// Full API key types
+	ApiKeySchema,
+	type ApiKey,
+	ApiKeyWithSecretSchema,
+	type ApiKeyWithSecret,
+	CreateApiKeyInputSchema,
+	type CreateApiKeyInput,
+	UpdateApiKeyInputSchema,
+	type UpdateApiKeyInput,
+	// OAuth types
+	type OAuthProviders,
+	// Hono env types
 	type WorkspaceVariables,
 	type HonoEnv,
 	type AuthEnv,
 	type WorkspaceEnv,
 	type ApiKeyEnv,
 	type OptionalAuthEnv,
+	// Cloudflare types
+	type CloudflareEnv,
 	// Database enums
 	WorkspaceRoleSchema,
 	type WorkspaceRole,
@@ -166,6 +175,3 @@ export {
 	UpdateMemberRoleInputSchema,
 	type UpdateMemberRoleInput,
 } from './api'
-
-// Cloudflare types
-export { type CloudflareEnv } from './cloudflare'

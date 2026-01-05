@@ -1,7 +1,7 @@
 'use client'
 
 import {
-	Config,
+	config,
 	getModelsByProvider,
 	getProviderLabel,
 	type AIModel,
@@ -38,8 +38,8 @@ export interface ModelSelectorProps {
 }
 
 function ModelBadge({ tier, type }: { tier: string; type: 'speed' | 'cost' }) {
-	const config = type === 'speed' ? config.models.labels.speed : config.models.labels.cost
-	const { label, color } = config[tier as keyof typeof config] ?? { label: tier, color: '' }
+	const badgeConfig = type === 'speed' ? config.models.labels.speed : config.models.labels.cost
+	const { label, color } = badgeConfig[tier as keyof typeof badgeConfig] ?? { label: tier, color: '' }
 
 	return (
 		<span className={cn('px-1.5 py-0.5 text-[10px] font-medium rounded', color)}>

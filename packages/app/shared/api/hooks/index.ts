@@ -38,19 +38,17 @@ export { useAnalyticsQuery } from './use-analytics'
 
 // API Key hooks
 export {
-	type ApiKey,
-	type ApiKeyWithSecret,
-	type CreateApiKeyInput,
-	type UpdateApiKeyInput,
 	useApiKeyQuery,
 	useApiKeysQuery,
 	useCreateApiKeyMutation,
 	useDeleteApiKeyMutation,
 	useUpdateApiKeyMutation,
 } from './use-api-keys'
+// API Key types are exported from @hare/types via shared/api/index.ts
 
 // Auth hooks
-export { type OAuthProviders, useOAuthProvidersQuery } from './use-auth'
+export { useOAuthProvidersQuery } from './use-auth'
+// OAuthProviders type is exported from @hare/types via shared/api/index.ts
 
 // Billing hooks
 export {
