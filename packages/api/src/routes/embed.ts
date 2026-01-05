@@ -142,11 +142,11 @@ const embedChatRoute = createRoute({
 // App
 // =============================================================================
 
-const app = new OpenAPIHono<HonoEnv>()
+const baseApp = new OpenAPIHono<HonoEnv>()
 
 // CORS middleware for embed routes - allows any origin for public embeds
 // Individual agents can have allowedDomains configured for additional security
-app.use(
+baseApp.use(
 	'*',
 	cors({
 		origin: (origin) => {
@@ -163,7 +163,7 @@ app.use(
 )
 
 // Get agent info
-app.openapi(getEmbedAgentRoute, async (c) => {
+const app = baseApp.openapi(getEmbedAgentRoute, async (c) => {
 	const { agentId } = c.req.valid('param')
 	const db = getDb(c)
 
@@ -212,9 +212,8 @@ app.openapi(getEmbedAgentRoute, async (c) => {
 		200,
 	)
 })
-
 // Chat with agent
-app.openapi(embedChatRoute, async (c) => {
+.openapi(embedChatRoute, async (c) => {
 	const { agentId } = c.req.valid('param')
 	const { message, sessionId: existingSessionId } = c.req.valid('json')
 	const db = getDb(c)

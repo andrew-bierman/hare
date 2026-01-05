@@ -1,5 +1,5 @@
 import { ErrorComponent, NotFound, PendingComponent } from '@hare/app/widgets/router-components'
-import { ROUTER_TIMING } from '@hare/config'
+import { config } from '@hare/config'
 import { createRouter } from '@tanstack/react-router'
 import type { RouterContext } from './router-context'
 import { routeTree } from './routeTree.gen'
@@ -12,8 +12,8 @@ export function getRouter() {
 		defaultNotFoundComponent: NotFound,
 		defaultErrorComponent: ErrorComponent,
 		defaultPendingComponent: PendingComponent,
-		defaultPendingMinMs: ROUTER_TIMING.PENDING_MIN_MS,
-		defaultPendingMs: ROUTER_TIMING.PENDING_MS,
+		defaultPendingMinMs: config.ui.timing.router.pendingMinMs,
+		defaultPendingMs: config.ui.timing.router.pendingMs,
 		// Initial context - will be populated by root route's beforeLoad
 		context: {
 			auth: {

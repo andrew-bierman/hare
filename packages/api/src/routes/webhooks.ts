@@ -407,14 +407,14 @@ async function findWebhook(options: {
 // Route Handlers
 // =============================================================================
 
-const app = new OpenAPIHono<WorkspaceEnv>()
+const baseApp = new OpenAPIHono<WorkspaceEnv>()
 
 // Apply middleware
-app.use('*', authMiddleware)
-app.use('*', workspaceMiddleware)
+baseApp.use('*', authMiddleware)
+baseApp.use('*', workspaceMiddleware)
 
 // List webhooks for an agent
-app.openapi(listWebhooksRoute, async (c) => {
+const app = baseApp.openapi(listWebhooksRoute, async (c) => {
 	const { id: agentId } = c.req.valid('param')
 	const db = getDb(c)
 	const workspace = c.get('workspace')
@@ -428,9 +428,8 @@ app.openapi(listWebhooksRoute, async (c) => {
 
 	return c.json({ webhooks: results.map(serializeWebhook) }, 200)
 })
-
 // Create a new webhook
-app.openapi(createWebhookRoute, async (c) => {
+.openapi(createWebhookRoute, async (c) => {
 	const { id: agentId } = c.req.valid('param')
 	const data = c.req.valid('json')
 	const db = getDb(c)
@@ -464,9 +463,8 @@ app.openapi(createWebhookRoute, async (c) => {
 
 	return c.json(serializeWebhook(webhook), 201)
 })
-
 // Get webhook details
-app.openapi(getWebhookRoute, async (c) => {
+.openapi(getWebhookRoute, async (c) => {
 	const { id: agentId, webhookId } = c.req.valid('param')
 	const db = getDb(c)
 	const workspace = c.get('workspace')
@@ -483,9 +481,8 @@ app.openapi(getWebhookRoute, async (c) => {
 
 	return c.json(serializeWebhook(webhook), 200)
 })
-
 // Update a webhook
-app.openapi(updateWebhookRoute, async (c) => {
+.openapi(updateWebhookRoute, async (c) => {
 	const { id: agentId, webhookId } = c.req.valid('param')
 	const data = c.req.valid('json')
 	const db = getDb(c)
@@ -529,9 +526,8 @@ app.openapi(updateWebhookRoute, async (c) => {
 
 	return c.json(serializeWebhook(webhook), 200)
 })
-
 // Delete a webhook
-app.openapi(deleteWebhookRoute, async (c) => {
+.openapi(deleteWebhookRoute, async (c) => {
 	const { id: agentId, webhookId } = c.req.valid('param')
 	const db = getDb(c)
 	const workspace = c.get('workspace')
@@ -555,9 +551,8 @@ app.openapi(deleteWebhookRoute, async (c) => {
 
 	return c.json({ success: true }, 200)
 })
-
 // Get webhook delivery logs
-app.openapi(getWebhookLogsRoute, async (c) => {
+.openapi(getWebhookLogsRoute, async (c) => {
 	const { id: agentId, webhookId } = c.req.valid('param')
 	const { limit, offset } = c.req.valid('query')
 	const db = getDb(c)
@@ -596,9 +591,8 @@ app.openapi(getWebhookLogsRoute, async (c) => {
 		200,
 	)
 })
-
 // Regenerate webhook secret
-app.openapi(regenerateSecretRoute, async (c) => {
+.openapi(regenerateSecretRoute, async (c) => {
 	const { id: agentId, webhookId } = c.req.valid('param')
 	const db = getDb(c)
 	const workspace = c.get('workspace')

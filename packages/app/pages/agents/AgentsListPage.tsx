@@ -4,7 +4,7 @@ import { Link, useNavigate } from '@tanstack/react-router'
 import { Badge } from '@hare/ui/components/badge'
 import { Button } from '@hare/ui/components/button'
 import { Card, CardContent } from '@hare/ui/components/card'
-import { Input } from '@hare/ui/components/input'
+import { SearchInput } from '@hare/ui/components/search-input'
 import { Skeleton } from '@hare/ui/components/skeleton'
 import { Tabs, TabsList, TabsTrigger } from '@hare/ui/components/tabs'
 import { Bot, Clock, Plus, SearchIcon, Settings, Wrench } from 'lucide-react'
@@ -12,7 +12,7 @@ import { type ChangeEvent, useState, useCallback } from 'react'
 import { useWorkspace } from '../../app/providers'
 import type { Agent } from '@hare/types'
 import { useAgentsQuery } from '../../shared/api/hooks'
-import { AI_MODELS } from '@hare/config'
+import { config } from '@hare/config'
 import { EmptyState } from '../../shared/ui/empty-state'
 import { OnboardingWizard } from '../../widgets/onboarding-wizard'
 
@@ -97,7 +97,7 @@ export function AgentsListPage() {
 	const draftCount = agents.filter((a) => a.status === 'draft').length
 
 	const getModelName = (modelId: string) => {
-		const model = AI_MODELS.find((m) => m.id === modelId)
+		const model = config.models.list.find((m) => m.id === modelId)
 		return model?.name || modelId
 	}
 
@@ -170,15 +170,12 @@ export function AgentsListPage() {
 
 			{/* Filters */}
 			<div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-				<div className="relative flex-1 max-w-lg">
-					<SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-					<Input
-						placeholder="Search agents..."
-						className="pl-9 h-11"
-						value={search}
-						onChange={(e: ChangeEvent<HTMLInputElement>) => setSearch(e.target.value)}
-					/>
-				</div>
+				<SearchInput
+					placeholder="Search agents..."
+					value={search}
+					onChange={(e: ChangeEvent<HTMLInputElement>) => setSearch(e.target.value)}
+					containerClassName="w-full sm:w-64"
+				/>
 				<Tabs value={filter} onValueChange={(v) => setFilter(v as typeof filter)}>
 					<TabsList className="w-full sm:w-auto">
 						<TabsTrigger value="all" className="flex-1 sm:flex-initial gap-1.5 min-h-[40px]">

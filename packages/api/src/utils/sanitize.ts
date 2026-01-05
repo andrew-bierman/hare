@@ -3,7 +3,7 @@
  * Protects against XSS, SQL injection, and other common attacks
  */
 
-import { VALIDATION } from '@hare/config'
+import { config } from '@hare/config'
 
 // =============================================================================
 // Types
@@ -140,7 +140,7 @@ export function sanitizeFilename(filename: string): string {
 	sanitized = sanitized.replace(/^\.+/, '')
 
 	// Trim and limit length
-	sanitized = sanitized.trim().substring(0, VALIDATION.FILENAME_MAX_LENGTH)
+	sanitized = sanitized.trim().substring(0, config.validation.filenameMaxLength)
 
 	if (!sanitized) {
 		throw new Error('Invalid filename')
@@ -190,7 +190,7 @@ export function validateAgentInstructions(instructions: string): {
 	const issues: string[] = []
 
 	// Check for extremely long instructions
-	if (instructions.length > VALIDATION.AGENT_INSTRUCTIONS_MAX_LENGTH) {
+	if (instructions.length > config.validation.agentInstructionsMaxLength) {
 		issues.push('Instructions exceed maximum length')
 	}
 

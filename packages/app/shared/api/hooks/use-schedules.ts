@@ -1,8 +1,17 @@
 'use client'
 
 import type { CreateScheduleInput, UpdateScheduleInput } from '@hare/types'
-import { apiClient, type ExecutionHistoryParams, type ScheduleListParams } from '../client'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { api } from '@hare/api-client'
+
+export interface ScheduleListParams {
+	status?: 'pending' | 'active' | 'paused' | 'completed' | 'cancelled'
+}
+
+export interface ExecutionHistoryParams {
+	limit?: number
+	offset?: number
+}
 
 /**
  * Input for useSchedules hook.
@@ -20,7 +29,14 @@ export function useSchedulesQuery(input: UseSchedulesInput) {
 	const { agentId, workspaceId, params } = input
 	return useQuery({
 		queryKey: ['schedules', workspaceId, agentId, params?.status],
-		queryFn: () => apiClient.schedules.list(agentId!, workspaceId!, params),
+		queryFn: async () => {
+			const res = await api.agents[':agentId'].schedules.$get({
+				param: { agentId: agentId! },
+				query: { workspaceId: workspaceId!, status: params?.status },
+			})
+			if (!res.ok) throw new Error('Request failed')
+			return res.json()
+		},
 		enabled: !!agentId && !!workspaceId,
 	})
 }
@@ -41,7 +57,14 @@ export function useScheduleQuery(input: UseScheduleInput) {
 	const { agentId, scheduleId, workspaceId } = input
 	return useQuery({
 		queryKey: ['schedules', workspaceId, agentId, scheduleId],
-		queryFn: () => apiClient.schedules.get(agentId!, scheduleId!, workspaceId!),
+		queryFn: async () => {
+			const res = await api.agents[':agentId'].schedules[':scheduleId'].$get({
+				param: { agentId: agentId!, scheduleId: scheduleId! },
+				query: { workspaceId: workspaceId! },
+			})
+			if (!res.ok) throw new Error('Request failed')
+			return res.json()
+		},
 		enabled: !!agentId && !!scheduleId && !!workspaceId,
 	})
 }
@@ -52,8 +75,15 @@ export function useScheduleQuery(input: UseScheduleInput) {
 export function useCreateScheduleMutation(agentId: string | undefined, workspaceId: string | undefined) {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: (data: CreateScheduleInput) =>
-			apiClient.schedules.create(agentId!, workspaceId!, data),
+		mutationFn: async (data: CreateScheduleInput) => {
+			const res = await api.agents[':agentId'].schedules.$post({
+				param: { agentId: agentId! },
+				query: { workspaceId: workspaceId! },
+				json: data,
+			})
+			if (!res.ok) throw new Error('Request failed')
+			return res.json()
+		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['schedules', workspaceId, agentId] })
 		},
@@ -66,8 +96,15 @@ export function useCreateScheduleMutation(agentId: string | undefined, workspace
 export function useUpdateScheduleMutation(agentId: string | undefined, workspaceId: string | undefined) {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: ({ scheduleId, data }: { scheduleId: string; data: UpdateScheduleInput }) =>
-			apiClient.schedules.update(agentId!, scheduleId, workspaceId!, data),
+		mutationFn: async ({ scheduleId, data }: { scheduleId: string; data: UpdateScheduleInput }) => {
+			const res = await api.agents[':agentId'].schedules[':scheduleId'].$patch({
+				param: { agentId: agentId!, scheduleId },
+				query: { workspaceId: workspaceId! },
+				json: data,
+			})
+			if (!res.ok) throw new Error('Request failed')
+			return res.json()
+		},
 		onSuccess: (_, { scheduleId }) => {
 			queryClient.invalidateQueries({ queryKey: ['schedules', workspaceId, agentId] })
 			queryClient.invalidateQueries({ queryKey: ['schedules', workspaceId, agentId, scheduleId] })
@@ -81,8 +118,14 @@ export function useUpdateScheduleMutation(agentId: string | undefined, workspace
 export function useDeleteScheduleMutation(agentId: string | undefined, workspaceId: string | undefined) {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: (scheduleId: string) =>
-			apiClient.schedules.delete(agentId!, scheduleId, workspaceId!),
+		mutationFn: async (scheduleId: string) => {
+			const res = await api.agents[':agentId'].schedules[':scheduleId'].$delete({
+				param: { agentId: agentId!, scheduleId },
+				query: { workspaceId: workspaceId! },
+			})
+			if (!res.ok) throw new Error('Request failed')
+			return res.json()
+		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['schedules', workspaceId, agentId] })
 		},
@@ -106,7 +149,18 @@ export function useScheduleExecutionsQuery(input: UseScheduleExecutionsInput) {
 	const { agentId, scheduleId, workspaceId, params } = input
 	return useQuery({
 		queryKey: ['executions', workspaceId, agentId, scheduleId, params?.limit, params?.offset],
-		queryFn: () => apiClient.schedules.getExecutions(agentId!, scheduleId!, workspaceId!, params),
+		queryFn: async () => {
+			const res = await api.agents[':agentId'].schedules[':scheduleId'].executions.$get({
+				param: { agentId: agentId!, scheduleId: scheduleId! },
+				query: {
+					workspaceId: workspaceId!,
+					limit: params?.limit?.toString(),
+					offset: params?.offset?.toString(),
+				},
+			})
+			if (!res.ok) throw new Error('Request failed')
+			return res.json()
+		},
 		enabled: !!agentId && !!scheduleId && !!workspaceId,
 	})
 }
@@ -127,7 +181,18 @@ export function useAgentExecutionsQuery(input: UseAgentExecutionsInput) {
 	const { agentId, workspaceId, params } = input
 	return useQuery({
 		queryKey: ['executions', workspaceId, agentId, 'all', params?.limit, params?.offset],
-		queryFn: () => apiClient.schedules.getAgentExecutions(agentId!, workspaceId!, params),
+		queryFn: async () => {
+			const res = await api.agents[':agentId'].executions.$get({
+				param: { agentId: agentId! },
+				query: {
+					workspaceId: workspaceId!,
+					limit: params?.limit?.toString(),
+					offset: params?.offset?.toString(),
+				},
+			})
+			if (!res.ok) throw new Error('Request failed')
+			return res.json()
+		},
 		enabled: !!agentId && !!workspaceId,
 	})
 }

@@ -1,11 +1,14 @@
 'use client'
 
-import {
-	apiClient,
-	type CheckoutRequest,
-} from '../client'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { api } from '@hare/api-client'
 import { billingKeys } from './query-keys'
+
+export interface CheckoutRequest {
+	planId: 'pro' | 'team'
+	successUrl?: string
+	cancelUrl?: string
+}
 
 // =============================================================================
 // Hooks
@@ -17,7 +20,11 @@ import { billingKeys } from './query-keys'
 export function usePlansQuery(workspaceId: string | undefined) {
 	return useQuery({
 		queryKey: billingKeys.plans(),
-		queryFn: () => apiClient.billing.getPlans(workspaceId!),
+		queryFn: async () => {
+			const res = await api.billing.plans.$get({ query: { workspaceId: workspaceId! } })
+			if (!res.ok) throw new Error('Request failed')
+			return res.json()
+		},
 		enabled: !!workspaceId,
 	})
 }
@@ -28,7 +35,11 @@ export function usePlansQuery(workspaceId: string | undefined) {
 export function useBillingStatusQuery(workspaceId: string | undefined) {
 	return useQuery({
 		queryKey: billingKeys.status(workspaceId ?? ''),
-		queryFn: () => apiClient.billing.getStatus(workspaceId!),
+		queryFn: async () => {
+			const res = await api.billing.status.$get({ query: { workspaceId: workspaceId! } })
+			if (!res.ok) throw new Error('Request failed')
+			return res.json()
+		},
 		enabled: !!workspaceId,
 	})
 }
@@ -43,11 +54,17 @@ export function usePaymentHistoryQuery(options: {
 }) {
 	return useQuery({
 		queryKey: billingKeys.invoices(options.workspaceId ?? ''),
-		queryFn: () =>
-			apiClient.billing.getHistory(options.workspaceId!, {
-				limit: options.limit,
-				starting_after: options.startingAfter,
-			}),
+		queryFn: async () => {
+			const res = await api.billing.history.$get({
+				query: {
+					workspaceId: options.workspaceId!,
+					limit: options.limit?.toString(),
+					starting_after: options.startingAfter,
+				},
+			})
+			if (!res.ok) throw new Error('Request failed')
+			return res.json()
+		},
 		enabled: !!options.workspaceId,
 	})
 }
@@ -59,12 +76,18 @@ export function useCreateCheckoutMutation() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationFn: (params: { workspaceId: string } & CheckoutRequest) =>
-			apiClient.billing.createCheckout(params.workspaceId, {
-				planId: params.planId,
-				successUrl: params.successUrl,
-				cancelUrl: params.cancelUrl,
-			}),
+		mutationFn: async (params: { workspaceId: string } & CheckoutRequest) => {
+			const res = await api.billing.checkout.$post({
+				query: { workspaceId: params.workspaceId },
+				json: {
+					planId: params.planId,
+					successUrl: params.successUrl,
+					cancelUrl: params.cancelUrl,
+				},
+			})
+			if (!res.ok) throw new Error('Request failed')
+			return res.json()
+		},
 		onSuccess: (_, { workspaceId }) => {
 			// Invalidate billing queries after checkout
 			queryClient.invalidateQueries({ queryKey: billingKeys.status(workspaceId) })
@@ -78,7 +101,12 @@ export function useCreateCheckoutMutation() {
  */
 export function useCreatePortalMutation() {
 	return useMutation({
-		mutationFn: (params: { workspaceId: string }) =>
-			apiClient.billing.createPortal(params.workspaceId),
+		mutationFn: async (params: { workspaceId: string }) => {
+			const res = await api.billing.portal.$post({
+				query: { workspaceId: params.workspaceId },
+			})
+			if (!res.ok) throw new Error('Request failed')
+			return res.json()
+		},
 	})
 }

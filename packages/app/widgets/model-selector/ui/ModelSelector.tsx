@@ -1,11 +1,9 @@
 'use client'
 
 import {
-	AI_MODELS,
-	COST_TIER_LABELS,
+	Config,
 	getModelsByProvider,
 	getProviderLabel,
-	SPEED_TIER_LABELS,
 	type AIModel,
 	type ModelProvider,
 } from '@hare/config'
@@ -40,7 +38,7 @@ export interface ModelSelectorProps {
 }
 
 function ModelBadge({ tier, type }: { tier: string; type: 'speed' | 'cost' }) {
-	const config = type === 'speed' ? SPEED_TIER_LABELS : COST_TIER_LABELS
+	const config = type === 'speed' ? config.models.labels.speed : config.models.labels.cost
 	const { label, color } = config[tier as keyof typeof config] ?? { label: tier, color: '' }
 
 	return (
@@ -115,12 +113,12 @@ export function ModelSelector({
 
 	const flatModels = useMemo(() => {
 		if (providers?.length) {
-			return AI_MODELS.filter((m) => providers.includes(m.provider))
+			return config.models.list.filter((m) => providers.includes(m.provider))
 		}
-		return AI_MODELS
+		return config.models.list
 	}, [providers])
 
-	const selectedModel = AI_MODELS.find((m) => m.id === value)
+	const selectedModel = config.models.list.find((m) => m.id === value)
 
 	return (
 		<div className={cn('space-y-2', className)}>

@@ -18,6 +18,7 @@ import {
 	DialogTitle,
 } from '@hare/ui/components/dialog'
 import { Input } from '@hare/ui/components/input'
+import { SearchInput } from '@hare/ui/components/search-input'
 import { Label } from '@hare/ui/components/label'
 import {
 	Select,
@@ -34,7 +35,6 @@ import {
 	MessageSquare,
 	Pencil,
 	Plus,
-	SearchIcon,
 	Settings,
 	Sparkles,
 	Tag,
@@ -81,15 +81,15 @@ function MemoryCard(props: {
 }) {
 	const { memory, onEdit, onDelete } = props
 	const typeConfig = MEMORY_TYPE_CONFIG[memory.metadata.type] || MEMORY_TYPE_CONFIG.custom
-	const IconComponent = typeConfig.icon
+	const IconComponent = typeconfig.icon
 
 	return (
 		<div className="border rounded-lg p-4 space-y-3 hover:border-primary/50 transition-colors">
 			<div className="flex items-start justify-between gap-2">
 				<div className="flex items-center gap-2">
-					<Badge className={typeConfig.color}>
+					<Badge className={typeconfig.color}>
 						<IconComponent className="h-3 w-3 mr-1" />
-						{typeConfig.label}
+						{typeconfig.label}
 					</Badge>
 					{memory.score !== undefined && (
 						<Badge variant="outline" className="text-xs">
@@ -335,16 +335,13 @@ export function MemoryViewer(props: MemoryViewerProps) {
 			<CardContent className="space-y-4">
 				{/* Search Bar */}
 				<div className="flex gap-2">
-					<div className="relative flex-1">
-						<SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-						<Input
-							placeholder="Search memories semantically..."
-							value={searchQuery}
-							onChange={(e: ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
-							onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-							className="pl-9"
-						/>
-					</div>
+					<SearchInput
+						placeholder="Search memories semantically..."
+						value={searchQuery}
+						onChange={(e: ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
+						onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+						containerClassName="flex-1"
+					/>
 					<Button onClick={handleSearch} disabled={isSearching || !searchQuery.trim()}>
 						{isSearching ? 'Searching...' : 'Search'}
 					</Button>

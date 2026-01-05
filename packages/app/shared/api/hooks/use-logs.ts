@@ -1,6 +1,7 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
+import { api } from '@hare/api-client'
 
 // =============================================================================
 // Types
@@ -52,75 +53,28 @@ export interface LogStats {
 }
 
 // =============================================================================
-// API Functions
-// =============================================================================
-
-function buildUrl(path: string, params?: Record<string, string | undefined>): string {
-	const url = new URL(path, window.location.origin)
-	if (params) {
-		for (const [key, value] of Object.entries(params)) {
-			if (value !== undefined) {
-				url.searchParams.set(key, value)
-			}
-		}
-	}
-	return url.toString()
-}
-
-async function fetchLogs(workspaceId: string, params?: LogsParams): Promise<LogsResponse> {
-	const queryParams: Record<string, string | undefined> = {
-		workspaceId,
-		userId: params?.userId,
-		agentId: params?.agentId,
-		status: params?.status?.toString(),
-		startDate: params?.startDate,
-		endDate: params?.endDate,
-		limit: params?.limit?.toString(),
-		offset: params?.offset?.toString(),
-	}
-
-	const response = await fetch(buildUrl('/api/logs', queryParams), {
-		method: 'GET',
-		credentials: 'include',
-	})
-
-	if (!response.ok) {
-		throw new Error('Failed to fetch logs')
-	}
-
-	return response.json()
-}
-
-async function fetchLogStats(workspaceId: string, params?: LogsParams): Promise<LogStats> {
-	const queryParams: Record<string, string | undefined> = {
-		workspaceId,
-		userId: params?.userId,
-		agentId: params?.agentId,
-		status: params?.status?.toString(),
-		startDate: params?.startDate,
-		endDate: params?.endDate,
-	}
-
-	const response = await fetch(buildUrl('/api/logs/stats', queryParams), {
-		method: 'GET',
-		credentials: 'include',
-	})
-
-	if (!response.ok) {
-		throw new Error('Failed to fetch log stats')
-	}
-
-	return response.json()
-}
-
-// =============================================================================
 // Hooks
 // =============================================================================
 
 export function useLogsQuery(workspaceId: string | undefined, params?: LogsParams) {
 	return useQuery({
 		queryKey: ['logs', workspaceId, params],
-		queryFn: () => fetchLogs(workspaceId!, params),
+		queryFn: async () => {
+			const res = await api.logs.$get({
+				query: {
+					workspaceId: workspaceId!,
+					userId: params?.userId,
+					agentId: params?.agentId,
+					status: params?.status?.toString(),
+					startDate: params?.startDate,
+					endDate: params?.endDate,
+					limit: params?.limit?.toString(),
+					offset: params?.offset?.toString(),
+				},
+			})
+			if (!res.ok) throw new Error('Request failed')
+			return res.json()
+		},
 		enabled: !!workspaceId,
 		staleTime: 1000 * 30, // Cache for 30 seconds
 		refetchInterval: 1000 * 60, // Refetch every minute
@@ -130,7 +84,20 @@ export function useLogsQuery(workspaceId: string | undefined, params?: LogsParam
 export function useLogStatsQuery(workspaceId: string | undefined, params?: LogsParams) {
 	return useQuery({
 		queryKey: ['logs', 'stats', workspaceId, params],
-		queryFn: () => fetchLogStats(workspaceId!, params),
+		queryFn: async () => {
+			const res = await api.logs.stats.$get({
+				query: {
+					workspaceId: workspaceId!,
+					userId: params?.userId,
+					agentId: params?.agentId,
+					status: params?.status?.toString(),
+					startDate: params?.startDate,
+					endDate: params?.endDate,
+				},
+			})
+			if (!res.ok) throw new Error('Request failed')
+			return res.json()
+		},
 		enabled: !!workspaceId,
 		staleTime: 1000 * 60, // Cache for 1 minute
 		refetchInterval: 1000 * 60 * 5, // Refetch every 5 minutes

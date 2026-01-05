@@ -208,6 +208,22 @@ export {
 } from './agent-control'
 
 // ==========================================
+// AGENT BUILDER TOOLS
+// ==========================================
+
+export {
+	AGENT_BUILDER_TOOL_IDS,
+	agentBuilderTools,
+	type AgentBuilderToolId,
+	agentExportConfigTool,
+	agentListModelsTool,
+	agentListTemplatesTool,
+	agentSuggestToolsTool,
+	agentValidateConfigTool,
+	getAgentBuilderTools,
+} from './agent-builder'
+
+// ==========================================
 // TOOL FACTORY (Database Loading)
 // ==========================================
 

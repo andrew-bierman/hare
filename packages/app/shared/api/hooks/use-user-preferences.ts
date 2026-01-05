@@ -1,7 +1,21 @@
 'use client'
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { apiClient, type UpdateUserPreferencesInput, type UserPreferences } from '../client'
+import { api } from '@hare/api-client'
+
+export interface UserPreferences {
+	id: string
+	userId: string
+	emailNotifications: boolean
+	usageAlerts: boolean
+	createdAt: string
+	updatedAt: string
+}
+
+export interface UpdateUserPreferencesInput {
+	emailNotifications?: boolean
+	usageAlerts?: boolean
+}
 
 /**
  * User preferences query keys
@@ -17,7 +31,11 @@ export const userPreferencesKeys = {
 export function useUserPreferencesQuery() {
 	return useQuery({
 		queryKey: userPreferencesKeys.detail(),
-		queryFn: () => apiClient.userPreferences.get(),
+		queryFn: async () => {
+			const res = await api.user.preferences.$get()
+			if (!res.ok) throw new Error('Request failed')
+			return res.json()
+		},
 	})
 }
 
@@ -28,7 +46,11 @@ export function useUpdateUserPreferencesMutation() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationFn: (data: UpdateUserPreferencesInput) => apiClient.userPreferences.update(data),
+		mutationFn: async (data: UpdateUserPreferencesInput) => {
+			const res = await api.user.preferences.$patch({ json: data })
+			if (!res.ok) throw new Error('Request failed')
+			return res.json()
+		},
 		onSuccess: (data) => {
 			queryClient.setQueryData(userPreferencesKeys.detail(), data)
 		},

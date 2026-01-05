@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Button } from '@hare/ui/components/button'
 import { Menu, Rabbit, SearchIcon } from 'lucide-react'
-import { APP_CONFIG } from '@hare/config'
+import { config } from '@hare/config'
 import { CommandSearch } from './command-search'
 
 export interface HeaderProps {
@@ -49,7 +49,7 @@ export function Header({ Link, UserNav, onMobileMenuToggle, onNavigate }: Header
 								<Rabbit className="h-4 w-4 text-white" />
 							</div>
 							<span className="font-bold text-lg bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">
-								{APP_CONFIG.name}
+								{config.app.name}
 							</span>
 						</Link>
 					</div>

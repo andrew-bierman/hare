@@ -7,7 +7,7 @@ import { commonResponses } from '../helpers'
 import { authMiddleware, workspaceMiddleware } from '../middleware'
 import { ErrorSchema } from '../schemas'
 import { getBillingUsage } from '../services/billing-usage'
-import type { HonoEnv, WorkspaceEnv } from '@hare/types'
+import type { CloudflareEnv, HonoEnv, WorkspaceEnv } from '@hare/types'
 
 // =============================================================================
 // Pricing Plans
@@ -154,12 +154,19 @@ function getAppUrl(env: CloudflareEnv): string {
 // Route Definitions
 // =============================================================================
 
+const WorkspaceQuerySchema = z.object({
+	workspaceId: z.string().describe('Workspace ID'),
+})
+
 const listPlansRoute = createRoute({
 	method: 'get',
 	path: '/plans',
 	tags: ['Billing'],
 	summary: 'List available billing plans',
 	description: 'Get a list of all available billing plans and their features',
+	request: {
+		query: WorkspaceQuerySchema,
+	},
 	responses: {
 		200: {
 			description: 'List of billing plans',
@@ -180,6 +187,7 @@ const createCheckoutRoute = createRoute({
 	summary: 'Create checkout session',
 	description: 'Create a Stripe checkout session for upgrading to a paid plan',
 	request: {
+		query: WorkspaceQuerySchema,
 		body: {
 			content: {
 				'application/json': {
@@ -211,6 +219,9 @@ const createPortalRoute = createRoute({
 	tags: ['Billing'],
 	summary: 'Create customer portal session',
 	description: 'Create a Stripe customer portal session for managing subscription',
+	request: {
+		query: WorkspaceQuerySchema,
+	},
 	responses: {
 		200: {
 			description: 'Portal session created',
@@ -234,6 +245,9 @@ const getBillingStatusRoute = createRoute({
 	tags: ['Billing'],
 	summary: 'Get billing status',
 	description: 'Get current billing status, plan, and usage for the workspace',
+	request: {
+		query: WorkspaceQuerySchema,
+	},
 	responses: {
 		200: {
 			description: 'Billing status',
@@ -255,6 +269,7 @@ const getPaymentHistoryRoute = createRoute({
 	description: 'Get payment history from Stripe for the workspace',
 	request: {
 		query: z.object({
+			workspaceId: z.string().describe('Workspace ID'),
 			limit: z.coerce.number().min(1).max(100).default(10).optional(),
 			starting_after: z.string().optional(),
 		}),
@@ -302,19 +317,19 @@ const webhookRoute = createRoute({
 // App Setup
 // =============================================================================
 
-// Main billing app with auth
-const billingApp = new OpenAPIHono<WorkspaceEnv>()
-billingApp.use('*', authMiddleware)
-billingApp.use('*', workspaceMiddleware)
+// Main billing app with auth - use baseApp for chaining
+const baseBillingApp = new OpenAPIHono<WorkspaceEnv>()
+baseBillingApp.use('*', authMiddleware)
+baseBillingApp.use('*', workspaceMiddleware)
 
 // Webhook app without auth (Stripe signs requests)
 const webhookApp = new OpenAPIHono<HonoEnv>()
 
 // =============================================================================
-// Route Handlers
+// Route Handlers - chain all .openapi() calls for type inference
 // =============================================================================
 
-billingApp.openapi(listPlansRoute, async (c) => {
+const billingApp = baseBillingApp.openapi(listPlansRoute, async (c) => {
 	const workspace = c.get('workspace')
 	const db = getDb(c)
 
@@ -340,9 +355,7 @@ billingApp.openapi(listPlansRoute, async (c) => {
 		},
 		200,
 	)
-})
-
-billingApp.openapi(createCheckoutRoute, async (c) => {
+}).openapi(createCheckoutRoute, async (c) => {
 	const { planId, successUrl, cancelUrl } = c.req.valid('json')
 	const workspace = c.get('workspace')
 	const user = c.get('user')
@@ -416,9 +429,7 @@ billingApp.openapi(createCheckoutRoute, async (c) => {
 		},
 		200,
 	)
-})
-
-billingApp.openapi(createPortalRoute, async (c) => {
+}).openapi(createPortalRoute, async (c) => {
 	const workspace = c.get('workspace')
 	const db = getDb(c)
 	const env = c.env as CloudflareEnv
@@ -438,9 +449,7 @@ billingApp.openapi(createPortalRoute, async (c) => {
 	})
 
 	return c.json({ url: session.url }, 200)
-})
-
-billingApp.openapi(getBillingStatusRoute, async (c) => {
+}).openapi(getBillingStatusRoute, async (c) => {
 	const workspace = c.get('workspace')
 	const db = getDb(c)
 	const env = c.env as CloudflareEnv
@@ -508,9 +517,7 @@ billingApp.openapi(getBillingStatusRoute, async (c) => {
 		},
 		200,
 	)
-})
-
-billingApp.openapi(getPaymentHistoryRoute, async (c) => {
+}).openapi(getPaymentHistoryRoute, async (c) => {
 	const { limit = 10, starting_after } = c.req.valid('query')
 	const workspace = c.get('workspace')
 	const db = getDb(c)
@@ -590,7 +597,7 @@ webhookApp.openapi(webhookRoute, async (c) => {
 					.update(workspaces)
 					.set({
 						stripeSubscriptionId: session.subscription as string,
-						planId,
+						planId: planId as PlanId,
 						currentPeriodEnd: session.expires_at ? new Date(session.expires_at * 1000) : null,
 						updatedAt: new Date(),
 					})
@@ -606,7 +613,7 @@ webhookApp.openapi(webhookRoute, async (c) => {
 			const workspaceId = subscription.metadata?.workspaceId
 
 			if (workspaceId) {
-				const planId = subscription.metadata?.planId || 'pro'
+				const planId = (subscription.metadata?.planId || 'pro') as PlanId
 				await db
 					.update(workspaces)
 					.set({
@@ -654,8 +661,9 @@ webhookApp.openapi(webhookRoute, async (c) => {
 })
 
 // Combine apps - webhook route doesn't need auth
+// Chain .route() calls to preserve type inference
 const app = new OpenAPIHono<HonoEnv>()
-app.route('/', webhookApp)
-app.route('/', billingApp)
+	.route('/', webhookApp)
+	.route('/', billingApp)
 
 export default app

@@ -71,6 +71,11 @@ export {
 	type AuthVariables,
 	ApiKeyPermissionsSchema,
 	type ApiKeyPermissions,
+	ApiKeySchema,
+	type ApiKey,
+	ApiKeyWithSecretSchema,
+	type ApiKeyWithSecret,
+	type OAuthProviders,
 	ApiKeyInfoSchema,
 	type ApiKeyInfo,
 	ApiKeyVariablesSchema,
@@ -161,3 +166,6 @@ export {
 	UpdateMemberRoleInputSchema,
 	type UpdateMemberRoleInput,
 } from './api'
+
+// Cloudflare types
+export { type CloudflareEnv } from './cloudflare'
