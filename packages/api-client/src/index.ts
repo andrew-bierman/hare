@@ -4,6 +4,8 @@
  * Type-safe Hono RPC clients for the Hare API.
  * Split into domain-specific clients for better type inference performance.
  *
+ * Uses the hcWithType pattern from Hono docs to pre-compile types at build time.
+ * @see https://hono.dev/docs/guides/rpc#compile-your-code-before-using-it-recommended
  * @see https://hono.dev/docs/guides/rpc#split-your-app-and-client-into-multiple-files
  */
 
@@ -49,8 +51,7 @@ function getBaseURL(): string {
 const clientInit = { credentials: 'include' as const }
 
 // =============================================================================
-// PRE-COMPILED CLIENT TYPES
-// Each domain has its own type to avoid TypeScript inference overload
+// PRE-COMPILED CLIENT TYPES (computed at build time)
 // =============================================================================
 
 type AgentsClient = ReturnType<typeof hc<AgentsRoute>>
@@ -71,6 +72,28 @@ type McpClient = ReturnType<typeof hc<McpRoute>>
 type AgentWsClient = ReturnType<typeof hc<AgentWsRoute>>
 
 // =============================================================================
+// hcWithType FACTORIES (pre-compiled type inference)
+// These functions cast the return type to avoid runtime type instantiation
+// =============================================================================
+
+const hcAgents = (...args: Parameters<typeof hc>): AgentsClient => hc<AgentsRoute>(...args)
+const hcTools = (...args: Parameters<typeof hc>): ToolsClient => hc<ToolsRoute>(...args)
+const hcWorkspaces = (...args: Parameters<typeof hc>): WorkspacesClient => hc<WorkspacesRoute>(...args)
+const hcAuth = (...args: Parameters<typeof hc>): AuthClient => hc<AuthRoute>(...args)
+const hcBilling = (...args: Parameters<typeof hc>): BillingClient => hc<BillingRoute>(...args)
+const hcAnalytics = (...args: Parameters<typeof hc>): AnalyticsClient => hc<AnalyticsRoute>(...args)
+const hcUsage = (...args: Parameters<typeof hc>): UsageClient => hc<UsageRoute>(...args)
+const hcChat = (...args: Parameters<typeof hc>): ChatClient => hc<ChatRoute>(...args)
+const hcApiKeys = (...args: Parameters<typeof hc>): ApiKeysClient => hc<ApiKeysRoute>(...args)
+const hcUser = (...args: Parameters<typeof hc>): UserClient => hc<UserRoute>(...args)
+const hcHealth = (...args: Parameters<typeof hc>): HealthClient => hc<HealthRoute>(...args)
+const hcLogs = (...args: Parameters<typeof hc>): LogsClient => hc<LogsRoute>(...args)
+const hcEmbed = (...args: Parameters<typeof hc>): EmbedClient => hc<EmbedRoute>(...args)
+const hcDev = (...args: Parameters<typeof hc>): DevClient => hc<DevRoute>(...args)
+const hcMcp = (...args: Parameters<typeof hc>): McpClient => hc<McpRoute>(...args)
+const hcAgentWs = (...args: Parameters<typeof hc>): AgentWsClient => hc<AgentWsRoute>(...args)
+
+// =============================================================================
 // DOMAIN-SPECIFIC CLIENTS
 // =============================================================================
 
@@ -84,7 +107,7 @@ type AgentWsClient = ReturnType<typeof hc<AgentWsRoute>>
  * const { agents } = await res.json()
  * ```
  */
-export const agents: AgentsClient = hc<AgentsRoute>(`${getBaseURL()}/api/agents`, { init: clientInit })
+export const agents = hcAgents(`${getBaseURL()}/api/agents`, { init: clientInit })
 
 /**
  * Tools API client - /api/tools/*
@@ -95,7 +118,7 @@ export const agents: AgentsClient = hc<AgentsRoute>(`${getBaseURL()}/api/agents`
  * const { tools } = await res.json()
  * ```
  */
-export const tools: ToolsClient = hc<ToolsRoute>(`${getBaseURL()}/api/tools`, { init: clientInit })
+export const tools = hcTools(`${getBaseURL()}/api/tools`, { init: clientInit })
 
 /**
  * Workspaces API client - /api/workspaces/*
@@ -106,72 +129,72 @@ export const tools: ToolsClient = hc<ToolsRoute>(`${getBaseURL()}/api/tools`, { 
  * const { workspaces } = await res.json()
  * ```
  */
-export const workspaces: WorkspacesClient = hc<WorkspacesRoute>(`${getBaseURL()}/api/workspaces`, { init: clientInit })
+export const workspaces = hcWorkspaces(`${getBaseURL()}/api/workspaces`, { init: clientInit })
 
 /**
  * Auth API client - /api/auth/*
  */
-export const auth: AuthClient = hc<AuthRoute>(`${getBaseURL()}/api/auth`, { init: clientInit })
+export const auth = hcAuth(`${getBaseURL()}/api/auth`, { init: clientInit })
 
 /**
  * Billing API client - /api/billing/*
  */
-export const billing: BillingClient = hc<BillingRoute>(`${getBaseURL()}/api/billing`, { init: clientInit })
+export const billing = hcBilling(`${getBaseURL()}/api/billing`, { init: clientInit })
 
 /**
  * Analytics API client - /api/analytics/*
  */
-export const analytics: AnalyticsClient = hc<AnalyticsRoute>(`${getBaseURL()}/api/analytics`, { init: clientInit })
+export const analytics = hcAnalytics(`${getBaseURL()}/api/analytics`, { init: clientInit })
 
 /**
  * Usage API client - /api/usage/*
  */
-export const usage: UsageClient = hc<UsageRoute>(`${getBaseURL()}/api/usage`, { init: clientInit })
+export const usage = hcUsage(`${getBaseURL()}/api/usage`, { init: clientInit })
 
 /**
  * Chat API client - /api/chat/*
  */
-export const chat: ChatClient = hc<ChatRoute>(`${getBaseURL()}/api/chat`, { init: clientInit })
+export const chat = hcChat(`${getBaseURL()}/api/chat`, { init: clientInit })
 
 /**
  * API Keys client - /api/api-keys/*
  */
-export const apiKeys: ApiKeysClient = hc<ApiKeysRoute>(`${getBaseURL()}/api/api-keys`, { init: clientInit })
+export const apiKeys = hcApiKeys(`${getBaseURL()}/api/api-keys`, { init: clientInit })
 
 /**
  * User settings API client - /api/user/*
  */
-export const user: UserClient = hc<UserRoute>(`${getBaseURL()}/api/user`, { init: clientInit })
+export const user = hcUser(`${getBaseURL()}/api/user`, { init: clientInit })
 
 /**
  * Health API client - /api/health/*
  */
-export const health: HealthClient = hc<HealthRoute>(`${getBaseURL()}/api/health`, { init: clientInit })
+export const health = hcHealth(`${getBaseURL()}/api/health`, { init: clientInit })
 
 /**
  * Logs API client - /api/logs/*
  */
-export const logs: LogsClient = hc<LogsRoute>(`${getBaseURL()}/api/logs`, { init: clientInit })
+export const logs = hcLogs(`${getBaseURL()}/api/logs`, { init: clientInit })
 
 /**
  * Embed API client - /api/embed/*
  */
-export const embed: EmbedClient = hc<EmbedRoute>(`${getBaseURL()}/api/embed`, { init: clientInit })
+export const embed = hcEmbed(`${getBaseURL()}/api/embed`, { init: clientInit })
 
 /**
  * Dev API client - /api/dev/*
  */
-export const dev: DevClient = hc<DevRoute>(`${getBaseURL()}/api/dev`, { init: clientInit })
+export const dev = hcDev(`${getBaseURL()}/api/dev`, { init: clientInit })
 
 /**
  * MCP API client - /api/mcp/*
  */
-export const mcp: McpClient = hc<McpRoute>(`${getBaseURL()}/api/mcp`, { init: clientInit })
+export const mcp = hcMcp(`${getBaseURL()}/api/mcp`, { init: clientInit })
 
 /**
  * Agent WebSocket client - /api/agent-ws/*
  */
-export const agentWs: AgentWsClient = hc<AgentWsRoute>(`${getBaseURL()}/api/agent-ws`, { init: clientInit })
+export const agentWs = hcAgentWs(`${getBaseURL()}/api/agent-ws`, { init: clientInit })
 
 // =============================================================================
 // TYPE EXPORTS
