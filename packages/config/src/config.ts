@@ -967,24 +967,33 @@ export function getResponseStyleFromConfig(temperature: number): ResponseStyle {
 	return 'creative'
 }
 
-// Tool type arrays for schema validation
-export const TOOL_TYPES = Object.values(config.enums.toolType)
-export const AGENT_STATUSES = Object.values(config.enums.agentStatus)
-export const DEPLOYMENT_STATUSES = Object.values(config.enums.deploymentStatus)
-export const SCHEDULE_STATUSES = Object.values(config.enums.scheduleStatus)
-export const EXECUTION_STATUSES = Object.values(config.enums.executionStatus)
-export const INVITATION_STATUSES = Object.values(config.enums.invitationStatus)
-export const WORKSPACE_ROLES = Object.values(config.enums.workspaceRole)
-export const MEMBER_ROLES = Object.values(config.enums.memberRole)
-export const MESSAGE_ROLES = Object.values(config.enums.messageRole)
-export const SCHEDULE_TYPES = Object.values(config.enums.scheduleType)
-export const EXPORT_FORMATS = Object.values(config.enums.exportFormat)
-export const USAGE_GROUP_BY_OPTIONS = Object.values(config.enums.usageGroupBy)
-export const VALIDATION_ISSUE_SEVERITIES = Object.values(config.enums.validationSeverity)
-export const HTTP_METHODS = Object.values(config.enums.httpMethod)
-export const NODE_ENVS = Object.values(config.enums.nodeEnv)
-export const PLAN_IDS = Object.values(config.enums.planId)
-export const WIDGET_POSITIONS = Object.values(config.enums.widgetPosition)
+// Helper type to extract values as a tuple from an object with `as const`
+type ObjectValues<T> = T extends Record<string, infer V> ? V : never
+type EnumTuple<T extends Record<string, string>> = [ObjectValues<T>, ...ObjectValues<T>[]]
+
+// Type-safe helper to convert enum object to tuple (for drizzle schema)
+function enumToTuple<T extends Record<string, string>>(obj: T): EnumTuple<T> {
+	return Object.values(obj) as EnumTuple<T>
+}
+
+// Tool type arrays for schema validation (typed as tuples for drizzle compatibility)
+export const TOOL_TYPES = enumToTuple(config.enums.toolType)
+export const AGENT_STATUSES = enumToTuple(config.enums.agentStatus)
+export const DEPLOYMENT_STATUSES = enumToTuple(config.enums.deploymentStatus)
+export const SCHEDULE_STATUSES = enumToTuple(config.enums.scheduleStatus)
+export const EXECUTION_STATUSES = enumToTuple(config.enums.executionStatus)
+export const INVITATION_STATUSES = enumToTuple(config.enums.invitationStatus)
+export const WORKSPACE_ROLES = enumToTuple(config.enums.workspaceRole)
+export const MEMBER_ROLES = enumToTuple(config.enums.memberRole)
+export const MESSAGE_ROLES = enumToTuple(config.enums.messageRole)
+export const SCHEDULE_TYPES = enumToTuple(config.enums.scheduleType)
+export const EXPORT_FORMATS = enumToTuple(config.enums.exportFormat)
+export const USAGE_GROUP_BY_OPTIONS = enumToTuple(config.enums.usageGroupBy)
+export const VALIDATION_ISSUE_SEVERITIES = enumToTuple(config.enums.validationSeverity)
+export const HTTP_METHODS = enumToTuple(config.enums.httpMethod)
+export const NODE_ENVS = enumToTuple(config.enums.nodeEnv)
+export const PLAN_IDS = enumToTuple(config.enums.planId)
+export const WIDGET_POSITIONS = enumToTuple(config.enums.widgetPosition)
 
 // API message roles (excludes tool)
 export const API_MESSAGE_ROLES = [config.enums.messageRole.USER, config.enums.messageRole.ASSISTANT, config.enums.messageRole.SYSTEM] as const

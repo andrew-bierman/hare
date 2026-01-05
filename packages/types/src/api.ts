@@ -7,6 +7,10 @@
 
 import { z } from 'zod'
 import { ToolTypeSchema } from './tool'
+import type { CloudflareEnv } from './cloudflare'
+
+// Re-export CloudflareEnv for convenience
+export type { CloudflareEnv } from './cloudflare'
 
 // =============================================================================
 // HONO ENVIRONMENT TYPES (Server-side)
@@ -96,6 +100,70 @@ export const ApiKeyVariablesSchema = z.object({
 })
 
 export type ApiKeyVariables = z.infer<typeof ApiKeyVariablesSchema>
+
+/**
+ * Full API key schema for API responses.
+ * Note: The actual key value is never returned except on creation.
+ */
+export const ApiKeySchema = z.object({
+	id: z.string(),
+	workspaceId: z.string(),
+	name: z.string(),
+	prefix: z.string(),
+	permissions: ApiKeyPermissionsSchema,
+	lastUsedAt: z.string().nullable(),
+	expiresAt: z.string().nullable(),
+	createdAt: z.string(),
+})
+
+export type ApiKey = z.infer<typeof ApiKeySchema>
+
+/**
+ * API key response that includes the actual key value.
+ * Only returned on key creation.
+ */
+export const ApiKeyWithSecretSchema = z.object({
+	id: z.string(),
+	workspaceId: z.string(),
+	name: z.string(),
+	prefix: z.string(),
+	key: z.string(),
+	permissions: ApiKeyPermissionsSchema,
+	expiresAt: z.string().nullable(),
+	createdAt: z.string(),
+})
+
+export type ApiKeyWithSecret = z.infer<typeof ApiKeyWithSecretSchema>
+
+/**
+ * Schema for creating a new API key.
+ */
+export const CreateApiKeyInputSchema = z.object({
+	name: z.string().min(1).max(100),
+	permissions: ApiKeyPermissionsSchema.optional(),
+	expiresAt: z.string().optional(),
+})
+
+export type CreateApiKeyInput = z.infer<typeof CreateApiKeyInputSchema>
+
+/**
+ * Schema for updating an API key.
+ */
+export const UpdateApiKeyInputSchema = z.object({
+	name: z.string().min(1).max(100).optional(),
+	permissions: ApiKeyPermissionsSchema.optional(),
+})
+
+export type UpdateApiKeyInput = z.infer<typeof UpdateApiKeyInputSchema>
+
+/**
+ * OAuth providers configuration.
+ * Indicates which OAuth providers are enabled.
+ */
+export interface OAuthProviders {
+	google: boolean
+	github: boolean
+}
 
 /**
  * Workspace variables set by workspaceMiddleware.
@@ -244,12 +312,13 @@ export type Agent = z.infer<typeof AgentSchema>
 
 /**
  * Create agent input schema.
+ * Note: instructions is required per the API validation rules.
  */
 export const CreateAgentInputSchema = z.object({
 	name: z.string().min(1).max(100),
 	description: z.string().optional(),
 	model: z.string(),
-	instructions: z.string().optional(),
+	instructions: z.string().min(1).max(10000),
 	config: AgentConfigSchema.optional(),
 	systemToolsEnabled: z.boolean().optional(),
 	toolIds: z.array(z.string()).optional(),

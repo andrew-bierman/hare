@@ -4,8 +4,9 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { apiKeys } from '@hare/api-client'
 import { apiKeyKeys } from './query-keys'
 
-// Types for API keys
-export interface ApiKey {
+// Local types for API keys (extended from @hare/types with additional fields)
+// These are NOT exported to avoid conflicts with @hare/types canonical versions
+interface LocalApiKey {
 	id: string
 	workspaceId: string
 	name: string
@@ -19,11 +20,11 @@ export interface ApiKey {
 	createdAt: string
 }
 
-export interface ApiKeyWithSecret extends Omit<ApiKey, 'lastUsedAt'> {
+interface LocalApiKeyWithSecret extends Omit<LocalApiKey, 'lastUsedAt'> {
 	key: string
 }
 
-export interface CreateApiKeyInput {
+interface CreateApiKeyInput {
 	name: string
 	permissions?: {
 		scopes?: string[]
@@ -32,7 +33,7 @@ export interface CreateApiKeyInput {
 	expiresAt?: string
 }
 
-export interface UpdateApiKeyInput {
+interface UpdateApiKeyInput {
 	name?: string
 	permissions?: {
 		scopes?: string[]
@@ -133,11 +134,11 @@ export function useDeleteApiKeyMutation(workspaceId: string | undefined) {
 		// Optimistic update
 		onMutate: async (id) => {
 			await queryClient.cancelQueries({ queryKey: apiKeyKeys.list(workspaceId ?? '') })
-			const previousKeys = queryClient.getQueryData<{ apiKeys: ApiKey[] }>(
+			const previousKeys = queryClient.getQueryData<{ apiKeys: LocalApiKey[] }>(
 				apiKeyKeys.list(workspaceId ?? ''),
 			)
 			if (previousKeys) {
-				queryClient.setQueryData<{ apiKeys: ApiKey[] }>(apiKeyKeys.list(workspaceId ?? ''), {
+				queryClient.setQueryData<{ apiKeys: LocalApiKey[] }>(apiKeyKeys.list(workspaceId ?? ''), {
 					apiKeys: previousKeys.apiKeys.filter((key) => key.id !== id),
 				})
 			}

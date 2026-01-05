@@ -37,6 +37,9 @@
 		"./cloudflare": {
 			"types": "./src/cloudflare.ts",
 			"import": "./src/cloudflare.ts"
+		},
+		"./cloudflare-test": {
+			"types": "./src/cloudflare-test.d.ts"
 		}
 	},
 	"main": "./src/index.ts",

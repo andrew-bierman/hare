@@ -7,7 +7,7 @@ import { commonResponses } from '../helpers'
 import { authMiddleware, workspaceMiddleware } from '../middleware'
 import { ErrorSchema } from '../schemas'
 import { getBillingUsage } from '../services/billing-usage'
-import type { HonoEnv, WorkspaceEnv } from '@hare/types'
+import type { CloudflareEnv, HonoEnv, WorkspaceEnv } from '@hare/types'
 
 // =============================================================================
 // Pricing Plans
