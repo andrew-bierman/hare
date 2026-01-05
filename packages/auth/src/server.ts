@@ -2,6 +2,7 @@ import { betterAuth } from 'better-auth'
 import { drizzleAdapter } from 'better-auth/adapters/drizzle'
 import { createDb } from '@hare/db'
 import * as schema from '@hare/db/schema'
+import { createEmailService, type EmailEnv } from '@hare/api'
 
 /**
  * Server environment configuration required for auth
@@ -13,6 +14,14 @@ export interface AuthServerEnv {
 	GITHUB_CLIENT_ID?: string
 	GITHUB_CLIENT_SECRET?: string
 	APP_URL: string
+	/** Resend API key for email sending */
+	RESEND_API_KEY?: string
+	/** SendGrid API key for email sending */
+	SENDGRID_API_KEY?: string
+	/** Email from address */
+	EMAIL_FROM?: string
+	/** App name for emails */
+	APP_NAME?: string
 }
 
 /**
@@ -49,16 +58,17 @@ export function createAuth({ d1, env }: CreateAuthOptions) {
 			autoSignIn: true,
 			// Password reset configuration
 			sendResetPassword: async ({ user, url }) => {
-				// TODO: Implement email sending (e.g., using Resend, SendGrid, etc.)
-				// For now, log the reset URL for development purposes
-				console.log(`[Auth] Password reset requested for ${user.email}`)
-				console.log(`[Auth] Reset URL: ${url}`)
-				// In production, you would send an email like:
-				// await sendEmail({
-				//   to: user.email,
-				//   subject: 'Reset your password',
-				//   text: `Click the link to reset your password: ${url}`,
-				// })
+				const emailService = createEmailService(env as EmailEnv)
+				const result = await emailService.sendPasswordReset({
+					to: user.email,
+					resetUrl: url,
+				})
+
+				if (!result.success) {
+					console.error(`[Auth] Failed to send password reset email to ${user.email}:`, result.error)
+				} else {
+					console.log(`[Auth] Password reset email sent to ${user.email} (${result.messageId})`)
+				}
 			},
 		},
 		socialProviders: {

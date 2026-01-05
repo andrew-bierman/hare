@@ -19,6 +19,7 @@ import {
 	WorkspaceMemberSchema,
 } from '../schemas'
 import { type AuthEnv, isWorkspaceRole, type WorkspaceRole } from '@hare/types'
+import { createEmailService, type EmailEnv } from '../services/email'
 
 // =============================================================================
 // Route Definitions
@@ -414,7 +415,29 @@ app.openapi(sendInvitationRoute, async (c) => {
 		return c.json({ error: 'Failed to create invitation' }, 500)
 	}
 
-	// TODO: Send email notification (not implemented in this PR)
+	// Get workspace name for email
+	const [workspace] = await db.select().from(workspaces).where(eq(workspaces.id, id))
+
+	// Send email notification
+	const emailService = createEmailService(c.env as EmailEnv)
+	const appUrl = (c.env as { APP_URL?: string }).APP_URL || 'http://localhost:3000'
+	const inviteUrl = `${appUrl}/accept-invite?token=${invitation.id}`
+
+	const emailResult = await emailService.sendWorkspaceInvitation({
+		to: email,
+		workspaceName: workspace?.name || 'Unknown Workspace',
+		inviterName: user.name || 'A team member',
+		inviterEmail: user.email,
+		role: role || 'member',
+		inviteUrl,
+		expiresAt,
+	})
+
+	if (!emailResult.success) {
+		console.error(`[Workspace] Failed to send invitation email to ${email}:`, emailResult.error)
+	} else {
+		console.log(`[Workspace] Invitation email sent to ${email} (${emailResult.messageId})`)
+	}
 
 	return c.json(
 		{

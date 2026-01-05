@@ -193,6 +193,20 @@ export class HareAgent<TEnv extends HareAgentEnv = HareAgentEnv> extends Agent<
 			return Response.json({ schedules: this.state.scheduledTasks })
 		}
 
+		// Schedule a task via HTTP
+		if (url.pathname === '/schedule' && request.method === 'POST') {
+			const payload = (await request.json()) as SchedulePayload
+			const result = await this.handleScheduleHTTP(payload)
+			return result
+		}
+
+		// Execute a tool via HTTP
+		if (url.pathname === '/execute-tool' && request.method === 'POST') {
+			const payload = (await request.json()) as ToolExecutePayload
+			const result = await this.handleToolExecuteHTTP(payload)
+			return result
+		}
+
 		return new Response('Not found', { status: 404 })
 	}
 
@@ -522,6 +536,85 @@ export class HareAgent<TEnv extends HareAgentEnv = HareAgentEnv> extends Agent<
 
 			return Response.json(
 				{ error: error instanceof Error ? error.message : 'Chat failed' },
+				{ status: 500 },
+			)
+		}
+	}
+
+	/**
+	 * Handle schedule via HTTP.
+	 */
+	private async handleScheduleHTTP(payload: SchedulePayload): Promise<Response> {
+		const { action, executeAt, cron, payload: taskPayload } = payload
+
+		try {
+			// Include the action in the payload so the dispatcher can route it
+			const schedulePayload = { action, ...taskPayload }
+			let schedule: { id: string }
+
+			if (cron) {
+				// Recurring schedule
+				schedule = await this.schedule(cron, 'executeScheduledTask', schedulePayload)
+			} else if (executeAt) {
+				// One-time schedule
+				const delay = executeAt - Date.now()
+				if (delay <= 0) {
+					return Response.json({ error: 'Schedule time must be in the future' }, { status: 400 })
+				}
+				schedule = await this.schedule(delay, 'executeScheduledTask', schedulePayload)
+			} else {
+				return Response.json(
+					{ error: 'Either executeAt or cron must be provided' },
+					{ status: 400 },
+				)
+			}
+
+			// Track in state
+			const task: ScheduledTask = {
+				id: schedule.id,
+				type: cron ? 'recurring' : 'one-time',
+				executeAt,
+				cron,
+				action,
+				payload: taskPayload,
+			}
+
+			this.setState({
+				...this.state,
+				scheduledTasks: [...this.state.scheduledTasks, task],
+				lastActivity: Date.now(),
+			})
+
+			return Response.json({ success: true, scheduled: schedule.id, task })
+		} catch (error) {
+			return Response.json(
+				{ error: error instanceof Error ? error.message : 'Scheduling failed' },
+				{ status: 500 },
+			)
+		}
+	}
+
+	/**
+	 * Handle tool execution via HTTP.
+	 */
+	private async handleToolExecuteHTTP(payload: ToolExecutePayload): Promise<Response> {
+		const { toolId, params } = payload
+
+		if (!this.toolRegistry.has(toolId)) {
+			return Response.json({ error: `Tool not found: ${toolId}` }, { status: 404 })
+		}
+
+		try {
+			const context = this.createToolContext()
+			const result = await this.toolRegistry.execute({ id: toolId, params, context })
+			return Response.json({ success: true, toolId, result })
+		} catch (error) {
+			return Response.json(
+				{
+					success: false,
+					toolId,
+					error: error instanceof Error ? error.message : 'Tool execution failed',
+				},
 				{ status: 500 },
 			)
 		}

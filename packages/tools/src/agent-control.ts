@@ -913,17 +913,28 @@ export const scheduleTaskTool = createTool({
 				)
 				.run()
 
-			// If Durable Object is available, schedule the task there too
+			// If Durable Object is available, schedule the task there too for execution
 			const hareAgent = context.env.HARE_AGENT
 			if (hareAgent) {
 				try {
 					const id = hareAgent.idFromName(params.agentId)
-					const _stub = hareAgent.get(id)
+					const stub = hareAgent.get(id)
 
-					// TODO: Use WebSocket message to schedule
-					// The DO will handle the actual scheduling via its schedule() method
+					// Send schedule request to the Durable Object via HTTP
+					await stub.fetch(
+						new Request('http://internal/schedule', {
+							method: 'POST',
+							headers: { 'Content-Type': 'application/json' },
+							body: JSON.stringify({
+								action: params.action,
+								executeAt: params.executeAt,
+								cron: params.cron,
+								payload: params.payload,
+							}),
+						}),
+					)
 				} catch {
-					// DO scheduling is optional
+					// DO scheduling is optional - database record is still created
 				}
 			}
 
@@ -1020,17 +1031,8 @@ export const executeToolTool = createTool({
 			)
 
 			if (!response.ok) {
-				// If DO endpoint doesn't exist, execute directly
-				// This is a fallback for when the agent doesn't have the endpoint
-				return success({
-					agentId: params.agentId,
-					toolId: params.toolId,
-					result: {
-						success: false,
-						error: 'Direct tool execution not implemented. Use agent chat for tool usage.',
-					},
-					executedAt: Date.now(),
-				})
+				const errorText = await response.text()
+				return failure(`Tool execution failed: ${errorText}`)
 			}
 
 			const result = await response.json()
