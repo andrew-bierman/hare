@@ -62,6 +62,14 @@ export const BILLING_PLANS = {
 
 export type PlanId = keyof typeof BILLING_PLANS
 
+/**
+ * Validates that a string is a valid PlanId.
+ * Returns true if value is a valid PlanId.
+ */
+function isValidPlanId(value: string | null | undefined): value is PlanId {
+	return value !== null && value !== undefined && value in BILLING_PLANS
+}
+
 // =============================================================================
 // Schemas
 // =============================================================================
@@ -460,8 +468,8 @@ const billingApp = baseBillingApp.openapi(listPlansRoute, async (c) => {
 
 	const [ws] = await db.select().from(workspaces).where(eq(workspaces.id, workspace.id))
 
-	const planId = (ws?.planId as PlanId) || 'free'
-	const plan = BILLING_PLANS[planId] || BILLING_PLANS.free
+	const planId: PlanId = isValidPlanId(ws?.planId) ? ws.planId : 'free'
+	const plan = BILLING_PLANS[planId]
 
 	let status: 'active' | 'canceled' | 'past_due' | 'trialing' | 'none' = 'none'
 	let currentPeriodEnd: string | null = null
@@ -594,14 +602,14 @@ webhookApp.openapi(webhookRoute, async (c) => {
 		case 'checkout.session.completed': {
 			const session = event.data.object as Stripe.Checkout.Session
 			const workspaceId = session.metadata?.workspaceId
-			const planId = session.metadata?.planId as PlanId | undefined
+			const rawPlanId = session.metadata?.planId
 
-			if (workspaceId && planId && session.subscription) {
+			if (workspaceId && isValidPlanId(rawPlanId) && session.subscription) {
 				await db
 					.update(workspaces)
 					.set({
 						stripeSubscriptionId: session.subscription as string,
-						planId,
+						planId: rawPlanId,
 						currentPeriodEnd: session.expires_at ? new Date(session.expires_at * 1000) : null,
 						updatedAt: new Date(),
 					})
@@ -617,7 +625,9 @@ webhookApp.openapi(webhookRoute, async (c) => {
 			const workspaceId = subscription.metadata?.workspaceId
 
 			if (workspaceId) {
-				const planId = (subscription.metadata?.planId || 'pro') as PlanId
+				const rawPlanId = subscription.metadata?.planId
+				// Default to 'pro' if planId is missing or invalid
+				const planId: PlanId = isValidPlanId(rawPlanId) ? rawPlanId : 'pro'
 				await db
 					.update(workspaces)
 					.set({

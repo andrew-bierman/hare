@@ -249,7 +249,7 @@ export const CreateAgentInputSchema = z.object({
 	name: z.string().min(1).max(100),
 	description: z.string().optional(),
 	model: z.string(),
-	instructions: z.string(),
+	instructions: z.string().optional(),
 	config: AgentConfigSchema.optional(),
 	systemToolsEnabled: z.boolean().optional(),
 	toolIds: z.array(z.string()).optional(),
@@ -301,7 +301,7 @@ export type Tool = z.infer<typeof ToolSchema>
  */
 export const CreateToolInputSchema = z.object({
 	name: z.string().min(1).max(100),
-	description: z.string(),
+	description: z.string().optional(),
 	type: ToolTypeSchema,
 	inputSchema: z.record(z.string(), z.unknown()),
 	config: z.record(z.string(), z.unknown()).optional(),
