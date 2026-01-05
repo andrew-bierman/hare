@@ -17,11 +17,11 @@ import {
 	Wrench,
 } from 'lucide-react'
 import { useWorkspace } from '../../app/providers'
-import { config } from '@hare/config'
+import { config, getModelName } from '@hare/config'
 import type { Agent } from '@hare/types'
 import { useAgentsQuery, useUsageQuery } from '../../shared/api/hooks'
 
-const { home: content } = config.content.dashboard
+const content = config.content.dashboard.home
 
 function StatCardSkeleton() {
 	return (
@@ -64,7 +64,7 @@ export function DashboardPage() {
 	const { data: agentsData, isLoading: agentsLoading } = useAgentsQuery(activeWorkspace?.id)
 	const { data: usageData, isLoading: usageLoading } = useUsageQuery(activeWorkspace?.id)
 
-	const agents: Agent[] = agentsData?.agents ?? []
+	const agents = agentsData?.agents ?? []
 	const deployedAgents = agents.filter((a) => a.status === 'deployed')
 	const recentAgents = agents.slice(0, 5)
 
@@ -75,14 +75,6 @@ export function DashboardPage() {
 		if (num >= 1000) return `${(num / 1000).toFixed(1)}K`
 		return num.toString()
 	}
-
-	const getModelName = (modelId: string) => {
-		const model = config.models.list.find((m) => m.id === modelId)
-		return model?.name || modelId
-	}
-
-	const usage = usageData?.usage
-	const totalTokens = (usage?.totalTokensIn ?? 0) + (usage?.totalTokensOut ?? 0)
 
 	const stats = [
 		{
@@ -95,7 +87,7 @@ export function DashboardPage() {
 		},
 		{
 			title: content.stats.apiCalls.title,
-			value: formatNumber(usage?.totalMessages ?? 0),
+			value: formatNumber(usageData?.usage?.totalMessages ?? 0),
 			description: content.stats.apiCalls.description,
 			icon: MessageSquare,
 			color: 'bg-blue-500',
@@ -103,8 +95,8 @@ export function DashboardPage() {
 		},
 		{
 			title: content.stats.tokensUsed.title,
-			value: formatNumber(totalTokens),
-			description: `${formatNumber(usage?.totalTokensIn ?? 0)} ${content.stats.tokensUsed.description.replace('in / out', '')} ${formatNumber(usage?.totalTokensOut ?? 0)}`,
+			value: formatNumber((usageData?.usage?.totalTokensIn ?? 0) + (usageData?.usage?.totalTokensOut ?? 0)),
+			description: `${formatNumber(usageData?.usage?.totalTokensIn ?? 0)} ${content.stats.tokensUsed.description.replace('in / out', '')} ${formatNumber(usageData?.usage?.totalTokensOut ?? 0)}`,
 			icon: TrendingUp,
 			color: 'bg-emerald-500',
 			trend: null,

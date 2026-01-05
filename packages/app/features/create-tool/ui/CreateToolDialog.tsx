@@ -62,7 +62,7 @@ export function CreateToolDialog({ workspaceId, open, onOpenChange }: CreateTool
 
 		try {
 			let config: Record<string, unknown> | undefined
-			if (newconfig.trim()) {
+			if (newConfig.trim()) {
 				try {
 					config = JSON.parse(newConfig)
 				} catch {
@@ -73,7 +73,7 @@ export function CreateToolDialog({ workspaceId, open, onOpenChange }: CreateTool
 
 			await createTool.mutateAsync({
 				name: newName.trim(),
-				description: newDescription.trim(),
+				description: newDescription.trim() || `Custom ${newType} tool`,
 				type: newType,
 				inputSchema: {},
 				config,

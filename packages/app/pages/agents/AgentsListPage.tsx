@@ -64,7 +64,7 @@ export function AgentsListPage() {
 	const [filter, setFilter] = useState<'all' | 'deployed' | 'draft'>('all')
 	const [hasSkippedOnboarding, setHasSkippedOnboarding] = useState(false)
 
-	const agents: Agent[] = data?.agents ?? []
+	const agents = data?.agents ?? []
 	const isNewUser = !isLoading && agents.length === 0 && !hasSkippedOnboarding
 
 	// Onboarding handlers

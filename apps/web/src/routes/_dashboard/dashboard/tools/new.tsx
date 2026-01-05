@@ -3,7 +3,7 @@ import { generatePrefixedId } from '@hare/app/shared'
 import { useCreateToolMutation, useTestToolMutation } from '@hare/app/shared/api'
 
 // Local types for tool configuration
-interface HttpToolConfig {
+type HttpToolConfig = {
 	url: string
 	method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
 	headers?: Record<string, string>
@@ -11,21 +11,20 @@ interface HttpToolConfig {
 	bodyType?: 'json' | 'form' | 'text'
 	timeout?: number
 	responseMapping?: { path: string }
+	[key: string]: unknown
 }
 
-interface InputSchemaProperty {
-	type: 'string' | 'number' | 'boolean' | 'object' | 'array'
+type InputSchemaProperty = {
+	type: 'string' | 'number' | 'boolean' | 'array' | 'object'
 	description?: string
 	enum?: string[]
 	default?: unknown
 	required?: boolean
 }
 
-interface InputSchema {
-	type: 'object'
-	properties?: Record<string, InputSchemaProperty>
-	required?: string[]
-}
+// Input schema is a flat record of property name -> property definition
+// This matches the JsonSchemaSchema format expected by the API
+type InputSchema = Record<string, InputSchemaProperty>
 
 interface ToolTestResult {
 	success: boolean
@@ -35,7 +34,7 @@ interface ToolTestResult {
 	headers?: Record<string, string>
 	data?: unknown
 	error?: string
-	requestDetails: {
+	requestDetails?: {
 		url: string
 		method: string
 		headers?: Record<string, string>
@@ -185,11 +184,11 @@ function NewToolPage() {
 	}
 
 	// Build input schema from fields
+	// Returns a flat record of property name -> property definition (JsonSchemaSchema format)
 	const buildInputSchema = (): InputSchema | undefined => {
 		if (fields.length === 0) return undefined
 
-		const properties: Record<string, InputSchemaProperty> = {}
-		const required: string[] = []
+		const schema: InputSchema = {}
 
 		for (const field of fields) {
 			if (!field.name.trim()) continue
@@ -199,20 +198,13 @@ function NewToolPage() {
 				description: field.description || undefined,
 				default: field.defaultValue ? parseDefaultValue(field.defaultValue, field.type) : undefined,
 				enum: field.enumValues ? field.enumValues.split(',').map((v) => v.trim()) : undefined,
+				required: field.required || undefined,
 			}
 
-			properties[field.name.trim()] = prop
-
-			if (field.required) {
-				required.push(field.name.trim())
-			}
+			schema[field.name.trim()] = prop
 		}
 
-		return {
-			type: 'object',
-			properties,
-			required: required.length > 0 ? required : undefined,
-		}
+		return Object.keys(schema).length > 0 ? schema : undefined
 	}
 
 	// Parse default value based on type
@@ -253,9 +245,20 @@ function NewToolPage() {
 			const inputSchema = buildInputSchema()
 			const testInputData = buildTestInput()
 
+			// Convert flat schema to test format { type: 'object', properties, required }
+			const testInputSchema = inputSchema
+				? {
+						type: 'object' as const,
+						properties: inputSchema,
+						required: Object.entries(inputSchema)
+							.filter(([, prop]) => prop.required)
+							.map(([name]) => name),
+					}
+				: undefined
+
 			const result = await testTool.mutateAsync({
 				config,
-				inputSchema,
+				inputSchema: testInputSchema,
 				testInput: testInputData,
 			})
 
@@ -289,10 +292,10 @@ function NewToolPage() {
 
 			await createTool.mutateAsync({
 				name: name.trim(),
-				description: description.trim() || '',
+				description: description.trim() || `HTTP tool: ${name.trim()}`,
 				type: 'http',
-				config: config as unknown as Record<string, unknown>,
-				inputSchema: inputSchema as unknown as Record<string, unknown>,
+				config,
+				inputSchema: inputSchema ?? {},
 			})
 
 			toast.success('Tool created successfully')

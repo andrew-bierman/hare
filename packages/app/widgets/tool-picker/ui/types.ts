@@ -1,4 +1,9 @@
-import type { Tool } from '../../../shared/api'
+import { useToolsQuery } from '../../../shared/api/hooks'
+
+// Infer Tool type from API response to ensure type compatibility
+// This is internal to avoid conflicts with @hare/types Tool export
+type ApiToolsResponse = ReturnType<typeof useToolsQuery>['data']
+type Tool = NonNullable<ApiToolsResponse>['tools'][number]
 
 export type ToolCategory =
 	| 'all'

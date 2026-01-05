@@ -154,8 +154,8 @@ export function useScheduleExecutionsQuery(input: UseScheduleExecutionsInput) {
 				param: { agentId: agentId!, scheduleId: scheduleId! },
 				query: {
 					workspaceId: workspaceId!,
-					limit: params?.limit?.toString(),
-					offset: params?.offset?.toString(),
+					limit: params?.limit,
+					offset: params?.offset,
 				},
 			})
 			if (!res.ok) throw new Error('Request failed')
@@ -186,8 +186,8 @@ export function useAgentExecutionsQuery(input: UseAgentExecutionsInput) {
 				param: { agentId: agentId! },
 				query: {
 					workspaceId: workspaceId!,
-					limit: params?.limit?.toString(),
-					offset: params?.offset?.toString(),
+					limit: params?.limit,
+					offset: params?.offset,
 				},
 			})
 			if (!res.ok) throw new Error('Request failed')

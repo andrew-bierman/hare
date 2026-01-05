@@ -7,9 +7,10 @@
  * @see https://tanstack.com/db/latest/docs/collections/query-collection
  */
 
-import type { Agent, Schedule, Tool, Workspace } from '@hare/types'
+// Types are inferred from API responses for proper compatibility
+import type { Schedule } from '@hare/types'
 import type { QueryClient } from '@tanstack/react-query'
-import { createCollection, type Collection } from '@tanstack/db'
+import { createCollection } from '@tanstack/db'
 import { queryCollectionOptions } from '@tanstack/query-db-collection'
 import { api } from '@hare/api-client'
 import { agentKeys, scheduleKeys, toolKeys, workspaceKeys } from '../../../api/hooks/query-keys'
@@ -18,19 +19,37 @@ import { agentKeys, scheduleKeys, toolKeys, workspaceKeys } from '../../../api/h
 // Collection Types
 // =============================================================================
 
-export interface AgentRow extends Agent {
+// Use inferred types from API responses for proper compatibility
+type ApiAgentsResponse = Awaited<ReturnType<Awaited<ReturnType<typeof api.agents.$get>>['json']>>
+type ApiAgent = ApiAgentsResponse['agents'][number]
+
+type ApiToolsResponse = Awaited<ReturnType<Awaited<ReturnType<typeof api.tools.$get>>['json']>>
+type ApiTool = ApiToolsResponse['tools'][number]
+
+type ApiWorkspacesResponse = Awaited<
+	ReturnType<Awaited<ReturnType<typeof api.workspaces.$get>>['json']>
+>
+type ApiWorkspace = ApiWorkspacesResponse['workspaces'][number]
+
+export type AgentRow = ApiAgent & {
 	_workspaceId: string
 }
 
-export interface ToolRow extends Tool {
+export type ToolRow = ApiTool & {
 	_workspaceId: string
 }
 
-export interface WorkspaceRow extends Workspace {}
+export type WorkspaceRow = ApiWorkspace
 
-export interface ScheduleRow extends Schedule {
+export type ScheduleRow = Schedule & {
 	_workspaceId: string
 }
+
+// Collection type aliases for use in provider
+export type AgentCollection = ReturnType<typeof createAgentCollection>
+export type ToolCollection = ReturnType<typeof createToolCollection>
+export type WorkspaceCollection = ReturnType<typeof createWorkspaceCollection>
+export type ScheduleCollection = ReturnType<typeof createScheduleCollection>
 
 // =============================================================================
 // Agent Collection
@@ -135,15 +154,6 @@ export function createAgentCollection(options: {
 }
 
 // =============================================================================
-// Collection Type Exports
-// =============================================================================
-
-export type AgentCollection = ReturnType<typeof createAgentCollection>
-export type ToolCollection = ReturnType<typeof createToolCollection>
-export type WorkspaceCollection = ReturnType<typeof createWorkspaceCollection>
-export type ScheduleCollection = ReturnType<typeof createScheduleCollection>
-
-// =============================================================================
 // Tool Collection
 // =============================================================================
 
@@ -179,7 +189,7 @@ export function createToolCollection(options: {
 						query: { workspaceId: _workspaceId },
 						json: {
 							name: data.name,
-							description: data.description ?? '',
+							description: data.description ?? data.name,
 							type: data.type,
 							inputSchema: data.inputSchema ?? {},
 							config: data.config ?? undefined,

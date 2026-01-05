@@ -1,5 +1,5 @@
 import { useWorkspace } from '@hare/app'
-import { type Agent, useAgentsQuery, useUsageQuery } from '@hare/app/shared/api'
+import { useAgentsQuery, useUsageQuery } from '@hare/app/shared/api'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@hare/ui/components/card'
 import { Skeleton } from '@hare/ui/components/skeleton'
 import { createFileRoute } from '@tanstack/react-router'
@@ -31,7 +31,7 @@ function UsagePage() {
 
 	const isLoading = workspaceLoading || usageLoading || agentsLoading
 
-	const agents: Agent[] = agentsData?.agents ?? []
+	const agents = agentsData?.agents ?? []
 	const deployedAgents = agents.filter((a) => a.status === 'deployed')
 
 	const formatNumber = (num: number) => {
@@ -47,11 +47,10 @@ function UsagePage() {
 
 	const usage = usageData?.usage
 	const period = usageData?.period
-	const totalTokens = (usage?.totalTokensIn ?? 0) + (usage?.totalTokensOut ?? 0)
 
 	const stats = [
 		{
-			title: 'Total Messages',
+			title: 'Total API Calls',
 			value: formatNumber(usage?.totalMessages ?? 0),
 			description: 'This billing period',
 			icon: Activity,
@@ -59,7 +58,7 @@ function UsagePage() {
 		},
 		{
 			title: 'Total Tokens',
-			value: formatNumber(totalTokens),
+			value: formatNumber((usage?.totalTokensIn ?? 0) + (usage?.totalTokensOut ?? 0)),
 			description: `${formatNumber(usage?.totalTokensIn ?? 0)} input / ${formatNumber(usage?.totalTokensOut ?? 0)} output`,
 			icon: TrendingUp,
 			color: 'text-emerald-500',

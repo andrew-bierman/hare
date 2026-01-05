@@ -18,11 +18,8 @@ import type { AppType } from './index'
  */
 function getBaseURL(): string {
 	// Check for Vite environment variable (used by Tauri and other Vite apps)
-	if (
-		typeof import.meta !== 'undefined' &&
-		(import.meta as unknown as { env?: { VITE_API_URL?: string } }).env?.VITE_API_URL
-	) {
-		return (import.meta as unknown as { env: { VITE_API_URL: string } }).env.VITE_API_URL
+	if (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_URL) {
+		return import.meta.env.VITE_API_URL as string
 	}
 	if (typeof window !== 'undefined') {
 		return window.location.origin

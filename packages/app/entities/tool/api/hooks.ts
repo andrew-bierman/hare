@@ -2,10 +2,17 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from '@hare/api-client'
-import type { CreateToolInput, Tool, ToolType } from '@hare/types'
+import type { ToolType } from '@hare/types'
+
+// Infer types from the API client for proper type compatibility
+type ApiToolsResponse = Awaited<ReturnType<Awaited<ReturnType<typeof api.tools.$get>>['json']>>
+type ApiTool = ApiToolsResponse['tools'][number]
+type ApiCreateToolInput = Parameters<typeof api.tools.$post>[0]['json']
 
 // Re-export types for convenience
-export type { Tool, ToolType, CreateToolInput }
+export type { ToolType }
+export type Tool = ApiTool
+export type CreateToolInput = ApiCreateToolInput
 
 export const TOOL_TYPES = ['http', 'sql', 'kv', 'r2', 'custom'] as const
 
@@ -89,11 +96,12 @@ export function useDeleteTool(workspaceId: string | undefined) {
 	})
 }
 
+// Infer test tool input type from API
+type ApiTestToolInput = Parameters<typeof api.tools.test.$post>[0]['json']
+
 export function useTestTool(workspaceId: string | undefined) {
 	return useMutation({
-		mutationFn: async (
-			data: Parameters<typeof api.tools.test.$post>[0]['json'],
-		) => {
+		mutationFn: async (data: ApiTestToolInput) => {
 			const res = await api.tools.test.$post({
 				query: { workspaceId: workspaceId! },
 				json: data,

@@ -58,7 +58,7 @@ export function usePaymentHistoryQuery(options: {
 			const res = await api.billing.history.$get({
 				query: {
 					workspaceId: options.workspaceId!,
-					limit: options.limit?.toString(),
+					limit: options.limit,
 					starting_after: options.startingAfter,
 				},
 			})

@@ -11,7 +11,7 @@
  */
 
 import type { AgentStatus } from '@hare/types'
-import { useLiveQuery, eq } from '@tanstack/react-db'
+import { useLiveQuery, eq, or } from '@tanstack/react-db'
 import { useMemo } from 'react'
 import {
 	useAgentCollection,
@@ -60,18 +60,22 @@ export function useLiveAgentsByStatus(options: {
 	const { workspaceId, status } = options
 	const collection = useAgentCollection(workspaceId)
 	const statuses = Array.isArray(status) ? status : [status]
-	const statusSet = new Set(statuses)
 
-	// Use client-side filtering for multiple statuses to avoid tuple type issues with or()
+	// Query all agents and filter by status client-side
+	// This avoids complex type issues with TanStack DB's where clause
 	const result = useLiveQuery(
 		(q) => q.from({ agent: collection }).orderBy((row) => row.agent.updatedAt, 'desc'),
-		[workspaceId],
+		[workspaceId, ...statuses],
 	)
 
+	// Filter by status client-side
 	const filteredData = useMemo(() => {
-		if (!result.data) return result.data
-		return result.data.filter((row) => statusSet.has(row.status))
-	}, [result.data, statusSet])
+		if (!result.data) return []
+		return result.data.filter((row) => {
+			const agent = row as unknown as { agent: { status: string } }
+			return statuses.includes(agent.agent.status as AgentStatus)
+		})
+	}, [result.data, statuses])
 
 	return { ...result, data: filteredData }
 }
@@ -102,7 +106,11 @@ export function useLiveAgentsWithTool(options: { workspaceId: string; toolId: st
 
 	const filteredData = useMemo(() => {
 		if (!result.data) return []
-		return result.data.filter((row) => row.toolIds?.includes(toolId))
+		// Type assertion needed for TanStack DB query result type inference
+		return result.data.filter((row) => {
+			const agent = row as unknown as { agent: { toolIds?: string[] } }
+			return agent.agent?.toolIds?.includes(toolId)
+		})
 	}, [result.data, toolId])
 
 	return { ...result, data: filteredData }

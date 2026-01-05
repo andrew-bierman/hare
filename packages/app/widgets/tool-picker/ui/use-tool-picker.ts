@@ -1,10 +1,13 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import type { Tool } from '@hare/types'
 import { useToolsQuery } from '../../../shared/api/hooks'
 import type { ToolCategory } from './types'
 import { getToolCategory as getToolCategoryFromType } from './tool-icons'
+
+// Infer Tool type from API response to ensure type compatibility
+type ApiToolsResponse = ReturnType<typeof useToolsQuery>['data']
+type Tool = NonNullable<ApiToolsResponse>['tools'][number]
 
 /**
  * Get the category for a tool.
@@ -52,7 +55,7 @@ export function useToolPicker({
 	const selectedTools = useMemo(() => {
 		return selectedToolIds
 			.map((id) => tools.find((t) => t.id === id))
-			.filter(<T>(t: T | undefined): t is T => t !== undefined)
+			.filter((t): t is Tool => t !== undefined)
 	}, [selectedToolIds, tools])
 
 	const filteredTools = useMemo(() => {
@@ -64,7 +67,7 @@ export function useToolPicker({
 			filtered = filtered.filter(
 				(tool) =>
 					tool.name.toLowerCase().includes(query) ||
-					(tool.description?.toLowerCase().includes(query) ?? false) ||
+					(tool.description?.toLowerCase() ?? '').includes(query) ||
 					tool.type.toLowerCase().includes(query),
 			)
 		}
@@ -114,7 +117,7 @@ export function useToolPicker({
 			toolsToGroup = toolsToGroup.filter(
 				(tool) =>
 					tool.name.toLowerCase().includes(query) ||
-					(tool.description?.toLowerCase().includes(query) ?? false) ||
+					(tool.description?.toLowerCase() ?? '').includes(query) ||
 					tool.type.toLowerCase().includes(query),
 			)
 		}

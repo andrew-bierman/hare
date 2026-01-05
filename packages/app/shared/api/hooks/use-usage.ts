@@ -33,11 +33,9 @@ export function useAgentUsageQuery(agentId: string | undefined, workspaceId: str
 	return useQuery({
 		queryKey: ['usage', 'agent', agentId, workspaceId],
 		queryFn: async () => {
-			const res = await api.usage.$get({
-				query: {
-					workspaceId: workspaceId!,
-					agentId,
-				},
+			const res = await api.usage.agents[':id'].$get({
+				param: { id: agentId! },
+				query: { workspaceId: workspaceId! },
 			})
 			if (!res.ok) throw new Error('Request failed')
 			return res.json()

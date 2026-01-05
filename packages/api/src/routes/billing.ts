@@ -7,7 +7,7 @@ import { commonResponses } from '../helpers'
 import { authMiddleware, workspaceMiddleware } from '../middleware'
 import { ErrorSchema } from '../schemas'
 import { getBillingUsage } from '../services/billing-usage'
-import type { CloudflareEnv, HonoEnv, WorkspaceEnv } from '@hare/types'
+import type { HonoEnv, WorkspaceEnv } from '@hare/types'
 
 // =============================================================================
 // Pricing Plans
@@ -61,6 +61,14 @@ export const BILLING_PLANS = {
 } as const
 
 export type PlanId = keyof typeof BILLING_PLANS
+
+/**
+ * Validates that a string is a valid PlanId.
+ * Returns true if value is a valid PlanId.
+ */
+function isValidPlanId(value: string | null | undefined): value is PlanId {
+	return value !== null && value !== undefined && value in BILLING_PLANS
+}
 
 // =============================================================================
 // Schemas
@@ -154,10 +162,6 @@ function getAppUrl(env: CloudflareEnv): string {
 // Route Definitions
 // =============================================================================
 
-const WorkspaceQuerySchema = z.object({
-	workspaceId: z.string().describe('Workspace ID'),
-})
-
 const listPlansRoute = createRoute({
 	method: 'get',
 	path: '/plans',
@@ -165,7 +169,9 @@ const listPlansRoute = createRoute({
 	summary: 'List available billing plans',
 	description: 'Get a list of all available billing plans and their features',
 	request: {
-		query: WorkspaceQuerySchema,
+		query: z.object({
+			workspaceId: z.string().describe('Workspace ID'),
+		}),
 	},
 	responses: {
 		200: {
@@ -187,7 +193,9 @@ const createCheckoutRoute = createRoute({
 	summary: 'Create checkout session',
 	description: 'Create a Stripe checkout session for upgrading to a paid plan',
 	request: {
-		query: WorkspaceQuerySchema,
+		query: z.object({
+			workspaceId: z.string().describe('Workspace ID'),
+		}),
 		body: {
 			content: {
 				'application/json': {
@@ -220,7 +228,9 @@ const createPortalRoute = createRoute({
 	summary: 'Create customer portal session',
 	description: 'Create a Stripe customer portal session for managing subscription',
 	request: {
-		query: WorkspaceQuerySchema,
+		query: z.object({
+			workspaceId: z.string().describe('Workspace ID'),
+		}),
 	},
 	responses: {
 		200: {
@@ -246,7 +256,9 @@ const getBillingStatusRoute = createRoute({
 	summary: 'Get billing status',
 	description: 'Get current billing status, plan, and usage for the workspace',
 	request: {
-		query: WorkspaceQuerySchema,
+		query: z.object({
+			workspaceId: z.string().describe('Workspace ID'),
+		}),
 	},
 	responses: {
 		200: {
@@ -456,8 +468,8 @@ const billingApp = baseBillingApp.openapi(listPlansRoute, async (c) => {
 
 	const [ws] = await db.select().from(workspaces).where(eq(workspaces.id, workspace.id))
 
-	const planId = (ws?.planId as PlanId) || 'free'
-	const plan = BILLING_PLANS[planId] || BILLING_PLANS.free
+	const planId: PlanId = isValidPlanId(ws?.planId) ? ws.planId : 'free'
+	const plan = BILLING_PLANS[planId]
 
 	let status: 'active' | 'canceled' | 'past_due' | 'trialing' | 'none' = 'none'
 	let currentPeriodEnd: string | null = null
@@ -590,14 +602,14 @@ webhookApp.openapi(webhookRoute, async (c) => {
 		case 'checkout.session.completed': {
 			const session = event.data.object as Stripe.Checkout.Session
 			const workspaceId = session.metadata?.workspaceId
-			const planId = session.metadata?.planId
+			const rawPlanId = session.metadata?.planId
 
-			if (workspaceId && planId && session.subscription) {
+			if (workspaceId && isValidPlanId(rawPlanId) && session.subscription) {
 				await db
 					.update(workspaces)
 					.set({
 						stripeSubscriptionId: session.subscription as string,
-						planId: planId as PlanId,
+						planId: rawPlanId,
 						currentPeriodEnd: session.expires_at ? new Date(session.expires_at * 1000) : null,
 						updatedAt: new Date(),
 					})
@@ -613,7 +625,9 @@ webhookApp.openapi(webhookRoute, async (c) => {
 			const workspaceId = subscription.metadata?.workspaceId
 
 			if (workspaceId) {
-				const planId = (subscription.metadata?.planId || 'pro') as PlanId
+				const rawPlanId = subscription.metadata?.planId
+				// Default to 'pro' if planId is missing or invalid
+				const planId: PlanId = isValidPlanId(rawPlanId) ? rawPlanId : 'pro'
 				await db
 					.update(workspaces)
 					.set({

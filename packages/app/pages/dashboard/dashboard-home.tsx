@@ -96,7 +96,7 @@ export function DashboardHome({ renderLink, routes, useAgentsQuery, useUsageQuer
 	const { data: agentsData, isLoading: agentsLoading } = useAgentsQuery(activeWorkspace?.id)
 	const { data: usageData, isLoading: usageLoading } = useUsageQuery(activeWorkspace?.id)
 
-	const agents: Agent[] = agentsData?.agents ?? []
+	const agents = agentsData?.agents ?? []
 	const deployedAgents = agents.filter((a) => a.status === 'deployed')
 	const recentAgents = agents.slice(0, 5)
 

@@ -106,8 +106,8 @@ export function CreateAgentForm({ workspaceId, templateId }: CreateAgentFormProp
 	const handleConfigChange = (newConfig: AgentConfig) => {
 		setConfig(newConfig)
 		// Update response style based on temperature if manually changed
-		if (newconfig.temperature !== undefined) {
-			const detectedStyle = getResponseStyleFromConfig(newconfig.temperature)
+		if (newConfig.temperature !== undefined) {
+			const detectedStyle = getResponseStyleFromConfig(newConfig.temperature)
 			if (detectedStyle !== responseStyle) {
 				setResponseStyle(detectedStyle)
 			}
@@ -130,7 +130,7 @@ export function CreateAgentForm({ workspaceId, templateId }: CreateAgentFormProp
 				name: name.trim(),
 				description: description.trim() || undefined,
 				model,
-				instructions: instructions.trim(),
+				instructions: instructions.trim() || 'You are a helpful AI assistant.',
 				systemToolsEnabled,
 				toolIds: selectedToolIds.length > 0 ? selectedToolIds : undefined,
 				config: {

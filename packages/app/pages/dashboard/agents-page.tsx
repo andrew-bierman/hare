@@ -89,7 +89,7 @@ export function AgentsPage({ renderLink, routes, useAgentsQuery }: AgentsPagePro
 	const [search, setSearch] = useState('')
 	const [filter, setFilter] = useState<'all' | 'deployed' | 'draft'>('all')
 
-	const agents: Agent[] = data?.agents ?? []
+	const agents = data?.agents ?? []
 	const filteredAgents = agents.filter((agent) => {
 		const matchesSearch =
 			agent.name.toLowerCase().includes(search.toLowerCase()) ||

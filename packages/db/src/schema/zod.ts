@@ -27,12 +27,13 @@ import { workspaceMembers, workspaces } from './workspaces'
 
 /** Schema for selecting users from the database */
 export const selectUserSchema = createSelectSchema(users)
-/** Schema for inserting users into the database */
-// @ts-expect-error - drizzle-zod createInsertSchema causes deep type instantiation
-export const insertUserSchema = createInsertSchema(users, {
+/** User insert refinements - defined separately to avoid excessive type instantiation */
+const userInsertRefinements = {
 	email: z.string().email(),
 	name: z.string().min(1).max(100),
-})
+}
+/** Schema for inserting users into the database */
+export const insertUserSchema = createInsertSchema(users, userInsertRefinements)
 
 export type SelectUser = z.infer<typeof selectUserSchema>
 export type InsertUser = z.infer<typeof insertUserSchema>
@@ -67,11 +68,13 @@ export type InsertVerification = z.infer<typeof insertVerificationSchema>
 
 /** Schema for selecting workspaces from the database */
 export const selectWorkspaceSchema = createSelectSchema(workspaces)
-/** Schema for inserting workspaces into the database */
-export const insertWorkspaceSchema = createInsertSchema(workspaces, {
+/** Workspace insert refinements - defined separately to avoid excessive type instantiation */
+const workspaceInsertRefinements = {
 	name: z.string().min(1).max(100),
 	slug: z.string().min(1).max(50),
-})
+}
+/** Schema for inserting workspaces into the database */
+export const insertWorkspaceSchema = createInsertSchema(workspaces, workspaceInsertRefinements)
 
 export type SelectWorkspace = z.infer<typeof selectWorkspaceSchema>
 export type InsertWorkspace = z.infer<typeof insertWorkspaceSchema>
@@ -99,15 +102,19 @@ export const AgentConfigJsonSchema = z.object({
 
 export type AgentConfigJson = z.infer<typeof AgentConfigJsonSchema>
 
-/** Schema for selecting agents from the database */
-export const selectAgentSchema = createSelectSchema(agents, {
+/** Agent select refinements - defined separately to avoid excessive type instantiation */
+const agentSelectRefinements = {
 	config: AgentConfigJsonSchema.nullable(),
-})
-/** Schema for inserting agents into the database */
-export const insertAgentSchema = createInsertSchema(agents, {
+}
+/** Schema for selecting agents from the database */
+export const selectAgentSchema = createSelectSchema(agents, agentSelectRefinements)
+/** Agent insert refinements - defined separately to avoid excessive type instantiation */
+const agentInsertRefinements = {
 	name: z.string().min(1).max(100),
 	config: AgentConfigJsonSchema.optional(),
-})
+}
+/** Schema for inserting agents into the database */
+export const insertAgentSchema = createInsertSchema(agents, agentInsertRefinements)
 
 export type SelectAgent = z.infer<typeof selectAgentSchema>
 export type InsertAgent = z.infer<typeof insertAgentSchema>
@@ -142,15 +149,19 @@ export const ToolConfigJsonSchema = z
 
 export type ToolConfigJson = z.infer<typeof ToolConfigJsonSchema>
 
-/** Schema for selecting tools from the database */
-export const selectToolSchema = createSelectSchema(tools, {
+/** Tool select refinements - defined separately to avoid excessive type instantiation */
+const toolSelectRefinements = {
 	config: ToolConfigJsonSchema.nullable(),
-})
-/** Schema for inserting tools into the database */
-export const insertToolSchema = createInsertSchema(tools, {
+}
+/** Schema for selecting tools from the database */
+export const selectToolSchema = createSelectSchema(tools, toolSelectRefinements)
+/** Tool insert refinements - defined separately to avoid excessive type instantiation */
+const toolInsertRefinements = {
 	name: z.string().min(1).max(100),
 	config: ToolConfigJsonSchema.optional(),
-})
+}
+/** Schema for inserting tools into the database */
+export const insertToolSchema = createInsertSchema(tools, toolInsertRefinements)
 
 export type SelectTool = z.infer<typeof selectToolSchema>
 export type InsertTool = z.infer<typeof insertToolSchema>
@@ -169,20 +180,24 @@ export type InsertAgentTool = z.infer<typeof insertAgentToolSchema>
 
 /** Schema for selecting conversations from the database */
 export const selectConversationSchema = createSelectSchema(conversations)
-/** Schema for inserting conversations into the database */
-export const insertConversationSchema = createInsertSchema(conversations, {
+/** Conversation insert refinements */
+const conversationInsertRefinements = {
 	title: z.string().max(200).optional(),
-})
+}
+/** Schema for inserting conversations into the database */
+export const insertConversationSchema = createInsertSchema(conversations, conversationInsertRefinements)
 
 export type SelectConversation = z.infer<typeof selectConversationSchema>
 export type InsertConversation = z.infer<typeof insertConversationSchema>
 
 /** Schema for selecting messages from the database */
 export const selectMessageSchema = createSelectSchema(messages)
-/** Schema for inserting messages into the database */
-export const insertMessageSchema = createInsertSchema(messages, {
+/** Message insert refinements */
+const messageInsertRefinements = {
 	content: z.string().min(1),
-})
+}
+/** Schema for inserting messages into the database */
+export const insertMessageSchema = createInsertSchema(messages, messageInsertRefinements)
 
 export type SelectMessage = z.infer<typeof selectMessageSchema>
 export type InsertMessage = z.infer<typeof insertMessageSchema>
@@ -202,15 +217,19 @@ export const DeploymentMetadataJsonSchema = z
 
 export type DeploymentMetadataJson = z.infer<typeof DeploymentMetadataJsonSchema>
 
-/** Schema for selecting deployments from the database */
-export const selectDeploymentSchema = createSelectSchema(deployments, {
+/** Deployment select refinements */
+const deploymentSelectRefinements = {
 	metadata: DeploymentMetadataJsonSchema.nullable(),
-})
-/** Schema for inserting deployments into the database */
-export const insertDeploymentSchema = createInsertSchema(deployments, {
+}
+/** Schema for selecting deployments from the database */
+export const selectDeploymentSchema = createSelectSchema(deployments, deploymentSelectRefinements)
+/** Deployment insert refinements */
+const deploymentInsertRefinements = {
 	version: z.string().min(1),
 	metadata: DeploymentMetadataJsonSchema.optional(),
-})
+}
+/** Schema for inserting deployments into the database */
+export const insertDeploymentSchema = createInsertSchema(deployments, deploymentInsertRefinements)
 
 export type SelectDeployment = z.infer<typeof selectDeploymentSchema>
 export type InsertDeployment = z.infer<typeof insertDeploymentSchema>
@@ -231,15 +250,19 @@ export const UsageMetadataJsonSchema = z
 
 export type UsageMetadataJson = z.infer<typeof UsageMetadataJsonSchema>
 
-/** Schema for selecting usage records from the database */
-export const selectUsageSchema = createSelectSchema(usage, {
+/** Usage select refinements */
+const usageSelectRefinements = {
 	metadata: UsageMetadataJsonSchema.nullable(),
-})
-/** Schema for inserting usage records into the database */
-export const insertUsageSchema = createInsertSchema(usage, {
+}
+/** Schema for selecting usage records from the database */
+export const selectUsageSchema = createSelectSchema(usage, usageSelectRefinements)
+/** Usage insert refinements */
+const usageInsertRefinements = {
 	type: z.string().min(1),
 	metadata: UsageMetadataJsonSchema.optional(),
-})
+}
+/** Schema for inserting usage records into the database */
+export const insertUsageSchema = createInsertSchema(usage, usageInsertRefinements)
 
 export type SelectUsage = z.infer<typeof selectUsageSchema>
 export type InsertUsage = z.infer<typeof insertUsageSchema>
@@ -254,15 +277,19 @@ export const ApiKeyPermissionsJsonSchema = z
 
 export type ApiKeyPermissionsJson = z.infer<typeof ApiKeyPermissionsJsonSchema>
 
-/** Schema for selecting API keys from the database */
-export const selectApiKeySchema = createSelectSchema(apiKeys, {
+/** API key select refinements */
+const apiKeySelectRefinements = {
 	permissions: ApiKeyPermissionsJsonSchema.nullable(),
-})
-/** Schema for inserting API keys into the database */
-export const insertApiKeySchema = createInsertSchema(apiKeys, {
+}
+/** Schema for selecting API keys from the database */
+export const selectApiKeySchema = createSelectSchema(apiKeys, apiKeySelectRefinements)
+/** API key insert refinements */
+const apiKeyInsertRefinements = {
 	name: z.string().min(1).max(100),
 	permissions: ApiKeyPermissionsJsonSchema.optional(),
-})
+}
+/** Schema for inserting API keys into the database */
+export const insertApiKeySchema = createInsertSchema(apiKeys, apiKeyInsertRefinements)
 
 export type SelectApiKey = z.infer<typeof selectApiKeySchema>
 export type InsertApiKey = z.infer<typeof insertApiKeySchema>
@@ -281,15 +308,19 @@ export const WebhookStatusSchema = z.enum(WEBHOOK_STATUSES)
 
 export type WebhookStatusZod = z.infer<typeof WebhookStatusSchema>
 
-/** Schema for selecting webhooks from the database */
-export const selectWebhookSchema = createSelectSchema(webhooks, {
+/** Webhook select refinements */
+const webhookSelectRefinements = {
 	events: z.array(WebhookEventTypeSchema),
-})
-/** Schema for inserting webhooks into the database */
-export const insertWebhookSchema = createInsertSchema(webhooks, {
+}
+/** Schema for selecting webhooks from the database */
+export const selectWebhookSchema = createSelectSchema(webhooks, webhookSelectRefinements)
+/** Webhook insert refinements */
+const webhookInsertRefinements = {
 	url: z.string().url(),
 	events: z.array(WebhookEventTypeSchema).min(1),
-})
+}
+/** Schema for inserting webhooks into the database */
+export const insertWebhookSchema = createInsertSchema(webhooks, webhookInsertRefinements)
 
 export type SelectWebhook = z.infer<typeof selectWebhookSchema>
 export type InsertWebhook = z.infer<typeof insertWebhookSchema>
@@ -299,14 +330,18 @@ export const WebhookLogPayloadSchema = z.record(z.string(), z.unknown())
 
 export type WebhookLogPayload = z.infer<typeof WebhookLogPayloadSchema>
 
+/** Webhook log select refinements */
+const webhookLogSelectRefinements = {
+	payload: WebhookLogPayloadSchema,
+}
 /** Schema for selecting webhook logs from the database */
-export const selectWebhookLogSchema = createSelectSchema(webhookLogs, {
+export const selectWebhookLogSchema = createSelectSchema(webhookLogs, webhookLogSelectRefinements)
+/** Webhook log insert refinements */
+const webhookLogInsertRefinements = {
 	payload: WebhookLogPayloadSchema,
-})
+}
 /** Schema for inserting webhook logs into the database */
-export const insertWebhookLogSchema = createInsertSchema(webhookLogs, {
-	payload: WebhookLogPayloadSchema,
-})
+export const insertWebhookLogSchema = createInsertSchema(webhookLogs, webhookLogInsertRefinements)
 
 export type SelectWebhookLog = z.infer<typeof selectWebhookLogSchema>
 export type InsertWebhookLog = z.infer<typeof insertWebhookLogSchema>

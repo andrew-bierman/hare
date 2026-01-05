@@ -405,6 +405,14 @@
         "typescript": "^5",
       },
     },
+    "packages/testing": {
+      "name": "@hare/testing",
+      "version": "0.1.0",
+      "devDependencies": {
+        "@hare/typescript-config": "workspace:*",
+        "typescript": "^5",
+      },
+    },
     "packages/tools": {
       "name": "@hare/tools",
       "version": "0.1.0",
@@ -803,6 +811,8 @@
     "@hare/scripts": ["@hare/scripts@workspace:scripts"],
 
     "@hare/security": ["@hare/security@workspace:packages/security"],
+
+    "@hare/testing": ["@hare/testing@workspace:packages/testing"],
 
     "@hare/tools": ["@hare/tools@workspace:packages/tools"],
 
