@@ -245,11 +245,8 @@ export { acceptsJson, acceptsSSE } from './helpers'
 export { CloudflareEnvError, getCloudflareEnv, getD1, getDb } from './db'
 
 // Re-export email service
-export {
-	createEmailProvider,
-	createEmailService,
-	EmailService,
-	type EmailEnv,
-	type EmailMessage,
-	type EmailProvider,
-} from './services/email'
+export { createEmailService, EmailService, type EmailEnv, type EmailResult } from './services/email'
+
+// Re-export email templates
+export { PasswordResetEmail } from './services/emails/password-reset'
+export { WorkspaceInvitationEmail } from './services/emails/workspace-invitation'

@@ -16,8 +16,6 @@ export interface AuthServerEnv {
 	APP_URL: string
 	/** Resend API key for email sending */
 	RESEND_API_KEY?: string
-	/** SendGrid API key for email sending */
-	SENDGRID_API_KEY?: string
 	/** Email from address */
 	EMAIL_FROM?: string
 	/** App name for emails */
