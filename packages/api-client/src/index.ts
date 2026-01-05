@@ -10,12 +10,8 @@
 import { hc } from 'hono/client'
 import type {
 	AgentsRoute,
-	SchedulesRoute,
-	MemoryRoute,
-	WebhooksRoute,
 	ToolsRoute,
 	WorkspacesRoute,
-	WorkspaceMembersRoute,
 	AuthRoute,
 	BillingRoute,
 	AnalyticsRoute,
@@ -58,12 +54,8 @@ const clientInit = { credentials: 'include' as const }
 // =============================================================================
 
 type AgentsClient = ReturnType<typeof hc<AgentsRoute>>
-type SchedulesClient = ReturnType<typeof hc<SchedulesRoute>>
-type MemoryClient = ReturnType<typeof hc<MemoryRoute>>
-type WebhooksClient = ReturnType<typeof hc<WebhooksRoute>>
 type ToolsClient = ReturnType<typeof hc<ToolsRoute>>
 type WorkspacesClient = ReturnType<typeof hc<WorkspacesRoute>>
-type WorkspaceMembersClient = ReturnType<typeof hc<WorkspaceMembersRoute>>
 type AuthClient = ReturnType<typeof hc<AuthRoute>>
 type BillingClient = ReturnType<typeof hc<BillingRoute>>
 type AnalyticsClient = ReturnType<typeof hc<AnalyticsRoute>>
@@ -95,21 +87,6 @@ type AgentWsClient = ReturnType<typeof hc<AgentWsRoute>>
 export const agents: AgentsClient = hc<AgentsRoute>(`${getBaseURL()}/api/agents`, { init: clientInit })
 
 /**
- * Schedules API client - /api/agents/:agentId/schedules/*
- */
-export const schedules: SchedulesClient = hc<SchedulesRoute>(`${getBaseURL()}/api/agents`, { init: clientInit })
-
-/**
- * Memory API client - /api/agents/:agentId/memory/*
- */
-export const memory: MemoryClient = hc<MemoryRoute>(`${getBaseURL()}/api/agents`, { init: clientInit })
-
-/**
- * Webhooks API client - /api/agents/:agentId/webhooks/*
- */
-export const webhooks: WebhooksClient = hc<WebhooksRoute>(`${getBaseURL()}/api/agents`, { init: clientInit })
-
-/**
  * Tools API client - /api/tools/*
  *
  * @example
@@ -130,11 +107,6 @@ export const tools: ToolsClient = hc<ToolsRoute>(`${getBaseURL()}/api/tools`, { 
  * ```
  */
 export const workspaces: WorkspacesClient = hc<WorkspacesRoute>(`${getBaseURL()}/api/workspaces`, { init: clientInit })
-
-/**
- * Workspace members API client - /api/workspaces/:workspaceId/members/*
- */
-export const workspaceMembers: WorkspaceMembersClient = hc<WorkspaceMembersRoute>(`${getBaseURL()}/api/workspaces`, { init: clientInit })
 
 /**
  * Auth API client - /api/auth/*
@@ -207,12 +179,8 @@ export const agentWs: AgentWsClient = hc<AgentWsRoute>(`${getBaseURL()}/api/agen
 
 export type {
 	AgentsClient,
-	SchedulesClient,
-	MemoryClient,
-	WebhooksClient,
 	ToolsClient,
 	WorkspacesClient,
-	WorkspaceMembersClient,
 	AuthClient,
 	BillingClient,
 	AnalyticsClient,

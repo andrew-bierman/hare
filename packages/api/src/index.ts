@@ -54,16 +54,12 @@ import type { HonoEnv } from '@hare/types'
 
 /** Agents routes: /api/agents/* (includes schedules, memory, webhooks) */
 export type AgentsRoute = typeof agents
-export type SchedulesRoute = typeof schedules
-export type MemoryRoute = typeof memory
-export type WebhooksRoute = typeof webhooksRoutes
 
 /** Tools routes: /api/tools/* */
 export type ToolsRoute = typeof tools
 
-/** Workspaces routes: /api/workspaces/* */
+/** Workspaces routes: /api/workspaces/* (includes members, invites) */
 export type WorkspacesRoute = typeof workspaces
-export type WorkspaceMembersRoute = typeof workspaceMembers
 
 /** Auth routes: /api/auth/* */
 export type AuthRoute = typeof auth
