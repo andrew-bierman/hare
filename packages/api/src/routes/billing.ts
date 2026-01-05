@@ -160,6 +160,11 @@ const listPlansRoute = createRoute({
 	tags: ['Billing'],
 	summary: 'List available billing plans',
 	description: 'Get a list of all available billing plans and their features',
+	request: {
+		query: z.object({
+			workspaceId: z.string().describe('Workspace ID'),
+		}),
+	},
 	responses: {
 		200: {
 			description: 'List of billing plans',
@@ -180,6 +185,9 @@ const createCheckoutRoute = createRoute({
 	summary: 'Create checkout session',
 	description: 'Create a Stripe checkout session for upgrading to a paid plan',
 	request: {
+		query: z.object({
+			workspaceId: z.string().describe('Workspace ID'),
+		}),
 		body: {
 			content: {
 				'application/json': {
@@ -211,6 +219,11 @@ const createPortalRoute = createRoute({
 	tags: ['Billing'],
 	summary: 'Create customer portal session',
 	description: 'Create a Stripe customer portal session for managing subscription',
+	request: {
+		query: z.object({
+			workspaceId: z.string().describe('Workspace ID'),
+		}),
+	},
 	responses: {
 		200: {
 			description: 'Portal session created',
@@ -234,6 +247,11 @@ const getBillingStatusRoute = createRoute({
 	tags: ['Billing'],
 	summary: 'Get billing status',
 	description: 'Get current billing status, plan, and usage for the workspace',
+	request: {
+		query: z.object({
+			workspaceId: z.string().describe('Workspace ID'),
+		}),
+	},
 	responses: {
 		200: {
 			description: 'Billing status',
@@ -255,6 +273,7 @@ const getPaymentHistoryRoute = createRoute({
 	description: 'Get payment history from Stripe for the workspace',
 	request: {
 		query: z.object({
+			workspaceId: z.string().describe('Workspace ID'),
 			limit: z.coerce.number().min(1).max(100).default(10).optional(),
 			starting_after: z.string().optional(),
 		}),
@@ -575,7 +594,7 @@ webhookApp.openapi(webhookRoute, async (c) => {
 		case 'checkout.session.completed': {
 			const session = event.data.object as Stripe.Checkout.Session
 			const workspaceId = session.metadata?.workspaceId
-			const planId = session.metadata?.planId
+			const planId = session.metadata?.planId as PlanId | undefined
 
 			if (workspaceId && planId && session.subscription) {
 				await db
@@ -598,7 +617,7 @@ webhookApp.openapi(webhookRoute, async (c) => {
 			const workspaceId = subscription.metadata?.workspaceId
 
 			if (workspaceId) {
-				const planId = subscription.metadata?.planId || 'pro'
+				const planId = (subscription.metadata?.planId || 'pro') as PlanId
 				await db
 					.update(workspaces)
 					.set({

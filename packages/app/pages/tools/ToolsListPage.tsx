@@ -70,7 +70,7 @@ export function ToolsListPage() {
 	const [systemToolsOpen, setSystemToolsOpen] = useState(true)
 	const [customToolsOpen, setCustomToolsOpen] = useState(true)
 
-	const tools: Tool[] = data?.tools ?? []
+	const tools = data?.tools ?? []
 	const filteredTools = tools.filter(
 		(tool) =>
 			tool.name.toLowerCase().includes(search.toLowerCase()) ||

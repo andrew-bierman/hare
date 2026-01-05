@@ -64,7 +64,7 @@ export function DashboardPage() {
 	const { data: agentsData, isLoading: agentsLoading } = useAgentsQuery(activeWorkspace?.id)
 	const { data: usageData, isLoading: usageLoading } = useUsageQuery(activeWorkspace?.id)
 
-	const agents: Agent[] = agentsData?.agents ?? []
+	const agents = agentsData?.agents ?? []
 	const deployedAgents = agents.filter((a) => a.status === 'deployed')
 	const recentAgents = agents.slice(0, 5)
 
@@ -92,7 +92,7 @@ export function DashboardPage() {
 		},
 		{
 			title: content.stats.apiCalls.title,
-			value: formatNumber(usageData?.totalCalls ?? 0),
+			value: formatNumber(usageData?.usage?.totalMessages ?? 0),
 			description: content.stats.apiCalls.description,
 			icon: MessageSquare,
 			color: 'bg-blue-500',
@@ -100,8 +100,8 @@ export function DashboardPage() {
 		},
 		{
 			title: content.stats.tokensUsed.title,
-			value: formatNumber(usageData?.totalTokens ?? 0),
-			description: `${formatNumber(usageData?.inputTokens ?? 0)} ${content.stats.tokensUsed.description.replace('in / out', '')} ${formatNumber(usageData?.outputTokens ?? 0)}`,
+			value: formatNumber((usageData?.usage?.totalTokensIn ?? 0) + (usageData?.usage?.totalTokensOut ?? 0)),
+			description: `${formatNumber(usageData?.usage?.totalTokensIn ?? 0)} ${content.stats.tokensUsed.description.replace('in / out', '')} ${formatNumber(usageData?.usage?.totalTokensOut ?? 0)}`,
 			icon: TrendingUp,
 			color: 'bg-emerald-500',
 			trend: null,

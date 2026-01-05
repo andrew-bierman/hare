@@ -18,16 +18,23 @@ export interface DocCategory {
 	pages: DocPage[]
 }
 
-// Import all MDX files at build time
-// The ?frontmatter query extracts frontmatter without rendering
-const mdxModules = import.meta.glob<{
+// Type for MDX module from Vite's import.meta.glob
+interface MdxModule {
 	default: ComponentType
 	frontmatter?: {
 		title?: string
 		description?: string
 		order?: number
 	}
-}>('/content/**/*.mdx', { eager: true })
+}
+
+// Import all MDX files at build time using Vite's glob import
+// Type assertion needed because tsgo doesn't always pick up vite/client types
+const mdxModules = (
+	import.meta as unknown as {
+		glob: <T>(pattern: string, options: { eager: true }) => Record<string, T>
+	}
+).glob<MdxModule>('/content/**/*.mdx', { eager: true })
 
 // Parse slug from file path
 function getSlugFromPath(path: string): string {

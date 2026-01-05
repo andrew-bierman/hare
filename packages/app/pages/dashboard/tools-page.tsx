@@ -77,7 +77,7 @@ export function ToolsPage({ renderLink, routes, useToolsQuery }: ToolsPageProps)
 	const { data, isLoading, error } = useToolsQuery(activeWorkspace?.id)
 	const [search, setSearch] = useState('')
 
-	const tools: Tool[] = data?.tools ?? []
+	const tools = data?.tools ?? []
 	const filteredTools = tools.filter(
 		(tool) =>
 			tool.name.toLowerCase().includes(search.toLowerCase()) ||

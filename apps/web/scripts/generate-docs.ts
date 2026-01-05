@@ -1,4 +1,5 @@
 #!/usr/bin/env bun
+
 /**
  * Auto-generate MDX documentation from TypeScript source files.
  *
@@ -8,9 +9,9 @@
  * from the SDK packages and generates MDX documentation files.
  */
 
-import * as ts from 'typescript'
 import * as fs from 'node:fs'
 import * as path from 'node:path'
+import * as ts from 'typescript'
 
 // ============================================================================
 // Types
@@ -328,6 +329,9 @@ function extractDocsFromFile(filePath: string): ExtractedDocs {
 
 	if (!sourceFile) return docs
 
+	// Assign to a new const to help TypeScript narrow the type for the nested function
+	const sf = sourceFile
+
 	function visit(node: ts.Node) {
 		if (ts.isInterfaceDeclaration(node)) {
 			if (
@@ -335,28 +339,28 @@ function extractDocsFromFile(filePath: string): ExtractedDocs {
 				node.name.text.startsWith('Hare') ||
 				node.name.text.startsWith('Agent')
 			) {
-				const iface = extractInterface(node, sourceFile)
+				const iface = extractInterface(node, sf)
 				if (iface) docs.interfaces.push(iface)
 			}
 		}
 
 		if (ts.isClassDeclaration(node)) {
 			if (node.modifiers?.some((m) => m.kind === ts.SyntaxKind.ExportKeyword)) {
-				const cls = extractClass(node, sourceFile)
+				const cls = extractClass(node, sf)
 				if (cls) docs.classes.push(cls)
 			}
 		}
 
 		if (ts.isFunctionDeclaration(node)) {
 			if (node.modifiers?.some((m) => m.kind === ts.SyntaxKind.ExportKeyword)) {
-				const fn = extractFunction(node, sourceFile)
+				const fn = extractFunction(node, sf)
 				if (fn) docs.functions.push(fn)
 			}
 		}
 
 		if (ts.isVariableStatement(node)) {
 			if (node.modifiers?.some((m) => m.kind === ts.SyntaxKind.ExportKeyword)) {
-				const tool = extractToolFromVariable(node, sourceFile)
+				const tool = extractToolFromVariable(node, sf)
 				if (tool) docs.tools.push(tool)
 			}
 		}
@@ -364,7 +368,7 @@ function extractDocsFromFile(filePath: string): ExtractedDocs {
 		ts.forEachChild(node, visit)
 	}
 
-	visit(sourceFile)
+	visit(sf)
 	return docs
 }
 

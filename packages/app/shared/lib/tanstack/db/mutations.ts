@@ -53,7 +53,7 @@ export function useAgentMutations(workspaceId: string) {
 					description: data.description ?? null,
 					model: data.model,
 					instructions: data.instructions ?? '',
-					config: data.config ?? null,
+					config: data.config,
 					status: 'draft',
 					systemToolsEnabled: data.systemToolsEnabled ?? true,
 					toolIds: data.toolIds ?? [],
@@ -74,7 +74,7 @@ export function useAgentMutations(workspaceId: string) {
 					if (data.description !== undefined) draft.description = data.description ?? null
 					if (data.model !== undefined) draft.model = data.model
 					if (data.instructions !== undefined) draft.instructions = data.instructions
-					if (data.config !== undefined) draft.config = data.config ?? null
+					if (data.config !== undefined) draft.config = data.config
 					if (data.toolIds !== undefined) draft.toolIds = data.toolIds
 					if (data.status !== undefined) draft.status = data.status
 					draft.updatedAt = new Date().toISOString()
@@ -130,19 +130,19 @@ export function useToolMutations(workspaceId: string) {
 			insert: (data: CreateToolInput): string => {
 				const id = createId()
 				const now = new Date().toISOString()
-				const tool: ToolRow = {
+				// Use type assertion for compatibility between CreateToolInput and ToolRow schemas
+				const tool = {
 					id,
-					workspaceId,
 					name: data.name,
-					description: data.description ?? '',
+					description: data.description ?? null,
 					type: data.type,
 					isSystem: false,
 					inputSchema: data.inputSchema ?? {},
-					config: data.config ?? null,
+					config: data.config,
 					createdAt: now,
 					updatedAt: now,
 					_workspaceId: workspaceId,
-				}
+				} as ToolRow
 				collection.insert(tool)
 				return id
 			},
@@ -153,10 +153,11 @@ export function useToolMutations(workspaceId: string) {
 			update: (id: string, data: Partial<CreateToolInput>): void => {
 				collection.update(id, (draft: ToolRow) => {
 					if (data.name !== undefined) draft.name = data.name
-					if (data.description !== undefined) draft.description = data.description ?? ''
+					if (data.description !== undefined) draft.description = data.description ?? null
 					if (data.type !== undefined) draft.type = data.type
-					if (data.inputSchema !== undefined) draft.inputSchema = data.inputSchema ?? {}
-					if (data.config !== undefined) draft.config = data.config ?? null
+					if (data.inputSchema !== undefined)
+						draft.inputSchema = data.inputSchema as ToolRow['inputSchema']
+					if (data.config !== undefined) draft.config = data.config as ToolRow['config']
 					draft.updatedAt = new Date().toISOString()
 				})
 			},
@@ -190,14 +191,15 @@ export function useWorkspaceMutations() {
 			insert: (data: CreateWorkspaceInput): string => {
 				const id = createId()
 				const now = new Date().toISOString()
-				const workspace: WorkspaceRow = {
+				// WorkspaceRow from API includes 'role' but not 'slug' directly
+				const workspace = {
 					id,
 					name: data.name,
-					slug: data.slug,
 					description: data.description ?? null,
+					role: 'owner',
 					createdAt: now,
 					updatedAt: now,
-				}
+				} as WorkspaceRow
 				collection.insert(workspace)
 				return id
 			},

@@ -1,5 +1,5 @@
 import { useWorkspace } from '@hare/app'
-import { type Agent, useAgentsQuery, useUsageQuery } from '@hare/app/shared/api'
+import { useAgentsQuery, useUsageQuery } from '@hare/app/shared/api'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@hare/ui/components/card'
 import { Skeleton } from '@hare/ui/components/skeleton'
 import { createFileRoute } from '@tanstack/react-router'
@@ -31,7 +31,7 @@ function UsagePage() {
 
 	const isLoading = workspaceLoading || usageLoading || agentsLoading
 
-	const agents: Agent[] = agentsData?.agents ?? []
+	const agents = agentsData?.agents ?? []
 	const deployedAgents = agents.filter((a) => a.status === 'deployed')
 
 	const formatNumber = (num: number) => {
@@ -45,18 +45,21 @@ function UsagePage() {
 		return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 	}
 
+	const usage = usageData?.usage
+	const period = usageData?.period
+
 	const stats = [
 		{
 			title: 'Total API Calls',
-			value: formatNumber(usageData?.totalCalls ?? 0),
+			value: formatNumber(usage?.totalMessages ?? 0),
 			description: 'This billing period',
 			icon: Activity,
 			color: 'text-blue-500',
 		},
 		{
 			title: 'Total Tokens',
-			value: formatNumber(usageData?.totalTokens ?? 0),
-			description: `${formatNumber(usageData?.inputTokens ?? 0)} input / ${formatNumber(usageData?.outputTokens ?? 0)} output`,
+			value: formatNumber((usage?.totalTokensIn ?? 0) + (usage?.totalTokensOut ?? 0)),
+			description: `${formatNumber(usage?.totalTokensIn ?? 0)} input / ${formatNumber(usage?.totalTokensOut ?? 0)} output`,
 			icon: TrendingUp,
 			color: 'text-emerald-500',
 		},
@@ -69,8 +72,8 @@ function UsagePage() {
 		},
 		{
 			title: 'Period',
-			value: usageData?.periodStart ? formatDate(usageData.periodStart) : 'N/A',
-			description: usageData?.periodEnd ? `to ${formatDate(usageData.periodEnd)}` : '',
+			value: period?.startDate ? formatDate(period.startDate) : 'N/A',
+			description: period?.endDate ? `to ${formatDate(period.endDate)}` : '',
 			icon: Calendar,
 			color: 'text-orange-500',
 		},
@@ -121,7 +124,7 @@ function UsagePage() {
 										<div className="text-sm text-muted-foreground">Tokens sent to the model</div>
 									</div>
 									<div className="text-2xl font-bold">
-										{formatNumber(usageData?.inputTokens ?? 0)}
+										{formatNumber(usage?.totalTokensIn ?? 0)}
 									</div>
 								</div>
 								<div className="flex items-center justify-between p-4 border rounded-lg">
@@ -132,7 +135,7 @@ function UsagePage() {
 										</div>
 									</div>
 									<div className="text-2xl font-bold">
-										{formatNumber(usageData?.outputTokens ?? 0)}
+										{formatNumber(usage?.totalTokensOut ?? 0)}
 									</div>
 								</div>
 							</div>
@@ -167,7 +170,7 @@ function UsagePage() {
 										<div>
 											<div className="font-medium">{agent.name}</div>
 											<div className="text-sm text-muted-foreground">
-												{agent.toolIds.length} tools
+												{agent.toolIds?.length ?? 0} tools
 											</div>
 										</div>
 										<div className="text-right">

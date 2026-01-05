@@ -38,6 +38,10 @@ export { useAnalyticsQuery } from './use-analytics'
 
 // API Key hooks
 export {
+	type ApiKey,
+	type ApiKeyWithSecret,
+	type CreateApiKeyInput,
+	type UpdateApiKeyInput,
 	useApiKeyQuery,
 	useApiKeysQuery,
 	useCreateApiKeyMutation,
@@ -46,7 +50,7 @@ export {
 } from './use-api-keys'
 
 // Auth hooks
-export { useOAuthProvidersQuery } from './use-auth'
+export { type OAuthProviders, useOAuthProvidersQuery } from './use-auth'
 
 // Billing hooks
 export {
@@ -144,7 +148,7 @@ export {
 } from './use-tools'
 
 // Usage hooks (UsageParams exported from client.ts to avoid duplicates)
-export { useAgentUsageQuery, useUsageQuery, useUsageByAgentQuery } from './use-usage'
+export { useAgentUsageQuery, useUsageQuery } from './use-usage'
 
 // Workspace hooks
 export {

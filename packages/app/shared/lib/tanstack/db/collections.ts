@@ -7,9 +7,10 @@
  * @see https://tanstack.com/db/latest/docs/collections/query-collection
  */
 
-import type { Agent, Schedule, Tool, Workspace } from '@hare/types'
+// Types are inferred from API responses for proper compatibility
+import type { Schedule } from '@hare/types'
 import type { QueryClient } from '@tanstack/react-query'
-import { createCollection, type Collection } from '@tanstack/db'
+import { createCollection } from '@tanstack/db'
 import { queryCollectionOptions } from '@tanstack/query-db-collection'
 import { api } from '@hare/api-client'
 import { agentKeys, scheduleKeys, toolKeys, workspaceKeys } from '../../../api/hooks/query-keys'
@@ -18,19 +19,37 @@ import { agentKeys, scheduleKeys, toolKeys, workspaceKeys } from '../../../api/h
 // Collection Types
 // =============================================================================
 
-export interface AgentRow extends Agent {
+// Use inferred types from API responses for proper compatibility
+type ApiAgentsResponse = Awaited<ReturnType<Awaited<ReturnType<typeof api.agents.$get>>['json']>>
+type ApiAgent = ApiAgentsResponse['agents'][number]
+
+type ApiToolsResponse = Awaited<ReturnType<Awaited<ReturnType<typeof api.tools.$get>>['json']>>
+type ApiTool = ApiToolsResponse['tools'][number]
+
+type ApiWorkspacesResponse = Awaited<
+	ReturnType<Awaited<ReturnType<typeof api.workspaces.$get>>['json']>
+>
+type ApiWorkspace = ApiWorkspacesResponse['workspaces'][number]
+
+export type AgentRow = ApiAgent & {
 	_workspaceId: string
 }
 
-export interface ToolRow extends Tool {
+export type ToolRow = ApiTool & {
 	_workspaceId: string
 }
 
-export interface WorkspaceRow extends Workspace {}
+export type WorkspaceRow = ApiWorkspace
 
-export interface ScheduleRow extends Schedule {
+export type ScheduleRow = Schedule & {
 	_workspaceId: string
 }
+
+// Collection type aliases for use in provider
+export type AgentCollection = ReturnType<typeof createAgentCollection>
+export type ToolCollection = ReturnType<typeof createToolCollection>
+export type WorkspaceCollection = ReturnType<typeof createWorkspaceCollection>
+export type ScheduleCollection = ReturnType<typeof createScheduleCollection>
 
 // =============================================================================
 // Agent Collection
@@ -43,7 +62,7 @@ export interface ScheduleRow extends Schedule {
 export function createAgentCollection(options: {
 	workspaceId: string
 	queryClient: QueryClient
-}): Collection<AgentRow> {
+}) {
 	const { workspaceId, queryClient } = options
 
 	const config = queryCollectionOptions({
@@ -71,7 +90,7 @@ export function createAgentCollection(options: {
 							name: data.name,
 							description: data.description ?? undefined,
 							model: data.model,
-							instructions: data.instructions,
+							instructions: data.instructions ?? '',
 							config: data.config ?? undefined,
 							systemToolsEnabled: data.systemToolsEnabled,
 							toolIds: data.toolIds,
@@ -104,7 +123,7 @@ export function createAgentCollection(options: {
 							name,
 							description: description ?? undefined,
 							model,
-							instructions,
+							instructions: instructions ?? undefined,
 							config: config ?? undefined,
 							systemToolsEnabled,
 							toolIds,
@@ -144,7 +163,7 @@ export function createAgentCollection(options: {
 export function createToolCollection(options: {
 	workspaceId: string
 	queryClient: QueryClient
-}): Collection<ToolRow> {
+}) {
 	const { workspaceId, queryClient } = options
 
 	const config = queryCollectionOptions({
@@ -170,9 +189,9 @@ export function createToolCollection(options: {
 						query: { workspaceId: _workspaceId },
 						json: {
 							name: data.name,
-							description: data.description ?? undefined,
+							description: data.description ?? data.name,
 							type: data.type,
-							inputSchema: data.inputSchema ?? undefined,
+							inputSchema: data.inputSchema ?? {},
 							config: data.config ?? undefined,
 						},
 					})
@@ -230,7 +249,7 @@ export function createToolCollection(options: {
  */
 export function createWorkspaceCollection(options: {
 	queryClient: QueryClient
-}): Collection<WorkspaceRow> {
+}) {
 	const { queryClient } = options
 
 	const config = queryCollectionOptions({
@@ -248,12 +267,11 @@ export function createWorkspaceCollection(options: {
 			const mutations = transaction.mutations
 			for (const mutation of mutations) {
 				if (mutation.type === 'insert' && mutation.modified) {
-					const { name, description, slug } = mutation.modified
+					const { name, description } = mutation.modified
 					const res = await api.workspaces.$post({
 						json: {
 							name,
 							description: description ?? undefined,
-							slug,
 						},
 					})
 					if (!res.ok) throw new Error('Request failed')
@@ -305,15 +323,15 @@ export function createScheduleCollection(options: {
 	agentId: string
 	workspaceId: string
 	queryClient: QueryClient
-}): Collection<ScheduleRow> {
+}) {
 	const { agentId, workspaceId, queryClient } = options
 
 	const config = queryCollectionOptions({
 		queryClient,
 		queryKey: scheduleKeys.list(agentId, workspaceId),
 		queryFn: async (): Promise<ScheduleRow[]> => {
-			const res = await api.agents[':id'].schedules.$get({
-				param: { id: agentId },
+			const res = await api.agents[':agentId'].schedules.$get({
+				param: { agentId },
 				query: { workspaceId },
 			})
 			if (!res.ok) throw new Error('Request failed')
@@ -331,8 +349,8 @@ export function createScheduleCollection(options: {
 				if (mutation.type === 'insert' && mutation.modified) {
 					const { agentId: aId, _workspaceId, type, executeAt, cron, action, payload } =
 						mutation.modified
-					const res = await api.agents[':id'].schedules.$post({
-						param: { id: aId },
+					const res = await api.agents[':agentId'].schedules.$post({
+						param: { agentId: aId },
 						query: { workspaceId: _workspaceId },
 						json: {
 							type,
@@ -353,8 +371,8 @@ export function createScheduleCollection(options: {
 				if (mutation.type === 'update' && mutation.original && mutation.modified) {
 					const { id, agentId: aId, _workspaceId } = mutation.original
 					const { status, executeAt, cron, payload } = mutation.modified
-					const res = await api.agents[':id'].schedules[':scheduleId'].$patch({
-						param: { id: aId, scheduleId: id },
+					const res = await api.agents[':agentId'].schedules[':scheduleId'].$patch({
+						param: { agentId: aId, scheduleId: id },
 						query: { workspaceId: _workspaceId },
 						json: {
 							status,
@@ -373,8 +391,8 @@ export function createScheduleCollection(options: {
 			for (const mutation of mutations) {
 				if (mutation.type === 'delete' && mutation.original) {
 					const { id, agentId: aId, _workspaceId } = mutation.original
-					const res = await api.agents[':id'].schedules[':scheduleId'].$delete({
-						param: { id: aId, scheduleId: id },
+					const res = await api.agents[':agentId'].schedules[':scheduleId'].$delete({
+						param: { agentId: aId, scheduleId: id },
 						query: { workspaceId: _workspaceId },
 					})
 					if (!res.ok) throw new Error('Request failed')

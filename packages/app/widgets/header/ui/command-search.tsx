@@ -98,7 +98,7 @@ export function CommandSearch({ open, onOpenChange, onNavigate }: CommandSearchP
 				id: `tool-${tool.id}`,
 				type: 'tool',
 				title: tool.name,
-				description: tool.description,
+				description: tool.description ?? undefined,
 				path: `/dashboard/tools/${tool.id}`,
 			})
 		})

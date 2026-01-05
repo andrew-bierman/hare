@@ -58,7 +58,7 @@ export function usePaymentHistoryQuery(options: {
 			const res = await api.billing.history.$get({
 				query: {
 					workspaceId: options.workspaceId!,
-					limit: options.limit?.toString(),
+					limit: options.limit,
 					starting_after: options.startingAfter,
 				},
 			})
@@ -104,7 +104,6 @@ export function useCreatePortalMutation() {
 		mutationFn: async (params: { workspaceId: string }) => {
 			const res = await api.billing.portal.$post({
 				query: { workspaceId: params.workspaceId },
-				json: {},
 			})
 			if (!res.ok) throw new Error('Request failed')
 			return res.json()

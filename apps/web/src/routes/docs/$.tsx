@@ -1,7 +1,7 @@
-import { createFileRoute, Link, notFound } from '@tanstack/react-router'
 import { MDXProvider } from '@mdx-js/react'
+import { createFileRoute, Link, notFound } from '@tanstack/react-router'
 import type { ComponentType } from 'react'
-import { getDocPage, getDocCategories, type DocCategory } from '../../lib/docs/simple-docs'
+import { type DocCategory, getDocCategories, getDocPage } from '../../lib/docs/simple-docs'
 import 'highlight.js/styles/github-dark.css'
 
 // Custom MDX components
@@ -31,12 +31,7 @@ const mdxComponents = {
 	code: (props: React.HTMLAttributes<HTMLElement>) => {
 		const isInline = !props.className?.includes('hljs')
 		if (isInline) {
-			return (
-				<code
-					className="px-1.5 py-0.5 rounded bg-muted font-mono text-sm"
-					{...props}
-				/>
-			)
+			return <code className="px-1.5 py-0.5 rounded bg-muted font-mono text-sm" {...props} />
 		}
 		return <code {...props} />
 	},
@@ -47,10 +42,7 @@ const mdxComponents = {
 		/>
 	),
 	blockquote: (props: React.HTMLAttributes<HTMLQuoteElement>) => (
-		<blockquote
-			className="my-4 pl-4 border-l-4 border-muted-foreground/30 italic"
-			{...props}
-		/>
+		<blockquote className="my-4 pl-4 border-l-4 border-muted-foreground/30 italic" {...props} />
 	),
 	table: (props: React.HTMLAttributes<HTMLTableElement>) => (
 		<div className="my-4 overflow-x-auto">
@@ -65,18 +57,32 @@ const mdxComponents = {
 	),
 }
 
+// Serializable loader data - Component is looked up at render time
+interface LoaderData {
+	slug: string
+	title: string
+	description?: string
+	category?: string
+}
+
 export const Route = createFileRoute('/docs/$')({
 	component: DocsPage,
-	loader: ({ params }) => {
+	loader: ({ params }): LoaderData => {
 		const slug = params._splat || ''
 		const page = getDocPage(slug)
 		if (!page) throw notFound()
-		return { page, categories: getDocCategories() }
+		// Return only serializable data
+		return {
+			slug: page.slug,
+			title: page.title,
+			description: page.description,
+			category: page.category,
+		}
 	},
 	head: ({ loaderData }) => ({
 		meta: [
-			{ title: `${loaderData?.page.title} | Hare Docs` },
-			{ name: 'description', content: loaderData?.page.description || '' },
+			{ title: `${loaderData?.title} | Hare Docs` },
+			{ name: 'description', content: loaderData?.description || '' },
 		],
 	}),
 })
@@ -92,12 +98,13 @@ function Sidebar({ categories, currentSlug }: { categories: DocCategory[]; curre
 						</h3>
 						<ul className="space-y-1">
 							{category.pages.map((page) => {
-								const isActive = page.slug === currentSlug ||
-									(currentSlug === '' && page.slug === 'index')
+								const isActive =
+									page.slug === currentSlug || (currentSlug === '' && page.slug === 'index')
 								return (
 									<li key={page.slug}>
 										<Link
-											to={`/docs/${page.slug === 'index' ? '' : page.slug}`}
+											// Dynamic splat routes need type assertion
+											to={`/docs/${page.slug === 'index' ? '' : page.slug}` as '/docs/$'}
 											className={`block px-3 py-1.5 rounded-md text-sm transition-colors ${
 												isActive
 													? 'bg-primary/10 text-primary font-medium'
@@ -118,9 +125,15 @@ function Sidebar({ categories, currentSlug }: { categories: DocCategory[]; curre
 }
 
 function DocsPage() {
-	const { page, categories } = Route.useLoaderData()
+	const loaderData = Route.useLoaderData()
 	const params = Route.useParams()
 	const currentSlug = params._splat || ''
+
+	// Look up full page data at render time (Component isn't serializable)
+	const page = getDocPage(loaderData.slug)
+	const categories = getDocCategories()
+
+	if (!page) return null
 
 	const Content = page.Component as ComponentType
 

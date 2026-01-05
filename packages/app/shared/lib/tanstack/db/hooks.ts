@@ -61,14 +61,23 @@ export function useLiveAgentsByStatus(options: {
 	const collection = useAgentCollection(workspaceId)
 	const statuses = Array.isArray(status) ? status : [status]
 
-	return useLiveQuery(
-		(q) =>
-			q
-				.from({ agent: collection })
-				.where((row) => or(...statuses.map((s) => eq(row.agent.status, s))))
-				.orderBy((row) => row.agent.updatedAt, 'desc'),
+	// Query all agents and filter by status client-side
+	// This avoids complex type issues with TanStack DB's where clause
+	const result = useLiveQuery(
+		(q) => q.from({ agent: collection }).orderBy((row) => row.agent.updatedAt, 'desc'),
 		[workspaceId, ...statuses],
 	)
+
+	// Filter by status client-side
+	const filteredData = useMemo(() => {
+		if (!result.data) return []
+		return result.data.filter((row) => {
+			const agent = row as unknown as { agent: { status: string } }
+			return statuses.includes(agent.agent.status as AgentStatus)
+		})
+	}, [result.data, statuses])
+
+	return { ...result, data: filteredData }
 }
 
 /**
@@ -97,7 +106,11 @@ export function useLiveAgentsWithTool(options: { workspaceId: string; toolId: st
 
 	const filteredData = useMemo(() => {
 		if (!result.data) return []
-		return result.data.filter(({ agent }) => agent.toolIds?.includes(toolId))
+		// Type assertion needed for TanStack DB query result type inference
+		return result.data.filter((row) => {
+			const agent = row as unknown as { agent: { toolIds?: string[] } }
+			return agent.agent?.toolIds?.includes(toolId)
+		})
 	}, [result.data, toolId])
 
 	return { ...result, data: filteredData }
