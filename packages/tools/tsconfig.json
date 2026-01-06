@@ -1,11 +1,5 @@
 {
-	"extends": "@hare/typescript-config/base.json",
-	"compilerOptions": {
-		"module": "ESNext",
-		"moduleResolution": "Bundler",
-		"noEmit": true,
-		"types": ["@cloudflare/workers-types"]
-	},
+	"extends": "@hare/typescript-config/cloudflare.json",
 	"include": ["src/**/*.ts"],
 	"exclude": ["node_modules", "dist"]
 }

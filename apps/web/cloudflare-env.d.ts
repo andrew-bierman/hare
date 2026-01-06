@@ -1,4 +1,5 @@
-// Re-export CloudflareEnv for vitest pool workers
+/// <reference types="@cloudflare/workers-types" />
+
 import type { CloudflareEnv } from '@hare/types'
 
 // Type declaration for cloudflare:test module used by @cloudflare/vitest-pool-workers
