@@ -330,3 +330,151 @@ export function useScheduleExecutions(scheduleId: string | undefined) {
 		enabled: !!scheduleId,
 	})
 }
+
+// =============================================================================
+// Workspace Members Hooks
+// =============================================================================
+
+export function useWorkspaceMembers(workspaceId: string | undefined) {
+	return useQuery({
+		queryKey: ['workspaces', workspaceId, 'members'],
+		queryFn: () => orpc.workspaceMembers.listMembers({ id: workspaceId! }),
+		enabled: !!workspaceId,
+	})
+}
+
+export function useWorkspaceInvitations(workspaceId: string | undefined) {
+	return useQuery({
+		queryKey: ['workspaces', workspaceId, 'invitations'],
+		queryFn: () => orpc.workspaceMembers.listInvitations({ id: workspaceId! }),
+		enabled: !!workspaceId,
+	})
+}
+
+export function useSendInvitation() {
+	const queryClient = useQueryClient()
+	return useMutation({
+		mutationFn: orpc.workspaceMembers.sendInvitation,
+		onSuccess: (_, variables) => {
+			queryClient.invalidateQueries({ queryKey: ['workspaces', variables.id, 'invitations'] })
+		},
+	})
+}
+
+export function useRevokeInvitation() {
+	const queryClient = useQueryClient()
+	return useMutation({
+		mutationFn: orpc.workspaceMembers.revokeInvitation,
+		onSuccess: (_, variables) => {
+			queryClient.invalidateQueries({ queryKey: ['workspaces', variables.id, 'invitations'] })
+		},
+	})
+}
+
+export function useRemoveMember() {
+	const queryClient = useQueryClient()
+	return useMutation({
+		mutationFn: orpc.workspaceMembers.removeMember,
+		onSuccess: (_, variables) => {
+			queryClient.invalidateQueries({ queryKey: ['workspaces', variables.id, 'members'] })
+		},
+	})
+}
+
+export function useUpdateMemberRole() {
+	const queryClient = useQueryClient()
+	return useMutation({
+		mutationFn: orpc.workspaceMembers.updateMemberRole,
+		onSuccess: (_, variables) => {
+			queryClient.invalidateQueries({ queryKey: ['workspaces', variables.id, 'members'] })
+		},
+	})
+}
+
+// =============================================================================
+// User Settings Hooks
+// =============================================================================
+
+export function useUserPreferences() {
+	return useQuery({
+		queryKey: ['user', 'preferences'],
+		queryFn: () => orpc.userSettings.get({}),
+	})
+}
+
+export function useUpdateUserPreferences() {
+	const queryClient = useQueryClient()
+	return useMutation({
+		mutationFn: orpc.userSettings.update,
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ['user', 'preferences'] })
+		},
+	})
+}
+
+// =============================================================================
+// Usage Hooks
+// =============================================================================
+
+export function useWorkspaceUsage(options?: { startDate?: string; endDate?: string }) {
+	return useQuery({
+		queryKey: ['usage', options],
+		queryFn: () => orpc.usage.getWorkspaceUsage(options || {}),
+	})
+}
+
+export function useAgentUsage(agentId: string | undefined) {
+	return useQuery({
+		queryKey: ['usage', 'agents', agentId],
+		queryFn: () => orpc.usage.getAgentUsage({ id: agentId! }),
+		enabled: !!agentId,
+	})
+}
+
+// =============================================================================
+// Analytics Hooks
+// =============================================================================
+
+export function useAnalytics(options?: {
+	startDate?: string
+	endDate?: string
+	agentId?: string
+	groupBy?: 'day' | 'week' | 'month'
+}) {
+	return useQuery({
+		queryKey: ['analytics', options],
+		queryFn: () => orpc.analytics.get(options || {}),
+	})
+}
+
+// =============================================================================
+// Logs Hooks
+// =============================================================================
+
+export function useLogs(options?: {
+	userId?: string
+	agentId?: string
+	status?: number
+	startDate?: string
+	endDate?: string
+	limit?: number
+	offset?: number
+}) {
+	return useQuery({
+		queryKey: ['logs', options],
+		queryFn: () => orpc.logs.list(options || {}),
+	})
+}
+
+export function useLogStats(options?: {
+	userId?: string
+	agentId?: string
+	status?: number
+	startDate?: string
+	endDate?: string
+}) {
+	return useQuery({
+		queryKey: ['logs', 'stats', options],
+		queryFn: () => orpc.logs.getStats(options || {}),
+	})
+}
