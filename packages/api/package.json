@@ -40,6 +40,10 @@
 		"./services": {
 			"types": "./src/services/index.ts",
 			"import": "./src/services/index.ts"
+		},
+		"./orpc": {
+			"types": "./src/orpc/index.ts",
+			"import": "./src/orpc/index.ts"
 		}
 	},
 	"main": "./src/index.ts",
@@ -74,7 +78,7 @@
 	"peerDependencies": {
 		"@hono/zod-openapi": "^1.2.0",
 		"ai": "^6.0.0",
-		"drizzle-orm": "^0.45.0",
+		"drizzle-orm": "^0.45.1",
 		"hono": "^4.0.0",
 		"stripe": "^20.0.0",
 		"zod": "^4.0.0"

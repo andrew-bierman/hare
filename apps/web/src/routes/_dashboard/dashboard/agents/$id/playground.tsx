@@ -1,4 +1,3 @@
-import { useWorkspace } from '@hare/app'
 import { useAgentQuery, useChat } from '@hare/app/shared/api'
 import { MarkdownContent, ToolCallList } from '@hare/app/widgets/chat-interface'
 import { getModelName } from '@hare/config'
@@ -87,12 +86,7 @@ function EmptyState() {
 
 function PlaygroundPage() {
 	const { id: agentId } = Route.useParams()
-	const { activeWorkspace } = useWorkspace()
-	const {
-		data: agent,
-		isLoading: agentLoading,
-		error: agentError,
-	} = useAgentQuery(agentId, activeWorkspace?.id)
+	const { data: agent, isLoading: agentLoading, error: agentError } = useAgentQuery(agentId)
 	const {
 		messages,
 		isStreaming,
@@ -467,7 +461,7 @@ function PlaygroundPage() {
 								</CardHeader>
 								<CardContent className="pt-0">
 									<div className="flex flex-wrap gap-1">
-										{agent.toolIds.slice(0, 5).map((toolId) => (
+										{agent.toolIds.slice(0, 5).map((toolId: string) => (
 											<Badge key={toolId} variant="secondary" className="text-xs">
 												{toolId.slice(0, 8)}...
 											</Badge>

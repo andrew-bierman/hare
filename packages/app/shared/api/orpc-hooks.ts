@@ -8,7 +8,125 @@
 'use client'
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { orpc } from '@hare/api-client/orpc'
+import { orpc } from '@hare/api-client'
+
+// =============================================================================
+// Type Definitions (to help TypeScript resolve oRPC types)
+// =============================================================================
+
+// Agent types
+interface AgentConfig {
+	temperature?: number
+	maxTokens?: number
+	topP?: number
+	topK?: number
+	stopSequences?: string[]
+}
+
+interface Agent {
+	id: string
+	workspaceId: string
+	name: string
+	description: string | null
+	model: string
+	instructions: string | null
+	config?: AgentConfig
+	status: 'draft' | 'deployed' | 'archived'
+	systemToolsEnabled: boolean
+	toolIds?: string[]
+	createdAt: string
+	updatedAt: string
+}
+
+interface CreateAgentInput {
+	name: string
+	description?: string
+	model: string
+	instructions: string
+	config?: AgentConfig
+	systemToolsEnabled?: boolean
+	toolIds?: string[]
+}
+
+interface UpdateAgentInput {
+	id: string
+	name?: string
+	description?: string
+	model?: string
+	instructions?: string
+	config?: AgentConfig
+	systemToolsEnabled?: boolean
+	toolIds?: string[]
+	status?: 'draft' | 'deployed' | 'archived'
+}
+
+// Tool types
+interface ToolConfig {
+	url?: string
+	method?: string
+	headers?: Record<string, string>
+	body?: string
+	bodyType?: 'json' | 'form' | 'text'
+	responseMapping?: { path?: string; transform?: string }
+	timeout?: number
+	query?: string
+	database?: string
+	searchEngine?: string
+	webhookUrl?: string
+	apiKey?: string
+	apiEndpoint?: string
+	channel?: string
+	from?: string
+	customCode?: string
+}
+
+interface InputSchemaProperty {
+	type: 'string' | 'number' | 'boolean' | 'array' | 'object'
+	description?: string
+	default?: unknown
+	enum?: string[]
+	required?: boolean
+}
+
+interface InputSchema {
+	type: 'object'
+	properties?: Record<string, InputSchemaProperty>
+	required?: string[]
+}
+
+interface Tool {
+	id: string
+	workspaceId: string
+	name: string
+	description: string | null
+	type: string
+	config: ToolConfig
+	inputSchema: InputSchema | null
+	createdAt: string
+	updatedAt: string
+}
+
+interface CreateToolInput {
+	name: string
+	description?: string
+	type: string
+	config: ToolConfig
+	inputSchema?: InputSchema
+}
+
+interface TestToolInput {
+	name: string
+	type: string
+	config: ToolConfig
+	testInput?: Record<string, unknown>
+}
+
+interface TestToolResult {
+	success: boolean
+	result?: unknown
+	error?: string
+	duration?: number
+}
 
 // =============================================================================
 // Agent Hooks
@@ -32,7 +150,7 @@ export function useAgentQuery(id: string | undefined) {
 export function useCreateAgentMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: orpc.agents.create,
+		mutationFn: (input: CreateAgentInput) => orpc.agents.create(input),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['agents'] })
 		},
@@ -42,7 +160,7 @@ export function useCreateAgentMutation() {
 export function useUpdateAgentMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: orpc.agents.update,
+		mutationFn: (input: UpdateAgentInput) => orpc.agents.update(input),
 		onSuccess: (_, variables) => {
 			queryClient.invalidateQueries({ queryKey: ['agents'] })
 			queryClient.invalidateQueries({ queryKey: ['agents', variables.id] })
@@ -53,7 +171,7 @@ export function useUpdateAgentMutation() {
 export function useDeleteAgentMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: orpc.agents.delete,
+		mutationFn: (input: { id: string }) => orpc.agents.delete(input),
 		onSuccess: (_, variables) => {
 			queryClient.invalidateQueries({ queryKey: ['agents'] })
 			queryClient.invalidateQueries({ queryKey: ['agents', variables.id] })
@@ -64,7 +182,7 @@ export function useDeleteAgentMutation() {
 export function useDeployAgentMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: orpc.agents.deploy,
+		mutationFn: (input: { id: string }) => orpc.agents.deploy(input),
 		onSuccess: (_, variables) => {
 			queryClient.invalidateQueries({ queryKey: ['agents'] })
 			queryClient.invalidateQueries({ queryKey: ['agents', variables.id] })
@@ -75,7 +193,7 @@ export function useDeployAgentMutation() {
 export function useUndeployAgentMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: orpc.agents.undeploy,
+		mutationFn: (input: { id: string }) => orpc.agents.undeploy(input),
 		onSuccess: (_, variables) => {
 			queryClient.invalidateQueries({ queryKey: ['agents'] })
 			queryClient.invalidateQueries({ queryKey: ['agents', variables.id] })
@@ -105,7 +223,7 @@ export function useToolQuery(id: string | undefined) {
 export function useCreateToolMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: orpc.tools.create,
+		mutationFn: (input: CreateToolInput) => orpc.tools.create(input),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['tools'] })
 		},
@@ -115,7 +233,7 @@ export function useCreateToolMutation() {
 export function useUpdateToolMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: orpc.tools.update,
+		mutationFn: (input: { id: string } & Partial<CreateToolInput>) => orpc.tools.update(input),
 		onSuccess: (_, variables) => {
 			queryClient.invalidateQueries({ queryKey: ['tools'] })
 			queryClient.invalidateQueries({ queryKey: ['tools', variables.id] })
@@ -126,7 +244,7 @@ export function useUpdateToolMutation() {
 export function useDeleteToolMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: orpc.tools.delete,
+		mutationFn: (input: { id: string }) => orpc.tools.delete(input),
 		onSuccess: (_, variables) => {
 			queryClient.invalidateQueries({ queryKey: ['tools'] })
 			queryClient.invalidateQueries({ queryKey: ['tools', variables.id] })
@@ -136,13 +254,15 @@ export function useDeleteToolMutation() {
 
 export function useTestToolMutation() {
 	return useMutation({
-		mutationFn: orpc.tools.test,
+		mutationFn: (input: TestToolInput): Promise<TestToolResult> =>
+			orpc.tools.test(input) as Promise<TestToolResult>,
 	})
 }
 
 export function useTestExistingToolMutation() {
 	return useMutation({
-		mutationFn: orpc.tools.testExisting,
+		mutationFn: (input: { id: string; testInput?: Record<string, unknown> }): Promise<TestToolResult> =>
+			orpc.tools.testExisting(input) as Promise<TestToolResult>,
 	})
 }
 

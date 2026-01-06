@@ -7,6 +7,7 @@
 
 import { z } from 'zod'
 import { ToolTypeSchema } from './tool'
+import type { CloudflareEnv } from './cloudflare'
 
 // =============================================================================
 // HONO ENVIRONMENT TYPES (Server-side)
@@ -96,6 +97,48 @@ export const ApiKeyVariablesSchema = z.object({
 })
 
 export type ApiKeyVariables = z.infer<typeof ApiKeyVariablesSchema>
+
+/**
+ * Full API key schema for API responses.
+ * Note: The actual key value is never returned except on creation.
+ */
+export const ApiKeySchema = z.object({
+	id: z.string(),
+	workspaceId: z.string(),
+	name: z.string(),
+	prefix: z.string(),
+	permissions: ApiKeyPermissionsSchema,
+	lastUsedAt: z.string().datetime().nullable(),
+	expiresAt: z.string().datetime().nullable(),
+	createdAt: z.string().datetime(),
+})
+
+export type ApiKey = z.infer<typeof ApiKeySchema>
+
+/**
+ * API key response that includes the actual key value.
+ * Only returned on key creation.
+ */
+export const ApiKeyWithSecretSchema = z.object({
+	id: z.string(),
+	workspaceId: z.string(),
+	name: z.string(),
+	prefix: z.string(),
+	key: z.string(),
+	permissions: ApiKeyPermissionsSchema,
+	expiresAt: z.string().datetime().nullable(),
+	createdAt: z.string().datetime(),
+})
+
+export type ApiKeyWithSecret = z.infer<typeof ApiKeyWithSecretSchema>
+
+/**
+ * OAuth provider availability configuration.
+ */
+export type OAuthProviders = {
+	google: boolean
+	github: boolean
+}
 
 /**
  * Workspace variables set by workspaceMiddleware.

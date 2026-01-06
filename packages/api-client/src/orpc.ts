@@ -8,6 +8,7 @@
 import { createORPCClient } from '@orpc/client'
 import { RPCLink } from '@orpc/client/fetch'
 import type { AppRouter } from '@hare/api/orpc'
+import type { RouterClient } from '@orpc/server'
 
 /**
  * Get the base URL for API requests
@@ -64,7 +65,7 @@ const link = new RPCLink({
  * const { success } = await orpc.agents.delete({ id: 'agent-123' })
  * ```
  */
-export const orpc = createORPCClient<AppRouter>(link)
+export const orpc = createORPCClient<RouterClient<AppRouter>>(link)
 
 // Re-export types for convenience
 export type { AppRouter }

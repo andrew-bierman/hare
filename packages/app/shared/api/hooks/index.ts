@@ -2,79 +2,17 @@
  * API Hooks
  *
  * Re-export all hooks from a single entry point.
- * Note: Most CRUD hooks have been migrated to oRPC - see orpc-hooks.ts
+ * oRPC hooks are the single source of truth for type-safe API hooks.
  */
 
 // Query keys
 export * from './query-keys'
 
-// =============================================================================
-// oRPC Hooks (Type-safe, recommended for new code)
-// =============================================================================
-
-export {
-	// Agent hooks
-	useAgentsQuery,
-	useAgentQuery,
-	useCreateAgentMutation,
-	useUpdateAgentMutation,
-	useDeleteAgentMutation,
-	useDeployAgentMutation,
-	useUndeployAgentMutation,
-	// Tool hooks
-	useToolsQuery,
-	useToolQuery,
-	useCreateToolMutation,
-	useUpdateToolMutation,
-	useDeleteToolMutation,
-	useTestToolMutation,
-	useTestExistingToolMutation,
-	// API Key hooks
-	useApiKeysQuery,
-	useApiKeyQuery,
-	useCreateApiKeyMutation,
-	useUpdateApiKeyMutation,
-	useDeleteApiKeyMutation,
-	// Workspace hooks
-	useWorkspacesQuery,
-	useCurrentWorkspaceQuery,
-	useWorkspaceQuery,
-	useCreateWorkspaceMutation,
-	useUpdateWorkspaceMutation,
-	useDeleteWorkspaceMutation,
-	useEnsureDefaultWorkspaceMutation,
-	// Schedule hooks
-	useSchedulesQuery,
-	useScheduleQuery,
-	useCreateScheduleMutation,
-	useUpdateScheduleMutation,
-	useDeleteScheduleMutation,
-	usePauseScheduleMutation,
-	useResumeScheduleMutation,
-	useScheduleExecutionsQuery,
-	useAgentExecutionsQuery,
-	// Workspace Members hooks
-	useWorkspaceMembersQuery,
-	useWorkspaceInvitationsQuery,
-	useSendInvitationMutation,
-	useRevokeInvitationMutation,
-	useRemoveMemberMutation,
-	useUpdateMemberRoleMutation,
-	// User Settings hooks
-	useUserPreferencesQuery,
-	useUpdateUserPreferencesMutation,
-	// Usage hooks
-	useWorkspaceUsageQuery,
-	useAgentUsageQuery,
-	// Analytics hooks
-	useAnalyticsQuery,
-	// Logs hooks
-	useLogsQuery,
-	useLogStatsQuery,
-} from '../orpc-hooks'
+// oRPC Hooks - single source of truth for type-safe API hooks
+export * from '../orpc-hooks'
 
 // =============================================================================
-// Legacy Hono Hooks (not yet migrated to oRPC)
+// Non-oRPC Hooks
 // =============================================================================
 
 // WebSocket Agent types from @hare/types
@@ -89,8 +27,8 @@ export {
 	useAgentWebSocket,
 } from './use-agent-ws'
 
-// Auth hooks
-export { type OAuthProviders, useOAuthProvidersQuery } from './use-auth'
+// Auth hooks (OAuthProviders type exported from @hare/types)
+export { useOAuthProvidersQuery } from './use-auth'
 
 // Billing hooks
 export {

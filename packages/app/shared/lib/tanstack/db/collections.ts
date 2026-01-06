@@ -12,27 +12,21 @@ import type { Schedule } from '@hare/types'
 import type { QueryClient } from '@tanstack/react-query'
 import { createCollection } from '@tanstack/db'
 import { queryCollectionOptions } from '@tanstack/query-db-collection'
-import { agents, schedules, tools, workspaces } from '@hare/api-client'
+import { orpc } from '@hare/api-client'
 import { agentKeys, scheduleKeys, toolKeys, workspaceKeys } from '../../../api/hooks/query-keys'
 
 // =============================================================================
 // Collection Types
 // =============================================================================
 
-// Use inferred types from API responses for proper compatibility
-type ApiAgentsResponse = Awaited<
-	ReturnType<Awaited<ReturnType<(typeof agents)['index']['$get']>>['json']>
->
+// Use inferred types from oRPC responses for proper compatibility
+type ApiAgentsResponse = Awaited<ReturnType<typeof orpc.agents.list>>
 type ApiAgent = ApiAgentsResponse['agents'][number]
 
-type ApiToolsResponse = Awaited<
-	ReturnType<Awaited<ReturnType<(typeof tools)['index']['$get']>>['json']>
->
+type ApiToolsResponse = Awaited<ReturnType<typeof orpc.tools.list>>
 type ApiTool = ApiToolsResponse['tools'][number]
 
-type ApiWorkspacesResponse = Awaited<
-	ReturnType<Awaited<ReturnType<(typeof workspaces)['index']['$get']>>['json']>
->
+type ApiWorkspacesResponse = Awaited<ReturnType<typeof orpc.workspaces.list>>
 type ApiWorkspace = ApiWorkspacesResponse['workspaces'][number]
 
 export type AgentRow = ApiAgent & {
@@ -73,9 +67,7 @@ export function createAgentCollection(options: {
 		queryClient,
 		queryKey: agentKeys.list(workspaceId),
 		queryFn: async (): Promise<AgentRow[]> => {
-			const res = await agents.index.$get({ query: { workspaceId } })
-			if (!res.ok) throw new Error('Request failed')
-			const response = await res.json()
+			const response = await orpc.agents.list({})
 			return response.agents.map((agent) => ({
 				...agent,
 				_workspaceId: workspaceId,
@@ -87,20 +79,16 @@ export function createAgentCollection(options: {
 			const mutations = transaction.mutations
 			for (const mutation of mutations) {
 				if (mutation.type === 'insert' && mutation.modified) {
-					const { _workspaceId, ...data } = mutation.modified
-					const res = await agents.index.$post({
-						query: { workspaceId: _workspaceId },
-						json: {
-							name: data.name,
-							description: data.description ?? undefined,
-							model: data.model,
-							instructions: data.instructions ?? '',
-							config: data.config ?? undefined,
-							systemToolsEnabled: data.systemToolsEnabled,
-							toolIds: data.toolIds,
-						},
+					const { _workspaceId: _, ...data } = mutation.modified
+					await orpc.agents.create({
+						name: data.name,
+						description: data.description ?? undefined,
+						model: data.model,
+						instructions: data.instructions ?? '',
+						config: data.config ?? undefined,
+						systemToolsEnabled: data.systemToolsEnabled,
+						toolIds: data.toolIds,
 					})
-					if (!res.ok) throw new Error('Request failed')
 				}
 			}
 		},
@@ -109,7 +97,7 @@ export function createAgentCollection(options: {
 			const mutations = transaction.mutations
 			for (const mutation of mutations) {
 				if (mutation.type === 'update' && mutation.original && mutation.modified) {
-					const { id, _workspaceId } = mutation.original
+					const { id } = mutation.original
 					const {
 						name,
 						description,
@@ -120,21 +108,17 @@ export function createAgentCollection(options: {
 						toolIds,
 						status,
 					} = mutation.modified
-					const res = await agents[':id'].$patch({
-						param: { id },
-						query: { workspaceId: _workspaceId },
-						json: {
-							name,
-							description: description ?? undefined,
-							model,
-							instructions: instructions ?? undefined,
-							config: config ?? undefined,
-							systemToolsEnabled,
-							toolIds,
-							status,
-						},
+					await orpc.agents.update({
+						id,
+						name,
+						description: description ?? undefined,
+						model,
+						instructions: instructions ?? undefined,
+						config: config ?? undefined,
+						systemToolsEnabled,
+						toolIds,
+						status,
 					})
-					if (!res.ok) throw new Error('Request failed')
 				}
 			}
 		},
@@ -143,12 +127,8 @@ export function createAgentCollection(options: {
 			const mutations = transaction.mutations
 			for (const mutation of mutations) {
 				if (mutation.type === 'delete' && mutation.original) {
-					const { id, _workspaceId } = mutation.original
-					const res = await agents[':id'].$delete({
-						param: { id },
-						query: { workspaceId: _workspaceId },
-					})
-					if (!res.ok) throw new Error('Request failed')
+					const { id } = mutation.original
+					await orpc.agents.delete({ id })
 				}
 			}
 		},
@@ -174,9 +154,7 @@ export function createToolCollection(options: {
 		queryClient,
 		queryKey: toolKeys.list(workspaceId),
 		queryFn: async (): Promise<ToolRow[]> => {
-			const res = await tools.index.$get({ query: { workspaceId } })
-			if (!res.ok) throw new Error('Request failed')
-			const response = await res.json()
+			const response = await orpc.tools.list({})
 			return response.tools.map((tool) => ({
 				...tool,
 				_workspaceId: workspaceId,
@@ -188,18 +166,14 @@ export function createToolCollection(options: {
 			const mutations = transaction.mutations
 			for (const mutation of mutations) {
 				if (mutation.type === 'insert' && mutation.modified) {
-					const { _workspaceId, ...data } = mutation.modified
-					const res = await tools.index.$post({
-						query: { workspaceId: _workspaceId },
-						json: {
-							name: data.name,
-							description: data.description ?? data.name,
-							type: data.type,
-							inputSchema: data.inputSchema ?? {},
-							config: data.config ?? undefined,
-						},
+					const { _workspaceId: _, ...data } = mutation.modified
+					await orpc.tools.create({
+						name: data.name,
+						description: data.description ?? data.name,
+						type: data.type,
+						inputSchema: data.inputSchema ?? undefined,
+						config: data.config ?? undefined,
 					})
-					if (!res.ok) throw new Error('Request failed')
 				}
 			}
 		},
@@ -208,20 +182,16 @@ export function createToolCollection(options: {
 			const mutations = transaction.mutations
 			for (const mutation of mutations) {
 				if (mutation.type === 'update' && mutation.original && mutation.modified) {
-					const { id, _workspaceId } = mutation.original
+					const { id } = mutation.original
 					const { name, description, type, inputSchema, config } = mutation.modified
-					const res = await tools[':id'].$patch({
-						param: { id },
-						query: { workspaceId: _workspaceId },
-						json: {
-							name,
-							description: description ?? undefined,
-							type,
-							inputSchema: inputSchema ?? undefined,
-							config: config ?? undefined,
-						},
+					await orpc.tools.update({
+						id,
+						name,
+						description: description ?? undefined,
+						type,
+						inputSchema: inputSchema ?? undefined,
+						config: config ?? undefined,
 					})
-					if (!res.ok) throw new Error('Request failed')
 				}
 			}
 		},
@@ -230,12 +200,8 @@ export function createToolCollection(options: {
 			const mutations = transaction.mutations
 			for (const mutation of mutations) {
 				if (mutation.type === 'delete' && mutation.original) {
-					const { id, _workspaceId } = mutation.original
-					const res = await tools[':id'].$delete({
-						param: { id },
-						query: { workspaceId: _workspaceId },
-					})
-					if (!res.ok) throw new Error('Request failed')
+					const { id } = mutation.original
+					await orpc.tools.delete({ id })
 				}
 			}
 		},
@@ -260,9 +226,7 @@ export function createWorkspaceCollection(options: {
 		queryClient,
 		queryKey: workspaceKeys.list(),
 		queryFn: async (): Promise<WorkspaceRow[]> => {
-			const res = await workspaces.index.$get()
-			if (!res.ok) throw new Error('Request failed')
-			const response = await res.json()
+			const response = await orpc.workspaces.list({})
 			return response.workspaces
 		},
 		getKey: (workspace) => workspace.id,
@@ -271,14 +235,12 @@ export function createWorkspaceCollection(options: {
 			const mutations = transaction.mutations
 			for (const mutation of mutations) {
 				if (mutation.type === 'insert' && mutation.modified) {
-					const { name, description } = mutation.modified
-					const res = await workspaces.index.$post({
-						json: {
-							name,
-							description: description ?? undefined,
-						},
+					const { name, slug, description } = mutation.modified
+					await orpc.workspaces.create({
+						name,
+						slug,
+						description: description ?? undefined,
 					})
-					if (!res.ok) throw new Error('Request failed')
 				}
 			}
 		},
@@ -289,14 +251,11 @@ export function createWorkspaceCollection(options: {
 				if (mutation.type === 'update' && mutation.original && mutation.modified) {
 					const { id } = mutation.original
 					const { name, description } = mutation.modified
-					const res = await workspaces[':id'].$patch({
-						param: { id },
-						json: {
-							name,
-							description: description ?? undefined,
-						},
+					await orpc.workspaces.update({
+						id,
+						name,
+						description: description ?? undefined,
 					})
-					if (!res.ok) throw new Error('Request failed')
 				}
 			}
 		},
@@ -306,8 +265,7 @@ export function createWorkspaceCollection(options: {
 			for (const mutation of mutations) {
 				if (mutation.type === 'delete' && mutation.original) {
 					const { id } = mutation.original
-					const res = await workspaces[':id'].$delete({ param: { id } })
-					if (!res.ok) throw new Error('Request failed')
+					await orpc.workspaces.delete({ id })
 				}
 			}
 		},
@@ -334,12 +292,7 @@ export function createScheduleCollection(options: {
 		queryClient,
 		queryKey: scheduleKeys.list(agentId, workspaceId),
 		queryFn: async (): Promise<ScheduleRow[]> => {
-			const res = await schedules[':agentId'].schedules.$get({
-				param: { agentId },
-				query: { workspaceId },
-			})
-			if (!res.ok) throw new Error('Request failed')
-			const response = await res.json()
+			const response = await orpc.schedules.list({ agentId })
 			return response.schedules.map((schedule) => ({
 				...schedule,
 				_workspaceId: workspaceId,
@@ -351,20 +304,16 @@ export function createScheduleCollection(options: {
 			const mutations = transaction.mutations
 			for (const mutation of mutations) {
 				if (mutation.type === 'insert' && mutation.modified) {
-					const { agentId: aId, _workspaceId, type, executeAt, cron, action, payload } =
+					const { agentId: aId, _workspaceId: _, type, executeAt, cron, action, payload } =
 						mutation.modified
-					const res = await schedules[':agentId'].schedules.$post({
-						param: { agentId: aId },
-						query: { workspaceId: _workspaceId },
-						json: {
-							type,
-							executeAt: executeAt ?? undefined,
-							cron: cron ?? undefined,
-							action,
-							payload: payload ?? undefined,
-						},
+					await orpc.schedules.create({
+						agentId: aId,
+						type,
+						executeAt: executeAt ?? undefined,
+						cron: cron ?? undefined,
+						action,
+						payload: payload ?? undefined,
 					})
-					if (!res.ok) throw new Error('Request failed')
 				}
 			}
 		},
@@ -373,19 +322,15 @@ export function createScheduleCollection(options: {
 			const mutations = transaction.mutations
 			for (const mutation of mutations) {
 				if (mutation.type === 'update' && mutation.original && mutation.modified) {
-					const { id, agentId: aId, _workspaceId } = mutation.original
+					const { id } = mutation.original
 					const { status, executeAt, cron, payload } = mutation.modified
-					const res = await schedules[':agentId'].schedules[':scheduleId'].$patch({
-						param: { agentId: aId, scheduleId: id },
-						query: { workspaceId: _workspaceId },
-						json: {
-							status,
-							executeAt: executeAt ?? undefined,
-							cron: cron ?? undefined,
-							payload: payload ?? undefined,
-						},
+					await orpc.schedules.update({
+						id,
+						status,
+						executeAt: executeAt ?? undefined,
+						cron: cron ?? undefined,
+						payload: payload ?? undefined,
 					})
-					if (!res.ok) throw new Error('Request failed')
 				}
 			}
 		},
@@ -394,12 +339,8 @@ export function createScheduleCollection(options: {
 			const mutations = transaction.mutations
 			for (const mutation of mutations) {
 				if (mutation.type === 'delete' && mutation.original) {
-					const { id, agentId: aId, _workspaceId } = mutation.original
-					const res = await schedules[':agentId'].schedules[':scheduleId'].$delete({
-						param: { agentId: aId, scheduleId: id },
-						query: { workspaceId: _workspaceId },
-					})
-					if (!res.ok) throw new Error('Request failed')
+					const { id } = mutation.original
+					await orpc.schedules.delete({ id })
 				}
 			}
 		},

@@ -1,4 +1,3 @@
-import { useWorkspace } from '@hare/app'
 import { generatePrefixedId } from '@hare/app/shared'
 import { useCreateToolMutation, useTestToolMutation } from '@hare/app/shared/api'
 
@@ -92,9 +91,8 @@ function generateFieldId() {
 
 function NewToolPage() {
 	const navigate = useNavigate()
-	const { activeWorkspace } = useWorkspace()
-	const createTool = useCreateToolMutation(activeWorkspace?.id)
-	const testTool = useTestToolMutation(activeWorkspace?.id)
+	const createTool = useCreateToolMutation()
+	const testTool = useTestToolMutation()
 
 	// Tool metadata
 	const [name, setName] = useState('')
@@ -242,27 +240,16 @@ function NewToolPage() {
 
 		try {
 			const config = buildHttpConfig()
-			const inputSchema = buildInputSchema()
 			const testInputData = buildTestInput()
 
-			// Convert flat schema to test format { type: 'object', properties, required }
-			const testInputSchema = inputSchema
-				? {
-						type: 'object' as const,
-						properties: inputSchema,
-						required: Object.entries(inputSchema)
-							.filter(([, prop]) => prop.required)
-							.map(([name]) => name),
-					}
-				: undefined
-
 			const result = await testTool.mutateAsync({
+				name: name.trim() || 'test-tool',
+				type: 'http',
 				config,
-				inputSchema: testInputSchema,
 				testInput: testInputData,
 			})
 
-			setTestResult(result)
+			setTestResult(result as ToolTestResult)
 
 			if (result.success) {
 				toast.success(`Test passed (${result.duration}ms)`)
@@ -290,12 +277,23 @@ function NewToolPage() {
 			const config = buildHttpConfig()
 			const inputSchema = buildInputSchema()
 
+			// Convert flat schema to API format { type: 'object', properties, required }
+			const apiInputSchema = inputSchema
+				? {
+						type: 'object' as const,
+						properties: inputSchema,
+						required: Object.entries(inputSchema)
+							.filter(([, prop]) => prop.required)
+							.map(([name]) => name),
+					}
+				: undefined
+
 			await createTool.mutateAsync({
 				name: name.trim(),
 				description: description.trim() || `HTTP tool: ${name.trim()}`,
 				type: 'http',
 				config,
-				inputSchema: inputSchema ?? {},
+				inputSchema: apiInputSchema,
 			})
 
 			toast.success('Tool created successfully')

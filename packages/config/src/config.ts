@@ -967,24 +967,134 @@ export function getResponseStyleFromConfig(temperature: number): ResponseStyle {
 	return 'creative'
 }
 
-// Tool type arrays for schema validation
-export const TOOL_TYPES = Object.values(config.enums.toolType)
-export const AGENT_STATUSES = Object.values(config.enums.agentStatus)
-export const DEPLOYMENT_STATUSES = Object.values(config.enums.deploymentStatus)
-export const SCHEDULE_STATUSES = Object.values(config.enums.scheduleStatus)
-export const EXECUTION_STATUSES = Object.values(config.enums.executionStatus)
-export const INVITATION_STATUSES = Object.values(config.enums.invitationStatus)
-export const WORKSPACE_ROLES = Object.values(config.enums.workspaceRole)
-export const MEMBER_ROLES = Object.values(config.enums.memberRole)
-export const MESSAGE_ROLES = Object.values(config.enums.messageRole)
-export const SCHEDULE_TYPES = Object.values(config.enums.scheduleType)
-export const EXPORT_FORMATS = Object.values(config.enums.exportFormat)
-export const USAGE_GROUP_BY_OPTIONS = Object.values(config.enums.usageGroupBy)
-export const VALIDATION_ISSUE_SEVERITIES = Object.values(config.enums.validationSeverity)
-export const HTTP_METHODS = Object.values(config.enums.httpMethod)
-export const NODE_ENVS = Object.values(config.enums.nodeEnv)
-export const PLAN_IDS = Object.values(config.enums.planId)
-export const WIDGET_POSITIONS = Object.values(config.enums.widgetPosition)
+// Tool type arrays for schema validation (const tuples for Drizzle compatibility)
+export const TOOL_TYPES = [
+	config.enums.toolType.HTTP, config.enums.toolType.SQL, config.enums.toolType.KV, config.enums.toolType.R2, config.enums.toolType.SEARCH,
+	config.enums.toolType.DATETIME, config.enums.toolType.JSON, config.enums.toolType.TEXT, config.enums.toolType.MATH, config.enums.toolType.UUID,
+	config.enums.toolType.HASH, config.enums.toolType.BASE64, config.enums.toolType.URL, config.enums.toolType.DELAY,
+	config.enums.toolType.ZAPIER, config.enums.toolType.WEBHOOK, config.enums.toolType.SLACK, config.enums.toolType.DISCORD, config.enums.toolType.EMAIL,
+	config.enums.toolType.TEAMS, config.enums.toolType.TWILIO_SMS, config.enums.toolType.MAKE, config.enums.toolType.N8N,
+	config.enums.toolType.SENTIMENT, config.enums.toolType.SUMMARIZE, config.enums.toolType.TRANSLATE, config.enums.toolType.IMAGE_GENERATE,
+	config.enums.toolType.CLASSIFY, config.enums.toolType.NER, config.enums.toolType.EMBEDDING, config.enums.toolType.QUESTION_ANSWER,
+	config.enums.toolType.RSS, config.enums.toolType.SCRAPE, config.enums.toolType.REGEX, config.enums.toolType.CRYPTO,
+	config.enums.toolType.JSON_SCHEMA, config.enums.toolType.CSV, config.enums.toolType.TEMPLATE,
+	config.enums.toolType.CODE_EXECUTE, config.enums.toolType.CODE_VALIDATE, config.enums.toolType.SANDBOX_FILE,
+	config.enums.toolType.VALIDATE_EMAIL, config.enums.toolType.VALIDATE_PHONE, config.enums.toolType.VALIDATE_URL,
+	config.enums.toolType.VALIDATE_CREDIT_CARD, config.enums.toolType.VALIDATE_IP, config.enums.toolType.VALIDATE_JSON,
+	config.enums.toolType.MARKDOWN, config.enums.toolType.DIFF, config.enums.toolType.QRCODE, config.enums.toolType.COMPRESSION, config.enums.toolType.COLOR,
+	config.enums.toolType.CUSTOM,
+] as const
+
+export const AGENT_STATUSES = [
+	config.enums.agentStatus.DRAFT,
+	config.enums.agentStatus.DEPLOYED,
+	config.enums.agentStatus.ARCHIVED,
+] as const
+
+export const DEPLOYMENT_STATUSES = [
+	config.enums.deploymentStatus.DEPLOYED,
+	config.enums.deploymentStatus.ACTIVE,
+	config.enums.deploymentStatus.PENDING,
+	config.enums.deploymentStatus.FAILED,
+	config.enums.deploymentStatus.INACTIVE,
+	config.enums.deploymentStatus.ROLLED_BACK,
+] as const
+
+export const SCHEDULE_STATUSES = [
+	config.enums.scheduleStatus.PENDING,
+	config.enums.scheduleStatus.ACTIVE,
+	config.enums.scheduleStatus.PAUSED,
+	config.enums.scheduleStatus.COMPLETED,
+	config.enums.scheduleStatus.CANCELLED,
+] as const
+
+export const EXECUTION_STATUSES = [
+	config.enums.executionStatus.RUNNING,
+	config.enums.executionStatus.COMPLETED,
+	config.enums.executionStatus.FAILED,
+] as const
+
+export const INVITATION_STATUSES = [
+	config.enums.invitationStatus.PENDING,
+	config.enums.invitationStatus.ACCEPTED,
+	config.enums.invitationStatus.EXPIRED,
+	config.enums.invitationStatus.REVOKED,
+] as const
+
+export const WORKSPACE_ROLES = [
+	config.enums.workspaceRole.OWNER,
+	config.enums.workspaceRole.ADMIN,
+	config.enums.workspaceRole.MEMBER,
+	config.enums.workspaceRole.VIEWER,
+] as const
+
+export const MEMBER_ROLES = [
+	config.enums.memberRole.ADMIN,
+	config.enums.memberRole.MEMBER,
+	config.enums.memberRole.VIEWER,
+] as const
+
+export const MESSAGE_ROLES = [
+	config.enums.messageRole.USER,
+	config.enums.messageRole.ASSISTANT,
+	config.enums.messageRole.SYSTEM,
+	config.enums.messageRole.TOOL,
+] as const
+
+export const SCHEDULE_TYPES = [
+	config.enums.scheduleType.ONE_TIME,
+	config.enums.scheduleType.RECURRING,
+] as const
+
+export const EXPORT_FORMATS = [
+	config.enums.exportFormat.JSON,
+	config.enums.exportFormat.MARKDOWN,
+] as const
+
+export const USAGE_GROUP_BY_OPTIONS = [
+	config.enums.usageGroupBy.DAY,
+	config.enums.usageGroupBy.WEEK,
+	config.enums.usageGroupBy.MONTH,
+] as const
+
+export const VALIDATION_ISSUE_SEVERITIES = [
+	config.enums.validationSeverity.ERROR,
+	config.enums.validationSeverity.WARNING,
+] as const
+
+export const HTTP_METHODS = [
+	config.enums.httpMethod.GET,
+	config.enums.httpMethod.POST,
+	config.enums.httpMethod.PUT,
+	config.enums.httpMethod.PATCH,
+	config.enums.httpMethod.DELETE,
+	config.enums.httpMethod.HEAD,
+	config.enums.httpMethod.OPTIONS,
+] as const
+
+export const NODE_ENVS = [
+	config.enums.nodeEnv.DEVELOPMENT,
+	config.enums.nodeEnv.PRODUCTION,
+	config.enums.nodeEnv.TEST,
+] as const
+
+export const PLAN_IDS = [
+	config.enums.planId.FREE,
+	config.enums.planId.PRO,
+	config.enums.planId.TEAM,
+	config.enums.planId.ENTERPRISE,
+] as const
+
+export const WIDGET_POSITIONS = [
+	config.enums.widgetPosition.BOTTOM_RIGHT,
+	config.enums.widgetPosition.BOTTOM_LEFT,
+	config.enums.widgetPosition.TOP_RIGHT,
+	config.enums.widgetPosition.TOP_LEFT,
+] as const
 
 // API message roles (excludes tool)
-export const API_MESSAGE_ROLES = [config.enums.messageRole.USER, config.enums.messageRole.ASSISTANT, config.enums.messageRole.SYSTEM] as const
+export const API_MESSAGE_ROLES = [
+	config.enums.messageRole.USER,
+	config.enums.messageRole.ASSISTANT,
+	config.enums.messageRole.SYSTEM,
+] as const

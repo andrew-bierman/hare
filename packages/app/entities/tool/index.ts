@@ -1,5 +1,8 @@
 /**
  * Tool Entity
+ *
+ * Types and business logic for tool entities.
+ * API hooks should be imported directly from '@hare/app/shared/api'.
  */
 
-export * from './api/hooks'
+export type { Tool, CreateToolInput, ToolType } from '@hare/types'
