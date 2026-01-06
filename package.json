@@ -87,5 +87,10 @@
 		"apps/*",
 		"packages/*",
 		"scripts"
-	]
+	],
+	"dependencies": {
+		"@orpc/client": "^1.13.2",
+		"@orpc/openapi": "^1.13.2",
+		"@orpc/server": "^1.13.2"
+	}
 }
