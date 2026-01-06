@@ -7,7 +7,7 @@
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { cn } from '@hare/ui/lib/utils'
 import { Bot, Loader2, User } from 'lucide-react'
-import { useCallback, useEffect, useRef } from 'react'
+import { memo, useCallback, useEffect, useRef } from 'react'
 import { MarkdownContent } from './markdown-content'
 
 export interface VirtualizedMessage {
@@ -210,13 +210,17 @@ export function VirtualizedMessageList({
 
 /**
  * Individual message bubble component
+ * Memoized to prevent re-renders when virtualizer updates other items
  */
 export interface MessageBubbleProps {
 	message: VirtualizedMessage
 	isStreaming?: boolean
 }
 
-export function MessageBubble({ message, isStreaming }: MessageBubbleProps) {
+export const MessageBubble = memo(function MessageBubble({
+	message,
+	isStreaming,
+}: MessageBubbleProps) {
 	const isUser = message.role === 'user'
 	const isSystem = message.role === 'system'
 
@@ -266,4 +270,4 @@ export function MessageBubble({ message, isStreaming }: MessageBubbleProps) {
 			</div>
 		</div>
 	)
-}
+})

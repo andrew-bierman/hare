@@ -3,6 +3,75 @@ import { delegateTo } from './delegate'
 import { createTool, failure, success, type ToolContext } from './types'
 
 // ============================================================================
+// SSRF Protection
+// ============================================================================
+
+/**
+ * Blocked hosts for SSRF protection.
+ * Prevents requests to internal/private networks and cloud metadata endpoints.
+ */
+const BLOCKED_HOSTS = [
+	'localhost',
+	'127.0.0.1',
+	'0.0.0.0',
+	'::1',
+	'169.254.', // Link-local
+	'10.', // Private Class A
+	'172.16.',
+	'172.17.',
+	'172.18.',
+	'172.19.',
+	'172.20.',
+	'172.21.',
+	'172.22.',
+	'172.23.',
+	'172.24.',
+	'172.25.',
+	'172.26.',
+	'172.27.',
+	'172.28.',
+	'172.29.',
+	'172.30.',
+	'172.31.',
+	'192.168.', // Private Class C
+]
+
+/**
+ * Check if a URL is safe to call (SSRF protection).
+ */
+function isUrlSafe(url: string): { safe: boolean; reason?: string } {
+	try {
+		const parsed = new URL(url)
+
+		// Only allow http and https
+		if (!['http:', 'https:'].includes(parsed.protocol)) {
+			return { safe: false, reason: 'Only HTTP and HTTPS protocols are allowed' }
+		}
+
+		// Check blocked hosts
+		const hostname = parsed.hostname.toLowerCase()
+		for (const blocked of BLOCKED_HOSTS) {
+			if (hostname === blocked || hostname.startsWith(blocked)) {
+				return { safe: false, reason: 'Internal/private network addresses are not allowed' }
+			}
+		}
+
+		// Block metadata endpoints (cloud providers)
+		if (
+			hostname === 'metadata.google.internal' ||
+			hostname === '169.254.169.254' ||
+			hostname.endsWith('.internal')
+		) {
+			return { safe: false, reason: 'Cloud metadata endpoints are not allowed' }
+		}
+
+		return { safe: true }
+	} catch {
+		return { safe: false, reason: 'Invalid URL format' }
+	}
+}
+
+// ============================================================================
 // Output Schemas
 // ============================================================================
 
@@ -38,6 +107,12 @@ export const httpRequestTool = createTool({
 	}),
 	outputSchema: HttpResponseOutputSchema,
 	execute: async (params, _context) => {
+		// SSRF protection: validate URL before making request
+		const urlSafety = isUrlSafe(params.url)
+		if (!urlSafety.safe) {
+			return failure(`URL blocked: ${urlSafety.reason}`)
+		}
+
 		try {
 			const controller = new AbortController()
 			const timeoutId = setTimeout(() => controller.abort(), params.timeout)

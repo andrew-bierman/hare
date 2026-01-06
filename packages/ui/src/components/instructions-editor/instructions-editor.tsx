@@ -1,6 +1,8 @@
 'use client'
 
 import { useMemo, useCallback, useState, useEffect, useRef } from 'react'
+import type ReactCodeMirror from '@uiw/react-codemirror'
+import type { Extension } from '@codemirror/state'
 import { cn } from '../../lib/utils'
 import type { InstructionsEditorProps } from './types'
 import { useTokenCount } from './use-token-count'
@@ -8,13 +10,18 @@ import { StatsFooter } from './stats-footer'
 import { Toolbar, applyMarkdownFormat, type ToolbarAction } from './toolbar'
 
 // Dynamic import for CodeMirror to handle SSR
-let CodeMirror: any = null
-let markdown: any = null
-let markdownLanguage: any = null
-let languages: any = null
-let EditorView: any = null
-let templateVariableHighlight: any = null
-let templateVariableTheme: any = null
+// Types are defined but values loaded at runtime
+type MarkdownFn = (config?: { base?: unknown; codeLanguages?: unknown }) => Extension
+type LanguageArray = Array<{ name: string; extensions: string[] }>
+type EditorViewType = typeof import('@codemirror/view').EditorView
+
+let CodeMirror: typeof ReactCodeMirror | null = null
+let markdown: MarkdownFn | null = null
+let markdownLanguage: unknown = null
+let languages: LanguageArray | null = null
+let EditorView: EditorViewType | null = null
+let templateVariableHighlight: Extension | null = null
+let templateVariableTheme: Extension | null = null
 
 export function InstructionsEditor({
 	value,

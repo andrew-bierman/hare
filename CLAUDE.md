@@ -48,23 +48,24 @@ bun run db:studio        # Open Drizzle Studio
 ## Project Structure
 
 ```
-apps/web/src/
-├── routes/                 # TanStack Router pages
-│   ├── (auth)/             # Auth pages (login, signup)
-│   └── (dashboard)/        # Protected routes
-├── lib/
-│   ├── agents/             # Agent implementations
-│   │   ├── hare-agent.ts   # Main Agents SDK agent
-│   │   ├── tools/          # 40+ tool implementations
-│   │   └── providers/      # LLM providers (Workers AI)
-│   └── api/                # Hono routes & hooks
-│       ├── routes/         # API route handlers
-│       ├── hooks/          # React Query hooks
-│       └── schemas.ts      # Zod schemas
-├── db/
-│   └── schema/             # Drizzle table definitions
-└── components/             # React components
-    └── ui/                 # shadcn/ui components
+packages/
+├── api/src/routes/         # Hono API routes
+│   ├── agents/             # Agent routes (split by feature)
+│   │   ├── crud.ts         # CRUD operations
+│   │   ├── deployment.ts   # Deploy/undeploy/rollback
+│   │   ├── validation.ts   # Config validation
+│   │   └── helpers.ts      # Shared helpers
+│   ├── chat.ts             # Chat/conversation routes
+│   └── ...                 # Other route modules
+├── config/src/             # Centralized configuration
+│   ├── config.ts           # Unified config object
+│   ├── models.ts           # AI model definitions
+│   ├── templates.ts        # Agent templates
+│   ├── enums.ts            # Status/role enums
+│   └── content.ts          # UI content strings
+├── db/src/schema/          # Drizzle table definitions
+├── tools/src/              # Agent tool implementations
+└── app/                    # React components & widgets
 ```
 
 ## Code Style (Biome)
@@ -296,6 +297,65 @@ bun run db:migrate:remote # Apply to production D1
 1. `bun run checks` - All checks pass (runs deps, sort-pkg, lint with auto-fix, typecheck, build)
 2. `bun run test` - All tests pass
 3. Database migrations applied if schema changed
+
+---
+
+## Security Guidelines
+
+### SSRF Protection
+The HTTP tool (`packages/tools/src/http.ts`) includes SSRF protection that blocks:
+- Private IP ranges (localhost, 127.0.0.1, 10.x, 172.16.x, 192.168.x)
+- Cloud metadata endpoints (169.254.169.254)
+- Non-HTTP protocols
+
+Always validate URLs before making external requests in tools.
+
+### API Key Security
+API keys are stored as hashes only - never store plaintext keys:
+```ts
+// packages/db/src/schema/usage.ts
+hashedKey: text('hashedKey').notNull(), // Only hash stored
+prefix: text('prefix').notNull(),        // First few chars for identification
+```
+
+### Input Validation
+- Use Zod schemas for all API inputs
+- Validate agent instructions with `validateAgentInstructions()`
+- Sanitize user content before rendering
+
+---
+
+## Performance Patterns
+
+### Database Indexing
+All frequently-queried columns should be indexed. Current indexes:
+- `agents_workspace_idx` - Agent listing by workspace
+- `conversations_agent_idx` - Conversations by agent
+- `messages_conversation_idx` - Messages by conversation
+- `usage_workspace_created_idx` - Usage analytics
+- `api_keys_hashed_key_idx` - API key auth lookups
+
+### Avoiding N+1 Queries
+Use batch queries with `inArray` instead of iterating:
+```ts
+// Bad - N+1 pattern
+for (const agent of agents) {
+  const tools = await db.select().from(agentTools).where(eq(agentTools.agentId, agent.id))
+}
+
+// Good - batch query
+const agentIds = agents.map(a => a.id)
+const allTools = await db.select().from(agentTools).where(inArray(agentTools.agentId, agentIds))
+const toolsByAgent = new Map(/* group by agentId */)
+```
+
+### React Memoization
+Memoize components in virtualized lists:
+```tsx
+export const MessageBubble = memo(function MessageBubble({ message, isStreaming }) {
+  // Component implementation
+})
+```
 
 ---
 
