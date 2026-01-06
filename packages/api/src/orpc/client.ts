@@ -70,7 +70,7 @@ const link = new RPCLink({
  * const { success } = await orpc.agents.delete({ id: 'agent-123' })
  * ```
  */
-export const orpc: AppRouterClient = createORPCClient(link)
+export const orpc = createORPCClient<AppRouterClient>(link)
 
 // Export individual router types for more specific imports
 export type AgentsClient = AppRouterClient['agents']
