@@ -9,6 +9,7 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { orpc } from '@hare/api-client'
+import type { ToolType } from '@hare/config'
 
 // =============================================================================
 // Type Definitions (to help TypeScript resolve oRPC types)
@@ -102,6 +103,7 @@ interface Tool {
 	type: string
 	config: ToolConfig
 	inputSchema: InputSchema | null
+	isSystem: boolean
 	createdAt: string
 	updatedAt: string
 }
@@ -109,14 +111,14 @@ interface Tool {
 interface CreateToolInput {
 	name: string
 	description?: string
-	type: string
+	type: ToolType
 	config: ToolConfig
 	inputSchema?: InputSchema
 }
 
 interface TestToolInput {
 	name: string
-	type: string
+	type: ToolType
 	config: ToolConfig
 	testInput?: Record<string, unknown>
 }
@@ -288,7 +290,11 @@ export function useApiKeyQuery(id: string | undefined) {
 export function useCreateApiKeyMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: orpc.apiKeys.create,
+		mutationFn: async (data: {
+			name: string
+			permissions?: { scopes?: string[]; agentIds?: string[] } | null
+			expiresAt?: string
+		}) => orpc.apiKeys.create(data),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['api-keys'] })
 		},
@@ -298,7 +304,11 @@ export function useCreateApiKeyMutation() {
 export function useUpdateApiKeyMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: orpc.apiKeys.update,
+		mutationFn: async (data: {
+			id: string
+			name?: string
+			permissions?: { scopes?: string[]; agentIds?: string[] } | null
+		}) => orpc.apiKeys.update(data),
 		onSuccess: (_, variables) => {
 			queryClient.invalidateQueries({ queryKey: ['api-keys'] })
 			queryClient.invalidateQueries({ queryKey: ['api-keys', variables.id] })
@@ -309,7 +319,7 @@ export function useUpdateApiKeyMutation() {
 export function useDeleteApiKeyMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: orpc.apiKeys.delete,
+		mutationFn: async (data: { id: string }) => orpc.apiKeys.delete(data),
 		onSuccess: (_, variables) => {
 			queryClient.invalidateQueries({ queryKey: ['api-keys'] })
 			queryClient.invalidateQueries({ queryKey: ['api-keys', variables.id] })
@@ -346,7 +356,8 @@ export function useWorkspaceQuery(id: string | undefined) {
 export function useCreateWorkspaceMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: orpc.workspaces.create,
+		mutationFn: async (data: { name: string; slug: string; description?: string }) =>
+			orpc.workspaces.create(data),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['workspaces'] })
 		},
@@ -356,7 +367,8 @@ export function useCreateWorkspaceMutation() {
 export function useUpdateWorkspaceMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: orpc.workspaces.update,
+		mutationFn: async (data: { id: string; name?: string; description?: string }) =>
+			orpc.workspaces.update(data),
 		onSuccess: (_, variables) => {
 			queryClient.invalidateQueries({ queryKey: ['workspaces'] })
 			queryClient.invalidateQueries({ queryKey: ['workspaces', variables.id] })
@@ -367,7 +379,7 @@ export function useUpdateWorkspaceMutation() {
 export function useDeleteWorkspaceMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: orpc.workspaces.delete,
+		mutationFn: async (data: { id: string }) => orpc.workspaces.delete(data),
 		onSuccess: (_, variables) => {
 			queryClient.invalidateQueries({ queryKey: ['workspaces'] })
 			queryClient.invalidateQueries({ queryKey: ['workspaces', variables.id] })
@@ -407,7 +419,14 @@ export function useScheduleQuery(id: string | undefined) {
 export function useCreateScheduleMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: orpc.schedules.create,
+		mutationFn: async (data: {
+			agentId: string
+			type: 'one-time' | 'recurring'
+			action: string
+			executeAt?: string
+			cron?: string
+			payload?: Record<string, unknown>
+		}) => orpc.schedules.create(data),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['schedules'] })
 		},
@@ -417,7 +436,14 @@ export function useCreateScheduleMutation() {
 export function useUpdateScheduleMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: orpc.schedules.update,
+		mutationFn: async (data: {
+			id: string
+			action?: string
+			executeAt?: string
+			cron?: string
+			payload?: Record<string, unknown>
+			status?: 'pending' | 'active' | 'paused' | 'completed' | 'cancelled'
+		}) => orpc.schedules.update(data),
 		onSuccess: (_, variables) => {
 			queryClient.invalidateQueries({ queryKey: ['schedules'] })
 			queryClient.invalidateQueries({ queryKey: ['schedules', variables.id] })
@@ -428,7 +454,7 @@ export function useUpdateScheduleMutation() {
 export function useDeleteScheduleMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: orpc.schedules.delete,
+		mutationFn: async (data: { id: string }) => orpc.schedules.delete(data),
 		onSuccess: (_, variables) => {
 			queryClient.invalidateQueries({ queryKey: ['schedules'] })
 			queryClient.invalidateQueries({ queryKey: ['schedules', variables.id] })
@@ -439,7 +465,7 @@ export function useDeleteScheduleMutation() {
 export function usePauseScheduleMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: orpc.schedules.pause,
+		mutationFn: async (data: { id: string }) => orpc.schedules.pause(data),
 		onSuccess: (_, variables) => {
 			queryClient.invalidateQueries({ queryKey: ['schedules'] })
 			queryClient.invalidateQueries({ queryKey: ['schedules', variables.id] })
@@ -450,7 +476,7 @@ export function usePauseScheduleMutation() {
 export function useResumeScheduleMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: orpc.schedules.resume,
+		mutationFn: async (data: { id: string }) => orpc.schedules.resume(data),
 		onSuccess: (_, variables) => {
 			queryClient.invalidateQueries({ queryKey: ['schedules'] })
 			queryClient.invalidateQueries({ queryKey: ['schedules', variables.id] })
@@ -518,7 +544,11 @@ export function useWorkspaceInvitationsQuery(workspaceId: string | undefined) {
 export function useSendInvitationMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: orpc.workspaceMembers.sendInvitation,
+		mutationFn: async (data: {
+			id: string
+			email: string
+			role?: 'admin' | 'member' | 'viewer'
+		}) => orpc.workspaceMembers.sendInvitation(data),
 		onSuccess: (_, variables) => {
 			queryClient.invalidateQueries({ queryKey: ['workspaces', variables.id, 'invitations'] })
 		},
@@ -528,7 +558,8 @@ export function useSendInvitationMutation() {
 export function useRevokeInvitationMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: orpc.workspaceMembers.revokeInvitation,
+		mutationFn: async (data: { id: string; inviteId: string }) =>
+			orpc.workspaceMembers.revokeInvitation(data),
 		onSuccess: (_, variables) => {
 			queryClient.invalidateQueries({ queryKey: ['workspaces', variables.id, 'invitations'] })
 		},
@@ -538,7 +569,8 @@ export function useRevokeInvitationMutation() {
 export function useRemoveMemberMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: orpc.workspaceMembers.removeMember,
+		mutationFn: async (data: { id: string; userId: string }) =>
+			orpc.workspaceMembers.removeMember(data),
 		onSuccess: (_, variables) => {
 			queryClient.invalidateQueries({ queryKey: ['workspaces', variables.id, 'members'] })
 		},
@@ -548,7 +580,11 @@ export function useRemoveMemberMutation() {
 export function useUpdateMemberRoleMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: orpc.workspaceMembers.updateMemberRole,
+		mutationFn: async (data: {
+			id: string
+			userId: string
+			role: 'admin' | 'member' | 'viewer'
+		}) => orpc.workspaceMembers.updateMemberRole(data),
 		onSuccess: (_, variables) => {
 			queryClient.invalidateQueries({ queryKey: ['workspaces', variables.id, 'members'] })
 		},
@@ -569,7 +605,8 @@ export function useUserPreferencesQuery() {
 export function useUpdateUserPreferencesMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: orpc.userSettings.update,
+		mutationFn: async (data: { emailNotifications?: boolean; usageAlerts?: boolean }) =>
+			orpc.userSettings.update(data),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['user', 'preferences'] })
 		},
