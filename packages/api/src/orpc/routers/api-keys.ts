@@ -7,6 +7,7 @@
 import { z } from 'zod'
 import { and, eq } from 'drizzle-orm'
 import { apiKeys } from '@hare/db/schema'
+import { generateApiKey } from '../../middleware/api-key'
 import { requireWrite, requireAdmin, notFound, serverError, type WorkspaceContext } from '../base'
 import {
 	ApiKeySchema,
@@ -20,21 +21,6 @@ import {
 // =============================================================================
 // Helpers
 // =============================================================================
-
-function generateApiKey(): { key: string; hash: string; prefix: string } {
-	// Generate a random API key
-	const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
-	let key = 'hare_'
-	for (let i = 0; i < 32; i++) {
-		key += chars.charAt(Math.floor(Math.random() * chars.length))
-	}
-
-	// In production, you'd hash this properly with bcrypt or similar
-	const hash = key // TODO: Implement proper hashing
-	const prefix = key.substring(0, 12)
-
-	return { key, hash, prefix }
-}
 
 function serializeApiKey(apiKey: typeof apiKeys.$inferSelect): z.infer<typeof ApiKeySchema> {
 	return {
@@ -102,15 +88,14 @@ export const create = requireAdmin
 	.handler(async ({ input, context }) => {
 		const { db, workspaceId, user } = context
 
-		const { key, hash, prefix } = generateApiKey()
+		const { key, hashedKey, prefix } = await generateApiKey()
 
 		const [apiKey] = await db
 			.insert(apiKeys)
 			.values({
 				workspaceId,
 				name: input.name,
-				key, // Raw key (temporary, will be removed in migration)
-				hashedKey: hash,
+				hashedKey,
 				prefix,
 				permissions: input.permissions,
 				expiresAt: input.expiresAt ? new Date(input.expiresAt) : undefined,

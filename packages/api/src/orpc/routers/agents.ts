@@ -251,7 +251,7 @@ export const deploy = requireAdmin
 
 		return {
 			id: deployment.id,
-			status: config.enums.deploymentStatus.DEPLOYED,
+			status: config.enums.deploymentStatus.ACTIVE,
 			deployedAt: deployment.deployedAt.toISOString(),
 			version,
 			url: baseUrl,
@@ -316,7 +316,7 @@ export const getDeployment = requireWrite
 
 		return {
 			id: deployment.id,
-			status: config.enums.deploymentStatus.DEPLOYED,
+			status: deployment.status as z.infer<typeof DeploymentSchema>['status'],
 			deployedAt: deployment.deployedAt.toISOString(),
 			version: deployment.version,
 			url: baseUrl,

@@ -54,8 +54,9 @@ export function useDeleteAgent() {
 	const queryClient = useQueryClient()
 	return useMutation({
 		mutationFn: orpc.agents.delete,
-		onSuccess: () => {
+		onSuccess: (_, variables) => {
 			queryClient.invalidateQueries({ queryKey: ['agents'] })
+			queryClient.invalidateQueries({ queryKey: ['agents', variables.id] })
 		},
 	})
 }
@@ -126,8 +127,9 @@ export function useDeleteTool() {
 	const queryClient = useQueryClient()
 	return useMutation({
 		mutationFn: orpc.tools.delete,
-		onSuccess: () => {
+		onSuccess: (_, variables) => {
 			queryClient.invalidateQueries({ queryKey: ['tools'] })
+			queryClient.invalidateQueries({ queryKey: ['tools', variables.id] })
 		},
 	})
 }
@@ -188,8 +190,9 @@ export function useDeleteApiKey() {
 	const queryClient = useQueryClient()
 	return useMutation({
 		mutationFn: orpc.apiKeys.delete,
-		onSuccess: () => {
+		onSuccess: (_, variables) => {
 			queryClient.invalidateQueries({ queryKey: ['api-keys'] })
+			queryClient.invalidateQueries({ queryKey: ['api-keys', variables.id] })
 		},
 	})
 }
@@ -245,8 +248,9 @@ export function useDeleteWorkspace() {
 	const queryClient = useQueryClient()
 	return useMutation({
 		mutationFn: orpc.workspaces.delete,
-		onSuccess: () => {
+		onSuccess: (_, variables) => {
 			queryClient.invalidateQueries({ queryKey: ['workspaces'] })
+			queryClient.invalidateQueries({ queryKey: ['workspaces', variables.id] })
 		},
 	})
 }
@@ -295,8 +299,9 @@ export function useDeleteSchedule() {
 	const queryClient = useQueryClient()
 	return useMutation({
 		mutationFn: orpc.schedules.delete,
-		onSuccess: () => {
+		onSuccess: (_, variables) => {
 			queryClient.invalidateQueries({ queryKey: ['schedules'] })
+			queryClient.invalidateQueries({ queryKey: ['schedules', variables.id] })
 		},
 	})
 }
