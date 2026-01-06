@@ -14,6 +14,9 @@ import { userSettingsRouter } from './user-settings'
 import { usageRouter } from './usage'
 import { analyticsRouter } from './analytics'
 import { logsRouter } from './logs'
+import { memoryRouter } from './memory'
+import { chatRouter } from './chat'
+import { billingRouter } from './billing'
 
 // Re-export individual routers
 export {
@@ -27,6 +30,9 @@ export {
 	usageRouter,
 	analyticsRouter,
 	logsRouter,
+	memoryRouter,
+	chatRouter,
+	billingRouter,
 }
 
 // Combined router for the app
@@ -41,6 +47,9 @@ export const appRouter = {
 	usage: usageRouter,
 	analytics: analyticsRouter,
 	logs: logsRouter,
+	memory: memoryRouter,
+	chat: chatRouter,
+	billing: billingRouter,
 }
 
 export type AppRouter = typeof appRouter

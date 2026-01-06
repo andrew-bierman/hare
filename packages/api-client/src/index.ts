@@ -3,28 +3,33 @@
  *
  * Type-safe API clients for the Hare API.
  *
- * MIGRATION NOTE: Most CRUD operations have been migrated to oRPC.
- * Use `orpc` for agents, tools, workspaces, api-keys, schedules, usage, analytics, logs.
- * Legacy Hono clients remain for auth, billing, chat, memory, webhooks, health, embed, dev, mcp.
+ * Use `orpc` for all type-safe operations - types are automatically inferred from the server.
+ * Legacy Hono clients remain only for auth (Better Auth pass-through), webhooks, health, embed, dev, mcp, agentWs.
  *
  * @example
  * ```ts
  * // Recommended: Use oRPC client (full type safety)
  * import { orpc } from '@hare/api-client'
- * const { agents } = await orpc.agents.list({})
  *
- * // Legacy: Use Hono client for non-migrated routes
- * import { chat, billing } from '@hare/api-client'
+ * // CRUD operations
+ * const { agents } = await orpc.agents.list({})
+ * const agent = await orpc.agents.create({ name: '...', model: '...', instructions: '...' })
+ *
+ * // Billing
+ * const plans = await orpc.billing.listPlans({ workspaceId: '...' })
+ *
+ * // Memory
+ * const memories = await orpc.memory.list({ id: agentId, workspaceId: '...' })
+ *
+ * // Chat
+ * const conversations = await orpc.chat.listConversations({ id: agentId })
  * ```
  */
 
 import { hc } from 'hono/client'
 import type {
-	MemoryRoute,
 	WebhooksRoute,
 	AuthRoute,
-	BillingRoute,
-	ChatRoute,
 	HealthRoute,
 	EmbedRoute,
 	DevRoute,
@@ -54,15 +59,11 @@ function getBaseURL(): string {
 const clientInit = { credentials: 'include' as const }
 
 // =============================================================================
-// PRE-COMPILED CLIENT TYPES (computed at build time)
-// Note: Most clients migrated to oRPC - see orpc.ts
+// LEGACY HONO CLIENT TYPES
 // =============================================================================
 
-type MemoryClient = ReturnType<typeof hc<MemoryRoute>>
 type WebhooksClient = ReturnType<typeof hc<WebhooksRoute>>
 type AuthClient = ReturnType<typeof hc<AuthRoute>>
-type BillingClient = ReturnType<typeof hc<BillingRoute>>
-type ChatClient = ReturnType<typeof hc<ChatRoute>>
 type HealthClient = ReturnType<typeof hc<HealthRoute>>
 type EmbedClient = ReturnType<typeof hc<EmbedRoute>>
 type DevClient = ReturnType<typeof hc<DevRoute>>
@@ -70,14 +71,11 @@ type McpClient = ReturnType<typeof hc<McpRoute>>
 type AgentWsClient = ReturnType<typeof hc<AgentWsRoute>>
 
 // =============================================================================
-// hcWithType FACTORIES (pre-compiled type inference)
+// LEGACY HONO CLIENT FACTORIES
 // =============================================================================
 
-const hcMemory = (...args: Parameters<typeof hc>): MemoryClient => hc<MemoryRoute>(...args)
 const hcWebhooks = (...args: Parameters<typeof hc>): WebhooksClient => hc<WebhooksRoute>(...args)
 const hcAuth = (...args: Parameters<typeof hc>): AuthClient => hc<AuthRoute>(...args)
-const hcBilling = (...args: Parameters<typeof hc>): BillingClient => hc<BillingRoute>(...args)
-const hcChat = (...args: Parameters<typeof hc>): ChatClient => hc<ChatRoute>(...args)
 const hcHealth = (...args: Parameters<typeof hc>): HealthClient => hc<HealthRoute>(...args)
 const hcEmbed = (...args: Parameters<typeof hc>): EmbedClient => hc<EmbedRoute>(...args)
 const hcDev = (...args: Parameters<typeof hc>): DevClient => hc<DevRoute>(...args)
@@ -85,14 +83,9 @@ const hcMcp = (...args: Parameters<typeof hc>): McpClient => hc<McpRoute>(...arg
 const hcAgentWs = (...args: Parameters<typeof hc>): AgentWsClient => hc<AgentWsRoute>(...args)
 
 // =============================================================================
-// LEGACY HONO CLIENTS (not yet migrated to oRPC)
+// LEGACY HONO CLIENTS
+// These are kept for routes not yet migrated to oRPC or that have special requirements
 // =============================================================================
-
-/**
- * Memory API client - /api/agents/*
- * Vector memory operations for agents.
- */
-export const memory = hcMemory(`${getBaseURL()}/api/agents`, { init: clientInit })
 
 /**
  * Webhooks API client - /api/agents/*
@@ -102,18 +95,9 @@ export const webhooks = hcWebhooks(`${getBaseURL()}/api/agents`, { init: clientI
 
 /**
  * Auth API client - /api/auth/*
+ * Note: Auth uses Better Auth pass-through and cannot be fully migrated to oRPC.
  */
 export const auth = hcAuth(`${getBaseURL()}/api/auth`, { init: clientInit })
-
-/**
- * Billing API client - /api/billing/*
- */
-export const billing = hcBilling(`${getBaseURL()}/api/billing`, { init: clientInit })
-
-/**
- * Chat API client - /api/chat/*
- */
-export const chat = hcChat(`${getBaseURL()}/api/chat`, { init: clientInit })
 
 /**
  * Health API client - /api/health/*
@@ -146,9 +130,21 @@ export const agentWs = hcAgentWs(`${getBaseURL()}/api/agent-ws`, { init: clientI
 
 /**
  * oRPC client with full end-to-end type safety.
- * Recommended for all CRUD operations - types are automatically inferred from the server.
+ * Recommended for all operations - types are automatically inferred from the server.
  *
- * Covers: agents, tools, workspaces, api-keys, schedules, usage, analytics, logs, user-settings
+ * Covers:
+ * - agents (list, get, create, update, delete, deploy, undeploy)
+ * - tools (list, get, create, update, delete)
+ * - workspaces (list, get, create, update, delete, members)
+ * - apiKeys (list, create, update, delete)
+ * - schedules (list, get, create, update, delete)
+ * - usage (get, getByAgent)
+ * - analytics
+ * - logs
+ * - userSettings
+ * - billing (listPlans, createCheckout, createPortal, getStatus, getPaymentHistory)
+ * - memory (list, create, search, update, delete, clear)
+ * - chat (listConversations, getMessages, exportConversation)
  *
  * @example
  * ```ts
@@ -160,18 +156,15 @@ export const agentWs = hcAgentWs(`${getBaseURL()}/api/agent-ws`, { init: clientI
  * ```
  */
 export { orpc } from './orpc'
-export type { AppRouter } from './orpc'
+export type { AppRouterClient, AppRouterClient as AppRouter } from './orpc'
 
 // =============================================================================
 // TYPE EXPORTS
 // =============================================================================
 
 export type {
-	MemoryClient,
 	WebhooksClient,
 	AuthClient,
-	BillingClient,
-	ChatClient,
 	HealthClient,
 	EmbedClient,
 	DevClient,

@@ -33,6 +33,24 @@ export {
 	CreateApiKeySchema,
 	UpdateApiKeySchema,
 } from './api-keys'
+// Billing schemas
+export {
+	BillingStatusSchema,
+	BillingUsageSchema,
+	CheckoutRequestSchema,
+	CheckoutResponseSchema,
+	PaidPlanIdSchema,
+	PaymentHistoryItemSchema,
+	PaymentHistoryQuerySchema,
+	PaymentHistoryResponseSchema,
+	PaymentStatusSchema,
+	PlanFeaturesSchema,
+	PlanIdSchema,
+	PlanSchema,
+	PlansResponseSchema,
+	PortalResponseSchema,
+	SubscriptionStatusSchema,
+} from './billing'
 // Auth schemas
 export {
 	AuthResponseSchema,
@@ -106,3 +124,17 @@ export {
 	WorkspaceRoleSchema,
 	WorkspaceSchema,
 } from './workspaces'
+// Memory schemas
+export {
+	ClearMemoriesResponseSchema,
+	CreateMemorySchema,
+	MemoryIdParamSchema,
+	MemoryListQuerySchema,
+	MemoryListResponseSchema,
+	MemoryMetadataSchema,
+	MemorySchema,
+	MemoryTypeSchema,
+	SearchMemorySchema,
+	SearchResultSchema,
+	UpdateMemorySchema,
+} from './memory'

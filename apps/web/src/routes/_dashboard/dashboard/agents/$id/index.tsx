@@ -665,9 +665,7 @@ function AgentBuilderPage() {
 				</TabsContent>
 
 				<TabsContent value="memory" className="space-y-4">
-					{activeWorkspace?.id && (
-						<MemoryViewer agentId={agentId} workspaceId={activeWorkspace.id} />
-					)}
+					<MemoryViewer agentId={agentId} />
 				</TabsContent>
 
 				<TabsContent value="schedules" className="space-y-4">

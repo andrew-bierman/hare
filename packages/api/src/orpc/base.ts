@@ -6,7 +6,7 @@
 
 import { os, ORPCError } from '@orpc/server'
 import type { Database } from '@hare/db'
-import type { WorkspaceRole } from '@hare/types'
+import type { CloudflareEnv, WorkspaceRole } from '@hare/types'
 
 // =============================================================================
 // Context Types
@@ -18,6 +18,7 @@ import type { WorkspaceRole } from '@hare/types'
 export interface BaseContext {
 	db: Database
 	headers: Headers
+	env: CloudflareEnv
 }
 
 /**

@@ -9,7 +9,7 @@ import { Hono } from 'hono'
 import { RPCHandler } from '@orpc/server/fetch'
 import { appRouter } from './routers'
 import type { WorkspaceEnv } from '@hare/types'
-import { getDb } from '../db'
+import { getCloudflareEnv, getDb } from '../db'
 
 // Create the RPC handler
 const handler = new RPCHandler(appRouter)
@@ -29,6 +29,7 @@ export const orpcApp = new Hono<WorkspaceEnv>()
 orpcApp.all('/*', async (c) => {
 	// Extract context from Hono's middleware chain
 	const db = getDb(c)
+	const env = getCloudflareEnv(c)
 	const user = c.get('user')
 	const workspace = c.get('workspace')
 	const workspaceRole = c.get('workspaceRole')
@@ -36,6 +37,7 @@ orpcApp.all('/*', async (c) => {
 	// Build context for oRPC
 	const context = {
 		db,
+		env,
 		headers: c.req.raw.headers,
 		...(user && {
 			user: {

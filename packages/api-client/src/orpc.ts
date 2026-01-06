@@ -7,8 +7,11 @@
 
 import { createORPCClient } from '@orpc/client'
 import { RPCLink } from '@orpc/client/fetch'
-import type { AppRouter } from '@hare/api/orpc'
+import type { appRouter } from '@hare/api/orpc'
 import type { RouterClient } from '@orpc/server'
+
+// Derive client type from the server router
+type AppRouterClient = RouterClient<typeof appRouter>
 
 /**
  * Get the base URL for API requests
@@ -38,7 +41,7 @@ const link = new RPCLink({
  *
  * @example
  * ```ts
- * import { orpc } from '@hare/api-client/orpc'
+ * import { orpc } from '@hare/api-client'
  *
  * // List agents - types fully inferred!
  * const { agents } = await orpc.agents.list({})
@@ -65,14 +68,22 @@ const link = new RPCLink({
  * const { success } = await orpc.agents.delete({ id: 'agent-123' })
  * ```
  */
-export const orpc = createORPCClient<RouterClient<AppRouter>>(link)
+export const orpc: AppRouterClient = createORPCClient(link)
 
-// Re-export types for convenience
-export type { AppRouter }
+// Re-export router type for convenience
+export type { AppRouterClient }
 
 // Export individual router types for more specific imports
-export type AgentsClient = typeof orpc.agents
-export type ToolsClient = typeof orpc.tools
-export type ApiKeysClient = typeof orpc.apiKeys
-export type WorkspacesClient = typeof orpc.workspaces
-export type SchedulesClient = typeof orpc.schedules
+export type AgentsClient = AppRouterClient['agents']
+export type ToolsClient = AppRouterClient['tools']
+export type ApiKeysClient = AppRouterClient['apiKeys']
+export type WorkspacesClient = AppRouterClient['workspaces']
+export type SchedulesClient = AppRouterClient['schedules']
+export type UsageClient = AppRouterClient['usage']
+export type AnalyticsClient = AppRouterClient['analytics']
+export type LogsClient = AppRouterClient['logs']
+export type MemoryClient = AppRouterClient['memory']
+export type ChatClient = AppRouterClient['chat']
+export type BillingClient = AppRouterClient['billing']
+export type UserSettingsClient = AppRouterClient['userSettings']
+export type WorkspaceMembersClient = AppRouterClient['workspaceMembers']

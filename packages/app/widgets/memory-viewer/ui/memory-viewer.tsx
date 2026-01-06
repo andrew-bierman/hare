@@ -56,7 +56,6 @@ import {
 
 export interface MemoryViewerProps {
 	agentId: string
-	workspaceId: string
 }
 
 const MEMORY_TYPE_CONFIG: Record<
@@ -152,7 +151,7 @@ function MemoryListSkeleton() {
 }
 
 export function MemoryViewer(props: MemoryViewerProps) {
-	const { agentId, workspaceId } = props
+	const { agentId } = props
 
 	const [searchQuery, setSearchQuery] = useState('')
 	const [isSearching, setIsSearching] = useState(false)
@@ -169,15 +168,14 @@ export function MemoryViewer(props: MemoryViewerProps) {
 
 	const { data: memoriesData, isLoading } = useMemoriesQuery({
 		agentId,
-		workspaceId,
 		limit: 50,
 	})
 
-	const createMemory = useCreateMemoryMutation({ agentId, workspaceId })
-	const updateMemory = useUpdateMemoryMutation({ agentId, workspaceId })
-	const deleteMemory = useDeleteMemoryMutation({ agentId, workspaceId })
-	const clearMemories = useClearMemoriesMutation({ agentId, workspaceId })
-	const searchMemories = useSearchMemoriesMutation({ agentId, workspaceId })
+	const createMemory = useCreateMemoryMutation({ agentId })
+	const updateMemory = useUpdateMemoryMutation({ agentId })
+	const deleteMemory = useDeleteMemoryMutation({ agentId })
+	const clearMemories = useClearMemoriesMutation({ agentId })
+	const searchMemories = useSearchMemoriesMutation({ agentId })
 
 	const memories = searchResults ?? memoriesData?.memories ?? []
 	const totalCount = memoriesData?.total ?? 0

@@ -32,6 +32,10 @@ export { useOAuthProvidersQuery } from './use-auth'
 
 // Billing hooks
 export {
+	type BillingStatus,
+	type CheckoutRequest,
+	type PaymentHistoryItem,
+	type Plan,
 	useBillingStatusQuery,
 	useCreateCheckoutMutation,
 	useCreatePortalMutation,
