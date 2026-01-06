@@ -18,10 +18,11 @@ export const ToolTypeSchema = z.enum(TOOL_TYPES).openapi({ example: 'http' })
 export const ToolSchema = z
 	.object({
 		id: z.string().openapi({ example: 'tool_http' }),
+		workspaceId: z.string().openapi({ example: 'ws_xyz789' }),
 		name: z.string().openapi({ example: 'HTTP Request' }),
 		description: z.string().nullable().openapi({ example: 'Make HTTP requests to external APIs' }),
 		type: ToolTypeSchema,
-		inputSchema: JsonSchemaSchema.openapi({
+		inputSchema: JsonSchemaSchema.nullable().openapi({
 			example: {
 				url: { type: 'string', description: 'The URL to request' },
 				method: { type: 'string', enum: ['GET', 'POST', 'PUT', 'DELETE'] },
@@ -49,9 +50,9 @@ export const ToolSchema = z
 export const CreateToolSchema = z
 	.object({
 		name: z.string().min(1).max(100).openapi({ example: 'My Custom Tool' }),
-		description: z.string().min(1).openapi({ example: 'A custom tool for my agent' }),
+		description: z.string().max(500).optional().openapi({ example: 'A custom tool for my agent' }),
 		type: ToolTypeSchema,
-		inputSchema: JsonSchemaSchema.openapi({
+		inputSchema: JsonSchemaSchema.optional().openapi({
 			example: { input: { type: 'string' } },
 		}),
 		config: ToolConfigSchema.optional().openapi({ example: {} }),
@@ -64,4 +65,17 @@ export const CreateToolSchema = z
 /**
  * Schema for updating a tool.
  */
-export const UpdateToolSchema = CreateToolSchema.partial().openapi('UpdateTool')
+export const UpdateToolSchema = z
+	.object({
+		name: z.string().min(1).max(100).optional().openapi({ example: 'My Custom Tool' }),
+		description: z.string().max(500).optional().openapi({ example: 'A custom tool for my agent' }),
+		type: ToolTypeSchema.optional(),
+		inputSchema: JsonSchemaSchema.optional().openapi({
+			example: { input: { type: 'string' } },
+		}),
+		config: ToolConfigSchema.optional().openapi({ example: {} }),
+		code: z.string().optional().openapi({
+			example: 'export default async function(input) { return input }',
+		}),
+	})
+	.openapi('UpdateTool')

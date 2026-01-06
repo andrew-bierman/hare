@@ -39,16 +39,17 @@ export function serializeTool(
 		code?: string
 	} = {},
 ): SerializedTool {
-	// Use inputSchema from database if available, fallback to options, then empty object
+	// Use inputSchema from database if available, fallback to options, then null
 	const dbInputSchema = (tool as ToolRow & { inputSchema?: unknown }).inputSchema as
 		| { type: 'object'; properties?: InputSchema }
 		| null
 		| undefined
 	// Convert from database format (with type: 'object' wrapper) to API format (just properties)
-	const inputSchema = options.inputSchema || dbInputSchema?.properties || {}
+	const inputSchema = options.inputSchema || dbInputSchema?.properties || null
 
 	return {
 		id: tool.id,
+		workspaceId: tool.workspaceId,
 		name: tool.name,
 		description: tool.description || '',
 		type: mapToolType(tool.type),
@@ -80,6 +81,7 @@ export function serializeSystemTool(tool: SystemToolDefinition): SerializedTool 
 	const now = new Date().toISOString()
 	return {
 		...tool,
+		workspaceId: 'system',
 		config: undefined,
 		createdAt: now,
 		updatedAt: now,
@@ -136,7 +138,7 @@ function getToolTypeFromId(toolId: string): ToolType {
  * Extracts properties from the JSON Schema.
  * Falls back to empty schema on error to prevent tool serialization failures.
  */
-function zodSchemaToInputSchema(zodSchema: unknown, toolId?: string): InputSchema {
+function zodSchemaToInputSchema(zodSchema: unknown, toolId?: string): NonNullable<InputSchema> {
 	try {
 		// Use Zod v4's built-in JSON Schema conversion
 		const jsonSchema = toJSONSchema(zodSchema as z.ZodType)
@@ -147,7 +149,7 @@ function zodSchemaToInputSchema(zodSchema: unknown, toolId?: string): InputSchem
 			'properties' in jsonSchema &&
 			typeof jsonSchema.properties === 'object'
 		) {
-			const result: InputSchema = {}
+			const result: Record<string, unknown> = {}
 			for (const [key, value] of Object.entries(jsonSchema.properties || {})) {
 				if (typeof value === 'object' && value !== null) {
 					const prop = value as Record<string, unknown>
@@ -218,6 +220,7 @@ export function serializeHareTool(tool: AnyTool): SerializedTool {
 	const now = new Date().toISOString()
 	return {
 		id: tool.id,
+		workspaceId: 'system',
 		name: generateToolName(tool.id),
 		description: tool.description,
 		type: getToolTypeFromId(tool.id),

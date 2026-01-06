@@ -9,126 +9,6 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { orpc } from '@hare/api-client'
-import type { ToolType } from '@hare/config'
-
-// =============================================================================
-// Type Definitions (to help TypeScript resolve oRPC types)
-// =============================================================================
-
-// Agent types
-interface AgentConfig {
-	temperature?: number
-	maxTokens?: number
-	topP?: number
-	topK?: number
-	stopSequences?: string[]
-}
-
-interface Agent {
-	id: string
-	workspaceId: string
-	name: string
-	description: string | null
-	model: string
-	instructions: string | null
-	config?: AgentConfig
-	status: 'draft' | 'deployed' | 'archived'
-	systemToolsEnabled: boolean
-	toolIds?: string[]
-	createdAt: string
-	updatedAt: string
-}
-
-interface CreateAgentInput {
-	name: string
-	description?: string
-	model: string
-	instructions: string
-	config?: AgentConfig
-	systemToolsEnabled?: boolean
-	toolIds?: string[]
-}
-
-interface UpdateAgentInput {
-	id: string
-	name?: string
-	description?: string
-	model?: string
-	instructions?: string
-	config?: AgentConfig
-	systemToolsEnabled?: boolean
-	toolIds?: string[]
-	status?: 'draft' | 'deployed' | 'archived'
-}
-
-// Tool types
-interface ToolConfig {
-	url?: string
-	method?: string
-	headers?: Record<string, string>
-	body?: string
-	bodyType?: 'json' | 'form' | 'text'
-	responseMapping?: { path?: string; transform?: string }
-	timeout?: number
-	query?: string
-	database?: string
-	searchEngine?: string
-	webhookUrl?: string
-	apiKey?: string
-	apiEndpoint?: string
-	channel?: string
-	from?: string
-	customCode?: string
-}
-
-interface InputSchemaProperty {
-	type: 'string' | 'number' | 'boolean' | 'array' | 'object'
-	description?: string
-	default?: unknown
-	enum?: string[]
-	required?: boolean
-}
-
-interface InputSchema {
-	type: 'object'
-	properties?: Record<string, InputSchemaProperty>
-	required?: string[]
-}
-
-interface Tool {
-	id: string
-	workspaceId: string
-	name: string
-	description: string | null
-	type: string
-	config: ToolConfig
-	inputSchema: InputSchema | null
-	isSystem: boolean
-	createdAt: string
-	updatedAt: string
-}
-
-interface CreateToolInput {
-	name: string
-	description?: string
-	type: ToolType
-	config: ToolConfig
-	inputSchema?: InputSchema
-}
-
-interface TestToolInput {
-	name: string
-	type: ToolType
-	config: ToolConfig
-	testInput?: Record<string, unknown>
-}
-
-interface TestToolResult {
-	success: boolean
-	result?: unknown
-	error?: string
-	duration?: number
-}
 
 // =============================================================================
 // Agent Hooks
@@ -156,33 +36,26 @@ export interface ValidationIssue {
 }
 
 export function useAgentPreviewQuery(options: {
-	agentId?: string
-	workspaceId?: string
-	overrides?: {
-		name?: string
-		description?: string
-		model?: string
-		instructions?: string
-		config?: Record<string, unknown>
-		toolIds?: string[]
-	}
+	name?: string
+	description?: string
+	model?: string
+	instructions?: string
+	config?: Record<string, unknown>
+	toolIds?: string[]
 	enabled?: boolean
 }) {
+	const { enabled, ...previewInput } = options
 	return useQuery({
-		queryKey: ['agents', options.agentId, 'preview', options.overrides],
-		queryFn: () =>
-			orpc.agents.preview({
-				agentId: options.agentId!,
-				overrides: options.overrides,
-			}),
-		enabled: options.enabled !== false && !!options.agentId && !!options.workspaceId,
+		queryKey: ['agents', 'preview', previewInput],
+		queryFn: () => orpc.agents.preview(previewInput),
+		enabled: enabled !== false,
 	})
 }
 
 export function useCreateAgentMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: (input: CreateAgentInput) => orpc.agents.create(input),
+		mutationFn: (input: Parameters<typeof orpc.agents.create>[0]) => orpc.agents.create(input),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['agents'] })
 		},
@@ -192,7 +65,7 @@ export function useCreateAgentMutation() {
 export function useUpdateAgentMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: (input: UpdateAgentInput) => orpc.agents.update(input),
+		mutationFn: (input: Parameters<typeof orpc.agents.update>[0]) => orpc.agents.update(input),
 		onSuccess: (_, variables) => {
 			queryClient.invalidateQueries({ queryKey: ['agents'] })
 			queryClient.invalidateQueries({ queryKey: ['agents', variables.id] })
@@ -255,7 +128,7 @@ export function useToolQuery(id: string | undefined) {
 export function useCreateToolMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: (input: CreateToolInput) => orpc.tools.create(input),
+		mutationFn: (input: Parameters<typeof orpc.tools.create>[0]) => orpc.tools.create(input),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['tools'] })
 		},
@@ -265,7 +138,7 @@ export function useCreateToolMutation() {
 export function useUpdateToolMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: (input: { id: string } & Partial<CreateToolInput>) => orpc.tools.update(input),
+		mutationFn: (input: Parameters<typeof orpc.tools.update>[0]) => orpc.tools.update(input),
 		onSuccess: (_, variables) => {
 			queryClient.invalidateQueries({ queryKey: ['tools'] })
 			queryClient.invalidateQueries({ queryKey: ['tools', variables.id] })
@@ -286,15 +159,14 @@ export function useDeleteToolMutation() {
 
 export function useTestToolMutation() {
 	return useMutation({
-		mutationFn: (input: TestToolInput): Promise<TestToolResult> =>
-			orpc.tools.test(input) as Promise<TestToolResult>,
+		mutationFn: (input: Parameters<typeof orpc.tools.test>[0]) => orpc.tools.test(input),
 	})
 }
 
 export function useTestExistingToolMutation() {
 	return useMutation({
-		mutationFn: (input: { id: string; testInput?: Record<string, unknown> }): Promise<TestToolResult> =>
-			orpc.tools.testExisting(input) as Promise<TestToolResult>,
+		mutationFn: (input: Parameters<typeof orpc.tools.testExisting>[0]) =>
+			orpc.tools.testExisting(input),
 	})
 }
 

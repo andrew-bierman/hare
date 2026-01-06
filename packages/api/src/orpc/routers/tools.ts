@@ -7,89 +7,16 @@
 import { z } from 'zod'
 import { and, eq } from 'drizzle-orm'
 import { tools } from '@hare/db/schema'
-import { TOOL_TYPES } from '@hare/config'
 import { requireWrite, requireAdmin, notFound, serverError, type WorkspaceContext } from '../base'
-import { SuccessSchema, IdParamSchema } from '../../schemas'
-
-// =============================================================================
-// Type-Safe Schemas
-// =============================================================================
-
-/** Tool type enum - properly typed from config */
-const ToolTypeSchema = z.enum(TOOL_TYPES)
-type ToolType = z.infer<typeof ToolTypeSchema>
-
-/** Property type values - matching database schema */
-const PropertyTypeValues = ['string', 'number', 'boolean', 'array', 'object'] as const
-const PropertyTypeSchema = z.enum(PropertyTypeValues)
-
-/** JSON Schema property schema - matching database structure */
-const JsonSchemaPropertySchema = z.object({
-	type: PropertyTypeSchema,
-	description: z.string().optional(),
-	default: z.unknown().optional(),
-	enum: z.array(z.string()).optional(),
-	required: z.boolean().optional(),
-})
-
-/** JSON Schema object schema - matching database structure */
-const InputSchemaSchema = z.object({
-	type: z.literal('object'),
-	properties: z.record(z.string(), JsonSchemaPropertySchema).optional(),
-	required: z.array(z.string()).optional(),
-})
-
-/** Tool config schema - matching database structure */
-const ToolConfigSchema = z.object({
-	url: z.string().optional(),
-	method: z.string().optional(),
-	headers: z.record(z.string(), z.string()).optional(),
-	body: z.string().optional(),
-	bodyType: z.enum(['json', 'form', 'text']).optional(),
-	responseMapping: z.object({
-		path: z.string().optional(),
-		transform: z.string().optional(),
-	}).optional(),
-	timeout: z.number().optional(),
-	query: z.string().optional(),
-	database: z.string().optional(),
-	searchEngine: z.string().optional(),
-	webhookUrl: z.string().optional(),
-	apiKey: z.string().optional(),
-	apiEndpoint: z.string().optional(),
-	channel: z.string().optional(),
-	from: z.string().optional(),
-	customCode: z.string().optional(),
-})
-
-const ToolSchema = z.object({
-	id: z.string(),
-	workspaceId: z.string(),
-	name: z.string(),
-	description: z.string().nullable(),
-	type: ToolTypeSchema,
-	config: ToolConfigSchema,
-	inputSchema: InputSchemaSchema.nullable(),
-	isSystem: z.boolean(),
-	createdAt: z.string(),
-	updatedAt: z.string(),
-})
-
-const CreateToolInputSchema = z.object({
-	name: z.string().min(1).max(100),
-	description: z.string().max(500).optional(),
-	type: ToolTypeSchema,
-	config: ToolConfigSchema,
-	inputSchema: InputSchemaSchema.optional(),
-})
-
-const UpdateToolInputSchema = z.object({
-	name: z.string().min(1).max(100).optional(),
-	description: z.string().max(500).optional(),
-	type: ToolTypeSchema.optional(),
-	config: ToolConfigSchema.optional(),
-	inputSchema: InputSchemaSchema.optional(),
-})
+import {
+	SuccessSchema,
+	IdParamSchema,
+	ToolSchema,
+	ToolTypeSchema,
+	ToolConfigSchema,
+	CreateToolSchema,
+	UpdateToolSchema,
+} from '../../schemas'
 
 // =============================================================================
 // Helpers
@@ -157,7 +84,7 @@ export const get = requireWrite
  */
 export const create = requireWrite
 	.route({ method: 'POST', path: '/tools', successStatus: 201 })
-	.input(CreateToolInputSchema)
+	.input(CreateToolSchema)
 	.output(ToolSchema)
 	.handler(async ({ input, context }) => {
 		const { db, workspaceId, user } = context
@@ -185,7 +112,7 @@ export const create = requireWrite
  */
 export const update = requireWrite
 	.route({ method: 'PATCH', path: '/tools/{id}' })
-	.input(IdParamSchema.merge(UpdateToolInputSchema))
+	.input(IdParamSchema.merge(UpdateToolSchema))
 	.output(ToolSchema)
 	.handler(async ({ input, context }) => {
 		const { id, ...data } = input
@@ -194,13 +121,13 @@ export const update = requireWrite
 		const existing = await findTool(id, workspaceId, db)
 		if (!existing) notFound('Tool not found')
 
-		const updateData = {
+		const updateData: Partial<typeof tools.$inferInsert> = {
 			updatedAt: new Date(),
 			...(data.name !== undefined && { name: data.name }),
 			...(data.description !== undefined && { description: data.description }),
 			...(data.type !== undefined && { type: data.type }),
-			...(data.config !== undefined && { config: data.config }),
-			...(data.inputSchema !== undefined && { inputSchema: data.inputSchema }),
+			...(data.config !== undefined && { config: data.config as typeof tools.$inferInsert['config'] }),
+			...(data.inputSchema !== undefined && { inputSchema: data.inputSchema as typeof tools.$inferInsert['inputSchema'] }),
 		}
 
 		const [tool] = await db.update(tools).set(updateData).where(eq(tools.id, id)).returning()

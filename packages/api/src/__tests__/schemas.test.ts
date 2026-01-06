@@ -184,15 +184,15 @@ describe('API Schemas', () => {
 			expect(result.success).toBe(false)
 		})
 
-		it('rejects empty description', () => {
-			const invalidTool = {
+		it('allows empty description (description is optional)', () => {
+			const validTool = {
 				name: 'My Tool',
 				description: '',
 				type: 'http',
 				inputSchema: {},
 			}
-			const result = CreateToolSchema.safeParse(invalidTool)
-			expect(result.success).toBe(false)
+			const result = CreateToolSchema.safeParse(validTool)
+			expect(result.success).toBe(true)
 		})
 	})
 

@@ -4,73 +4,15 @@
  * Handles usage statistics with full type safety.
  */
 
-import { z } from 'zod'
 import { and, eq, gte, lte, sql } from 'drizzle-orm'
 import { agents, usage } from '@hare/db/schema'
 import { requireWrite, notFound, type WorkspaceContext } from '../base'
-import { IdParamSchema } from '../../schemas'
-
-// =============================================================================
-// Type-Safe Schemas
-// =============================================================================
-
-const UsageByAgentSchema = z.object({
-	agentId: z.string(),
-	agentName: z.string(),
-	messages: z.number(),
-	tokensIn: z.number(),
-	tokensOut: z.number(),
-	cost: z.number(),
-})
-
-const UsageByDaySchema = z.object({
-	date: z.string(),
-	messages: z.number(),
-	tokensIn: z.number(),
-	tokensOut: z.number(),
-	cost: z.number(),
-})
-
-const UsageByModelSchema = z.object({
-	model: z.string(),
-	messages: z.number(),
-	tokensIn: z.number(),
-	tokensOut: z.number(),
-	cost: z.number(),
-})
-
-const WorkspaceUsageSchema = z.object({
-	usage: z.object({
-		totalMessages: z.number(),
-		totalTokensIn: z.number(),
-		totalTokensOut: z.number(),
-		totalCost: z.number(),
-		byAgent: z.array(UsageByAgentSchema),
-		byDay: z.array(UsageByDaySchema),
-	}),
-	period: z.object({
-		startDate: z.string(),
-		endDate: z.string(),
-	}),
-})
-
-const AgentUsageSchema = z.object({
-	agentId: z.string(),
-	usage: z.object({
-		totalMessages: z.number(),
-		totalTokensIn: z.number(),
-		totalTokensOut: z.number(),
-		totalCost: z.number(),
-		averageLatencyMs: z.number(),
-		byModel: z.array(UsageByModelSchema),
-		byDay: z.array(UsageByDaySchema),
-	}),
-})
-
-const UsageQueryInputSchema = z.object({
-	startDate: z.string().optional(),
-	endDate: z.string().optional(),
-})
+import {
+	AgentUsageResponseSchema,
+	IdParamSchema,
+	UsageQuerySchema,
+	UsageResponseSchema,
+} from '../../schemas'
 
 // =============================================================================
 // Procedures
@@ -81,8 +23,8 @@ const UsageQueryInputSchema = z.object({
  */
 export const getWorkspaceUsage = requireWrite
 	.route({ method: 'GET', path: '/usage' })
-	.input(UsageQueryInputSchema)
-	.output(WorkspaceUsageSchema)
+	.input(UsageQuerySchema)
+	.output(UsageResponseSchema)
 	.handler(async ({ input, context }) => {
 		const { db, workspaceId } = context
 		const { startDate, endDate } = input
@@ -174,7 +116,7 @@ export const getWorkspaceUsage = requireWrite
 export const getAgentUsage = requireWrite
 	.route({ method: 'GET', path: '/usage/agents/{id}' })
 	.input(IdParamSchema)
-	.output(AgentUsageSchema)
+	.output(AgentUsageResponseSchema)
 	.handler(async ({ input, context }) => {
 		const { db, workspaceId } = context
 		const { id: agentId } = input

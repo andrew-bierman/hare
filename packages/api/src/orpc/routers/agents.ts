@@ -16,6 +16,9 @@ import {
 	DeploymentSchema,
 	SuccessSchema,
 	IdParamSchema,
+	AgentPreviewInputSchema,
+	AgentPreviewResponseSchema,
+	ValidationIssueSchema,
 } from '../../schemas'
 
 // =============================================================================
@@ -370,54 +373,23 @@ export const getDeploymentHistory = requireWrite
 /**
  * Preview/validate agent configuration
  */
-const PreviewInputSchema = z.object({
-	agentId: z.string(),
-	overrides: z
-		.object({
-			name: z.string().optional(),
-			description: z.string().optional(),
-			model: z.string().optional(),
-			instructions: z.string().optional(),
-			config: z.record(z.string(), z.unknown()).optional(),
-			toolIds: z.array(z.string()).optional(),
-		})
-		.optional(),
-})
-
-const ValidationIssueSchema = z.object({
-	field: z.string(),
-	message: z.string(),
-	severity: z.enum(['error', 'warning']),
-})
-
-const PreviewResponseSchema = z.object({
-	errors: z.array(ValidationIssueSchema),
-	warnings: z.array(ValidationIssueSchema),
-})
-
 export const preview = requireWrite
 	.route({ method: 'POST', path: '/agents/preview' })
-	.input(PreviewInputSchema)
-	.output(PreviewResponseSchema)
+	.input(AgentPreviewInputSchema)
+	.output(AgentPreviewResponseSchema)
 	.handler(async ({ input, context }) => {
 		const { db, workspaceId } = context
 		const errors: z.infer<typeof ValidationIssueSchema>[] = []
 		const warnings: z.infer<typeof ValidationIssueSchema>[] = []
 
-		// Load the agent if provided
-		let agent = null
-		if (input.agentId) {
-			agent = await findAgent(input.agentId, workspaceId, db)
-		}
-
-		// Merge overrides with agent data
-		const name = input.overrides?.name ?? agent?.name ?? ''
-		const instructions = input.overrides?.instructions ?? agent?.instructions ?? ''
-		const model = input.overrides?.model ?? agent?.model ?? ''
+		// Use input fields directly (no nested overrides in the strong schema)
+		const name = input.name ?? ''
+		const instructions = input.instructions ?? ''
+		const model = input.model ?? ''
 
 		// Validate name
 		if (!name || name.trim().length === 0) {
-			errors.push({ field: 'name', message: 'Agent name is required', severity: 'error' })
+			errors.push({ field: 'name', message: 'Agent name is required', type: 'error' })
 		}
 
 		// Validate instructions
@@ -425,16 +397,18 @@ export const preview = requireWrite
 			warnings.push({
 				field: 'instructions',
 				message: 'Agent should have instructions for best results',
-				severity: 'warning',
+				type: 'warning',
 			})
 		}
 
 		// Validate model
 		if (!model) {
-			errors.push({ field: 'model', message: 'Model is required', severity: 'error' })
+			errors.push({ field: 'model', message: 'Model is required', type: 'error' })
 		}
 
-		return { errors, warnings }
+		const valid = errors.length === 0
+
+		return { valid, errors, warnings }
 	})
 
 // =============================================================================

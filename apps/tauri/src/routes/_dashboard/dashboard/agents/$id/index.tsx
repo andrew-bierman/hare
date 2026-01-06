@@ -214,9 +214,7 @@ function AgentBuilderPage() {
 
 	// Server-side preview validation query
 	const { data: serverPreview, isLoading: isValidating } = useAgentPreviewQuery({
-		agentId,
-		workspaceId: activeWorkspace?.id,
-		overrides: debouncedOverrides,
+		...debouncedOverrides,
 		enabled: !!agentId && !!activeWorkspace?.id && hasChanges,
 	})
 
