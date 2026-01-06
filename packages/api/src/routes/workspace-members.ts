@@ -19,7 +19,7 @@ import {
 	WorkspaceMemberSchema,
 } from '../schemas'
 import { type AuthEnv, isWorkspaceRole, type WorkspaceRole } from '@hare/types'
-import { createEmailService, type EmailEnv } from '../services/email'
+import { createEmailService, type EmailEnv } from '@hare/email'
 
 // =============================================================================
 // Route Definitions

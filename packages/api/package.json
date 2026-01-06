@@ -54,11 +54,10 @@
 		"@hare/auth": "workspace:*",
 		"@hare/config": "workspace:*",
 		"@hare/db": "workspace:*",
+		"@hare/email": "workspace:*",
 		"@hare/tools": "workspace:*",
 		"@hare/types": "workspace:*",
-		"@react-email/components": "^1.0.3",
-		"@scalar/hono-api-reference": "^0.9.30",
-		"resend": "^6.6.0"
+		"@scalar/hono-api-reference": "^0.9.30"
 	},
 	"devDependencies": {
 		"@cloudflare/workers-types": "^4.20251224.0",

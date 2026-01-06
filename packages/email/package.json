@@ -1,0 +1,38 @@
+{
+	"name": "@hare/email",
+	"version": "0.1.0",
+	"description": "Email service and React Email templates for Hare platform",
+	"keywords": [
+		"hare",
+		"email",
+		"react-email",
+		"resend",
+		"templates"
+	],
+	"license": "MIT",
+	"type": "module",
+	"exports": {
+		".": {
+			"types": "./src/index.ts",
+			"import": "./src/index.ts"
+		},
+		"./templates": {
+			"types": "./src/templates/index.ts",
+			"import": "./src/templates/index.ts"
+		}
+	},
+	"main": "./src/index.ts",
+	"types": "./src/index.ts",
+	"files": [
+		"src",
+		"README.md"
+	],
+	"dependencies": {
+		"@react-email/components": "^1.0.3",
+		"resend": "^6.6.0"
+	},
+	"devDependencies": {
+		"@hare/typescript-config": "workspace:*",
+		"typescript": "^5"
+	}
+}
