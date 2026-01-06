@@ -334,7 +334,12 @@ async function main(): Promise<void> {
 	}
 
 	// Determine commit range
-	const range = args.range ? `${args.range}..HEAD` : `${args.baseBranch}..HEAD`
+	const range =
+		args.range && args.range.includes('..')
+			? args.range
+			: args.range
+				? `${args.range}..HEAD`
+				: `${args.baseBranch}..HEAD`
 
 	log.info(`Analyzing commits in range: ${range}`)
 
