@@ -45,10 +45,10 @@ export interface UpdateApiKeyInput {
 export function useApiKeys(workspaceId: string | undefined) {
 	return useQuery({
 		queryKey: ['api-keys', workspaceId],
-		queryFn: async () => {
+		queryFn: async (): Promise<{ apiKeys: ApiKey[] }> => {
 			const res = await apiKeys.index.$get({ query: { workspaceId: workspaceId! } })
 			if (!res.ok) throw new Error('Request failed')
-			return res.json()
+			return res.json() as Promise<{ apiKeys: ApiKey[] }>
 		},
 		enabled: !!workspaceId,
 	})
@@ -60,13 +60,13 @@ export function useApiKeys(workspaceId: string | undefined) {
 export function useApiKey(id: string | undefined, workspaceId: string | undefined) {
 	return useQuery({
 		queryKey: ['api-keys', workspaceId, id],
-		queryFn: async () => {
+		queryFn: async (): Promise<ApiKey> => {
 			const res = await apiKeys[':id'].$get({
 				param: { id: id! },
 				query: { workspaceId: workspaceId! },
 			})
 			if (!res.ok) throw new Error('Request failed')
-			return res.json()
+			return res.json() as Promise<ApiKey>
 		},
 		enabled: !!id && !!workspaceId,
 	})
@@ -79,13 +79,13 @@ export function useApiKey(id: string | undefined, workspaceId: string | undefine
 export function useCreateApiKey(workspaceId: string | undefined) {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: async (data: CreateApiKeyInput) => {
+		mutationFn: async (data: CreateApiKeyInput): Promise<ApiKeyWithSecret> => {
 			const res = await apiKeys.index.$post({
 				query: { workspaceId: workspaceId! },
 				json: data,
 			})
 			if (!res.ok) throw new Error('Request failed')
-			return res.json()
+			return res.json() as Promise<ApiKeyWithSecret>
 		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['api-keys', workspaceId] })
@@ -99,14 +99,14 @@ export function useCreateApiKey(workspaceId: string | undefined) {
 export function useUpdateApiKey(workspaceId: string | undefined) {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: async ({ id, data }: { id: string; data: UpdateApiKeyInput }) => {
+		mutationFn: async ({ id, data }: { id: string; data: UpdateApiKeyInput }): Promise<ApiKey> => {
 			const res = await apiKeys[':id'].$patch({
 				param: { id },
 				query: { workspaceId: workspaceId! },
 				json: data,
 			})
 			if (!res.ok) throw new Error('Request failed')
-			return res.json()
+			return res.json() as Promise<ApiKey>
 		},
 		onSuccess: (_, { id }) => {
 			queryClient.invalidateQueries({ queryKey: ['api-keys', workspaceId] })
@@ -121,13 +121,13 @@ export function useUpdateApiKey(workspaceId: string | undefined) {
 export function useDeleteApiKey(workspaceId: string | undefined) {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: async (id: string) => {
+		mutationFn: async (id: string): Promise<{ success: boolean }> => {
 			const res = await apiKeys[':id'].$delete({
 				param: { id },
 				query: { workspaceId: workspaceId! },
 			})
 			if (!res.ok) throw new Error('Request failed')
-			return res.json()
+			return res.json() as Promise<{ success: boolean }>
 		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['api-keys', workspaceId] })
