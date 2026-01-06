@@ -25,6 +25,7 @@ import { timing } from 'hono/timing'
 import { serverEnv } from '@hare/config'
 import { CloudflareEnvError } from './db'
 import { corsMiddleware, loggingMiddleware, securityHeadersMiddleware } from './middleware'
+import { orpcApp } from './orpc/hono'
 import agentWs from './routes/agent-ws'
 // Import route modules
 import agents from './routes/agents'
@@ -162,6 +163,7 @@ const routes = app
 	.route('/health', health)
 	.route('/logs', logs)
 	.route('/embed', embed)
+	.route('/rpc', orpcApp)
 
 // OpenAPI documentation - must be registered before showRoutes
 app.doc('/openapi.json', {
@@ -286,6 +288,9 @@ export { isMessageRole, isWorkspaceRole } from '@hare/types'
 
 // Re-export schemas
 export * from './schemas'
+
+// Re-export oRPC
+export * from './orpc'
 
 // Re-export middleware
 export {
