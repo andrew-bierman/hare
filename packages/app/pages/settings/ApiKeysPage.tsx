@@ -76,7 +76,7 @@ export function ApiKeysPage() {
 
 	const handleDeleteKey = async (keyId: string) => {
 		try {
-			await deleteApiKey.mutateAsync(keyId)
+			await deleteApiKey.mutateAsync({ id: keyId })
 			setKeyToDelete(null)
 			toast.success('API key revoked successfully')
 		} catch (_err) {

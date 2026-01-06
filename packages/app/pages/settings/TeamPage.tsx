@@ -118,16 +118,18 @@ function MemberCard({
 		setIsRoleDialogOpen(false)
 	}
 
+	const displayName = member.name || member.email
+
 	return (
 		<div className="flex items-center justify-between p-4 border rounded-lg">
 			<div className="flex items-center gap-4">
 				<Avatar className="h-10 w-10">
-					<AvatarImage src={member.image || undefined} alt={member.name} />
-					<AvatarFallback>{getInitials(member.name)}</AvatarFallback>
+					<AvatarImage src={member.image || undefined} alt={displayName} />
+					<AvatarFallback>{getInitials(displayName)}</AvatarFallback>
 				</Avatar>
 				<div>
 					<div className="flex items-center gap-2">
-						<p className="font-medium">{member.name}</p>
+						<p className="font-medium">{displayName}</p>
 						{isCurrentUser && (
 							<Badge variant="outline" className="text-xs">
 								You
@@ -151,7 +153,7 @@ function MemberCard({
 							<DialogHeader>
 								<DialogTitle>Manage Member</DialogTitle>
 								<DialogDescription>
-									Update role or remove {member.name} from this workspace.
+									Update role or remove {displayName} from this workspace.
 								</DialogDescription>
 							</DialogHeader>
 							<div className="grid gap-4 py-4">
@@ -206,6 +208,7 @@ function InvitationCard({
 	onRevoke: (inviteId: string) => void
 }) {
 	const isExpired = new Date(invitation.expiresAt) < new Date()
+	const inviterName = invitation.invitedBy.name || invitation.invitedBy.email
 
 	return (
 		<div className="flex items-center justify-between p-4 border rounded-lg bg-muted/30">
@@ -219,7 +222,7 @@ function InvitationCard({
 						<Clock className="h-3 w-3" />
 						<span>{isExpired ? 'Expired' : `Expires ${formatDate(invitation.expiresAt)}`}</span>
 						<span>-</span>
-						<span>Invited by {invitation.invitedBy.name}</span>
+						<span>Invited by {inviterName}</span>
 					</div>
 				</div>
 			</div>
@@ -254,8 +257,9 @@ function InviteForm({ workspaceId, onSuccess }: { workspaceId: string; onSuccess
 
 		try {
 			await sendInvitation.mutateAsync({
-				workspaceId,
-				data: { email, role },
+				id: workspaceId,
+				email,
+				role,
 			})
 			toast.success(`Invitation sent to ${email}`)
 			setEmail('')
@@ -363,7 +367,7 @@ export function TeamPage() {
 
 		try {
 			await removeMember.mutateAsync({
-				workspaceId: activeWorkspace.id,
+				id: activeWorkspace.id,
 				userId,
 			})
 			toast.success('Member removed')
@@ -378,7 +382,7 @@ export function TeamPage() {
 
 		try {
 			await updateMemberRole.mutateAsync({
-				workspaceId: activeWorkspace.id,
+				id: activeWorkspace.id,
 				userId,
 				role,
 			})
@@ -394,7 +398,7 @@ export function TeamPage() {
 
 		try {
 			await revokeInvitation.mutateAsync({
-				workspaceId: activeWorkspace.id,
+				id: activeWorkspace.id,
 				inviteId,
 			})
 			toast.success('Invitation revoked')
@@ -408,7 +412,7 @@ export function TeamPage() {
 		if (!activeWorkspace || deleteConfirmation !== activeWorkspace.name) return
 
 		try {
-			await deleteWorkspace.mutateAsync(activeWorkspace.id)
+			await deleteWorkspace.mutateAsync({ id: activeWorkspace.id })
 			toast.success('Workspace deleted')
 			setIsDeleteDialogOpen(false)
 			setDeleteConfirmation('')

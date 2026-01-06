@@ -31,7 +31,7 @@ export function DeleteToolDialog({
 		if (!toolId) return
 
 		try {
-			await deleteTool.mutateAsync(toolId)
+			await deleteTool.mutateAsync({ id: toolId })
 			toast.success('Tool deleted')
 			onOpenChange(false)
 		} catch (error) {
