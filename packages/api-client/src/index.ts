@@ -266,6 +266,26 @@ export const mcp = hcMcp(`${getBaseURL()}/api/mcp`, { init: clientInit })
 export const agentWs = hcAgentWs(`${getBaseURL()}/api/agent-ws`, { init: clientInit })
 
 // =============================================================================
+// oRPC CLIENT (Type-Safe Alternative)
+// =============================================================================
+
+/**
+ * oRPC client with full end-to-end type safety.
+ * Recommended for new code - types are automatically inferred from the server.
+ *
+ * @example
+ * ```ts
+ * import { orpc } from '@hare/api-client'
+ *
+ * // Types fully inferred!
+ * const { agents } = await orpc.agents.list({})
+ * const agent = await orpc.agents.create({ name: '...', model: '...', instructions: '...' })
+ * ```
+ */
+export { orpc } from './orpc'
+export type { AppRouter } from './orpc'
+
+// =============================================================================
 // TYPE EXPORTS
 // =============================================================================
 
