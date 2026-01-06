@@ -57,6 +57,7 @@ orpcApp.all('/*', async (c) => {
 	}
 
 	// Handle the RPC request
+	// Note: Route is mounted at /rpc within /api, so full path is /api/rpc
 	const { matched, response } = await handler.handle(c.req.raw, {
 		prefix: '/api/rpc',
 		context,
