@@ -2,7 +2,7 @@ import { betterAuth } from 'better-auth'
 import { drizzleAdapter } from 'better-auth/adapters/drizzle'
 import { createDb } from '@hare/db'
 import * as schema from '@hare/db/schema'
-import { createEmailService, type EmailEnv } from '@hare/api'
+import { createEmailService, type EmailEnv } from '@hare/email'
 
 /**
  * Server environment configuration required for auth
