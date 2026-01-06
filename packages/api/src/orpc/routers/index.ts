@@ -17,6 +17,9 @@ import { logsRouter } from './logs'
 import { memoryRouter } from './memory'
 import { chatRouter } from './chat'
 import { billingRouter } from './billing'
+import { healthRouter } from './health'
+import { webhooksRouter } from './webhooks'
+import { embedRouter } from './embed'
 
 // Re-export individual routers
 export {
@@ -33,6 +36,9 @@ export {
 	memoryRouter,
 	chatRouter,
 	billingRouter,
+	healthRouter,
+	webhooksRouter,
+	embedRouter,
 }
 
 // Combined router for the app
@@ -50,6 +56,9 @@ export const appRouter = {
 	memory: memoryRouter,
 	chat: chatRouter,
 	billing: billingRouter,
+	health: healthRouter,
+	webhooks: webhooksRouter,
+	embed: embedRouter,
 }
 
 export type AppRouter = typeof appRouter
