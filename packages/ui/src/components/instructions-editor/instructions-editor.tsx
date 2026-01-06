@@ -2,7 +2,6 @@
 
 import { useMemo, useCallback, useState, useEffect, useRef } from 'react'
 import type ReactCodeMirror from '@uiw/react-codemirror'
-import type { Extension } from '@codemirror/state'
 import { cn } from '../../lib/utils'
 import type { InstructionsEditorProps } from './types'
 import { useTokenCount } from './use-token-count'
@@ -10,18 +9,21 @@ import { StatsFooter } from './stats-footer'
 import { Toolbar, applyMarkdownFormat, type ToolbarAction } from './toolbar'
 
 // Dynamic import for CodeMirror to handle SSR
-// Types are defined but values loaded at runtime
-type MarkdownFn = (config?: { base?: unknown; codeLanguages?: unknown }) => Extension
-type LanguageArray = Array<{ name: string; extensions: string[] }>
-type EditorViewType = typeof import('@codemirror/view').EditorView
-
+// Module-level state for dynamically loaded CodeMirror modules
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let CodeMirror: typeof ReactCodeMirror | null = null
-let markdown: MarkdownFn | null = null
-let markdownLanguage: unknown = null
-let languages: LanguageArray | null = null
-let EditorView: EditorViewType | null = null
-let templateVariableHighlight: Extension | null = null
-let templateVariableTheme: Extension | null = null
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let markdown: any = null
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let markdownLanguage: any = null
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let languages: any = null
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let EditorView: any = null
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let templateVariableHighlight: any = null
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let templateVariableTheme: any = null
 
 export function InstructionsEditor({
 	value,

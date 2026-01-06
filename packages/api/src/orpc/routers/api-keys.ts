@@ -95,7 +95,7 @@ export const create = requireAdmin
 			.values({
 				workspaceId,
 				name: input.name,
-				key,
+				// SECURITY: Only store the hash, never the plaintext key
 				hashedKey,
 				prefix,
 				permissions: input.permissions,
