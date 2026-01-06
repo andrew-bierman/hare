@@ -57,14 +57,44 @@ export const publicProcedure = os.$context<BaseContext>()
 
 /**
  * Authenticated procedure - requires logged-in user
+ * Validates that user exists in context, returns 401 if not
  */
-export const authedProcedure = os.$context<AuthContext>()
+export const authedProcedure = os
+	.$context<BaseContext & { user?: AuthContext['user'] }>()
+	.use(({ context, next }) => {
+		if (!context.user) {
+			throw new ORPCError('UNAUTHORIZED', { message: 'Authentication required' })
+		}
+		return next({
+			context: context as AuthContext,
+		})
+	})
 
 /**
  * Workspace procedure - requires workspace access
  * Most routes use this as they operate within a workspace context
+ * Validates that both user and workspace exist in context
  */
-export const workspaceProcedure = os.$context<WorkspaceContext>()
+export const workspaceProcedure = os
+	.$context<
+		BaseContext & {
+			user?: AuthContext['user']
+			workspace?: WorkspaceContext['workspace']
+			workspaceId?: string
+			workspaceRole?: WorkspaceContext['workspaceRole']
+		}
+	>()
+	.use(({ context, next }) => {
+		if (!context.user) {
+			throw new ORPCError('UNAUTHORIZED', { message: 'Authentication required' })
+		}
+		if (!context.workspace || !context.workspaceId) {
+			throw new ORPCError('FORBIDDEN', { message: 'Workspace access required' })
+		}
+		return next({
+			context: context as WorkspaceContext,
+		})
+	})
 
 // =============================================================================
 // Permission Middleware

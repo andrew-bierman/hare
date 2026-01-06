@@ -10,6 +10,7 @@ import { RPCHandler } from '@orpc/server/fetch'
 import { appRouter } from './routers'
 import type { WorkspaceEnv } from '@hare/types'
 import { getCloudflareEnv, getDb } from '../db'
+import { optionalAuthMiddleware } from '../middleware/auth'
 
 // Create the RPC handler
 const handler = new RPCHandler(appRouter)
@@ -24,6 +25,9 @@ const handler = new RPCHandler(appRouter)
  * ```
  */
 export const orpcApp = new Hono<WorkspaceEnv>()
+
+// Apply optional auth middleware to extract user from session
+orpcApp.use('*', optionalAuthMiddleware)
 
 // Handle all oRPC requests
 orpcApp.all('/*', async (c) => {
