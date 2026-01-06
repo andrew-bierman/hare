@@ -149,6 +149,36 @@ export function useAgentQuery(id: string | undefined) {
 	})
 }
 
+export interface ValidationIssue {
+	field: string
+	message: string
+	severity: 'error' | 'warning'
+}
+
+export function useAgentPreviewQuery(options: {
+	agentId?: string
+	workspaceId?: string
+	overrides?: {
+		name?: string
+		description?: string
+		model?: string
+		instructions?: string
+		config?: Record<string, unknown>
+		toolIds?: string[]
+	}
+	enabled?: boolean
+}) {
+	return useQuery({
+		queryKey: ['agents', options.agentId, 'preview', options.overrides],
+		queryFn: () =>
+			orpc.agents.preview({
+				agentId: options.agentId!,
+				overrides: options.overrides,
+			}),
+		enabled: options.enabled !== false && !!options.agentId && !!options.workspaceId,
+	})
+}
+
 export function useCreateAgentMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
@@ -616,6 +646,14 @@ export function useUpdateUserPreferencesMutation() {
 // =============================================================================
 // Usage Hooks
 // =============================================================================
+
+export function useUsageQuery(workspaceId: string | undefined) {
+	return useQuery({
+		queryKey: ['usage', workspaceId],
+		queryFn: () => orpc.usage.getWorkspaceUsage({}),
+		enabled: !!workspaceId,
+	})
+}
 
 export function useWorkspaceUsageQuery(options?: { startDate?: string; endDate?: string }) {
 	return useQuery({

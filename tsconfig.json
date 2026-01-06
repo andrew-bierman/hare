@@ -38,5 +38,5 @@
 		"packages/**/*.tsx",
 		"apps/web/cloudflare-env.d.ts"
 	],
-	"exclude": ["node_modules", ".next", "dist", "apps/tauri"]
+	"exclude": ["node_modules", ".next", "dist", "apps/tauri", "**/__tests__/**"]
 }
