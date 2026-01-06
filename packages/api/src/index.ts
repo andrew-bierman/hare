@@ -40,8 +40,9 @@ import webhooksRoutes from './routes/webhooks'
 import type { HonoEnv } from '@hare/types'
 
 // =============================================================================
-// ROUTE TYPE EXPORTS (for split RPC clients)
-// Note: Many routes have been migrated to oRPC - use @hare/api-client/orpc instead
+// ROUTE TYPE EXPORTS (for Hono RPC clients)
+// Note: Core CRUD routes have been migrated to oRPC - use `orpc` export instead
+// The routes below are still on Hono RPC (auth, billing, chat, etc.)
 // =============================================================================
 
 /** Memory routes: mounted under /api/agents/* */
