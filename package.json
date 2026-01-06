@@ -20,6 +20,7 @@
 		"clean:all": "bun run scripts/clean.ts --all",
 		"clean:cache": "bun run scripts/clean.ts --cache",
 		"clean:deps": "bun run scripts/clean.ts --deps",
+		"clean:install": "bun run scripts/clean.ts --all && bun install",
 		"db:generate": "bun run --cwd apps/web db:generate",
 		"db:migrate": "bun run --cwd apps/web db:migrate",
 		"db:migrate:local": "bun run --cwd apps/web db:migrate:local",
