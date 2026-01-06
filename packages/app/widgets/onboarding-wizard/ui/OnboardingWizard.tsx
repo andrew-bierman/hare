@@ -11,16 +11,18 @@ import {
 	DialogTitle,
 } from '@hare/ui/components/dialog'
 import { config, type AgentTemplate } from '@hare/config'
-import { Bot, ChevronRight, Rocket, Sparkles, Wand2, X } from 'lucide-react'
+import { Bot, ChevronRight, Rocket, Sparkles, Wand2 } from 'lucide-react'
 import { cn } from '@hare/ui/lib/utils'
+
+const ONBOARDING_DISMISSED_KEY = 'hare-onboarding-dismissed'
 
 export interface OnboardingWizardProps {
 	/** Whether the user is new (no agents) */
 	isNewUser: boolean
 	/** Called when a template is selected */
 	onSelectTemplate: (templateId: string) => void
-	/** Called when user wants to skip */
-	onSkip: () => void
+	/** Called when user wants to skip (optional - wizard handles its own persistence) */
+	onSkip?: () => void
 	/** Called when starting from scratch */
 	onStartFromScratch: () => void
 }
@@ -71,8 +73,25 @@ function TemplateOption({
 }
 
 /**
+ * Check if onboarding was previously dismissed (persisted to localStorage)
+ */
+function wasOnboardingDismissed(): boolean {
+	if (typeof window === 'undefined') return false
+	return localStorage.getItem(ONBOARDING_DISMISSED_KEY) === 'true'
+}
+
+/**
+ * Mark onboarding as dismissed (persisted to localStorage)
+ */
+function markOnboardingDismissed(): void {
+	if (typeof window === 'undefined') return
+	localStorage.setItem(ONBOARDING_DISMISSED_KEY, 'true')
+}
+
+/**
  * Onboarding wizard for new users.
  * Guides them through creating their first agent with a friendly, step-by-step process.
+ * Dismissal is persisted to localStorage to prevent re-showing on page refresh.
  */
 export function OnboardingWizard({
 	isNewUser,
@@ -84,9 +103,9 @@ export function OnboardingWizard({
 	const [step, setStep] = useState<WizardStep>('welcome')
 	const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null)
 
-	// Show wizard for new users
+	// Show wizard for new users who haven't dismissed it
 	useEffect(() => {
-		if (isNewUser) {
+		if (isNewUser && !wasOnboardingDismissed()) {
 			// Small delay to let the page settle
 			const timer = setTimeout(() => setOpen(true), 500)
 			return () => clearTimeout(timer)
@@ -95,7 +114,8 @@ export function OnboardingWizard({
 
 	const handleClose = () => {
 		setOpen(false)
-		onSkip()
+		markOnboardingDismissed()
+		onSkip?.()
 	}
 
 	const handleGetStarted = () => {
@@ -105,12 +125,14 @@ export function OnboardingWizard({
 	const handleSelectTemplate = () => {
 		if (selectedTemplate) {
 			setOpen(false)
+			markOnboardingDismissed()
 			onSelectTemplate(selectedTemplate)
 		}
 	}
 
 	const handleStartFromScratch = () => {
 		setOpen(false)
+		markOnboardingDismissed()
 		onStartFromScratch()
 	}
 
