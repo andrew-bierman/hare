@@ -214,9 +214,7 @@ function AgentDetailPage() {
 
 	// Server-side preview validation query
 	const { data: serverPreview, isLoading: isValidating } = useAgentPreviewQuery({
-		agentId,
-		workspaceId: activeWorkspace?.id,
-		overrides: debouncedOverrides,
+		...debouncedOverrides,
 		enabled: !!agentId && !!activeWorkspace?.id && hasChanges,
 	})
 
@@ -633,9 +631,7 @@ function AgentDetailPage() {
 				</TabsContent>
 
 				<TabsContent value="memory" className="space-y-4">
-					{activeWorkspace?.id && (
-						<MemoryViewer agentId={agentId} workspaceId={activeWorkspace.id} />
-					)}
+					<MemoryViewer agentId={agentId} />
 				</TabsContent>
 
 				<TabsContent value="schedules" className="space-y-4">

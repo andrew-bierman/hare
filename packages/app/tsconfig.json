@@ -1,7 +1,9 @@
 {
 	"extends": "@hare/typescript-config/react-library.json",
 	"compilerOptions": {
-		"noEmit": true
+		"noEmit": true,
+		"module": "ESNext",
+		"moduleResolution": "Bundler"
 	},
 	"include": ["**/*.ts", "**/*.tsx"],
 	"exclude": ["node_modules", "dist"]

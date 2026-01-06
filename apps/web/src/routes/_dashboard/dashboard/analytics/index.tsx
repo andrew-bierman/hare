@@ -77,12 +77,12 @@ function StatCardSkeleton() {
 }
 
 function AnalyticsPage() {
-	const { activeWorkspace, isLoading: workspaceLoading } = useWorkspace()
+	const { isLoading: workspaceLoading } = useWorkspace()
 	const [dateRange, setDateRange] = useState('30d')
 	const [groupBy, setGroupBy] = useState<'day' | 'week' | 'month'>('day')
 	const [selectedAgentId, setSelectedAgentId] = useState<string>('all')
 
-	const { data: agentsData } = useAgentsQuery(activeWorkspace?.id)
+	const { data: agentsData } = useAgentsQuery()
 	const agents = agentsData?.agents ?? []
 
 	// Calculate date range
@@ -108,15 +108,12 @@ function AnalyticsPage() {
 		}
 	}, [dateRange])
 
-	const { data: analyticsData, isLoading: analyticsLoading } = useAnalyticsQuery(
-		activeWorkspace?.id,
-		{
-			startDate,
-			endDate,
-			agentId: selectedAgentId === 'all' ? undefined : selectedAgentId,
-			groupBy,
-		},
-	)
+	const { data: analyticsData, isLoading: analyticsLoading } = useAnalyticsQuery({
+		startDate,
+		endDate,
+		agentId: selectedAgentId === 'all' ? undefined : selectedAgentId,
+		groupBy,
+	})
 
 	const isLoading = workspaceLoading || analyticsLoading
 
@@ -235,7 +232,7 @@ function AnalyticsPage() {
 					</SelectTrigger>
 					<SelectContent>
 						<SelectItem value="all">All agents</SelectItem>
-						{agents.map((agent) => (
+						{agents.map((agent: { id: string; name: string }) => (
 							<SelectItem key={agent.id} value={agent.id}>
 								{agent.name}
 							</SelectItem>
@@ -345,11 +342,8 @@ function AnalyticsPage() {
 									`${(entry as unknown as Record<string, unknown>).modelName}: ${formatNumber((entry as unknown as Record<string, unknown>).totalTokens as number)}`
 								}
 							>
-								{analyticsData?.byModel.map((model) => (
-									<Cell
-										key={model.modelName}
-										fill={CHART_COLORS[analyticsData.byModel.indexOf(model) % CHART_COLORS.length]}
-									/>
+								{analyticsData?.byModel.map((model: { modelName: string }, index: number) => (
+									<Cell key={model.modelName} fill={CHART_COLORS[index % CHART_COLORS.length]} />
 								))}
 							</Pie>
 							<Tooltip formatter={(value) => formatNumber(value as number)} />

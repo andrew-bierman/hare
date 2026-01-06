@@ -133,10 +133,10 @@ export function useToolMutations(workspaceId: string) {
 				// Use type assertion for compatibility between CreateToolInput and ToolRow schemas
 				const tool = {
 					id,
+					workspaceId,
 					name: data.name,
 					description: data.description ?? null,
 					type: data.type,
-					isSystem: false,
 					inputSchema: data.inputSchema ?? {},
 					config: data.config,
 					createdAt: now,
@@ -191,12 +191,14 @@ export function useWorkspaceMutations() {
 			insert: (data: CreateWorkspaceInput): string => {
 				const id = createId()
 				const now = new Date().toISOString()
-				// WorkspaceRow from API includes 'role' but not 'slug' directly
+				// Generate slug from name if not provided
+				const slug =
+					data.slug || data.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
 				const workspace = {
 					id,
 					name: data.name,
+					slug,
 					description: data.description ?? null,
-					role: 'owner',
 					createdAt: now,
 					updatedAt: now,
 				} as WorkspaceRow

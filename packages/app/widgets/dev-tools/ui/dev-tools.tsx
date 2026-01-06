@@ -36,7 +36,7 @@ export function DevTools() {
 	const navigate = useNavigate()
 
 	const { activeWorkspace } = useWorkspace()
-	const createAgent = useCreateAgentMutation(activeWorkspace?.id)
+	const createAgent = useCreateAgentMutation()
 	const createWorkspace = useCreateWorkspaceMutation()
 
 	// Only render in dev mode

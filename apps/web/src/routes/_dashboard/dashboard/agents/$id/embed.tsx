@@ -1,4 +1,3 @@
-import { useWorkspace } from '@hare/app'
 import { useAgentQuery, useUpdateAgentMutation } from '@hare/app/shared/api'
 import { config } from '@hare/config'
 import { Badge } from '@hare/ui/components/badge'
@@ -76,9 +75,8 @@ function LoadingSkeleton() {
 
 function EmbedConfigPage() {
 	const { id: agentId } = Route.useParams()
-	const { activeWorkspace } = useWorkspace()
-	const { data: agent, isLoading, error } = useAgentQuery(agentId, activeWorkspace?.id)
-	const updateAgent = useUpdateAgentMutation(activeWorkspace?.id)
+	const { data: agent, isLoading, error } = useAgentQuery(agentId)
+	const updateAgent = useUpdateAgentMutation()
 
 	// Embed configuration state
 	const [config, setConfig] = useState<EmbedConfig>({
@@ -195,14 +193,12 @@ function EmbedConfigPage() {
 
 			await updateAgent.mutateAsync({
 				id: agentId,
-				data: {
-					config: newConfig as {
-						temperature?: number
-						maxTokens?: number
-						topP?: number
-						topK?: number
-						stopSequences?: string[]
-					},
+				config: newConfig as {
+					temperature?: number
+					maxTokens?: number
+					topP?: number
+					topK?: number
+					stopSequences?: string[]
 				},
 			})
 			toast.success('Embed settings saved')

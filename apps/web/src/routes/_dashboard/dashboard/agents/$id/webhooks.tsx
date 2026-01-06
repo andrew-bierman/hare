@@ -514,11 +514,7 @@ function WebhooksPage() {
 	const { id: agentId } = Route.useParams()
 	const { activeWorkspace } = useWorkspace()
 
-	const {
-		data: agent,
-		isLoading: agentLoading,
-		error: agentError,
-	} = useAgentQuery(agentId, activeWorkspace?.id)
+	const { data: agent, isLoading: agentLoading, error: agentError } = useAgentQuery(agentId)
 
 	const [webhooks, setWebhooks] = useState<Webhook[]>([])
 	const [loading, setLoading] = useState(true)

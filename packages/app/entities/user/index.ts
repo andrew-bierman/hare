@@ -1,7 +1,8 @@
 /**
  * User Entity
  *
- * Business entity for user accounts and profiles.
+ * Types and business logic for user entities.
+ * OAuth providers and auth hooks should be imported from '@hare/app/features/auth'.
  */
 
-export * from './api/hooks'
+export type { AuthUser as User } from '@hare/types'

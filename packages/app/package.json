@@ -37,7 +37,6 @@
 		"@dnd-kit/utilities": "^3.2.2",
 		"@hare/agent": "workspace:*",
 		"@hare/api": "workspace:*",
-		"@hare/api-client": "workspace:*",
 		"@hare/auth": "workspace:*",
 		"@hare/config": "workspace:*",
 		"@hare/types": "workspace:*",

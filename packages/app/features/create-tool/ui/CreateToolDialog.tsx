@@ -40,7 +40,7 @@ interface CreateToolDialogProps {
 }
 
 export function CreateToolDialog({ workspaceId, open, onOpenChange }: CreateToolDialogProps) {
-	const createTool = useCreateToolMutation(workspaceId)
+	const createTool = useCreateToolMutation()
 
 	const [newName, setNewName] = useState('')
 	const [newDescription, setNewDescription] = useState('')
@@ -75,8 +75,8 @@ export function CreateToolDialog({ workspaceId, open, onOpenChange }: CreateTool
 				name: newName.trim(),
 				description: newDescription.trim() || `Custom ${newType} tool`,
 				type: newType,
-				inputSchema: {},
-				config,
+				inputSchema: { type: 'object' },
+				config: config ?? {},
 			})
 
 			toast.success('Tool created successfully')

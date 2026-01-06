@@ -4,59 +4,28 @@ import { useChat as useAIChat } from '@ai-sdk/react'
 import { useQuery } from '@tanstack/react-query'
 import { useMemo, useRef, useState } from 'react'
 import { DefaultChatTransport } from 'ai'
+import { orpc } from '@hare/api'
 
-// Helper to extract error message from API response
-function getErrorMessage(error: unknown, fallback: string): string {
-	if (error && typeof error === 'object' && 'error' in error && typeof error.error === 'string') {
-		return error.error
-	}
-	return fallback
+// =============================================================================
+// Types (inferred from oRPC)
+// =============================================================================
+
+type ConversationsOutput = Awaited<ReturnType<typeof orpc.chat.listConversations>>
+type MessagesOutput = Awaited<ReturnType<typeof orpc.chat.getMessages>>
+
+export type Conversation = ConversationsOutput['conversations'][number]
+export type Message = MessagesOutput['messages'][number] & {
+	parts?: Array<{ type: string; text?: string }>
 }
 
-export interface Conversation {
-	id: string
-	agentId: string
-	userId: string
-	title: string
-	messageCount: number
-	createdAt: string
-	updatedAt: string
-}
-
-async function fetchConversations(agentId: string): Promise<{ conversations: Conversation[] }> {
-	const response = await fetch(`/api/chat/agents/${agentId}/conversations`)
-	if (!response.ok) {
-		let error: unknown = null
-		try {
-			error = await response.json()
-		} catch {
-			error = { error: response.statusText || 'Unknown error' }
-		}
-		throw new Error(getErrorMessage(error, 'Failed to fetch conversations'))
-	}
-	return response.json()
-}
-
-async function fetchMessages(
-	conversationId: string,
-): Promise<{ messages: Array<{ id: string; role: string; content: string }> }> {
-	const response = await fetch(`/api/chat/conversations/${conversationId}/messages`)
-	if (!response.ok) {
-		let error: unknown = null
-		try {
-			error = await response.json()
-		} catch {
-			error = { error: response.statusText || 'Unknown error' }
-		}
-		throw new Error(getErrorMessage(error, 'Failed to fetch messages'))
-	}
-	return response.json()
-}
+// =============================================================================
+// Query Hooks (using oRPC)
+// =============================================================================
 
 export function useConversationsQuery(agentId: string | undefined) {
 	return useQuery({
 		queryKey: ['conversations', agentId],
-		queryFn: () => fetchConversations(agentId!),
+		queryFn: () => orpc.chat.listConversations({ id: agentId! }),
 		enabled: !!agentId,
 	})
 }
@@ -64,10 +33,14 @@ export function useConversationsQuery(agentId: string | undefined) {
 export function useMessagesQuery(conversationId: string | undefined) {
 	return useQuery({
 		queryKey: ['messages', conversationId],
-		queryFn: () => fetchMessages(conversationId!),
+		queryFn: () => orpc.chat.getMessages({ id: conversationId! }),
 		enabled: !!conversationId,
 	})
 }
+
+// =============================================================================
+// Chat Hook (using AI SDK for streaming)
+// =============================================================================
 
 /**
  * Helper to extract text content from AI SDK v6 message parts
@@ -83,6 +56,9 @@ function getMessageContent(message: { parts?: Array<{ type: string; text?: strin
 /**
  * Chat hook powered by Vercel AI SDK v6.
  * Provides streaming chat functionality with automatic message management.
+ *
+ * Note: This uses direct fetch() to the streaming endpoint rather than oRPC,
+ * as the AI SDK has its own streaming protocol that works best with the Hono endpoint.
  */
 export function useChat(agentId: string | undefined) {
 	const [sessionId, setSessionId] = useState<string | null>(null)
@@ -138,13 +114,9 @@ export function useChat(agentId: string | undefined) {
 	}
 }
 
-// Re-export types for backwards compatibility
-export interface Message {
-	id: string
-	role: 'user' | 'assistant' | 'system'
-	content: string
-	parts?: Array<{ type: string; text?: string }>
-}
+// =============================================================================
+// Backwards Compatibility Types
+// =============================================================================
 
 export interface ChatUsage {
 	tokensIn: number

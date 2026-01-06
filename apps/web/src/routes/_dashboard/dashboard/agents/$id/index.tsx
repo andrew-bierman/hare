@@ -1,7 +1,5 @@
 import { useWorkspace } from '@hare/app'
-import { useDebouncedValue } from '@hare/app/shared'
 import {
-	useAgentPreviewQuery,
 	useAgentQuery,
 	useAgentUsageQuery,
 	useDeleteAgentMutation,
@@ -9,13 +7,6 @@ import {
 	useToolsQuery,
 	useUpdateAgentMutation,
 } from '@hare/app/shared/api'
-
-// Local type for validation issues (matches API schema)
-interface ValidationIssue {
-	field: string
-	type: 'error' | 'warning'
-	message: string
-}
 
 import { AgentInstructionsEditor } from '@hare/app/widgets/agent-builder'
 import { MemoryViewer } from '@hare/app/widgets/memory-viewer'
@@ -125,25 +116,6 @@ type ValidationWarnings = {
 	'config.temperature'?: string
 }
 
-// Helper to convert server validation issues to error/warning maps
-function processServerValidation(issues: ValidationIssue[]): {
-	errors: ValidationErrors
-	warnings: ValidationWarnings
-} {
-	const errors: ValidationErrors = {}
-	const warnings: ValidationWarnings = {}
-
-	for (const issue of issues) {
-		if (issue.type === 'error') {
-			errors[issue.field as keyof ValidationErrors] = issue.message
-		} else {
-			warnings[issue.field as keyof ValidationWarnings] = issue.message
-		}
-	}
-
-	return { errors, warnings }
-}
-
 // Tool category icons mapping
 const CATEGORY_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
 	storage: HardDrive,
@@ -195,12 +167,12 @@ function AgentBuilderPage() {
 	const navigate = useNavigate()
 
 	const { activeWorkspace } = useWorkspace()
-	const { data: agent, isLoading, error } = useAgentQuery(agentId, activeWorkspace?.id)
-	const { data: toolsData } = useToolsQuery(activeWorkspace?.id)
-	const { data: usageData } = useAgentUsageQuery(agentId, activeWorkspace?.id)
-	const updateAgent = useUpdateAgentMutation(activeWorkspace?.id)
-	const deleteAgent = useDeleteAgentMutation(activeWorkspace?.id)
-	const deployAgent = useDeployAgentMutation(activeWorkspace?.id)
+	const { data: agent, isLoading, error } = useAgentQuery(agentId)
+	const { data: toolsData } = useToolsQuery()
+	const { data: usageData } = useAgentUsageQuery(agentId)
+	const updateAgent = useUpdateAgentMutation()
+	const deleteAgent = useDeleteAgentMutation()
+	const deployAgent = useDeployAgentMutation()
 
 	const [name, setName] = useState('')
 	const [description, setDescription] = useState('')
@@ -215,40 +187,9 @@ function AgentBuilderPage() {
 
 	const tools = toolsData?.tools ?? []
 
-	// Debounce values for server validation to avoid too many API calls
-	const debouncedOverrides = useDebouncedValue(
-		{
-			name,
-			description: description || undefined,
-			model,
-			instructions,
-			toolIds: selectedToolIds,
-		},
-		800, // Wait 800ms after user stops typing
-	)
-
-	// Server-side preview validation query
-	const { data: serverPreview, isLoading: isValidating } = useAgentPreviewQuery({
-		agentId,
-		workspaceId: activeWorkspace?.id,
-		overrides: debouncedOverrides,
-		enabled: !!agentId && !!activeWorkspace?.id && hasChanges,
-	})
-
-	// Process server validation results
-	const serverValidation = useMemo(() => {
-		if (!serverPreview) return { errors: {}, warnings: {} }
-		return processServerValidation([...serverPreview.errors, ...serverPreview.warnings])
-	}, [serverPreview])
-
-	// Merge client and server validation errors/warnings
-	const validationErrors = useMemo(() => {
-		return { ...clientValidationErrors, ...serverValidation.errors }
-	}, [clientValidationErrors, serverValidation.errors])
-
-	const validationWarnings = useMemo(() => {
-		return { ...clientValidationWarnings, ...serverValidation.warnings }
-	}, [clientValidationWarnings, serverValidation.warnings])
+	// Use client-side validation only (server-side preview not available in oRPC)
+	const validationErrors = clientValidationErrors
+	const validationWarnings = clientValidationWarnings
 
 	// Initialize form with agent data
 	useEffect(() => {
@@ -316,9 +257,12 @@ function AgentBuilderPage() {
 		return Object.keys(validationErrors).length > 0 || (!isValidModel && model !== '')
 	}, [validationErrors, isValidModel, model])
 
+	// Tool type for type safety
+	type Tool = { id: string; name: string; type: string }
+
 	// Get selected tools with their details
 	const selectedTools = useMemo(() => {
-		return tools.filter((tool) => selectedToolIds.includes(tool.id))
+		return tools.filter((tool: Tool) => selectedToolIds.includes(tool.id))
 	}, [tools, selectedToolIds])
 
 	// Group selected tools by category/type
@@ -348,14 +292,12 @@ function AgentBuilderPage() {
 		try {
 			await updateAgent.mutateAsync({
 				id: agentId,
-				data: {
-					name: name.trim(),
-					description: description.trim() || undefined,
-					model,
-					instructions: instructions.trim() || undefined,
-					systemToolsEnabled,
-					toolIds: selectedToolIds,
-				},
+				name: name.trim(),
+				description: description.trim() || undefined,
+				model,
+				instructions: instructions.trim() || undefined,
+				systemToolsEnabled,
+				toolIds: selectedToolIds,
 			})
 			toast.success('Agent updated successfully')
 			setHasChanges(false)
@@ -366,7 +308,7 @@ function AgentBuilderPage() {
 
 	const handleDelete = async () => {
 		try {
-			await deleteAgent.mutateAsync(agentId)
+			await deleteAgent.mutateAsync({ id: agentId })
 			toast.success('Agent deleted')
 			navigate({ to: '/dashboard/agents' })
 		} catch (error) {
@@ -723,9 +665,7 @@ function AgentBuilderPage() {
 				</TabsContent>
 
 				<TabsContent value="memory" className="space-y-4">
-					{activeWorkspace?.id && (
-						<MemoryViewer agentId={agentId} workspaceId={activeWorkspace.id} />
-					)}
+					<MemoryViewer agentId={agentId} />
 				</TabsContent>
 
 				<TabsContent value="schedules" className="space-y-4">
@@ -774,11 +714,6 @@ function AgentBuilderPage() {
 								<div className="pt-4 border-t">
 									<div className="flex items-center justify-between mb-2">
 										<h4 className="text-sm font-medium">Validation Status</h4>
-										{isValidating && (
-											<span className="text-xs text-muted-foreground animate-pulse">
-												Validating...
-											</span>
-										)}
 									</div>
 									{hasValidationErrors ? (
 										<div className="space-y-2">
@@ -800,11 +735,7 @@ function AgentBuilderPage() {
 									) : (
 										<div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400">
 											<CheckCircle className="h-4 w-4" />
-											<span className="text-sm">
-												{serverPreview?.preview?.readyForDeployment
-													? 'Ready for deployment'
-													: 'Configuration is valid'}
-											</span>
+											<span className="text-sm">Configuration is valid</span>
 										</div>
 									)}
 									{Object.keys(validationWarnings).length > 0 && (
@@ -863,7 +794,7 @@ function AgentBuilderPage() {
 														</Badge>
 													</div>
 													<div className="flex flex-wrap gap-2 pl-6">
-														{categoryTools.map((tool) => (
+														{categoryTools.map((tool: Tool) => (
 															<Badge key={tool.id} variant="outline" className="text-xs">
 																{tool.name}
 															</Badge>

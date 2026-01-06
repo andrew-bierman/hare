@@ -2,44 +2,26 @@
  * Memory Hooks
  *
  * React Query hooks for agent vector memory operations.
+ * Uses oRPC for type-safe API calls.
+ *
+ * Note: workspaceId is determined by server context from the authenticated session.
  */
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { memory } from '@hare/api-client'
+import { orpc } from '@hare/api'
 
 // =============================================================================
-// Types
+// Types (inferred from oRPC)
 // =============================================================================
+
+type MemoryListOutput = Awaited<ReturnType<typeof orpc.memory.list>>
+type MemoryOutput = MemoryListOutput['memories'][number]
+type SearchOutput = Awaited<ReturnType<typeof orpc.memory.search>>
 
 export type MemoryType = 'fact' | 'context' | 'preference' | 'conversation' | 'custom'
-
-export interface Memory {
-	id: string
-	content: string
-	metadata: {
-		agentId: string
-		workspaceId: string
-		type: MemoryType
-		source?: string
-		createdAt: string
-		updatedAt?: string
-		tags?: string[]
-	}
-	score?: number
-}
-
-export interface MemoryListResponse {
-	memories: Memory[]
-	total: number
-	limit: number
-	offset: number
-}
-
-export interface SearchResult {
-	memories: Memory[]
-	query: string
-	topK: number
-}
+export type Memory = MemoryOutput
+export type MemoryListResponse = MemoryListOutput
+export type SearchResult = SearchOutput
 
 export interface CreateMemoryInput {
 	content: string
@@ -68,10 +50,9 @@ export interface SearchMemoryInput {
 export const memoryQueryKeys = {
 	all: ['memories'] as const,
 	lists: () => [...memoryQueryKeys.all, 'list'] as const,
-	list: (agentId: string, workspaceId: string) =>
-		[...memoryQueryKeys.lists(), agentId, workspaceId] as const,
-	search: (agentId: string, workspaceId: string, query: string) =>
-		[...memoryQueryKeys.all, 'search', agentId, workspaceId, query] as const,
+	list: (agentId: string) => [...memoryQueryKeys.lists(), agentId] as const,
+	search: (agentId: string, query: string) =>
+		[...memoryQueryKeys.all, 'search', agentId, query] as const,
 }
 
 // =============================================================================
@@ -83,51 +64,43 @@ export const memoryQueryKeys = {
  */
 export function useMemoriesQuery(options: {
 	agentId: string
-	workspaceId?: string
 	limit?: number
 	offset?: number
 	enabled?: boolean
 }) {
-	const { agentId, workspaceId, limit = 20, offset = 0, enabled = true } = options
+	const { agentId, limit = 20, offset = 0, enabled = true } = options
 
 	return useQuery({
-		queryKey: memoryQueryKeys.list(agentId, workspaceId || ''),
-		queryFn: async () => {
-			const res = await memory[':id'].memories.$get({
-				param: { id: agentId },
-				query: {
-					workspaceId: workspaceId!,
-					limit: limit.toString(),
-					offset: offset.toString(),
-				},
-			})
-			if (!res.ok) throw new Error('Request failed')
-			return res.json()
-		},
-		enabled: enabled && !!workspaceId,
+		queryKey: memoryQueryKeys.list(agentId),
+		queryFn: () =>
+			orpc.memory.list({
+				id: agentId,
+				limit,
+				offset,
+			}),
+		enabled,
 	})
 }
 
 /**
  * Create a new memory.
  */
-export function useCreateMemoryMutation(options: { agentId: string; workspaceId?: string }) {
-	const { agentId, workspaceId } = options
+export function useCreateMemoryMutation(options: { agentId: string }) {
+	const { agentId } = options
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationFn: async (data: CreateMemoryInput) => {
-			const res = await memory[':id'].memories.$post({
-				param: { id: agentId },
-				query: { workspaceId: workspaceId! },
-				json: data,
-			})
-			if (!res.ok) throw new Error('Request failed')
-			return res.json()
-		},
+		mutationFn: (data: CreateMemoryInput) =>
+			orpc.memory.create({
+				id: agentId,
+				content: data.content,
+				type: data.type,
+				source: data.source,
+				tags: data.tags,
+			}),
 		onSuccess: () => {
 			queryClient.invalidateQueries({
-				queryKey: memoryQueryKeys.list(agentId, workspaceId || ''),
+				queryKey: memoryQueryKeys.list(agentId),
 			})
 		},
 	})
@@ -136,42 +109,40 @@ export function useCreateMemoryMutation(options: { agentId: string; workspaceId?
 /**
  * Search memories.
  */
-export function useSearchMemoriesMutation(options: { agentId: string; workspaceId?: string }) {
-	const { agentId, workspaceId } = options
+export function useSearchMemoriesMutation(options: { agentId: string }) {
+	const { agentId } = options
 
 	return useMutation({
-		mutationFn: async (data: SearchMemoryInput) => {
-			const res = await memory[':id'].memories.search.$post({
-				param: { id: agentId },
-				query: { workspaceId: workspaceId! },
-				json: data,
-			})
-			if (!res.ok) throw new Error('Request failed')
-			return res.json()
-		},
+		mutationFn: (data: SearchMemoryInput) =>
+			orpc.memory.search({
+				id: agentId,
+				query: data.query,
+				topK: data.topK,
+				type: data.type,
+				tags: data.tags,
+			}),
 	})
 }
 
 /**
  * Update a memory.
  */
-export function useUpdateMemoryMutation(options: { agentId: string; workspaceId?: string }) {
-	const { agentId, workspaceId } = options
+export function useUpdateMemoryMutation(options: { agentId: string }) {
+	const { agentId } = options
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationFn: async (input: { memoryId: string; data: UpdateMemoryInput }) => {
-			const res = await memory[':id'].memories[':memoryId'].$patch({
-				param: { id: agentId, memoryId: input.memoryId },
-				query: { workspaceId: workspaceId! },
-				json: input.data,
-			})
-			if (!res.ok) throw new Error('Request failed')
-			return res.json()
-		},
+		mutationFn: (input: { memoryId: string; data: UpdateMemoryInput }) =>
+			orpc.memory.update({
+				id: agentId,
+				memoryId: input.memoryId,
+				content: input.data.content,
+				type: input.data.type,
+				tags: input.data.tags,
+			}),
 		onSuccess: () => {
 			queryClient.invalidateQueries({
-				queryKey: memoryQueryKeys.list(agentId, workspaceId || ''),
+				queryKey: memoryQueryKeys.list(agentId),
 			})
 		},
 	})
@@ -180,22 +151,19 @@ export function useUpdateMemoryMutation(options: { agentId: string; workspaceId?
 /**
  * Delete a memory.
  */
-export function useDeleteMemoryMutation(options: { agentId: string; workspaceId?: string }) {
-	const { agentId, workspaceId } = options
+export function useDeleteMemoryMutation(options: { agentId: string }) {
+	const { agentId } = options
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationFn: async (memoryId: string) => {
-			const res = await memory[':id'].memories[':memoryId'].$delete({
-				param: { id: agentId, memoryId },
-				query: { workspaceId: workspaceId! },
-			})
-			if (!res.ok) throw new Error('Request failed')
-			return res.json()
-		},
+		mutationFn: (memoryId: string) =>
+			orpc.memory.delete({
+				id: agentId,
+				memoryId,
+			}),
 		onSuccess: () => {
 			queryClient.invalidateQueries({
-				queryKey: memoryQueryKeys.list(agentId, workspaceId || ''),
+				queryKey: memoryQueryKeys.list(agentId),
 			})
 		},
 	})
@@ -204,22 +172,18 @@ export function useDeleteMemoryMutation(options: { agentId: string; workspaceId?
 /**
  * Clear all memories for an agent.
  */
-export function useClearMemoriesMutation(options: { agentId: string; workspaceId?: string }) {
-	const { agentId, workspaceId } = options
+export function useClearMemoriesMutation(options: { agentId: string }) {
+	const { agentId } = options
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationFn: async () => {
-			const res = await memory[':id'].memories.$delete({
-				param: { id: agentId },
-				query: { workspaceId: workspaceId! },
-			})
-			if (!res.ok) throw new Error('Request failed')
-			return res.json()
-		},
+		mutationFn: () =>
+			orpc.memory.clear({
+				id: agentId,
+			}),
 		onSuccess: () => {
 			queryClient.invalidateQueries({
-				queryKey: memoryQueryKeys.list(agentId, workspaceId || ''),
+				queryKey: memoryQueryKeys.list(agentId),
 			})
 		},
 	})

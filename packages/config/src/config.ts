@@ -996,4 +996,8 @@ export const PLAN_IDS = enumToTuple(config.enums.planId)
 export const WIDGET_POSITIONS = enumToTuple(config.enums.widgetPosition)
 
 // API message roles (excludes tool)
-export const API_MESSAGE_ROLES = [config.enums.messageRole.USER, config.enums.messageRole.ASSISTANT, config.enums.messageRole.SYSTEM] as const
+export const API_MESSAGE_ROLES = [
+	config.enums.messageRole.USER,
+	config.enums.messageRole.ASSISTANT,
+	config.enums.messageRole.SYSTEM,
+] as const

@@ -2,35 +2,35 @@
  * Server Functions Pattern
  *
  * This module documents the pattern for creating type-safe server functions
- * that wrap the Hono API using TanStack Start's createServerFn.
+ * using TanStack Start's createServerFn with oRPC.
  *
- * TanStack Start server functions provide:
- * - End-to-end type safety between client and server
- * - Automatic request/response serialization
- * - Integration with TanStack Query for caching
+ * For most API calls, use the oRPC client directly:
+ * ```ts
+ * import { orpc } from '@hare/api'
+ *
+ * // Fully type-safe - types inferred from server
+ * const { agents } = await orpc.agents.list({})
+ * const agent = await orpc.agents.get({ id: 'agent-123' })
+ * ```
+ *
+ * TanStack Start server functions are useful for:
+ * - SSR data loading in route loaders
+ * - Server-side operations that need request context
  *
  * @example Usage in a route loader:
  * ```ts
- * // In a route file
  * import { createServerFn } from '@tanstack/react-start/server'
- *
- * import { api } from '@hare/api-client'
+ * import { orpc } from '@hare/api'
  *
  * const getAgent = createServerFn({ method: 'GET' })
- *   .validator((input: { id: string; workspaceId: string }) => input)
+ *   .validator((input: { id: string }) => input)
  *   .handler(async ({ data }) => {
- *     const res = await api.agents[':id'].$get({
- *       param: { id: data.id },
- *       query: { workspaceId: data.workspaceId },
- *     })
- *     if (!res.ok) throw new Error('Failed to fetch agent')
- *     return res.json()
+ *     return orpc.agents.get({ id: data.id })
  *   })
  *
- * // In a route component with loader
  * export const Route = createFileRoute('/dashboard/agents/$id')({
  *   loader: async ({ params }) => {
- *     const agent = await getAgent({ id: params.id, workspaceId })
+ *     const agent = await getAgent({ id: params.id })
  *     return { agent }
  *   },
  *   component: AgentPage,
@@ -48,70 +48,33 @@ export interface ServerFnInput<T> {
 }
 
 /**
- * Common server function patterns:
+ * Common oRPC patterns (no server functions needed for most cases):
  *
- * 1. List resources:
- * const listAgents = createServerFn({ method: 'GET' })
- *   .validator((input: { workspaceId: string }) => input)
- *   .handler(async ({ data }) => {
- *     // api imported at top of file
- *     const res = await api.agents.$get({ query: { workspaceId: data.workspaceId } })
- *     if (!res.ok) throw new Error('Failed to list agents')
- *     return res.json()
- *   })
+ * ```ts
+ * import { orpc } from '@hare/api'
  *
- * 2. Get single resource:
- * const getAgent = createServerFn({ method: 'GET' })
- *   .validator((input: { id: string; workspaceId: string }) => input)
- *   .handler(async ({ data }) => {
- *     // api imported at top of file
- *     const res = await api.agents[':id'].$get({
- *       param: { id: data.id },
- *       query: { workspaceId: data.workspaceId },
- *     })
- *     if (!res.ok) throw new Error('Failed to get agent')
- *     return res.json()
- *   })
+ * // 1. List resources - types fully inferred
+ * const { agents } = await orpc.agents.list({})
  *
- * 3. Create resource:
- * const createAgent = createServerFn({ method: 'POST' })
- *   .validator((input: { workspaceId: string; data: CreateAgentInput }) => input)
- *   .handler(async ({ data }) => {
- *     // api imported at top of file
- *     const res = await api.agents.$post({
- *       query: { workspaceId: data.workspaceId },
- *       json: data.data,
- *     })
- *     if (!res.ok) throw new Error('Failed to create agent')
- *     return res.json()
- *   })
+ * // 2. Get single resource
+ * const agent = await orpc.agents.get({ id: 'agent-123' })
  *
- * 4. Update resource:
- * const updateAgent = createServerFn({ method: 'POST' })
- *   .validator((input: { id: string; workspaceId: string; data: UpdateAgentInput }) => input)
- *   .handler(async ({ data }) => {
- *     // api imported at top of file
- *     const res = await api.agents[':id'].$patch({
- *       param: { id: data.id },
- *       query: { workspaceId: data.workspaceId },
- *       json: data.data,
- *     })
- *     if (!res.ok) throw new Error('Failed to update agent')
- *     return res.json()
- *   })
+ * // 3. Create resource - input validated at compile time
+ * const created = await orpc.agents.create({
+ *   name: 'My Agent',
+ *   model: '@cf/meta/llama-3.3-70b-instruct-fp8-fast',
+ *   instructions: 'You are a helpful assistant.',
+ * })
  *
- * 5. Delete resource:
- * const deleteAgent = createServerFn({ method: 'POST' })
- *   .validator((input: { id: string; workspaceId: string }) => input)
- *   .handler(async ({ data }) => {
- *     // api imported at top of file
- *     const res = await api.agents[':id'].$delete({
- *       param: { id: data.id },
- *       query: { workspaceId: data.workspaceId },
- *     })
- *     if (!res.ok) throw new Error('Failed to delete agent')
- *     return res.json()
- *   })
+ * // 4. Update resource
+ * const updated = await orpc.agents.update({
+ *   id: 'agent-123',
+ *   name: 'Updated Name',
+ * })
+ *
+ * // 5. Delete resource
+ * const { success } = await orpc.agents.delete({ id: 'agent-123' })
+ * ```
  */
 
 /**
@@ -124,10 +87,11 @@ export interface ServerFnInput<T> {
  *
  * @example
  * ```ts
+ * import { orpc } from '@hare/api'
+ *
  * export const Route = createFileRoute('/_dashboard/dashboard/agents/$id')({
- *   loader: async ({ params, context }) => {
- *     const workspaceId = context.activeWorkspaceId
- *     const agent = await getAgent({ id: params.id, workspaceId })
+ *   loader: async ({ params }) => {
+ *     const agent = await orpc.agents.get({ id: params.id })
  *     return { agent }
  *   },
  *   component: function AgentPage() {

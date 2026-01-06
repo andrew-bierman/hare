@@ -1,5 +1,5 @@
 import { useWorkspace } from '@hare/app'
-import { useAgentsQuery, useUsageQuery } from '@hare/app/shared/api'
+import { useAgentsQuery, useWorkspaceUsageQuery } from '@hare/app/shared/api'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@hare/ui/components/card'
 import { Skeleton } from '@hare/ui/components/skeleton'
 import { createFileRoute } from '@tanstack/react-router'
@@ -25,14 +25,14 @@ function StatCardSkeleton() {
 }
 
 function UsagePage() {
-	const { activeWorkspace, isLoading: workspaceLoading } = useWorkspace()
-	const { data: usageData, isLoading: usageLoading } = useUsageQuery(activeWorkspace?.id)
-	const { data: agentsData, isLoading: agentsLoading } = useAgentsQuery(activeWorkspace?.id)
+	const { isLoading: workspaceLoading } = useWorkspace()
+	const { data: usageData, isLoading: usageLoading } = useWorkspaceUsageQuery()
+	const { data: agentsData, isLoading: agentsLoading } = useAgentsQuery()
 
 	const isLoading = workspaceLoading || usageLoading || agentsLoading
 
 	const agents = agentsData?.agents ?? []
-	const deployedAgents = agents.filter((a) => a.status === 'deployed')
+	const deployedAgents = agents.filter((a: { status: string }) => a.status === 'deployed')
 
 	const formatNumber = (num: number) => {
 		if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`
@@ -162,22 +162,24 @@ function UsagePage() {
 							</div>
 						) : (
 							<div className="space-y-4">
-								{deployedAgents.slice(0, 5).map((agent) => (
-									<div
-										key={agent.id}
-										className="flex items-center justify-between p-4 border rounded-lg"
-									>
-										<div>
-											<div className="font-medium">{agent.name}</div>
-											<div className="text-sm text-muted-foreground">
-												{agent.toolIds?.length ?? 0} tools
+								{deployedAgents
+									.slice(0, 5)
+									.map((agent: { id: string; name: string; toolIds?: string[] }) => (
+										<div
+											key={agent.id}
+											className="flex items-center justify-between p-4 border rounded-lg"
+										>
+											<div>
+												<div className="font-medium">{agent.name}</div>
+												<div className="text-sm text-muted-foreground">
+													{agent.toolIds?.length ?? 0} tools
+												</div>
+											</div>
+											<div className="text-right">
+												<div className="font-medium text-emerald-600">Active</div>
 											</div>
 										</div>
-										<div className="text-right">
-											<div className="font-medium text-emerald-600">Active</div>
-										</div>
-									</div>
-								))}
+									))}
 							</div>
 						)}
 					</CardContent>

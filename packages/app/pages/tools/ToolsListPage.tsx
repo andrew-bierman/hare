@@ -62,7 +62,7 @@ function getToolIcon(type: ToolType) {
 
 export function ToolsListPage() {
 	const { activeWorkspace } = useWorkspace()
-	const { data, isLoading, error } = useToolsQuery(activeWorkspace?.id)
+	const { data, isLoading, error } = useToolsQuery()
 
 	const [search, setSearch] = useState('')
 	const [isCreateOpen, setIsCreateOpen] = useState(false)

@@ -36,7 +36,7 @@
 		"typescript": "^5"
 	},
 	"peerDependencies": {
-		"drizzle-orm": "^0.45.0",
+		"drizzle-orm": "^0.45.1",
 		"drizzle-zod": "^0.8.0"
 	}
 }

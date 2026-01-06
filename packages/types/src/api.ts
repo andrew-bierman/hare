@@ -664,7 +664,7 @@ export type InvitationStatus = z.infer<typeof InvitationStatusSchema>
 export const WorkspaceMemberSchema = z.object({
 	id: z.string(),
 	userId: z.string(),
-	name: z.string(),
+	name: z.string().nullable(),
 	email: z.string().email(),
 	image: z.string().nullable(),
 	role: WorkspaceRoleSchema,
@@ -683,7 +683,7 @@ export const WorkspaceInvitationSchema = z.object({
 	status: InvitationStatusSchema,
 	invitedBy: z.object({
 		id: z.string(),
-		name: z.string(),
+		name: z.string().nullable(),
 		email: z.string().email(),
 	}),
 	expiresAt: z.string(),

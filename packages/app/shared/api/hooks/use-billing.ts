@@ -1,8 +1,22 @@
 'use client'
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { billing } from '@hare/api-client'
+import { orpc } from '@hare/api'
 import { billingKeys } from './query-keys'
+
+// =============================================================================
+// Types (inferred from oRPC)
+// =============================================================================
+
+type PlansOutput = Awaited<ReturnType<typeof orpc.billing.listPlans>>
+type StatusOutput = Awaited<ReturnType<typeof orpc.billing.getStatus>>
+type PaymentHistoryOutput = Awaited<ReturnType<typeof orpc.billing.getPaymentHistory>>
+type CheckoutOutput = Awaited<ReturnType<typeof orpc.billing.createCheckout>>
+type PortalOutput = Awaited<ReturnType<typeof orpc.billing.createPortal>>
+
+export type Plan = PlansOutput['plans'][number]
+export type BillingStatus = StatusOutput
+export type PaymentHistoryItem = PaymentHistoryOutput['payments'][number]
 
 export interface CheckoutRequest {
 	planId: 'pro' | 'team'
@@ -16,81 +30,60 @@ export interface CheckoutRequest {
 
 /**
  * Fetch available billing plans
+ * Note: workspaceId is determined by server context from the authenticated session
  */
-export function usePlansQuery(workspaceId: string | undefined) {
+export function usePlansQuery(enabled = true) {
 	return useQuery({
 		queryKey: billingKeys.plans(),
-		queryFn: async () => {
-			const res = await billing.plans.$get({ query: { workspaceId: workspaceId! } })
-			if (!res.ok) throw new Error('Request failed')
-			return res.json()
-		},
-		enabled: !!workspaceId,
+		queryFn: () => orpc.billing.listPlans({}),
+		enabled,
 	})
 }
 
 /**
  * Fetch current billing status for workspace
+ * Note: workspaceId is determined by server context from the authenticated session
  */
-export function useBillingStatusQuery(workspaceId: string | undefined) {
+export function useBillingStatusQuery(enabled = true) {
 	return useQuery({
-		queryKey: billingKeys.status(workspaceId ?? ''),
-		queryFn: async () => {
-			const res = await billing.status.$get({ query: { workspaceId: workspaceId! } })
-			if (!res.ok) throw new Error('Request failed')
-			return res.json()
-		},
-		enabled: !!workspaceId,
+		queryKey: billingKeys.status('current'),
+		queryFn: () => orpc.billing.getStatus({}),
+		enabled,
 	})
 }
 
 /**
  * Fetch payment history
+ * Note: workspaceId is determined by server context from the authenticated session
  */
-export function usePaymentHistoryQuery(options: {
-	workspaceId: string | undefined
-	limit?: number
-	startingAfter?: string
-}) {
+export function usePaymentHistoryQuery(options?: { limit?: number; startingAfter?: string }) {
 	return useQuery({
-		queryKey: billingKeys.invoices(options.workspaceId ?? ''),
-		queryFn: async () => {
-			const res = await billing.history.$get({
-				query: {
-					workspaceId: options.workspaceId!,
-					limit: options.limit,
-					starting_after: options.startingAfter,
-				},
-			})
-			if (!res.ok) throw new Error('Request failed')
-			return res.json()
-		},
-		enabled: !!options.workspaceId,
+		queryKey: billingKeys.invoices('current'),
+		queryFn: () =>
+			orpc.billing.getPaymentHistory({
+				limit: options?.limit,
+				starting_after: options?.startingAfter,
+			}),
 	})
 }
 
 /**
  * Create checkout session for upgrading
+ * Note: workspaceId is determined by server context from the authenticated session
  */
 export function useCreateCheckoutMutation() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationFn: async (params: { workspaceId: string } & CheckoutRequest) => {
-			const res = await billing.checkout.$post({
-				query: { workspaceId: params.workspaceId },
-				json: {
-					planId: params.planId,
-					successUrl: params.successUrl,
-					cancelUrl: params.cancelUrl,
-				},
-			})
-			if (!res.ok) throw new Error('Request failed')
-			return res.json()
-		},
-		onSuccess: (_, { workspaceId }) => {
+		mutationFn: (params: CheckoutRequest) =>
+			orpc.billing.createCheckout({
+				planId: params.planId,
+				successUrl: params.successUrl,
+				cancelUrl: params.cancelUrl,
+			}),
+		onSuccess: () => {
 			// Invalidate billing queries after checkout
-			queryClient.invalidateQueries({ queryKey: billingKeys.status(workspaceId) })
+			queryClient.invalidateQueries({ queryKey: billingKeys.status('current') })
 			queryClient.invalidateQueries({ queryKey: billingKeys.plans() })
 		},
 	})
@@ -98,15 +91,10 @@ export function useCreateCheckoutMutation() {
 
 /**
  * Create customer portal session
+ * Note: workspaceId is determined by server context from the authenticated session
  */
 export function useCreatePortalMutation() {
 	return useMutation({
-		mutationFn: async (params: { workspaceId: string }) => {
-			const res = await billing.portal.$post({
-				query: { workspaceId: params.workspaceId },
-			})
-			if (!res.ok) throw new Error('Request failed')
-			return res.json()
-		},
+		mutationFn: () => orpc.billing.createPortal({}),
 	})
 }

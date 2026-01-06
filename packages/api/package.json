@@ -57,7 +57,11 @@
 		"@hare/email": "workspace:*",
 		"@hare/tools": "workspace:*",
 		"@hare/types": "workspace:*",
-		"@scalar/hono-api-reference": "^0.9.30"
+		"@orpc/client": "^1.13.2",
+		"@orpc/server": "^1.13.2",
+		"@react-email/components": "^1.0.3",
+		"@scalar/hono-api-reference": "^0.9.30",
+		"resend": "^6.6.0"
 	},
 	"devDependencies": {
 		"@cloudflare/workers-types": "^4.20251224.0",
@@ -73,7 +77,7 @@
 	"peerDependencies": {
 		"@hono/zod-openapi": "^1.2.0",
 		"ai": "^6.0.0",
-		"drizzle-orm": "^0.45.0",
+		"drizzle-orm": "^0.45.1",
 		"hono": "^4.0.0",
 		"stripe": "^20.0.0",
 		"zod": "^4.0.0"

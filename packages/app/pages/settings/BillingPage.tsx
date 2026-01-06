@@ -32,8 +32,8 @@ export function BillingPage({ searchParams }: BillingPageProps) {
 	const { activeWorkspace } = useWorkspace()
 	const [isRedirecting, setIsRedirecting] = useState(false)
 
-	const { data: plansData, isLoading: plansLoading } = usePlansQuery(activeWorkspace?.id)
-	const { data: statusData, isLoading: statusLoading } = useBillingStatusQuery(activeWorkspace?.id)
+	const { data: plansData, isLoading: plansLoading } = usePlansQuery(!!activeWorkspace)
+	const { data: statusData, isLoading: statusLoading } = useBillingStatusQuery(!!activeWorkspace)
 	const createCheckout = useCreateCheckoutMutation()
 	const createPortal = useCreatePortalMutation()
 
@@ -60,10 +60,7 @@ export function BillingPage({ searchParams }: BillingPageProps) {
 		if (!activeWorkspace) return
 		setIsRedirecting(true)
 		try {
-			const result = await createCheckout.mutateAsync({
-				workspaceId: activeWorkspace.id,
-				planId,
-			})
+			const result = await createCheckout.mutateAsync({ planId })
 			window.location.href = result.url
 		} catch {
 			toast.error('Failed to start checkout')
@@ -75,9 +72,7 @@ export function BillingPage({ searchParams }: BillingPageProps) {
 		if (!activeWorkspace) return
 		setIsRedirecting(true)
 		try {
-			const result = await createPortal.mutateAsync({
-				workspaceId: activeWorkspace.id,
-			})
+			const result = await createPortal.mutateAsync()
 			window.location.href = result.url
 		} catch {
 			toast.error('Failed to open billing portal')

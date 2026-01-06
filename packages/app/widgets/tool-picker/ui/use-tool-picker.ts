@@ -45,7 +45,7 @@ export function useToolPicker({
 	initialSelectedIds,
 	maxTools = 20,
 }: UseToolPickerOptions) {
-	const { data: toolsData, isLoading } = useToolsQuery(workspaceId)
+	const { data: toolsData, isLoading } = useToolsQuery()
 	const [selectedToolIds, setSelectedToolIds] = useState<string[]>(initialSelectedIds)
 	const [searchQuery, setSearchQuery] = useState('')
 	const [activeCategory, setActiveCategory] = useState<ToolCategory>('all')

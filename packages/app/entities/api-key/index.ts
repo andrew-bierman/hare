@@ -1,7 +1,8 @@
 /**
  * API Key Entity
  *
- * API key management for workspace access.
+ * Types and business logic for API key entities.
+ * API hooks should be imported directly from '@hare/app/shared/api'.
  */
 
-export * from './api/hooks'
+export type { ApiKey, ApiKeyWithSecret } from '@hare/types'

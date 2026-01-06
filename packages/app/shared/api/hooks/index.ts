@@ -2,11 +2,18 @@
  * API Hooks
  *
  * Re-export all hooks from a single entry point.
- * Types from the parent api module are already exported, so we only export hook-specific types.
+ * oRPC hooks are the single source of truth for type-safe API hooks.
  */
 
 // Query keys
 export * from './query-keys'
+
+// oRPC Hooks - single source of truth for type-safe API hooks
+export * from '../orpc-hooks'
+
+// =============================================================================
+// Non-oRPC Hooks
+// =============================================================================
 
 // WebSocket Agent types from @hare/types
 export type { ClientMessage, HareAgentState, ServerMessage } from '@hare/types'
@@ -20,38 +27,15 @@ export {
 	useAgentWebSocket,
 } from './use-agent-ws'
 
-// Agent hooks
-export {
-	useAgentQuery,
-	useAgentPreviewMutation,
-	useAgentPreviewQuery,
-	useAgentsQuery,
-	useCreateAgentMutation,
-	useDeleteAgentMutation,
-	useDeployAgentMutation,
-	usePrefetchAgent,
-	useUpdateAgentMutation,
-} from './use-agents'
-
-// Analytics hooks
-export { useAnalyticsQuery } from './use-analytics'
-
-// API Key hooks
-export {
-	useApiKeyQuery,
-	useApiKeysQuery,
-	useCreateApiKeyMutation,
-	useDeleteApiKeyMutation,
-	useUpdateApiKeyMutation,
-} from './use-api-keys'
-// API Key types are exported from @hare/types via shared/api/index.ts
-
-// Auth hooks
+// Auth hooks (OAuthProviders type exported from @hare/types)
 export { useOAuthProvidersQuery } from './use-auth'
-// OAuthProviders type is exported from @hare/types via shared/api/index.ts
 
 // Billing hooks
 export {
+	type BillingStatus,
+	type CheckoutRequest,
+	type PaymentHistoryItem,
+	type Plan,
 	useBillingStatusQuery,
 	useCreateCheckoutMutation,
 	useCreatePortalMutation,
@@ -80,16 +64,6 @@ export type {
 	UseInfiniteMessagesOptions,
 } from './use-infinite-conversations'
 
-// Logs hooks
-export {
-	type LogStats,
-	type LogsParams,
-	type LogsResponse,
-	type RequestLog,
-	useLogStatsQuery,
-	useLogsQuery,
-} from './use-logs'
-
 // Memory hooks
 export {
 	memoryQueryKeys,
@@ -107,60 +81,3 @@ export {
 	useSearchMemoriesMutation,
 	useUpdateMemoryMutation,
 } from './use-memory'
-
-// Schedule hooks
-export {
-	type UseAgentExecutionsInput,
-	type UseScheduleExecutionsInput,
-	type UseScheduleInput,
-	type UseSchedulesInput,
-	useAgentExecutionsQuery,
-	useCreateScheduleMutation,
-	useDeleteScheduleMutation,
-	useScheduleQuery,
-	useScheduleExecutionsQuery,
-	useSchedulesQuery,
-	useUpdateScheduleMutation,
-} from './use-schedules'
-
-// Team management hooks
-export {
-	useRemoveMemberMutation,
-	useRevokeInvitationMutation,
-	useSendInvitationMutation,
-	useUpdateMemberRoleMutation,
-	useWorkspaceInvitationsQuery,
-	useWorkspaceMembersQuery,
-} from './use-team'
-
-// Tool hooks
-export {
-	TOOL_TYPES,
-	useCreateToolMutation,
-	useDeleteToolMutation,
-	useTestExistingToolMutation,
-	useTestToolMutation,
-	useToolQuery,
-	useToolsQuery,
-	useUpdateToolMutation,
-} from './use-tools'
-
-// Usage hooks (UsageParams exported from client.ts to avoid duplicates)
-export { useAgentUsageQuery, useUsageQuery } from './use-usage'
-
-// Workspace hooks
-export {
-	useCreateWorkspaceMutation,
-	useDeleteWorkspaceMutation,
-	useEnsureDefaultWorkspaceMutation,
-	useUpdateWorkspaceMutation,
-	useWorkspaceByIdQuery,
-	useWorkspacesQuery,
-} from './use-workspaces'
-
-// User preferences hooks
-export {
-	userPreferencesKeys,
-	useUserPreferencesQuery,
-	useUpdateUserPreferencesMutation,
-} from './use-user-preferences'

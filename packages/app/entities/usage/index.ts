@@ -1,7 +1,8 @@
 /**
  * Usage Entity
  *
- * Business entity for usage statistics.
+ * Types and business logic for usage statistics.
+ * Usage hooks should be imported from '@hare/app/shared/api' or '@hare/app/features/analytics'.
  */
 
-export * from './api/hooks'
+export type { AgentUsage, UsageSummary } from '@hare/types'

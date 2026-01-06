@@ -74,8 +74,8 @@ export function CommandSearch({ open, onOpenChange, onNavigate }: CommandSearchP
 	const [query, setQuery] = useState('')
 
 	const { activeWorkspace } = useWorkspace()
-	const { data: agentsData } = useAgentsQuery(activeWorkspace?.id)
-	const { data: toolsData } = useToolsQuery(activeWorkspace?.id)
+	const { data: agentsData } = useAgentsQuery()
+	const { data: toolsData } = useToolsQuery()
 
 	// Build searchable items
 	const allItems = useMemo(() => {
