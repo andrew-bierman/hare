@@ -28,8 +28,9 @@ bun run build            # Build for production
 bun run preview          # Test on local Cloudflare runtime
 
 # Code Quality
-bun run check:fix        # Lint + format with Biome
-bun run typecheck        # TypeScript check
+bun run checks           # Run all checks (deps, sort-pkg, lint, typecheck, build)
+bun run check:fix        # Lint + format with Biome only
+bun run typecheck        # TypeScript check only
 
 # Testing
 bun run test             # Run Vitest tests
@@ -285,11 +286,9 @@ bun run db:migrate:remote # Apply to production D1
 ```
 
 ### Pre-deploy Checklist
-1. `bun run check:fix` - Lint/format passes
-2. `bun run typecheck` - No TypeScript errors
-3. `bun run test` - All tests pass
-4. `bun run build` - Build succeeds
-5. Database migrations applied if schema changed
+1. `bun run checks` - All checks pass (runs deps, sort-pkg, lint with auto-fix, typecheck, build)
+2. `bun run test` - All tests pass
+3. Database migrations applied if schema changed
 
 ---
 
