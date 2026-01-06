@@ -2,13 +2,13 @@
  * Type Inference Tests for oRPC Client (Consumer Level)
  *
  * These tests verify that the oRPC client types are properly inferred
- * when imported from @hare/api/orpc as a consumer package would.
+ * when imported from @hare/api as a consumer package would.
  *
  * This is the critical test - if types work here, they work for all consumers.
  * If any of these fail to compile, the end-to-end type safety is broken.
  */
 import { describe, it, expect } from 'vitest'
-import { orpc, type AppRouterClient } from '@hare/api/orpc'
+import { orpc, type AppRouterClient } from '@hare/api'
 
 // Type utility to check if a type is NOT 'any'
 // Returns true if T is a specific type, false if T is 'any'
@@ -17,7 +17,7 @@ type IsNotAny<T> = 0 extends 1 & T ? false : true
 // Type utility to assert a type is true at compile time
 type AssertTrue<T extends true> = T
 
-describe('oRPC Type Inference (Consumer Level - @hare/api/orpc)', () => {
+describe('oRPC Type Inference (Consumer Level - @hare/api)', () => {
 	describe('Cross-Package Type Inference', () => {
 		it('should export orpc client that is not typed as any', () => {
 			// CRITICAL: This is the main regression test for the 'any' type bug

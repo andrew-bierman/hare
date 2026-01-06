@@ -20,7 +20,6 @@
 			"@hare/config": ["./packages/config/src/index.ts"],
 			"@hare/tools": ["./packages/tools/src/index.ts"],
 			"@hare/types": ["./packages/types/src/index.ts"],
-			"@hare/api/orpc": ["./packages/api/src/orpc/index.ts"],
 			"@hare/api": ["./packages/api/src/index.ts"],
 			"@hare/auth/client": ["./packages/auth/src/client.ts"],
 			"@hare/auth/server": ["./packages/auth/src/server.ts"],

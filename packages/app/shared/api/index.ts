@@ -6,7 +6,7 @@
  */
 
 // oRPC Client - type-safe API client
-export { orpc, type AppRouterClient } from '@hare/api/orpc'
+export { orpc, type AppRouterClient } from '@hare/api'
 
 // API Hooks - all hooks and their types
 export * from './hooks'
