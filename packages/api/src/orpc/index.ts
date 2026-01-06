@@ -37,6 +37,8 @@ export {
 // Client exports - the main way to use oRPC from the frontend
 export {
 	orpc,
+	setOrpcWorkspaceId,
+	getOrpcWorkspaceId,
 	type AppRouterClient,
 	type AgentsClient,
 	type ToolsClient,

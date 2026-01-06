@@ -7,8 +7,11 @@
 
 import { Hono } from 'hono'
 import { RPCHandler } from '@orpc/server/fetch'
+import { and, eq } from 'drizzle-orm'
+import { workspaces, workspaceMembers } from '@hare/db/schema'
 import { appRouter } from './routers'
-import type { OrpcEnv } from '@hare/types'
+import type { OrpcEnv, WorkspaceRole } from '@hare/types'
+import { isWorkspaceRole } from '@hare/types'
 import { getCloudflareEnv, getDb } from '../db'
 import { optionalAuthMiddleware } from '../middleware/auth'
 
@@ -18,9 +21,11 @@ const handler = new RPCHandler(appRouter)
 /**
  * Hono app for oRPC routes
  *
- * Uses OptionalAuthEnv since oRPC procedures handle their own auth validation.
+ * Uses OrpcEnv since oRPC procedures handle their own auth validation.
  * The optionalAuthMiddleware extracts user from session if present,
  * and the procedures validate auth requirements themselves.
+ *
+ * Workspace context is extracted from X-Workspace-Id header when present.
  *
  * Mount this at /api/rpc in your main app:
  * ```ts
@@ -39,8 +44,47 @@ orpcApp.all('/*', async (c) => {
 	const db = getDb(c)
 	const env = getCloudflareEnv(c)
 	const user = c.get('user')
-	const workspace = c.get('workspace')
-	const workspaceRole = c.get('workspaceRole')
+
+	// Try to get workspace from Hono context first (may be set by other middleware)
+	let workspace = c.get('workspace')
+	let workspaceRole = c.get('workspaceRole')
+
+	// If no workspace in context but user is authenticated and X-Workspace-Id header is present,
+	// fetch workspace and verify access
+	const workspaceIdHeader = c.req.header('X-Workspace-Id')
+	if (!workspace && user && workspaceIdHeader) {
+		// Fetch workspace
+		const [ws] = await db.select().from(workspaces).where(eq(workspaces.id, workspaceIdHeader))
+
+		if (ws) {
+			// Check if user is owner
+			if (ws.ownerId === user.id) {
+				workspace = {
+					id: ws.id,
+					name: ws.name,
+					slug: ws.slug,
+					ownerId: ws.ownerId,
+				}
+				workspaceRole = 'owner'
+			} else {
+				// Check workspace membership
+				const [membership] = await db
+					.select()
+					.from(workspaceMembers)
+					.where(and(eq(workspaceMembers.workspaceId, ws.id), eq(workspaceMembers.userId, user.id)))
+
+				if (membership && isWorkspaceRole(membership.role)) {
+					workspace = {
+						id: ws.id,
+						name: ws.name,
+						slug: ws.slug,
+						ownerId: ws.ownerId,
+					}
+					workspaceRole = membership.role as WorkspaceRole
+				}
+			}
+		}
+	}
 
 	// Build context for oRPC
 	const context = {
