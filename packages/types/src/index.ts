@@ -93,6 +93,7 @@ export {
 	type WorkspaceEnv,
 	type ApiKeyEnv,
 	type OptionalAuthEnv,
+	type OrpcEnv,
 	// Cloudflare types
 	type CloudflareEnv,
 	// Database enums

@@ -88,7 +88,7 @@ export const workspaceProcedure = os
 		if (!context.user) {
 			throw new ORPCError('UNAUTHORIZED', { message: 'Authentication required' })
 		}
-		if (!context.workspace || !context.workspaceId) {
+		if (!context.workspace || !context.workspaceId || !context.workspaceRole) {
 			throw new ORPCError('FORBIDDEN', { message: 'Workspace access required' })
 		}
 		return next({

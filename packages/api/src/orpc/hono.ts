@@ -8,7 +8,7 @@
 import { Hono } from 'hono'
 import { RPCHandler } from '@orpc/server/fetch'
 import { appRouter } from './routers'
-import type { WorkspaceEnv } from '@hare/types'
+import type { OrpcEnv } from '@hare/types'
 import { getCloudflareEnv, getDb } from '../db'
 import { optionalAuthMiddleware } from '../middleware/auth'
 
@@ -18,13 +18,17 @@ const handler = new RPCHandler(appRouter)
 /**
  * Hono app for oRPC routes
  *
+ * Uses OptionalAuthEnv since oRPC procedures handle their own auth validation.
+ * The optionalAuthMiddleware extracts user from session if present,
+ * and the procedures validate auth requirements themselves.
+ *
  * Mount this at /api/rpc in your main app:
  * ```ts
  * import { orpcApp } from '@hare/api/orpc/hono'
  * app.route('/api/rpc', orpcApp)
  * ```
  */
-export const orpcApp = new Hono<WorkspaceEnv>()
+export const orpcApp = new Hono<OrpcEnv>()
 
 // Apply optional auth middleware to extract user from session
 orpcApp.use('*', optionalAuthMiddleware)
