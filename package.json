@@ -75,7 +75,7 @@
 		"test:ui": "vitest --ui",
 		"test:unit": "vitest run --filter unit",
 		"test:watch": "vitest",
-		"typecheck": "tsgo -b",
+		"typecheck": "bun run typecheck:tsc",
 		"typecheck:tsc": "tsc -b",
 		"typecheck:tsgo": "tsgo -b",
 		"typecheck:web": "bun run --cwd apps/web tsc --noEmit",
