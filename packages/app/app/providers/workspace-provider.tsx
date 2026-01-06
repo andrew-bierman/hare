@@ -12,6 +12,7 @@ import {
 import type { Workspace, WorkspaceRole } from '../../shared/api'
 import { useWorkspacesQuery, useEnsureDefaultWorkspaceMutation } from '../../shared/api'
 import { useAuth } from '../../features/auth'
+import { setOrpcWorkspaceId } from '@hare/api'
 
 interface WorkspaceWithRole extends Workspace {
 	role?: WorkspaceRole
@@ -76,6 +77,11 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
 			}
 		}
 	}, [workspaces, activeWorkspace])
+
+	// Sync active workspace ID to oRPC client for X-Workspace-Id header
+	useEffect(() => {
+		setOrpcWorkspaceId(activeWorkspace?.id ?? null)
+	}, [activeWorkspace?.id])
 
 	return (
 		<WorkspaceContext.Provider

@@ -3,9 +3,13 @@ import { type APIRequestContext, expect, test } from '@playwright/test'
 /**
  * oRPC API Endpoints - Tests for the oRPC endpoints at /api/rpc/*
  *
- * These tests verify that unauthenticated requests return 401 (not 500).
- * This is the key fix - previously these endpoints would return 500 errors
- * when the user context was missing, now they properly return 401.
+ * Auth & Workspace Context Flow:
+ * 1. Unauthenticated requests → 401 "Authentication required"
+ * 2. Authenticated but missing workspace → 403 "Workspace access required"
+ * 3. Authenticated + X-Workspace-Id header → Success (if user has workspace access)
+ *
+ * The X-Workspace-Id header is set automatically by the oRPC client via
+ * setOrpcWorkspaceId() which is called by WorkspaceProvider.
  */
 
 test.describe('oRPC Endpoints - Unauthenticated', () => {

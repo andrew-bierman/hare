@@ -178,6 +178,13 @@ function createUser(name: string, email: string, role: string) {}
 function createUser(options: { name: string; email: string; role: string }) {}
 ```
 
+7. **Clean Refactors Only**: When refactoring, do clean rewrites - no backwards compatibility hacks
+   - Delete unused code completely; don't rename to `_unused` or add `// removed` comments
+   - Don't add fallback paths "just in case" - if something is being replaced, replace it fully
+   - Don't re-export removed types or keep duplicate code paths during transitions
+   - Update all call sites in the same PR rather than maintaining two patterns
+   - If migration requires multiple PRs, use feature flags - not runtime compatibility layers
+
 ---
 
 ## Claude Code Work Directory

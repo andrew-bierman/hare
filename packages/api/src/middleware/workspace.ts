@@ -6,7 +6,8 @@ import { isWorkspaceRole, type WorkspaceEnv, type WorkspaceRole } from '@hare/ty
 
 /**
  * Workspace middleware that validates workspace access.
- * Expects workspaceId in query params or route params.
+ * Accepts workspaceId from X-Workspace-Id header, query params, or route params.
+ * Header is preferred for cleaner URLs and consistency with oRPC.
  * Must be used after authMiddleware.
  */
 export const workspaceMiddleware: MiddlewareHandler<WorkspaceEnv> = async (c, next) => {
@@ -17,8 +18,9 @@ export const workspaceMiddleware: MiddlewareHandler<WorkspaceEnv> = async (c, ne
 
 	const db = getDb(c)
 
-	// Get workspaceId from query or params
-	const workspaceId = c.req.query('workspaceId') || c.req.param('workspaceId')
+	// Get workspaceId from header (preferred), query, or params
+	const workspaceId =
+		c.req.header('X-Workspace-Id') || c.req.query('workspaceId') || c.req.param('workspaceId')
 
 	if (!workspaceId) {
 		return c.json({ error: 'Workspace ID required' }, 400)

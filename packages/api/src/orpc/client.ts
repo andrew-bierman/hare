@@ -26,16 +26,54 @@ function getBaseURL(): string {
 	return process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
 }
 
+// =============================================================================
+// Workspace ID Management
+// =============================================================================
+
 /**
- * Create the RPC link with credentials
+ * Module-level workspace ID storage.
+ * This is updated by the WorkspaceProvider when the active workspace changes.
+ */
+let currentWorkspaceId: string | null = null
+
+/**
+ * Set the current workspace ID for oRPC requests.
+ * Call this from WorkspaceProvider when the active workspace changes.
+ */
+export function setOrpcWorkspaceId(workspaceId: string | null): void {
+	currentWorkspaceId = workspaceId
+}
+
+/**
+ * Get the current workspace ID.
+ */
+export function getOrpcWorkspaceId(): string | null {
+	return currentWorkspaceId
+}
+
+// =============================================================================
+// RPC Client Setup
+// =============================================================================
+
+/**
+ * Create the RPC link with credentials and workspace header
  */
 const link = new RPCLink({
 	url: `${getBaseURL()}/api/rpc`,
-	fetch: (input, init) =>
-		fetch(input, {
-			...init,
+	fetch: (input, init) => {
+		// Build headers including workspace ID if available
+		const existingHeaders = (init as RequestInit)?.headers
+		const headers = new Headers(existingHeaders)
+		if (currentWorkspaceId) {
+			headers.set('X-Workspace-Id', currentWorkspaceId)
+		}
+
+		return fetch(input, {
+			...(init as RequestInit),
+			headers,
 			credentials: 'include',
-		}),
+		})
+	},
 })
 
 /**
