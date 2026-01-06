@@ -45,6 +45,21 @@ const MIGRATION_STATEMENTS = [
 
 	// Messages table
 	`CREATE TABLE IF NOT EXISTS "messages" ("id" text PRIMARY KEY NOT NULL, "conversationId" text NOT NULL, "role" text NOT NULL, "content" text NOT NULL, "metadata" text, "createdAt" integer NOT NULL)`,
+
+	// Webhooks table
+	`CREATE TABLE IF NOT EXISTS "webhooks" ("id" text PRIMARY KEY NOT NULL, "agentId" text NOT NULL, "url" text NOT NULL, "secret" text NOT NULL, "events" text NOT NULL, "status" text DEFAULT 'active' NOT NULL, "description" text, "createdAt" integer NOT NULL, "updatedAt" integer NOT NULL)`,
+
+	// Webhook logs table
+	`CREATE TABLE IF NOT EXISTS "webhook_logs" ("id" text PRIMARY KEY NOT NULL, "webhookId" text NOT NULL, "event" text NOT NULL, "payload" text NOT NULL, "status" text DEFAULT 'pending' NOT NULL, "responseStatus" integer, "responseBody" text, "attempts" integer DEFAULT 0 NOT NULL, "error" text, "createdAt" integer NOT NULL, "completedAt" integer)`,
+
+	// Scheduled tasks table
+	`CREATE TABLE IF NOT EXISTS "scheduled_tasks" ("id" text PRIMARY KEY NOT NULL, "agentId" text NOT NULL, "type" text NOT NULL, "executeAt" integer, "cron" text, "action" text NOT NULL, "payload" text, "status" text DEFAULT 'pending' NOT NULL, "lastExecutedAt" integer, "nextExecuteAt" integer, "executionCount" integer DEFAULT 0 NOT NULL, "createdBy" text NOT NULL, "createdAt" integer NOT NULL, "updatedAt" integer NOT NULL)`,
+
+	// Schedule executions table
+	`CREATE TABLE IF NOT EXISTS "schedule_executions" ("id" text PRIMARY KEY NOT NULL, "scheduleId" text NOT NULL, "agentId" text NOT NULL, "status" text NOT NULL, "startedAt" integer NOT NULL, "completedAt" integer, "durationMs" integer, "result" text, "error" text)`,
+
+	// User preferences table
+	`CREATE TABLE IF NOT EXISTS "user_preferences" ("id" text PRIMARY KEY NOT NULL, "userId" text NOT NULL, "emailNotifications" integer DEFAULT true NOT NULL, "usageAlerts" integer DEFAULT true NOT NULL, "createdAt" integer NOT NULL, "updatedAt" integer NOT NULL)`,
 ]
 
 /**
