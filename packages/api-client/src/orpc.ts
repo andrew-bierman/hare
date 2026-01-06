@@ -7,11 +7,7 @@
 
 import { createORPCClient } from '@orpc/client'
 import { RPCLink } from '@orpc/client/fetch'
-import type { appRouter } from '@hare/api/orpc'
-import type { RouterClient } from '@orpc/server'
-
-// Derive client type from the server router
-type AppRouterClient = RouterClient<typeof appRouter>
+import type { AppRouterClient } from '@hare/api/orpc'
 
 /**
  * Get the base URL for API requests

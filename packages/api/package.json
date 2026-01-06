@@ -60,6 +60,7 @@
 		"@hare/db": "workspace:*",
 		"@hare/tools": "workspace:*",
 		"@hare/types": "workspace:*",
+		"@orpc/server": "^1.13.2",
 		"@react-email/components": "^1.0.3",
 		"@scalar/hono-api-reference": "^0.9.30",
 		"resend": "^6.6.0"
