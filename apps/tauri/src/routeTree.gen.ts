@@ -9,12 +9,14 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as AgentsRouteImport } from './routes/agents'
 import { Route as DashboardRouteImport } from './routes/_dashboard'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ToolsIndexRouteImport } from './routes/tools/index'
 import { Route as ToolsNewRouteImport } from './routes/tools/new'
 import { Route as ToolsIdRouteImport } from './routes/tools/$id'
+import { Route as AgentsNewRouteImport } from './routes/agents/new'
 import { Route as AgentsIdRouteImport } from './routes/agents.$id'
 import { Route as DashboardDashboardIndexRouteImport } from './routes/_dashboard/dashboard/index'
 import { Route as DashboardDashboardUsageIndexRouteImport } from './routes/_dashboard/dashboard/usage/index'
@@ -31,6 +33,11 @@ import { Route as DashboardDashboardAgentsIdIndexRouteImport } from './routes/_d
 import { Route as DashboardDashboardAgentsIdWebhooksRouteImport } from './routes/_dashboard/dashboard/agents/$id/webhooks'
 import { Route as DashboardDashboardAgentsIdPlaygroundRouteImport } from './routes/_dashboard/dashboard/agents/$id/playground'
 
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AgentsRoute = AgentsRouteImport.update({
   id: '/agents',
   path: '/agents',
@@ -59,6 +66,11 @@ const ToolsIdRoute = ToolsIdRouteImport.update({
   id: '/tools/$id',
   path: '/tools/$id',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AgentsNewRoute = AgentsNewRouteImport.update({
+  id: '/new',
+  path: '/new',
+  getParentRoute: () => AgentsRoute,
 } as any)
 const AgentsIdRoute = AgentsIdRouteImport.update({
   id: '/$id',
@@ -152,7 +164,9 @@ const DashboardDashboardAgentsIdPlaygroundRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/agents': typeof AgentsRouteWithChildren
+  '/settings': typeof SettingsRoute
   '/agents/$id': typeof AgentsIdRoute
+  '/agents/new': typeof AgentsNewRoute
   '/tools/$id': typeof ToolsIdRoute
   '/tools/new': typeof ToolsNewRoute
   '/tools': typeof ToolsIndexRoute
@@ -174,7 +188,9 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/agents': typeof AgentsRouteWithChildren
+  '/settings': typeof SettingsRoute
   '/agents/$id': typeof AgentsIdRoute
+  '/agents/new': typeof AgentsNewRoute
   '/tools/$id': typeof ToolsIdRoute
   '/tools/new': typeof ToolsNewRoute
   '/tools': typeof ToolsIndexRoute
@@ -198,7 +214,9 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_dashboard': typeof DashboardRouteWithChildren
   '/agents': typeof AgentsRouteWithChildren
+  '/settings': typeof SettingsRoute
   '/agents/$id': typeof AgentsIdRoute
+  '/agents/new': typeof AgentsNewRoute
   '/tools/$id': typeof ToolsIdRoute
   '/tools/new': typeof ToolsNewRoute
   '/tools/': typeof ToolsIndexRoute
@@ -222,7 +240,9 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/agents'
+    | '/settings'
     | '/agents/$id'
+    | '/agents/new'
     | '/tools/$id'
     | '/tools/new'
     | '/tools'
@@ -244,7 +264,9 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/agents'
+    | '/settings'
     | '/agents/$id'
+    | '/agents/new'
     | '/tools/$id'
     | '/tools/new'
     | '/tools'
@@ -267,7 +289,9 @@ export interface FileRouteTypes {
     | '/'
     | '/_dashboard'
     | '/agents'
+    | '/settings'
     | '/agents/$id'
+    | '/agents/new'
     | '/tools/$id'
     | '/tools/new'
     | '/tools/'
@@ -291,6 +315,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DashboardRoute: typeof DashboardRouteWithChildren
   AgentsRoute: typeof AgentsRouteWithChildren
+  SettingsRoute: typeof SettingsRoute
   ToolsIdRoute: typeof ToolsIdRoute
   ToolsNewRoute: typeof ToolsNewRoute
   ToolsIndexRoute: typeof ToolsIndexRoute
@@ -298,6 +323,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/agents': {
       id: '/agents'
       path: '/agents'
@@ -339,6 +371,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/tools/$id'
       preLoaderRoute: typeof ToolsIdRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/agents/new': {
+      id: '/agents/new'
+      path: '/new'
+      fullPath: '/agents/new'
+      preLoaderRoute: typeof AgentsNewRouteImport
+      parentRoute: typeof AgentsRoute
     }
     '/agents/$id': {
       id: '/agents/$id'
@@ -492,10 +531,12 @@ const DashboardRouteWithChildren = DashboardRoute._addFileChildren(
 
 interface AgentsRouteChildren {
   AgentsIdRoute: typeof AgentsIdRoute
+  AgentsNewRoute: typeof AgentsNewRoute
 }
 
 const AgentsRouteChildren: AgentsRouteChildren = {
   AgentsIdRoute: AgentsIdRoute,
+  AgentsNewRoute: AgentsNewRoute,
 }
 
 const AgentsRouteWithChildren =
@@ -505,6 +546,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DashboardRoute: DashboardRouteWithChildren,
   AgentsRoute: AgentsRouteWithChildren,
+  SettingsRoute: SettingsRoute,
   ToolsIdRoute: ToolsIdRoute,
   ToolsNewRoute: ToolsNewRoute,
   ToolsIndexRoute: ToolsIndexRoute,
