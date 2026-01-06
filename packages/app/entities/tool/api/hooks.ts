@@ -5,9 +5,11 @@ import { tools } from '@hare/api-client'
 import type { ToolType } from '@hare/types'
 
 // Infer types from the API client for proper type compatibility
-type ApiToolsResponse = Awaited<ReturnType<Awaited<ReturnType<typeof tools.$get>>['json']>>
+type ApiToolsResponse = Awaited<
+	ReturnType<Awaited<ReturnType<(typeof tools)['index']['$get']>>['json']>
+>
 type ApiTool = ApiToolsResponse['tools'][number]
-type ApiCreateToolInput = Parameters<typeof tools.$post>[0]['json']
+type ApiCreateToolInput = Parameters<(typeof tools)['index']['$post']>[0]['json']
 
 // Re-export types for convenience
 export type { ToolType }
@@ -20,7 +22,7 @@ export function useTools(workspaceId: string | undefined) {
 	return useQuery({
 		queryKey: ['tools', workspaceId],
 		queryFn: async () => {
-			const res = await tools.$get({ query: { workspaceId: workspaceId! } })
+			const res = await tools.index.$get({ query: { workspaceId: workspaceId! } })
 			if (!res.ok) throw new Error('Request failed')
 			return res.json()
 		},
@@ -47,7 +49,7 @@ export function useCreateTool(workspaceId: string | undefined) {
 	const queryClient = useQueryClient()
 	return useMutation({
 		mutationFn: async (data: CreateToolInput) => {
-			const res = await tools.$post({
+			const res = await tools.index.$post({
 				query: { workspaceId: workspaceId! },
 				json: data,
 			})
@@ -97,7 +99,7 @@ export function useDeleteTool(workspaceId: string | undefined) {
 }
 
 // Infer test tool input type from API
-type ApiTestToolInput = Parameters<typeof tools.test.$post>[0]['json']
+type ApiTestToolInput = Parameters<(typeof tools)['test']['$post']>[0]['json']
 
 export function useTestTool(workspaceId: string | undefined) {
 	return useMutation({

@@ -12,7 +12,7 @@ export const workspacesQueryOptions = () =>
 	queryOptions({
 		queryKey: workspaceKeys.list(),
 		queryFn: async () => {
-			const res = await workspaces.$get()
+			const res = await workspaces.index.$get()
 			if (!res.ok) throw new Error('Request failed')
 			return res.json()
 		},
@@ -46,7 +46,7 @@ export function useCreateWorkspaceMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
 		mutationFn: async (data: CreateWorkspaceInput) => {
-			const res = await workspaces.$post({ json: data })
+			const res = await workspaces.index.$post({ json: data })
 			if (!res.ok) throw new Error('Request failed')
 			return res.json()
 		},

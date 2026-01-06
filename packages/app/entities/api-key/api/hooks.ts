@@ -46,7 +46,7 @@ export function useApiKeys(workspaceId: string | undefined) {
 	return useQuery({
 		queryKey: ['api-keys', workspaceId],
 		queryFn: async () => {
-			const res = await apiKeys.$get({ query: { workspaceId: workspaceId! } })
+			const res = await apiKeys.index.$get({ query: { workspaceId: workspaceId! } })
 			if (!res.ok) throw new Error('Request failed')
 			return res.json()
 		},
@@ -80,7 +80,7 @@ export function useCreateApiKey(workspaceId: string | undefined) {
 	const queryClient = useQueryClient()
 	return useMutation({
 		mutationFn: async (data: CreateApiKeyInput) => {
-			const res = await apiKeys.$post({
+			const res = await apiKeys.index.$post({
 				query: { workspaceId: workspaceId! },
 				json: data,
 			})

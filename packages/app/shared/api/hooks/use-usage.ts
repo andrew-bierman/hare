@@ -13,7 +13,7 @@ export function useUsageQuery(workspaceId: string | undefined, params?: UsagePar
 	return useQuery({
 		queryKey: ['usage', workspaceId, params],
 		queryFn: async () => {
-			const res = await usage.$get({
+			const res = await usage.index.$get({
 				query: {
 					workspaceId: workspaceId!,
 					startDate: params?.startDate,

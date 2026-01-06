@@ -60,7 +60,7 @@ export function useLogsQuery(workspaceId: string | undefined, params?: LogsParam
 	return useQuery({
 		queryKey: ['logs', workspaceId, params],
 		queryFn: async () => {
-			const res = await logs.$get({
+			const res = await logs.index.$get({
 				query: {
 					workspaceId: workspaceId!,
 					userId: params?.userId,

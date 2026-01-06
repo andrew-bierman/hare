@@ -13,7 +13,7 @@ export const agentsQueryOptions = (workspaceId: string) =>
 	queryOptions({
 		queryKey: agentKeys.list(workspaceId),
 		queryFn: async () => {
-			const res = await agents.$get({ query: { workspaceId } })
+			const res = await agents.index.$get({ query: { workspaceId } })
 			if (!res.ok) throw new Error('Failed to fetch agents')
 			return res.json()
 		},
@@ -98,7 +98,7 @@ export function useCreateAgentMutation(workspaceId: string | undefined) {
 	const queryClient = useQueryClient()
 	return useMutation({
 		mutationFn: async (data: CreateAgentInput) => {
-			const res = await agents.$post({
+			const res = await agents.index.$post({
 				query: { workspaceId: workspaceId! },
 				json: data,
 			})
