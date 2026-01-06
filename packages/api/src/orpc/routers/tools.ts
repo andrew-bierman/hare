@@ -70,6 +70,7 @@ const ToolSchema = z.object({
 	type: ToolTypeSchema,
 	config: ToolConfigSchema,
 	inputSchema: InputSchemaSchema.nullable(),
+	isSystem: z.boolean(),
 	createdAt: z.string(),
 	updatedAt: z.string(),
 })
@@ -103,6 +104,7 @@ function serializeTool(tool: typeof tools.$inferSelect): z.infer<typeof ToolSche
 		type: tool.type,
 		config: tool.config ?? {},
 		inputSchema: tool.inputSchema ?? null,
+		isSystem: false,
 		createdAt: tool.createdAt.toISOString(),
 		updatedAt: tool.updatedAt.toISOString(),
 	}
