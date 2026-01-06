@@ -2,16 +2,8 @@
 	"extends": "@hare/typescript-config/react-library.json",
 	"compilerOptions": {
 		"noEmit": true,
-		"baseUrl": ".",
-		"paths": {
-			"@hare/api": ["../api/src/index.ts"],
-			"@hare/types": ["../types/src/index.ts"],
-			"@hare/config": ["../config/src/index.ts"],
-			"@hare/auth": ["../auth/src/index.ts"],
-			"@hare/auth/client": ["../auth/src/client.ts"],
-			"@hare/ui": ["../ui/src/index.ts"],
-			"@hare/ui/*": ["../ui/src/*"]
-		}
+		"module": "ESNext",
+		"moduleResolution": "Bundler"
 	},
 	"include": ["**/*.ts", "**/*.tsx"],
 	"exclude": ["node_modules", "dist"]
