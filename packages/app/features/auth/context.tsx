@@ -29,34 +29,22 @@ export interface AuthActions {
 const AuthContext = createContext<AuthContextValue | null>(null);
 const AuthActionsContext = createContext<AuthActions | null>(null);
 
-// Check if we're running on the server (SSR/prerendering)
-const isServer = typeof window === "undefined";
+// Default values for SSR - these avoid conditional hook calls
+const SSR_SESSION_DATA: AuthContextValue = {
+  data: null,
+  isPending: true,
+  error: null,
+};
+
+const SSR_ACTIONS: AuthActions = {
+  signOut: async () => {},
+};
 
 /**
- * Provider for auth context.
- * Uses @hare/auth/client directly.
- * Returns a loading state during SSR to avoid hooks issues.
+ * Internal client-only provider that uses hooks.
+ * Only rendered on the client side.
  */
-export function AuthProvider({ children }: { children: ReactNode }) {
-  // During SSR/prerendering, return a loading state to avoid hooks issues
-  if (isServer) {
-    const serverSessionData: AuthContextValue = {
-      data: null,
-      isPending: true,
-      error: null,
-    };
-    const serverActions: AuthActions = {
-      signOut: async () => {},
-    };
-    return (
-      <AuthContext.Provider value={serverSessionData}>
-        <AuthActionsContext.Provider value={serverActions}>
-          {children}
-        </AuthActionsContext.Provider>
-      </AuthContext.Provider>
-    );
-  }
-
+function ClientAuthProvider({ children }: { children: ReactNode }) {
   const session = useSession();
 
   const sessionData: AuthContextValue = {
@@ -89,6 +77,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       </AuthActionsContext.Provider>
     </AuthContext.Provider>
   );
+}
+
+/**
+ * Provider for auth context.
+ * Uses @hare/auth/client directly.
+ * Returns a loading state during SSR to avoid hooks issues.
+ */
+export function AuthProvider({ children }: { children: ReactNode }) {
+  // During SSR/prerendering, render with static values (no hooks)
+  if (typeof window === "undefined") {
+    return (
+      <AuthContext.Provider value={SSR_SESSION_DATA}>
+        <AuthActionsContext.Provider value={SSR_ACTIONS}>
+          {children}
+        </AuthActionsContext.Provider>
+      </AuthContext.Provider>
+    );
+  }
+
+  // On the client, use the hook-based provider
+  return <ClientAuthProvider>{children}</ClientAuthProvider>;
 }
 
 /**
