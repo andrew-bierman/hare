@@ -1,10 +1,8 @@
 /**
  * oRPC Main Entry Point
  *
- * Exports the router, types, and Hono integration.
+ * Exports the router, types, client, and Hono integration.
  */
-
-import type { RouterClient } from '@orpc/server'
 
 // Base exports
 export {
@@ -36,11 +34,21 @@ export {
 	schedulesRouter,
 } from './routers'
 
-// Pre-computed client type for cross-package type safety
-import type { AppRouter } from './routers'
-
-/**
- * Type-safe client type derived from the app router.
- * Use this type when creating the oRPC client in other packages.
- */
-export type AppRouterClient = RouterClient<AppRouter>
+// Client exports - the main way to use oRPC from the frontend
+export {
+	orpc,
+	type AppRouterClient,
+	type AgentsClient,
+	type ToolsClient,
+	type ApiKeysClient,
+	type WorkspacesClient,
+	type SchedulesClient,
+	type UsageClient,
+	type AnalyticsClient,
+	type LogsClient,
+	type MemoryClient,
+	type ChatClient,
+	type BillingClient,
+	type UserSettingsClient,
+	type WorkspaceMembersClient,
+} from './client'

@@ -1,29 +1,22 @@
 /**
  * @hare/api-client
  *
- * Type-safe API clients for the Hare API.
+ * Legacy Hono RPC clients for routes not migrated to oRPC.
  *
- * Use `orpc` for all type-safe operations - types are automatically inferred from the server.
- * Legacy Hono clients remain only for auth (Better Auth pass-through), webhooks, health, embed, dev, mcp, agentWs.
- *
- * @example
+ * For type-safe API operations, use `@hare/api/orpc`:
  * ```ts
- * // Recommended: Use oRPC client (full type safety)
- * import { orpc } from '@hare/api-client'
- *
- * // CRUD operations
+ * import { orpc } from '@hare/api/orpc'
  * const { agents } = await orpc.agents.list({})
- * const agent = await orpc.agents.create({ name: '...', model: '...', instructions: '...' })
- *
- * // Billing
- * const plans = await orpc.billing.listPlans({ workspaceId: '...' })
- *
- * // Memory
- * const memories = await orpc.memory.list({ id: agentId, workspaceId: '...' })
- *
- * // Chat
- * const conversations = await orpc.chat.listConversations({ id: agentId })
  * ```
+ *
+ * This package only exports legacy clients for:
+ * - auth (Better Auth pass-through)
+ * - webhooks
+ * - health
+ * - embed
+ * - dev
+ * - mcp
+ * - agentWs
  */
 
 import { hc } from 'hono/client'
@@ -125,42 +118,11 @@ export const mcp = hcMcp(`${getBaseURL()}/api/mcp`, { init: clientInit })
 export const agentWs = hcAgentWs(`${getBaseURL()}/api/agent-ws`, { init: clientInit })
 
 // =============================================================================
-// oRPC CLIENT (Recommended)
-// =============================================================================
-
-/**
- * oRPC client with full end-to-end type safety.
- * Recommended for all operations - types are automatically inferred from the server.
- *
- * Covers:
- * - agents (list, get, create, update, delete, deploy, undeploy)
- * - tools (list, get, create, update, delete)
- * - workspaces (list, get, create, update, delete, members)
- * - apiKeys (list, create, update, delete)
- * - schedules (list, get, create, update, delete)
- * - usage (get, getByAgent)
- * - analytics
- * - logs
- * - userSettings
- * - billing (listPlans, createCheckout, createPortal, getStatus, getPaymentHistory)
- * - memory (list, create, search, update, delete, clear)
- * - chat (listConversations, getMessages, exportConversation)
- *
- * @example
- * ```ts
- * import { orpc } from '@hare/api-client'
- *
- * // Types fully inferred!
- * const { agents } = await orpc.agents.list({})
- * const agent = await orpc.agents.create({ name: '...', model: '...', instructions: '...' })
- * ```
- */
-export { orpc } from './orpc'
-export type { AppRouterClient, AppRouterClient as AppRouter } from './orpc'
-
-// =============================================================================
 // TYPE EXPORTS
 // =============================================================================
+
+// Note: For oRPC client, import from '@hare/api/orpc' directly:
+// import { orpc } from '@hare/api/orpc'
 
 export type {
 	WebhooksClient,

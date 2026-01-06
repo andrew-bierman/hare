@@ -8,7 +8,7 @@
 'use client'
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { orpc } from '@hare/api-client'
+import { orpc } from '@hare/api/orpc'
 
 // =============================================================================
 // Agent Hooks

@@ -12,7 +12,7 @@ import type { Schedule } from '@hare/types'
 import type { QueryClient } from '@tanstack/react-query'
 import { createCollection } from '@tanstack/db'
 import { queryCollectionOptions } from '@tanstack/query-db-collection'
-import { orpc } from '@hare/api-client'
+import { orpc } from '@hare/api/orpc'
 import { agentKeys, scheduleKeys, toolKeys, workspaceKeys } from '../../../api/hooks/query-keys'
 
 // =============================================================================

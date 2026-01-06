@@ -189,6 +189,7 @@
         "@hare/db": "workspace:*",
         "@hare/tools": "workspace:*",
         "@hare/types": "workspace:*",
+        "@orpc/client": "^1.13.2",
         "@orpc/server": "^1.13.2",
         "@react-email/components": "^1.0.3",
         "@scalar/hono-api-reference": "^0.9.30",
@@ -219,9 +220,6 @@
       "version": "0.1.0",
       "dependencies": {
         "@hare/api": "workspace:*",
-        "@orpc/client": "^1.13.2",
-        "@orpc/contract": "^1.13.2",
-        "@orpc/server": "^1.13.2",
       },
       "devDependencies": {
         "@hare/typescript-config": "workspace:*",

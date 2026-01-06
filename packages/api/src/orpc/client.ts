@@ -7,7 +7,13 @@
 
 import { createORPCClient } from '@orpc/client'
 import { RPCLink } from '@orpc/client/fetch'
-import type { AppRouterClient } from '@hare/api/orpc'
+import type { RouterClient } from '@orpc/server'
+import type { AppRouter } from './routers'
+
+/**
+ * Type-safe client type derived from the app router.
+ */
+export type AppRouterClient = RouterClient<AppRouter>
 
 /**
  * Get the base URL for API requests
@@ -37,7 +43,7 @@ const link = new RPCLink({
  *
  * @example
  * ```ts
- * import { orpc } from '@hare/api-client'
+ * import { orpc } from '@hare/api/orpc'
  *
  * // List agents - types fully inferred!
  * const { agents } = await orpc.agents.list({})
@@ -65,9 +71,6 @@ const link = new RPCLink({
  * ```
  */
 export const orpc: AppRouterClient = createORPCClient(link)
-
-// Re-export router type for convenience
-export type { AppRouterClient }
 
 // Export individual router types for more specific imports
 export type AgentsClient = AppRouterClient['agents']

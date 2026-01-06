@@ -5,8 +5,11 @@
  * Following Feature-Sliced Design, this is the public API for the api segment.
  */
 
-// API Client - re-exported from @hare/api-client
-export * from '@hare/api-client'
+// oRPC Client - type-safe API client (recommended)
+export { orpc, type AppRouterClient } from '@hare/api/orpc'
+
+// Legacy Hono clients for routes not migrated to oRPC
+export { auth, webhooks, health, embed, dev, mcp, agentWs } from '@hare/api-client'
 
 // API Hooks - all hooks and their types
 // Note: hooks/use-api-keys.ts defines local ApiKey/ApiKeyWithSecret types that extend the base types
