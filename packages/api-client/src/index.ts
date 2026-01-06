@@ -12,8 +12,12 @@
 import { hc } from 'hono/client'
 import type {
 	AgentsRoute,
+	SchedulesRoute,
+	MemoryRoute,
+	WebhooksRoute,
 	ToolsRoute,
 	WorkspacesRoute,
+	WorkspaceMembersRoute,
 	AuthRoute,
 	BillingRoute,
 	AnalyticsRoute,
@@ -55,8 +59,12 @@ const clientInit = { credentials: 'include' as const }
 // =============================================================================
 
 type AgentsClient = ReturnType<typeof hc<AgentsRoute>>
+type SchedulesClient = ReturnType<typeof hc<SchedulesRoute>>
+type MemoryClient = ReturnType<typeof hc<MemoryRoute>>
+type WebhooksClient = ReturnType<typeof hc<WebhooksRoute>>
 type ToolsClient = ReturnType<typeof hc<ToolsRoute>>
 type WorkspacesClient = ReturnType<typeof hc<WorkspacesRoute>>
+type WorkspaceMembersClient = ReturnType<typeof hc<WorkspaceMembersRoute>>
 type AuthClient = ReturnType<typeof hc<AuthRoute>>
 type BillingClient = ReturnType<typeof hc<BillingRoute>>
 type AnalyticsClient = ReturnType<typeof hc<AnalyticsRoute>>
@@ -77,8 +85,13 @@ type AgentWsClient = ReturnType<typeof hc<AgentWsRoute>>
 // =============================================================================
 
 const hcAgents = (...args: Parameters<typeof hc>): AgentsClient => hc<AgentsRoute>(...args)
+const hcSchedules = (...args: Parameters<typeof hc>): SchedulesClient => hc<SchedulesRoute>(...args)
+const hcMemory = (...args: Parameters<typeof hc>): MemoryClient => hc<MemoryRoute>(...args)
+const hcWebhooks = (...args: Parameters<typeof hc>): WebhooksClient => hc<WebhooksRoute>(...args)
 const hcTools = (...args: Parameters<typeof hc>): ToolsClient => hc<ToolsRoute>(...args)
 const hcWorkspaces = (...args: Parameters<typeof hc>): WorkspacesClient => hc<WorkspacesRoute>(...args)
+const hcWorkspaceMembers = (...args: Parameters<typeof hc>): WorkspaceMembersClient =>
+	hc<WorkspaceMembersRoute>(...args)
 const hcAuth = (...args: Parameters<typeof hc>): AuthClient => hc<AuthRoute>(...args)
 const hcBilling = (...args: Parameters<typeof hc>): BillingClient => hc<BillingRoute>(...args)
 const hcAnalytics = (...args: Parameters<typeof hc>): AnalyticsClient => hc<AnalyticsRoute>(...args)
@@ -99,7 +112,7 @@ const hcAgentWs = (...args: Parameters<typeof hc>): AgentWsClient => hc<AgentWsR
 
 /**
  * Agents API client - /api/agents/*
- * Includes agent CRUD, schedules, memory, and webhooks.
+ * Agent CRUD operations.
  *
  * @example
  * ```ts
@@ -108,6 +121,48 @@ const hcAgentWs = (...args: Parameters<typeof hc>): AgentWsClient => hc<AgentWsR
  * ```
  */
 export const agents = hcAgents(`${getBaseURL()}/api/agents`, { init: clientInit })
+
+/**
+ * Schedules API client - /api/agents/*
+ * Schedule management for agents. Mounted at same path as agents.
+ *
+ * @example
+ * ```ts
+ * const res = await schedules[':agentId'].schedules.$get({
+ *   param: { agentId },
+ *   query: { workspaceId }
+ * })
+ * ```
+ */
+export const schedules = hcSchedules(`${getBaseURL()}/api/agents`, { init: clientInit })
+
+/**
+ * Memory API client - /api/agents/*
+ * Vector memory operations for agents. Mounted at same path as agents.
+ *
+ * @example
+ * ```ts
+ * const res = await memory[':id'].memories.$get({
+ *   param: { id: agentId },
+ *   query: { workspaceId }
+ * })
+ * ```
+ */
+export const memory = hcMemory(`${getBaseURL()}/api/agents`, { init: clientInit })
+
+/**
+ * Webhooks API client - /api/agents/*
+ * Webhook management for agents. Mounted at same path as agents.
+ *
+ * @example
+ * ```ts
+ * const res = await webhooks[':id'].webhooks.$get({
+ *   param: { id: agentId },
+ *   query: { workspaceId }
+ * })
+ * ```
+ */
+export const webhooks = hcWebhooks(`${getBaseURL()}/api/agents`, { init: clientInit })
 
 /**
  * Tools API client - /api/tools/*
@@ -122,6 +177,7 @@ export const tools = hcTools(`${getBaseURL()}/api/tools`, { init: clientInit })
 
 /**
  * Workspaces API client - /api/workspaces/*
+ * Workspace CRUD operations.
  *
  * @example
  * ```ts
@@ -130,6 +186,19 @@ export const tools = hcTools(`${getBaseURL()}/api/tools`, { init: clientInit })
  * ```
  */
 export const workspaces = hcWorkspaces(`${getBaseURL()}/api/workspaces`, { init: clientInit })
+
+/**
+ * Workspace Members API client - /api/workspaces/*
+ * Member and invitation management. Mounted at same path as workspaces.
+ *
+ * @example
+ * ```ts
+ * const res = await workspaceMembers[':id'].members.$get({
+ *   param: { id: workspaceId }
+ * })
+ * ```
+ */
+export const workspaceMembers = hcWorkspaceMembers(`${getBaseURL()}/api/workspaces`, { init: clientInit })
 
 /**
  * Auth API client - /api/auth/*
@@ -202,8 +271,12 @@ export const agentWs = hcAgentWs(`${getBaseURL()}/api/agent-ws`, { init: clientI
 
 export type {
 	AgentsClient,
+	SchedulesClient,
+	MemoryClient,
+	WebhooksClient,
 	ToolsClient,
 	WorkspacesClient,
+	WorkspaceMembersClient,
 	AuthClient,
 	BillingClient,
 	AnalyticsClient,

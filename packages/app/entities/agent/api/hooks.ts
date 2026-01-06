@@ -11,7 +11,7 @@ export function useAgents(workspaceId: string | undefined) {
 	return useQuery({
 		queryKey: ['agents', workspaceId],
 		queryFn: async () => {
-			const res = await agents.$get({ query: { workspaceId: workspaceId! } })
+			const res = await agents.index.$get({ query: { workspaceId: workspaceId! } })
 			if (!res.ok) throw new Error('Request failed')
 			return res.json()
 		},
@@ -38,7 +38,7 @@ export function useCreateAgent(workspaceId: string | undefined) {
 	const queryClient = useQueryClient()
 	return useMutation({
 		mutationFn: async (data: CreateAgentInput) => {
-			const res = await agents.$post({
+			const res = await agents.index.$post({
 				query: { workspaceId: workspaceId! },
 				json: data,
 			})

@@ -50,16 +50,29 @@ import type { HonoEnv } from '@hare/types'
 
 // =============================================================================
 // ROUTE TYPE EXPORTS (for split RPC clients)
+// Using typeof from the individual route modules
 // =============================================================================
 
-/** Agents routes: /api/agents/* (includes schedules, memory, webhooks) */
+/** Agents routes: /api/agents/* */
 export type AgentsRoute = typeof agents
+
+/** Schedules routes: mounted under /api/agents/* */
+export type SchedulesRoute = typeof schedules
+
+/** Memory routes: mounted under /api/agents/* */
+export type MemoryRoute = typeof memory
+
+/** Webhooks routes: mounted under /api/agents/* */
+export type WebhooksRoute = typeof webhooksRoutes
 
 /** Tools routes: /api/tools/* */
 export type ToolsRoute = typeof tools
 
-/** Workspaces routes: /api/workspaces/* (includes members, invites) */
+/** Workspaces routes: /api/workspaces/* */
 export type WorkspacesRoute = typeof workspaces
+
+/** Workspace members routes: mounted under /api/workspaces/* */
+export type WorkspaceMembersRoute = typeof workspaceMembers
 
 /** Auth routes: /api/auth/* */
 export type AuthRoute = typeof auth

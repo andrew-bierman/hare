@@ -5,7 +5,7 @@
  */
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { agents } from '@hare/api-client'
+import { memory } from '@hare/api-client'
 
 // =============================================================================
 // Types
@@ -93,7 +93,7 @@ export function useMemoriesQuery(options: {
 	return useQuery({
 		queryKey: memoryQueryKeys.list(agentId, workspaceId || ''),
 		queryFn: async () => {
-			const res = await agents[':id'].memories.$get({
+			const res = await memory[':id'].memories.$get({
 				param: { id: agentId },
 				query: {
 					workspaceId: workspaceId!,
@@ -117,7 +117,7 @@ export function useCreateMemoryMutation(options: { agentId: string; workspaceId?
 
 	return useMutation({
 		mutationFn: async (data: CreateMemoryInput) => {
-			const res = await agents[':id'].memories.$post({
+			const res = await memory[':id'].memories.$post({
 				param: { id: agentId },
 				query: { workspaceId: workspaceId! },
 				json: data,
@@ -141,7 +141,7 @@ export function useSearchMemoriesMutation(options: { agentId: string; workspaceI
 
 	return useMutation({
 		mutationFn: async (data: SearchMemoryInput) => {
-			const res = await agents[':id'].memories.search.$post({
+			const res = await memory[':id'].memories.search.$post({
 				param: { id: agentId },
 				query: { workspaceId: workspaceId! },
 				json: data,
@@ -161,7 +161,7 @@ export function useUpdateMemoryMutation(options: { agentId: string; workspaceId?
 
 	return useMutation({
 		mutationFn: async (input: { memoryId: string; data: UpdateMemoryInput }) => {
-			const res = await agents[':id'].memories[':memoryId'].$patch({
+			const res = await memory[':id'].memories[':memoryId'].$patch({
 				param: { id: agentId, memoryId: input.memoryId },
 				query: { workspaceId: workspaceId! },
 				json: input.data,
@@ -186,7 +186,7 @@ export function useDeleteMemoryMutation(options: { agentId: string; workspaceId?
 
 	return useMutation({
 		mutationFn: async (memoryId: string) => {
-			const res = await agents[':id'].memories[':memoryId'].$delete({
+			const res = await memory[':id'].memories[':memoryId'].$delete({
 				param: { id: agentId, memoryId },
 				query: { workspaceId: workspaceId! },
 			})
@@ -210,7 +210,7 @@ export function useClearMemoriesMutation(options: { agentId: string; workspaceId
 
 	return useMutation({
 		mutationFn: async () => {
-			const res = await agents[':id'].memories.$delete({
+			const res = await memory[':id'].memories.$delete({
 				param: { id: agentId },
 				query: { workspaceId: workspaceId! },
 			})

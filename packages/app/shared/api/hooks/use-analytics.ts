@@ -15,7 +15,7 @@ export function useAnalyticsQuery(workspaceId: string | undefined, params?: Anal
 	return useQuery({
 		queryKey: analyticsKeys.overview(workspaceId ?? '', params?.startDate),
 		queryFn: async () => {
-			const res = await analytics.$get({
+			const res = await analytics.index.$get({
 				query: {
 					workspaceId: workspaceId!,
 					startDate: params?.startDate,

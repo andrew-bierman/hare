@@ -12,7 +12,7 @@ import type { Schedule } from '@hare/types'
 import type { QueryClient } from '@tanstack/react-query'
 import { createCollection } from '@tanstack/db'
 import { queryCollectionOptions } from '@tanstack/query-db-collection'
-import { agents, tools, workspaces } from '@hare/api-client'
+import { agents, schedules, tools, workspaces } from '@hare/api-client'
 import { agentKeys, scheduleKeys, toolKeys, workspaceKeys } from '../../../api/hooks/query-keys'
 
 // =============================================================================
@@ -20,14 +20,18 @@ import { agentKeys, scheduleKeys, toolKeys, workspaceKeys } from '../../../api/h
 // =============================================================================
 
 // Use inferred types from API responses for proper compatibility
-type ApiAgentsResponse = Awaited<ReturnType<Awaited<ReturnType<typeof agents.$get>>['json']>>
+type ApiAgentsResponse = Awaited<
+	ReturnType<Awaited<ReturnType<(typeof agents)['index']['$get']>>['json']>
+>
 type ApiAgent = ApiAgentsResponse['agents'][number]
 
-type ApiToolsResponse = Awaited<ReturnType<Awaited<ReturnType<typeof tools.$get>>['json']>>
+type ApiToolsResponse = Awaited<
+	ReturnType<Awaited<ReturnType<(typeof tools)['index']['$get']>>['json']>
+>
 type ApiTool = ApiToolsResponse['tools'][number]
 
 type ApiWorkspacesResponse = Awaited<
-	ReturnType<Awaited<ReturnType<typeof workspaces.$get>>['json']>
+	ReturnType<Awaited<ReturnType<(typeof workspaces)['index']['$get']>>['json']>
 >
 type ApiWorkspace = ApiWorkspacesResponse['workspaces'][number]
 
@@ -69,7 +73,7 @@ export function createAgentCollection(options: {
 		queryClient,
 		queryKey: agentKeys.list(workspaceId),
 		queryFn: async (): Promise<AgentRow[]> => {
-			const res = await agents.$get({ query: { workspaceId } })
+			const res = await agents.index.$get({ query: { workspaceId } })
 			if (!res.ok) throw new Error('Request failed')
 			const response = await res.json()
 			return response.agents.map((agent) => ({
@@ -84,7 +88,7 @@ export function createAgentCollection(options: {
 			for (const mutation of mutations) {
 				if (mutation.type === 'insert' && mutation.modified) {
 					const { _workspaceId, ...data } = mutation.modified
-					const res = await agents.$post({
+					const res = await agents.index.$post({
 						query: { workspaceId: _workspaceId },
 						json: {
 							name: data.name,
@@ -170,7 +174,7 @@ export function createToolCollection(options: {
 		queryClient,
 		queryKey: toolKeys.list(workspaceId),
 		queryFn: async (): Promise<ToolRow[]> => {
-			const res = await tools.$get({ query: { workspaceId } })
+			const res = await tools.index.$get({ query: { workspaceId } })
 			if (!res.ok) throw new Error('Request failed')
 			const response = await res.json()
 			return response.tools.map((tool) => ({
@@ -185,7 +189,7 @@ export function createToolCollection(options: {
 			for (const mutation of mutations) {
 				if (mutation.type === 'insert' && mutation.modified) {
 					const { _workspaceId, ...data } = mutation.modified
-					const res = await tools.$post({
+					const res = await tools.index.$post({
 						query: { workspaceId: _workspaceId },
 						json: {
 							name: data.name,
@@ -256,7 +260,7 @@ export function createWorkspaceCollection(options: {
 		queryClient,
 		queryKey: workspaceKeys.list(),
 		queryFn: async (): Promise<WorkspaceRow[]> => {
-			const res = await workspaces.$get()
+			const res = await workspaces.index.$get()
 			if (!res.ok) throw new Error('Request failed')
 			const response = await res.json()
 			return response.workspaces
@@ -268,7 +272,7 @@ export function createWorkspaceCollection(options: {
 			for (const mutation of mutations) {
 				if (mutation.type === 'insert' && mutation.modified) {
 					const { name, description } = mutation.modified
-					const res = await workspaces.$post({
+					const res = await workspaces.index.$post({
 						json: {
 							name,
 							description: description ?? undefined,
@@ -330,7 +334,7 @@ export function createScheduleCollection(options: {
 		queryClient,
 		queryKey: scheduleKeys.list(agentId, workspaceId),
 		queryFn: async (): Promise<ScheduleRow[]> => {
-			const res = await agents[':agentId'].schedules.$get({
+			const res = await schedules[':agentId'].schedules.$get({
 				param: { agentId },
 				query: { workspaceId },
 			})
@@ -349,7 +353,7 @@ export function createScheduleCollection(options: {
 				if (mutation.type === 'insert' && mutation.modified) {
 					const { agentId: aId, _workspaceId, type, executeAt, cron, action, payload } =
 						mutation.modified
-					const res = await agents[':agentId'].schedules.$post({
+					const res = await schedules[':agentId'].schedules.$post({
 						param: { agentId: aId },
 						query: { workspaceId: _workspaceId },
 						json: {
@@ -371,7 +375,7 @@ export function createScheduleCollection(options: {
 				if (mutation.type === 'update' && mutation.original && mutation.modified) {
 					const { id, agentId: aId, _workspaceId } = mutation.original
 					const { status, executeAt, cron, payload } = mutation.modified
-					const res = await agents[':agentId'].schedules[':scheduleId'].$patch({
+					const res = await schedules[':agentId'].schedules[':scheduleId'].$patch({
 						param: { agentId: aId, scheduleId: id },
 						query: { workspaceId: _workspaceId },
 						json: {
@@ -391,7 +395,7 @@ export function createScheduleCollection(options: {
 			for (const mutation of mutations) {
 				if (mutation.type === 'delete' && mutation.original) {
 					const { id, agentId: aId, _workspaceId } = mutation.original
-					const res = await agents[':agentId'].schedules[':scheduleId'].$delete({
+					const res = await schedules[':agentId'].schedules[':scheduleId'].$delete({
 						param: { agentId: aId, scheduleId: id },
 						query: { workspaceId: _workspaceId },
 					})
