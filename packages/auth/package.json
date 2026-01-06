@@ -24,7 +24,8 @@
 		"src"
 	],
 	"dependencies": {
-		"@hare/db": "workspace:*"
+		"@hare/db": "workspace:*",
+		"@hare/email": "workspace:*"
 	},
 	"devDependencies": {
 		"@cloudflare/workers-types": "^4.20251224.0",
