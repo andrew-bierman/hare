@@ -15,7 +15,7 @@
         "miniflare": "^4.20251217.0",
         "turbo": "^2.7.2",
         "typescript": "^5",
-        "vite": "^7.0.1",
+        "vite": "^7.3.0",
         "vitest": "^3.2.4",
       },
     },
@@ -269,6 +269,7 @@
       "version": "0.1.0",
       "dependencies": {
         "@hare/db": "workspace:*",
+        "@hare/email": "workspace:*",
       },
       "devDependencies": {
         "@cloudflare/workers-types": "^4.20251224.0",
