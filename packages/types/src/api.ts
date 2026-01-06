@@ -210,6 +210,15 @@ export interface OptionalAuthEnv extends HonoEnv {
 	Variables: Partial<AuthVariables>
 }
 
+/**
+ * Hono environment for oRPC routes.
+ * All auth and workspace variables are optional since oRPC procedures
+ * handle their own validation internally.
+ */
+export interface OrpcEnv extends HonoEnv {
+	Variables: Partial<AuthVariables> & Partial<Omit<WorkspaceVariables, keyof AuthVariables>>
+}
+
 // =============================================================================
 // DATABASE ENUM TYPES WITH RUNTIME VALIDATION
 // =============================================================================
