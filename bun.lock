@@ -215,21 +215,6 @@
         "zod": "^4.0.0",
       },
     },
-    "packages/api-client": {
-      "name": "@hare/api-client",
-      "version": "0.1.0",
-      "dependencies": {
-        "@hare/api": "workspace:*",
-      },
-      "devDependencies": {
-        "@hare/typescript-config": "workspace:*",
-        "hono": "^4.11.3",
-        "typescript": "^5",
-      },
-      "peerDependencies": {
-        "hono": "^4.0.0",
-      },
-    },
     "packages/app": {
       "name": "@hare/app",
       "version": "0.1.0",
@@ -240,7 +225,6 @@
         "@dnd-kit/utilities": "^3.2.2",
         "@hare/agent": "workspace:*",
         "@hare/api": "workspace:*",
-        "@hare/api-client": "workspace:*",
         "@hare/auth": "workspace:*",
         "@hare/config": "workspace:*",
         "@hare/types": "workspace:*",
@@ -773,8 +757,6 @@
     "@hare/agent": ["@hare/agent@workspace:packages/agent"],
 
     "@hare/api": ["@hare/api@workspace:packages/api"],
-
-    "@hare/api-client": ["@hare/api-client@workspace:packages/api-client"],
 
     "@hare/app": ["@hare/app@workspace:packages/app"],
 
