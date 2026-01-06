@@ -9,8 +9,8 @@
  */
 
 import { Resend } from 'resend'
-import { PasswordResetEmail } from './emails/password-reset'
-import { WorkspaceInvitationEmail } from './emails/workspace-invitation'
+import { PasswordResetEmail } from './templates/password-reset'
+import { WorkspaceInvitationEmail } from './templates/workspace-invitation'
 
 /**
  * Environment configuration for email service

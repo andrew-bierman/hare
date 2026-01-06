@@ -54,6 +54,7 @@
 		"@hare/auth": "workspace:*",
 		"@hare/config": "workspace:*",
 		"@hare/db": "workspace:*",
+		"@hare/email": "workspace:*",
 		"@hare/tools": "workspace:*",
 		"@hare/types": "workspace:*",
 		"@orpc/client": "^1.13.2",
