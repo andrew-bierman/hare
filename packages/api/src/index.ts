@@ -27,52 +27,31 @@ import { CloudflareEnvError } from './db'
 import { corsMiddleware, loggingMiddleware, securityHeadersMiddleware } from './middleware'
 import { orpcApp } from './orpc/hono'
 import agentWs from './routes/agent-ws'
-// Import route modules (routes migrated to oRPC have been removed)
 import auth from './routes/auth'
-import billing from './routes/billing'
-import chat from './routes/chat'
+import billingWebhook from './routes/billing'
 import dev from './routes/dev'
-import embed from './routes/embed'
-import health from './routes/health'
 import mcp from './routes/mcp'
-import memory from './routes/memory'
-import webhooksRoutes from './routes/webhooks'
 import type { HonoEnv } from '@hare/types'
 
 // =============================================================================
 // ROUTE TYPE EXPORTS (for Hono RPC clients)
-// Note: Core CRUD routes have been migrated to oRPC - use `orpc` export instead
-// The routes below are still on Hono RPC (auth, billing, chat, etc.)
+// Note: Most routes have been migrated to oRPC at /api/rpc/*
+// Only special-case routes remain here (WebSocket, auth, webhooks)
 // =============================================================================
-
-/** Memory routes: mounted under /api/agents/* */
-export type MemoryRoute = typeof memory
-
-/** Webhooks routes: mounted under /api/agents/* */
-export type WebhooksRoute = typeof webhooksRoutes
 
 /** Auth routes: /api/auth/* */
 export type AuthRoute = typeof auth
 
-/** Billing routes: /api/billing/* */
-export type BillingRoute = typeof billing
-
-/** Chat routes: /api/chat/* */
-export type ChatRoute = typeof chat
-
-/** Health routes: /api/health/* */
-export type HealthRoute = typeof health
-
-/** Embed routes: /api/embed/* */
-export type EmbedRoute = typeof embed
+/** Billing webhook route: /api/billing/webhook */
+export type BillingWebhookRoute = typeof billingWebhook
 
 /** Dev routes: /api/dev/* */
 export type DevRoute = typeof dev
 
-/** MCP routes: /api/mcp/* */
+/** MCP routes: /api/mcp/* (WebSocket + HTTP for Durable Objects) */
 export type McpRoute = typeof mcp
 
-/** Agent WebSocket routes: /api/agent-ws/* */
+/** Agent WebSocket routes: /api/agent-ws/* (WebSocket for Durable Objects) */
 export type AgentWsRoute = typeof agentWs
 
 // =============================================================================
@@ -103,18 +82,14 @@ app.use('*', securityHeadersMiddleware)
 app.use('*', loggingMiddleware) // Request logging to KV for observability
 
 // Mount routes - chain for type inference
-// Note: Routes migrated to oRPC are available at /api/rpc/*
+// Note: Most routes are now on oRPC at /api/rpc/*
+// Only special-case routes remain here (WebSocket, auth, Stripe webhook)
 const routes = app
-	.route('/agents', memory)
-	.route('/agents', webhooksRoutes)
 	.route('/agent-ws', agentWs)
-	.route('/billing', billing)
 	.route('/auth', auth)
-	.route('/chat', chat)
+	.route('/billing', billingWebhook)
 	.route('/dev', dev)
 	.route('/mcp', mcp)
-	.route('/health', health)
-	.route('/embed', embed)
 	.route('/rpc', orpcApp)
 
 // OpenAPI documentation - must be registered before showRoutes
@@ -132,19 +107,12 @@ app.doc('/openapi.json', {
 		},
 	],
 	tags: [
-		{ name: 'Authentication', description: 'User authentication and session management' },
-		{
-			name: 'Agent WebSocket',
-			description: 'Real-time WebSocket connections to Cloudflare Agents',
-		},
-		{ name: 'Billing', description: 'Subscription and payment management' },
-		{ name: 'Webhooks', description: 'Webhook management for agent event notifications' },
-		{ name: 'Chat', description: 'Chat with deployed agents (SSE)' },
-		{ name: 'MCP', description: 'Model Context Protocol for external AI clients' },
-		{ name: 'Health', description: 'System health checks and monitoring endpoints' },
-		{ name: 'Embed', description: 'Embeddable chat widget endpoints' },
-		// Note: Agents, Tools, Workspaces, API Keys, Schedules, Usage, Analytics, Logs, User Settings
-		// have been migrated to oRPC at /api/rpc/*
+		{ name: 'Authentication', description: 'User authentication and session management (Better Auth)' },
+		{ name: 'Agent WebSocket', description: 'Real-time WebSocket connections to Cloudflare Agents (Durable Objects)' },
+		{ name: 'MCP', description: 'Model Context Protocol for external AI clients (Durable Objects)' },
+		{ name: 'Billing Webhook', description: 'Stripe webhook handler' },
+		// All other routes (Agents, Tools, Workspaces, API Keys, Schedules, Usage, Analytics, Logs,
+		// User Settings, Memory, Chat, Health, Embed, Webhooks, Billing) are on oRPC at /api/rpc/*
 	],
 })
 
