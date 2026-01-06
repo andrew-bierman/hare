@@ -211,6 +211,52 @@ export const remove = requireOwner
 		return { success: true }
 	})
 
+/**
+ * Ensure default workspace exists (idempotent)
+ * Creates a default workspace if user has none
+ */
+export const ensureDefault = authedProcedure
+	.route({ method: 'POST', path: '/workspaces/ensure-default' })
+	.output(WorkspaceSchema)
+	.handler(async ({ context }) => {
+		const { db, user } = context
+
+		// Check if user already has a workspace
+		const memberships = await db
+			.select({ workspace: workspaces })
+			.from(workspaceMembers)
+			.innerJoin(workspaces, eq(workspaceMembers.workspaceId, workspaces.id))
+			.where(eq(workspaceMembers.userId, user.id))
+			.limit(1)
+
+		if (memberships.length > 0 && memberships[0]) {
+			return serializeWorkspace(memberships[0].workspace)
+		}
+
+		// Create default workspace
+		const slug = `${user.name?.toLowerCase().replace(/\s+/g, '-') || 'user'}-${Date.now()}`
+		const [workspace] = await db
+			.insert(workspaces)
+			.values({
+				name: `${user.name || 'My'}'s Workspace`,
+				slug,
+				description: 'Default workspace',
+				ownerId: user.id,
+			})
+			.returning()
+
+		if (!workspace) serverError('Failed to create workspace')
+
+		// Add creator as owner
+		await db.insert(workspaceMembers).values({
+			workspaceId: workspace.id,
+			userId: user.id,
+			role: config.enums.workspaceRole.OWNER,
+		})
+
+		return serializeWorkspace(workspace)
+	})
+
 // =============================================================================
 // Router Export
 // =============================================================================
@@ -222,4 +268,5 @@ export const workspacesRouter = {
 	create,
 	update,
 	delete: remove,
+	ensureDefault,
 }

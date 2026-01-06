@@ -27,38 +27,22 @@ import { CloudflareEnvError } from './db'
 import { corsMiddleware, loggingMiddleware, securityHeadersMiddleware } from './middleware'
 import { orpcApp } from './orpc/hono'
 import agentWs from './routes/agent-ws'
-// Import route modules
-import agents from './routes/agents'
-import analytics from './routes/analytics'
-import apiKeysRoutes from './routes/api-keys'
+// Import route modules (routes migrated to oRPC have been removed)
 import auth from './routes/auth'
 import billing from './routes/billing'
 import chat from './routes/chat'
 import dev from './routes/dev'
 import embed from './routes/embed'
 import health from './routes/health'
-import logs from './routes/logs'
 import mcp from './routes/mcp'
 import memory from './routes/memory'
-import schedules from './routes/schedules'
-import tools from './routes/tools'
-import usage from './routes/usage'
-import userSettings from './routes/user-settings'
 import webhooksRoutes from './routes/webhooks'
-import workspaceMembers from './routes/workspace-members'
-import workspaces from './routes/workspaces'
 import type { HonoEnv } from '@hare/types'
 
 // =============================================================================
 // ROUTE TYPE EXPORTS (for split RPC clients)
-// Using typeof from the individual route modules
+// Note: Many routes have been migrated to oRPC - use @hare/api-client/orpc instead
 // =============================================================================
-
-/** Agents routes: /api/agents/* */
-export type AgentsRoute = typeof agents
-
-/** Schedules routes: mounted under /api/agents/* */
-export type SchedulesRoute = typeof schedules
 
 /** Memory routes: mounted under /api/agents/* */
 export type MemoryRoute = typeof memory
@@ -66,41 +50,17 @@ export type MemoryRoute = typeof memory
 /** Webhooks routes: mounted under /api/agents/* */
 export type WebhooksRoute = typeof webhooksRoutes
 
-/** Tools routes: /api/tools/* */
-export type ToolsRoute = typeof tools
-
-/** Workspaces routes: /api/workspaces/* */
-export type WorkspacesRoute = typeof workspaces
-
-/** Workspace members routes: mounted under /api/workspaces/* */
-export type WorkspaceMembersRoute = typeof workspaceMembers
-
 /** Auth routes: /api/auth/* */
 export type AuthRoute = typeof auth
 
 /** Billing routes: /api/billing/* */
 export type BillingRoute = typeof billing
 
-/** Analytics routes: /api/analytics/* */
-export type AnalyticsRoute = typeof analytics
-
-/** Usage routes: /api/usage/* */
-export type UsageRoute = typeof usage
-
 /** Chat routes: /api/chat/* */
 export type ChatRoute = typeof chat
 
-/** API Keys routes: /api/api-keys/* */
-export type ApiKeysRoute = typeof apiKeysRoutes
-
-/** User settings routes: /api/user/* */
-export type UserRoute = typeof userSettings
-
 /** Health routes: /api/health/* */
 export type HealthRoute = typeof health
-
-/** Logs routes: /api/logs/* */
-export type LogsRoute = typeof logs
 
 /** Embed routes: /api/embed/* */
 export type EmbedRoute = typeof embed
@@ -142,26 +102,17 @@ app.use('*', securityHeadersMiddleware)
 app.use('*', loggingMiddleware) // Request logging to KV for observability
 
 // Mount routes - chain for type inference
+// Note: Routes migrated to oRPC are available at /api/rpc/*
 const routes = app
-	.route('/agents', agents)
-	.route('/agents', schedules)
 	.route('/agents', memory)
 	.route('/agents', webhooksRoutes)
 	.route('/agent-ws', agentWs)
-	.route('/analytics', analytics)
-	.route('/api-keys', apiKeysRoutes)
 	.route('/billing', billing)
-	.route('/workspaces', workspaces)
-	.route('/workspaces', workspaceMembers)
-	.route('/tools', tools)
 	.route('/auth', auth)
 	.route('/chat', chat)
-	.route('/usage', usage)
-	.route('/user', userSettings)
 	.route('/dev', dev)
 	.route('/mcp', mcp)
 	.route('/health', health)
-	.route('/logs', logs)
 	.route('/embed', embed)
 	.route('/rpc', orpcApp)
 
@@ -181,25 +132,18 @@ app.doc('/openapi.json', {
 	],
 	tags: [
 		{ name: 'Authentication', description: 'User authentication and session management' },
-		{ name: 'Workspaces', description: 'Workspace management' },
-		{ name: 'Agents', description: 'AI agent creation and deployment' },
 		{
 			name: 'Agent WebSocket',
 			description: 'Real-time WebSocket connections to Cloudflare Agents',
 		},
-		{ name: 'API Keys', description: 'API key management for programmatic access' },
 		{ name: 'Billing', description: 'Subscription and payment management' },
-		{ name: 'Schedules', description: 'Scheduled task management for agents' },
 		{ name: 'Webhooks', description: 'Webhook management for agent event notifications' },
-		{ name: 'Tools', description: 'Tool management for agents' },
 		{ name: 'Chat', description: 'Chat with deployed agents (SSE)' },
 		{ name: 'MCP', description: 'Model Context Protocol for external AI clients' },
-		{ name: 'Usage', description: 'Usage statistics and analytics' },
-		{ name: 'Analytics', description: 'Detailed analytics and visualizations' },
 		{ name: 'Health', description: 'System health checks and monitoring endpoints' },
-		{ name: 'Logs', description: 'Request logging and observability' },
 		{ name: 'Embed', description: 'Embeddable chat widget endpoints' },
-		{ name: 'User Settings', description: 'User preferences and notification settings' },
+		// Note: Agents, Tools, Workspaces, API Keys, Schedules, Usage, Analytics, Logs, User Settings
+		// have been migrated to oRPC at /api/rpc/*
 	],
 })
 

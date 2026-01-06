@@ -40,7 +40,7 @@ interface CreateToolDialogProps {
 }
 
 export function CreateToolDialog({ workspaceId, open, onOpenChange }: CreateToolDialogProps) {
-	const createTool = useCreateToolMutation(workspaceId)
+	const createTool = useCreateToolMutation()
 
 	const [newName, setNewName] = useState('')
 	const [newDescription, setNewDescription] = useState('')

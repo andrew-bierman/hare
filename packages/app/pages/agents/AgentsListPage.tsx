@@ -59,7 +59,7 @@ function AgentsEmptyState() {
 export function AgentsListPage() {
 	const navigate = useNavigate()
 	const { activeWorkspace } = useWorkspace()
-	const { data, isLoading, error } = useAgentsQuery(activeWorkspace?.id)
+	const { data, isLoading, error } = useAgentsQuery()
 	const [search, setSearch] = useState('')
 	const [filter, setFilter] = useState<'all' | 'deployed' | 'draft'>('all')
 	const [hasSkippedOnboarding, setHasSkippedOnboarding] = useState(false)

@@ -60,7 +60,7 @@ export interface AgentFormProps {
  * @example
  * ```tsx
  * function CreateAgentPage() {
- *   const createAgent = useCreateAgent(workspaceId)
+ *   const createAgent = useCreateAgentMutation()
  *
  *   return (
  *     <AgentForm

@@ -19,7 +19,7 @@ import {
 import { useWorkspace } from '../../app/providers'
 import { config, getModelName } from '@hare/config'
 import type { Agent } from '@hare/types'
-import { useAgentsQuery, useUsageQuery } from '../../shared/api/hooks'
+import { useAgentsQuery, useWorkspaceUsageQuery } from '../../shared/api/hooks'
 
 const content = config.content.dashboard.home
 
@@ -61,8 +61,8 @@ function AgentCardSkeleton() {
 
 export function DashboardPage() {
 	const { activeWorkspace, isLoading: workspaceLoading } = useWorkspace()
-	const { data: agentsData, isLoading: agentsLoading } = useAgentsQuery(activeWorkspace?.id)
-	const { data: usageData, isLoading: usageLoading } = useUsageQuery(activeWorkspace?.id)
+	const { data: agentsData, isLoading: agentsLoading } = useAgentsQuery()
+	const { data: usageData, isLoading: usageLoading } = useWorkspaceUsageQuery()
 
 	const agents = agentsData?.agents ?? []
 	const deployedAgents = agents.filter((a) => a.status === 'deployed')

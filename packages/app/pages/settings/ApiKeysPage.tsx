@@ -37,9 +37,9 @@ export function ApiKeysPage() {
 	const { activeWorkspace } = useWorkspace()
 	const workspaceId = activeWorkspace?.id
 
-	const { data, isPending, error } = useApiKeysQuery(workspaceId)
-	const createApiKey = useCreateApiKeyMutation(workspaceId)
-	const deleteApiKey = useDeleteApiKeyMutation(workspaceId)
+	const { data, isPending, error } = useApiKeysQuery()
+	const createApiKey = useCreateApiKeyMutation()
+	const deleteApiKey = useDeleteApiKeyMutation()
 
 	const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
 	const [newKeyName, setNewKeyName] = useState('')

@@ -14,14 +14,14 @@ import { orpc } from '@hare/api-client/orpc'
 // Agent Hooks
 // =============================================================================
 
-export function useAgents() {
+export function useAgentsQuery() {
 	return useQuery({
 		queryKey: ['agents'],
 		queryFn: () => orpc.agents.list({}),
 	})
 }
 
-export function useAgent(id: string | undefined) {
+export function useAgentQuery(id: string | undefined) {
 	return useQuery({
 		queryKey: ['agents', id],
 		queryFn: () => orpc.agents.get({ id: id! }),
@@ -29,7 +29,7 @@ export function useAgent(id: string | undefined) {
 	})
 }
 
-export function useCreateAgent() {
+export function useCreateAgentMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
 		mutationFn: orpc.agents.create,
@@ -39,7 +39,7 @@ export function useCreateAgent() {
 	})
 }
 
-export function useUpdateAgent() {
+export function useUpdateAgentMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
 		mutationFn: orpc.agents.update,
@@ -50,7 +50,7 @@ export function useUpdateAgent() {
 	})
 }
 
-export function useDeleteAgent() {
+export function useDeleteAgentMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
 		mutationFn: orpc.agents.delete,
@@ -61,7 +61,7 @@ export function useDeleteAgent() {
 	})
 }
 
-export function useDeployAgent() {
+export function useDeployAgentMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
 		mutationFn: orpc.agents.deploy,
@@ -72,7 +72,7 @@ export function useDeployAgent() {
 	})
 }
 
-export function useUndeployAgent() {
+export function useUndeployAgentMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
 		mutationFn: orpc.agents.undeploy,
@@ -87,14 +87,14 @@ export function useUndeployAgent() {
 // Tool Hooks
 // =============================================================================
 
-export function useTools() {
+export function useToolsQuery() {
 	return useQuery({
 		queryKey: ['tools'],
 		queryFn: () => orpc.tools.list({}),
 	})
 }
 
-export function useTool(id: string | undefined) {
+export function useToolQuery(id: string | undefined) {
 	return useQuery({
 		queryKey: ['tools', id],
 		queryFn: () => orpc.tools.get({ id: id! }),
@@ -102,7 +102,7 @@ export function useTool(id: string | undefined) {
 	})
 }
 
-export function useCreateTool() {
+export function useCreateToolMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
 		mutationFn: orpc.tools.create,
@@ -112,7 +112,7 @@ export function useCreateTool() {
 	})
 }
 
-export function useUpdateTool() {
+export function useUpdateToolMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
 		mutationFn: orpc.tools.update,
@@ -123,7 +123,7 @@ export function useUpdateTool() {
 	})
 }
 
-export function useDeleteTool() {
+export function useDeleteToolMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
 		mutationFn: orpc.tools.delete,
@@ -134,13 +134,13 @@ export function useDeleteTool() {
 	})
 }
 
-export function useTestTool() {
+export function useTestToolMutation() {
 	return useMutation({
 		mutationFn: orpc.tools.test,
 	})
 }
 
-export function useTestExistingTool() {
+export function useTestExistingToolMutation() {
 	return useMutation({
 		mutationFn: orpc.tools.testExisting,
 	})
@@ -150,14 +150,14 @@ export function useTestExistingTool() {
 // API Key Hooks
 // =============================================================================
 
-export function useApiKeys() {
+export function useApiKeysQuery() {
 	return useQuery({
 		queryKey: ['api-keys'],
 		queryFn: () => orpc.apiKeys.list({}),
 	})
 }
 
-export function useApiKey(id: string | undefined) {
+export function useApiKeyQuery(id: string | undefined) {
 	return useQuery({
 		queryKey: ['api-keys', id],
 		queryFn: () => orpc.apiKeys.get({ id: id! }),
@@ -165,7 +165,7 @@ export function useApiKey(id: string | undefined) {
 	})
 }
 
-export function useCreateApiKey() {
+export function useCreateApiKeyMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
 		mutationFn: orpc.apiKeys.create,
@@ -175,7 +175,7 @@ export function useCreateApiKey() {
 	})
 }
 
-export function useUpdateApiKey() {
+export function useUpdateApiKeyMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
 		mutationFn: orpc.apiKeys.update,
@@ -186,7 +186,7 @@ export function useUpdateApiKey() {
 	})
 }
 
-export function useDeleteApiKey() {
+export function useDeleteApiKeyMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
 		mutationFn: orpc.apiKeys.delete,
@@ -201,21 +201,21 @@ export function useDeleteApiKey() {
 // Workspace Hooks
 // =============================================================================
 
-export function useWorkspaces() {
+export function useWorkspacesQuery() {
 	return useQuery({
 		queryKey: ['workspaces'],
 		queryFn: () => orpc.workspaces.list({}),
 	})
 }
 
-export function useCurrentWorkspace() {
+export function useCurrentWorkspaceQuery() {
 	return useQuery({
 		queryKey: ['workspaces', 'current'],
 		queryFn: () => orpc.workspaces.getCurrent({}),
 	})
 }
 
-export function useWorkspace(id: string | undefined) {
+export function useWorkspaceQuery(id: string | undefined) {
 	return useQuery({
 		queryKey: ['workspaces', id],
 		queryFn: () => orpc.workspaces.get({ id: id! }),
@@ -223,7 +223,7 @@ export function useWorkspace(id: string | undefined) {
 	})
 }
 
-export function useCreateWorkspace() {
+export function useCreateWorkspaceMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
 		mutationFn: orpc.workspaces.create,
@@ -233,7 +233,7 @@ export function useCreateWorkspace() {
 	})
 }
 
-export function useUpdateWorkspace() {
+export function useUpdateWorkspaceMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
 		mutationFn: orpc.workspaces.update,
@@ -244,7 +244,7 @@ export function useUpdateWorkspace() {
 	})
 }
 
-export function useDeleteWorkspace() {
+export function useDeleteWorkspaceMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
 		mutationFn: orpc.workspaces.delete,
@@ -255,18 +255,28 @@ export function useDeleteWorkspace() {
 	})
 }
 
+export function useEnsureDefaultWorkspaceMutation() {
+	const queryClient = useQueryClient()
+	return useMutation({
+		mutationFn: () => orpc.workspaces.ensureDefault({}),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ['workspaces'] })
+		},
+	})
+}
+
 // =============================================================================
 // Schedule Hooks
 // =============================================================================
 
-export function useSchedules(agentId?: string) {
+export function useSchedulesQuery(agentId?: string) {
 	return useQuery({
 		queryKey: ['schedules', { agentId }],
 		queryFn: () => orpc.schedules.list({ agentId }),
 	})
 }
 
-export function useSchedule(id: string | undefined) {
+export function useScheduleQuery(id: string | undefined) {
 	return useQuery({
 		queryKey: ['schedules', id],
 		queryFn: () => orpc.schedules.get({ id: id! }),
@@ -274,7 +284,7 @@ export function useSchedule(id: string | undefined) {
 	})
 }
 
-export function useCreateSchedule() {
+export function useCreateScheduleMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
 		mutationFn: orpc.schedules.create,
@@ -284,7 +294,7 @@ export function useCreateSchedule() {
 	})
 }
 
-export function useUpdateSchedule() {
+export function useUpdateScheduleMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
 		mutationFn: orpc.schedules.update,
@@ -295,7 +305,7 @@ export function useUpdateSchedule() {
 	})
 }
 
-export function useDeleteSchedule() {
+export function useDeleteScheduleMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
 		mutationFn: orpc.schedules.delete,
@@ -306,7 +316,7 @@ export function useDeleteSchedule() {
 	})
 }
 
-export function usePauseSchedule() {
+export function usePauseScheduleMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
 		mutationFn: orpc.schedules.pause,
@@ -317,7 +327,7 @@ export function usePauseSchedule() {
 	})
 }
 
-export function useResumeSchedule() {
+export function useResumeScheduleMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
 		mutationFn: orpc.schedules.resume,
@@ -328,7 +338,7 @@ export function useResumeSchedule() {
 	})
 }
 
-export function useScheduleExecutions(scheduleId: string | undefined) {
+export function useScheduleExecutionsQuery(scheduleId: string | undefined) {
 	return useQuery({
 		queryKey: ['schedules', scheduleId, 'executions'],
 		queryFn: () => orpc.schedules.getExecutions({ id: scheduleId! }),
@@ -336,11 +346,40 @@ export function useScheduleExecutions(scheduleId: string | undefined) {
 	})
 }
 
+/**
+ * Get execution history for all schedules of an agent
+ * Note: This fetches schedules first, then aggregates their executions
+ */
+export function useAgentExecutionsQuery(options: { agentId?: string; limit?: number }) {
+	const { agentId, limit = 10 } = options
+	const { data: schedulesData } = useSchedulesQuery(agentId)
+
+	return useQuery({
+		queryKey: ['agents', agentId, 'executions', { limit }],
+		queryFn: async () => {
+			if (!schedulesData?.schedules?.length) {
+				return { executions: [] }
+			}
+			// Fetch executions from each schedule and combine them
+			const allExecutions = await Promise.all(
+				schedulesData.schedules.map((s) => orpc.schedules.getExecutions({ id: s.id })),
+			)
+			const combined = allExecutions.flatMap((r) => r.executions)
+			// Sort by startedAt descending and limit
+			const sorted = combined
+				.sort((a, b) => new Date(b.startedAt).getTime() - new Date(a.startedAt).getTime())
+				.slice(0, limit)
+			return { executions: sorted }
+		},
+		enabled: !!agentId && !!schedulesData?.schedules,
+	})
+}
+
 // =============================================================================
 // Workspace Members Hooks
 // =============================================================================
 
-export function useWorkspaceMembers(workspaceId: string | undefined) {
+export function useWorkspaceMembersQuery(workspaceId: string | undefined) {
 	return useQuery({
 		queryKey: ['workspaces', workspaceId, 'members'],
 		queryFn: () => orpc.workspaceMembers.listMembers({ id: workspaceId! }),
@@ -348,7 +387,7 @@ export function useWorkspaceMembers(workspaceId: string | undefined) {
 	})
 }
 
-export function useWorkspaceInvitations(workspaceId: string | undefined) {
+export function useWorkspaceInvitationsQuery(workspaceId: string | undefined) {
 	return useQuery({
 		queryKey: ['workspaces', workspaceId, 'invitations'],
 		queryFn: () => orpc.workspaceMembers.listInvitations({ id: workspaceId! }),
@@ -356,7 +395,7 @@ export function useWorkspaceInvitations(workspaceId: string | undefined) {
 	})
 }
 
-export function useSendInvitation() {
+export function useSendInvitationMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
 		mutationFn: orpc.workspaceMembers.sendInvitation,
@@ -366,7 +405,7 @@ export function useSendInvitation() {
 	})
 }
 
-export function useRevokeInvitation() {
+export function useRevokeInvitationMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
 		mutationFn: orpc.workspaceMembers.revokeInvitation,
@@ -376,7 +415,7 @@ export function useRevokeInvitation() {
 	})
 }
 
-export function useRemoveMember() {
+export function useRemoveMemberMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
 		mutationFn: orpc.workspaceMembers.removeMember,
@@ -386,7 +425,7 @@ export function useRemoveMember() {
 	})
 }
 
-export function useUpdateMemberRole() {
+export function useUpdateMemberRoleMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
 		mutationFn: orpc.workspaceMembers.updateMemberRole,
@@ -400,14 +439,14 @@ export function useUpdateMemberRole() {
 // User Settings Hooks
 // =============================================================================
 
-export function useUserPreferences() {
+export function useUserPreferencesQuery() {
 	return useQuery({
 		queryKey: ['user', 'preferences'],
 		queryFn: () => orpc.userSettings.get({}),
 	})
 }
 
-export function useUpdateUserPreferences() {
+export function useUpdateUserPreferencesMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
 		mutationFn: orpc.userSettings.update,
@@ -421,14 +460,14 @@ export function useUpdateUserPreferences() {
 // Usage Hooks
 // =============================================================================
 
-export function useWorkspaceUsage(options?: { startDate?: string; endDate?: string }) {
+export function useWorkspaceUsageQuery(options?: { startDate?: string; endDate?: string }) {
 	return useQuery({
 		queryKey: ['usage', options],
 		queryFn: () => orpc.usage.getWorkspaceUsage(options || {}),
 	})
 }
 
-export function useAgentUsage(agentId: string | undefined) {
+export function useAgentUsageQuery(agentId: string | undefined) {
 	return useQuery({
 		queryKey: ['usage', 'agents', agentId],
 		queryFn: () => orpc.usage.getAgentUsage({ id: agentId! }),
@@ -440,7 +479,7 @@ export function useAgentUsage(agentId: string | undefined) {
 // Analytics Hooks
 // =============================================================================
 
-export function useAnalytics(options?: {
+export function useAnalyticsQuery(options?: {
 	startDate?: string
 	endDate?: string
 	agentId?: string
@@ -456,7 +495,7 @@ export function useAnalytics(options?: {
 // Logs Hooks
 // =============================================================================
 
-export function useLogs(options?: {
+export function useLogsQuery(options?: {
 	userId?: string
 	agentId?: string
 	status?: number
@@ -471,7 +510,7 @@ export function useLogs(options?: {
 	})
 }
 
-export function useLogStats(options?: {
+export function useLogStatsQuery(options?: {
 	userId?: string
 	agentId?: string
 	status?: number

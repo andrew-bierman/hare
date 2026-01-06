@@ -156,19 +156,15 @@ export function ScheduledTasksSection({ agentId, workspaceId }: ScheduledTasksSe
 	const [action, setAction] = useState('')
 	const [reminderMessage, setReminderMessage] = useState('')
 
-	const { data: schedulesData, isLoading: schedulesLoading } = useSchedulesQuery({
-		agentId,
-		workspaceId,
-	})
+	const { data: schedulesData, isLoading: schedulesLoading } = useSchedulesQuery(agentId)
 	const { data: executionsData, isLoading: executionsLoading } = useAgentExecutionsQuery({
 		agentId,
-		workspaceId,
-		params: { limit: 10 },
+		limit: 10,
 	})
 
-	const createSchedule = useCreateScheduleMutation(agentId, workspaceId)
-	const updateSchedule = useUpdateScheduleMutation(agentId, workspaceId)
-	const deleteSchedule = useDeleteScheduleMutation(agentId, workspaceId)
+	const createSchedule = useCreateScheduleMutation()
+	const updateSchedule = useUpdateScheduleMutation()
+	const deleteSchedule = useDeleteScheduleMutation()
 
 	const schedules = schedulesData?.schedules ?? []
 	const executions = executionsData?.executions ?? []
@@ -181,6 +177,7 @@ export function ScheduledTasksSection({ agentId, workspaceId }: ScheduledTasksSe
 			}
 
 			await createSchedule.mutateAsync({
+				agentId,
 				type: scheduleType,
 				action,
 				executeAt: scheduleType === 'one-time' ? new Date(executeAt).toISOString() : undefined,
@@ -200,8 +197,8 @@ export function ScheduledTasksSection({ agentId, workspaceId }: ScheduledTasksSe
 		try {
 			const newStatus = schedule.status === 'paused' ? 'active' : 'paused'
 			await updateSchedule.mutateAsync({
-				scheduleId: schedule.id,
-				data: { status: newStatus },
+				id: schedule.id,
+				status: newStatus,
 			})
 			toast.success(`Schedule ${newStatus === 'paused' ? 'paused' : 'resumed'}`)
 		} catch (error) {
@@ -211,7 +208,7 @@ export function ScheduledTasksSection({ agentId, workspaceId }: ScheduledTasksSe
 
 	const handleDelete = async (scheduleId: string) => {
 		try {
-			await deleteSchedule.mutateAsync(scheduleId)
+			await deleteSchedule.mutateAsync({ id: scheduleId })
 			toast.success('Schedule deleted')
 		} catch (error) {
 			toast.error(error instanceof Error ? error.message : 'Failed to delete schedule')

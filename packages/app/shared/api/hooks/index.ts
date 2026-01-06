@@ -2,11 +2,80 @@
  * API Hooks
  *
  * Re-export all hooks from a single entry point.
- * Types from the parent api module are already exported, so we only export hook-specific types.
+ * Note: Most CRUD hooks have been migrated to oRPC - see orpc-hooks.ts
  */
 
 // Query keys
 export * from './query-keys'
+
+// =============================================================================
+// oRPC Hooks (Type-safe, recommended for new code)
+// =============================================================================
+
+export {
+	// Agent hooks
+	useAgentsQuery,
+	useAgentQuery,
+	useCreateAgentMutation,
+	useUpdateAgentMutation,
+	useDeleteAgentMutation,
+	useDeployAgentMutation,
+	useUndeployAgentMutation,
+	// Tool hooks
+	useToolsQuery,
+	useToolQuery,
+	useCreateToolMutation,
+	useUpdateToolMutation,
+	useDeleteToolMutation,
+	useTestToolMutation,
+	useTestExistingToolMutation,
+	// API Key hooks
+	useApiKeysQuery,
+	useApiKeyQuery,
+	useCreateApiKeyMutation,
+	useUpdateApiKeyMutation,
+	useDeleteApiKeyMutation,
+	// Workspace hooks
+	useWorkspacesQuery,
+	useCurrentWorkspaceQuery,
+	useWorkspaceQuery,
+	useCreateWorkspaceMutation,
+	useUpdateWorkspaceMutation,
+	useDeleteWorkspaceMutation,
+	useEnsureDefaultWorkspaceMutation,
+	// Schedule hooks
+	useSchedulesQuery,
+	useScheduleQuery,
+	useCreateScheduleMutation,
+	useUpdateScheduleMutation,
+	useDeleteScheduleMutation,
+	usePauseScheduleMutation,
+	useResumeScheduleMutation,
+	useScheduleExecutionsQuery,
+	useAgentExecutionsQuery,
+	// Workspace Members hooks
+	useWorkspaceMembersQuery,
+	useWorkspaceInvitationsQuery,
+	useSendInvitationMutation,
+	useRevokeInvitationMutation,
+	useRemoveMemberMutation,
+	useUpdateMemberRoleMutation,
+	// User Settings hooks
+	useUserPreferencesQuery,
+	useUpdateUserPreferencesMutation,
+	// Usage hooks
+	useWorkspaceUsageQuery,
+	useAgentUsageQuery,
+	// Analytics hooks
+	useAnalyticsQuery,
+	// Logs hooks
+	useLogsQuery,
+	useLogStatsQuery,
+} from '../orpc-hooks'
+
+// =============================================================================
+// Legacy Hono Hooks (not yet migrated to oRPC)
+// =============================================================================
 
 // WebSocket Agent types from @hare/types
 export type { ClientMessage, HareAgentState, ServerMessage } from '@hare/types'
@@ -19,35 +88,6 @@ export {
 	type UseAgentWebSocketReturn,
 	useAgentWebSocket,
 } from './use-agent-ws'
-
-// Agent hooks
-export {
-	useAgentQuery,
-	useAgentPreviewMutation,
-	useAgentPreviewQuery,
-	useAgentsQuery,
-	useCreateAgentMutation,
-	useDeleteAgentMutation,
-	useDeployAgentMutation,
-	usePrefetchAgent,
-	useUpdateAgentMutation,
-} from './use-agents'
-
-// Analytics hooks
-export { useAnalyticsQuery } from './use-analytics'
-
-// API Key hooks
-export {
-	type ApiKey,
-	type ApiKeyWithSecret,
-	type CreateApiKeyInput,
-	type UpdateApiKeyInput,
-	useApiKeyQuery,
-	useApiKeysQuery,
-	useCreateApiKeyMutation,
-	useDeleteApiKeyMutation,
-	useUpdateApiKeyMutation,
-} from './use-api-keys'
 
 // Auth hooks
 export { type OAuthProviders, useOAuthProvidersQuery } from './use-auth'
@@ -82,16 +122,6 @@ export type {
 	UseInfiniteMessagesOptions,
 } from './use-infinite-conversations'
 
-// Logs hooks
-export {
-	type LogStats,
-	type LogsParams,
-	type LogsResponse,
-	type RequestLog,
-	useLogStatsQuery,
-	useLogsQuery,
-} from './use-logs'
-
 // Memory hooks
 export {
 	memoryQueryKeys,
@@ -109,60 +139,3 @@ export {
 	useSearchMemoriesMutation,
 	useUpdateMemoryMutation,
 } from './use-memory'
-
-// Schedule hooks
-export {
-	type UseAgentExecutionsInput,
-	type UseScheduleExecutionsInput,
-	type UseScheduleInput,
-	type UseSchedulesInput,
-	useAgentExecutionsQuery,
-	useCreateScheduleMutation,
-	useDeleteScheduleMutation,
-	useScheduleQuery,
-	useScheduleExecutionsQuery,
-	useSchedulesQuery,
-	useUpdateScheduleMutation,
-} from './use-schedules'
-
-// Team management hooks
-export {
-	useRemoveMemberMutation,
-	useRevokeInvitationMutation,
-	useSendInvitationMutation,
-	useUpdateMemberRoleMutation,
-	useWorkspaceInvitationsQuery,
-	useWorkspaceMembersQuery,
-} from './use-team'
-
-// Tool hooks
-export {
-	TOOL_TYPES,
-	useCreateToolMutation,
-	useDeleteToolMutation,
-	useTestExistingToolMutation,
-	useTestToolMutation,
-	useToolQuery,
-	useToolsQuery,
-	useUpdateToolMutation,
-} from './use-tools'
-
-// Usage hooks (UsageParams exported from client.ts to avoid duplicates)
-export { useAgentUsageQuery, useUsageQuery } from './use-usage'
-
-// Workspace hooks
-export {
-	useCreateWorkspaceMutation,
-	useDeleteWorkspaceMutation,
-	useEnsureDefaultWorkspaceMutation,
-	useUpdateWorkspaceMutation,
-	useWorkspaceByIdQuery,
-	useWorkspacesQuery,
-} from './use-workspaces'
-
-// User preferences hooks
-export {
-	userPreferencesKeys,
-	useUserPreferencesQuery,
-	useUpdateUserPreferencesMutation,
-} from './use-user-preferences'

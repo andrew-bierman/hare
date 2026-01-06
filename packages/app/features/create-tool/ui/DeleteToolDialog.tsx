@@ -25,7 +25,7 @@ export function DeleteToolDialog({
 	toolName,
 	onOpenChange,
 }: DeleteToolDialogProps) {
-	const deleteTool = useDeleteToolMutation(workspaceId)
+	const deleteTool = useDeleteToolMutation()
 
 	const handleDelete = async () => {
 		if (!toolId) return
