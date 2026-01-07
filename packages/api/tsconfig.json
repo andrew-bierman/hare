@@ -1,13 +1,5 @@
 {
 	"extends": "@hare/typescript-config/cloudflare.json",
 	"include": ["src/**/*.ts"],
-	"exclude": [
-		"node_modules",
-		"dist",
-		"src/__tests__/health.test.ts",
-		"src/routes/__tests__/agent-ws.test.ts",
-		"src/routes/__tests__/auth.test.ts",
-		"src/routes/__tests__/billing.test.ts",
-		"src/routes/__tests__/mcp.test.ts"
-	]
+	"exclude": ["node_modules", "dist"]
 }
