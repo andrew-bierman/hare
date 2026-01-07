@@ -87,12 +87,15 @@ function getJSDocComment(node: ts.Node): string {
 	const jsDocComments = (node as any).jsDoc as ts.JSDoc[] | undefined
 
 	if (jsDocComments && jsDocComments.length > 0) {
-		const comment = jsDocComments[0].comment
-		if (typeof comment === 'string') {
-			return comment
-		}
-		if (Array.isArray(comment)) {
-			return comment.map((c: any) => (typeof c === 'string' ? c : c.text)).join('')
+		const jsDoc = jsDocComments[0]
+		if (jsDoc) {
+			const comment = jsDoc.comment
+			if (typeof comment === 'string') {
+				return comment
+			}
+			if (Array.isArray(comment)) {
+				return comment.map((c: any) => (typeof c === 'string' ? c : c.text)).join('')
+			}
 		}
 	}
 
@@ -106,7 +109,7 @@ function getJSDocExample(node: ts.Node): string | undefined {
 	for (const jsDoc of jsDocComments) {
 		if (!jsDoc.tags) continue
 		for (const tag of jsDoc.tags) {
-			if (tag.tagName.text === 'example') {
+			if (tag.tagName?.text === 'example') {
 				const comment = tag.comment
 				if (typeof comment === 'string') {
 					return comment.trim()
@@ -285,14 +288,14 @@ function extractToolFromVariable(
 						// Extract type from z.string(), z.number(), etc.
 						let schemaType = 'unknown'
 						const typeMatch = initText.match(/z\.(string|number|boolean|array|object|enum|record)/)
-						if (typeMatch) {
+						if (typeMatch?.[1]) {
 							schemaType = typeMatch[1]
 						}
 
 						// Extract description from .describe('...')
 						let schemaDesc = ''
 						const descMatch = initText.match(/\.describe\(['"]([^'"]+)['"]\)/)
-						if (descMatch) {
+						if (descMatch?.[1]) {
 							schemaDesc = descMatch[1]
 						}
 
@@ -481,11 +484,11 @@ export function generateFunctionMDX(fn: DocFunction): string {
 }
 
 export function generatePackageMDX(options: {
-	title: string
-	description: string
+	title?: string
+	description?: string
 	docs: ExtractedDocs
 }): string {
-	const { title, description, docs } = options
+	const { title = 'API Reference', description = '', docs } = options
 
 	let mdx = `---
 title: ${title}
