@@ -3,3 +3,4 @@
  */
 
 export { ToolsListPage } from './ToolsListPage'
+export { ToolCreatePage } from './ToolCreatePage'

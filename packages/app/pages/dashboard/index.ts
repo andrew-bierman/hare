@@ -5,3 +5,5 @@
  */
 
 export { DashboardPage } from './DashboardPage'
+export { UsagePage } from './UsagePage'
+export { AnalyticsPage } from './AnalyticsPage'

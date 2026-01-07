@@ -6,13 +6,23 @@
  */
 
 // Dashboard
-export { DashboardPage } from './dashboard'
+export { DashboardPage, UsagePage, AnalyticsPage } from './dashboard'
 
 // Agents
-export { AgentsListPage, AgentCreatePage, AgentTemplatesPage } from './agents'
+export {
+	AgentsListPage,
+	AgentCreatePage,
+	AgentTemplatesPage,
+	AgentPlaygroundPage,
+	type AgentPlaygroundPageProps,
+	AgentWebhooksPage,
+	type AgentWebhooksPageProps,
+	AgentDetailPage,
+	type AgentDetailPageProps,
+} from './agents'
 
 // Tools
-export { ToolsListPage } from './tools'
+export { ToolsListPage, ToolCreatePage } from './tools'
 
 // Settings
 export { SettingsPage, ApiKeysPage, BillingPage, type BillingPageProps, TeamPage } from './settings'
