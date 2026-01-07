@@ -31,7 +31,7 @@ function createMockAi() {
 		run: vi.fn().mockResolvedValue({
 			data: [[0.1, 0.2, 0.3, 0.4, 0.5]],
 		}),
-	} as unknown as Ai
+	} as Ai & { run: ReturnType<typeof vi.fn> }
 }
 
 describe('WORKERS_AI_MODELS', () => {
@@ -104,7 +104,7 @@ describe('createWorkersAIModel', () => {
 		const model = createWorkersAIModel({
 			modelName: 'llama-3.3-70b',
 			ai: mockAi,
-		})
+		}) as unknown as { provider: string; modelId: string }
 
 		expect(model).toBeDefined()
 		expect(model.provider).toBe('workers-ai')
@@ -115,7 +115,7 @@ describe('createWorkersAIModel', () => {
 		const model = createWorkersAIModel({
 			modelName: '@cf/meta/llama-3.1-8b-instruct',
 			ai: mockAi,
-		})
+		}) as unknown as { provider: string; modelId: string }
 
 		expect(model).toBeDefined()
 		expect(model.modelId).toBe('@cf/meta/llama-3.1-8b-instruct')
@@ -125,7 +125,7 @@ describe('createWorkersAIModel', () => {
 		const model = createWorkersAIModel({
 			modelName: 'unknown',
 			ai: mockAi,
-		})
+		}) as unknown as { provider: string; modelId: string }
 
 		expect(model).toBeDefined()
 		expect(model.modelId).toBe('@cf/meta/llama-3.3-70b-instruct-fp8-fast')

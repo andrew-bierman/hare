@@ -206,8 +206,9 @@ describe('router', () => {
 			})
 
 			const mockNamespace = env.HARE_AGENT as unknown as ReturnType<typeof createMockNamespace>
-			const fetchCall = mockNamespace.stub.fetch.mock.calls[0][0] as Request
-			expect(new URL(fetchCall.url).pathname).toBe('/chat')
+			const fetchCall = mockNamespace.stub.fetch.mock.calls[0]?.[0] as Request | undefined
+			expect(fetchCall).toBeDefined()
+			expect(new URL(fetchCall!.url).pathname).toBe('/chat')
 		})
 
 		it('preserves request method and headers', async () => {
@@ -225,9 +226,10 @@ describe('router', () => {
 			})
 
 			const mockNamespace = env.HARE_AGENT as unknown as ReturnType<typeof createMockNamespace>
-			const fetchCall = mockNamespace.stub.fetch.mock.calls[0][0] as Request
-			expect(fetchCall.method).toBe('GET')
-			expect(fetchCall.headers.get('x-custom')).toBe('value')
+			const fetchCall = mockNamespace.stub.fetch.mock.calls[0]?.[0] as Request | undefined
+			expect(fetchCall).toBeDefined()
+			expect(fetchCall!.method).toBe('GET')
+			expect(fetchCall!.headers.get('x-custom')).toBe('value')
 		})
 	})
 

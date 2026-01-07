@@ -2,6 +2,15 @@ import { env } from 'cloudflare:test'
 import { describe, expect, it } from 'vitest'
 import { app } from '@hare/api'
 
+// Augment the cloudflare:test module with the bindings we use
+declare module 'cloudflare:test' {
+	interface ProvidedEnv {
+		DB: D1Database
+		KV: KVNamespace
+		R2: R2Bucket
+	}
+}
+
 // Types for health response
 interface ServiceCheck {
 	name: string

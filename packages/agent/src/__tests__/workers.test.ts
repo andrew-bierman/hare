@@ -147,15 +147,36 @@ describe('@hare/agent/workers exports', () => {
 	})
 })
 
+// Mock state and env for agent constructors
+const createMockState = () => ({
+	id: { toString: () => 'test-id' },
+	storage: {
+		get: vi.fn(),
+		put: vi.fn(),
+		delete: vi.fn(),
+		list: vi.fn().mockResolvedValue(new Map()),
+	},
+	waitUntil: vi.fn(),
+	blockConcurrencyWhile: vi.fn((fn: () => Promise<void>) => fn()),
+})
+
+const createMockEnv = () => ({
+	AI: { run: vi.fn() },
+	DB: {},
+	KV: {},
+	R2: {},
+	VECTORIZE: {},
+})
+
 describe('HareAgent class from workers entry', () => {
 	it('HareAgent can be instantiated', () => {
-		const agent = new workersExports.HareAgent()
+		const agent = new workersExports.HareAgent(createMockState() as any, createMockEnv() as any)
 		expect(agent).toBeDefined()
 		expect(agent.initialState).toBeDefined()
 	})
 
 	it('HareAgent has expected initial state', () => {
-		const agent = new workersExports.HareAgent()
+		const agent = new workersExports.HareAgent(createMockState() as any, createMockEnv() as any)
 		expect(agent.initialState.name).toBe('Hare Agent')
 		expect(agent.initialState.status).toBe('idle')
 	})
@@ -163,18 +184,18 @@ describe('HareAgent class from workers entry', () => {
 
 describe('HareMcpAgent class from workers entry', () => {
 	it('HareMcpAgent can be instantiated', () => {
-		const agent = new workersExports.HareMcpAgent()
+		const agent = new workersExports.HareMcpAgent(createMockState() as any, createMockEnv() as any)
 		expect(agent).toBeDefined()
 		expect(agent.initialState).toBeDefined()
 	})
 
 	it('HareMcpAgent has expected initial state', () => {
-		const agent = new workersExports.HareMcpAgent()
+		const agent = new workersExports.HareMcpAgent(createMockState() as any, createMockEnv() as any)
 		expect(agent.initialState.connectedClients).toBe(0)
 	})
 
 	it('HareMcpAgent has MCP server', () => {
-		const agent = new workersExports.HareMcpAgent()
+		const agent = new workersExports.HareMcpAgent(createMockState() as any, createMockEnv() as any)
 		expect(agent.server).toBeDefined()
 	})
 })

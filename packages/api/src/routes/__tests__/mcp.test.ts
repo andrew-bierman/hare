@@ -3,6 +3,15 @@ import { beforeAll, describe, expect, it } from 'vitest'
 import { app } from '@hare/api'
 import { applyMigrations } from './setup'
 
+// Augment the cloudflare:test module with the bindings we use
+declare module 'cloudflare:test' {
+	interface ProvidedEnv {
+		DB: D1Database
+		KV: KVNamespace
+		R2: R2Bucket
+	}
+}
+
 // Apply D1 migrations before tests
 beforeAll(async () => {
 	await applyMigrations(env.DB)
