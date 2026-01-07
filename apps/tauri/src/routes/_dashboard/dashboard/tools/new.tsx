@@ -1,4 +1,3 @@
-import { useWorkspace } from '@hare/app/providers'
 import { generatePrefixedId } from '@hare/app/shared'
 import { useCreateToolMutation, useTestToolMutation } from '@hare/app/shared/api'
 
@@ -30,18 +29,9 @@ type InputSchema = {
 
 interface ToolTestResult {
 	success: boolean
-	duration: number
-	status?: number
-	statusText?: string
-	headers?: Record<string, string>
-	data?: unknown
+	duration?: number
+	result?: unknown
 	error?: string
-	requestDetails?: {
-		url: string
-		method: string
-		headers?: Record<string, string>
-		body?: string
-	}
 }
 import { Badge } from '@hare/ui/components/badge'
 import { Button } from '@hare/ui/components/button'
@@ -93,7 +83,6 @@ function generateFieldId() {
 
 function NewToolPage() {
 	const navigate = useNavigate()
-	const { activeWorkspace } = useWorkspace()
 	const createTool = useCreateToolMutation()
 	const testTool = useTestToolMutation()
 
@@ -285,14 +274,12 @@ function NewToolPage() {
 
 		try {
 			const config = buildHttpConfig()
-			const inputSchema = buildInputSchema()
 
 			await createTool.mutateAsync({
 				name: name.trim(),
 				description: description.trim() || undefined,
 				type: 'http',
 				config: config as unknown as Record<string, unknown>,
-				inputSchema: inputSchema as unknown as Record<string, unknown>,
 			})
 
 			toast.success('Tool created successfully')

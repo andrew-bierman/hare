@@ -1,5 +1,5 @@
 import { useWorkspace } from '@hare/app/providers'
-import { type Agent, useAgentsQuery, useUsageQuery } from '@hare/app/shared/api'
+import { useAgentsQuery, useUsageQuery } from '@hare/app/shared/api'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@hare/ui/components/card'
 import { Skeleton } from '@hare/ui/components/skeleton'
 import { createFileRoute } from '@tanstack/react-router'
@@ -31,7 +31,7 @@ function UsagePage() {
 
 	const isLoading = workspaceLoading || usageLoading || agentsLoading
 
-	const agents: Agent[] = agentsData?.agents ?? []
+	const agents = agentsData?.agents ?? []
 	const deployedAgents = agents.filter((a) => a.status === 'deployed')
 
 	const formatNumber = (num: number) => {
@@ -167,7 +167,7 @@ function UsagePage() {
 										<div>
 											<div className="font-medium">{agent.name}</div>
 											<div className="text-sm text-muted-foreground">
-												{agent.toolIds.length} tools
+												{agent.toolIds?.length ?? 0} tools
 											</div>
 										</div>
 										<div className="text-right">

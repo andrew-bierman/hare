@@ -34,18 +34,9 @@ type InputSchema = {
 
 interface ToolTestResult {
 	success: boolean
-	duration: number
-	status?: number
-	statusText?: string
-	headers?: Record<string, string>
-	data?: unknown
+	duration?: number
+	result?: unknown
 	error?: string
-	requestDetails?: {
-		url: string
-		method: string
-		headers?: Record<string, string>
-		body?: string
-	}
 }
 import { Badge } from '@hare/ui/components/badge'
 import { Button } from '@hare/ui/components/button'

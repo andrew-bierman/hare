@@ -348,7 +348,7 @@ function PlaygroundPage() {
 													<ToolCallList
 														toolCalls={message.parts
 															.filter((p) => p.type === 'tool-invocation')
-															.map((p) => p as unknown as { id: string; name: string; args: Record<string, unknown>; status: string; result?: unknown })}
+															.map((p) => p as unknown as { id: string; name: string; args: Record<string, unknown>; status: 'pending' | 'running' | 'completed' | 'error'; result?: unknown })}
 													/>
 												)}
 										</div>
