@@ -5,6 +5,9 @@
  * Following Feature-Sliced Design, this is the public API for the lib segment.
  */
 
+// Jotai Atoms
+export { onboardingDismissedAtom } from './atoms'
+
 // Hooks
 export { useDebouncedCallback, useDebouncedValue } from './hooks'
 

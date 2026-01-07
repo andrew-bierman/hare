@@ -16,7 +16,7 @@ import {
 	toAgentMessages,
 } from '@hare/agent'
 import type { ModelMessage } from 'ai'
-import { publicProcedure } from '../base'
+import { publicProcedure, notFound, badRequest } from '../base'
 
 // =============================================================================
 // Schemas
@@ -112,12 +112,12 @@ const getAgent = publicProcedure
 		const [agent] = await db.select().from(agents).where(eq(agents.id, agentId))
 
 		if (!agent) {
-			throw new Error('Agent not found')
+			notFound('Agent not found')
 		}
 
 		// Check if agent is deployed
 		if (agent.status !== 'deployed') {
-			throw new Error('Agent not available')
+			badRequest('Agent not available')
 		}
 
 		// Check domain restrictions
@@ -125,7 +125,7 @@ const getAgent = publicProcedure
 		const origin = headers.get('origin') || headers.get('referer')
 
 		if (!isDomainAllowed({ allowedDomains: config?.allowedDomains, origin: origin ?? undefined })) {
-			throw new Error('Domain not allowed')
+			badRequest('Domain not allowed')
 		}
 
 		return {

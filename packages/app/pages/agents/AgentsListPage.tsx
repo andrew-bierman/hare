@@ -9,7 +9,6 @@ import { Skeleton } from '@hare/ui/components/skeleton'
 import { Tabs, TabsList, TabsTrigger } from '@hare/ui/components/tabs'
 import { Bot, Clock, Plus, SearchIcon, Settings, Wrench } from 'lucide-react'
 import { type ChangeEvent, useState, useCallback } from 'react'
-import { useWorkspace } from '../../app/providers'
 import type { Agent } from '@hare/types'
 import { useAgentsQuery } from '../../shared/api/hooks'
 import { config } from '@hare/config'
@@ -58,14 +57,12 @@ function AgentsEmptyState() {
 
 export function AgentsListPage() {
 	const navigate = useNavigate()
-	const { activeWorkspace } = useWorkspace()
 	const { data, isLoading, error } = useAgentsQuery()
 	const [search, setSearch] = useState('')
 	const [filter, setFilter] = useState<'all' | 'deployed' | 'draft'>('all')
-	const [hasSkippedOnboarding, setHasSkippedOnboarding] = useState(false)
 
 	const agents = data?.agents ?? []
-	const isNewUser = !isLoading && agents.length === 0 && !hasSkippedOnboarding
+	const isNewUser = !isLoading && agents.length === 0
 
 	// Onboarding handlers
 	const handleSelectTemplate = useCallback(
@@ -74,10 +71,6 @@ export function AgentsListPage() {
 		},
 		[navigate],
 	)
-
-	const handleSkipOnboarding = useCallback(() => {
-		setHasSkippedOnboarding(true)
-	}, [])
 
 	const handleStartFromScratch = useCallback(() => {
 		navigate({ to: '/dashboard/agents/new' })
@@ -148,7 +141,6 @@ export function AgentsListPage() {
 			<OnboardingWizard
 				isNewUser={isNewUser}
 				onSelectTemplate={handleSelectTemplate}
-				onSkip={handleSkipOnboarding}
 				onStartFromScratch={handleStartFromScratch}
 			/>
 

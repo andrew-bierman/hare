@@ -9,7 +9,7 @@ import { z } from 'zod'
 import { eq } from 'drizzle-orm'
 import Stripe from 'stripe'
 import { workspaces } from '@hare/db/schema'
-import { requireWrite, badRequest, type WorkspaceContext } from '../base'
+import { requireWrite, badRequest, serverError, type WorkspaceContext } from '../base'
 import {
 	BillingStatusSchema,
 	CheckoutRequestSchema,
@@ -89,7 +89,7 @@ function isValidPlanId(value: string | null | undefined): value is PlanId {
 function getStripe(env: CloudflareEnv): Stripe {
 	const secretKey = env.STRIPE_SECRET_KEY
 	if (!secretKey) {
-		throw new Error('STRIPE_SECRET_KEY is not configured')
+		serverError('STRIPE_SECRET_KEY is not configured')
 	}
 	return new Stripe(secretKey, {
 		typescript: true,

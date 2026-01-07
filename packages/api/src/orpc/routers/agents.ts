@@ -8,7 +8,7 @@ import { z } from 'zod'
 import { and, eq } from 'drizzle-orm'
 import { agents, agentTools, deployments } from '@hare/db/schema'
 import { config } from '@hare/config'
-import { requireWrite, requireAdmin, notFound, serverError, type WorkspaceContext } from '../base'
+import { requireWrite, requireAdmin, notFound, badRequest, serverError, type WorkspaceContext } from '../base'
 import {
 	AgentSchema,
 	CreateAgentSchema,
@@ -224,7 +224,7 @@ export const deploy = requireAdmin
 		if (!agent) notFound('Agent not found')
 
 		if (!agent.instructions) {
-			throw new Error('Agent must have instructions before deployment')
+			badRequest('Agent must have instructions before deployment')
 		}
 
 		// Update agent status
@@ -303,7 +303,7 @@ export const getDeployment = requireWrite
 		if (!agent) notFound('Agent not found')
 
 		if (agent.status !== config.enums.agentStatus.DEPLOYED) {
-			throw new Error('Agent is not deployed')
+			badRequest('Agent is not deployed')
 		}
 
 		const [deployment] = await db
