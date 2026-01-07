@@ -32,7 +32,7 @@ export function useAgentQuery(id: string | undefined) {
 export interface ValidationIssue {
 	field: string
 	message: string
-	severity: 'error' | 'warning'
+	type: 'error' | 'warning'
 }
 
 export function useAgentPreviewQuery(options: {
