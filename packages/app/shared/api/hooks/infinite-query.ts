@@ -17,7 +17,7 @@ interface Message {
 interface ConversationPage {
 	messages: Message[]
 	nextCursor?: string
-	hasMore: boolean
+	hasMore?: boolean
 }
 
 interface UseInfiniteMessagesOptions {
@@ -126,9 +126,12 @@ export function useAddMessageToCache() {
 			// Add message to the last page (most recent)
 			const newPages = [...old.pages]
 			const lastPageIndex = newPages.length - 1
-			newPages[lastPageIndex] = {
-				...newPages[lastPageIndex],
-				messages: [...newPages[lastPageIndex].messages, message],
+			const lastPage = newPages[lastPageIndex]
+			if (lastPage) {
+				newPages[lastPageIndex] = {
+					...lastPage,
+					messages: [...lastPage.messages, message],
+				}
 			}
 
 			return {
