@@ -4,6 +4,7 @@
  * 🐇 Sort Package.json Script
  *
  * Traverses the monorepo and sorts all package.json files.
+ * Processes all files in a single command for speed.
  *
  * Usage:
  *   bun run scripts/sort-packages.ts         # Sort all package.json files
@@ -72,62 +73,56 @@ async function dirExists(path: string): Promise<boolean> {
 	}
 }
 
-async function sortPackageJson(filePath: string, check: boolean): Promise<boolean> {
-	const relativePath = filePath.replace(ROOT + '/', '')
-
-	try {
-		if (check) {
-			await $`bunx sort-package-json ${filePath} --check`.quiet()
-			console.log(`  ✅ ${relativePath}`)
-			return true
-		} else {
-			await $`bunx sort-package-json ${filePath}`.quiet()
-			console.log(`  ✅ ${relativePath}`)
-			return true
-		}
-	} catch {
-		if (check) {
-			console.log(`  ❌ ${relativePath} (not sorted)`)
-		} else {
-			console.log(`  ❌ ${relativePath} (failed to sort)`)
-		}
-		return false
-	}
+function formatDuration(ms: number): string {
+	if (ms < 1000) return `${Math.round(ms)}ms`
+	return `${(ms / 1000).toFixed(1)}s`
 }
 
 async function main(): Promise<void> {
+	const startTime = performance.now()
 	const files = await findPackageJsonFiles()
 
 	if (CHECK_MODE) {
-		console.log('🔍 Checking package.json files are sorted...\n')
+		console.log(`🔍 Checking ${files.length} package.json files...`)
 	} else {
-		console.log('📦 Sorting package.json files...\n')
+		console.log(`📦 Sorting ${files.length} package.json files...`)
 	}
 
-	let allPassed = true
+	try {
+		// Run sort-package-json on all files at once (much faster than one-by-one)
+		const args = CHECK_MODE ? [...files, '--check'] : files
+		await $`bun run --cwd scripts sort-package-json ${args}`.quiet()
 
-	for (const file of files) {
-		const passed = await sortPackageJson(file, CHECK_MODE)
-		if (!passed) {
-			allPassed = false
-		}
-	}
-
-	console.log('')
-
-	if (allPassed) {
+		const duration = formatDuration(performance.now() - startTime)
 		if (CHECK_MODE) {
-			console.log(`✅ All ${files.length} package.json files are sorted`)
+			console.log(`✅ All ${files.length} files sorted (${duration})`)
 		} else {
-			console.log(`✅ Sorted ${files.length} package.json files`)
+			console.log(`✅ Sorted ${files.length} files (${duration})`)
 		}
-	} else {
+	} catch (error) {
+		const duration = formatDuration(performance.now() - startTime)
+
 		if (CHECK_MODE) {
-			console.log('❌ Some package.json files are not sorted')
-			console.log('   Run `bun run sort-packages` to fix')
+			// In check mode, find which files are unsorted
+			console.log(`\n❌ Some files are not sorted (${duration}):`)
+			const unsorted: string[] = []
+			await Promise.all(
+				files.map(async (file) => {
+					try {
+						await $`bun run --cwd scripts sort-package-json ${file} --check`.quiet()
+					} catch {
+						unsorted.push(file.replace(ROOT + '/', ''))
+					}
+				})
+			)
+			for (const file of unsorted.sort()) {
+				console.log(`   ${file}`)
+			}
+			console.log('\nRun `bun run sort-packages` to fix')
 			process.exit(1)
 		} else {
-			console.log('❌ Some package.json files failed to sort')
+			console.log(`❌ Failed to sort files (${duration})`)
+			console.log(error instanceof Error ? error.message : String(error))
 			process.exit(1)
 		}
 	}
