@@ -77,12 +77,12 @@ function StatCardSkeleton() {
 }
 
 function AnalyticsPage() {
-	const { activeWorkspace, isLoading: workspaceLoading } = useWorkspace()
+	const { isLoading: workspaceLoading } = useWorkspace()
 	const [dateRange, setDateRange] = useState('30d')
 	const [groupBy, setGroupBy] = useState<'day' | 'week' | 'month'>('day')
 	const [selectedAgentId, setSelectedAgentId] = useState<string>('all')
 
-	const { data: agentsData } = useAgentsQuery(activeWorkspace?.id)
+	const { data: agentsData } = useAgentsQuery()
 	const agents: Agent[] = agentsData?.agents ?? []
 
 	// Calculate date range
@@ -108,15 +108,12 @@ function AnalyticsPage() {
 		}
 	}, [dateRange])
 
-	const { data: analyticsData, isLoading: analyticsLoading } = useAnalyticsQuery(
-		activeWorkspace?.id,
-		{
-			startDate,
-			endDate,
-			agentId: selectedAgentId === 'all' ? undefined : selectedAgentId,
-			groupBy,
-		},
-	)
+	const { data: analyticsData, isLoading: analyticsLoading } = useAnalyticsQuery({
+		startDate,
+		endDate,
+		agentId: selectedAgentId === 'all' ? undefined : selectedAgentId,
+		groupBy,
+	})
 
 	const isLoading = workspaceLoading || analyticsLoading
 

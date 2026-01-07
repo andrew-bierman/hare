@@ -518,7 +518,7 @@ function WebhooksPage() {
 		data: agent,
 		isLoading: agentLoading,
 		error: agentError,
-	} = useAgentQuery(agentId, activeWorkspace?.id)
+	} = useAgentQuery(agentId)
 
 	const [webhooks, setWebhooks] = useState<Webhook[]>([])
 	const [loading, setLoading] = useState(true)

@@ -1,13 +1,48 @@
 import { useWorkspace } from '@hare/app/providers'
 import { generatePrefixedId } from '@hare/app/shared'
-import {
-	type HttpToolConfig,
-	type InputSchema,
-	type InputSchemaProperty,
-	type ToolTestResult,
-	useCreateToolMutation,
-	useTestToolMutation,
-} from '@hare/app/shared/api'
+import { useCreateToolMutation, useTestToolMutation } from '@hare/app/shared/api'
+
+// Local types for tool configuration
+type HttpToolConfig = {
+	url: string
+	method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
+	headers?: Record<string, string>
+	body?: string
+	bodyType?: 'json' | 'form' | 'text'
+	timeout?: number
+	responseMapping?: { path: string }
+	[key: string]: unknown
+}
+
+type InputSchemaProperty = {
+	type: 'string' | 'number' | 'boolean' | 'array' | 'object'
+	description?: string
+	enum?: string[]
+	default?: unknown
+	required?: boolean
+}
+
+type InputSchema = {
+	type: 'object'
+	properties: Record<string, InputSchemaProperty>
+	required?: string[]
+}
+
+interface ToolTestResult {
+	success: boolean
+	duration: number
+	status?: number
+	statusText?: string
+	headers?: Record<string, string>
+	data?: unknown
+	error?: string
+	requestDetails?: {
+		url: string
+		method: string
+		headers?: Record<string, string>
+		body?: string
+	}
+}
 import { Badge } from '@hare/ui/components/badge'
 import { Button } from '@hare/ui/components/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@hare/ui/components/card'
@@ -59,8 +94,8 @@ function generateFieldId() {
 function NewToolPage() {
 	const navigate = useNavigate()
 	const { activeWorkspace } = useWorkspace()
-	const createTool = useCreateToolMutation(activeWorkspace?.id)
-	const testTool = useTestToolMutation(activeWorkspace?.id)
+	const createTool = useCreateToolMutation()
+	const testTool = useTestToolMutation()
 
 	// Tool metadata
 	const [name, setName] = useState('')

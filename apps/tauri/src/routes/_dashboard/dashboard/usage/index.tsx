@@ -27,7 +27,7 @@ function StatCardSkeleton() {
 function UsagePage() {
 	const { activeWorkspace, isLoading: workspaceLoading } = useWorkspace()
 	const { data: usageData, isLoading: usageLoading } = useUsageQuery(activeWorkspace?.id)
-	const { data: agentsData, isLoading: agentsLoading } = useAgentsQuery(activeWorkspace?.id)
+	const { data: agentsData, isLoading: agentsLoading } = useAgentsQuery()
 
 	const isLoading = workspaceLoading || usageLoading || agentsLoading
 
@@ -48,15 +48,15 @@ function UsagePage() {
 	const stats = [
 		{
 			title: 'Total API Calls',
-			value: formatNumber(usageData?.totalCalls ?? 0),
+			value: formatNumber(usageData?.usage?.totalMessages ?? 0),
 			description: 'This billing period',
 			icon: Activity,
 			color: 'text-blue-500',
 		},
 		{
 			title: 'Total Tokens',
-			value: formatNumber(usageData?.totalTokens ?? 0),
-			description: `${formatNumber(usageData?.inputTokens ?? 0)} input / ${formatNumber(usageData?.outputTokens ?? 0)} output`,
+			value: formatNumber((usageData?.usage?.totalTokensIn ?? 0) + (usageData?.usage?.totalTokensOut ?? 0)),
+			description: `${formatNumber(usageData?.usage?.totalTokensIn ?? 0)} input / ${formatNumber(usageData?.usage?.totalTokensOut ?? 0)} output`,
 			icon: TrendingUp,
 			color: 'text-emerald-500',
 		},
@@ -69,8 +69,8 @@ function UsagePage() {
 		},
 		{
 			title: 'Period',
-			value: usageData?.periodStart ? formatDate(usageData.periodStart) : 'N/A',
-			description: usageData?.periodEnd ? `to ${formatDate(usageData.periodEnd)}` : '',
+			value: usageData?.period?.startDate ? formatDate(usageData.period.startDate) : 'N/A',
+			description: usageData?.period?.endDate ? `to ${formatDate(usageData.period.endDate)}` : '',
 			icon: Calendar,
 			color: 'text-orange-500',
 		},
@@ -121,7 +121,7 @@ function UsagePage() {
 										<div className="text-sm text-muted-foreground">Tokens sent to the model</div>
 									</div>
 									<div className="text-2xl font-bold">
-										{formatNumber(usageData?.inputTokens ?? 0)}
+										{formatNumber(usageData?.usage?.totalTokensIn ?? 0)}
 									</div>
 								</div>
 								<div className="flex items-center justify-between p-4 border rounded-lg">
@@ -132,7 +132,7 @@ function UsagePage() {
 										</div>
 									</div>
 									<div className="text-2xl font-bold">
-										{formatNumber(usageData?.outputTokens ?? 0)}
+										{formatNumber(usageData?.usage?.totalTokensOut ?? 0)}
 									</div>
 								</div>
 							</div>

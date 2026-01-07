@@ -1,4 +1,3 @@
-import { useWorkspace } from '@hare/app/providers'
 import { useAgentQuery, useChat } from '@hare/app/shared/api'
 import { MarkdownContent, ToolCallList } from '@hare/app/widgets/chat-interface'
 import { getModelName } from '@hare/config'
@@ -87,12 +86,11 @@ function EmptyState() {
 
 function PlaygroundPage() {
 	const { id: agentId } = Route.useParams()
-	const { activeWorkspace } = useWorkspace()
 	const {
 		data: agent,
 		isLoading: agentLoading,
 		error: agentError,
-	} = useAgentQuery(agentId, activeWorkspace?.id)
+	} = useAgentQuery(agentId)
 	const {
 		messages,
 		isStreaming,
@@ -344,11 +342,14 @@ function PlaygroundPage() {
 													/>
 												)}
 											</div>
-											{/* Tool Calls */}
+											{/* Tool Calls - extracted from message parts */}
 											{message.role === 'assistant' &&
-												message.toolCalls &&
-												message.toolCalls.length > 0 && (
-													<ToolCallList toolCalls={message.toolCalls} />
+												message.parts?.some((p) => p.type === 'tool-invocation') && (
+													<ToolCallList
+														toolCalls={message.parts
+															.filter((p) => p.type === 'tool-invocation')
+															.map((p) => p as unknown as { id: string; name: string; args: Record<string, unknown>; status: string; result?: unknown })}
+													/>
 												)}
 										</div>
 									</div>
