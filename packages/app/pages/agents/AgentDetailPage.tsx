@@ -39,7 +39,7 @@ import { Skeleton } from '@hare/ui/components/skeleton'
 import { Switch } from '@hare/ui/components/switch'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@hare/ui/components/tabs'
 import { Textarea } from '@hare/ui/components/textarea'
-import { Link, useNavigate } from '@tanstack/react-router'
+import { useNavigate } from '@tanstack/react-router'
 import {
 	AlertTriangle,
 	Brain,
@@ -65,6 +65,7 @@ import { z } from 'zod'
 
 export interface AgentDetailPageProps {
 	agentId: string
+	basePath?: string // Base path for agent routes, defaults to '/dashboard/agents'
 }
 
 // Local references for cleaner code
@@ -163,7 +164,10 @@ function LoadingSkeleton() {
 	)
 }
 
-export function AgentDetailPage({ agentId }: AgentDetailPageProps) {
+export function AgentDetailPage({
+	agentId,
+	basePath = '/dashboard/agents',
+}: AgentDetailPageProps) {
 	const navigate = useNavigate()
 
 	const { activeWorkspace } = useWorkspace()
@@ -310,7 +314,7 @@ export function AgentDetailPage({ agentId }: AgentDetailPageProps) {
 		try {
 			await deleteAgent.mutateAsync({ id: agentId })
 			toast.success('Agent deleted')
-			navigate({ to: '/dashboard/agents' })
+			navigate({ to: basePath })
 		} catch (error) {
 			toast.error(error instanceof Error ? error.message : 'Failed to delete agent')
 		}
@@ -365,7 +369,7 @@ export function AgentDetailPage({ agentId }: AgentDetailPageProps) {
 			<div className="flex-1 p-8 pt-6">
 				<Card className="p-6 text-center">
 					<p className="text-destructive">{error?.message || 'Agent not found'}</p>
-					<Button className="mt-4" onClick={() => navigate({ to: '/dashboard/agents' })}>
+					<Button className="mt-4" onClick={() => navigate({ to: basePath })}>
 						Back to Agents
 					</Button>
 				</Card>
@@ -388,12 +392,13 @@ export function AgentDetailPage({ agentId }: AgentDetailPageProps) {
 				<div className="flex gap-2">
 					{/* Primary actions */}
 					{agent.status === 'deployed' && (
-						<Link to="/dashboard/agents/$id/playground" params={{ id: agentId }}>
-							<Button className="gap-2">
-								<Play className="h-4 w-4" />
-								Test Agent
-							</Button>
-						</Link>
+						<Button
+							className="gap-2"
+							onClick={() => navigate({ to: `${basePath}/${agentId}/playground` })}
+						>
+							<Play className="h-4 w-4" />
+							Test Agent
+						</Button>
 					)}
 					{agent.status !== 'deployed' && (
 						<Button
@@ -515,16 +520,14 @@ export function AgentDetailPage({ agentId }: AgentDetailPageProps) {
 								</CardHeader>
 								<CardContent className="space-y-2">
 									{agent.status === 'deployed' ? (
-										<Link
-											to="/dashboard/agents/$id/playground"
-											params={{ id: agentId }}
-											className="block"
+										<Button
+											variant="outline"
+											className="w-full justify-start gap-2"
+											onClick={() => navigate({ to: `${basePath}/${agentId}/playground` })}
 										>
-											<Button variant="outline" className="w-full justify-start gap-2">
-												<MessageSquare className="h-4 w-4" />
-												Open Playground
-											</Button>
-										</Link>
+											<MessageSquare className="h-4 w-4" />
+											Open Playground
+										</Button>
 									) : (
 										<Button
 											variant="outline"

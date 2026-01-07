@@ -22,7 +22,7 @@ export {
 } from './agents'
 
 // Tools
-export { ToolsListPage, ToolCreatePage } from './tools'
+export { ToolsListPage, ToolCreatePage, ToolDetailPage, type ToolDetailPageProps } from './tools'
 
 // Settings
 export { SettingsPage, ApiKeysPage, BillingPage, type BillingPageProps, TeamPage } from './settings'
