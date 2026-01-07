@@ -1,6 +1,7 @@
 {
 	"extends": "@hare/typescript-config/cloudflare.json",
 	"compilerOptions": {
+		"jsx": "react-jsx",
 		"outDir": "./dist",
 		"rootDir": "./src"
 	},
