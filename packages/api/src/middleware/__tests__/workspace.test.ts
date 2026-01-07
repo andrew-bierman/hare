@@ -141,7 +141,7 @@ describe('requirePermission middleware', () => {
 		const res = await app.request('/test')
 		expect(res.status).toBe(403)
 
-		const body = await res.json()
+		const body = (await res.json()) as { error: string }
 		expect(body.error).toBe('Insufficient permissions')
 	})
 
@@ -222,7 +222,7 @@ describe('workspaceMiddleware', () => {
 		const res = await app.request('/test?workspaceId=ws_123')
 		expect(res.status).toBe(401)
 
-		const body = await res.json()
+		const body = (await res.json()) as { error: string }
 		expect(body.error).toBe('Unauthorized')
 	})
 
@@ -243,7 +243,7 @@ describe('workspaceMiddleware', () => {
 		const res = await app.request('/test')
 		expect(res.status).toBe(400)
 
-		const body = await res.json()
+		const body = (await res.json()) as { error: string }
 		expect(body.error).toBe('Workspace ID required')
 	})
 

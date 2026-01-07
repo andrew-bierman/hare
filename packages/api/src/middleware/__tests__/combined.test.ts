@@ -355,7 +355,7 @@ describe('combined middleware', () => {
 			const res = await app.request('/test')
 			expect(res.status).toBe(403)
 
-			const body = await res.json()
+			const body = (await res.json()) as { error: string }
 			expect(body.error).toBe('Rejected')
 		})
 	})
@@ -380,8 +380,8 @@ describe('combined middleware', () => {
 			const app = new Hono()
 			app.use('*', combined)
 			app.get('/test', (c) => {
-				finalValue1 = c.get('value1')
-				finalValue2 = c.get('value2')
+				finalValue1 = (c as unknown as { get: (key: string) => unknown }).get('value1')
+				finalValue2 = (c as unknown as { get: (key: string) => unknown }).get('value2')
 				return c.text('OK')
 			})
 

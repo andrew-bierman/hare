@@ -3,6 +3,23 @@ import { describe, expect, it } from 'vitest'
 // We need to test the key generation logic since the actual rate limiting
 // is delegated to the external @elithrar/workers-hono-rate-limit library
 
+// Helper functions to avoid TypeScript narrowing issues in tests
+function generateUserKey(user: { id: string } | null, ip: string): string {
+	return user?.id ? `user:${user.id}` : `ip:${ip}`
+}
+
+function getIpFromHeaders(
+	cfConnectingIp?: string,
+	xForwardedFor?: string,
+	xRealIp?: string,
+): string {
+	return cfConnectingIp || xForwardedFor?.split(',')[0]?.trim() || xRealIp || 'unknown'
+}
+
+function generateApiKeyKey(apiKey: { id: string } | null, ip: string): string {
+	return apiKey?.id ? `apikey:${apiKey.id}` : `ip:${ip}`
+}
+
 describe('rate-limit middleware', () => {
 	describe('user/IP key generation logic', () => {
 		it('uses user ID when user is set in context', async () => {
@@ -11,54 +28,33 @@ describe('rate-limit middleware', () => {
 			const userId = 'user_123'
 			const expectedKey = `user:${userId}`
 
-			// Simulate the key generation logic
-			const user = { id: userId }
-			const key = user?.id ? `user:${user.id}` : 'ip:unknown'
-
+			const key = generateUserKey({ id: userId }, 'unknown')
 			expect(key).toBe(expectedKey)
 		})
 
 		it('falls back to IP when no user is set', async () => {
-			const user = null
 			const ip = '192.168.1.1'
-			const key = user?.id ? `user:${user.id}` : `ip:${ip}`
-
+			const key = generateUserKey(null, ip)
 			expect(key).toBe(`ip:${ip}`)
 		})
 
 		it('uses cf-connecting-ip header as primary IP source', async () => {
-			const cfConnectingIp = '1.2.3.4'
-			const xForwardedFor = '5.6.7.8'
-			const xRealIp = '9.10.11.12'
-
-			const ip = cfConnectingIp || xForwardedFor?.split(',')[0]?.trim() || xRealIp || 'unknown'
-			expect(ip).toBe(cfConnectingIp)
+			const ip = getIpFromHeaders('1.2.3.4', '5.6.7.8', '9.10.11.12')
+			expect(ip).toBe('1.2.3.4')
 		})
 
 		it('uses x-forwarded-for as fallback IP source', async () => {
-			const cfConnectingIp: string | undefined = undefined
-			const xForwardedFor = '5.6.7.8, 1.2.3.4'
-			const xRealIp = '9.10.11.12'
-
-			const ip = cfConnectingIp || xForwardedFor?.split(',')[0]?.trim() || xRealIp || 'unknown'
+			const ip = getIpFromHeaders(undefined, '5.6.7.8, 1.2.3.4', '9.10.11.12')
 			expect(ip).toBe('5.6.7.8')
 		})
 
 		it('uses x-real-ip as tertiary IP source', async () => {
-			const cfConnectingIp: string | undefined = undefined
-			const xForwardedFor: string | undefined = undefined
-			const xRealIp = '9.10.11.12'
-
-			const ip = cfConnectingIp || xForwardedFor?.split(',')[0]?.trim() || xRealIp || 'unknown'
-			expect(ip).toBe(xRealIp)
+			const ip = getIpFromHeaders(undefined, undefined, '9.10.11.12')
+			expect(ip).toBe('9.10.11.12')
 		})
 
 		it('uses "unknown" when no IP headers are present', async () => {
-			const cfConnectingIp: string | undefined = undefined
-			const xForwardedFor: string | undefined = undefined
-			const xRealIp: string | undefined = undefined
-
-			const ip = cfConnectingIp || xForwardedFor?.split(',')[0]?.trim() || xRealIp || 'unknown'
+			const ip = getIpFromHeaders(undefined, undefined, undefined)
 			expect(ip).toBe('unknown')
 		})
 	})
@@ -66,19 +62,13 @@ describe('rate-limit middleware', () => {
 	describe('API key based limiting logic', () => {
 		it('uses API key ID when apiKey is set in context', async () => {
 			const apiKeyId = 'key_abc123'
-			const apiKey = { id: apiKeyId }
-			const key = apiKey?.id ? `apikey:${apiKey.id}` : 'ip:unknown'
-
+			const key = generateApiKeyKey({ id: apiKeyId }, 'unknown')
 			expect(key).toBe(`apikey:${apiKeyId}`)
 		})
 
 		it('falls back to IP when no API key is set', async () => {
-			const apiKey = null
 			const ip = '192.168.1.1'
-			const key = (apiKey as { id?: string } | null)?.id
-				? `apikey:${(apiKey as { id: string }).id}`
-				: `ip:${ip}`
-
+			const key = generateApiKeyKey(null, ip)
 			expect(key).toBe(`ip:${ip}`)
 		})
 	})
