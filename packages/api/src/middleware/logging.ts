@@ -220,7 +220,7 @@ export async function getLogs(
 		const allLogs: RequestLog[] = []
 
 		// Fetch logs in parallel
-		const fetchPromises = list.keys.map(async (key) => {
+		const fetchPromises = list.keys.map(async (key: { name: string }) => {
 			const value = await env.KV!.get(key.name)
 			if (value) {
 				return JSON.parse(value) as RequestLog

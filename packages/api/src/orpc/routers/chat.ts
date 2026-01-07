@@ -5,7 +5,7 @@
  */
 
 import { z } from 'zod'
-import { eventIterator, withEventMeta } from '@orpc/server'
+import { eventIterator } from '@orpc/server'
 import { streamText, type ModelMessage } from 'ai'
 import { eq } from 'drizzle-orm'
 import { agents, conversations, messages, usage } from '@hare/db/schema'
@@ -15,12 +15,11 @@ import {
 	createMemoryStore,
 	toAgentMessages,
 } from '@hare/agent'
-import { authedProcedure, notFound, badRequest, serverError, type AuthContext } from '../base'
+import { authedProcedure, notFound } from '../base'
 import {
 	ChatRequestSchema,
 	ConversationExportSchema,
 	ConversationSchema,
-	ExportQuerySchema,
 	IdParamSchema,
 	MessageSchema,
 } from '../../schemas'

@@ -378,7 +378,7 @@ export const preview = requireWrite
 	.input(AgentPreviewInputSchema)
 	.output(AgentPreviewResponseSchema)
 	.handler(async ({ input, context }) => {
-		const { db, workspaceId } = context
+		const { workspaceId } = context
 		const errors: z.infer<typeof ValidationIssueSchema>[] = []
 		const warnings: z.infer<typeof ValidationIssueSchema>[] = []
 
