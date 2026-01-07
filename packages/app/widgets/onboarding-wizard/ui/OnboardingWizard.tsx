@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useAtom } from 'jotai'
 import { Button } from '@hare/ui/components/button'
 import {
 	Dialog,
@@ -13,8 +14,7 @@ import {
 import { config, type AgentTemplate } from '@hare/config'
 import { Bot, ChevronRight, Rocket, Sparkles, Wand2 } from 'lucide-react'
 import { cn } from '@hare/ui/lib/utils'
-
-const ONBOARDING_DISMISSED_KEY = 'hare-onboarding-dismissed'
+import { onboardingDismissedAtom } from '../../../shared/lib/atoms'
 
 export interface OnboardingWizardProps {
 	/** Whether the user is new (no agents) */
@@ -73,25 +73,9 @@ function TemplateOption({
 }
 
 /**
- * Check if onboarding was previously dismissed (persisted to localStorage)
- */
-function wasOnboardingDismissed(): boolean {
-	if (typeof window === 'undefined') return false
-	return localStorage.getItem(ONBOARDING_DISMISSED_KEY) === 'true'
-}
-
-/**
- * Mark onboarding as dismissed (persisted to localStorage)
- */
-function markOnboardingDismissed(): void {
-	if (typeof window === 'undefined') return
-	localStorage.setItem(ONBOARDING_DISMISSED_KEY, 'true')
-}
-
-/**
  * Onboarding wizard for new users.
  * Guides them through creating their first agent with a friendly, step-by-step process.
- * Dismissal is persisted to localStorage to prevent re-showing on page refresh.
+ * Dismissal is persisted to localStorage via Jotai atomWithStorage.
  */
 export function OnboardingWizard({
 	isNewUser,
@@ -99,22 +83,23 @@ export function OnboardingWizard({
 	onSkip,
 	onStartFromScratch,
 }: OnboardingWizardProps) {
+	const [dismissed, setDismissed] = useAtom(onboardingDismissedAtom)
 	const [open, setOpen] = useState(false)
 	const [step, setStep] = useState<WizardStep>('welcome')
 	const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null)
 
 	// Show wizard for new users who haven't dismissed it
 	useEffect(() => {
-		if (isNewUser && !wasOnboardingDismissed()) {
+		if (isNewUser && !dismissed) {
 			// Small delay to let the page settle
 			const timer = setTimeout(() => setOpen(true), 500)
 			return () => clearTimeout(timer)
 		}
-	}, [isNewUser])
+	}, [isNewUser, dismissed])
 
 	const handleClose = () => {
 		setOpen(false)
-		markOnboardingDismissed()
+		setDismissed(true)
 		onSkip?.()
 	}
 
@@ -125,14 +110,14 @@ export function OnboardingWizard({
 	const handleSelectTemplate = () => {
 		if (selectedTemplate) {
 			setOpen(false)
-			markOnboardingDismissed()
+			setDismissed(true)
 			onSelectTemplate(selectedTemplate)
 		}
 	}
 
 	const handleStartFromScratch = () => {
 		setOpen(false)
-		markOnboardingDismissed()
+		setDismissed(true)
 		onStartFromScratch()
 	}
 

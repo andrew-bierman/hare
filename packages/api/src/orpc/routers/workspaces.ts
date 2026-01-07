@@ -13,6 +13,7 @@ import {
 	requireWrite,
 	requireOwner,
 	notFound,
+	badRequest,
 	serverError,
 	type WorkspaceContext,
 	type AuthContext,
@@ -138,7 +139,7 @@ export const create = authedProcedure
 			.where(eq(workspaces.slug, input.slug))
 
 		if (existing) {
-			throw new Error('Workspace slug is already taken')
+			badRequest('Workspace slug is already taken')
 		}
 
 		const [workspace] = await db
