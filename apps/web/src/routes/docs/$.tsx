@@ -4,56 +4,84 @@ import type { ComponentType } from 'react'
 import { getDocCategories, getDocPage } from '../../lib/docs/simple-docs'
 import 'highlight.js/styles/github-dark.css'
 
-// Custom MDX components
+// Custom MDX components - use explicit typing to avoid csstype version conflicts
 const mdxComponents = {
-	h1: (props: React.HTMLAttributes<HTMLHeadingElement>) => (
-		<h1 className="text-3xl font-bold mt-8 mb-4 first:mt-0" {...props} />
+	h1: ({ className, ...props }: { className?: string; children?: React.ReactNode }) => (
+		<h1 className={`text-3xl font-bold mt-8 mb-4 first:mt-0 ${className || ''}`} {...props} />
 	),
-	h2: (props: React.HTMLAttributes<HTMLHeadingElement>) => (
-		<h2 className="text-2xl font-semibold mt-8 mb-3 pb-2 border-b" {...props} />
-	),
-	h3: (props: React.HTMLAttributes<HTMLHeadingElement>) => (
-		<h3 className="text-xl font-semibold mt-6 mb-2" {...props} />
-	),
-	p: (props: React.HTMLAttributes<HTMLParagraphElement>) => (
-		<p className="my-4 leading-7" {...props} />
-	),
-	ul: (props: React.HTMLAttributes<HTMLUListElement>) => (
-		<ul className="my-4 ml-6 list-disc space-y-2" {...props} />
-	),
-	ol: (props: React.HTMLAttributes<HTMLOListElement>) => (
-		<ol className="my-4 ml-6 list-decimal space-y-2" {...props} />
-	),
-	li: (props: React.HTMLAttributes<HTMLLIElement>) => <li className="leading-7" {...props} />,
-	a: (props: React.AnchorHTMLAttributes<HTMLAnchorElement>) => (
-		<a className="text-primary underline hover:no-underline" {...props} />
-	),
-	code: (props: React.HTMLAttributes<HTMLElement>) => {
-		const isInline = !props.className?.includes('hljs')
-		if (isInline) {
-			return <code className="px-1.5 py-0.5 rounded bg-muted font-mono text-sm" {...props} />
-		}
-		return <code {...props} />
-	},
-	pre: (props: React.HTMLAttributes<HTMLPreElement>) => (
-		<pre
-			className="my-4 p-4 rounded-lg bg-zinc-900 text-zinc-100 overflow-x-auto text-sm"
+	h2: ({ className, ...props }: { className?: string; children?: React.ReactNode }) => (
+		<h2
+			className={`text-2xl font-semibold mt-8 mb-3 pb-2 border-b ${className || ''}`}
 			{...props}
 		/>
 	),
-	blockquote: (props: React.HTMLAttributes<HTMLQuoteElement>) => (
-		<blockquote className="my-4 pl-4 border-l-4 border-muted-foreground/30 italic" {...props} />
+	h3: ({ className, ...props }: { className?: string; children?: React.ReactNode }) => (
+		<h3 className={`text-xl font-semibold mt-6 mb-2 ${className || ''}`} {...props} />
 	),
-	table: (props: React.HTMLAttributes<HTMLTableElement>) => (
+	p: ({ className, ...props }: { className?: string; children?: React.ReactNode }) => (
+		<p className={`my-4 leading-7 ${className || ''}`} {...props} />
+	),
+	ul: ({ className, ...props }: { className?: string; children?: React.ReactNode }) => (
+		<ul className={`my-4 ml-6 list-disc space-y-2 ${className || ''}`} {...props} />
+	),
+	ol: ({ className, ...props }: { className?: string; children?: React.ReactNode }) => (
+		<ol className={`my-4 ml-6 list-decimal space-y-2 ${className || ''}`} {...props} />
+	),
+	li: ({ className, ...props }: { className?: string; children?: React.ReactNode }) => (
+		<li className={`leading-7 ${className || ''}`} {...props} />
+	),
+	a: ({
+		className,
+		href,
+		...props
+	}: {
+		className?: string
+		href?: string
+		children?: React.ReactNode
+	}) => (
+		<a
+			className={`text-primary underline hover:no-underline ${className || ''}`}
+			href={href}
+			{...props}
+		/>
+	),
+	code: ({ className, ...props }: { className?: string; children?: React.ReactNode }) => {
+		const isInline = !className?.includes('hljs')
+		if (isInline) {
+			return (
+				<code
+					className={`px-1.5 py-0.5 rounded bg-muted font-mono text-sm ${className || ''}`}
+					{...props}
+				/>
+			)
+		}
+		return <code className={className} {...props} />
+	},
+	pre: ({ className, ...props }: { className?: string; children?: React.ReactNode }) => (
+		<pre
+			className={`my-4 p-4 rounded-lg bg-zinc-900 text-zinc-100 overflow-x-auto text-sm ${className || ''}`}
+			{...props}
+		/>
+	),
+	blockquote: ({ className, ...props }: { className?: string; children?: React.ReactNode }) => (
+		<blockquote
+			className={`my-4 pl-4 border-l-4 border-muted-foreground/30 italic ${className || ''}`}
+			{...props}
+		/>
+	),
+	table: ({ className, ...props }: { className?: string; children?: React.ReactNode }) => (
 		<div className="my-4 overflow-x-auto">
-			<table className="w-full border-collapse" {...props} />
+			<table className={`w-full border-collapse ${className || ''}`} {...props} />
 		</div>
 	),
-	th: (props: React.HTMLAttributes<HTMLTableCellElement>) => (
-		<th className="border px-4 py-2 bg-muted text-left font-semibold" {...props} />
+	th: ({ className, ...props }: { className?: string; children?: React.ReactNode }) => (
+		<th
+			className={`border px-4 py-2 bg-muted text-left font-semibold ${className || ''}`}
+			{...props}
+		/>
 	),
-	td: (props: React.HTMLAttributes<HTMLTableCellElement>) => (
-		<td className="border px-4 py-2" {...props} />
+	td: ({ className, ...props }: { className?: string; children?: React.ReactNode }) => (
+		<td className={`border px-4 py-2 ${className || ''}`} {...props} />
 	),
 }
 
