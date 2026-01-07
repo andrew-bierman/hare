@@ -86,7 +86,7 @@ export const test = base.extend<{
 				let sessionWaitAttempts = 0
 				const maxSessionWaitAttempts = 15
 				while (sessionWaitAttempts < maxSessionWaitAttempts) {
-					const sessionCheckResponse = await page.request.get('/api/workspaces')
+					const sessionCheckResponse = await page.request.get('/api/rpc/workspaces')
 					if (sessionCheckResponse.ok()) {
 						break // Session is now valid
 					}
@@ -111,7 +111,7 @@ export const test = base.extend<{
 				let workspaceWaitAttempts = 0
 				const maxWorkspaceWaitAttempts = 30
 				while (workspaceWaitAttempts < maxWorkspaceWaitAttempts) {
-					const workspacesResponse = await page.request.get('/api/workspaces')
+					const workspacesResponse = await page.request.get('/api/rpc/workspaces')
 					if (workspacesResponse.ok()) {
 						const data = await workspacesResponse.json()
 						if (data.workspaces && data.workspaces.length > 0) {

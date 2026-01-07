@@ -12,7 +12,7 @@ import { test } from './fixtures'
  */
 async function getWorkspaceId(page: Page): Promise<string> {
 	await page.waitForLoadState('networkidle')
-	const response = await page.request.get('/api/workspaces')
+	const response = await page.request.get('/api/rpc/workspaces')
 	expect(response.status()).toBe(200)
 	const body = await response.json()
 	expect(body).toHaveProperty('workspaces')
@@ -24,7 +24,7 @@ baseTest.describe('API Authentication Requirements', () => {
 	baseTest(
 		'workspaces endpoint requires authentication',
 		async ({ request }: { request: APIRequestContext }) => {
-			const response = await request.get('/api/workspaces')
+			const response = await request.get('/api/rpc/workspaces')
 			expect(response.status()).toBe(401)
 		},
 	)
@@ -32,7 +32,7 @@ baseTest.describe('API Authentication Requirements', () => {
 	baseTest(
 		'agents endpoint requires authentication',
 		async ({ request }: { request: APIRequestContext }) => {
-			const response = await request.get('/api/agents?workspaceId=test')
+			const response = await request.get('/api/rpc/agents?workspaceId=test')
 			expect(response.status()).toBe(401)
 		},
 	)
@@ -40,7 +40,7 @@ baseTest.describe('API Authentication Requirements', () => {
 	baseTest(
 		'tools endpoint requires authentication',
 		async ({ request }: { request: APIRequestContext }) => {
-			const response = await request.get('/api/tools?workspaceId=test')
+			const response = await request.get('/api/rpc/tools?workspaceId=test')
 			expect(response.status()).toBe(401)
 		},
 	)
@@ -48,7 +48,7 @@ baseTest.describe('API Authentication Requirements', () => {
 	baseTest(
 		'usage endpoint requires authentication',
 		async ({ request }: { request: APIRequestContext }) => {
-			const response = await request.get('/api/usage?workspaceId=test')
+			const response = await request.get('/api/rpc/usage?workspaceId=test')
 			expect(response.status()).toBe(401)
 		},
 	)
@@ -68,7 +68,7 @@ test.describe('Workspaces API - Authenticated', () => {
 		await authenticatedPage.waitForLoadState('networkidle')
 
 		// Make API request using page context (inherits auth cookies)
-		const response = await authenticatedPage.request.get('/api/workspaces')
+		const response = await authenticatedPage.request.get('/api/rpc/workspaces')
 		expect(response.status()).toBe(200)
 
 		const body = await response.json()
@@ -80,7 +80,7 @@ test.describe('Workspaces API - Authenticated', () => {
 
 	test('workspace has required fields', async ({ authenticatedPage }) => {
 		await authenticatedPage.waitForLoadState('networkidle')
-		const response = await authenticatedPage.request.get('/api/workspaces')
+		const response = await authenticatedPage.request.get('/api/rpc/workspaces')
 		expect(response.status()).toBe(200)
 
 		const body = await response.json()
@@ -99,7 +99,7 @@ test.describe('Agents API - Authenticated', () => {
 		const workspaceId = await getWorkspaceId(authenticatedPage)
 
 		// List agents
-		const response = await authenticatedPage.request.get(`/api/agents?workspaceId=${workspaceId}`)
+		const response = await authenticatedPage.request.get(`/api/rpc/agents?workspaceId=${workspaceId}`)
 		expect(response.status()).toBe(200)
 
 		const body = await response.json()
@@ -113,7 +113,7 @@ test.describe('Agents API - Authenticated', () => {
 
 		// Create agent
 		const createResponse = await authenticatedPage.request.post(
-			`/api/agents?workspaceId=${workspaceId}`,
+			`/api/rpc/agents?workspaceId=${workspaceId}`,
 			{
 				data: {
 					name: `Test Agent ${Date.now()}`,
@@ -132,7 +132,7 @@ test.describe('Agents API - Authenticated', () => {
 
 		// Delete the agent
 		const deleteResponse = await authenticatedPage.request.delete(
-			`/api/agents/${agent.id}?workspaceId=${workspaceId}`,
+			`/api/rpc/agents/${agent.id}?workspaceId=${workspaceId}`,
 		)
 		expect(deleteResponse.status()).toBe(200)
 	})
@@ -142,7 +142,7 @@ test.describe('Agents API - Authenticated', () => {
 
 		// Create agent first
 		const createResponse = await authenticatedPage.request.post(
-			`/api/agents?workspaceId=${workspaceId}`,
+			`/api/rpc/agents?workspaceId=${workspaceId}`,
 			{
 				data: {
 					name: `Update Test Agent ${Date.now()}`,
@@ -157,7 +157,7 @@ test.describe('Agents API - Authenticated', () => {
 
 		// Update agent
 		const updateResponse = await authenticatedPage.request.patch(
-			`/api/agents/${agent.id}?workspaceId=${workspaceId}`,
+			`/api/rpc/agents/${agent.id}?workspaceId=${workspaceId}`,
 			{
 				data: {
 					description: 'Updated description',
@@ -171,7 +171,7 @@ test.describe('Agents API - Authenticated', () => {
 		expect(updatedAgent.description).toBe('Updated description')
 
 		// Cleanup
-		await authenticatedPage.request.delete(`/api/agents/${agent.id}?workspaceId=${workspaceId}`)
+		await authenticatedPage.request.delete(`/api/rpc/agents/${agent.id}?workspaceId=${workspaceId}`)
 	})
 
 	test('can deploy an agent with instructions', async ({ authenticatedPage }) => {
@@ -179,7 +179,7 @@ test.describe('Agents API - Authenticated', () => {
 
 		// Create agent with instructions
 		const createResponse = await authenticatedPage.request.post(
-			`/api/agents?workspaceId=${workspaceId}`,
+			`/api/rpc/agents?workspaceId=${workspaceId}`,
 			{
 				data: {
 					name: `Deploy Test Agent ${Date.now()}`,
@@ -193,7 +193,7 @@ test.describe('Agents API - Authenticated', () => {
 
 		// Deploy agent
 		const deployResponse = await authenticatedPage.request.post(
-			`/api/agents/${agent.id}/deploy?workspaceId=${workspaceId}`,
+			`/api/rpc/agents/${agent.id}/deploy?workspaceId=${workspaceId}`,
 			{
 				data: {},
 			},
@@ -204,7 +204,7 @@ test.describe('Agents API - Authenticated', () => {
 		expect(deployedAgent.status).toBe('deployed')
 
 		// Cleanup
-		await authenticatedPage.request.delete(`/api/agents/${agent.id}?workspaceId=${workspaceId}`)
+		await authenticatedPage.request.delete(`/api/rpc/agents/${agent.id}?workspaceId=${workspaceId}`)
 	})
 
 	test('cannot create agent without instructions', async ({ authenticatedPage }) => {
@@ -212,7 +212,7 @@ test.describe('Agents API - Authenticated', () => {
 
 		// Try to create agent WITHOUT instructions - should fail validation
 		const createResponse = await authenticatedPage.request.post(
-			`/api/agents?workspaceId=${workspaceId}`,
+			`/api/rpc/agents?workspaceId=${workspaceId}`,
 			{
 				data: {
 					name: `No Instructions Agent ${Date.now()}`,
@@ -231,7 +231,7 @@ test.describe('Tools API - Authenticated', () => {
 		const workspaceId = await getWorkspaceId(authenticatedPage)
 
 		const response = await authenticatedPage.request.get(
-			`/api/tools?workspaceId=${workspaceId}&includeSystem=true`,
+			`/api/rpc/tools?workspaceId=${workspaceId}&includeSystem=true`,
 		)
 		expect(response.status()).toBe(200)
 
@@ -248,7 +248,7 @@ test.describe('Tools API - Authenticated', () => {
 		const workspaceId = await getWorkspaceId(authenticatedPage)
 
 		const response = await authenticatedPage.request.get(
-			`/api/tools?workspaceId=${workspaceId}&includeSystem=true`,
+			`/api/rpc/tools?workspaceId=${workspaceId}&includeSystem=true`,
 		)
 		const body = await response.json()
 
@@ -264,7 +264,7 @@ test.describe('Tools API - Authenticated', () => {
 
 		// Create custom tool with required inputSchema
 		const createResponse = await authenticatedPage.request.post(
-			`/api/tools?workspaceId=${workspaceId}`,
+			`/api/rpc/tools?workspaceId=${workspaceId}`,
 			{
 				data: {
 					name: `Custom Tool ${Date.now()}`,
@@ -283,7 +283,7 @@ test.describe('Tools API - Authenticated', () => {
 
 		// Delete the tool
 		const deleteResponse = await authenticatedPage.request.delete(
-			`/api/tools/${tool.id}?workspaceId=${workspaceId}`,
+			`/api/rpc/tools/${tool.id}?workspaceId=${workspaceId}`,
 		)
 		expect(deleteResponse.status()).toBe(200)
 	})
@@ -293,7 +293,7 @@ test.describe('Tools API - Authenticated', () => {
 
 		// Try to delete a system tool (http_request is a real system tool ID)
 		const deleteResponse = await authenticatedPage.request.delete(
-			`/api/tools/http_request?workspaceId=${workspaceId}`,
+			`/api/rpc/tools/http_request?workspaceId=${workspaceId}`,
 		)
 		expect(deleteResponse.status()).toBe(400)
 	})
@@ -303,7 +303,7 @@ test.describe('Usage API - Authenticated', () => {
 	test('can get workspace usage stats', async ({ authenticatedPage }) => {
 		const workspaceId = await getWorkspaceId(authenticatedPage)
 
-		const response = await authenticatedPage.request.get(`/api/usage?workspaceId=${workspaceId}`)
+		const response = await authenticatedPage.request.get(`/api/rpc/usage?workspaceId=${workspaceId}`)
 		expect(response.status()).toBe(200)
 
 		const body = await response.json()

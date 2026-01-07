@@ -202,7 +202,7 @@ baseTest.describe('API Auth Endpoints', () => {
 	baseTest(
 		'should return 401 for unauthenticated workspace requests',
 		async ({ request }: { request: APIRequestContext }) => {
-			const response = await request.get('/api/workspaces')
+			const response = await request.get('/api/rpc/workspaces')
 			expect(response.status()).toBe(401)
 		},
 	)
@@ -210,7 +210,7 @@ baseTest.describe('API Auth Endpoints', () => {
 	baseTest(
 		'should return 401 for unauthenticated agent requests',
 		async ({ request }: { request: APIRequestContext }) => {
-			const response = await request.get('/api/agents?workspaceId=test')
+			const response = await request.get('/api/rpc/agents?workspaceId=test')
 			expect(response.status()).toBe(401)
 		},
 	)
@@ -218,7 +218,7 @@ baseTest.describe('API Auth Endpoints', () => {
 	baseTest(
 		'should return 401 for unauthenticated tool requests',
 		async ({ request }: { request: APIRequestContext }) => {
-			const response = await request.get('/api/tools?workspaceId=test')
+			const response = await request.get('/api/rpc/tools?workspaceId=test')
 			expect(response.status()).toBe(401)
 		},
 	)
@@ -226,7 +226,7 @@ baseTest.describe('API Auth Endpoints', () => {
 	baseTest(
 		'should return 401 for unauthenticated usage requests',
 		async ({ request }: { request: APIRequestContext }) => {
-			const response = await request.get('/api/usage?workspaceId=test')
+			const response = await request.get('/api/rpc/usage?workspaceId=test')
 			expect(response.status()).toBe(401)
 		},
 	)

@@ -9,10 +9,12 @@ import {
 	useRef,
 	useState,
 } from 'react'
+import { useAtom } from 'jotai'
 import type { Workspace, WorkspaceRole } from '../../shared/api'
 import { useWorkspacesQuery, useEnsureDefaultWorkspaceMutation } from '../../shared/api'
 import { useAuth } from '../../features/auth'
 import { setOrpcWorkspaceId } from '@hare/api'
+import { activeWorkspaceIdAtom } from '../../shared/lib/atoms'
 
 interface WorkspaceWithRole extends Workspace {
 	role?: WorkspaceRole
@@ -30,23 +32,20 @@ interface WorkspaceContextValue {
 
 const WorkspaceContext = createContext<WorkspaceContextValue | null>(null)
 
-const ACTIVE_WORKSPACE_KEY = 'hare-active-workspace'
-
 export function WorkspaceProvider({ children }: { children: ReactNode }) {
 	const { data: session } = useAuth()
 	const { data, isLoading, error } = useWorkspacesQuery()
 	const ensureDefaultWorkspace = useEnsureDefaultWorkspaceMutation()
 	const [activeWorkspace, setActiveWorkspaceState] = useState<WorkspaceWithRole | null>(null)
+	const [savedWorkspaceId, setSavedWorkspaceId] = useAtom(activeWorkspaceIdAtom)
 	const hasEnsuredDefault = useRef(false)
 
 	const workspaces: WorkspaceWithRole[] = data?.workspaces ?? []
 
 	const setActiveWorkspace = useCallback((workspace: WorkspaceWithRole) => {
 		setActiveWorkspaceState(workspace)
-		if (typeof window !== 'undefined') {
-			localStorage.setItem(ACTIVE_WORKSPACE_KEY, workspace.id)
-		}
-	}, [])
+		setSavedWorkspaceId(workspace.id)
+	}, [setSavedWorkspaceId])
 
 	// Ensure default workspace exists (idempotent - safe to call multiple times)
 	// Uses server-side atomic check-and-create to prevent duplicates
@@ -66,9 +65,9 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
 	// Restore or set active workspace
 	useEffect(() => {
 		if (workspaces.length > 0 && !activeWorkspace) {
-			const savedId =
-				typeof window !== 'undefined' ? localStorage.getItem(ACTIVE_WORKSPACE_KEY) : null
-			const savedWorkspace = savedId ? workspaces.find((w) => w.id === savedId) : null
+			const savedWorkspace = savedWorkspaceId
+				? workspaces.find((w) => w.id === savedWorkspaceId)
+				: null
 
 			if (savedWorkspace) {
 				setActiveWorkspaceState(savedWorkspace)
@@ -76,7 +75,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
 				setActiveWorkspaceState(workspaces[0])
 			}
 		}
-	}, [workspaces, activeWorkspace])
+	}, [workspaces, activeWorkspace, savedWorkspaceId])
 
 	// Sync active workspace ID to oRPC client for X-Workspace-Id header
 	useEffect(() => {

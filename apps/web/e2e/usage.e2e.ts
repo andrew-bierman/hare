@@ -11,7 +11,7 @@ import { test } from './fixtures'
  */
 async function getWorkspaceId(page: Page): Promise<string> {
 	await page.waitForLoadState('networkidle')
-	const response = await page.request.get('/api/workspaces')
+	const response = await page.request.get('/api/rpc/workspaces')
 	expect(response.status()).toBe(200)
 	const body = await response.json()
 	expect(body).toHaveProperty('workspaces')
@@ -266,7 +266,7 @@ test.describe('Usage API Integration', () => {
 	baseTest(
 		'usage endpoint requires authentication',
 		async ({ request }: { request: APIRequestContext }) => {
-			const response = await request.get('/api/usage?workspaceId=test')
+			const response = await request.get('/api/rpc/usage?workspaceId=test')
 			expect(response.status()).toBe(401)
 		},
 	)
@@ -274,7 +274,7 @@ test.describe('Usage API Integration', () => {
 	test('can get workspace usage stats via API', async ({ authenticatedPage }) => {
 		const workspaceId = await getWorkspaceId(authenticatedPage)
 
-		const response = await authenticatedPage.request.get(`/api/usage?workspaceId=${workspaceId}`)
+		const response = await authenticatedPage.request.get(`/api/rpc/usage?workspaceId=${workspaceId}`)
 		expect(response.status()).toBe(200)
 
 		const body = await response.json()
@@ -288,7 +288,7 @@ test.describe('Usage API Integration', () => {
 	test('usage API returns period information', async ({ authenticatedPage }) => {
 		const workspaceId = await getWorkspaceId(authenticatedPage)
 
-		const response = await authenticatedPage.request.get(`/api/usage?workspaceId=${workspaceId}`)
+		const response = await authenticatedPage.request.get(`/api/rpc/usage?workspaceId=${workspaceId}`)
 		expect(response.status()).toBe(200)
 
 		const body = await response.json()
@@ -299,7 +299,7 @@ test.describe('Usage API Integration', () => {
 	test('usage API returns byAgent breakdown', async ({ authenticatedPage }) => {
 		const workspaceId = await getWorkspaceId(authenticatedPage)
 
-		const response = await authenticatedPage.request.get(`/api/usage?workspaceId=${workspaceId}`)
+		const response = await authenticatedPage.request.get(`/api/rpc/usage?workspaceId=${workspaceId}`)
 		expect(response.status()).toBe(200)
 
 		const body = await response.json()
@@ -310,7 +310,7 @@ test.describe('Usage API Integration', () => {
 	test('usage API returns byDay breakdown', async ({ authenticatedPage }) => {
 		const workspaceId = await getWorkspaceId(authenticatedPage)
 
-		const response = await authenticatedPage.request.get(`/api/usage?workspaceId=${workspaceId}`)
+		const response = await authenticatedPage.request.get(`/api/rpc/usage?workspaceId=${workspaceId}`)
 		expect(response.status()).toBe(200)
 
 		const body = await response.json()
@@ -326,7 +326,7 @@ test.describe('Usage API Integration', () => {
 		const endDate = new Date().toISOString()
 
 		const response = await authenticatedPage.request.get(
-			`/api/usage?workspaceId=${workspaceId}&startDate=${startDate}&endDate=${endDate}`,
+			`/api/rpc/usage?workspaceId=${workspaceId}&startDate=${startDate}&endDate=${endDate}`,
 		)
 		expect(response.status()).toBe(200)
 
@@ -338,7 +338,7 @@ test.describe('Usage API Integration', () => {
 	test('usage API returns numeric values for totals', async ({ authenticatedPage }) => {
 		const workspaceId = await getWorkspaceId(authenticatedPage)
 
-		const response = await authenticatedPage.request.get(`/api/usage?workspaceId=${workspaceId}`)
+		const response = await authenticatedPage.request.get(`/api/rpc/usage?workspaceId=${workspaceId}`)
 		expect(response.status()).toBe(200)
 
 		const body = await response.json()
@@ -354,7 +354,7 @@ test.describe('Agent Usage API', () => {
 
 		// Try to get usage for non-existent agent
 		const response = await authenticatedPage.request.get(
-			`/api/usage/agents/non-existent-id?workspaceId=${workspaceId}`,
+			`/api/rpc/usage/agents/non-existent-id?workspaceId=${workspaceId}`,
 		)
 		expect(response.status()).toBe(404)
 	})
@@ -364,7 +364,7 @@ test.describe('Agent Usage API', () => {
 
 		// Create an agent first
 		const createResponse = await authenticatedPage.request.post(
-			`/api/agents?workspaceId=${workspaceId}`,
+			`/api/rpc/agents?workspaceId=${workspaceId}`,
 			{
 				data: {
 					name: `Usage Test Agent ${Date.now()}`,
@@ -379,7 +379,7 @@ test.describe('Agent Usage API', () => {
 
 		// Get usage for the agent
 		const usageResponse = await authenticatedPage.request.get(
-			`/api/usage/agents/${agent.id}?workspaceId=${workspaceId}`,
+			`/api/rpc/usage/agents/${agent.id}?workspaceId=${workspaceId}`,
 		)
 		expect(usageResponse.status()).toBe(200)
 
@@ -391,7 +391,7 @@ test.describe('Agent Usage API', () => {
 		expect(body.usage).toHaveProperty('totalTokensOut')
 
 		// Cleanup
-		await authenticatedPage.request.delete(`/api/agents/${agent.id}?workspaceId=${workspaceId}`)
+		await authenticatedPage.request.delete(`/api/rpc/agents/${agent.id}?workspaceId=${workspaceId}`)
 	})
 })
 

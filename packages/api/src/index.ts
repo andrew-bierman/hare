@@ -30,6 +30,7 @@ import agentWs from './routes/agent-ws'
 import auth from './routes/auth'
 import billingWebhook from './routes/billing'
 import dev from './routes/dev'
+import health from './routes/health'
 import mcp from './routes/mcp'
 import type { HonoEnv } from '@hare/types'
 
@@ -47,6 +48,9 @@ export type BillingWebhookRoute = typeof billingWebhook
 
 /** Dev routes: /api/dev/* */
 export type DevRoute = typeof dev
+
+/** Health routes: /api/health/* */
+export type HealthRoute = typeof health
 
 /** MCP routes: /api/mcp/* (WebSocket + HTTP for Durable Objects) */
 export type McpRoute = typeof mcp
@@ -83,12 +87,13 @@ app.use('*', loggingMiddleware) // Request logging to KV for observability
 
 // Mount routes - chain for type inference
 // Note: Most routes are now on oRPC at /api/rpc/*
-// Only special-case routes remain here (WebSocket, auth, Stripe webhook)
+// Only special-case routes remain here (WebSocket, auth, health, Stripe webhook)
 const routes = app
 	.route('/agent-ws', agentWs)
 	.route('/auth', auth)
 	.route('/billing', billingWebhook)
 	.route('/dev', dev)
+	.route('/health', health)
 	.route('/mcp', mcp)
 	.route('/rpc', orpcApp)
 
@@ -109,10 +114,11 @@ app.doc('/openapi.json', {
 	tags: [
 		{ name: 'Authentication', description: 'User authentication and session management (Better Auth)' },
 		{ name: 'Agent WebSocket', description: 'Real-time WebSocket connections to Cloudflare Agents (Durable Objects)' },
+		{ name: 'Health', description: 'System health and readiness checks' },
 		{ name: 'MCP', description: 'Model Context Protocol for external AI clients (Durable Objects)' },
 		{ name: 'Billing Webhook', description: 'Stripe webhook handler' },
 		// All other routes (Agents, Tools, Workspaces, API Keys, Schedules, Usage, Analytics, Logs,
-		// User Settings, Memory, Chat, Health, Embed, Webhooks, Billing) are on oRPC at /api/rpc/*
+		// User Settings, Memory, Chat, Embed, Webhooks, Billing) are on oRPC at /api/rpc/*
 	],
 })
 
