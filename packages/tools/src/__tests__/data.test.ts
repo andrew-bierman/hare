@@ -173,7 +173,7 @@ describe('Data Tools', () => {
 
 				const data = expectResultData({ result, schema: ResultSchemas.scrape })
 				expect(data.links).toHaveLength(1)
-				expect(data.links?.[0].href).toBe('https://test.com')
+				expect(data.links?.[0]?.href).toBe('https://test.com')
 			})
 
 			it('extracts meta tags', async () => {
@@ -291,8 +291,8 @@ describe('Data Tools', () => {
 				)
 				const data = expectResultData({ result, schema: ResultSchemas.regex })
 				expect(data.extracted).toHaveLength(2)
-				expect(data.extracted?.[0].user).toBe('user')
-				expect(data.extracted?.[0].domain).toBe('example.com')
+				expect(data.extracted?.[0]?.user).toBe('user')
+				expect(data.extracted?.[0]?.domain).toBe('example.com')
 			})
 		})
 
@@ -531,8 +531,8 @@ describe('Data Tools', () => {
 				)
 				const data = expectResultData({ result, schema: ResultSchemas.csv })
 				expect(data.data).toHaveLength(2)
-				expect(data.data?.[0].name).toBe('John')
-				expect(data.data?.[0].age).toBe('30')
+				expect(data.data?.[0]?.name).toBe('John')
+				expect(data.data?.[0]?.age).toBe('30')
 			})
 
 			it('handles custom delimiter', async () => {
@@ -545,7 +545,7 @@ describe('Data Tools', () => {
 					context,
 				)
 				const data = expectResultData({ result, schema: ResultSchemas.csv })
-				expect(data.data?.[0].name).toBe('John')
+				expect(data.data?.[0]?.name).toBe('John')
 			})
 
 			it('handles quoted values', async () => {
@@ -558,7 +558,7 @@ describe('Data Tools', () => {
 					context,
 				)
 				const data = expectResultData({ result, schema: ResultSchemas.csv })
-				expect(data.data?.[0].bio).toBe('Hello, World')
+				expect(data.data?.[0]?.bio).toBe('Hello, World')
 			})
 		})
 

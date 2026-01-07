@@ -242,11 +242,11 @@ describe('Integration Tools', () => {
 
 				expect(result.success).toBe(true)
 				expect(result.data?.count).toBeGreaterThan(0)
-				expect(result.data?.integrations[0].name).toBe('notify-slack')
+				expect(result.data?.integrations[0]?.name).toBe('notify-slack')
 			})
 
 			it('returns empty list when no integrations', async () => {
-				const result = await zapierListTool.execute({}, context)
+				const result = await zapierListTool.execute({ includeStats: true }, context)
 
 				expect(result.success).toBe(true)
 				expect(result.data?.integrations).toEqual([])
@@ -277,7 +277,7 @@ describe('Integration Tools', () => {
 				const contextWithoutKV = createMockContext()
 				contextWithoutKV.env.KV = undefined as unknown as KVNamespace
 
-				const result = await zapierListTool.execute({}, contextWithoutKV)
+				const result = await zapierListTool.execute({ includeStats: true }, contextWithoutKV)
 
 				expect(result.success).toBe(false)
 				expect(result.error).toBe('KV namespace not available')
@@ -335,7 +335,7 @@ describe('Integration Tools', () => {
 				})
 
 				const result = await zapierTriggerTool.execute(
-					{ name: 'notify-slack', data: { message: 'Hello!' } },
+					{ name: 'notify-slack', data: { message: 'Hello!' }, waitForResponse: false },
 					context,
 				)
 
@@ -355,6 +355,7 @@ describe('Integration Tools', () => {
 					{
 						webhookUrl: 'https://hooks.zapier.com/hooks/catch/123/abc',
 						data: { message: 'Hello!' },
+						waitForResponse: false,
 					},
 					context,
 				)
@@ -366,7 +367,7 @@ describe('Integration Tools', () => {
 
 			it('fails when integration not found', async () => {
 				const result = await zapierTriggerTool.execute(
-					{ name: 'nonexistent', data: {} },
+					{ name: 'nonexistent', data: {}, waitForResponse: false },
 					context,
 				)
 
@@ -375,7 +376,7 @@ describe('Integration Tools', () => {
 			})
 
 			it('fails when neither name nor URL provided', async () => {
-				const result = await zapierTriggerTool.execute({ data: {} }, context)
+				const result = await zapierTriggerTool.execute({ data: {}, waitForResponse: false }, context)
 
 				expect(result.success).toBe(false)
 				expect(result.error).toContain('Provide either')
@@ -383,7 +384,7 @@ describe('Integration Tools', () => {
 
 			it('rejects non-Zapier URLs', async () => {
 				const result = await zapierTriggerTool.execute(
-					{ webhookUrl: 'https://example.com/webhook', data: {} },
+					{ webhookUrl: 'https://example.com/webhook', data: {}, waitForResponse: false },
 					context,
 				)
 
@@ -410,7 +411,7 @@ describe('Integration Tools', () => {
 				})
 
 				await zapierTriggerTool.execute(
-					{ name: 'notify-slack', data: { message: 'Hello!' } },
+					{ name: 'notify-slack', data: { message: 'Hello!' }, waitForResponse: false },
 					context,
 				)
 
@@ -433,6 +434,7 @@ describe('Integration Tools', () => {
 					{
 						webhookUrl: 'https://hooks.zapier.com/hooks/catch/123/abc',
 						data: {},
+						waitForResponse: false,
 					},
 					context,
 				)
@@ -450,6 +452,7 @@ describe('Integration Tools', () => {
 					{
 						webhookUrl: 'https://hooks.zapier.com/hooks/catch/123/abc',
 						data: {},
+						waitForResponse: false,
 					},
 					context,
 				)
@@ -547,7 +550,7 @@ describe('Integration Tools', () => {
 					status: 200,
 				})
 
-				const result = await zapierTestTool.execute({ name: 'notify-slack' }, context)
+				const result = await zapierTestTool.execute({ name: 'notify-slack', testData: {} }, context)
 
 				expect(result.success).toBe(true)
 				expect(result.data?.tested).toBe(true)
@@ -568,7 +571,7 @@ describe('Integration Tools', () => {
 					status: 200,
 				})
 
-				await zapierTestTool.execute({ name: 'test' }, context)
+				await zapierTestTool.execute({ name: 'test', testData: {} }, context)
 
 				expect(mockFetch).toHaveBeenCalledWith(
 					'https://hooks.zapier.com/hooks/catch/123/abc',
@@ -579,7 +582,7 @@ describe('Integration Tools', () => {
 			})
 
 			it('fails when integration not found', async () => {
-				const result = await zapierTestTool.execute({ name: 'nonexistent' }, context)
+				const result = await zapierTestTool.execute({ name: 'nonexistent', testData: {} }, context)
 
 				expect(result.success).toBe(false)
 				expect(result.error).toContain('not found')
@@ -600,7 +603,7 @@ describe('Integration Tools', () => {
 					statusText: 'Internal Server Error',
 				})
 
-				const result = await zapierTestTool.execute({ name: 'test' }, context)
+				const result = await zapierTestTool.execute({ name: 'test', testData: {} }, context)
 
 				expect(result.success).toBe(false)
 				expect(result.error).toContain('Test failed')
@@ -619,7 +622,7 @@ describe('Integration Tools', () => {
 				abortError.name = 'AbortError'
 				mockFetch.mockRejectedValueOnce(abortError)
 
-				const result = await zapierTestTool.execute({ name: 'test' }, context)
+				const result = await zapierTestTool.execute({ name: 'test', testData: {} }, context)
 
 				expect(result.success).toBe(false)
 				expect(result.error).toContain('timed out')
@@ -663,6 +666,7 @@ describe('Integration Tools', () => {
 					{
 						webhookUrl: 'https://hooks.zapier.com/hooks/catch/123/abc',
 						data: { message: 'Hello!' },
+						waitForResponse: false,
 					},
 					context,
 				)
@@ -677,6 +681,7 @@ describe('Integration Tools', () => {
 					{
 						webhookUrl: 'https://example.com/webhook',
 						data: {},
+						waitForResponse: false,
 					},
 					context,
 				)
@@ -696,6 +701,7 @@ describe('Integration Tools', () => {
 					{
 						webhookUrl: 'https://hooks.zapier.com/hooks/catch/123/abc',
 						data: { test: true },
+						waitForResponse: false,
 					},
 					context,
 				)
@@ -808,6 +814,8 @@ describe('Integration Tools', () => {
 					{
 						url: 'https://example.com/webhook',
 						data: { message: 'Hello!' },
+						method: 'POST',
+						timeout: 30000,
 					},
 					context,
 				)
@@ -828,7 +836,9 @@ describe('Integration Tools', () => {
 					{
 						url: 'https://example.com/webhook',
 						data: {},
-						auth: { type: 'bearer', token: 'my-token' },
+						method: 'POST',
+						timeout: 30000,
+						auth: { type: 'bearer', token: 'my-token', headerName: 'X-API-Key' },
 					},
 					context,
 				)
@@ -854,7 +864,9 @@ describe('Integration Tools', () => {
 					{
 						url: 'https://example.com/webhook',
 						data: {},
-						auth: { type: 'basic', username: 'user', password: 'pass' },
+						method: 'POST',
+						timeout: 30000,
+						auth: { type: 'basic', username: 'user', password: 'pass', headerName: 'X-API-Key' },
 					},
 					context,
 				)
@@ -880,7 +892,9 @@ describe('Integration Tools', () => {
 					{
 						url: 'https://example.com/webhook',
 						data: {},
-						auth: { type: 'apikey', token: 'my-api-key' },
+						method: 'POST',
+						timeout: 30000,
+						auth: { type: 'apikey', token: 'my-api-key', headerName: 'X-API-Key' },
 					},
 					context,
 				)
@@ -906,6 +920,8 @@ describe('Integration Tools', () => {
 					{
 						url: 'https://example.com/webhook',
 						data: {},
+						method: 'POST',
+						timeout: 30000,
 						headers: { 'X-Custom': 'value' },
 					},
 					context,
@@ -932,6 +948,8 @@ describe('Integration Tools', () => {
 					{
 						url: 'https://example.com/webhook',
 						data: {},
+						method: 'POST',
+						timeout: 30000,
 					},
 					context,
 				)
@@ -948,6 +966,8 @@ describe('Integration Tools', () => {
 					{
 						url: 'https://example.com/webhook',
 						data: {},
+						method: 'POST',
+						timeout: 30000,
 					},
 					context,
 				)
@@ -965,6 +985,7 @@ describe('Integration Tools', () => {
 					{
 						url: 'https://example.com/webhook',
 						data: {},
+						method: 'POST',
 						timeout: 1000,
 					},
 					context,
