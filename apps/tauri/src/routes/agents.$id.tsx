@@ -181,12 +181,12 @@ function AgentDetailPage() {
 	const navigate = useNavigate()
 
 	const { activeWorkspace } = useWorkspace()
-	const { data: agent, isLoading, error } = useAgentQuery(agentId, activeWorkspace?.id)
-	const { data: toolsData } = useToolsQuery(activeWorkspace?.id)
-	const { data: usageData } = useAgentUsageQuery(agentId, activeWorkspace?.id)
-	const updateAgent = useUpdateAgentMutation(activeWorkspace?.id)
-	const deleteAgent = useDeleteAgentMutation(activeWorkspace?.id)
-	const deployAgent = useDeployAgentMutation(activeWorkspace?.id)
+	const { data: agent, isLoading, error } = useAgentQuery(agentId)
+	const { data: toolsData } = useToolsQuery()
+	const { data: usageData } = useAgentUsageQuery(agentId)
+	const updateAgent = useUpdateAgentMutation()
+	const deleteAgent = useDeleteAgentMutation()
+	const deployAgent = useDeployAgentMutation()
 
 	const [name, setName] = useState('')
 	const [description, setDescription] = useState('')
@@ -329,13 +329,11 @@ function AgentDetailPage() {
 		try {
 			await updateAgent.mutateAsync({
 				id: agentId,
-				data: {
-					name: name.trim(),
-					description: description.trim() || undefined,
-					model,
-					instructions: instructions.trim() || undefined,
-					toolIds: selectedToolIds,
-				},
+				name: name.trim(),
+				description: description.trim() || undefined,
+				model,
+				instructions: instructions.trim() || undefined,
+				toolIds: selectedToolIds,
 			})
 			toast.success('Agent updated successfully')
 			setHasChanges(false)
@@ -346,7 +344,7 @@ function AgentDetailPage() {
 
 	const handleDelete = async () => {
 		try {
-			await deleteAgent.mutateAsync(agentId)
+			await deleteAgent.mutateAsync({ id: agentId })
 			toast.success('Agent deleted')
 			navigate({ to: '/agents' })
 		} catch (err) {
@@ -547,13 +545,13 @@ function AgentDetailPage() {
 								<CardContent className="space-y-4">
 									<div>
 										<div className="text-2xl font-bold">
-											{usageData?.totalCalls?.toLocaleString() ?? 0}
+											{usageData?.usage?.totalMessages?.toLocaleString() ?? 0}
 										</div>
 										<p className="text-xs text-muted-foreground">Total messages</p>
 									</div>
 									<div>
 										<div className="text-2xl font-bold">
-											{usageData?.totalTokens?.toLocaleString() ?? 0}
+											{((usageData?.usage?.totalTokensIn ?? 0) + (usageData?.usage?.totalTokensOut ?? 0)).toLocaleString()}
 										</div>
 										<p className="text-xs text-muted-foreground">Tokens used</p>
 									</div>
@@ -821,19 +819,19 @@ function AgentDetailPage() {
 							<div className="grid gap-4 md:grid-cols-3">
 								<div className="p-4 border rounded-lg">
 									<div className="text-2xl font-bold">
-										{usageData?.totalCalls?.toLocaleString() ?? 0}
+										{usageData?.usage?.totalMessages?.toLocaleString() ?? 0}
 									</div>
 									<p className="text-sm text-muted-foreground">Total API Calls</p>
 								</div>
 								<div className="p-4 border rounded-lg">
 									<div className="text-2xl font-bold">
-										{usageData?.inputTokens?.toLocaleString() ?? 0}
+										{usageData?.usage?.totalTokensIn?.toLocaleString() ?? 0}
 									</div>
 									<p className="text-sm text-muted-foreground">Input Tokens</p>
 								</div>
 								<div className="p-4 border rounded-lg">
 									<div className="text-2xl font-bold">
-										{usageData?.outputTokens?.toLocaleString() ?? 0}
+										{usageData?.usage?.totalTokensOut?.toLocaleString() ?? 0}
 									</div>
 									<p className="text-sm text-muted-foreground">Output Tokens</p>
 								</div>

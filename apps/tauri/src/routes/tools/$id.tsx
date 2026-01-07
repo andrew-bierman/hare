@@ -1,15 +1,52 @@
-import { useWorkspace } from '@hare/app/providers'
 import { generatePrefixedId } from '@hare/app/shared'
 import {
-	type HttpToolConfig,
-	type InputSchema,
-	type InputSchemaProperty,
-	type ToolTestResult,
 	useDeleteToolMutation,
 	useTestExistingToolMutation,
 	useToolQuery,
 	useUpdateToolMutation,
 } from '@hare/app/shared/api'
+
+// Local types for tool configuration
+type HttpToolConfig = {
+	url: string
+	method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
+	headers?: Record<string, string>
+	body?: string
+	bodyType?: 'json' | 'form' | 'text'
+	timeout?: number
+	responseMapping?: { path: string }
+	[key: string]: unknown
+}
+
+type InputSchemaProperty = {
+	type: 'string' | 'number' | 'boolean' | 'array' | 'object'
+	description?: string
+	enum?: string[]
+	default?: unknown
+	required?: boolean
+}
+
+type InputSchema = {
+	type: 'object'
+	properties: Record<string, InputSchemaProperty>
+	required?: string[]
+}
+
+interface ToolTestResult {
+	success: boolean
+	duration: number
+	status?: number
+	statusText?: string
+	headers?: Record<string, string>
+	data?: unknown
+	error?: string
+	requestDetails?: {
+		url: string
+		method: string
+		headers?: Record<string, string>
+		body?: string
+	}
+}
 import { Badge } from '@hare/ui/components/badge'
 import { Button } from '@hare/ui/components/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@hare/ui/components/card'
@@ -95,12 +132,11 @@ function LoadingSkeleton() {
 function ToolDetailPage() {
 	const { id: toolId } = Route.useParams()
 	const navigate = useNavigate()
-	const { activeWorkspace } = useWorkspace()
 
-	const { data: tool, isLoading, error } = useToolQuery(toolId, activeWorkspace?.id)
-	const updateTool = useUpdateToolMutation(activeWorkspace?.id)
-	const deleteTool = useDeleteToolMutation(activeWorkspace?.id)
-	const testTool = useTestExistingToolMutation(activeWorkspace?.id)
+	const { data: tool, isLoading, error } = useToolQuery(toolId)
+	const updateTool = useUpdateToolMutation()
+	const deleteTool = useDeleteToolMutation()
+	const testTool = useTestExistingToolMutation()
 
 	// Tool metadata
 	const [name, setName] = useState('')
@@ -377,12 +413,10 @@ function ToolDetailPage() {
 
 			await updateTool.mutateAsync({
 				id: toolId,
-				data: {
-					name: name.trim(),
-					description: description.trim() || undefined,
-					config: config as unknown as Record<string, unknown>,
-					inputSchema: inputSchema as unknown as Record<string, unknown>,
-				},
+				name: name.trim(),
+				description: description.trim() || undefined,
+				config: config as unknown as Record<string, unknown>,
+				inputSchema: inputSchema as unknown as Record<string, unknown>,
 			})
 
 			toast.success('Tool updated successfully')
@@ -395,7 +429,7 @@ function ToolDetailPage() {
 	// Delete tool
 	const handleDelete = async () => {
 		try {
-			await deleteTool.mutateAsync(toolId)
+			await deleteTool.mutateAsync({ id: toolId })
 			toast.success('Tool deleted')
 			navigate({ to: '/tools' })
 		} catch (err) {
