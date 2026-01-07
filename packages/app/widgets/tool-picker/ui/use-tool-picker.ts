@@ -35,13 +35,11 @@ const CATEGORY_ORDER: ToolCategory[] = [
 ]
 
 interface UseToolPickerOptions {
-	workspaceId: string
 	initialSelectedIds: string[]
 	maxTools?: number
 }
 
 export function useToolPicker({
-	workspaceId,
 	initialSelectedIds,
 	maxTools = 20,
 }: UseToolPickerOptions) {

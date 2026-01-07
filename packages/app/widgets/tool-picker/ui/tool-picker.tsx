@@ -17,7 +17,6 @@ import type { ToolCategory, ToolPickerProps } from './types'
 import { useToolPicker } from './use-tool-picker'
 
 export function ToolPicker({
-	workspaceId,
 	selectedToolIds,
 	onSelectionChange,
 	maxTools = 20,
@@ -35,7 +34,6 @@ export function ToolPicker({
 		clearSelection,
 		isAtMaxTools,
 	} = useToolPicker({
-		workspaceId,
 		initialSelectedIds: selectedToolIds,
 		maxTools,
 	})

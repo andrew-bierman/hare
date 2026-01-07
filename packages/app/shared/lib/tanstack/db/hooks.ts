@@ -11,7 +11,7 @@
  */
 
 import type { AgentStatus } from '@hare/types'
-import { useLiveQuery, eq, or } from '@tanstack/react-db'
+import { useLiveQuery, eq } from '@tanstack/react-db'
 import { useMemo } from 'react'
 import {
 	useAgentCollection,

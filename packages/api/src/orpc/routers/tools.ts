@@ -223,7 +223,7 @@ export const test = requireWrite
 	.route({ method: 'POST', path: '/tools/test' })
 	.input(TestToolInputSchema)
 	.output(TestToolResultSchema)
-	.handler(async ({ input }) => {
+	.handler(async () => {
 		const startTime = Date.now()
 
 		try {

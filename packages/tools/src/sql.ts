@@ -30,19 +30,6 @@ const SqlBatchOutputSchema = z.object({
 })
 
 /**
- * Tables that agents are allowed to query.
- * These are "agent data" tables, not system tables.
- * System tables (users, sessions, api_keys, etc.) are blocked.
- */
-const _ALLOWED_TABLES = new Set([
-	// Agent-specific data tables that agents can query
-	// Add tables here that agents should be able to access
-	'agent_data', // Generic agent data storage
-	'agent_memories', // Agent memory/context
-	'agent_files', // Agent file metadata
-])
-
-/**
  * System tables that are blocked from agent access.
  */
 const BLOCKED_TABLES = new Set([

@@ -11,7 +11,7 @@
  */
 
 import { z } from 'zod'
-import { type AnyTool, createTool, failure, success, type ToolContext, type ToolResult, type HareEnv } from './types'
+import { createTool, failure, success, type ToolContext, type ToolResult, type HareEnv } from './types'
 
 /**
  * Extended environment for agent control tools.
@@ -60,11 +60,6 @@ const ListAgentsOutputSchema = z.object({
 	agents: z.array(AgentSchema),
 	total: z.number(),
 	workspaceId: z.string(),
-})
-
-const MessageSchema = z.object({
-	role: z.string(),
-	content: z.string(),
 })
 
 const ToolInfoSchema = z.object({

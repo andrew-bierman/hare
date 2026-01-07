@@ -21,7 +21,7 @@ import {
 } from '@hare/ui/components/table'
 import { ChevronDown, Globe, Plus, Trash2, Wrench } from 'lucide-react'
 import { type ChangeEvent, useState } from 'react'
-import type { Tool, ToolType } from '@hare/types'
+import type { ToolType } from '@hare/types'
 import { useToolsQuery } from '../../shared/api/hooks'
 import { CreateToolDialog, DeleteToolDialog } from '../../features/create-tool'
 import { useWorkspace } from '../../app/providers'

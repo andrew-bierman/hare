@@ -42,13 +42,11 @@ export class EmailService {
 	private resend: Resend | null
 	private from: string
 	private appName: string
-	private appUrl: string
 	private isDev: boolean
 
 	constructor(env: EmailEnv) {
 		this.from = env.EMAIL_FROM || 'Hare <noreply@hare.dev>'
 		this.appName = env.APP_NAME || 'Hare'
-		this.appUrl = env.APP_URL || 'http://localhost:3000'
 		this.isDev = !env.RESEND_API_KEY
 
 		if (env.RESEND_API_KEY) {

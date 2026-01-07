@@ -1,6 +1,5 @@
 'use client'
 
-import { useNavigate } from '@tanstack/react-router'
 import { Button } from '@hare/ui/components/button'
 import { LogOut } from 'lucide-react'
 import { useState } from 'react'
@@ -8,7 +7,6 @@ import { toast } from 'sonner'
 import { useAuthActions } from '../context'
 
 export function SignOutButton() {
-	const navigate = useNavigate()
 	const { signOut } = useAuthActions()
 	const [isSigningOut, setIsSigningOut] = useState(false)
 
@@ -17,7 +15,7 @@ export function SignOutButton() {
 		try {
 			await signOut()
 			toast.success('Signed out successfully')
-			navigate({ to: '/sign-in' })
+			window.location.href = '/sign-in'
 		} catch (_error) {
 			toast.error('Failed to sign out')
 		} finally {

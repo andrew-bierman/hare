@@ -7,7 +7,7 @@
 import { z } from 'zod'
 import { eq } from 'drizzle-orm'
 import { userPreferences } from '@hare/db/schema'
-import { authedProcedure, serverError, type AuthContext } from '../base'
+import { authedProcedure, serverError } from '../base'
 
 // =============================================================================
 // Type-Safe Schemas

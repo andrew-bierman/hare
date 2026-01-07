@@ -26,7 +26,6 @@ export interface ToolCategoryInfo {
 }
 
 export interface ToolPickerProps {
-	workspaceId: string
 	selectedToolIds: string[]
 	onSelectionChange: (toolIds: string[]) => void
 	maxTools?: number

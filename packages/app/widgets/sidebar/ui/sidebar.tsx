@@ -9,12 +9,6 @@ const ICONS = { Home, Bot, Wrench, Activity, Settings, BarChart3 } as const
 
 type IconName = keyof typeof ICONS
 
-interface NavItem {
-	readonly label: string
-	readonly href: string
-	readonly icon: string
-}
-
 interface RouteItem {
 	label: string
 	icon: (typeof ICONS)[IconName]

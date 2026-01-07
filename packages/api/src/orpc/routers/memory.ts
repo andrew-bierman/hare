@@ -4,7 +4,6 @@
  * Handles agent vector memory operations with full type safety.
  */
 
-import { z } from 'zod'
 import { and, eq } from 'drizzle-orm'
 import { agents } from '@hare/db/schema'
 import { requireWrite, notFound, serverError, type WorkspaceContext } from '../base'

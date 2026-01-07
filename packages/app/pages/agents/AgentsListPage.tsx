@@ -9,7 +9,6 @@ import { Skeleton } from '@hare/ui/components/skeleton'
 import { Tabs, TabsList, TabsTrigger } from '@hare/ui/components/tabs'
 import { Bot, Clock, Plus, SearchIcon, Settings, Wrench } from 'lucide-react'
 import { type ChangeEvent, useState, useCallback } from 'react'
-import type { Agent } from '@hare/types'
 import { useAgentsQuery } from '../../shared/api/hooks'
 import { config } from '@hare/config'
 import { EmptyState } from '../../shared/ui/empty-state'
@@ -152,7 +151,7 @@ export function AgentsListPage() {
 						Manage and monitor your AI agents
 					</p>
 				</div>
-				<Link to="/dashboard/agents/templates" className="w-full sm:w-auto">
+				<Link to={'/dashboard/agents/templates' as string} className="w-full sm:w-auto">
 					<Button className="w-full sm:w-auto gap-2 h-11">
 						<Plus className="h-4 w-4" />
 						New Agent
@@ -271,7 +270,7 @@ export function AgentsListPage() {
 					))}
 
 					{/* Create New Card */}
-					<Link to="/dashboard/agents/templates">
+					<Link to={'/dashboard/agents/templates' as string}>
 						<Card className="h-full border-dashed border-2 hover:bg-muted/50 transition-colors">
 							<CardContent className="flex flex-col items-center justify-center h-full min-h-[220px] p-4">
 								<div className="flex h-12 w-12 items-center justify-center rounded-lg bg-muted mb-3">

@@ -52,7 +52,6 @@ import {
 
 export interface ScheduledTasksSectionProps {
 	agentId: string
-	workspaceId: string
 }
 
 // Available actions for scheduling
@@ -148,7 +147,7 @@ function formatDuration(ms: number | null): string {
 	return `${(ms / 60000).toFixed(1)}m`
 }
 
-export function ScheduledTasksSection({ agentId, workspaceId }: ScheduledTasksSectionProps) {
+export function ScheduledTasksSection({ agentId }: ScheduledTasksSectionProps) {
 	const [isCreateOpen, setIsCreateOpen] = useState(false)
 	const [scheduleType, setScheduleType] = useState<'one-time' | 'recurring'>('one-time')
 	const [executeAt, setExecuteAt] = useState('')

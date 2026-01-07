@@ -24,19 +24,14 @@ import { Skeleton } from '@hare/ui/components/skeleton'
 import { Check, Copy, Key, Plus, Trash2 } from 'lucide-react'
 import { type ChangeEvent, useState } from 'react'
 import { toast } from 'sonner'
-import { useWorkspace } from '../../app/providers'
 import {
 	type ApiKeyWithSecret,
-	type ApiKey,
 	useApiKeysQuery,
 	useCreateApiKeyMutation,
 	useDeleteApiKeyMutation,
 } from '../../shared/api'
 
 export function ApiKeysPage() {
-	const { activeWorkspace } = useWorkspace()
-	const workspaceId = activeWorkspace?.id
-
 	const { data, isPending, error } = useApiKeysQuery()
 	const createApiKey = useCreateApiKeyMutation()
 	const deleteApiKey = useDeleteApiKeyMutation()

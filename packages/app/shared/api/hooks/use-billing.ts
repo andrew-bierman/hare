@@ -11,8 +11,6 @@ import { billingKeys } from './query-keys'
 type PlansOutput = Awaited<ReturnType<typeof orpc.billing.listPlans>>
 type StatusOutput = Awaited<ReturnType<typeof orpc.billing.getStatus>>
 type PaymentHistoryOutput = Awaited<ReturnType<typeof orpc.billing.getPaymentHistory>>
-type CheckoutOutput = Awaited<ReturnType<typeof orpc.billing.createCheckout>>
-type PortalOutput = Awaited<ReturnType<typeof orpc.billing.createPortal>>
 
 export type Plan = PlansOutput['plans'][number]
 export type BillingStatus = StatusOutput
