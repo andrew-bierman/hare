@@ -38,6 +38,10 @@
 		"src",
 		"README.md"
 	],
+	"scripts": {
+		"lint": "biome check .",
+		"typecheck": "tsc --noEmit"
+	},
 	"dependencies": {
 		"@hare/agent": "workspace:*",
 		"@hare/tools": "workspace:*",

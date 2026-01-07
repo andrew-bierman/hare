@@ -27,6 +27,10 @@
 		"src",
 		"README.md"
 	],
+	"scripts": {
+		"lint": "biome check .",
+		"typecheck": "tsc --noEmit"
+	},
 	"dependencies": {
 		"@react-email/components": "^1.0.3",
 		"resend": "^6.6.0"

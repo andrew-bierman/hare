@@ -19,6 +19,7 @@
 	},
 	"scripts": {
 		"generate": "bun run src/cli.ts",
+		"lint": "biome check .",
 		"typecheck": "tsc --noEmit"
 	},
 	"dependencies": {
