@@ -96,7 +96,12 @@ export const apiKeyMiddleware: MiddlewareHandler<ApiKeyEnv> = async (c, next) =>
 		.set({ lastUsedAt: new Date() })
 		.where(eq(apiKeys.id, keyRecord.id))
 		.catch((error) => {
-			console.error('Failed to update API key lastUsedAt:', error)
+			// Log with context for debugging - non-critical operation
+			console.error('Failed to update API key lastUsedAt:', {
+				apiKeyId: keyRecord.id,
+				workspaceId: keyRecord.workspaceId,
+				error: error instanceof Error ? error.message : String(error),
+			})
 		})
 
 	c.set('apiKey', {

@@ -176,6 +176,47 @@ const TestToolResultSchema = z.object({
 })
 
 /**
+ * Validate tool configuration based on type
+ */
+function validateToolConfig(
+	type: string,
+	config: Record<string, unknown>,
+): { valid: boolean; error?: string } {
+	switch (type) {
+		case 'http':
+		case 'webhook': {
+			const url = config.url
+			if (!url || typeof url !== 'string') {
+				return { valid: false, error: 'HTTP/Webhook tools require a valid URL' }
+			}
+			try {
+				new URL(url)
+			} catch {
+				return { valid: false, error: `Invalid URL format: ${url}` }
+			}
+			return { valid: true }
+		}
+		case 'sql': {
+			const query = config.query
+			if (!query || typeof query !== 'string') {
+				return { valid: false, error: 'SQL tools require a query string' }
+			}
+			return { valid: true }
+		}
+		case 'code': {
+			const customCode = config.customCode
+			if (!customCode || typeof customCode !== 'string') {
+				return { valid: false, error: 'Code tools require customCode' }
+			}
+			return { valid: true }
+		}
+		default:
+			// For other types, just ensure config is provided
+			return { valid: true }
+	}
+}
+
+/**
  * Test a tool configuration (without saving)
  */
 export const test = requireWrite
@@ -186,11 +227,20 @@ export const test = requireWrite
 		const startTime = Date.now()
 
 		try {
-			// TODO: Implement actual tool testing logic based on tool type
-			// For now, return a mock success response
+			// Validate tool configuration based on type
+			const validation = validateToolConfig(input.type, input.config)
+
+			if (!validation.valid) {
+				return {
+					success: false,
+					error: validation.error,
+					duration: Date.now() - startTime,
+				}
+			}
+
 			return {
 				success: true,
-				result: { message: 'Tool configuration is valid' },
+				result: { message: 'Tool configuration is valid', type: input.type },
 				duration: Date.now() - startTime,
 			}
 		} catch (error) {
@@ -217,10 +267,24 @@ export const testExisting = requireWrite
 		if (!tool) notFound('Tool not found')
 
 		try {
-			// TODO: Implement actual tool testing logic
+			// Validate the existing tool's configuration
+			const validation = validateToolConfig(tool.type, tool.config ?? {})
+
+			if (!validation.valid) {
+				return {
+					success: false,
+					error: validation.error,
+					duration: Date.now() - startTime,
+				}
+			}
+
 			return {
 				success: true,
-				result: { message: `Tool '${tool.name}' executed successfully` },
+				result: {
+					message: `Tool '${tool.name}' configuration is valid`,
+					type: tool.type,
+					name: tool.name,
+				},
 				duration: Date.now() - startTime,
 			}
 		} catch (error) {

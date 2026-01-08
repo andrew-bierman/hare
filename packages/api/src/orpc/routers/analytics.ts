@@ -66,6 +66,14 @@ const AnalyticsResponseSchema = z.object({
 
 const GroupByValues = ['day', 'week', 'month'] as const
 const GroupBySchema = z.enum(GroupByValues)
+type GroupBy = (typeof GroupByValues)[number]
+
+// Pre-defined SQL date formats - avoids sql.raw() with dynamic strings
+const DATE_FORMAT_SQL = {
+	day: "DATE(createdAt, 'unixepoch')",
+	week: "DATE(createdAt, 'unixepoch', 'weekday 0', '-6 days')",
+	month: "DATE(createdAt, 'unixepoch', 'start of month')",
+} as const satisfies Record<GroupBy, string>
 
 const AnalyticsQueryInputSchema = z.object({
 	startDate: z.string().optional(),
@@ -117,20 +125,13 @@ export const get = requireWrite
 			.from(usage)
 			.where(and(...conditions))
 
-		// Determine date format based on groupBy
-		let dateFormat: string
-		if (groupBy === 'week') {
-			dateFormat = "DATE(createdAt, 'unixepoch', 'weekday 0', '-6 days')"
-		} else if (groupBy === 'month') {
-			dateFormat = "DATE(createdAt, 'unixepoch', 'start of month')"
-		} else {
-			dateFormat = "DATE(createdAt, 'unixepoch')"
-		}
+		// Get date format SQL from pre-defined map (validated by Zod schema)
+		const dateFormatSql = DATE_FORMAT_SQL[groupBy]
 
 		// Get time series data
 		const timeSeries = await db
 			.select({
-				date: sql<string>`${sql.raw(dateFormat)}`,
+				date: sql<string>`${sql.raw(dateFormatSql)}`,
 				inputTokens: sql<number>`COALESCE(SUM(${usage.inputTokens}), 0)`,
 				outputTokens: sql<number>`COALESCE(SUM(${usage.outputTokens}), 0)`,
 				totalTokens: sql<number>`COALESCE(SUM(${usage.totalTokens}), 0)`,
@@ -140,8 +141,8 @@ export const get = requireWrite
 			})
 			.from(usage)
 			.where(and(...conditions))
-			.groupBy(sql.raw(dateFormat))
-			.orderBy(sql.raw(dateFormat))
+			.groupBy(sql.raw(dateFormatSql))
+			.orderBy(sql.raw(dateFormatSql))
 
 		// Get usage by agent
 		const byAgent = await db
