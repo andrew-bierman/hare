@@ -23,6 +23,10 @@
 	"files": [
 		"src"
 	],
+	"scripts": {
+		"lint": "biome check .",
+		"typecheck": "tsc --noEmit"
+	},
 	"dependencies": {
 		"@hare/config": "workspace:*",
 		"@hare/types": "workspace:*",

@@ -121,16 +121,31 @@ function createMockConnectionContext(userId = 'user_123') {
 	}
 }
 
+// Mock DurableObjectState for HareAgent constructor
+function createMockState() {
+	return {
+		id: { toString: () => 'test-id' },
+		storage: {
+			get: vi.fn(),
+			put: vi.fn(),
+			delete: vi.fn(),
+			list: vi.fn().mockResolvedValue(new Map()),
+		},
+		waitUntil: vi.fn(),
+		blockConcurrencyWhile: vi.fn((fn: () => Promise<void>) => fn()),
+	}
+}
+
 describe('HareAgent', () => {
 	let agent: HareAgent
 	let mockEnv: ReturnType<typeof createMockEnv>
+	let mockState: ReturnType<typeof createMockState>
 
 	beforeEach(() => {
 		vi.clearAllMocks()
 		mockEnv = createMockEnv()
-		agent = new HareAgent()
-		// Manually set env for testing
-		;(agent as unknown as { env: typeof mockEnv }).env = mockEnv
+		mockState = createMockState()
+		agent = new HareAgent(mockState as any, mockEnv as any)
 	})
 
 	describe('initialization', () => {
@@ -170,7 +185,7 @@ describe('HareAgent', () => {
 			const response = await agent.onRequest(request)
 
 			expect(response.status).toBe(200)
-			const json = await response.json()
+			const json = (await response.json()) as { status: string; agentId: string }
 			expect(json).toEqual({ status: 'ok', agentId: 'test_agent' })
 		})
 
@@ -179,7 +194,7 @@ describe('HareAgent', () => {
 			const response = await agent.onRequest(request)
 
 			expect(response.status).toBe(200)
-			const json = await response.json()
+			const json = (await response.json()) as { agentId: string }
 			expect(json.agentId).toBe('test_agent')
 		})
 
@@ -193,7 +208,7 @@ describe('HareAgent', () => {
 			const response = await agent.onRequest(request)
 
 			expect(response.status).toBe(200)
-			const json = await response.json()
+			const json = (await response.json()) as { success: boolean }
 			expect(json.success).toBe(true)
 		})
 
@@ -202,7 +217,7 @@ describe('HareAgent', () => {
 			const response = await agent.onRequest(request)
 
 			expect(response.status).toBe(200)
-			const json = await response.json()
+			const json = (await response.json()) as { schedules: unknown[] }
 			expect(json.schedules).toBeDefined()
 		})
 
@@ -223,7 +238,7 @@ describe('HareAgent', () => {
 			const response = await agent.onRequest(request)
 
 			expect(response.status).toBe(400)
-			const json = await response.json()
+			const json = (await response.json()) as { error: string }
 			expect(json.error).toContain('Invalid schedule payload')
 		})
 
@@ -237,7 +252,7 @@ describe('HareAgent', () => {
 			const response = await agent.onRequest(request)
 
 			expect(response.status).toBe(400)
-			const json = await response.json()
+			const json = (await response.json()) as { error: string }
 			expect(json.error).toContain('Invalid tool execution payload')
 		})
 	})
@@ -291,7 +306,7 @@ describe('HareAgent', () => {
 			await agent.onMessage(connection as any, message)
 
 			expect(connection.send).toHaveBeenCalled()
-			const sentData = JSON.parse(connection.send.mock.calls[0][0])
+			const sentData = JSON.parse(connection.send.mock.calls[0]?.[0] ?? '{}')
 			expect(sentData.type).toBe('state_update')
 		})
 
@@ -307,7 +322,7 @@ describe('HareAgent', () => {
 			// Should not send error
 			const calls = connection.send.mock.calls
 			if (calls.length > 0) {
-				const lastCall = JSON.parse(calls[calls.length - 1][0])
+				const lastCall = JSON.parse(calls[calls.length - 1]?.[0] ?? '{}')
 				expect(lastCall.type).not.toBe('error')
 			}
 		})
@@ -323,7 +338,7 @@ describe('HareAgent', () => {
 
 			// Should send error
 			expect(connection.send).toHaveBeenCalled()
-			const sentData = JSON.parse(connection.send.mock.calls[0][0])
+			const sentData = JSON.parse(connection.send.mock.calls[0]?.[0] ?? '{}')
 			expect(sentData.type).toBe('error')
 		})
 
@@ -337,7 +352,7 @@ describe('HareAgent', () => {
 			await agent.onMessage(connection as any, message)
 
 			expect(connection.send).toHaveBeenCalled()
-			const sentData = JSON.parse(connection.send.mock.calls[0][0])
+			const sentData = JSON.parse(connection.send.mock.calls[0]?.[0] ?? '{}')
 			expect(sentData.type).toBe('error')
 			expect(sentData.data.message).toContain('Unknown message type')
 		})
@@ -349,7 +364,7 @@ describe('HareAgent', () => {
 			await agent.onMessage(connection as any, message)
 
 			expect(connection.send).toHaveBeenCalled()
-			const sentData = JSON.parse(connection.send.mock.calls[0][0])
+			const sentData = JSON.parse(connection.send.mock.calls[0]?.[0] ?? '{}')
 			expect(sentData.type).toBe('error')
 		})
 	})
@@ -457,12 +472,13 @@ describe('HareAgent', () => {
 describe('HareAgent HTTP tool execution', () => {
 	let agent: HareAgent
 	let mockEnv: ReturnType<typeof createMockEnv>
+	let mockState: ReturnType<typeof createMockState>
 
 	beforeEach(() => {
 		vi.clearAllMocks()
 		mockEnv = createMockEnv()
-		agent = new HareAgent()
-		;(agent as unknown as { env: typeof mockEnv }).env = mockEnv
+		mockState = createMockState()
+		agent = new HareAgent(mockState as any, mockEnv as any)
 		;(agent as unknown as { state: typeof agent.initialState }).state = {
 			...agent.initialState,
 		}
@@ -481,7 +497,7 @@ describe('HareAgent HTTP tool execution', () => {
 		const response = await agent.onRequest(request)
 
 		expect(response.status).toBe(404)
-		const json = await response.json()
+		const json = (await response.json()) as { error: string }
 		expect(json.error).toContain('Tool not found')
 	})
 })

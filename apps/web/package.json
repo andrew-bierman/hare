@@ -14,11 +14,13 @@
 		"deploy": "bun run build && wrangler deploy",
 		"dev": "vite dev",
 		"docs:generate": "bun run ../../packages/docs/src/cli.ts --verbose && cp -r ../../packages/docs/content/_generated/* content/sdk/_generated/",
+		"lint": "biome check .",
 		"preview": "bun run build && vite preview",
 		"start": "bun .output/server/index.mjs",
 		"test": "playwright test",
 		"test:headed": "playwright test --headed",
 		"test:ui": "playwright test --ui",
+		"typecheck": "tsc --noEmit",
 		"upload": "wrangler deploy"
 	},
 	"dependencies": {

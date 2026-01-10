@@ -263,11 +263,11 @@ function EmbedChatPage() {
 	}
 
 	// Dynamic styles based on theme
-	const containerStyle = {
+	const containerStyle: Record<string, string> = {
 		'--primary-color': primaryColor,
 		backgroundColor: isDark ? EMBED_COLORS.DARK_BG : EMBED_COLORS.LIGHT_BG,
 		color: isDark ? EMBED_COLORS.LIGHT_BG : EMBED_COLORS.DARK_BG,
-	} as React.CSSProperties
+	}
 
 	if (isLoading) {
 		return (

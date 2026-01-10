@@ -12,10 +12,12 @@
 			"persistent": true
 		},
 		"lint": {
-			"dependsOn": ["^lint"]
+			"outputs": []
 		},
-		"check-types": {
-			"dependsOn": ["^check-types"]
+		"typecheck": {
+			"dependsOn": ["^typecheck"],
+			"inputs": ["$TURBO_DEFAULT$", "tsconfig.json"],
+			"outputs": []
 		},
 		"test": {
 			"dependsOn": ["^build"],

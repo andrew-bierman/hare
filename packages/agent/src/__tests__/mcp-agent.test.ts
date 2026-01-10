@@ -108,16 +108,33 @@ function createMockEnv() {
 	}
 }
 
+/**
+ * Create a mock DurableObjectState.
+ */
+function createMockState() {
+	return {
+		id: { toString: () => 'test-id' },
+		storage: {
+			get: vi.fn(),
+			put: vi.fn(),
+			delete: vi.fn(),
+			list: vi.fn().mockResolvedValue(new Map()),
+		},
+		waitUntil: vi.fn(),
+		blockConcurrencyWhile: vi.fn((fn: () => Promise<void>) => fn()),
+	}
+}
+
 describe('HareMcpAgent', () => {
 	let agent: HareMcpAgent
 	let mockEnv: ReturnType<typeof createMockEnv>
+	let mockState: ReturnType<typeof createMockState>
 
 	beforeEach(() => {
 		vi.clearAllMocks()
 		mockEnv = createMockEnv()
-		agent = new HareMcpAgent()
-		// Manually set env for testing
-		;(agent as unknown as { env: typeof mockEnv }).env = mockEnv
+		mockState = createMockState()
+		agent = new HareMcpAgent(mockState as any, mockEnv as any)
 	})
 
 	describe('initialization', () => {
@@ -326,12 +343,13 @@ describe('HareMcpAgent', () => {
 describe('HareMcpAgent MCP tool registration', () => {
 	let agent: HareMcpAgent
 	let mockEnv: ReturnType<typeof createMockEnv>
+	let mockState: ReturnType<typeof createMockState>
 
 	beforeEach(() => {
 		vi.clearAllMocks()
 		mockEnv = createMockEnv()
-		agent = new HareMcpAgent()
-		;(agent as unknown as { env: typeof mockEnv }).env = mockEnv
+		mockState = createMockState()
+		agent = new HareMcpAgent(mockState as any, mockEnv as any)
 		;(agent as unknown as { state: McpAgentState }).state = {
 			...agent.initialState,
 			workspaceId: 'test_workspace',
@@ -379,8 +397,8 @@ describe('HareMcpAgent tool execution formatting', () => {
 			],
 		}
 
-		expect(expectedFormat.content[0].type).toBe('text')
-		expect(JSON.parse(expectedFormat.content[0].text)).toEqual({ key: 'value' })
+		expect(expectedFormat.content[0]?.type).toBe('text')
+		expect(JSON.parse(expectedFormat.content[0]?.text ?? '{}')).toEqual({ key: 'value' })
 	})
 
 	it('formats error tool result correctly', async () => {
@@ -402,7 +420,7 @@ describe('HareMcpAgent tool execution formatting', () => {
 		}
 
 		expect(expectedFormat.isError).toBe(true)
-		expect(expectedFormat.content[0].text).toContain('Error:')
+		expect(expectedFormat.content[0]?.text).toContain('Error:')
 	})
 })
 
@@ -411,8 +429,9 @@ describe('HareMcpAgent workspace resource', () => {
 
 	beforeEach(() => {
 		vi.clearAllMocks()
-		agent = new HareMcpAgent()
-		;(agent as unknown as { env: ReturnType<typeof createMockEnv> }).env = createMockEnv()
+		const mockState = createMockState()
+		const mockEnv = createMockEnv()
+		agent = new HareMcpAgent(mockState as any, mockEnv as any)
 	})
 
 	it('workspace resource returns correct URI format', async () => {
@@ -428,16 +447,19 @@ describe('HareMcpAgent workspace resource', () => {
 
 		// Get the resource handler
 		const resourceCall = (agent.server.resource as ReturnType<typeof vi.fn>).mock.calls[0]
-		const resourceHandler = resourceCall[2] as () => Promise<{
-			contents: Array<{ uri: string; mimeType: string; text: string }>
-		}>
+		const resourceHandler = resourceCall?.[2] as
+			| (() => Promise<{
+					contents: Array<{ uri: string; mimeType: string; text: string }>
+			  }>)
+			| undefined
 
-		const result = await resourceHandler()
+		expect(resourceHandler).toBeDefined()
+		const result = await resourceHandler!()
 
-		expect(result.contents[0].uri).toBe(`hare://workspace/${workspaceId}`)
-		expect(result.contents[0].mimeType).toBe('application/json')
+		expect(result.contents[0]?.uri).toBe(`hare://workspace/${workspaceId}`)
+		expect(result.contents[0]?.mimeType).toBe('application/json')
 
-		const parsedText = JSON.parse(result.contents[0].text)
+		const parsedText = JSON.parse(result.contents[0]?.text ?? '{}')
 		expect(parsedText.workspaceId).toBe(workspaceId)
 		expect(parsedText.connectedClients).toBe(5)
 		expect(parsedText.lastActivity).toBe(1234567890)

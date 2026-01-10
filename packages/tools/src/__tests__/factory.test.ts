@@ -411,7 +411,7 @@ describe('Tool Factory', () => {
 			})
 
 			expect(tools).toHaveLength(1)
-			expect(tools[0].id).toBe('custom-tool-1')
+			expect(tools[0]?.id).toBe('custom-tool-1')
 		})
 	})
 })

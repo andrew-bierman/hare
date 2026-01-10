@@ -5,7 +5,7 @@
  */
 
 import { z } from 'zod'
-import { requireWrite, type WorkspaceContext } from '../base'
+import { requireWrite } from '../base'
 
 // =============================================================================
 // Type-Safe Schemas
@@ -66,33 +66,7 @@ const LogStatsQueryInputSchema = z.object({
 	endDate: z.string().optional(),
 })
 
-// =============================================================================
-// Type definitions for log service
-// =============================================================================
 
-interface LogQueryParams {
-	workspaceId: string
-	userId?: string
-	agentId?: string
-	status?: number
-	startDate?: string
-	endDate?: string
-	limit?: number
-	offset?: number
-}
-
-interface LogResult {
-	logs: z.infer<typeof RequestLogSchema>[]
-	total: number
-}
-
-interface LogStats {
-	totalRequests: number
-	avgLatencyMs: number
-	errorRate: number
-	requestsByStatus: Record<string, number>
-	requestsByDay: z.infer<typeof RequestsByDaySchema>[]
-}
 
 // =============================================================================
 // Procedures
@@ -105,9 +79,7 @@ export const list = requireWrite
 	.route({ method: 'GET', path: '/logs' })
 	.input(LogsQueryInputSchema)
 	.output(LogsResponseSchema)
-	.handler(async ({ input, context }) => {
-		const { workspaceId } = context
-
+	.handler(async ({ input }) => {
 		// Note: This requires the getLogs function from middleware/logging
 		// For now, return empty results - the actual implementation would call:
 		// const result = await getLogs(env, { workspaceId, ...input })
@@ -128,9 +100,7 @@ export const getStats = requireWrite
 	.route({ method: 'GET', path: '/logs/stats' })
 	.input(LogStatsQueryInputSchema)
 	.output(LogStatsResponseSchema)
-	.handler(async ({ input, context }) => {
-		const { workspaceId } = context
-
+	.handler(async () => {
 		// Note: This requires the getLogStats function from middleware/logging
 		// For now, return empty results - the actual implementation would call:
 		// const stats = await getLogStats(env, { workspaceId, ...input })

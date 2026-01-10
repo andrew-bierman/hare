@@ -30,9 +30,10 @@ const createMockR2 = () => {
 			}
 		}),
 		put: vi.fn(async (key: string, body: string, options?: R2PutOptions) => {
+			const httpMeta = options?.httpMetadata
 			const obj = {
 				body,
-				httpMetadata: options?.httpMetadata,
+				httpMetadata: httpMeta && 'contentType' in httpMeta ? { contentType: httpMeta.contentType } : undefined,
 				customMetadata: options?.customMetadata,
 				size: body.length,
 				etag: `"${Math.random().toString(36).slice(2)}"`,
@@ -458,7 +459,7 @@ describe('R2 Tools', () => {
 			})
 
 			it('passes through cursor parameter', async () => {
-				const result = await r2ListTool.execute({ cursor: 'next-page' }, context)
+				const result = await r2ListTool.execute({ cursor: 'next-page', limit: 100 }, context)
 
 				expect(result.success).toBe(true)
 				expect(mockR2.list).toHaveBeenCalledWith(
@@ -469,7 +470,7 @@ describe('R2 Tools', () => {
 			})
 
 			it('passes through delimiter parameter', async () => {
-				const result = await r2ListTool.execute({ delimiter: '/' }, context)
+				const result = await r2ListTool.execute({ delimiter: '/', limit: 100 }, context)
 
 				expect(result.success).toBe(true)
 				expect(mockR2.list).toHaveBeenCalledWith(
@@ -496,6 +497,7 @@ describe('R2 Tools', () => {
 						},
 					],
 					truncated: false,
+					cursor: undefined,
 					delimitedPrefixes: [],
 				})
 

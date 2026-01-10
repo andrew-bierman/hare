@@ -3,9 +3,10 @@
 	"display": "Cloudflare Workers",
 	"extends": "./base.json",
 	"compilerOptions": {
+		"jsx": "react-jsx",
 		"module": "ESNext",
 		"moduleResolution": "Bundler",
 		"noEmit": true,
-		"types": ["@cloudflare/workers-types"]
+		"types": ["@cloudflare/workers-types", "@cloudflare/vitest-pool-workers", "node", "vite/client"]
 	}
 }

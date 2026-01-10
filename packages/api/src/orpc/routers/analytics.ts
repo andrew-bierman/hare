@@ -8,7 +8,7 @@ import { z } from 'zod'
 import { and, eq, gte, lte, sql } from 'drizzle-orm'
 import { agents, usage } from '@hare/db/schema'
 import { getModelName } from '@hare/config'
-import { requireWrite, type WorkspaceContext } from '../base'
+import { requireWrite } from '../base'
 
 // =============================================================================
 // Type-Safe Schemas

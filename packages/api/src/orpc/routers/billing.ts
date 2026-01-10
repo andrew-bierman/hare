@@ -5,11 +5,10 @@
  * Webhook endpoint remains as a Hono route since it doesn't need auth and has special signature verification.
  */
 
-import { z } from 'zod'
 import { eq } from 'drizzle-orm'
 import Stripe from 'stripe'
 import { workspaces } from '@hare/db/schema'
-import { requireWrite, badRequest, serverError, type WorkspaceContext } from '../base'
+import { requireWrite, badRequest, serverError } from '../base'
 import {
 	BillingStatusSchema,
 	CheckoutRequestSchema,

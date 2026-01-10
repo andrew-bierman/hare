@@ -5,12 +5,19 @@
 	"exports": {
 		".": "./src/index.ts"
 	},
+	"scripts": {
+		"lint": "biome check .",
+		"typecheck": "tsc --noEmit"
+	},
 	"dependencies": {
+		"@hare/config": "workspace:*",
 		"@hare/types": "workspace:*",
 		"hono": "^4.11.3"
 	},
 	"devDependencies": {
+		"@cloudflare/workers-types": "^4.20251224.0",
 		"@hare/typescript-config": "workspace:*",
-		"typescript": "^5"
+		"typescript": "^5",
+		"vite": "^7.3.0"
 	}
 }

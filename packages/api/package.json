@@ -48,6 +48,10 @@
 		"src",
 		"README.md"
 	],
+	"scripts": {
+		"lint": "biome check .",
+		"typecheck": "tsc --noEmit"
+	},
 	"dependencies": {
 		"@elithrar/workers-hono-rate-limit": "^0.5.1",
 		"@hare/agent": "workspace:*",

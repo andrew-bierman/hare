@@ -4,8 +4,15 @@
 
 import { env } from 'cloudflare:test'
 import { describe, expect, it, beforeEach, beforeAll } from 'vitest'
-import { drizzle } from 'drizzle-orm/d1'
+import { createDb, type Database } from '@hare/db'
 import { D1MemoryStore, createMemoryStore, toAgentMessages, type ConversationMessage } from '../memory'
+
+// Augment the cloudflare:test module to include our env bindings
+declare module 'cloudflare:test' {
+	interface ProvidedEnv {
+		DB: D1Database
+	}
+}
 
 /**
  * SQL statements for setting up test database schema.
@@ -49,7 +56,7 @@ async function cleanupData(db: D1Database): Promise<void> {
 }
 
 describe('D1MemoryStore', () => {
-	let db: ReturnType<typeof drizzle>
+	let db: Database
 	let memoryStore: D1MemoryStore
 
 	beforeAll(async () => {
@@ -58,7 +65,7 @@ describe('D1MemoryStore', () => {
 
 	beforeEach(async () => {
 		await cleanupData(env.DB)
-		db = drizzle(env.DB)
+		db = createDb(env.DB)
 		memoryStore = new D1MemoryStore(db, 'test_workspace')
 	})
 
@@ -198,7 +205,7 @@ describe('D1MemoryStore', () => {
 				conversationId,
 				role: 'user',
 				content: 'Test message',
-				metadata: { source: 'test', priority: 1 },
+				metadata: { model: 'test-model', agentId: 'agent_123' },
 			})
 
 			expect(messageId).toBeDefined()
@@ -409,14 +416,14 @@ describe('createMemoryStore', () => {
 	})
 
 	it('creates a D1MemoryStore instance', () => {
-		const db = drizzle(env.DB)
+		const db = createDb(env.DB)
 		const store = createMemoryStore(db)
 
 		expect(store).toBeInstanceOf(D1MemoryStore)
 	})
 
 	it('creates store with workspace ID', () => {
-		const db = drizzle(env.DB)
+		const db = createDb(env.DB)
 		const store = createMemoryStore(db, 'workspace_123')
 
 		expect(store).toBeInstanceOf(D1MemoryStore)
@@ -502,7 +509,7 @@ describe('toAgentMessages', () => {
 		const agentMessages = toAgentMessages(messages)
 
 		expect(agentMessages.length).toBe(2)
-		expect(agentMessages[0].role).toBe('system')
+		expect(agentMessages[0]?.role).toBe('system')
 	})
 
 	it('returns empty array for empty input', () => {

@@ -1,6 +1,34 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest'
 import { createAuth, getOAuthProviders, type AuthServerEnv } from '../server'
 
+// Type for the mocked auth instance that includes config properties
+type MockedAuthInstance = ReturnType<typeof createAuth> & {
+	secret?: string
+	emailAndPassword?: {
+		enabled?: boolean
+		autoSignIn?: boolean
+		sendResetPassword?: (opts: { user: { email: string }; url: string }) => Promise<void>
+	}
+	session?: {
+		expiresIn?: number
+		updateAge?: number
+		cookieCache?: {
+			enabled?: boolean
+			maxAge?: number
+		}
+	}
+	trustedOrigins?: string[]
+	database?: {
+		_isDrizzleAdapter?: boolean
+		provider?: string
+		schema?: unknown
+	}
+	socialProviders?: {
+		google?: { clientId?: string; clientSecret?: string }
+		github?: { clientId?: string; clientSecret?: string }
+	}
+}
+
 // Mock the better-auth module
 vi.mock('better-auth', () => ({
 	betterAuth: vi.fn((config) => ({
@@ -63,14 +91,14 @@ describe('Auth Server', () => {
 
 	describe('createAuth', () => {
 		it('creates an auth instance with required configuration', () => {
-			const auth = createAuth({ d1: mockD1, env: baseEnv })
+			const auth = createAuth({ d1: mockD1, env: baseEnv }) as MockedAuthInstance
 
 			expect(auth).toBeDefined()
 			expect(auth.secret).toBe(baseEnv.BETTER_AUTH_SECRET)
 		})
 
 		it('configures email and password authentication', () => {
-			const auth = createAuth({ d1: mockD1, env: baseEnv })
+			const auth = createAuth({ d1: mockD1, env: baseEnv }) as MockedAuthInstance
 
 			expect(auth.emailAndPassword).toBeDefined()
 			expect(auth.emailAndPassword?.enabled).toBe(true)
@@ -78,7 +106,7 @@ describe('Auth Server', () => {
 		})
 
 		it('configures session settings with correct expiration', () => {
-			const auth = createAuth({ d1: mockD1, env: baseEnv })
+			const auth = createAuth({ d1: mockD1, env: baseEnv }) as MockedAuthInstance
 
 			expect(auth.session).toBeDefined()
 			expect(auth.session?.expiresIn).toBe(60 * 60 * 24 * 7) // 7 days
@@ -86,7 +114,7 @@ describe('Auth Server', () => {
 		})
 
 		it('configures cookie cache settings', () => {
-			const auth = createAuth({ d1: mockD1, env: baseEnv })
+			const auth = createAuth({ d1: mockD1, env: baseEnv }) as MockedAuthInstance
 
 			expect(auth.session?.cookieCache).toBeDefined()
 			expect(auth.session?.cookieCache?.enabled).toBe(true)
@@ -94,13 +122,13 @@ describe('Auth Server', () => {
 		})
 
 		it('includes APP_URL in trusted origins', () => {
-			const auth = createAuth({ d1: mockD1, env: baseEnv })
+			const auth = createAuth({ d1: mockD1, env: baseEnv }) as MockedAuthInstance
 
 			expect(auth.trustedOrigins).toContain(baseEnv.APP_URL)
 		})
 
 		it('includes localhost origins when APP_URL is localhost', () => {
-			const auth = createAuth({ d1: mockD1, env: baseEnv })
+			const auth = createAuth({ d1: mockD1, env: baseEnv }) as MockedAuthInstance
 
 			expect(auth.trustedOrigins).toContain('http://localhost:3000')
 			expect(auth.trustedOrigins).toContain('http://localhost:3001')
@@ -112,7 +140,7 @@ describe('Auth Server', () => {
 				...baseEnv,
 				APP_URL: 'https://app.example.com',
 			}
-			const auth = createAuth({ d1: mockD1, env: prodEnv })
+			const auth = createAuth({ d1: mockD1, env: prodEnv }) as MockedAuthInstance
 
 			expect(auth.trustedOrigins).toContain('https://app.example.com')
 			expect(auth.trustedOrigins).not.toContain('http://localhost:3000')
@@ -121,7 +149,7 @@ describe('Auth Server', () => {
 		})
 
 		it('configures database adapter with correct schema', () => {
-			const auth = createAuth({ d1: mockD1, env: baseEnv })
+			const auth = createAuth({ d1: mockD1, env: baseEnv }) as MockedAuthInstance
 
 			expect(auth.database).toBeDefined()
 			expect(auth.database?._isDrizzleAdapter).toBe(true)
@@ -132,13 +160,13 @@ describe('Auth Server', () => {
 
 	describe('createAuth with OAuth providers', () => {
 		it('does not configure Google when credentials are missing', () => {
-			const auth = createAuth({ d1: mockD1, env: baseEnv })
+			const auth = createAuth({ d1: mockD1, env: baseEnv }) as MockedAuthInstance
 
 			expect(auth.socialProviders?.google).toBeUndefined()
 		})
 
 		it('does not configure GitHub when credentials are missing', () => {
-			const auth = createAuth({ d1: mockD1, env: baseEnv })
+			const auth = createAuth({ d1: mockD1, env: baseEnv }) as MockedAuthInstance
 
 			expect(auth.socialProviders?.github).toBeUndefined()
 		})
@@ -149,7 +177,7 @@ describe('Auth Server', () => {
 				GOOGLE_CLIENT_ID: 'google-client-id',
 				GOOGLE_CLIENT_SECRET: 'google-client-secret',
 			}
-			const auth = createAuth({ d1: mockD1, env: envWithGoogle })
+			const auth = createAuth({ d1: mockD1, env: envWithGoogle }) as MockedAuthInstance
 
 			expect(auth.socialProviders?.google).toBeDefined()
 			expect(auth.socialProviders?.google?.clientId).toBe('google-client-id')
@@ -162,7 +190,7 @@ describe('Auth Server', () => {
 				GITHUB_CLIENT_ID: 'github-client-id',
 				GITHUB_CLIENT_SECRET: 'github-client-secret',
 			}
-			const auth = createAuth({ d1: mockD1, env: envWithGitHub })
+			const auth = createAuth({ d1: mockD1, env: envWithGitHub }) as MockedAuthInstance
 
 			expect(auth.socialProviders?.github).toBeDefined()
 			expect(auth.socialProviders?.github?.clientId).toBe('github-client-id')
@@ -177,7 +205,7 @@ describe('Auth Server', () => {
 				GITHUB_CLIENT_ID: 'github-client-id',
 				GITHUB_CLIENT_SECRET: 'github-client-secret',
 			}
-			const auth = createAuth({ d1: mockD1, env: envWithBoth })
+			const auth = createAuth({ d1: mockD1, env: envWithBoth }) as MockedAuthInstance
 
 			expect(auth.socialProviders?.google).toBeDefined()
 			expect(auth.socialProviders?.github).toBeDefined()
@@ -188,7 +216,7 @@ describe('Auth Server', () => {
 				...baseEnv,
 				GOOGLE_CLIENT_ID: 'google-client-id',
 			}
-			const auth = createAuth({ d1: mockD1, env: envWithPartialGoogle })
+			const auth = createAuth({ d1: mockD1, env: envWithPartialGoogle }) as MockedAuthInstance
 
 			expect(auth.socialProviders?.google).toBeUndefined()
 		})
@@ -198,7 +226,7 @@ describe('Auth Server', () => {
 				...baseEnv,
 				GITHUB_CLIENT_ID: 'github-client-id',
 			}
-			const auth = createAuth({ d1: mockD1, env: envWithPartialGitHub })
+			const auth = createAuth({ d1: mockD1, env: envWithPartialGitHub }) as MockedAuthInstance
 
 			expect(auth.socialProviders?.github).toBeUndefined()
 		})
@@ -212,21 +240,21 @@ describe('Auth Server', () => {
 				EMAIL_FROM: 'noreply@example.com',
 				APP_NAME: 'Test App',
 			}
-			const auth = createAuth({ d1: mockD1, env: envWithEmail })
+			const auth = createAuth({ d1: mockD1, env: envWithEmail }) as MockedAuthInstance
 
 			expect(auth.emailAndPassword?.sendResetPassword).toBeDefined()
 			expect(typeof auth.emailAndPassword?.sendResetPassword).toBe('function')
 		})
 
 		it('password reset handler is async function', async () => {
-			const auth = createAuth({ d1: mockD1, env: baseEnv })
+			const auth = createAuth({ d1: mockD1, env: baseEnv }) as MockedAuthInstance
 
 			expect(auth.emailAndPassword?.sendResetPassword).toBeDefined()
 			// The function should return a promise (be async)
 			const result = auth.emailAndPassword?.sendResetPassword?.({
 				user: { email: 'test@example.com' },
 				url: 'http://localhost:3000/reset-password?token=abc',
-			} as any)
+			})
 
 			// Should return a promise or undefined (async function)
 			expect(result).toBeInstanceOf(Promise)

@@ -6,9 +6,11 @@
 	"scripts": {
 		"build": "vite build && bun run scripts/generate-html.ts",
 		"dev": "vite",
+		"lint": "biome check .",
 		"preview": "vite preview",
 		"tauri:build": "tauri build",
-		"tauri:dev": "tauri dev"
+		"tauri:dev": "tauri dev",
+		"typecheck": "tsc --noEmit"
 	},
 	"dependencies": {
 		"@dnd-kit/core": "^6.3.1",

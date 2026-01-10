@@ -24,6 +24,10 @@
 	"files": [
 		"src"
 	],
+	"scripts": {
+		"lint": "biome check .",
+		"typecheck": "tsc --noEmit"
+	},
 	"devDependencies": {
 		"@hare/typescript-config": "workspace:*",
 		"typescript": "^5"

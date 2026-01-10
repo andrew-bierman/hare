@@ -163,7 +163,7 @@ describe('apiKeyMiddleware', () => {
 		const res = await app.request('/api/test')
 		expect(res.status).toBe(401)
 
-		const body = await res.json()
+		const body = (await res.json()) as { error: string }
 		expect(body.error).toBe('API key required')
 	})
 
@@ -181,7 +181,7 @@ describe('apiKeyMiddleware', () => {
 
 describe('API key extraction logic', () => {
 	it('extracts key from Authorization Bearer header', () => {
-		const authHeader = 'Bearer hare_abc123'
+		const authHeader: string = 'Bearer hare_abc123'
 		const key = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null
 		expect(key).toBe('hare_abc123')
 	})
@@ -208,16 +208,17 @@ describe('API key extraction logic', () => {
 	})
 
 	it('returns null when no headers are present', () => {
-		const authHeader: string | undefined = undefined
-		const apiKeyHeader: string | undefined = undefined
-
-		let key = null
-		if (authHeader?.startsWith('Bearer ')) {
-			key = authHeader.slice(7)
-		} else if (apiKeyHeader) {
-			key = apiKeyHeader
+		// Simulate extracting key from headers - both are undefined
+		const extractKey = (authHeader?: string, apiKeyHeader?: string): string | null => {
+			if (authHeader?.startsWith('Bearer ')) {
+				return authHeader.slice(7)
+			} else if (apiKeyHeader) {
+				return apiKeyHeader
+			}
+			return null
 		}
 
+		const key = extractKey(undefined, undefined)
 		expect(key).toBeNull()
 	})
 

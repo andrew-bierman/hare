@@ -46,7 +46,7 @@ describe('beta-access middleware', () => {
 				const res = await app.request('/chat')
 				expect(res.status).toBe(503)
 
-				const body = await res.json()
+				const body = (await res.json()) as { error: string; message: string }
 				expect(body.error).toBe('Feature not available')
 				expect(body.message).toContain('AI chat features are currently disabled')
 			})
@@ -109,7 +109,7 @@ describe('beta-access middleware', () => {
 				const res = await app.request('/chat')
 				expect(res.status).toBe(401)
 
-				const body = await res.json()
+				const body = (await res.json()) as { error: string }
 				expect(body.error).toBe('Authentication required')
 			})
 
@@ -144,7 +144,7 @@ describe('beta-access middleware', () => {
 				const res = await app.request('/chat')
 				expect(res.status).toBe(403)
 
-				const body = await res.json()
+				const body = (await res.json()) as { error: string; message: string }
 				expect(body.error).toBe('Beta access required')
 				expect(body.message).toContain('private beta')
 			})
