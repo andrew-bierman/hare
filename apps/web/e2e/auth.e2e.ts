@@ -77,45 +77,54 @@ test.describe('Authentication - Sign Up Flow', () => {
 		await page.goto('/sign-up')
 		await page.waitForLoadState('networkidle')
 
-		// Wait for form to be ready and stable (OAuth providers may load and cause re-render)
-		const nameField = page.getByLabel('Full Name')
-		await nameField.waitFor({ state: 'visible', timeout: 10000 })
-		await page.waitForTimeout(1500) // Give React time to fully settle after OAuth providers load
+		// Wait for form to be ready using id selector
+		await page.locator('#name').waitFor({ state: 'visible', timeout: 10000 })
 
-		// Fill fields one by one with verification
-		// Using click + fill pattern to ensure focus
-		await nameField.click()
-		await nameField.fill(testUser.name)
-		await expect(nameField).toHaveValue(testUser.name)
+		// Fill in the sign-up form - fill all fields first, then verify
+		// The form uses controlled inputs, so we need to ensure values stick
+		const nameInput = page.locator('#name')
+		const emailInput = page.locator('#email')
+		const passwordInput = page.locator('#password')
+		const confirmPasswordInput = page.locator('#confirm-password')
 
-		const emailField = page.getByLabel('Email')
-		await emailField.click()
-		await emailField.fill(testUser.email)
-		await expect(emailField).toHaveValue(testUser.email)
+		await nameInput.click()
+		await nameInput.fill(testUser.name)
+		await expect(nameInput).toHaveValue(testUser.name)
 
-		const passwordField = page.getByLabel('Password', { exact: true })
-		await passwordField.click()
-		await passwordField.fill(testUser.password)
+		await emailInput.click()
+		await emailInput.fill(testUser.email)
+		await expect(emailInput).toHaveValue(testUser.email)
 
-		const confirmPasswordField = page.getByLabel('Confirm Password')
-		await confirmPasswordField.click()
-		await confirmPasswordField.fill(testUser.password)
+		await passwordInput.click()
+		await passwordInput.fill(testUser.password)
+		await expect(passwordInput).toHaveValue(testUser.password)
 
-		// Verify name field still has value (catches re-render issues)
-		await expect(nameField).toHaveValue(testUser.name)
+		await confirmPasswordInput.click()
+		await confirmPasswordInput.fill(testUser.password)
+		await expect(confirmPasswordInput).toHaveValue(testUser.password)
 
-		// Submit the form
-		const submitButton = page.getByRole('button', { name: 'Create Account' })
-		await expect(submitButton).toBeEnabled()
-		await submitButton.click()
+		// Re-verify name field wasn't cleared by controlled component updates
+		await expect(nameInput).toHaveValue(testUser.name)
+
+		// Submit the form and wait for API response
+		const [response] = await Promise.all([
+			page.waitForResponse(
+				(resp) => resp.url().includes('/api/auth/sign-up') && resp.request().method() === 'POST',
+				{ timeout: 15000 },
+			),
+			page.getByRole('button', { name: 'Create Account' }).click(),
+		])
+
+		// Check if sign-up was successful
+		expect(response.ok()).toBeTruthy()
 
 		// Should redirect to dashboard after successful signup
-		await page.waitForURL(/\/dashboard/, { timeout: 30000 })
+		await page.waitForURL(/\/dashboard/, { timeout: 15000 })
 		await expect(page).toHaveURL(/\/dashboard/)
 
-		// Dashboard should be visible (may need to wait for workspace to load)
-		await page.waitForLoadState('networkidle')
-		await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible({ timeout: 10000 })
+		// Wait for workspace setup to complete (app may show "Setting up your workspace" first)
+		// The Dashboard heading appears after workspace is ready
+		await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible({ timeout: 30000 })
 	})
 
 	test('should show error for duplicate email', async ({ page, testUser }) => {
@@ -161,32 +170,38 @@ test.describe('Authentication - Sign In Flow', () => {
 		// Create user first
 		await signUpViaUI(page, testUser)
 
-		// Sign out by clearing context and navigating to sign-in
-		await page.context().clearCookies()
+		// Navigate to sign-in page (clears session by navigating away)
 		await page.goto('/sign-in')
 		await page.waitForLoadState('networkidle')
 
-		// Wait for form to be stable
-		const emailField = page.getByLabel('Email')
-		await emailField.waitFor({ state: 'visible', timeout: 10000 })
-		await page.waitForTimeout(1500) // Give React time to settle
+		// Use id selectors and click/fill pattern for controlled inputs
+		const emailInput = page.locator('#email')
+		const passwordInput = page.locator('#password')
 
-		// Fill fields with click + fill pattern
-		await emailField.click()
-		await emailField.fill(testUser.email)
-		await expect(emailField).toHaveValue(testUser.email)
+		await emailInput.waitFor({ state: 'visible', timeout: 10000 })
 
-		const passwordField = page.getByLabel('Password')
-		await passwordField.click()
-		await passwordField.fill(testUser.password)
+		// Sign in with the same credentials
+		await emailInput.click()
+		await emailInput.fill(testUser.email)
+		await expect(emailInput).toHaveValue(testUser.email)
 
-		// Submit
-		const submitButton = page.getByRole('button', { name: 'Sign In' })
-		await expect(submitButton).toBeEnabled()
-		await submitButton.click()
+		await passwordInput.click()
+		await passwordInput.fill(testUser.password)
+		await expect(passwordInput).toHaveValue(testUser.password)
+
+		// Submit and wait for sign-in API response
+		const [response] = await Promise.all([
+			page.waitForResponse(
+				(resp) => resp.url().includes('/api/auth/sign-in') && resp.request().method() === 'POST',
+				{ timeout: 15000 },
+			),
+			page.getByRole('button', { name: 'Sign In' }).click(),
+		])
+
+		expect(response.ok()).toBeTruthy()
 
 		// Should redirect to dashboard
-		await page.waitForURL(/\/dashboard/, { timeout: 30000 })
+		await page.waitForURL(/\/dashboard/, { timeout: 15000 })
 		await expect(page).toHaveURL(/\/dashboard/)
 	})
 
@@ -235,33 +250,38 @@ test.describe('Authentication - Protected Routes', () => {
 
 baseTest.describe('API Auth Endpoints', () => {
 	baseTest(
-		'should return session info for get-session endpoint',
+		'should return 401 for unauthenticated workspace requests',
 		async ({ request }: { request: APIRequestContext }) => {
-			// The auth session endpoint returns null for unauthenticated users
-			const response = await request.get('/api/auth/get-session')
-			expect(response.ok()).toBe(true)
-			const data = await response.json()
-			// Unauthenticated users get null (no session)
-			expect(data).toBe(null)
+			// oRPC routes are under /api/rpc/{router}/{procedure}
+			const response = await request.get('/api/rpc/workspaces/list')
+			expect(response.status()).toBe(401)
 		},
 	)
 
 	baseTest(
-		'should return auth providers',
+		'should return 401 for unauthenticated agent requests',
 		async ({ request }: { request: APIRequestContext }) => {
-			const response = await request.get('/api/auth/providers')
-			expect(response.ok()).toBe(true)
-			const data = await response.json()
-			expect(data).toHaveProperty('providers')
+			// oRPC routes are under /api/rpc/{router}/{procedure}
+			const response = await request.get('/api/rpc/agents/list')
+			expect(response.status()).toBe(401)
 		},
 	)
 
 	baseTest(
-		'should have health endpoint available',
+		'should return 401 for unauthenticated tool requests',
 		async ({ request }: { request: APIRequestContext }) => {
-			// OpenAPI docs endpoint should be accessible
-			const response = await request.get('/api/docs')
-			expect(response.ok()).toBe(true)
+			// oRPC routes are under /api/rpc/{router}/{procedure}
+			const response = await request.get('/api/rpc/tools/list')
+			expect(response.status()).toBe(401)
+		},
+	)
+
+	baseTest(
+		'should return 401 for unauthenticated usage requests',
+		async ({ request }: { request: APIRequestContext }) => {
+			// oRPC routes are under /api/rpc/{router}/{procedure}
+			const response = await request.get('/api/rpc/usage/getWorkspaceUsage')
+			expect(response.status()).toBe(401)
 		},
 	)
 })

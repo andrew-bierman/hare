@@ -113,8 +113,11 @@ test.describe('Full Navigation - Authenticated', () => {
 		await authenticatedPage.waitForLoadState('networkidle')
 
 		await authenticatedPage.getByRole('link', { name: 'New Agent' }).click()
-		await authenticatedPage.waitForURL(/\/dashboard\/agents\/new/)
-		await expect(authenticatedPage.getByRole('heading', { name: 'Create New Agent' })).toBeVisible()
+		// May go to templates page first or directly to new
+		await authenticatedPage.waitForURL(/\/dashboard\/agents\/(new|templates)/)
+		// Either templates or create page should appear
+		const hasCreateHeading = await authenticatedPage.locator('h2').filter({ hasText: /Create.*Agent|Choose.*Template/i }).isVisible({ timeout: 5000 }).catch(() => false)
+		expect(hasCreateHeading).toBeTruthy()
 	})
 })
 

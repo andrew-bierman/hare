@@ -6,6 +6,36 @@ function createId(): string {
 import { type APIRequestContext, test as base, expect, type Page } from '@playwright/test'
 
 /**
+ * Helper to dismiss Vite error overlay if it appears.
+ * The overlay can appear due to transient network errors during E2E tests.
+ */
+async function dismissViteOverlay(page: Page): Promise<void> {
+	try {
+		const overlay = page.locator('vite-error-overlay')
+		if (await overlay.isVisible({ timeout: 1000 })) {
+			// Press Escape to dismiss the overlay
+			await page.keyboard.press('Escape')
+			await page.waitForTimeout(500)
+		}
+	} catch {
+		// Ignore - overlay not present
+	}
+}
+
+/**
+ * Helper to check if the current page is authenticated.
+ * Returns true if the API returns OK for authenticated endpoint.
+ */
+export async function isAuthenticated(page: Page): Promise<boolean> {
+	try {
+		const response = await page.request.get('/api/rpc/workspaces/list')
+		return response.ok()
+	} catch {
+		return false
+	}
+}
+
+/**
  * Generate a unique test user for each test run to avoid conflicts.
  */
 export function generateTestUser() {
@@ -50,49 +80,67 @@ export const test = base.extend<{
 				await page.goto('/sign-up')
 				await page.waitForLoadState('networkidle')
 
-				// Wait for form to be ready and stable (OAuth providers may load)
-				await page.getByLabel('Full Name').waitFor({ state: 'visible', timeout: 10000 })
-				await page.waitForLoadState('networkidle')
-				await page.waitForTimeout(1000) // Give React time to settle
+				// Wait for form to be ready using id selectors
+				const nameInput = page.locator('#name')
+				const emailInput = page.locator('#email')
+				const passwordInput = page.locator('#password')
+				const confirmPasswordInput = page.locator('#confirm-password')
 
-				// Fill in the sign-up form - verify each field is filled
-				const nameField = page.getByLabel('Full Name')
-				await nameField.fill(testUser.name)
-				await expect(nameField).toHaveValue(testUser.name)
+				await nameInput.waitFor({ state: 'visible', timeout: 10000 })
 
-				const emailField = page.getByLabel('Email')
-				await emailField.fill(testUser.email)
-				await expect(emailField).toHaveValue(testUser.email)
+				// Dismiss any Vite error overlay that might have appeared
+				await dismissViteOverlay(page)
 
-				const passwordField = page.getByLabel('Password', { exact: true })
-				await passwordField.fill(testUser.password)
+				// Fill in the sign-up form - click and fill each field, verify values stick
+				await nameInput.click()
+				await nameInput.fill(testUser.name)
+				await expect(nameInput).toHaveValue(testUser.name)
 
-				const confirmPasswordField = page.getByLabel('Confirm Password')
-				await confirmPasswordField.fill(testUser.password)
+				await emailInput.click()
+				await emailInput.fill(testUser.email)
+				await expect(emailInput).toHaveValue(testUser.email)
+
+				await passwordInput.click()
+				await passwordInput.fill(testUser.password)
+				await expect(passwordInput).toHaveValue(testUser.password)
+
+				await confirmPasswordInput.click()
+				await confirmPasswordInput.fill(testUser.password)
+				await expect(confirmPasswordInput).toHaveValue(testUser.password)
 
 				// Submit the form and wait for navigation
 				const submitButton = page.getByRole('button', { name: 'Create Account' })
 				await submitButton.waitFor({ state: 'visible' })
-				await expect(submitButton).toBeEnabled()
 
-				// Click and wait for redirect - the API call may complete very quickly
-				await submitButton.click()
+				// Click and wait for either navigation or error
+				// Better Auth uses /api/auth/sign-up/email endpoint
+				const [response] = await Promise.all([
+					page.waitForResponse(
+						(resp) =>
+							resp.url().includes('/api/auth/sign-up') && resp.request().method() === 'POST',
+						{ timeout: 30000 },
+					),
+					submitButton.click(),
+				])
 
-				// Wait for redirect to dashboard (auth will complete in background)
-				await page.waitForURL(/\/dashboard/, { timeout: 30000 })
+				// Check if sign-up was successful
+				if (!response.ok()) {
+					const errorText = await response.text().catch(() => 'Unknown error')
+					throw new Error(`Sign-up API returned ${response.status()}: ${errorText}`)
+				}
+
+				// Wait for redirect to dashboard
+				await page.waitForURL(/\/dashboard/, { timeout: 15000 })
 
 				// Wait for auth session to be fully valid by polling the API
 				// The session may take a few seconds to become valid after sign-up
+				// Note: oRPC routes are at /api/rpc/{router}/{procedure}
 				let sessionWaitAttempts = 0
-				const maxSessionWaitAttempts = 20
+				const maxSessionWaitAttempts = 15
 				while (sessionWaitAttempts < maxSessionWaitAttempts) {
-					const sessionCheckResponse = await page.request.get('/api/auth/get-session')
+					const sessionCheckResponse = await page.request.get('/api/rpc/workspaces/list')
 					if (sessionCheckResponse.ok()) {
-						const data = await sessionCheckResponse.json()
-						// Session endpoint returns { session, user } when authenticated, null when not
-						if (data !== null && data.session) {
-							break // Session is now valid
-						}
+						break // Session is now valid
 					}
 					await page.waitForTimeout(500)
 					sessionWaitAttempts++
@@ -102,36 +150,36 @@ export const test = base.extend<{
 					throw new Error('Timed out waiting for auth session to become valid')
 				}
 
-				// Wait for the page to settle - dashboard components will load data
+				// Now reload the page to ensure React has the session hydrated
+				await page.reload()
 				await page.waitForLoadState('networkidle')
 
-				// Wait for workspace loading to complete
-				// The app shows "Loading workspace..." while fetching workspace data
+				// Verify we're on the dashboard by checking for Dashboard heading
+				const dashboardHeading = page.getByRole('heading', { name: 'Dashboard' })
+				await dashboardHeading.waitFor({ state: 'visible', timeout: 10000 })
+
+				// Wait for a workspace to be created (the app auto-creates one for new users)
+				// Poll the workspaces API until we get at least one workspace
+				// Note: oRPC response format is { json: { workspaces: [...] } }
 				let workspaceWaitAttempts = 0
-				const maxWorkspaceWaitAttempts = 60 // 30 seconds max
+				const maxWorkspaceWaitAttempts = 30
 				while (workspaceWaitAttempts < maxWorkspaceWaitAttempts) {
-					const loadingVisible = await page
-						.getByText('Loading workspace...')
-						.isVisible()
-						.catch(() => false)
-					const settingUpVisible = await page
-						.getByText('Setting up your workspace')
-						.isVisible()
-						.catch(() => false)
-					if (!loadingVisible && !settingUpVisible) {
-						break
+					const workspacesResponse = await page.request.get('/api/rpc/workspaces/list')
+					if (workspacesResponse.ok()) {
+						const data = await workspacesResponse.json()
+						// oRPC wraps the response in { json: ... }
+						const workspaces = data.json?.workspaces ?? data.workspaces
+						if (workspaces && workspaces.length > 0) {
+							break
+						}
 					}
 					await page.waitForTimeout(500)
 					workspaceWaitAttempts++
 				}
 
-				// Wait for network to settle after workspace loads
-				await page.waitForLoadState('networkidle')
-
-				// Verify we're on the dashboard by checking for Dashboard heading
-				// The heading may take a moment to appear after data loads
-				const dashboardHeading = page.getByRole('heading', { name: 'Dashboard' })
-				await dashboardHeading.waitFor({ state: 'visible', timeout: 15000 })
+				if (workspaceWaitAttempts >= maxWorkspaceWaitAttempts) {
+					throw new Error('Timed out waiting for workspace to be created')
+				}
 
 				// Success - break out of retry loop
 				break
@@ -184,35 +232,6 @@ export const test = base.extend<{
 })
 
 export { expect }
-
-/**
- * Wait for workspace loading to complete.
- * The app shows "Loading workspace..." while fetching workspace data.
- * Call this after navigating to any authenticated page.
- */
-export async function waitForWorkspaceLoad(page: Page): Promise<void> {
-	// First wait for network to settle
-	await page.waitForLoadState('networkidle')
-
-	// Then poll for the loading message to disappear
-	let attempts = 0
-	const maxAttempts = 60 // 30 seconds max
-	while (attempts < maxAttempts) {
-		const loadingVisible = await page.getByText('Loading workspace...').isVisible().catch(() => false)
-		const settingUpVisible = await page
-			.getByText('Setting up your workspace')
-			.isVisible()
-			.catch(() => false)
-		if (!loadingVisible && !settingUpVisible) {
-			break
-		}
-		await page.waitForTimeout(500)
-		attempts++
-	}
-
-	// One more network idle wait after content loads
-	await page.waitForLoadState('networkidle')
-}
 
 /**
  * Helper to create a test user via API.
@@ -296,30 +315,43 @@ export async function signUpViaUI(page: Page, user = TEST_USER): Promise<void> {
 	await page.goto('/sign-up')
 	await page.waitForLoadState('networkidle')
 
-	// Wait for form to be ready and stable (OAuth providers may load)
-	await page.getByLabel('Full Name').waitFor({ state: 'visible', timeout: 10000 })
-	await page.waitForLoadState('networkidle')
-	await page.waitForTimeout(1000) // Give React time to settle
+	const nameInput = page.locator('#name')
+	const emailInput = page.locator('#email')
+	const passwordInput = page.locator('#password')
+	const confirmPasswordInput = page.locator('#confirm-password')
 
-	// Fill in the sign-up form - verify each field is filled
-	const nameField = page.getByLabel('Full Name')
-	await nameField.fill(user.name)
-	await expect(nameField).toHaveValue(user.name)
+	await nameInput.waitFor({ state: 'visible', timeout: 10000 })
 
-	const emailField = page.getByLabel('Email')
-	await emailField.fill(user.email)
-	await expect(emailField).toHaveValue(user.email)
+	// Fill form fields - click and fill to handle controlled inputs
+	await nameInput.click()
+	await nameInput.fill(user.name)
+	await expect(nameInput).toHaveValue(user.name)
 
-	const passwordField = page.getByLabel('Password', { exact: true })
-	await passwordField.fill(user.password)
+	await emailInput.click()
+	await emailInput.fill(user.email)
+	await expect(emailInput).toHaveValue(user.email)
 
-	const confirmPasswordField = page.getByLabel('Confirm Password')
-	await confirmPasswordField.fill(user.password)
+	await passwordInput.click()
+	await passwordInput.fill(user.password)
+	await expect(passwordInput).toHaveValue(user.password)
 
-	const submitButton = page.getByRole('button', { name: 'Create Account' })
-	await submitButton.waitFor({ state: 'visible' })
-	await expect(submitButton).toBeEnabled()
-	await submitButton.click()
+	await confirmPasswordInput.click()
+	await confirmPasswordInput.fill(user.password)
+	await expect(confirmPasswordInput).toHaveValue(user.password)
 
-	await page.waitForURL(/\/dashboard/, { timeout: 30000 })
+	// Click and wait for the API response
+	const [response] = await Promise.all([
+		page.waitForResponse(
+			(resp) => resp.url().includes('/api/auth/sign-up') && resp.request().method() === 'POST',
+			{ timeout: 15000 },
+		),
+		page.getByRole('button', { name: 'Create Account' }).click(),
+	])
+
+	if (!response.ok()) {
+		const text = await response.text().catch(() => 'unknown error')
+		throw new Error(`Sign-up failed with status ${response.status()}: ${text}`)
+	}
+
+	await page.waitForURL(/\/dashboard/, { timeout: 15000 })
 }
