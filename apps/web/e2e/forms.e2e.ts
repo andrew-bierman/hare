@@ -2,37 +2,13 @@ import { test as baseTest, expect, type Page } from '@playwright/test'
 import { test } from './fixtures'
 
 baseTest.describe('Agent Creation Form - Unauthenticated', () => {
-	baseTest.beforeEach(async ({ page }: { page: Page }) => {
+	baseTest('redirects unauthenticated users to sign-in', async ({ page }: { page: Page }) => {
 		await page.goto('/dashboard/agents/new')
 		await page.waitForLoadState('networkidle')
-	})
 
-	baseTest('displays all required form fields', async ({ page }: { page: Page }) => {
-		// Agent name field (using id selector since label has asterisk)
-		await expect(page.locator('#name')).toBeVisible()
-
-		// Description field
-		await expect(page.locator('#description')).toBeVisible()
-
-		// Model selector
-		await expect(page.locator('#model-selector')).toBeVisible()
-
-		// System Prompt section (check for label text)
-		await expect(page.getByText('System Prompt')).toBeVisible()
-	})
-
-	baseTest('has create button', async ({ page }: { page: Page }) => {
-		await expect(page.getByRole('button', { name: /create agent/i })).toBeVisible()
-	})
-
-	baseTest('can fill in form fields', async ({ page }: { page: Page }) => {
-		// Fill agent name
-		await page.locator('#name').fill('My Test Agent')
-		await expect(page.locator('#name')).toHaveValue('My Test Agent')
-
-		// Fill description
-		await page.locator('#description').fill('A helpful test agent')
-		await expect(page.locator('#description')).toHaveValue('A helpful test agent')
+		// Protected route should redirect to sign-in
+		await expect(page).toHaveURL(/\/sign-in/)
+		await expect(page.getByRole('heading', { name: 'Welcome back' })).toBeVisible()
 	})
 })
 
@@ -69,25 +45,14 @@ test.describe('Agent Creation Form - Authenticated', () => {
 	})
 })
 
-baseTest.describe('Settings Form', () => {
-	baseTest.beforeEach(async ({ page }: { page: Page }) => {
+baseTest.describe('Settings Form - Unauthenticated', () => {
+	baseTest('redirects unauthenticated users to sign-in', async ({ page }: { page: Page }) => {
 		await page.goto('/dashboard/settings')
 		await page.waitForLoadState('networkidle')
-	})
 
-	baseTest('displays profile section', async ({ page }: { page: Page }) => {
-		await expect(page.getByText('Profile', { exact: true }).first()).toBeVisible()
-	})
-
-	baseTest('has name input field', async ({ page }: { page: Page }) => {
-		// Look for a name-related input
-		const nameInput = page.getByLabel(/name/i).first()
-		await expect(nameInput).toBeVisible()
-	})
-
-	baseTest('has email input field', async ({ page }: { page: Page }) => {
-		const emailInput = page.getByLabel(/email/i).first()
-		await expect(emailInput).toBeVisible()
+		// Protected route should redirect to sign-in
+		await expect(page).toHaveURL(/\/sign-in/)
+		await expect(page.getByRole('heading', { name: 'Welcome back' })).toBeVisible()
 	})
 })
 
