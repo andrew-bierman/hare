@@ -94,18 +94,14 @@ export function createAuth({ d1, env }: CreateAuthOptions) {
 		trustedOrigins: [
 			env.APP_URL,
 			// Only allow localhost origins in development (when APP_URL is localhost)
-			// Include common development and testing ports
+			// Support any localhost port for worktree development
 			...(env.APP_URL.includes('localhost')
 				? [
 						'http://localhost:3000',
 						'http://localhost:3001',
-						'http://localhost:3048', // E2E test port (worktree setup)
 						'http://localhost:8787',
-						// Additional E2E test ports
-						'http://localhost:3049',
-						'http://localhost:3050',
-						'http://localhost:3051',
-						'http://localhost:3052',
+						// Support worktree ports (3001-3099)
+						...Array.from({ length: 99 }, (_, i) => `http://localhost:${3001 + i}`),
 					]
 				: []),
 		],

@@ -1,7 +1,7 @@
 import { SignInActionsProvider } from '@hare/app/features'
 import { signIn, signInWithGitHub, signInWithGoogle } from '@hare/auth/client'
 import { config } from '@hare/config'
-import { createFileRoute, Link, Outlet } from '@tanstack/react-router'
+import { createFileRoute, Link, Outlet, redirect } from '@tanstack/react-router'
 import { Rabbit } from 'lucide-react'
 
 const APP_CONFIG = config.app
@@ -17,6 +17,14 @@ const signInActions = {
 }
 
 export const Route = createFileRoute('/_auth')({
+	beforeLoad: ({ context }) => {
+		// Redirect authenticated users to dashboard
+		// Skip during SSR (client will handle)
+		const isSSR = (context.auth as { _isSSR?: boolean })?._isSSR
+		if (!isSSR && context.auth?.isAuthenticated) {
+			throw redirect({ to: '/dashboard' })
+		}
+	},
 	component: AuthLayout,
 })
 

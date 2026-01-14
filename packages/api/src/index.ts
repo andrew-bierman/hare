@@ -24,7 +24,12 @@ import { secureHeaders } from 'hono/secure-headers'
 import { timing } from 'hono/timing'
 import { serverEnv } from '@hare/config'
 import { CloudflareEnvError } from './db'
-import { corsMiddleware, loggingMiddleware, securityHeadersMiddleware } from './middleware'
+import {
+	corsMiddleware,
+	loggingMiddleware,
+	optionalAuthMiddleware,
+	securityHeadersMiddleware,
+} from './middleware'
 import { orpcApp } from './orpc/hono'
 import agentWs from './routes/agent-ws'
 import auth from './routes/auth'
@@ -80,6 +85,9 @@ app.use('*', secureHeaders()) // Security headers (X-Content-Type-Options, X-Fra
 app.use('*', corsMiddleware)
 app.use('*', securityHeadersMiddleware)
 app.use('*', loggingMiddleware) // Request logging to KV for observability
+
+// Auth middleware for oRPC routes - parses session cookies and sets user in context
+app.use('/rpc/*', optionalAuthMiddleware)
 
 // Mount routes - chain for type inference
 // Note: Most routes are now on oRPC at /api/rpc/*
