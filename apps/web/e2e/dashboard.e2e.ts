@@ -283,3 +283,178 @@ baseTest.describe('Form Accessibility - Public Pages', () => {
 		await expect(emailInput).toBeFocused()
 	})
 })
+
+// ============================================================================
+// Settings Page Tests
+// ============================================================================
+
+test.describe('Settings Page - Authenticated', () => {
+	test('displays settings heading', async ({ authenticatedPage }) => {
+		await authenticatedPage.goto('/dashboard/settings')
+		await waitForWorkspaceLoad(authenticatedPage)
+
+		await expect(authenticatedPage.getByRole('heading', { name: 'Settings' })).toBeVisible({ timeout: 15000 })
+	})
+
+	test('displays profile section with name and email fields', async ({ authenticatedPage }) => {
+		await authenticatedPage.goto('/dashboard/settings')
+		await waitForWorkspaceLoad(authenticatedPage)
+		await authenticatedPage.waitForTimeout(1000)
+
+		// Profile section should have name and email fields
+		await expect(authenticatedPage.getByLabel('Name')).toBeVisible({ timeout: 10000 })
+		await expect(authenticatedPage.getByLabel('Email')).toBeVisible()
+	})
+
+	test('has security options', async ({ authenticatedPage }) => {
+		await authenticatedPage.goto('/dashboard/settings')
+		await waitForWorkspaceLoad(authenticatedPage)
+		await authenticatedPage.waitForTimeout(1000)
+
+		// Should have Change Password and Sign Out buttons
+		await expect(authenticatedPage.getByRole('button', { name: 'Change Password' })).toBeVisible({ timeout: 10000 })
+		await expect(authenticatedPage.getByRole('button', { name: /sign out/i })).toBeVisible()
+	})
+
+	test('email field is disabled', async ({ authenticatedPage }) => {
+		await authenticatedPage.goto('/dashboard/settings')
+		await waitForWorkspaceLoad(authenticatedPage)
+		await authenticatedPage.waitForTimeout(1000)
+
+		// Email field should be disabled
+		const emailInput = authenticatedPage.getByLabel('Email')
+		await expect(emailInput).toBeDisabled()
+	})
+})
+
+// ============================================================================
+// Tools Page - Extended Tests
+// ============================================================================
+
+test.describe('Tools Page - Extended Tests', () => {
+	test('displays tools sections', async ({ authenticatedPage }) => {
+		await authenticatedPage.goto('/dashboard/tools')
+		await waitForWorkspaceLoad(authenticatedPage)
+		await authenticatedPage.waitForTimeout(1000)
+
+		// Page should have content (system or custom tools sections)
+		const pageContent = await authenticatedPage.locator('body').textContent()
+		expect(pageContent?.toLowerCase()).toContain('tools')
+	})
+
+	test('has search functionality', async ({ authenticatedPage }) => {
+		await authenticatedPage.goto('/dashboard/tools')
+		await waitForWorkspaceLoad(authenticatedPage)
+		await authenticatedPage.waitForTimeout(1000)
+
+		// Search input should be visible
+		const searchInput = authenticatedPage.getByPlaceholder(/search tools/i)
+		await expect(searchInput).toBeVisible({ timeout: 10000 })
+
+		// Should be able to type in search
+		await searchInput.fill('http')
+		await authenticatedPage.waitForTimeout(500)
+	})
+
+	test('has tool action buttons', async ({ authenticatedPage }) => {
+		await authenticatedPage.goto('/dashboard/tools')
+		await waitForWorkspaceLoad(authenticatedPage)
+		await authenticatedPage.waitForTimeout(1000)
+
+		// Should have Quick Add or Create HTTP Tool button
+		const hasQuickAdd = await authenticatedPage.getByRole('button', { name: 'Quick Add' }).isVisible().catch(() => false)
+		const hasCreateHttp = await authenticatedPage.getByRole('link', { name: 'Create HTTP Tool' }).isVisible().catch(() => false)
+		expect(hasQuickAdd || hasCreateHttp).toBe(true)
+	})
+})
+
+// ============================================================================
+// Agent Detail Page Tests
+// ============================================================================
+
+test.describe('Agent Detail Page - Authenticated', () => {
+	test('agent detail page has tabs after creation', async ({ authenticatedPage }) => {
+		// Create an agent first
+		await authenticatedPage.goto('/dashboard/agents/new')
+		await waitForWorkspaceLoad(authenticatedPage)
+
+		const agentName = `Tabs Test Agent ${Date.now()}`
+		await authenticatedPage.locator('#name').fill(agentName)
+
+		await authenticatedPage.getByRole('button', { name: /create agent/i }).click()
+
+		// Wait for redirect to agent detail page
+		await authenticatedPage.waitForURL(/\/dashboard\/agents\/[^/]+$/, { timeout: 20000 })
+		await waitForWorkspaceLoad(authenticatedPage)
+		await authenticatedPage.waitForTimeout(2000)
+
+		// Check for tabs
+		const generalTab = authenticatedPage.getByRole('tab', { name: 'General' })
+		await expect(generalTab).toBeVisible({ timeout: 15000 })
+	})
+
+	test('newly created agent shows Draft status', async ({ authenticatedPage }) => {
+		// Create an agent first
+		await authenticatedPage.goto('/dashboard/agents/new')
+		await waitForWorkspaceLoad(authenticatedPage)
+
+		const agentName = `Status Agent ${Date.now()}`
+		await authenticatedPage.locator('#name').fill(agentName)
+
+		await authenticatedPage.getByRole('button', { name: /create agent/i }).click()
+		await authenticatedPage.waitForURL(/\/dashboard\/agents\/[^/]+$/, { timeout: 20000 })
+		await waitForWorkspaceLoad(authenticatedPage)
+		await authenticatedPage.waitForTimeout(2000)
+
+		// New agents should show Draft status badge
+		const draftBadge = authenticatedPage.getByText('Draft')
+		await expect(draftBadge).toBeVisible({ timeout: 15000 })
+	})
+})
+
+// ============================================================================
+// Navigation Tests
+// ============================================================================
+
+test.describe('Dashboard Navigation - Authenticated', () => {
+	test('can navigate to Agents page', async ({ authenticatedPage }) => {
+		await authenticatedPage.goto('/dashboard')
+		await waitForWorkspaceLoad(authenticatedPage)
+
+		await authenticatedPage.getByRole('link', { name: 'Agents' }).click()
+		await waitForWorkspaceLoad(authenticatedPage)
+		await expect(authenticatedPage).toHaveURL('/dashboard/agents')
+		await expect(authenticatedPage.getByRole('heading', { name: 'Agents', exact: true })).toBeVisible({ timeout: 10000 })
+	})
+
+	test('can navigate to Tools page', async ({ authenticatedPage }) => {
+		await authenticatedPage.goto('/dashboard')
+		await waitForWorkspaceLoad(authenticatedPage)
+
+		// Use nav locator to get sidebar Tools link specifically
+		const nav = authenticatedPage.locator('nav')
+		await nav.getByRole('link', { name: 'Tools' }).click()
+		await waitForWorkspaceLoad(authenticatedPage)
+		await expect(authenticatedPage).toHaveURL('/dashboard/tools')
+		await expect(authenticatedPage.getByRole('heading', { name: 'Tools', exact: true })).toBeVisible({ timeout: 10000 })
+	})
+
+	test('can navigate to Settings page', async ({ authenticatedPage }) => {
+		await authenticatedPage.goto('/dashboard')
+		await waitForWorkspaceLoad(authenticatedPage)
+
+		await authenticatedPage.getByRole('link', { name: 'Settings' }).click()
+		await waitForWorkspaceLoad(authenticatedPage)
+		await expect(authenticatedPage).toHaveURL('/dashboard/settings')
+		await expect(authenticatedPage.getByRole('heading', { name: 'Settings' })).toBeVisible({ timeout: 10000 })
+	})
+
+	test('templates page has back navigation', async ({ authenticatedPage }) => {
+		await authenticatedPage.goto('/dashboard/agents/templates')
+		await waitForWorkspaceLoad(authenticatedPage)
+
+		// Should have "Back to Agents" button
+		const backButton = authenticatedPage.getByRole('button', { name: /back to agents/i })
+		await expect(backButton).toBeVisible({ timeout: 10000 })
+	})
+})
