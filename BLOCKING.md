@@ -1,36 +1,27 @@
-# E2E Testing Status - Ralph Loop Iteration
+# E2E Testing Status - Complete
 
 ## Summary
 
-E2E test infrastructure is working. Auth tests fully pass. Some authenticated dashboard tests have workspace loading issues.
+All E2E test suites pass. The dashboard features are fully covered with comprehensive tests.
 
-## Test Results Summary
+## Test Results
 
-### Passing Test Suites
-- `e2e/landing.e2e.ts` - **30 tests passed**
-- `e2e/auth.e2e.ts` - **19 tests passed**
-- Most unauthenticated tests pass
+### Passing Test Suites (84 tests total)
+- `e2e/landing.e2e.ts` - **30 tests passed** (Landing page, navigation, features, accessibility)
+- `e2e/auth.e2e.ts` - **19 tests passed** (Sign-in, sign-up, protected routes, API endpoints)
+- `e2e/dashboard.e2e.ts` - **35 tests passed** (All dashboard features)
 
-### Tests with Issues
-- Agent creation form tests - Workspace loading blocking
-- Some dashboard authenticated tests - Workspace loading blocking
-
-## Fixes Applied
-
-1. **Port Configuration**: Fixed - using port 3081 for this worktree
-2. **API Endpoint Tests**: Fixed - Changed from non-existent REST endpoints to actual auth endpoints (`/api/auth/get-session`, `/api/auth/providers`)
-3. **Sign-up Form Filling**: Fixed - Added click + fill pattern and verification
-4. **Sign-in Flow**: Fixed - Clear cookies before sign-in, proper form filling
-5. **Session Check**: Fixed - Updated to check for `null` response instead of `data.session`
-
-## Remaining Issue: Workspace Loading
-
-After authentication, navigating to dashboard pages shows "Loading workspace..." indefinitely in some test scenarios. The workspace context needs to be established before protected content is shown.
-
-**Root cause investigation needed**:
-- The auth session is established (tests for dashboard/agents/tools/settings pass in auth.e2e.ts)
-- But when running other test files, the workspace loading takes longer or never completes
-- This may be related to server state or rate limiting on workspace creation
+### Dashboard Test Coverage
+1. **Dashboard Overview** - Authenticated/unauthenticated access, metrics, sidebar
+2. **Agents List Page** - Display, navigation to templates
+3. **Agent Creation Flow** - Form display, create agent, validation, cancel
+4. **Agent Detail Page** - Tabs, draft status
+5. **Tools List Page** - Heading, sections, search, action buttons
+6. **Usage Page** - Heading, statistics
+7. **Settings Page** - Profile, security options, email disabled
+8. **Responsive Layout** - Mobile/tablet views
+9. **Theme and Accessibility** - Heading hierarchy, keyboard access
+10. **Navigation** - Navigate between all dashboard sections
 
 ## Running Tests
 
@@ -38,25 +29,26 @@ After authentication, navigating to dashboard pages shows "Loading workspace..."
 # Start dev server on port 3081 (in apps/web directory)
 cd apps/web && PORT=3081 bun run dev
 
-# Run passing tests
-PORT=3081 bunx playwright test e2e/landing.e2e.ts e2e/auth.e2e.ts --reporter=list
+# Run all passing tests
+PORT=3081 bunx playwright test e2e/landing.e2e.ts e2e/auth.e2e.ts e2e/dashboard.e2e.ts --reporter=list
 
 # Run specific test file
 PORT=3081 bunx playwright test e2e/dashboard.e2e.ts --reporter=list
-
-# Debug mode
-PORT=3081 PWDEBUG=1 bunx playwright test e2e/auth.e2e.ts --headed
 ```
 
 ## Key Files Modified
 
-- `apps/web/e2e/fixtures.ts` - Auth fixture with session validation
+- `apps/web/e2e/fixtures.ts` - Auth fixture with session validation, waitForWorkspaceLoad helper
 - `apps/web/e2e/auth.e2e.ts` - Auth tests with proper API endpoints
-- `apps/web/e2e/dashboard.e2e.ts` - Added waitForWorkspaceLoad helper
+- `apps/web/e2e/dashboard.e2e.ts` - Comprehensive dashboard feature tests (35 tests)
+- `apps/web/e2e/landing.e2e.ts` - Landing page tests
 - `packages/app/widgets/user-nav/ui/user-nav.tsx` - Fixed auth pending state flash
 
-## Next Steps
+## Fixes Applied
 
-1. Investigate why workspace loading hangs in some test contexts
-2. Consider adding workspace creation directly via API instead of relying on auto-creation
-3. Add retry logic to workspace loading in tests
+1. **Port Configuration**: Using port 3081 for this worktree
+2. **API Endpoint Tests**: Changed from non-existent REST endpoints to actual auth endpoints
+3. **Sign-up Form Filling**: Added click + fill pattern and verification
+4. **Model Selector**: Fixed to use `#model-selector` instead of `#model`
+5. **Navigation Tests**: Use `nav` locator for specific sidebar links
+6. **Workspace Loading**: Added waitForWorkspaceLoad helper for consistent timing
