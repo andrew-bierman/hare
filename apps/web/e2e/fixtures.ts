@@ -104,7 +104,29 @@ export const test = base.extend<{
 
 				// Wait for the page to settle - dashboard components will load data
 				await page.waitForLoadState('networkidle')
-				await page.waitForTimeout(1000) // Allow time for workspace creation
+
+				// Wait for workspace loading to complete
+				// The app shows "Loading workspace..." while fetching workspace data
+				let workspaceWaitAttempts = 0
+				const maxWorkspaceWaitAttempts = 60 // 30 seconds max
+				while (workspaceWaitAttempts < maxWorkspaceWaitAttempts) {
+					const loadingVisible = await page
+						.getByText('Loading workspace...')
+						.isVisible()
+						.catch(() => false)
+					const settingUpVisible = await page
+						.getByText('Setting up your workspace')
+						.isVisible()
+						.catch(() => false)
+					if (!loadingVisible && !settingUpVisible) {
+						break
+					}
+					await page.waitForTimeout(500)
+					workspaceWaitAttempts++
+				}
+
+				// Wait for network to settle after workspace loads
+				await page.waitForLoadState('networkidle')
 
 				// Verify we're on the dashboard by checking for Dashboard heading
 				// The heading may take a moment to appear after data loads
@@ -162,6 +184,35 @@ export const test = base.extend<{
 })
 
 export { expect }
+
+/**
+ * Wait for workspace loading to complete.
+ * The app shows "Loading workspace..." while fetching workspace data.
+ * Call this after navigating to any authenticated page.
+ */
+export async function waitForWorkspaceLoad(page: Page): Promise<void> {
+	// First wait for network to settle
+	await page.waitForLoadState('networkidle')
+
+	// Then poll for the loading message to disappear
+	let attempts = 0
+	const maxAttempts = 60 // 30 seconds max
+	while (attempts < maxAttempts) {
+		const loadingVisible = await page.getByText('Loading workspace...').isVisible().catch(() => false)
+		const settingUpVisible = await page
+			.getByText('Setting up your workspace')
+			.isVisible()
+			.catch(() => false)
+		if (!loadingVisible && !settingUpVisible) {
+			break
+		}
+		await page.waitForTimeout(500)
+		attempts++
+	}
+
+	// One more network idle wait after content loads
+	await page.waitForLoadState('networkidle')
+}
 
 /**
  * Helper to create a test user via API.

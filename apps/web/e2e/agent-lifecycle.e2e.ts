@@ -1,5 +1,5 @@
 import { test as baseTest, expect, type Page } from '@playwright/test'
-import { test } from './fixtures'
+import { test, waitForWorkspaceLoad } from './fixtures'
 
 /**
  * Agent Lifecycle E2E tests.
@@ -10,17 +10,6 @@ import { test } from './fixtures'
 // Helper to generate unique agent names
 function generateAgentName(): string {
 	return `Test Agent ${Date.now()}`
-}
-
-// Helper to wait for workspace to fully load
-async function waitForWorkspaceLoad(page: Page): Promise<void> {
-	// Wait for the "Loading workspace..." message to disappear
-	const loadingText = page.getByText('Loading workspace...')
-	await loadingText.waitFor({ state: 'detached', timeout: 30000 }).catch(() => {
-		// If not found, workspace is already loaded
-	})
-	// Also wait for network to settle
-	await page.waitForLoadState('networkidle')
 }
 
 // ============================================================================
@@ -65,7 +54,7 @@ test.describe('Agent Creation Flow - Authenticated', () => {
 		// Check for required form fields
 		await expect(authenticatedPage.locator('#name')).toBeVisible({ timeout: 10000 })
 		await expect(authenticatedPage.locator('#description')).toBeVisible()
-		await expect(authenticatedPage.locator('#model')).toBeVisible()
+		await expect(authenticatedPage.locator('#model-selector')).toBeVisible()
 		await expect(authenticatedPage.getByText('System Prompt', { exact: true })).toBeVisible()
 
 		// Check for create button
@@ -82,7 +71,7 @@ test.describe('Agent Creation Flow - Authenticated', () => {
 		await authenticatedPage.locator('#description').fill('A test agent for E2E testing')
 
 		// Select a model (if dropdown is available)
-		const modelSelect = authenticatedPage.locator('#model')
+		const modelSelect = authenticatedPage.locator('#model-selector')
 		if (await modelSelect.isVisible()) {
 			await modelSelect.click()
 			// Wait for dropdown options and select the first one
@@ -260,7 +249,7 @@ test.describe('Agent Configuration - Authenticated', () => {
 		await authenticatedPage.waitForTimeout(2000)
 
 		// Model selector should be visible
-		const modelSelect = authenticatedPage.locator('#model')
+		const modelSelect = authenticatedPage.locator('#model-selector')
 		await expect(modelSelect).toBeVisible()
 	})
 

@@ -1,30 +1,5 @@
 import { test as baseTest, expect, type Page } from '@playwright/test'
-import { test } from './fixtures'
-
-/**
- * Wait for workspace loading to complete.
- * The app shows "Loading workspace..." while fetching workspace data.
- */
-async function waitForWorkspaceLoad(page: Page): Promise<void> {
-	// First wait for network to settle
-	await page.waitForLoadState('networkidle')
-
-	// Then poll for the loading message to disappear
-	// This is more reliable than waitFor({ state: 'detached' })
-	let attempts = 0
-	const maxAttempts = 60 // 30 seconds max
-	while (attempts < maxAttempts) {
-		const loadingVisible = await page.getByText('Loading workspace...').isVisible().catch(() => false)
-		if (!loadingVisible) {
-			break
-		}
-		await page.waitForTimeout(500)
-		attempts++
-	}
-
-	// One more network idle wait after content loads
-	await page.waitForLoadState('networkidle')
-}
+import { test, waitForWorkspaceLoad } from './fixtures'
 
 baseTest.describe('Dashboard Overview - Unauthenticated', () => {
 	baseTest('unauthenticated user is redirected to sign-in', async ({ page }: { page: Page }) => {
@@ -93,7 +68,7 @@ test.describe('Agent Creation Flow - Authenticated', () => {
 		// Check for required form fields using id selectors
 		await expect(authenticatedPage.locator('#name')).toBeVisible()
 		await expect(authenticatedPage.locator('#description')).toBeVisible()
-		await expect(authenticatedPage.locator('#model')).toBeVisible()
+		await expect(authenticatedPage.locator('#model-selector')).toBeVisible()
 		await expect(authenticatedPage.getByText('System Prompt', { exact: true })).toBeVisible()
 
 		// Check for create button
@@ -110,7 +85,7 @@ test.describe('Agent Creation Flow - Authenticated', () => {
 		await authenticatedPage.locator('#description').fill('A test agent for E2E testing')
 
 		// Select a model (if dropdown is available)
-		const modelSelect = authenticatedPage.locator('#model')
+		const modelSelect = authenticatedPage.locator('#model-selector')
 		if (await modelSelect.isVisible()) {
 			await modelSelect.click()
 			// Wait for dropdown options and select the first one
@@ -177,11 +152,23 @@ test.describe('Agent List and Management - Authenticated', () => {
 		await expect(authenticatedPage.getByRole('link', { name: 'New Agent' })).toBeVisible()
 	})
 
-	test('should navigate to agent creation from list', async ({ authenticatedPage }) => {
+	test('should navigate to templates page from agent list', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/agents')
 		await waitForWorkspaceLoad(authenticatedPage)
 
+		// "New Agent" button goes to templates page first
 		await authenticatedPage.getByRole('link', { name: 'New Agent' }).click()
+		await waitForWorkspaceLoad(authenticatedPage)
+		await expect(authenticatedPage).toHaveURL('/dashboard/agents/templates')
+		await expect(authenticatedPage.getByRole('heading', { name: 'Choose a Template' })).toBeVisible({ timeout: 10000 })
+	})
+
+	test('should navigate from templates to agent creation', async ({ authenticatedPage }) => {
+		await authenticatedPage.goto('/dashboard/agents/templates')
+		await waitForWorkspaceLoad(authenticatedPage)
+
+		// Click "Start from scratch" to go to create form
+		await authenticatedPage.getByRole('button', { name: /start from scratch/i }).click()
 		await waitForWorkspaceLoad(authenticatedPage)
 		await expect(authenticatedPage).toHaveURL('/dashboard/agents/new')
 		await expect(authenticatedPage.getByRole('heading', { name: 'Create New Agent' })).toBeVisible({ timeout: 10000 })
