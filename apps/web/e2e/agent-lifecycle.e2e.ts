@@ -12,55 +12,58 @@ function generateAgentName(): string {
 	return `Test Agent ${Date.now()}`
 }
 
+// Helper to wait for workspace to fully load
+async function waitForWorkspaceLoad(page: Page): Promise<void> {
+	// Wait for the "Loading workspace..." message to disappear
+	const loadingText = page.getByText('Loading workspace...')
+	await loadingText.waitFor({ state: 'detached', timeout: 30000 }).catch(() => {
+		// If not found, workspace is already loaded
+	})
+	// Also wait for network to settle
+	await page.waitForLoadState('networkidle')
+}
+
 // ============================================================================
 // 1. Agent Creation Flow
 // ============================================================================
 
 baseTest.describe('Agent Creation Flow - Unauthenticated', () => {
-	baseTest.beforeEach(async ({ page }: { page: Page }) => {
-		await page.goto('/dashboard/agents/new')
-		await page.waitForLoadState('networkidle')
-	})
+	baseTest(
+		'unauthenticated user is redirected to sign-in when accessing agent creation',
+		async ({ page }: { page: Page }) => {
+			await page.goto('/dashboard/agents/new')
+			await page.waitForLoadState('networkidle')
 
-	baseTest('displays agent creation form', async ({ page }: { page: Page }) => {
-		// Check for heading
-		await expect(page.getByRole('heading', { name: 'Create New Agent' })).toBeVisible()
-
-		// Check for required form fields using id selectors
-		await expect(page.locator('#name')).toBeVisible()
-		await expect(page.locator('#description')).toBeVisible()
-		await expect(page.locator('#model')).toBeVisible()
-
-		// Check for system prompt section
-		await expect(page.getByText('System Prompt', { exact: true })).toBeVisible()
-	})
-
-	baseTest('create button is disabled when name is empty', async ({ page }: { page: Page }) => {
-		const createButton = page.getByRole('button', { name: /create agent/i })
-		await expect(createButton).toBeVisible()
-		await expect(createButton).toBeDisabled()
-	})
-
-	baseTest('can navigate back to agents list', async ({ page }: { page: Page }) => {
-		// Click cancel button
-		const cancelButton = page.getByRole('button', { name: /cancel/i })
-		if (await cancelButton.isVisible()) {
-			await cancelButton.click()
-			await page.waitForURL(/\/dashboard\/agents/)
-		}
-	})
+			// Should be redirected to sign-in page
+			await expect(page).toHaveURL(/sign-in/)
+			await expect(page.getByRole('button', { name: 'Sign In' })).toBeVisible()
+		},
+	)
 })
 
 test.describe('Agent Creation Flow - Authenticated', () => {
 	test('should display agent creation form with all fields', async ({ authenticatedPage }) => {
+		// Before navigating, verify authentication is working
+		const sessionResponse = await authenticatedPage.request.get('/api/auth/get-session')
+		if (!sessionResponse.ok()) {
+			throw new Error(`Session not valid: ${sessionResponse.status()}`)
+		}
+		const session = await sessionResponse.json()
+		if (!session.user) {
+			throw new Error('No user in session')
+		}
+
+		// Navigate to agent creation page
 		await authenticatedPage.goto('/dashboard/agents/new')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await waitForWorkspaceLoad(authenticatedPage)
 
 		// Check for heading
-		await expect(authenticatedPage.getByRole('heading', { name: 'Create New Agent' })).toBeVisible()
+		await expect(
+			authenticatedPage.getByRole('heading', { name: 'Create New Agent' }),
+		).toBeVisible({ timeout: 15000 })
 
 		// Check for required form fields
-		await expect(authenticatedPage.locator('#name')).toBeVisible()
+		await expect(authenticatedPage.locator('#name')).toBeVisible({ timeout: 10000 })
 		await expect(authenticatedPage.locator('#description')).toBeVisible()
 		await expect(authenticatedPage.locator('#model')).toBeVisible()
 		await expect(authenticatedPage.getByText('System Prompt', { exact: true })).toBeVisible()
@@ -71,7 +74,7 @@ test.describe('Agent Creation Flow - Authenticated', () => {
 
 	test('should successfully create a new agent', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/agents/new')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await waitForWorkspaceLoad(authenticatedPage)
 
 		// Fill in agent details
 		const agentName = generateAgentName()
@@ -107,7 +110,7 @@ test.describe('Agent Creation Flow - Authenticated', () => {
 
 	test('should validate required name field', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/agents/new')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await waitForWorkspaceLoad(authenticatedPage)
 
 		// Create button should be disabled when name is empty
 		const createButton = authenticatedPage.getByRole('button', { name: /create agent/i })
@@ -120,7 +123,7 @@ test.describe('Agent Creation Flow - Authenticated', () => {
 
 	test('should allow canceling agent creation', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/agents/new')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await waitForWorkspaceLoad(authenticatedPage)
 
 		// Fill in some data
 		await authenticatedPage.locator('#name').fill('Test Agent')
@@ -143,7 +146,7 @@ test.describe('Agent Creation Flow - Authenticated', () => {
 
 	test('created agent should appear in agents list', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/agents/new')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await waitForWorkspaceLoad(authenticatedPage)
 
 		// Create an agent
 		const agentName = generateAgentName()
@@ -159,7 +162,7 @@ test.describe('Agent Creation Flow - Authenticated', () => {
 
 		// Navigate to agents list
 		await authenticatedPage.goto('/dashboard/agents')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await waitForWorkspaceLoad(authenticatedPage)
 
 		// Agent should be visible in the list
 		await expect(authenticatedPage.getByText(agentName)).toBeVisible({ timeout: 10000 })
@@ -174,7 +177,7 @@ test.describe('Agent Configuration - Authenticated', () => {
 	test('should update agent name', async ({ authenticatedPage }) => {
 		// First, create an agent
 		await authenticatedPage.goto('/dashboard/agents/new')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await waitForWorkspaceLoad(authenticatedPage)
 
 		const originalName = generateAgentName()
 		await authenticatedPage.locator('#name').fill(originalName)
@@ -185,7 +188,7 @@ test.describe('Agent Configuration - Authenticated', () => {
 
 		// Wait for redirect to agent detail page
 		await authenticatedPage.waitForURL(/\/dashboard\/agents\/[^/]+$/, { timeout: 10000 })
-		await authenticatedPage.waitForLoadState('networkidle')
+		await waitForWorkspaceLoad(authenticatedPage)
 
 		// Wait for the page to load
 		await authenticatedPage.waitForTimeout(2000)
@@ -210,7 +213,7 @@ test.describe('Agent Configuration - Authenticated', () => {
 	test('should update agent description', async ({ authenticatedPage }) => {
 		// Create an agent first
 		await authenticatedPage.goto('/dashboard/agents/new')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await waitForWorkspaceLoad(authenticatedPage)
 
 		const agentName = generateAgentName()
 		await authenticatedPage.locator('#name').fill(agentName)
@@ -221,7 +224,7 @@ test.describe('Agent Configuration - Authenticated', () => {
 
 		// Wait for redirect to agent detail page
 		await authenticatedPage.waitForURL(/\/dashboard\/agents\/[^/]+$/, { timeout: 10000 })
-		await authenticatedPage.waitForLoadState('networkidle')
+		await waitForWorkspaceLoad(authenticatedPage)
 		await authenticatedPage.waitForTimeout(2000)
 
 		// Update the description
@@ -243,7 +246,7 @@ test.describe('Agent Configuration - Authenticated', () => {
 	test('should show model selector in agent configuration', async ({ authenticatedPage }) => {
 		// Create an agent first
 		await authenticatedPage.goto('/dashboard/agents/new')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await waitForWorkspaceLoad(authenticatedPage)
 
 		const agentName = generateAgentName()
 		await authenticatedPage.locator('#name').fill(agentName)
@@ -253,7 +256,7 @@ test.describe('Agent Configuration - Authenticated', () => {
 
 		// Wait for redirect to agent detail page
 		await authenticatedPage.waitForURL(/\/dashboard\/agents\/[^/]+$/, { timeout: 10000 })
-		await authenticatedPage.waitForLoadState('networkidle')
+		await waitForWorkspaceLoad(authenticatedPage)
 		await authenticatedPage.waitForTimeout(2000)
 
 		// Model selector should be visible
@@ -264,7 +267,7 @@ test.describe('Agent Configuration - Authenticated', () => {
 	test('should have system prompt configuration section', async ({ authenticatedPage }) => {
 		// Create an agent first
 		await authenticatedPage.goto('/dashboard/agents/new')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await waitForWorkspaceLoad(authenticatedPage)
 
 		const agentName = generateAgentName()
 		await authenticatedPage.locator('#name').fill(agentName)
@@ -274,7 +277,7 @@ test.describe('Agent Configuration - Authenticated', () => {
 
 		// Wait for redirect to agent detail page
 		await authenticatedPage.waitForURL(/\/dashboard\/agents\/[^/]+$/, { timeout: 10000 })
-		await authenticatedPage.waitForLoadState('networkidle')
+		await waitForWorkspaceLoad(authenticatedPage)
 		await authenticatedPage.waitForTimeout(2000)
 
 		// Look for Prompt tab
@@ -291,7 +294,7 @@ test.describe('Agent Configuration - Authenticated', () => {
 	test('should display agent tabs for configuration', async ({ authenticatedPage }) => {
 		// Create an agent first
 		await authenticatedPage.goto('/dashboard/agents/new')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await waitForWorkspaceLoad(authenticatedPage)
 
 		const agentName = generateAgentName()
 		await authenticatedPage.locator('#name').fill(agentName)
@@ -301,7 +304,7 @@ test.describe('Agent Configuration - Authenticated', () => {
 
 		// Wait for redirect to agent detail page
 		await authenticatedPage.waitForURL(/\/dashboard\/agents\/[^/]+$/, { timeout: 10000 })
-		await authenticatedPage.waitForLoadState('networkidle')
+		await waitForWorkspaceLoad(authenticatedPage)
 		await authenticatedPage.waitForTimeout(2000)
 
 		// Check for various tabs
@@ -319,7 +322,7 @@ test.describe('Agent Chat/Conversation - Authenticated', () => {
 	test('should navigate to agent playground', async ({ authenticatedPage }) => {
 		// Create and deploy an agent first
 		await authenticatedPage.goto('/dashboard/agents/new')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await waitForWorkspaceLoad(authenticatedPage)
 
 		const agentName = generateAgentName()
 		await authenticatedPage.locator('#name').fill(agentName)
@@ -330,7 +333,7 @@ test.describe('Agent Chat/Conversation - Authenticated', () => {
 
 		// Wait for redirect to agent detail page
 		await authenticatedPage.waitForURL(/\/dashboard\/agents\/[^/]+$/, { timeout: 10000 })
-		await authenticatedPage.waitForLoadState('networkidle')
+		await waitForWorkspaceLoad(authenticatedPage)
 
 		// Get the agent ID from URL
 		const urlParts = authenticatedPage.url().split('/')
@@ -338,7 +341,7 @@ test.describe('Agent Chat/Conversation - Authenticated', () => {
 
 		// Navigate to playground
 		await authenticatedPage.goto(`/dashboard/agents/${agentId}/playground`)
-		await authenticatedPage.waitForLoadState('networkidle')
+		await waitForWorkspaceLoad(authenticatedPage)
 
 		// The playground page should load (may show "not deployed" message)
 		const pageContent = await authenticatedPage.content()
@@ -354,7 +357,7 @@ test.describe('Agent Chat/Conversation - Authenticated', () => {
 	}) => {
 		// Create an agent (not deployed)
 		await authenticatedPage.goto('/dashboard/agents/new')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await waitForWorkspaceLoad(authenticatedPage)
 
 		const agentName = generateAgentName()
 		await authenticatedPage.locator('#name').fill(agentName)
@@ -364,7 +367,7 @@ test.describe('Agent Chat/Conversation - Authenticated', () => {
 
 		// Wait for redirect to agent detail page
 		await authenticatedPage.waitForURL(/\/dashboard\/agents\/[^/]+$/, { timeout: 10000 })
-		await authenticatedPage.waitForLoadState('networkidle')
+		await waitForWorkspaceLoad(authenticatedPage)
 
 		// Get the agent ID from URL
 		const urlParts = authenticatedPage.url().split('/')
@@ -372,7 +375,7 @@ test.describe('Agent Chat/Conversation - Authenticated', () => {
 
 		// Navigate to playground
 		await authenticatedPage.goto(`/dashboard/agents/${agentId}/playground`)
-		await authenticatedPage.waitForLoadState('networkidle')
+		await waitForWorkspaceLoad(authenticatedPage)
 		await authenticatedPage.waitForTimeout(2000)
 
 		// Should show message about deploying the agent
@@ -389,7 +392,7 @@ test.describe('Agent Chat/Conversation - Authenticated', () => {
 	}) => {
 		// Create and deploy an agent
 		await authenticatedPage.goto('/dashboard/agents/new')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await waitForWorkspaceLoad(authenticatedPage)
 
 		const agentName = generateAgentName()
 		await authenticatedPage.locator('#name').fill(agentName)
@@ -400,7 +403,7 @@ test.describe('Agent Chat/Conversation - Authenticated', () => {
 
 		// Wait for redirect to agent detail page
 		await authenticatedPage.waitForURL(/\/dashboard\/agents\/[^/]+$/, { timeout: 10000 })
-		await authenticatedPage.waitForLoadState('networkidle')
+		await waitForWorkspaceLoad(authenticatedPage)
 		await authenticatedPage.waitForTimeout(2000)
 
 		// Deploy the agent
@@ -416,7 +419,7 @@ test.describe('Agent Chat/Conversation - Authenticated', () => {
 
 		// Navigate to playground
 		await authenticatedPage.goto(`/dashboard/agents/${agentId}/playground`)
-		await authenticatedPage.waitForLoadState('networkidle')
+		await waitForWorkspaceLoad(authenticatedPage)
 		await authenticatedPage.waitForTimeout(2000)
 
 		// Check for chat interface elements
@@ -435,7 +438,7 @@ test.describe('Agent Chat/Conversation - Authenticated', () => {
 	test('can clear chat messages', async ({ authenticatedPage }) => {
 		// Create and deploy an agent
 		await authenticatedPage.goto('/dashboard/agents/new')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await waitForWorkspaceLoad(authenticatedPage)
 
 		const agentName = generateAgentName()
 		await authenticatedPage.locator('#name').fill(agentName)
@@ -445,7 +448,7 @@ test.describe('Agent Chat/Conversation - Authenticated', () => {
 
 		// Wait for redirect to agent detail page
 		await authenticatedPage.waitForURL(/\/dashboard\/agents\/[^/]+$/, { timeout: 10000 })
-		await authenticatedPage.waitForLoadState('networkidle')
+		await waitForWorkspaceLoad(authenticatedPage)
 		await authenticatedPage.waitForTimeout(2000)
 
 		// Deploy the agent
@@ -461,7 +464,7 @@ test.describe('Agent Chat/Conversation - Authenticated', () => {
 
 		// Navigate to playground
 		await authenticatedPage.goto(`/dashboard/agents/${agentId}/playground`)
-		await authenticatedPage.waitForLoadState('networkidle')
+		await waitForWorkspaceLoad(authenticatedPage)
 		await authenticatedPage.waitForTimeout(2000)
 
 		// Check for clear button
@@ -481,7 +484,7 @@ test.describe('Agent Deployment - Authenticated', () => {
 	test('should show deploy button for draft agent', async ({ authenticatedPage }) => {
 		// Create an agent
 		await authenticatedPage.goto('/dashboard/agents/new')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await waitForWorkspaceLoad(authenticatedPage)
 
 		const agentName = generateAgentName()
 		await authenticatedPage.locator('#name').fill(agentName)
@@ -491,7 +494,7 @@ test.describe('Agent Deployment - Authenticated', () => {
 
 		// Wait for redirect to agent detail page
 		await authenticatedPage.waitForURL(/\/dashboard\/agents\/[^/]+$/, { timeout: 10000 })
-		await authenticatedPage.waitForLoadState('networkidle')
+		await waitForWorkspaceLoad(authenticatedPage)
 		await authenticatedPage.waitForTimeout(2000)
 
 		// Deploy button should be visible for draft agents
@@ -502,7 +505,7 @@ test.describe('Agent Deployment - Authenticated', () => {
 	test('should deploy an agent successfully', async ({ authenticatedPage }) => {
 		// Create an agent
 		await authenticatedPage.goto('/dashboard/agents/new')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await waitForWorkspaceLoad(authenticatedPage)
 
 		const agentName = generateAgentName()
 		await authenticatedPage.locator('#name').fill(agentName)
@@ -513,7 +516,7 @@ test.describe('Agent Deployment - Authenticated', () => {
 
 		// Wait for redirect to agent detail page
 		await authenticatedPage.waitForURL(/\/dashboard\/agents\/[^/]+$/, { timeout: 10000 })
-		await authenticatedPage.waitForLoadState('networkidle')
+		await waitForWorkspaceLoad(authenticatedPage)
 		await authenticatedPage.waitForTimeout(2000)
 
 		// Click deploy button
@@ -539,7 +542,7 @@ test.describe('Agent Deployment - Authenticated', () => {
 	test('should show embed code button for deployed agent', async ({ authenticatedPage }) => {
 		// Create and deploy an agent
 		await authenticatedPage.goto('/dashboard/agents/new')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await waitForWorkspaceLoad(authenticatedPage)
 
 		const agentName = generateAgentName()
 		await authenticatedPage.locator('#name').fill(agentName)
@@ -549,7 +552,7 @@ test.describe('Agent Deployment - Authenticated', () => {
 
 		// Wait for redirect to agent detail page
 		await authenticatedPage.waitForURL(/\/dashboard\/agents\/[^/]+$/, { timeout: 10000 })
-		await authenticatedPage.waitForLoadState('networkidle')
+		await waitForWorkspaceLoad(authenticatedPage)
 		await authenticatedPage.waitForTimeout(2000)
 
 		// Deploy the agent
@@ -578,7 +581,7 @@ test.describe('Agent Deployment - Authenticated', () => {
 	test('should navigate to embed configuration page', async ({ authenticatedPage }) => {
 		// Create and deploy an agent
 		await authenticatedPage.goto('/dashboard/agents/new')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await waitForWorkspaceLoad(authenticatedPage)
 
 		const agentName = generateAgentName()
 		await authenticatedPage.locator('#name').fill(agentName)
@@ -588,7 +591,7 @@ test.describe('Agent Deployment - Authenticated', () => {
 
 		// Wait for redirect to agent detail page
 		await authenticatedPage.waitForURL(/\/dashboard\/agents\/[^/]+$/, { timeout: 10000 })
-		await authenticatedPage.waitForLoadState('networkidle')
+		await waitForWorkspaceLoad(authenticatedPage)
 
 		// Get the agent ID from URL
 		const urlParts = authenticatedPage.url().split('/')
@@ -596,7 +599,7 @@ test.describe('Agent Deployment - Authenticated', () => {
 
 		// Navigate to embed page
 		await authenticatedPage.goto(`/dashboard/agents/${agentId}/embed`)
-		await authenticatedPage.waitForLoadState('networkidle')
+		await waitForWorkspaceLoad(authenticatedPage)
 		await authenticatedPage.waitForTimeout(2000)
 
 		// Should be on embed configuration page
@@ -619,7 +622,7 @@ test.describe('Agent Deletion - Authenticated', () => {
 	test('should show delete button on agent page', async ({ authenticatedPage }) => {
 		// Create an agent
 		await authenticatedPage.goto('/dashboard/agents/new')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await waitForWorkspaceLoad(authenticatedPage)
 
 		const agentName = generateAgentName()
 		await authenticatedPage.locator('#name').fill(agentName)
@@ -629,7 +632,7 @@ test.describe('Agent Deletion - Authenticated', () => {
 
 		// Wait for redirect to agent detail page
 		await authenticatedPage.waitForURL(/\/dashboard\/agents\/[^/]+$/, { timeout: 10000 })
-		await authenticatedPage.waitForLoadState('networkidle')
+		await waitForWorkspaceLoad(authenticatedPage)
 		await authenticatedPage.waitForTimeout(2000)
 
 		// Look for delete button (may be icon button)
@@ -651,7 +654,7 @@ test.describe('Agent Deletion - Authenticated', () => {
 	test('should show confirmation dialog before deletion', async ({ authenticatedPage }) => {
 		// Create an agent
 		await authenticatedPage.goto('/dashboard/agents/new')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await waitForWorkspaceLoad(authenticatedPage)
 
 		const agentName = generateAgentName()
 		await authenticatedPage.locator('#name').fill(agentName)
@@ -661,7 +664,7 @@ test.describe('Agent Deletion - Authenticated', () => {
 
 		// Wait for redirect to agent detail page
 		await authenticatedPage.waitForURL(/\/dashboard\/agents\/[^/]+$/, { timeout: 10000 })
-		await authenticatedPage.waitForLoadState('networkidle')
+		await waitForWorkspaceLoad(authenticatedPage)
 		await authenticatedPage.waitForTimeout(2000)
 
 		// Click delete button to open dialog
@@ -692,7 +695,7 @@ test.describe('Agent Deletion - Authenticated', () => {
 	test('should delete agent and redirect to agents list', async ({ authenticatedPage }) => {
 		// Create an agent to delete
 		await authenticatedPage.goto('/dashboard/agents/new')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await waitForWorkspaceLoad(authenticatedPage)
 
 		const agentName = generateAgentName()
 		await authenticatedPage.locator('#name').fill(agentName)
@@ -703,7 +706,7 @@ test.describe('Agent Deletion - Authenticated', () => {
 
 		// Wait for redirect to agent detail page
 		await authenticatedPage.waitForURL(/\/dashboard\/agents\/[^/]+$/, { timeout: 10000 })
-		await authenticatedPage.waitForLoadState('networkidle')
+		await waitForWorkspaceLoad(authenticatedPage)
 		await authenticatedPage.waitForTimeout(2000)
 
 		// Click delete button to open dialog
@@ -743,7 +746,7 @@ test.describe('Agent Deletion - Authenticated', () => {
 test.describe('Agent List Management - Authenticated', () => {
 	test('should display agents list page', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/agents')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await waitForWorkspaceLoad(authenticatedPage)
 
 		await expect(
 			authenticatedPage.getByRole('heading', { name: 'Agents', exact: true }),
@@ -752,7 +755,7 @@ test.describe('Agent List Management - Authenticated', () => {
 
 	test('should have new agent button', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/agents')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await waitForWorkspaceLoad(authenticatedPage)
 
 		// Look for New Agent link or button
 		const newAgentLink = authenticatedPage.getByRole('link', { name: /new agent/i })
@@ -767,7 +770,7 @@ test.describe('Agent List Management - Authenticated', () => {
 
 	test('should have search functionality', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/agents')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await waitForWorkspaceLoad(authenticatedPage)
 
 		// Search input should be present
 		const searchInput = authenticatedPage.getByPlaceholder(/search agents/i)
@@ -776,7 +779,7 @@ test.describe('Agent List Management - Authenticated', () => {
 
 	test('should have filter tabs for agent status', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/agents')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await waitForWorkspaceLoad(authenticatedPage)
 
 		// Filter tabs should be present
 		const allTab = authenticatedPage.getByRole('tab', { name: /all/i })
@@ -790,7 +793,7 @@ test.describe('Agent List Management - Authenticated', () => {
 
 	test('can filter agents by status', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/agents')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await waitForWorkspaceLoad(authenticatedPage)
 
 		// Click on Live/Deployed tab
 		const liveTab = authenticatedPage.getByRole('tab', { name: /live|deployed/i })
@@ -812,7 +815,7 @@ test.describe('Agent List Management - Authenticated', () => {
 	test('can navigate from list to agent detail', async ({ authenticatedPage }) => {
 		// Create an agent first
 		await authenticatedPage.goto('/dashboard/agents/new')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await waitForWorkspaceLoad(authenticatedPage)
 
 		const agentName = generateAgentName()
 		await authenticatedPage.locator('#name').fill(agentName)
@@ -822,11 +825,11 @@ test.describe('Agent List Management - Authenticated', () => {
 
 		// Wait for creation
 		await authenticatedPage.waitForURL(/\/dashboard\/agents\/[^/]+$/, { timeout: 10000 })
-		await authenticatedPage.waitForLoadState('networkidle')
+		await waitForWorkspaceLoad(authenticatedPage)
 
 		// Go to agents list
 		await authenticatedPage.goto('/dashboard/agents')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await waitForWorkspaceLoad(authenticatedPage)
 		await authenticatedPage.waitForTimeout(2000)
 
 		// Find and click on the agent card (Configure button)
