@@ -1,0 +1,634 @@
+{
+  "name": "Hare Dashboard Core Features",
+  "description": "Core dashboard features to make Hare a production-ready AI agent platform with versioning, monitoring, audit logging, and enhanced user experience",
+  "branchName": "ralph/dashboard-core-features",
+  "userStories": [
+    {
+      "id": "US-001",
+      "title": "Add agent version tracking schema",
+      "description": "As a developer, I need database schema to track agent versions so deployment history can be stored",
+      "acceptanceCriteria": [
+        "Create agent_versions table in apps/web/src/db/schema/ with fields: id, agentId, version (number), instructions, model, config (JSON), toolIds (JSON array), createdAt, createdBy",
+        "Add foreign key relationship to agents table",
+        "Generate migration with bun run db:generate",
+        "bun run checks passes"
+      ],
+      "priority": 1,
+      "passes": false,
+      "notes": "",
+      "dependsOn": []
+    },
+    {
+      "id": "US-002",
+      "title": "Create agent version on deploy",
+      "description": "As a user, I want each agent deployment to automatically create a version record so I can track changes over time",
+      "acceptanceCriteria": [
+        "Modify deploy agent API route to create version record before deployment",
+        "Version number increments automatically (max existing version + 1)",
+        "Snapshot includes: instructions, model, config, attached tool IDs",
+        "bun run checks passes"
+      ],
+      "priority": 2,
+      "passes": false,
+      "notes": "",
+      "dependsOn": [
+        "US-001"
+      ]
+    },
+    {
+      "id": "US-003",
+      "title": "Add version history API endpoint",
+      "description": "As a developer, I need an API endpoint to fetch agent version history",
+      "acceptanceCriteria": [
+        "Create GET /api/agents/:id/versions endpoint in agents router",
+        "Return versions sorted by version number descending",
+        "Include pagination support (limit, offset)",
+        "Add Zod schema for response validation",
+        "bun run checks passes"
+      ],
+      "priority": 3,
+      "passes": false,
+      "notes": "",
+      "dependsOn": [
+        "US-002"
+      ]
+    },
+    {
+      "id": "US-004",
+      "title": "Display version history on agent detail page",
+      "description": "As a user, I want to see deployment history on the agent detail page so I can understand what changed",
+      "acceptanceCriteria": [
+        "Add Version History tab to agent detail page",
+        "Display list of versions with: version number, date, who deployed",
+        "Show diff summary (what changed from previous version)",
+        "Use TanStack Query hook for data fetching",
+        "bun run checks passes"
+      ],
+      "priority": 4,
+      "passes": false,
+      "notes": "",
+      "dependsOn": [
+        "US-003"
+      ]
+    },
+    {
+      "id": "US-005",
+      "title": "Implement agent rollback API",
+      "description": "As a developer, I need an API endpoint to rollback an agent to a previous version",
+      "acceptanceCriteria": [
+        "Create POST /api/agents/:id/rollback endpoint",
+        "Accept version number in request body",
+        "Restore agent config from version snapshot",
+        "Create new version record (rollback creates v+1, not destructive)",
+        "Redeploy agent with restored config",
+        "bun run checks passes"
+      ],
+      "priority": 5,
+      "passes": false,
+      "notes": "",
+      "dependsOn": [
+        "US-003"
+      ]
+    },
+    {
+      "id": "US-006",
+      "title": "Add rollback button to version history UI",
+      "description": "As a user, I want to rollback to a previous version with one click",
+      "acceptanceCriteria": [
+        "Add Rollback button on each version in history list",
+        "Show confirmation dialog before rollback with version details",
+        "Display success/error toast after rollback",
+        "Refresh version list after successful rollback",
+        "bun run checks passes"
+      ],
+      "priority": 6,
+      "passes": false,
+      "notes": "",
+      "dependsOn": [
+        "US-004",
+        "US-005"
+      ]
+    },
+    {
+      "id": "US-007",
+      "title": "Create audit_logs database schema",
+      "description": "As a developer, I need database schema to store audit log entries for compliance tracking",
+      "acceptanceCriteria": [
+        "Create audit_logs table with fields: id, workspaceId, userId, action (enum), resourceType, resourceId, details (JSON), ipAddress, userAgent, createdAt",
+        "Action enum includes: agent.create, agent.update, agent.delete, agent.deploy, tool.create, tool.update, tool.delete, member.invite, member.remove, member.role_change, apikey.create, apikey.revoke, workspace.update",
+        "Add index on workspaceId and createdAt for efficient queries",
+        "Generate migration",
+        "bun run checks passes"
+      ],
+      "priority": 7,
+      "passes": false,
+      "notes": "",
+      "dependsOn": []
+    },
+    {
+      "id": "US-008",
+      "title": "Create audit logging utility function",
+      "description": "As a developer, I need a reusable utility to log audit events from API routes",
+      "acceptanceCriteria": [
+        "Create logAuditEvent function in apps/web/src/lib/api/audit.ts",
+        "Function accepts: context (Hono context), action, resourceType, resourceId, details",
+        "Automatically extracts userId, workspaceId, IP, userAgent from context",
+        "Function is async and non-blocking (doesn't slow down API responses)",
+        "bun run checks passes"
+      ],
+      "priority": 8,
+      "passes": false,
+      "notes": "",
+      "dependsOn": [
+        "US-007"
+      ]
+    },
+    {
+      "id": "US-009",
+      "title": "Add audit logging to agent routes",
+      "description": "As a compliance officer, I want all agent actions logged for security auditing",
+      "acceptanceCriteria": [
+        "Log agent.create when agent is created",
+        "Log agent.update when agent settings are modified",
+        "Log agent.delete when agent is deleted",
+        "Log agent.deploy when agent is deployed",
+        "Include relevant details in each log entry",
+        "bun run checks passes"
+      ],
+      "priority": 9,
+      "passes": false,
+      "notes": "",
+      "dependsOn": [
+        "US-008"
+      ]
+    },
+    {
+      "id": "US-010",
+      "title": "Add audit logging to tool and team routes",
+      "description": "As a compliance officer, I want tool and team changes logged",
+      "acceptanceCriteria": [
+        "Log tool.create, tool.update, tool.delete in tools router",
+        "Log member.invite, member.remove, member.role_change in workspace members router",
+        "Log apikey.create, apikey.revoke in API keys router",
+        "bun run checks passes"
+      ],
+      "priority": 10,
+      "passes": false,
+      "notes": "",
+      "dependsOn": [
+        "US-008"
+      ]
+    },
+    {
+      "id": "US-011",
+      "title": "Create audit logs API endpoint",
+      "description": "As a developer, I need an API to query audit logs with filtering",
+      "acceptanceCriteria": [
+        "Create GET /api/audit-logs endpoint",
+        "Support filters: action, resourceType, userId, dateFrom, dateTo",
+        "Support pagination with limit and offset",
+        "Return total count for pagination UI",
+        "Restrict access to workspace admins and owners only",
+        "bun run checks passes"
+      ],
+      "priority": 11,
+      "passes": false,
+      "notes": "",
+      "dependsOn": [
+        "US-009",
+        "US-010"
+      ]
+    },
+    {
+      "id": "US-012",
+      "title": "Build audit logs page UI",
+      "description": "As an admin, I want to view audit logs in a searchable table",
+      "acceptanceCriteria": [
+        "Create /dashboard/audit-logs route",
+        "Display table with columns: Date, User, Action, Resource, Details",
+        "Add filter dropdowns for action type and resource type",
+        "Add date range picker for filtering",
+        "Implement pagination controls",
+        "Add link to audit logs in settings navigation",
+        "bun run checks passes"
+      ],
+      "priority": 12,
+      "passes": false,
+      "notes": "",
+      "dependsOn": [
+        "US-011"
+      ]
+    },
+    {
+      "id": "US-013",
+      "title": "Add agent health metrics calculation",
+      "description": "As a developer, I need to calculate agent health metrics from usage data",
+      "acceptanceCriteria": [
+        "Create getAgentHealthMetrics function that queries usage table",
+        "Calculate: success rate (%), average latency, error count, total requests (last 24h)",
+        "Derive health status: healthy (>95% success), degraded (80-95%), unhealthy (<80%)",
+        "Add to agents API or create dedicated health endpoint",
+        "bun run checks passes"
+      ],
+      "priority": 13,
+      "passes": false,
+      "notes": "",
+      "dependsOn": []
+    },
+    {
+      "id": "US-014",
+      "title": "Create agent health widget component",
+      "description": "As a user, I want to see agent health at a glance on the agent detail page",
+      "acceptanceCriteria": [
+        "Create AgentHealthWidget component in apps/web/src/components/",
+        "Display: success rate with progress ring, average latency, error count badge",
+        "Show health status indicator (green/yellow/red dot with label)",
+        "Add link to view detailed logs when errors exist",
+        "Auto-refresh data every 30 seconds",
+        "bun run checks passes"
+      ],
+      "priority": 14,
+      "passes": false,
+      "notes": "",
+      "dependsOn": [
+        "US-013"
+      ]
+    },
+    {
+      "id": "US-015",
+      "title": "Add health widget to agent detail page",
+      "description": "As a user, I want to see the health widget prominently on my agent's page",
+      "acceptanceCriteria": [
+        "Add AgentHealthWidget to agent detail page header area",
+        "Position alongside existing agent info (name, status, etc.)",
+        "Handle loading and error states gracefully",
+        "bun run checks passes"
+      ],
+      "priority": 15,
+      "passes": false,
+      "notes": "",
+      "dependsOn": [
+        "US-014"
+      ]
+    },
+    {
+      "id": "US-016",
+      "title": "Add conversation search API endpoint",
+      "description": "As a developer, I need an API to search through conversation messages",
+      "acceptanceCriteria": [
+        "Create GET /api/agents/:id/conversations/search endpoint",
+        "Accept query parameter for full-text search on message content",
+        "Accept dateFrom and dateTo parameters for date filtering",
+        "Return matching messages with conversation context (id, title)",
+        "Highlight matching text in results",
+        "bun run checks passes"
+      ],
+      "priority": 16,
+      "passes": false,
+      "notes": "",
+      "dependsOn": []
+    },
+    {
+      "id": "US-017",
+      "title": "Build conversation search UI",
+      "description": "As a user, I want to search through past conversations with my agent",
+      "acceptanceCriteria": [
+        "Add search input to agent conversations page",
+        "Display results as message snippets with highlighted matches",
+        "Show conversation title and date for each result",
+        "Click result navigates to full conversation with message scrolled into view",
+        "Add date range filter alongside search",
+        "bun run checks passes"
+      ],
+      "priority": 17,
+      "passes": false,
+      "notes": "",
+      "dependsOn": [
+        "US-016"
+      ]
+    },
+    {
+      "id": "US-018",
+      "title": "Add conversation export API endpoint",
+      "description": "As a developer, I need an API to export conversations in multiple formats",
+      "acceptanceCriteria": [
+        "Create GET /api/conversations/:id/export endpoint",
+        "Accept format query param: json, csv, txt",
+        "JSON format includes full message metadata and tool calls",
+        "CSV format includes: timestamp, role, content columns",
+        "TXT format is human-readable plain text",
+        "Set appropriate Content-Type and Content-Disposition headers",
+        "bun run checks passes"
+      ],
+      "priority": 18,
+      "passes": false,
+      "notes": "",
+      "dependsOn": []
+    },
+    {
+      "id": "US-019",
+      "title": "Add export button to conversation view",
+      "description": "As a user, I want to export a conversation for analysis or compliance",
+      "acceptanceCriteria": [
+        "Add Export dropdown button to conversation header",
+        "Options: Export as JSON, Export as CSV, Export as Text",
+        "Trigger file download on click",
+        "Show loading state during export",
+        "bun run checks passes"
+      ],
+      "priority": 19,
+      "passes": false,
+      "notes": "",
+      "dependsOn": [
+        "US-018"
+      ]
+    },
+    {
+      "id": "US-020",
+      "title": "Add agent clone API endpoint",
+      "description": "As a developer, I need an API to duplicate an agent",
+      "acceptanceCriteria": [
+        "Create POST /api/agents/:id/clone endpoint",
+        "Copy all agent properties: name (with ' (Copy)' suffix), description, instructions, model, config",
+        "Copy tool attachments to new agent",
+        "New agent starts in draft status",
+        "Return new agent ID and redirect URL",
+        "bun run checks passes"
+      ],
+      "priority": 20,
+      "passes": false,
+      "notes": "",
+      "dependsOn": []
+    },
+    {
+      "id": "US-021",
+      "title": "Add clone button to agent UI",
+      "description": "As a user, I want to duplicate an agent as a starting point for a new one",
+      "acceptanceCriteria": [
+        "Add Clone button to agent card dropdown menu in agents list",
+        "Add Clone button to agent detail page actions",
+        "Show confirmation with new agent name preview",
+        "Redirect to new agent edit page after clone",
+        "Show success toast with link to new agent",
+        "bun run checks passes"
+      ],
+      "priority": 21,
+      "passes": false,
+      "notes": "",
+      "dependsOn": [
+        "US-020"
+      ]
+    },
+    {
+      "id": "US-022",
+      "title": "Create webhook delivery tracking schema",
+      "description": "As a developer, I need to store webhook delivery attempts for debugging",
+      "acceptanceCriteria": [
+        "Create webhook_deliveries table with: id, webhookId, event, payload (JSON), status (pending/success/failed), statusCode, responseBody, attemptCount, nextRetryAt, createdAt",
+        "Add index on webhookId and createdAt",
+        "Generate migration",
+        "bun run checks passes"
+      ],
+      "priority": 22,
+      "passes": false,
+      "notes": "",
+      "dependsOn": []
+    },
+    {
+      "id": "US-023",
+      "title": "Implement webhook delivery with retry logic",
+      "description": "As a developer, I need webhook delivery to record attempts and retry on failure",
+      "acceptanceCriteria": [
+        "Modify webhook dispatch to create delivery record before sending",
+        "Update delivery record with response status and body",
+        "Implement exponential backoff retry (3 attempts: 1min, 5min, 30min)",
+        "Mark delivery as failed after max retries exceeded",
+        "bun run checks passes"
+      ],
+      "priority": 23,
+      "passes": false,
+      "notes": "",
+      "dependsOn": [
+        "US-022"
+      ]
+    },
+    {
+      "id": "US-024",
+      "title": "Add webhook delivery history API",
+      "description": "As a developer, I need an API to fetch webhook delivery history",
+      "acceptanceCriteria": [
+        "Create GET /api/webhooks/:id/deliveries endpoint",
+        "Return deliveries sorted by createdAt descending",
+        "Include pagination support",
+        "Add POST /api/webhooks/:id/deliveries/:deliveryId/retry for manual retry",
+        "bun run checks passes"
+      ],
+      "priority": 24,
+      "passes": false,
+      "notes": "",
+      "dependsOn": [
+        "US-023"
+      ]
+    },
+    {
+      "id": "US-025",
+      "title": "Build webhook delivery history UI",
+      "description": "As a user, I want to see webhook delivery status and retry failed deliveries",
+      "acceptanceCriteria": [
+        "Add Deliveries tab to webhook detail page",
+        "Display table: Event, Status (badge), Response Code, Timestamp",
+        "Expandable row shows request/response payload",
+        "Add Retry button for failed deliveries",
+        "Show retry count and next retry time for pending retries",
+        "bun run checks passes"
+      ],
+      "priority": 25,
+      "passes": false,
+      "notes": "",
+      "dependsOn": [
+        "US-024"
+      ]
+    },
+    {
+      "id": "US-026",
+      "title": "Add cost breakdown to analytics",
+      "description": "As a user, I want to see cost breakdown by agent to understand spending",
+      "acceptanceCriteria": [
+        "Add cost per agent chart to analytics dashboard",
+        "Calculate cost from usage table (tokens * model pricing)",
+        "Display as horizontal bar chart sorted by cost descending",
+        "Add cost column to usage by agent table",
+        "bun run checks passes"
+      ],
+      "priority": 26,
+      "passes": false,
+      "notes": "",
+      "dependsOn": []
+    },
+    {
+      "id": "US-027",
+      "title": "Add cost projection widget",
+      "description": "As a user, I want to see projected monthly cost based on current usage",
+      "acceptanceCriteria": [
+        "Add Projected Cost card to analytics dashboard",
+        "Calculate projection: (current period cost / days elapsed) * days in month",
+        "Show comparison to last month (% change)",
+        "Display warning if projection exceeds budget threshold",
+        "bun run checks passes"
+      ],
+      "priority": 27,
+      "passes": false,
+      "notes": "",
+      "dependsOn": [
+        "US-026"
+      ]
+    },
+    {
+      "id": "US-028",
+      "title": "Create tool testing sandbox API",
+      "description": "As a developer, I need an API to execute a tool with test inputs",
+      "acceptanceCriteria": [
+        "Create POST /api/tools/:id/test endpoint",
+        "Accept input object matching tool's input schema",
+        "Execute tool in isolated context",
+        "Return tool output or error details",
+        "Log test execution (don't count toward usage)",
+        "bun run checks passes"
+      ],
+      "priority": 28,
+      "passes": false,
+      "notes": "",
+      "dependsOn": []
+    },
+    {
+      "id": "US-029",
+      "title": "Build tool testing sandbox UI",
+      "description": "As a user, I want to test my tools before attaching them to agents",
+      "acceptanceCriteria": [
+        "Add Test tab to tool detail/edit page",
+        "Generate form fields from tool's input schema (using shadcn form)",
+        "Execute Test button sends inputs to test API",
+        "Display formatted response or error message",
+        "Show execution time",
+        "bun run checks passes"
+      ],
+      "priority": 29,
+      "passes": false,
+      "notes": "",
+      "dependsOn": [
+        "US-028"
+      ]
+    },
+    {
+      "id": "US-030",
+      "title": "Create real-time activity feed API",
+      "description": "As a developer, I need an API to fetch recent agent activity across workspace",
+      "acceptanceCriteria": [
+        "Create GET /api/activity endpoint",
+        "Return recent events: agent invocations, tool calls, errors",
+        "Support filter by agentId",
+        "Return last 50 entries by default with cursor pagination",
+        "Include event type, agent name, timestamp, summary",
+        "bun run checks passes"
+      ],
+      "priority": 30,
+      "passes": false,
+      "notes": "",
+      "dependsOn": []
+    },
+    {
+      "id": "US-031",
+      "title": "Build activity feed widget for dashboard",
+      "description": "As a user, I want to see live agent activity on the dashboard home",
+      "acceptanceCriteria": [
+        "Create ActivityFeed component",
+        "Display scrollable list of recent events",
+        "Each entry shows: icon (by type), agent name, action summary, relative time",
+        "Click entry expands to show details",
+        "Add filter dropdown for agent selection",
+        "Poll for updates every 10 seconds (or use optimistic updates)",
+        "bun run checks passes"
+      ],
+      "priority": 31,
+      "passes": false,
+      "notes": "",
+      "dependsOn": [
+        "US-030"
+      ]
+    },
+    {
+      "id": "US-032",
+      "title": "Add activity feed to dashboard home",
+      "description": "As a user, I want the activity feed visible on my main dashboard",
+      "acceptanceCriteria": [
+        "Add ActivityFeed widget to dashboard home page",
+        "Position in right column or below stats cards",
+        "Show 'View All' link to full activity log page",
+        "Handle empty state (no recent activity)",
+        "bun run checks passes"
+      ],
+      "priority": 32,
+      "passes": false,
+      "notes": "",
+      "dependsOn": [
+        "US-031"
+      ]
+    },
+    {
+      "id": "US-033",
+      "title": "Create onboarding tour data structure",
+      "description": "As a developer, I need a data structure to define onboarding tour steps",
+      "acceptanceCriteria": [
+        "Create tour steps config in apps/web/src/lib/onboarding/",
+        "Each step has: id, target selector, title, description, position",
+        "Define steps for: sidebar navigation, create agent button, tools page, analytics, settings",
+        "Add user_preferences column for tour_completed boolean",
+        "bun run checks passes"
+      ],
+      "priority": 33,
+      "passes": false,
+      "notes": "",
+      "dependsOn": []
+    },
+    {
+      "id": "US-034",
+      "title": "Build onboarding tour component",
+      "description": "As a new user, I want a guided tour to understand the dashboard",
+      "acceptanceCriteria": [
+        "Create OnboardingTour component using a tooltip/popover approach",
+        "Highlight current step target element with overlay",
+        "Show step content with Next/Skip/Back buttons",
+        "Track current step in local state",
+        "Mark tour complete in user preferences on finish or skip",
+        "bun run checks passes"
+      ],
+      "priority": 34,
+      "passes": false,
+      "notes": "",
+      "dependsOn": [
+        "US-033"
+      ]
+    },
+    {
+      "id": "US-035",
+      "title": "Trigger tour for new users and add replay option",
+      "description": "As a user, I want the tour to start automatically and be replayable",
+      "acceptanceCriteria": [
+        "Auto-start tour on first dashboard visit (check tour_completed preference)",
+        "Add 'Take a Tour' button in help menu or settings",
+        "Clicking replay resets tour state and starts from beginning",
+        "Tour works across page navigation (persists step)",
+        "bun run checks passes"
+      ],
+      "priority": 35,
+      "passes": false,
+      "notes": "",
+      "dependsOn": [
+        "US-034"
+      ]
+    }
+  ],
+  "metadata": {
+    "updatedAt": "2026-01-18T23:13:55.786Z"
+  }
+}
