@@ -9,4 +9,5 @@ maxIterations = 0
 autoCommit = true
 
 [trackerOptions]
+prdPath = "./tasks/prd.json"
 [agentOptions]
