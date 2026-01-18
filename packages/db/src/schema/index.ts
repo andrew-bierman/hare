@@ -2,6 +2,7 @@
 
 // Agent tables
 export * from './agents'
+export * from './agent-versions'
 export * from './auth'
 
 // Conversation tables

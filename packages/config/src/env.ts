@@ -66,8 +66,13 @@ const clientEnvSchema = z.object({
 })
 
 function validateClientEnv() {
+	// Handle CJS contexts (e.g., drizzle-kit) where import.meta.env is not available
+	const viteAppUrl = typeof import.meta !== 'undefined' && import.meta.env
+		? import.meta.env.VITE_APP_URL
+		: undefined
+
 	const result = clientEnvSchema.safeParse({
-		VITE_APP_URL: import.meta.env.VITE_APP_URL,
+		VITE_APP_URL: viteAppUrl,
 	})
 
 	return {
