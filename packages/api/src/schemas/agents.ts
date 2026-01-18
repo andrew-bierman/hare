@@ -380,3 +380,59 @@ export const AgentPreviewInputSchema = z
 		toolIds: z.array(z.string()).optional().describe('Override tool IDs'),
 	})
 	.openapi('AgentPreviewInput')
+
+// =============================================================================
+// Agent Version Schemas
+// =============================================================================
+
+/**
+ * Schema for a single agent version record.
+ */
+export const AgentVersionSchema = z
+	.object({
+		id: z.string().openapi({ example: 'ver_abc123' }),
+		agentId: z.string().openapi({ example: 'agent_xyz789' }),
+		version: z.number().int().openapi({ example: 1, description: 'Version number' }),
+		instructions: z.string().nullable().openapi({ example: 'You are a helpful assistant.' }),
+		model: z.string().openapi({ example: '@cf/meta/llama-3.3-70b-instruct-fp8-fast' }),
+		config: AgentConfigSchema.nullable().optional(),
+		toolIds: z.array(z.string()).nullable().openapi({ example: ['tool_http'] }),
+		createdAt: z.string().datetime().openapi({ example: '2024-12-01T00:00:00Z' }),
+		createdBy: z.string().openapi({ example: 'user_abc123' }),
+	})
+	.openapi('AgentVersion')
+
+/**
+ * Query parameters for listing agent versions.
+ */
+export const AgentVersionsQuerySchema = z
+	.object({
+		limit: z.coerce
+			.number()
+			.int()
+			.min(1)
+			.max(100)
+			.optional()
+			.default(20)
+			.openapi({ example: 20, description: 'Maximum number of versions to return (1-100)' }),
+		offset: z.coerce
+			.number()
+			.int()
+			.min(0)
+			.optional()
+			.default(0)
+			.openapi({ example: 0, description: 'Number of versions to skip' }),
+	})
+	.openapi('AgentVersionsQuery')
+
+/**
+ * Response schema for listing agent versions.
+ */
+export const AgentVersionsResponseSchema = z
+	.object({
+		versions: z.array(AgentVersionSchema).openapi({ description: 'List of agent versions' }),
+		total: z.number().int().openapi({ example: 5, description: 'Total number of versions' }),
+		limit: z.number().int().openapi({ example: 20, description: 'Limit used in query' }),
+		offset: z.number().int().openapi({ example: 0, description: 'Offset used in query' }),
+	})
+	.openapi('AgentVersionsResponse')

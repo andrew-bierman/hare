@@ -5,12 +5,15 @@
  */
 
 import { z } from 'zod'
-import { and, eq, max } from 'drizzle-orm'
+import { and, count, desc, eq, max } from 'drizzle-orm'
 import { agents, agentTools, agentVersions, deployments } from '@hare/db/schema'
 import { config } from '@hare/config'
 import { requireWrite, requireAdmin, notFound, badRequest, serverError, type WorkspaceContext } from '../base'
 import {
 	AgentSchema,
+	AgentVersionSchema,
+	AgentVersionsQuerySchema,
+	AgentVersionsResponseSchema,
 	CreateAgentSchema,
 	UpdateAgentSchema,
 	DeploymentSchema,
@@ -398,6 +401,55 @@ export const getDeploymentHistory = requireWrite
 	})
 
 /**
+ * Get agent version history
+ */
+export const getVersions = requireWrite
+	.route({ method: 'GET', path: '/agents/{id}/versions' })
+	.input(IdParamSchema.merge(AgentVersionsQuerySchema))
+	.output(AgentVersionsResponseSchema)
+	.handler(async ({ input, context }) => {
+		const { db, workspaceId } = context
+		const { id, limit, offset } = input
+
+		const agent = await findAgent(id, workspaceId, db)
+		if (!agent) notFound('Agent not found')
+
+		// Get total count
+		const [countResult] = await db
+			.select({ total: count() })
+			.from(agentVersions)
+			.where(eq(agentVersions.agentId, id))
+
+		const total = countResult?.total ?? 0
+
+		// Get versions sorted by version number descending
+		const versions = await db
+			.select()
+			.from(agentVersions)
+			.where(eq(agentVersions.agentId, id))
+			.orderBy(desc(agentVersions.version))
+			.limit(limit)
+			.offset(offset)
+
+		return {
+			versions: versions.map((v) => ({
+				id: v.id,
+				agentId: v.agentId,
+				version: v.version,
+				instructions: v.instructions,
+				model: v.model,
+				config: v.config as z.infer<typeof AgentVersionSchema>['config'],
+				toolIds: v.toolIds,
+				createdAt: v.createdAt.toISOString(),
+				createdBy: v.createdBy,
+			})),
+			total,
+			limit,
+			offset,
+		}
+	})
+
+/**
  * Preview/validate agent configuration
  */
 export const preview = requireWrite
@@ -452,5 +504,6 @@ export const agentsRouter = {
 	undeploy,
 	getDeployment,
 	getDeploymentHistory,
+	getVersions,
 	preview,
 }
