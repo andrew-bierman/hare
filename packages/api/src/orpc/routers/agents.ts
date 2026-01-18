@@ -5,8 +5,8 @@
  */
 
 import { z } from 'zod'
-import { and, eq } from 'drizzle-orm'
-import { agents, agentTools, deployments } from '@hare/db/schema'
+import { and, eq, max } from 'drizzle-orm'
+import { agents, agentTools, agentVersions, deployments } from '@hare/db/schema'
 import { config } from '@hare/config'
 import { requireWrite, requireAdmin, notFound, badRequest, serverError, type WorkspaceContext } from '../base'
 import {
@@ -227,13 +227,40 @@ export const deploy = requireAdmin
 			badRequest('Agent must have instructions before deployment')
 		}
 
+		// Get attached tool IDs for the version snapshot
+		const toolIds = await getAgentToolIds(input.id, db)
+
+		// Get the max existing version number for this agent
+		const [maxVersionResult] = await db
+			.select({ maxVersion: max(agentVersions.version) })
+			.from(agentVersions)
+			.where(eq(agentVersions.agentId, input.id))
+
+		const nextVersion = (maxVersionResult?.maxVersion ?? 0) + 1
+
+		// Create agent version record before deployment
+		const [agentVersion] = await db
+			.insert(agentVersions)
+			.values({
+				agentId: input.id,
+				version: nextVersion,
+				instructions: agent.instructions,
+				model: agent.model,
+				config: agent.config,
+				toolIds,
+				createdBy: user.id,
+			})
+			.returning()
+
+		if (!agentVersion) serverError('Failed to create agent version')
+
 		// Update agent status
 		await db
 			.update(agents)
 			.set({ status: config.enums.agentStatus.DEPLOYED, updatedAt: new Date() })
 			.where(eq(agents.id, input.id))
 
-		const version = input.version || '1.0.0'
+		const version = input.version || `${nextVersion}.0.0`
 
 		// Create deployment record
 		const [deployment] = await db
