@@ -19,6 +19,7 @@ import {
 import { useWorkspace } from '../../app/providers'
 import { config, getModelName } from '@hare/config'
 import { useAgentsQuery, useWorkspaceUsageQuery } from '../../shared/api/hooks'
+import { ActivityFeedWidget } from '../../widgets/activity-feed'
 
 const content = config.content.dashboard.home
 
@@ -319,6 +320,13 @@ export function DashboardPage() {
 					</div>
 				)}
 			</div>
+
+			{/* Activity Feed */}
+			<ActivityFeedWidget
+				limit={10}
+				height="300px"
+				viewAllPath="/dashboard/settings/audit-logs"
+			/>
 		</div>
 	)
 }

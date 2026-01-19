@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { Link } from '@tanstack/react-router'
 import { Badge } from '@hare/ui/components/badge'
 import { Button } from '@hare/ui/components/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@hare/ui/components/card'
@@ -15,6 +16,7 @@ import {
 import { Skeleton } from '@hare/ui/components/skeleton'
 import {
 	AlertCircle,
+	ArrowRight,
 	Bot,
 	ChevronDown,
 	ChevronUp,
@@ -32,6 +34,8 @@ export interface ActivityFeedWidgetProps {
 	height?: string
 	/** Auto-refresh interval in milliseconds (default: 10000) */
 	refreshInterval?: number
+	/** Path to full activity log page for "View All" link */
+	viewAllPath?: string
 }
 
 type ActivityEventType = 'agent.invocation' | 'tool.call' | 'error'
@@ -173,7 +177,7 @@ function ActivityEventItem(props: {
 }
 
 export function ActivityFeedWidget(props: ActivityFeedWidgetProps) {
-	const { limit = 20, height = '400px', refreshInterval = 10000 } = props
+	const { limit = 20, height = '400px', refreshInterval = 10000, viewAllPath } = props
 
 	const [selectedAgentId, setSelectedAgentId] = useState<string | undefined>(undefined)
 	const [expandedEventId, setExpandedEventId] = useState<string | null>(null)
@@ -250,12 +254,22 @@ export function ActivityFeedWidget(props: ActivityFeedWidgetProps) {
 						</Button>
 					</div>
 				</div>
-				<CardDescription>
-					{activityData?.total ?? 0} total events
-					{selectedAgentId && agents.find((a) => a.id === selectedAgentId)
-						? ` for ${agents.find((a) => a.id === selectedAgentId)?.name}`
-						: ''}
-				</CardDescription>
+				<div className="flex items-center justify-between">
+					<CardDescription>
+						{activityData?.total ?? 0} total events
+						{selectedAgentId && agents.find((a) => a.id === selectedAgentId)
+							? ` for ${agents.find((a) => a.id === selectedAgentId)?.name}`
+							: ''}
+					</CardDescription>
+					{viewAllPath && (
+						<Link to={viewAllPath}>
+							<Button variant="ghost" size="sm" className="gap-1 h-7 text-xs">
+								View All
+								<ArrowRight className="h-3 w-3" />
+							</Button>
+						</Link>
+					)}
+				</div>
 			</CardHeader>
 			<CardContent>
 				{events.length === 0 ? (
