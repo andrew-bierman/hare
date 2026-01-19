@@ -48,6 +48,7 @@ export const ConversationSchema = z
 
 /**
  * Export format enum for conversation exports.
+ * Supports: json (full metadata + tool calls), csv (timestamp, role, content), txt (human-readable)
  */
 export const ExportFormatSchema = z.enum(EXPORT_FORMATS).default('json').openapi({ example: 'json' })
 

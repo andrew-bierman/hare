@@ -31,45 +31,75 @@ import {
 // =============================================================================
 
 /**
- * Convert conversation messages to Markdown format.
+ * Escape a value for CSV format.
+ * Wraps in quotes if the value contains commas, quotes, or newlines.
  */
-function formatAsMarkdown(options: {
+function escapeCsvValue(value: string): string {
+	if (value.includes(',') || value.includes('"') || value.includes('\n') || value.includes('\r')) {
+		return `"${value.replace(/"/g, '""')}"`
+	}
+	return value
+}
+
+/**
+ * Convert conversation messages to CSV format.
+ * Columns: timestamp, role, content
+ */
+function formatAsCsv(options: {
+	messages: Array<{
+		role: string
+		content: string
+		createdAt: Date
+	}>
+}): string {
+	const { messages } = options
+
+	const lines: string[] = ['timestamp,role,content']
+
+	for (const msg of messages) {
+		const timestamp = msg.createdAt.toISOString()
+		const role = msg.role
+		const content = escapeCsvValue(msg.content)
+		lines.push(`${timestamp},${role},${content}`)
+	}
+
+	return lines.join('\n')
+}
+
+/**
+ * Convert conversation messages to plain text format.
+ * Human-readable format with clear message separation.
+ */
+function formatAsTxt(options: {
 	title: string
 	messages: Array<{
 		role: string
 		content: string
 		createdAt: Date
-		metadata?: Record<string, unknown> | null
 	}>
-	includeMetadata: boolean
 	exportedAt: string
 }): string {
-	const { title, messages, includeMetadata, exportedAt } = options
+	const { title, messages, exportedAt } = options
 
-	const lines: string[] = [`# ${title}`, '', `*Exported at: ${exportedAt}*`, '', '---', '']
+	const lines: string[] = [
+		title,
+		'='.repeat(title.length),
+		'',
+		`Exported: ${exportedAt}`,
+		'',
+		'-'.repeat(50),
+		'',
+	]
 
 	for (const msg of messages) {
 		const roleLabel = msg.role.charAt(0).toUpperCase() + msg.role.slice(1)
 		const timestamp = msg.createdAt.toISOString()
 
-		lines.push(`## ${roleLabel}`)
-		lines.push(`*${timestamp}*`)
+		lines.push(`[${roleLabel}] ${timestamp}`)
 		lines.push('')
 		lines.push(msg.content)
-
-		if (includeMetadata && msg.metadata) {
-			lines.push('')
-			lines.push('<details>')
-			lines.push('<summary>Metadata</summary>')
-			lines.push('')
-			lines.push('```json')
-			lines.push(JSON.stringify(msg.metadata, null, 2))
-			lines.push('```')
-			lines.push('</details>')
-		}
-
 		lines.push('')
-		lines.push('---')
+		lines.push('-'.repeat(50))
 		lines.push('')
 	}
 
@@ -302,14 +332,14 @@ export const getMessages = authedProcedure
 	})
 
 /**
- * Export a conversation in JSON or Markdown format.
+ * Export a conversation in JSON, CSV, or TXT format.
  */
 export const exportConversation = authedProcedure
 	.route({ method: 'GET', path: '/conversations/{id}/export' })
 	.input(
 		IdParamSchema.merge(
 			z.object({
-				format: z.enum(['json', 'markdown']).optional().default('json'),
+				format: z.enum(['json', 'csv', 'txt']).optional().default('json'),
 				includeMetadata: z
 					.union([z.boolean(), z.string().transform((v) => v === 'true')])
 					.optional()
@@ -321,7 +351,11 @@ export const exportConversation = authedProcedure
 		z.union([
 			ConversationExportSchema,
 			z.object({
-				markdown: z.string(),
+				csv: z.string(),
+				filename: z.string(),
+			}),
+			z.object({
+				txt: z.string(),
 				filename: z.string(),
 			}),
 		]),
@@ -347,31 +381,45 @@ export const exportConversation = authedProcedure
 			.where(eq(messages.conversationId, conversationId))
 
 		const exportedAt = new Date().toISOString()
+		const title = conversation.title || 'Untitled Conversation'
 
 		// Format based on requested format
-		if (format === 'markdown') {
-			const markdown = formatAsMarkdown({
-				title: conversation.title || 'Untitled Conversation',
+		if (format === 'csv') {
+			const csv = formatAsCsv({
 				messages: results.map((msg) => ({
 					role: msg.role,
 					content: msg.content,
 					createdAt: msg.createdAt,
-					metadata: includeMetadata ? (msg.metadata as Record<string, unknown> | null) : null,
 				})),
-				includeMetadata: Boolean(includeMetadata),
+			})
+
+			return {
+				csv,
+				filename: `conversation-${conversationId}.csv`,
+			}
+		}
+
+		if (format === 'txt') {
+			const txt = formatAsTxt({
+				title,
+				messages: results.map((msg) => ({
+					role: msg.role,
+					content: msg.content,
+					createdAt: msg.createdAt,
+				})),
 				exportedAt,
 			})
 
 			return {
-				markdown,
-				filename: `conversation-${conversationId}.md`,
+				txt,
+				filename: `conversation-${conversationId}.txt`,
 			}
 		}
 
-		// JSON format (default)
+		// JSON format (default) - includes full metadata and tool calls
 		return {
 			id: conversation.id,
-			title: conversation.title || 'Untitled Conversation',
+			title,
 			agentId: conversation.agentId,
 			createdAt: conversation.createdAt.toISOString(),
 			updatedAt: conversation.updatedAt.toISOString(),

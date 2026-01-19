@@ -191,12 +191,13 @@ export const SCHEDULE_TYPES = [ScheduleType.ONE_TIME, ScheduleType.RECURRING] as
  */
 export const ExportFormat = {
 	JSON: 'json',
-	MARKDOWN: 'markdown',
+	CSV: 'csv',
+	TXT: 'txt',
 } as const
 
 export type ExportFormat = (typeof ExportFormat)[keyof typeof ExportFormat]
 
-export const EXPORT_FORMATS = [ExportFormat.JSON, ExportFormat.MARKDOWN] as const
+export const EXPORT_FORMATS = [ExportFormat.JSON, ExportFormat.CSV, ExportFormat.TXT] as const
 
 /**
  * Validation issue severity
