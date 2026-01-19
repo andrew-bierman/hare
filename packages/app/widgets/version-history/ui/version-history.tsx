@@ -1,6 +1,7 @@
 'use client'
 
 import { Badge } from '@hare/ui/components/badge'
+import { Button } from '@hare/ui/components/button'
 import {
 	Card,
 	CardContent,
@@ -8,15 +9,24 @@ import {
 	CardHeader,
 	CardTitle,
 } from '@hare/ui/components/card'
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+} from '@hare/ui/components/dialog'
 import { Skeleton } from '@hare/ui/components/skeleton'
 import {
 	Collapsible,
 	CollapsibleContent,
 	CollapsibleTrigger,
 } from '@hare/ui/components/collapsible'
-import { ChevronDown, Clock, GitCommit, User, Wrench } from 'lucide-react'
+import { ChevronDown, Clock, GitCommit, History, User, Wrench } from 'lucide-react'
 import { useState, useMemo } from 'react'
-import { useAgentVersionsQuery } from '../../../shared/api'
+import { toast } from 'sonner'
+import { useAgentVersionsQuery, useRollbackAgentMutation } from '../../../shared/api'
 
 export interface VersionHistoryProps {
 	agentId: string
@@ -147,97 +157,175 @@ function VersionCard({
 	version,
 	previousVersion,
 	isLatest,
+	agentId,
 }: {
 	version: VersionData
 	previousVersion?: VersionData
 	isLatest: boolean
+	agentId: string
 }) {
 	const [isOpen, setIsOpen] = useState(false)
+	const [isRollbackDialogOpen, setIsRollbackDialogOpen] = useState(false)
 	const diff = useMemo(() => computeDiff(version, previousVersion), [version, previousVersion])
+	const rollbackMutation = useRollbackAgentMutation()
+
+	const handleRollback = () => {
+		rollbackMutation.mutate(
+			{ id: agentId, version: version.version },
+			{
+				onSuccess: (data) => {
+					toast.success(
+						`Rolled back to v${version.version}. New version v${data.newVersion} created.`,
+					)
+					setIsRollbackDialogOpen(false)
+				},
+				onError: (error) => {
+					toast.error(error instanceof Error ? error.message : 'Failed to rollback agent')
+				},
+			},
+		)
+	}
 
 	return (
-		<Collapsible open={isOpen} onOpenChange={setIsOpen}>
-			<div className="border rounded-lg hover:border-primary/50 transition-colors">
-				<CollapsibleTrigger className="w-full p-4">
-					<div className="flex items-center justify-between">
-						<div className="flex items-center gap-3">
-							<div className="flex items-center gap-2">
-								<GitCommit className="h-4 w-4 text-muted-foreground" />
-								<span className="font-medium">v{version.version}</span>
-							</div>
-							{isLatest && (
-								<Badge className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300">
-									Latest
-								</Badge>
-							)}
-						</div>
-						<div className="flex items-center gap-4">
-							<div className="flex items-center gap-2 text-sm text-muted-foreground">
-								<User className="h-3.5 w-3.5" />
-								<span className="max-w-[120px] truncate">{version.createdBy}</span>
-							</div>
-							<div className="flex items-center gap-2 text-sm text-muted-foreground">
-								<Clock className="h-3.5 w-3.5" />
-								<span>{formatDate(version.createdAt)}</span>
-							</div>
-							<ChevronDown
-								className={`h-4 w-4 text-muted-foreground transition-transform ${isOpen ? 'rotate-180' : ''}`}
-							/>
-						</div>
-					</div>
-					<div className="mt-2 text-left">
-						<DiffSummary diff={diff} />
-					</div>
-				</CollapsibleTrigger>
-				<CollapsibleContent>
-					<div className="px-4 pb-4 pt-0 border-t space-y-4">
-						<div className="grid gap-4 md:grid-cols-2 mt-4">
-							<div className="space-y-2">
-								<h4 className="text-sm font-medium">Model</h4>
-								<p className="text-sm text-muted-foreground">{version.model}</p>
-							</div>
-							<div className="space-y-2">
-								<h4 className="text-sm font-medium flex items-center gap-2">
-									<Wrench className="h-4 w-4" />
-									Tools
-								</h4>
-								{version.toolIds && version.toolIds.length > 0 ? (
-									<div className="flex flex-wrap gap-1">
-										{version.toolIds.map((toolId) => (
-											<Badge key={toolId} variant="outline" className="text-xs">
-												{toolId}
-											</Badge>
-										))}
-									</div>
-								) : (
-									<p className="text-sm text-muted-foreground">No custom tools</p>
+		<>
+			<Collapsible open={isOpen} onOpenChange={setIsOpen}>
+				<div className="border rounded-lg hover:border-primary/50 transition-colors">
+					<CollapsibleTrigger className="w-full p-4">
+						<div className="flex items-center justify-between">
+							<div className="flex items-center gap-3">
+								<div className="flex items-center gap-2">
+									<GitCommit className="h-4 w-4 text-muted-foreground" />
+									<span className="font-medium">v{version.version}</span>
+								</div>
+								{isLatest && (
+									<Badge className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300">
+										Latest
+									</Badge>
 								)}
 							</div>
+							<div className="flex items-center gap-4">
+								<div className="flex items-center gap-2 text-sm text-muted-foreground">
+									<User className="h-3.5 w-3.5" />
+									<span className="max-w-[120px] truncate">{version.createdBy}</span>
+								</div>
+								<div className="flex items-center gap-2 text-sm text-muted-foreground">
+									<Clock className="h-3.5 w-3.5" />
+									<span>{formatDate(version.createdAt)}</span>
+								</div>
+								<ChevronDown
+									className={`h-4 w-4 text-muted-foreground transition-transform ${isOpen ? 'rotate-180' : ''}`}
+								/>
+							</div>
 						</div>
-						{version.instructions && (
-							<div className="space-y-2">
-								<h4 className="text-sm font-medium">Instructions</h4>
-								<div className="rounded-md bg-muted p-3 max-h-32 overflow-y-auto">
-									<pre className="text-xs whitespace-pre-wrap font-mono">
-										{version.instructions}
-									</pre>
+						<div className="mt-2 text-left">
+							<DiffSummary diff={diff} />
+						</div>
+					</CollapsibleTrigger>
+					<CollapsibleContent>
+						<div className="px-4 pb-4 pt-0 border-t space-y-4">
+							<div className="grid gap-4 md:grid-cols-2 mt-4">
+								<div className="space-y-2">
+									<h4 className="text-sm font-medium">Model</h4>
+									<p className="text-sm text-muted-foreground">{version.model}</p>
+								</div>
+								<div className="space-y-2">
+									<h4 className="text-sm font-medium flex items-center gap-2">
+										<Wrench className="h-4 w-4" />
+										Tools
+									</h4>
+									{version.toolIds && version.toolIds.length > 0 ? (
+										<div className="flex flex-wrap gap-1">
+											{version.toolIds.map((toolId) => (
+												<Badge key={toolId} variant="outline" className="text-xs">
+													{toolId}
+												</Badge>
+											))}
+										</div>
+									) : (
+										<p className="text-sm text-muted-foreground">No custom tools</p>
+									)}
 								</div>
 							</div>
-						)}
-						{version.config && Object.keys(version.config).length > 0 && (
-							<div className="space-y-2">
-								<h4 className="text-sm font-medium">Configuration</h4>
-								<div className="rounded-md bg-muted p-3">
-									<pre className="text-xs whitespace-pre-wrap font-mono">
-										{JSON.stringify(version.config, null, 2)}
-									</pre>
+							{version.instructions && (
+								<div className="space-y-2">
+									<h4 className="text-sm font-medium">Instructions</h4>
+									<div className="rounded-md bg-muted p-3 max-h-32 overflow-y-auto">
+										<pre className="text-xs whitespace-pre-wrap font-mono">
+											{version.instructions}
+										</pre>
+									</div>
 								</div>
+							)}
+							{version.config && Object.keys(version.config).length > 0 && (
+								<div className="space-y-2">
+									<h4 className="text-sm font-medium">Configuration</h4>
+									<div className="rounded-md bg-muted p-3">
+										<pre className="text-xs whitespace-pre-wrap font-mono">
+											{JSON.stringify(version.config, null, 2)}
+										</pre>
+									</div>
+								</div>
+							)}
+							{!isLatest && (
+								<div className="pt-2 border-t">
+									<Button
+										variant="outline"
+										size="sm"
+										onClick={(e) => {
+											e.stopPropagation()
+											setIsRollbackDialogOpen(true)
+										}}
+										className="gap-2"
+									>
+										<History className="h-4 w-4" />
+										Rollback to this version
+									</Button>
+								</div>
+							)}
+						</div>
+					</CollapsibleContent>
+				</div>
+			</Collapsible>
+
+			<Dialog open={isRollbackDialogOpen} onOpenChange={setIsRollbackDialogOpen}>
+				<DialogContent>
+					<DialogHeader>
+						<DialogTitle>Rollback to Version {version.version}</DialogTitle>
+						<DialogDescription>
+							This will restore the agent configuration from version {version.version} and create a
+							new version. The current configuration will be preserved in the version history.
+						</DialogDescription>
+					</DialogHeader>
+					<div className="space-y-3 py-4">
+						<div className="rounded-md bg-muted p-3 space-y-2 text-sm">
+							<div className="flex justify-between">
+								<span className="text-muted-foreground">Model:</span>
+								<span className="font-medium">{version.model}</span>
 							</div>
-						)}
+							<div className="flex justify-between">
+								<span className="text-muted-foreground">Tools:</span>
+								<span className="font-medium">
+									{version.toolIds?.length ?? 0} tool
+									{(version.toolIds?.length ?? 0) !== 1 ? 's' : ''}
+								</span>
+							</div>
+							<div className="flex justify-between">
+								<span className="text-muted-foreground">Created:</span>
+								<span className="font-medium">{formatDate(version.createdAt)}</span>
+							</div>
+						</div>
 					</div>
-				</CollapsibleContent>
-			</div>
-		</Collapsible>
+					<DialogFooter>
+						<Button variant="outline" onClick={() => setIsRollbackDialogOpen(false)}>
+							Cancel
+						</Button>
+						<Button onClick={handleRollback} disabled={rollbackMutation.isPending}>
+							{rollbackMutation.isPending ? 'Rolling back...' : 'Rollback'}
+						</Button>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
+		</>
 	)
 }
 
@@ -318,6 +406,7 @@ export function VersionHistory({ agentId }: VersionHistoryProps) {
 								version={version}
 								previousVersion={versions[idx + 1]}
 								isLatest={idx === 0}
+								agentId={agentId}
 							/>
 						))}
 					</div>

@@ -107,6 +107,18 @@ export function useAgentVersionsQuery(
 	})
 }
 
+export function useRollbackAgentMutation() {
+	const queryClient = useQueryClient()
+	return useMutation({
+		mutationFn: (input: { id: string; version: number }) => orpc.agents.rollback(input),
+		onSuccess: (_, variables) => {
+			queryClient.invalidateQueries({ queryKey: ['agents'] })
+			queryClient.invalidateQueries({ queryKey: ['agents', variables.id] })
+			queryClient.invalidateQueries({ queryKey: ['agents', variables.id, 'versions'] })
+		},
+	})
+}
+
 export function useUndeployAgentMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
