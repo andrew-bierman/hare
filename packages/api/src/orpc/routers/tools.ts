@@ -7,7 +7,9 @@
 import { z } from 'zod'
 import { and, eq } from 'drizzle-orm'
 import { tools } from '@hare/db/schema'
+import { config } from '@hare/config'
 import { requireWrite, requireAdmin, notFound, serverError, type WorkspaceContext } from '../base'
+import { logAudit } from '../audit'
 import {
 	SuccessSchema,
 	IdParamSchema,
@@ -104,6 +106,18 @@ export const create = requireWrite
 
 		if (!tool) serverError('Failed to create tool')
 
+		// Log audit event for tool creation
+		logAudit({
+			context,
+			action: config.enums.auditAction.TOOL_CREATE,
+			resourceType: 'tool',
+			resourceId: tool.id,
+			details: {
+				name: tool.name,
+				type: tool.type,
+			},
+		})
+
 		return serializeTool(tool)
 	})
 
@@ -134,6 +148,18 @@ export const update = requireWrite
 
 		if (!tool) serverError('Failed to update tool')
 
+		// Log audit event for tool update
+		logAudit({
+			context,
+			action: config.enums.auditAction.TOOL_UPDATE,
+			resourceType: 'tool',
+			resourceId: id,
+			details: {
+				name: tool.name,
+				updatedFields: Object.keys(data).filter((key) => data[key as keyof typeof data] !== undefined),
+			},
+		})
+
 		return serializeTool(tool)
 	})
 
@@ -153,6 +179,18 @@ export const remove = requireAdmin
 			.returning()
 
 		if (result.length === 0) notFound('Tool not found')
+
+		// Log audit event for tool deletion
+		const deletedTool = result[0]
+		logAudit({
+			context,
+			action: config.enums.auditAction.TOOL_DELETE,
+			resourceType: 'tool',
+			resourceId: input.id,
+			details: {
+				name: deletedTool?.name,
+			},
+		})
 
 		return { success: true }
 	})
