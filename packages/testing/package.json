@@ -1,11 +1,13 @@
 {
 	"name": "@hare/testing",
 	"version": "0.1.0",
-	"description": "Shared test utilities and mocks for Hare platform",
+	"description": "Shared test utilities, factories, and mocks for Hare platform",
 	"keywords": [
 		"hare",
 		"testing",
-		"mocks"
+		"mocks",
+		"factories",
+		"fixtures"
 	],
 	"license": "MIT",
 	"type": "module",
@@ -14,9 +16,21 @@
 			"types": "./src/index.ts",
 			"import": "./src/index.ts"
 		},
+		"./factories": {
+			"types": "./src/factories/index.ts",
+			"import": "./src/factories/index.ts"
+		},
+		"./mocks": {
+			"types": "./src/mocks/index.ts",
+			"import": "./src/mocks/index.ts"
+		},
 		"./mocks/cuid2": {
 			"types": "./src/mocks/cuid2.ts",
 			"import": "./src/mocks/cuid2.ts"
+		},
+		"./seeds": {
+			"types": "./src/seeds/index.ts",
+			"import": "./src/seeds/index.ts"
 		}
 	},
 	"main": "./src/index.ts",
@@ -28,8 +42,15 @@
 		"lint": "biome check .",
 		"typecheck": "tsc --noEmit"
 	},
+	"dependencies": {
+		"@hare/config": "workspace:*",
+		"@hare/db": "workspace:*",
+		"@hare/types": "workspace:*"
+	},
 	"devDependencies": {
 		"@hare/typescript-config": "workspace:*",
-		"typescript": "^5"
+		"drizzle-orm": "^0.45.1",
+		"typescript": "^5",
+		"vitest": "^3.2.4"
 	}
 }
