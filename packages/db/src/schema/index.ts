@@ -24,6 +24,7 @@ export * from './usage'
 export * from './user-preferences'
 // Webhook tables
 export * from './webhooks'
+export * from './webhook-deliveries'
 // Workspace tables
 export * from './workspaces'
 
