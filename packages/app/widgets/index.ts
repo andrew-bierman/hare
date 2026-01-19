@@ -77,3 +77,6 @@ export * from './version-history'
 
 // Agent health widget
 export * from './agent-health'
+
+// Activity feed widget
+export * from './activity-feed'

@@ -656,3 +656,21 @@ export function useAgentHealthQuery(agentId: string | undefined, options?: { ref
 		refetchInterval: options?.refetchInterval,
 	})
 }
+
+// =============================================================================
+// Activity Feed Hooks
+// =============================================================================
+
+export function useActivityFeedQuery(options?: {
+	agentId?: string
+	eventType?: 'agent.invocation' | 'tool.call' | 'error'
+	limit?: number
+	refetchInterval?: number
+}) {
+	const { refetchInterval, ...queryInput } = options || {}
+	return useQuery({
+		queryKey: ['activity', queryInput],
+		queryFn: () => orpc.activity.list(queryInput || {}),
+		refetchInterval,
+	})
+}
