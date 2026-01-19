@@ -31,11 +31,27 @@ import {
 	User,
 	Wrench,
 } from 'lucide-react'
-import { type FormEvent, type KeyboardEvent, useCallback, useEffect, useRef, useState } from 'react'
+import {
+	type FormEvent,
+	type KeyboardEvent,
+	useCallback,
+	useEffect,
+	useRef,
+	useState,
+} from 'react'
 import { toast } from 'sonner'
 
 export interface AgentPlaygroundPageProps {
 	agentId: string
+}
+
+type ExportFormat = 'json' | 'csv' | 'txt'
+
+interface ExportResponse {
+	csv?: string
+	txt?: string
+	filename?: string
+	[key: string]: unknown
 }
 
 function LoadingSkeleton() {
@@ -98,6 +114,7 @@ export function AgentPlaygroundPage({ agentId }: AgentPlaygroundPageProps) {
 	} = useChat(agentId)
 
 	const [input, setInput] = useState('')
+	const [isExporting, setIsExporting] = useState(false)
 	const scrollRef = useRef<HTMLDivElement>(null)
 	const textareaRef = useRef<HTMLTextAreaElement>(null)
 
@@ -135,11 +152,13 @@ export function AgentPlaygroundPage({ agentId }: AgentPlaygroundPageProps) {
 	}
 
 	const handleExport = useCallback(
-		async (options: { format: 'json' | 'markdown'; includeMetadata?: boolean }) => {
+		async (options: { format: ExportFormat; includeMetadata?: boolean }) => {
 			if (!sessionId) {
 				toast.error('No conversation to export')
 				return
 			}
+
+			setIsExporting(true)
 
 			try {
 				const params = new URLSearchParams({
@@ -158,11 +177,29 @@ export function AgentPlaygroundPage({ agentId }: AgentPlaygroundPageProps) {
 					throw new Error(errorData.error || 'Export failed')
 				}
 
-				const contentType = response.headers.get('content-type') || ''
-				const isMarkdown = contentType.includes('text/markdown')
-				const filename = `conversation-${sessionId.slice(0, 8)}-${new Date().toISOString().slice(0, 10)}.${isMarkdown ? 'md' : 'json'}`
+				const data = (await response.json()) as ExportResponse
+				const dateStr = new Date().toISOString().slice(0, 10)
+				const shortId = sessionId.slice(0, 8)
 
-				const blob = await response.blob()
+				let content: string
+				let filename: string
+				let mimeType: string
+
+				if (options.format === 'csv' && data.csv) {
+					content = data.csv
+					filename = `conversation-${shortId}-${dateStr}.csv`
+					mimeType = 'text/csv'
+				} else if (options.format === 'txt' && data.txt) {
+					content = data.txt
+					filename = `conversation-${shortId}-${dateStr}.txt`
+					mimeType = 'text/plain'
+				} else {
+					content = JSON.stringify(data, null, 2)
+					filename = `conversation-${shortId}-${dateStr}.json`
+					mimeType = 'application/json'
+				}
+
+				const blob = new Blob([content], { type: mimeType })
 				const url = URL.createObjectURL(blob)
 				const a = document.createElement('a')
 				a.href = url
@@ -172,9 +209,16 @@ export function AgentPlaygroundPage({ agentId }: AgentPlaygroundPageProps) {
 				document.body.removeChild(a)
 				URL.revokeObjectURL(url)
 
-				toast.success(`Conversation exported as ${isMarkdown ? 'Markdown' : 'JSON'}`)
+				const formatLabels: Record<ExportFormat, string> = {
+					json: 'JSON',
+					csv: 'CSV',
+					txt: 'Text',
+				}
+				toast.success(`Conversation exported as ${formatLabels[options.format]}`)
 			} catch (error) {
 				toast.error(error instanceof Error ? error.message : 'Failed to export conversation')
+			} finally {
+				setIsExporting(false)
 			}
 		},
 		[sessionId],
@@ -247,11 +291,15 @@ export function AgentPlaygroundPage({ agentId }: AgentPlaygroundPageProps) {
 									<Button
 										variant="outline"
 										size="sm"
-										disabled={!sessionId || isStreaming}
+										disabled={!sessionId || isStreaming || isExporting}
 										className="gap-1.5"
 									>
-										<Download className="h-3.5 w-3.5" />
-										Export
+										{isExporting ? (
+											<Loader2 className="h-3.5 w-3.5 animate-spin" />
+										) : (
+											<Download className="h-3.5 w-3.5" />
+										)}
+										{isExporting ? 'Exporting...' : 'Export'}
 									</Button>
 								</DropdownMenuTrigger>
 								<DropdownMenuContent align="end">
@@ -259,15 +307,13 @@ export function AgentPlaygroundPage({ agentId }: AgentPlaygroundPageProps) {
 										<FileJson className="mr-2 h-4 w-4" />
 										Export as JSON
 									</DropdownMenuItem>
-									<DropdownMenuItem onClick={() => handleExport({ format: 'markdown' })}>
+									<DropdownMenuItem onClick={() => handleExport({ format: 'csv' })}>
 										<FileText className="mr-2 h-4 w-4" />
-										Export as Markdown
+										Export as CSV
 									</DropdownMenuItem>
-									<DropdownMenuItem
-										onClick={() => handleExport({ format: 'json', includeMetadata: true })}
-									>
-										<FileJson className="mr-2 h-4 w-4" />
-										Export with metadata (JSON)
+									<DropdownMenuItem onClick={() => handleExport({ format: 'txt' })}>
+										<FileText className="mr-2 h-4 w-4" />
+										Export as Text
 									</DropdownMenuItem>
 								</DropdownMenuContent>
 							</DropdownMenu>
