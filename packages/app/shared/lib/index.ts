@@ -6,7 +6,7 @@
  */
 
 // Jotai Atoms
-export { onboardingDismissedAtom } from './atoms'
+export { onboardingDismissedAtom, tourCompletedAtom } from './atoms'
 
 // Hooks
 export { useDebouncedCallback, useDebouncedValue } from './hooks'

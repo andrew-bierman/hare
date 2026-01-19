@@ -15,3 +15,9 @@ import { atomWithStorage } from 'jotai/utils'
  * Persisted to localStorage.
  */
 export const onboardingDismissedAtom = atomWithStorage('hare-onboarding-dismissed', false)
+
+/**
+ * Atom for tracking whether the user has completed the onboarding tour.
+ * Persisted to localStorage.
+ */
+export const tourCompletedAtom = atomWithStorage('hare-tour-completed', false)

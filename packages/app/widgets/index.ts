@@ -80,3 +80,6 @@ export * from './agent-health'
 
 // Activity feed widget
 export * from './activity-feed'
+
+// Onboarding tour widget
+export * from './onboarding-tour'
