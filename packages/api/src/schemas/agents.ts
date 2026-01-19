@@ -467,3 +467,19 @@ export const RollbackResponseSchema = z
 		deployment: DeploymentSchema.optional().openapi({ description: 'Deployment info if agent was redeployed' }),
 	})
 	.openapi('RollbackResponse')
+
+// =============================================================================
+// Agent Clone Schemas
+// =============================================================================
+
+/**
+ * Response schema for agent clone.
+ */
+export const CloneAgentResponseSchema = z
+	.object({
+		id: z.string().openapi({ example: 'agent_xyz789', description: 'ID of the newly cloned agent' }),
+		redirectUrl: z
+			.string()
+			.openapi({ example: '/dashboard/agents/agent_xyz789', description: 'URL to redirect to the new agent' }),
+	})
+	.openapi('CloneAgentResponse')

@@ -15,6 +15,7 @@ import {
 	AgentVersionSchema,
 	AgentVersionsQuerySchema,
 	AgentVersionsResponseSchema,
+	CloneAgentResponseSchema,
 	CreateAgentSchema,
 	UpdateAgentSchema,
 	DeploymentSchema,
@@ -762,6 +763,80 @@ export const getHealth = requireWrite
 		})
 	})
 
+/**
+ * Clone an agent
+ *
+ * Creates a duplicate of an existing agent with all its properties:
+ * - Name with ' (Copy)' suffix
+ * - Description, instructions, model, config
+ * - Tool attachments
+ * - New agent starts in draft status
+ */
+export const clone = requireWrite
+	.route({ method: 'POST', path: '/agents/{id}/clone', successStatus: 201 })
+	.input(IdParamSchema)
+	.output(CloneAgentResponseSchema)
+	.handler(async ({ input, context }) => {
+		const { db, workspaceId, user } = context
+
+		// Find the source agent
+		const sourceAgent = await findAgent(input.id, workspaceId, db)
+		if (!sourceAgent) notFound('Agent not found')
+
+		// Get the source agent's tool IDs
+		const sourceToolIds = await getAgentToolIds(input.id, db)
+
+		// Create the cloned agent with ' (Copy)' suffix and draft status
+		const [clonedAgent] = await db
+			.insert(agents)
+			.values({
+				workspaceId,
+				name: `${sourceAgent.name} (Copy)`,
+				description: sourceAgent.description,
+				model: sourceAgent.model,
+				instructions: sourceAgent.instructions,
+				config: sourceAgent.config,
+				systemToolsEnabled: sourceAgent.systemToolsEnabled,
+				status: config.enums.agentStatus.DRAFT,
+				createdBy: user.id,
+			})
+			.returning()
+
+		if (!clonedAgent) serverError('Failed to clone agent')
+
+		// Copy tool attachments to new agent (filter out system tools)
+		if (sourceToolIds.length > 0) {
+			const customToolIds = sourceToolIds.filter((id) => !id.startsWith('system-'))
+			if (customToolIds.length > 0) {
+				await db.insert(agentTools).values(
+					customToolIds.map((toolId) => ({
+						agentId: clonedAgent.id,
+						toolId,
+					})),
+				)
+			}
+		}
+
+		// Log audit event for agent clone
+		logAudit({
+			context,
+			action: config.enums.auditAction.AGENT_CLONE,
+			resourceType: 'agent',
+			resourceId: clonedAgent.id,
+			details: {
+				sourceAgentId: input.id,
+				sourceAgentName: sourceAgent.name,
+				clonedAgentName: clonedAgent.name,
+				toolIds: sourceToolIds,
+			},
+		})
+
+		return {
+			id: clonedAgent.id,
+			redirectUrl: `/dashboard/agents/${clonedAgent.id}`,
+		}
+	})
+
 // =============================================================================
 // Router Export
 // =============================================================================
@@ -780,4 +855,5 @@ export const agentsRouter = {
 	rollback,
 	preview,
 	getHealth,
+	clone,
 }

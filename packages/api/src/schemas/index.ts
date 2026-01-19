@@ -18,6 +18,7 @@ export {
 	AgentVersionsQuerySchema,
 	AgentVersionsResponseSchema,
 	ALLOWED_MODEL_IDS,
+	CloneAgentResponseSchema,
 	ConfigPreviewSchema,
 	CreateAgentSchema,
 	DeployAgentSchema,

@@ -569,6 +569,7 @@ Be helpful, patient, and educational. Explain your recommendations. Make the pro
 			AGENT_UPDATE: 'agent.update',
 			AGENT_DELETE: 'agent.delete',
 			AGENT_DEPLOY: 'agent.deploy',
+			AGENT_CLONE: 'agent.clone',
 			TOOL_CREATE: 'tool.create',
 			TOOL_UPDATE: 'tool.update',
 			TOOL_DELETE: 'tool.delete',
