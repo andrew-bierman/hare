@@ -19,6 +19,8 @@ export {
 	type AgentWebhooksPageProps,
 	AgentDetailPage,
 	type AgentDetailPageProps,
+	AgentConversationsPage,
+	type AgentConversationsPageProps,
 } from './agents'
 
 // Tools

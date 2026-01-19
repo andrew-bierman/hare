@@ -39,6 +39,40 @@ export function useMessagesQuery(conversationId: string | undefined) {
 }
 
 // =============================================================================
+// Search Hook
+// =============================================================================
+
+type SearchOutput = Awaited<ReturnType<typeof orpc.chat.searchConversations>>
+export type ConversationSearchResult = SearchOutput['results'][number]
+
+export interface ConversationSearchParams {
+	agentId: string
+	query: string
+	dateFrom?: string
+	dateTo?: string
+	limit?: number
+	offset?: number
+}
+
+export function useConversationSearchQuery(params: ConversationSearchParams | undefined) {
+	const { agentId, query, dateFrom, dateTo, limit, offset } = params ?? {}
+
+	return useQuery({
+		queryKey: ['conversations', 'search', agentId, query, dateFrom, dateTo, limit, offset],
+		queryFn: () =>
+			orpc.chat.searchConversations({
+				id: agentId!,
+				query: query!,
+				dateFrom,
+				dateTo,
+				limit,
+				offset,
+			}),
+		enabled: !!agentId && !!query && query.trim().length > 0,
+	})
+}
+
+// =============================================================================
 // Chat Hook (using AI SDK for streaming)
 // =============================================================================
 
