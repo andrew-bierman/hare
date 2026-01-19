@@ -7,6 +7,11 @@ import { Button } from '@hare/ui/components/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@hare/ui/components/card'
 import { Checkbox } from '@hare/ui/components/checkbox'
 import {
+	Collapsible,
+	CollapsibleContent,
+	CollapsibleTrigger,
+} from '@hare/ui/components/collapsible'
+import {
 	Dialog,
 	DialogContent,
 	DialogDescription,
@@ -26,12 +31,15 @@ import {
 	TableHeader,
 	TableRow,
 } from '@hare/ui/components/table'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@hare/ui/components/tabs'
 import { Textarea } from '@hare/ui/components/textarea'
 import { Link } from '@tanstack/react-router'
 import {
 	AlertCircle,
 	ArrowLeft,
 	CheckCircle2,
+	ChevronDown,
+	ChevronRight,
 	Clock,
 	Copy,
 	Eye,
@@ -78,6 +86,19 @@ interface WebhookLog {
 	error: string | null
 	createdAt: string
 	completedAt: string | null
+}
+
+interface WebhookDelivery {
+	id: string
+	webhookId: string
+	event: string
+	payload: Record<string, unknown>
+	status: 'success' | 'failed' | 'pending'
+	statusCode: number | null
+	responseBody: string | null
+	attemptCount: number
+	nextRetryAt: string | null
+	createdAt: string
 }
 
 type WebhookEventType =
@@ -211,6 +232,39 @@ async function regenerateSecret(options: {
 	}
 	const data = (await response.json()) as { secret: string }
 	return data.secret
+}
+
+async function fetchWebhookDeliveries(options: {
+	webhookId: string
+	workspaceId: string
+	limit?: number
+	offset?: number
+}): Promise<{ deliveries: WebhookDelivery[]; total: number }> {
+	const { webhookId, workspaceId, limit = 50, offset = 0 } = options
+	const response = await fetch(
+		`/api/webhooks/${webhookId}/deliveries?workspaceId=${workspaceId}&limit=${limit}&offset=${offset}`,
+	)
+	if (!response.ok) {
+		throw new Error('Failed to fetch webhook deliveries')
+	}
+	return (await response.json()) as { deliveries: WebhookDelivery[]; total: number }
+}
+
+async function retryWebhookDelivery(options: {
+	webhookId: string
+	deliveryId: string
+	workspaceId: string
+}): Promise<WebhookDelivery> {
+	const { webhookId, deliveryId, workspaceId } = options
+	const response = await fetch(
+		`/api/webhooks/${webhookId}/deliveries/${deliveryId}/retry?workspaceId=${workspaceId}`,
+		{ method: 'POST' },
+	)
+	if (!response.ok) {
+		const error = (await response.json()) as { error?: string }
+		throw new Error(error.error || 'Failed to retry delivery')
+	}
+	return (await response.json()) as WebhookDelivery
 }
 
 // =============================================================================
@@ -413,6 +467,138 @@ interface WebhookLogsDialogProps {
 	onOpenChange: (open: boolean) => void
 }
 
+function formatRelativeTime(date: Date): string {
+	const now = new Date()
+	const diffMs = date.getTime() - now.getTime()
+	const diffMins = Math.round(diffMs / 60000)
+
+	if (diffMins <= 0) return 'now'
+	if (diffMins < 60) return `in ${diffMins}m`
+	const diffHours = Math.round(diffMins / 60)
+	if (diffHours < 24) return `in ${diffHours}h`
+	return date.toLocaleString()
+}
+
+interface DeliveryRowProps {
+	delivery: WebhookDelivery
+	onRetry: (deliveryId: string) => Promise<void>
+	isRetrying: boolean
+}
+
+function DeliveryRow({ delivery, onRetry, isRetrying }: DeliveryRowProps) {
+	const [isOpen, setIsOpen] = useState(false)
+	const canRetry = delivery.status === 'failed'
+
+	return (
+		<Collapsible open={isOpen} onOpenChange={setIsOpen}>
+			<TableRow className="cursor-pointer hover:bg-muted/50">
+				<TableCell className="w-8">
+					<CollapsibleTrigger asChild>
+						<Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+							{isOpen ? (
+								<ChevronDown className="h-4 w-4" />
+							) : (
+								<ChevronRight className="h-4 w-4" />
+							)}
+						</Button>
+					</CollapsibleTrigger>
+				</TableCell>
+				<TableCell>
+					<Badge variant="outline">{delivery.event}</Badge>
+				</TableCell>
+				<TableCell>
+					<DeliveryStatusBadge status={delivery.status} />
+				</TableCell>
+				<TableCell>
+					{delivery.statusCode ? (
+						<span
+							className={
+								delivery.statusCode >= 200 && delivery.statusCode < 300
+									? 'text-emerald-600'
+									: 'text-red-600'
+							}
+						>
+							HTTP {delivery.statusCode}
+						</span>
+					) : (
+						<span className="text-muted-foreground">-</span>
+					)}
+				</TableCell>
+				<TableCell className="text-muted-foreground text-sm">
+					{new Date(delivery.createdAt).toLocaleString()}
+				</TableCell>
+				<TableCell>
+					<div className="flex items-center gap-2">
+						{delivery.attemptCount > 0 && (
+							<span className="text-xs text-muted-foreground">
+								{delivery.attemptCount} attempt{delivery.attemptCount !== 1 ? 's' : ''}
+							</span>
+						)}
+						{delivery.status === 'pending' && delivery.nextRetryAt && (
+							<span className="text-xs text-yellow-600">
+								Retry {formatRelativeTime(new Date(delivery.nextRetryAt))}
+							</span>
+						)}
+						{canRetry && (
+							<Button
+								variant="outline"
+								size="sm"
+								className="h-7"
+								onClick={(e) => {
+									e.stopPropagation()
+									onRetry(delivery.id)
+								}}
+								disabled={isRetrying}
+							>
+								{isRetrying ? (
+									<Loader2 className="h-3 w-3 animate-spin" />
+								) : (
+									<RefreshCw className="h-3 w-3" />
+								)}
+								<span className="ml-1">Retry</span>
+							</Button>
+						)}
+					</div>
+				</TableCell>
+			</TableRow>
+			<CollapsibleContent asChild>
+				<tr>
+					<td colSpan={6} className="p-0">
+						<div className="border-t bg-muted/30 p-4 space-y-4">
+							<div>
+								<Label className="text-xs text-muted-foreground mb-2 block">
+									Request Payload
+								</Label>
+								<pre className="bg-background rounded-md p-3 text-xs overflow-auto max-h-48 border">
+									{JSON.stringify(delivery.payload, null, 2)}
+								</pre>
+							</div>
+							{delivery.responseBody && (
+								<div>
+									<Label className="text-xs text-muted-foreground mb-2 block">
+										Response Body
+									</Label>
+									<pre className="bg-background rounded-md p-3 text-xs overflow-auto max-h-48 border">
+										{delivery.responseBody}
+									</pre>
+								</div>
+							)}
+							{delivery.status === 'pending' && delivery.nextRetryAt && (
+								<div className="flex items-center gap-2 text-sm text-yellow-600">
+									<Clock className="h-4 w-4" />
+									<span>
+										Next retry scheduled: {new Date(delivery.nextRetryAt).toLocaleString()}
+									</span>
+								</div>
+							)}
+						</div>
+					</td>
+				</tr>
+			</CollapsibleContent>
+		</Collapsible>
+	)
+}
+
 function WebhookLogsDialog({
 	webhook,
 	workspaceId,
@@ -421,11 +607,31 @@ function WebhookLogsDialog({
 	onOpenChange,
 }: WebhookLogsDialogProps) {
 	const [logs, setLogs] = useState<WebhookLog[]>([])
+	const [deliveries, setDeliveries] = useState<WebhookDelivery[]>([])
 	const [loading, setLoading] = useState(false)
+	const [deliveriesLoading, setDeliveriesLoading] = useState(false)
 	const [total, setTotal] = useState(0)
+	const [deliveriesTotal, setDeliveriesTotal] = useState(0)
+	const [retryingId, setRetryingId] = useState<string | null>(null)
+	const [activeTab, setActiveTab] = useState('deliveries')
 
 	useEffect(() => {
 		if (open) {
+			// Load deliveries by default
+			setDeliveriesLoading(true)
+			fetchWebhookDeliveries({ webhookId: webhook.id, workspaceId })
+				.then((data) => {
+					setDeliveries(data.deliveries)
+					setDeliveriesTotal(data.total)
+				})
+				.catch(() => toast.error('Failed to load deliveries'))
+				.finally(() => setDeliveriesLoading(false))
+		}
+	}, [open, webhook.id, workspaceId])
+
+	useEffect(() => {
+		// Load legacy logs when switching to that tab
+		if (open && activeTab === 'logs' && logs.length === 0) {
 			setLoading(true)
 			fetchWebhookLogs({ agentId, webhookId: webhook.id, workspaceId })
 				.then((data) => {
@@ -435,74 +641,142 @@ function WebhookLogsDialog({
 				.catch(() => toast.error('Failed to load logs'))
 				.finally(() => setLoading(false))
 		}
-	}, [open, webhook.id, agentId, workspaceId])
+	}, [open, activeTab, webhook.id, agentId, workspaceId, logs.length])
+
+	const handleRetry = async (deliveryId: string) => {
+		setRetryingId(deliveryId)
+		try {
+			const updatedDelivery = await retryWebhookDelivery({
+				webhookId: webhook.id,
+				deliveryId,
+				workspaceId,
+			})
+			setDeliveries((prev) =>
+				prev.map((d) => (d.id === deliveryId ? updatedDelivery : d)),
+			)
+			toast.success('Delivery retry initiated')
+		} catch (error) {
+			toast.error(error instanceof Error ? error.message : 'Failed to retry delivery')
+		} finally {
+			setRetryingId(null)
+		}
+	}
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent className="max-w-4xl max-h-[80vh]">
+			<DialogContent className="max-w-5xl max-h-[85vh]">
 				<DialogHeader>
-					<DialogTitle>Delivery Logs</DialogTitle>
+					<DialogTitle>Webhook Deliveries</DialogTitle>
 					<DialogDescription>
-						Showing {logs.length} of {total} deliveries for this webhook
+						View delivery history and retry failed deliveries for this webhook
 					</DialogDescription>
 				</DialogHeader>
-				<ScrollArea className="h-[500px]">
-					{loading ? (
-						<div className="flex items-center justify-center py-8">
-							<Loader2 className="h-6 w-6 animate-spin" />
-						</div>
-					) : logs.length === 0 ? (
-						<div className="flex flex-col items-center justify-center py-8 text-center">
-							<Clock className="h-8 w-8 text-muted-foreground mb-2" />
-							<p className="text-sm text-muted-foreground">No delivery logs yet</p>
-						</div>
-					) : (
-						<Table>
-							<TableHeader>
-								<TableRow>
-									<TableHead>Event</TableHead>
-									<TableHead>Status</TableHead>
-									<TableHead>Response</TableHead>
-									<TableHead>Attempts</TableHead>
-									<TableHead>Time</TableHead>
-								</TableRow>
-							</TableHeader>
-							<TableBody>
-								{logs.map((log) => (
-									<TableRow key={log.id}>
-										<TableCell>
-											<Badge variant="outline">{log.event}</Badge>
-										</TableCell>
-										<TableCell>
-											<DeliveryStatusBadge status={log.status} />
-										</TableCell>
-										<TableCell>
-											{log.responseStatus ? (
-												<span
-													className={
-														log.responseStatus >= 200 && log.responseStatus < 300
-															? 'text-emerald-600'
-															: 'text-red-600'
-													}
-												>
-													HTTP {log.responseStatus}
-												</span>
-											) : log.error ? (
-												<span className="text-red-600 text-sm">{log.error}</span>
-											) : (
-												'-'
-											)}
-										</TableCell>
-										<TableCell>{log.attempts}</TableCell>
-										<TableCell className="text-muted-foreground text-sm">
-											{new Date(log.createdAt).toLocaleString()}
-										</TableCell>
-									</TableRow>
-								))}
-							</TableBody>
-						</Table>
-					)}
-				</ScrollArea>
+				<Tabs value={activeTab} onValueChange={setActiveTab}>
+					<TabsList>
+						<TabsTrigger value="deliveries">
+							Deliveries ({deliveriesTotal})
+						</TabsTrigger>
+						<TabsTrigger value="logs">
+							Legacy Logs ({total})
+						</TabsTrigger>
+					</TabsList>
+					<TabsContent value="deliveries">
+						<ScrollArea className="h-[500px]">
+							{deliveriesLoading ? (
+								<div className="flex items-center justify-center py-8">
+									<Loader2 className="h-6 w-6 animate-spin" />
+								</div>
+							) : deliveries.length === 0 ? (
+								<div className="flex flex-col items-center justify-center py-8 text-center">
+									<Clock className="h-8 w-8 text-muted-foreground mb-2" />
+									<p className="text-sm text-muted-foreground">No deliveries yet</p>
+								</div>
+							) : (
+								<Table>
+									<TableHeader>
+										<TableRow>
+											<TableHead className="w-8" />
+											<TableHead>Event</TableHead>
+											<TableHead>Status</TableHead>
+											<TableHead>Response Code</TableHead>
+											<TableHead>Timestamp</TableHead>
+											<TableHead>Actions</TableHead>
+										</TableRow>
+									</TableHeader>
+									<TableBody>
+										{deliveries.map((delivery) => (
+											<DeliveryRow
+												key={delivery.id}
+												delivery={delivery}
+												onRetry={handleRetry}
+												isRetrying={retryingId === delivery.id}
+											/>
+										))}
+									</TableBody>
+								</Table>
+							)}
+						</ScrollArea>
+					</TabsContent>
+					<TabsContent value="logs">
+						<ScrollArea className="h-[500px]">
+							{loading ? (
+								<div className="flex items-center justify-center py-8">
+									<Loader2 className="h-6 w-6 animate-spin" />
+								</div>
+							) : logs.length === 0 ? (
+								<div className="flex flex-col items-center justify-center py-8 text-center">
+									<Clock className="h-8 w-8 text-muted-foreground mb-2" />
+									<p className="text-sm text-muted-foreground">No legacy logs</p>
+								</div>
+							) : (
+								<Table>
+									<TableHeader>
+										<TableRow>
+											<TableHead>Event</TableHead>
+											<TableHead>Status</TableHead>
+											<TableHead>Response</TableHead>
+											<TableHead>Attempts</TableHead>
+											<TableHead>Time</TableHead>
+										</TableRow>
+									</TableHeader>
+									<TableBody>
+										{logs.map((log) => (
+											<TableRow key={log.id}>
+												<TableCell>
+													<Badge variant="outline">{log.event}</Badge>
+												</TableCell>
+												<TableCell>
+													<DeliveryStatusBadge status={log.status} />
+												</TableCell>
+												<TableCell>
+													{log.responseStatus ? (
+														<span
+															className={
+																log.responseStatus >= 200 && log.responseStatus < 300
+																	? 'text-emerald-600'
+																	: 'text-red-600'
+															}
+														>
+															HTTP {log.responseStatus}
+														</span>
+													) : log.error ? (
+														<span className="text-red-600 text-sm">{log.error}</span>
+													) : (
+														'-'
+													)}
+												</TableCell>
+												<TableCell>{log.attempts}</TableCell>
+												<TableCell className="text-muted-foreground text-sm">
+													{new Date(log.createdAt).toLocaleString()}
+												</TableCell>
+											</TableRow>
+										))}
+									</TableBody>
+								</Table>
+							)}
+						</ScrollArea>
+					</TabsContent>
+				</Tabs>
 			</DialogContent>
 		</Dialog>
 	)
