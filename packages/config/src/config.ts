@@ -573,6 +573,7 @@ Be helpful, patient, and educational. Explain your recommendations. Make the pro
 			TOOL_CREATE: 'tool.create',
 			TOOL_UPDATE: 'tool.update',
 			TOOL_DELETE: 'tool.delete',
+			TOOL_TEST: 'tool.test',
 			MEMBER_INVITE: 'member.invite',
 			MEMBER_REMOVE: 'member.remove',
 			MEMBER_ROLE_CHANGE: 'member.role_change',
