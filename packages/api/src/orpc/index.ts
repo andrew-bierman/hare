@@ -32,6 +32,7 @@ export {
 	apiKeysRouter,
 	workspacesRouter,
 	schedulesRouter,
+	auditLogsRouter,
 } from './routers'
 
 // Client exports - the main way to use oRPC from the frontend
@@ -53,6 +54,7 @@ export {
 	type BillingClient,
 	type UserSettingsClient,
 	type WorkspaceMembersClient,
+	type AuditLogsClient,
 } from './client'
 
 // Audit logging utility

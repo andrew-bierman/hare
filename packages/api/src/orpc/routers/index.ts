@@ -20,6 +20,7 @@ import { billingRouter } from './billing'
 import { healthRouter } from './health'
 import { webhooksRouter } from './webhooks'
 import { embedRouter } from './embed'
+import { auditLogsRouter } from './audit-logs'
 
 // Re-export individual routers
 export {
@@ -39,6 +40,7 @@ export {
 	healthRouter,
 	webhooksRouter,
 	embedRouter,
+	auditLogsRouter,
 }
 
 // Combined router for the app
@@ -59,6 +61,7 @@ export const appRouter = {
 	health: healthRouter,
 	webhooks: webhooksRouter,
 	embed: embedRouter,
+	auditLogs: auditLogsRouter,
 }
 
 export type AppRouter = typeof appRouter
