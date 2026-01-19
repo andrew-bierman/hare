@@ -49,6 +49,7 @@ export {
 	NODE_ENVS,
 	PLAN_IDS,
 	WIDGET_POSITIONS,
+	AUDIT_ACTIONS,
 	// Types
 	type config as ConfigType,
 	type AppConfig,
@@ -86,6 +87,7 @@ export {
 	type NodeEnv,
 	type PlanId,
 	type WidgetPosition,
+	type AuditAction,
 } from './config'
 
 // Environment (separate due to runtime dynamic values)
