@@ -3,6 +3,7 @@
 // Agent tables
 export * from './agents'
 export * from './agent-versions'
+export * from './activity-events'
 export * from './audit-logs'
 export * from './auth'
 

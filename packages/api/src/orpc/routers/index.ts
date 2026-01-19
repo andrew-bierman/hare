@@ -4,6 +4,7 @@
  * Combines all oRPC routers into a single app router.
  */
 
+import { activityRouter } from './activity'
 import { agentsRouter } from './agents'
 import { toolsRouter } from './tools'
 import { apiKeysRouter } from './api-keys'
@@ -24,6 +25,7 @@ import { auditLogsRouter } from './audit-logs'
 
 // Re-export individual routers
 export {
+	activityRouter,
 	agentsRouter,
 	toolsRouter,
 	apiKeysRouter,
@@ -45,6 +47,7 @@ export {
 
 // Combined router for the app
 export const appRouter = {
+	activity: activityRouter,
 	agents: agentsRouter,
 	tools: toolsRouter,
 	apiKeys: apiKeysRouter,

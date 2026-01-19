@@ -582,6 +582,13 @@ Be helpful, patient, and educational. Explain your recommendations. Make the pro
 			WORKSPACE_UPDATE: 'workspace.update',
 		} as const,
 
+		// Activity event types
+		activityEventType: {
+			AGENT_INVOCATION: 'agent.invocation',
+			TOOL_CALL: 'tool.call',
+			ERROR: 'error',
+		} as const,
+
 		// Tool types
 		toolType: {
 			HTTP: 'http', SQL: 'sql', KV: 'kv', R2: 'r2', SEARCH: 'search',
@@ -940,6 +947,7 @@ export type NodeEnv = typeof config.enums.nodeEnv[keyof typeof config.enums.node
 export type PlanId = typeof config.enums.planId[keyof typeof config.enums.planId]
 export type WidgetPosition = typeof config.enums.widgetPosition[keyof typeof config.enums.widgetPosition]
 export type AuditAction = typeof config.enums.auditAction[keyof typeof config.enums.auditAction]
+export type ActivityEventType = typeof config.enums.activityEventType[keyof typeof config.enums.activityEventType]
 
 // Re-export types used in config
 export type { AIModel, SystemTool, ResponseStylePreset, AgentTemplate, ModelProvider, SpeedTier, CostTier, ResponseStyle, SystemToolType, AgentTemplateId }
@@ -1015,6 +1023,7 @@ export const NODE_ENVS = enumToTuple(config.enums.nodeEnv)
 export const PLAN_IDS = enumToTuple(config.enums.planId)
 export const WIDGET_POSITIONS = enumToTuple(config.enums.widgetPosition)
 export const AUDIT_ACTIONS = enumToTuple(config.enums.auditAction)
+export const ACTIVITY_EVENT_TYPES = enumToTuple(config.enums.activityEventType)
 
 // API message roles (excludes tool)
 export const API_MESSAGE_ROLES = [

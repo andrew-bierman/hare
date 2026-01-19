@@ -50,6 +50,7 @@ export {
 	PLAN_IDS,
 	WIDGET_POSITIONS,
 	AUDIT_ACTIONS,
+	ACTIVITY_EVENT_TYPES,
 	// Types
 	type config as ConfigType,
 	type AppConfig,
@@ -88,6 +89,7 @@ export {
 	type PlanId,
 	type WidgetPosition,
 	type AuditAction,
+	type ActivityEventType,
 } from './config'
 
 // Environment (separate due to runtime dynamic values)
