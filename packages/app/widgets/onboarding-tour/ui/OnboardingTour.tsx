@@ -2,12 +2,10 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { createPortal } from 'react-dom'
-import { useAtom } from 'jotai'
 import { Button } from '@hare/ui/components/button'
 import { Progress } from '@hare/ui/components/progress'
 import { cn } from '@hare/ui/lib/utils'
 import { X, ChevronLeft, ChevronRight, SkipForward } from 'lucide-react'
-import { tourCompletedAtom } from '../../../shared/lib/atoms'
 
 /**
  * Position of the tour tooltip relative to the target element
@@ -84,10 +82,18 @@ export const DEFAULT_TOUR_STEPS: TourStep[] = [
 ]
 
 export interface OnboardingTourProps {
-	/** Whether to show the tour */
-	isActive?: boolean
-	/** Callback when tour is completed or skipped */
-	onComplete?: () => void
+	/** Whether the tour is active */
+	isActive: boolean
+	/** Current step index */
+	currentStep: number
+	/** Callback when moving to next step */
+	onNext: () => void
+	/** Callback when moving to previous step */
+	onPrev: () => void
+	/** Callback when tour is skipped */
+	onSkip: () => void
+	/** Callback when tour is completed */
+	onComplete: () => void
 	/** Custom tour steps (defaults to DEFAULT_TOUR_STEPS) */
 	steps?: TourStep[]
 }
@@ -176,14 +182,19 @@ function getArrowStyles(position: TourStepPosition): string {
  *
  * A guided tour that highlights elements and shows tooltips to help
  * new users understand the dashboard features.
+ *
+ * This component is controlled - it receives state from the parent
+ * via the useTour hook for proper state persistence across navigation.
  */
 export function OnboardingTour({
-	isActive = true,
+	isActive,
+	currentStep: currentStepIndex,
+	onNext,
+	onPrev,
+	onSkip,
 	onComplete,
 	steps = DEFAULT_TOUR_STEPS,
 }: OnboardingTourProps) {
-	const [tourCompleted, setTourCompleted] = useAtom(tourCompletedAtom)
-	const [currentStepIndex, setCurrentStepIndex] = useState(0)
 	const [tooltipPosition, setTooltipPosition] = useState<TooltipPosition | null>(null)
 	const [highlightRect, setHighlightRect] = useState<HighlightRect | null>(null)
 	const [isVisible, setIsVisible] = useState(false)
@@ -196,13 +207,13 @@ export function OnboardingTour({
 
 	// Position the tooltip and highlight based on target element
 	const updatePositions = useCallback(() => {
-		if (!currentStep || tourCompleted) return
+		if (!currentStep || !isActive) return
 
 		const targetElement = document.querySelector(currentStep.targetSelector)
 		if (!targetElement) {
-			// Target not found, skip to next step
+			// Target not found, skip to next step if not last
 			if (!isLastStep) {
-				setCurrentStepIndex((prev) => prev + 1)
+				onNext()
 			}
 			return
 		}
@@ -230,11 +241,11 @@ export function OnboardingTour({
 		}
 
 		setIsVisible(true)
-	}, [currentStep, tourCompleted, isLastStep])
+	}, [currentStep, isActive, isLastStep, onNext])
 
 	// Initial positioning and resize handling
 	useEffect(() => {
-		if (!isActive || tourCompleted) {
+		if (!isActive) {
 			setIsVisible(false)
 			return
 		}
@@ -252,7 +263,18 @@ export function OnboardingTour({
 			window.removeEventListener('resize', updatePositions)
 			window.removeEventListener('scroll', updatePositions, true)
 		}
-	}, [isActive, tourCompleted, updatePositions])
+	}, [isActive, updatePositions])
+
+	// Re-calculate when step changes
+	useEffect(() => {
+		if (isActive) {
+			setIsVisible(false)
+			const timer = setTimeout(() => {
+				updatePositions()
+			}, 100)
+			return () => clearTimeout(timer)
+		}
+	}, [currentStepIndex, isActive, updatePositions])
 
 	// Re-calculate when tooltip ref becomes available
 	useEffect(() => {
@@ -263,32 +285,27 @@ export function OnboardingTour({
 
 	const handleNext = () => {
 		if (isLastStep) {
-			handleComplete()
+			onComplete()
 		} else {
-			setCurrentStepIndex((prev) => prev + 1)
-			setIsVisible(false) // Reset visibility for animation
+			setIsVisible(false)
+			onNext()
 		}
 	}
 
 	const handleBack = () => {
 		if (!isFirstStep) {
-			setCurrentStepIndex((prev) => prev - 1)
 			setIsVisible(false)
+			onPrev()
 		}
 	}
 
 	const handleSkip = () => {
-		handleComplete()
-	}
-
-	const handleComplete = () => {
-		setTourCompleted(true)
 		setIsVisible(false)
-		onComplete?.()
+		onSkip()
 	}
 
-	// Don't render if tour is completed or not active
-	if (tourCompleted || !isActive || !currentStep) {
+	// Don't render if not active
+	if (!isActive || !currentStep) {
 		return null
 	}
 

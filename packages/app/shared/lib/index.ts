@@ -6,10 +6,16 @@
  */
 
 // Jotai Atoms
-export { onboardingDismissedAtom, tourCompletedAtom } from './atoms'
+export {
+	onboardingDismissedAtom,
+	tourCompletedAtom,
+	tourActiveAtom,
+	tourCurrentStepAtom,
+} from './atoms'
 
 // Hooks
 export { useDebouncedCallback, useDebouncedValue } from './hooks'
+export { useTour, type UseTourReturn, type UseTourOptions } from './use-tour'
 
 // Utilities
 export { generateUniqueSlug, nameToSlug } from './slug'
