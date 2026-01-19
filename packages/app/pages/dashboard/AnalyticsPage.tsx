@@ -302,7 +302,7 @@ export function AnalyticsPage() {
 				{/* Usage by Agent */}
 				<ChartContainer
 					title="Usage by Agent"
-					description="Token distribution across agents"
+					description="Token distribution and cost across agents"
 					isLoading={isLoading}
 					isEmpty={!analyticsData?.byAgent.length}
 				>
@@ -311,7 +311,18 @@ export function AnalyticsPage() {
 							<CartesianGrid strokeDasharray="3 3" />
 							<XAxis type="number" />
 							<YAxis dataKey="agentName" type="category" width={100} />
-							<Tooltip formatter={(value) => formatNumber(value as number)} />
+							<Tooltip
+								formatter={(value, name) => [
+									formatNumber(value as number),
+									name === 'Input' ? 'Input Tokens' : 'Output Tokens',
+								]}
+								labelFormatter={(label, payload) => {
+									const data = payload?.[0]?.payload as
+										| { agentName: string; cost: number }
+										| undefined
+									return data ? `${data.agentName} (${formatCurrency(data.cost)})` : label
+								}}
+							/>
 							<Legend />
 							<Bar dataKey="inputTokens" stackId="a" fill={CHART_COLORS[0]} name="Input" />
 							<Bar dataKey="outputTokens" stackId="a" fill={CHART_COLORS[1]} name="Output" />
@@ -349,6 +360,34 @@ export function AnalyticsPage() {
 					</ResponsiveContainer>
 				</ChartContainer>
 			</div>
+
+			{/* Cost by Agent */}
+			<ChartContainer
+				title="Cost by Agent"
+				description="Spending breakdown by agent (sorted by cost)"
+				isLoading={isLoading}
+				isEmpty={!analyticsData?.byAgent.length}
+			>
+				<ResponsiveContainer width="100%" height={300}>
+					<BarChart
+						data={[...(analyticsData?.byAgent ?? [])].sort((a, b) => b.cost - a.cost).slice(0, 10)}
+						layout="vertical"
+					>
+						<CartesianGrid strokeDasharray="3 3" />
+						<XAxis type="number" tickFormatter={(value: number) => `$${value.toFixed(2)}`} />
+						<YAxis dataKey="agentName" type="category" width={120} />
+						<Tooltip formatter={(value) => formatCurrency(value as number)} />
+						<Bar dataKey="cost" fill={CHART_COLORS[3]} name="Cost">
+							{[...(analyticsData?.byAgent ?? [])]
+								.sort((a, b) => b.cost - a.cost)
+								.slice(0, 10)
+								.map((agent, index) => (
+									<Cell key={agent.agentId} fill={CHART_COLORS[index % CHART_COLORS.length]} />
+								))}
+						</Bar>
+					</BarChart>
+				</ResponsiveContainer>
+			</ChartContainer>
 
 			{/* Cost Trend */}
 			<ChartContainer
