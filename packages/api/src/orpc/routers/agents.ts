@@ -9,6 +9,7 @@ import { and, count, desc, eq, inArray, max } from 'drizzle-orm'
 import { agents, agentTools, agentVersions, deployments } from '@hare/db/schema'
 import { config } from '@hare/config'
 import { requireWrite, requireAdmin, notFound, badRequest, serverError, type WorkspaceContext } from '../base'
+import { logAudit } from '../audit'
 import {
 	AgentSchema,
 	AgentVersionSchema,
@@ -191,6 +192,19 @@ export const create = requireWrite
 			}
 		}
 
+		// Log audit event for agent creation
+		logAudit({
+			context,
+			action: config.enums.auditAction.AGENT_CREATE,
+			resourceType: 'agent',
+			resourceId: agent.id,
+			details: {
+				name: agent.name,
+				model: agent.model,
+				toolIds: input.toolIds ?? [],
+			},
+		})
+
 		return serializeAgent(agent, input.toolIds || [])
 	})
 
@@ -239,6 +253,19 @@ export const update = requireWrite
 		}
 
 		const toolIds = await getAgentToolIds(id, db)
+
+		// Log audit event for agent update
+		logAudit({
+			context,
+			action: config.enums.auditAction.AGENT_UPDATE,
+			resourceType: 'agent',
+			resourceId: id,
+			details: {
+				updatedFields: Object.keys(data).filter((key) => data[key as keyof typeof data] !== undefined),
+				name: agent.name,
+			},
+		})
+
 		return serializeAgent(agent, toolIds)
 	})
 
@@ -258,6 +285,18 @@ export const remove = requireAdmin
 			.returning()
 
 		if (result.length === 0) notFound('Agent not found')
+
+		// Log audit event for agent deletion
+		const deletedAgent = result[0]
+		logAudit({
+			context,
+			action: config.enums.auditAction.AGENT_DELETE,
+			resourceType: 'agent',
+			resourceId: input.id,
+			details: {
+				name: deletedAgent?.name,
+			},
+		})
 
 		return { success: true }
 	})
@@ -330,6 +369,20 @@ export const deploy = requireAdmin
 		if (!deployment) serverError('Failed to create deployment')
 
 		const baseUrl = `/api/agents/${input.id}`
+
+		// Log audit event for agent deployment
+		logAudit({
+			context,
+			action: config.enums.auditAction.AGENT_DEPLOY,
+			resourceType: 'agent',
+			resourceId: input.id,
+			details: {
+				name: agent.name,
+				version,
+				deploymentId: deployment.id,
+				model: agent.model,
+			},
+		})
 
 		return {
 			id: deployment.id,

@@ -54,3 +54,6 @@ export {
 	type UserSettingsClient,
 	type WorkspaceMembersClient,
 } from './client'
+
+// Audit logging utility
+export { logAudit, type LogAuditInput } from './audit'
