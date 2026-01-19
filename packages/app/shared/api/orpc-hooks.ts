@@ -633,3 +633,16 @@ export function useAuditLogsQuery(options?: {
 		queryFn: () => orpc.auditLogs.list(options || {}),
 	})
 }
+
+// =============================================================================
+// Agent Health Hooks
+// =============================================================================
+
+export function useAgentHealthQuery(agentId: string | undefined, options?: { refetchInterval?: number }) {
+	return useQuery({
+		queryKey: ['agents', agentId, 'health'],
+		queryFn: () => orpc.agents.getHealth({ id: agentId! }),
+		enabled: !!agentId,
+		refetchInterval: options?.refetchInterval,
+	})
+}

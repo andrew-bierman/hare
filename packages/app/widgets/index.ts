@@ -74,3 +74,6 @@ export * from './prompt-generator'
 
 // Version history widget
 export * from './version-history'
+
+// Agent health widget
+export * from './agent-health'
