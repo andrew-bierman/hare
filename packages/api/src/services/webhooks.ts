@@ -7,11 +7,11 @@
  * - Delivery logging
  */
 
-import { and, eq, inArray } from 'drizzle-orm'
+import { and, eq } from 'drizzle-orm'
 import {
 	WEBHOOK_EVENT_TYPES,
 	type WebhookEventType,
-	webhookLogs,
+	webhookDeliveries,
 	webhooks,
 	type Database,
 } from '@hare/db'
@@ -50,8 +50,8 @@ export interface WebhookPayload {
 /** Maximum number of retry attempts for failed webhooks */
 const MAX_RETRY_ATTEMPTS = 3
 
-/** Base delay in milliseconds for exponential backoff */
-const BASE_RETRY_DELAY_MS = 1000
+/** Retry delays in milliseconds: 1 minute, 5 minutes, 30 minutes */
+const RETRY_DELAYS_MS = [60_000, 300_000, 1_800_000] as const
 
 /** Request timeout in milliseconds */
 const REQUEST_TIMEOUT_MS = 10000
@@ -179,66 +179,103 @@ async function deliverWebhook(options: {
 }
 
 /**
- * Deliver webhook with exponential backoff retry.
+ * Calculate the next retry time based on attempt count.
+ * Retry delays: 1 minute, 5 minutes, 30 minutes.
+ *
+ * @param attemptCount - Current attempt count (1-based)
+ * @returns Next retry timestamp or null if max retries exceeded
  */
-async function deliverWithRetry(options: {
+function calculateNextRetryAt(attemptCount: number): Date | null {
+	if (attemptCount >= MAX_RETRY_ATTEMPTS) {
+		return null
+	}
+	const delayIndex = attemptCount - 1
+	const delayMs = RETRY_DELAYS_MS[delayIndex] ?? RETRY_DELAYS_MS[RETRY_DELAYS_MS.length - 1]
+	if (delayMs === undefined) {
+		return null
+	}
+	return new Date(Date.now() + delayMs)
+}
+
+/**
+ * Attempt a single webhook delivery and update the delivery record.
+ *
+ * @returns Updated delivery result
+ */
+async function attemptDelivery(options: {
 	db: Database
+	deliveryId: string
 	webhook: {
 		id: string
 		url: string
 		secret: string
 	}
 	payload: WebhookPayload
-	logId: string
+	attemptCount: number
 }): Promise<WebhookDeliveryResult> {
-	const { db, webhook, payload, logId } = options
-	let attempts = 0
-	let lastResult: Awaited<ReturnType<typeof deliverWebhook>> | null = null
+	const { db, deliveryId, webhook, payload, attemptCount } = options
 
-	while (attempts < MAX_RETRY_ATTEMPTS) {
-		attempts++
+	const result = await deliverWebhook({ webhook, payload })
 
-		// Apply exponential backoff delay (except for first attempt)
-		if (attempts > 1) {
-			const delay = BASE_RETRY_DELAY_MS * 2 ** (attempts - 1)
-			await new Promise((resolve) => setTimeout(resolve, delay))
-		}
-
-		lastResult = await deliverWebhook({ webhook, payload })
-
-		// Update log with attempt count
+	if (result.success) {
+		// Update delivery record with success
 		await db
-			.update(webhookLogs)
+			.update(webhookDeliveries)
 			.set({
-				attempts,
-				status: lastResult.success ? 'success' : 'pending',
-				responseStatus: lastResult.statusCode,
-				responseBody: lastResult.responseBody,
-				error: lastResult.error,
-				completedAt: lastResult.success ? new Date() : undefined,
+				status: 'success',
+				statusCode: result.statusCode,
+				responseBody: result.responseBody,
+				attemptCount,
+				nextRetryAt: null,
 			})
-			.where(eq(webhookLogs.id, logId))
+			.where(eq(webhookDeliveries.id, deliveryId))
 
-		if (lastResult.success) {
-			return {
-				webhookId: webhook.id,
-				success: true,
-				statusCode: lastResult.statusCode,
-				attempts,
-			}
+		return {
+			webhookId: webhook.id,
+			success: true,
+			statusCode: result.statusCode,
+			attempts: attemptCount,
 		}
 	}
 
-	// Mark as failed after all retries exhausted
+	// Delivery failed - calculate next retry or mark as failed
+	const nextRetryAt = calculateNextRetryAt(attemptCount)
+
+	if (nextRetryAt) {
+		// Schedule retry
+		await db
+			.update(webhookDeliveries)
+			.set({
+				status: 'pending',
+				statusCode: result.statusCode,
+				responseBody: result.responseBody,
+				attemptCount,
+				nextRetryAt,
+			})
+			.where(eq(webhookDeliveries.id, deliveryId))
+
+		return {
+			webhookId: webhook.id,
+			success: false,
+			statusCode: result.statusCode,
+			error: result.error,
+			attempts: attemptCount,
+		}
+	}
+
+	// Max retries exceeded - mark as failed
 	await db
-		.update(webhookLogs)
+		.update(webhookDeliveries)
 		.set({
 			status: 'failed',
-			completedAt: new Date(),
+			statusCode: result.statusCode,
+			responseBody: result.responseBody,
+			attemptCount,
+			nextRetryAt: null,
 		})
-		.where(eq(webhookLogs.id, logId))
+		.where(eq(webhookDeliveries.id, deliveryId))
 
-	// Update webhook status to failed if too many failures
+	// Update webhook status to failed
 	await db
 		.update(webhooks)
 		.set({
@@ -250,9 +287,57 @@ async function deliverWithRetry(options: {
 	return {
 		webhookId: webhook.id,
 		success: false,
-		statusCode: lastResult?.statusCode,
-		error: lastResult?.error ?? 'Max retries exceeded',
-		attempts,
+		statusCode: result.statusCode,
+		error: result.error ?? 'Max retries exceeded',
+		attempts: attemptCount,
+	}
+}
+
+/**
+ * Deliver webhook with exponential backoff retry.
+ * Implements retry delays of 1 minute, 5 minutes, and 30 minutes.
+ */
+async function deliverWithRetry(options: {
+	db: Database
+	webhook: {
+		id: string
+		url: string
+		secret: string
+	}
+	payload: WebhookPayload
+	deliveryId: string
+}): Promise<WebhookDeliveryResult> {
+	const { db, webhook, payload, deliveryId } = options
+	let attemptCount = 0
+	let lastResult: WebhookDeliveryResult | null = null
+
+	while (attemptCount < MAX_RETRY_ATTEMPTS) {
+		attemptCount++
+
+		// Apply retry delay (except for first attempt)
+		if (attemptCount > 1) {
+			const delayMs = RETRY_DELAYS_MS[attemptCount - 2] ?? RETRY_DELAYS_MS[RETRY_DELAYS_MS.length - 1]
+			await new Promise((resolve) => setTimeout(resolve, delayMs))
+		}
+
+		lastResult = await attemptDelivery({
+			db,
+			deliveryId,
+			webhook,
+			payload,
+			attemptCount,
+		})
+
+		if (lastResult.success) {
+			return lastResult
+		}
+	}
+
+	return lastResult ?? {
+		webhookId: webhook.id,
+		success: false,
+		error: 'No delivery attempts made',
+		attempts: 0,
 	}
 }
 
@@ -303,23 +388,23 @@ export async function triggerWebhook(
 	// Deliver to all matching webhooks in parallel
 	const results = await Promise.all(
 		matchingWebhooks.map(async (webhook) => {
-			// Create log entry first
-			const [log] = await db
-				.insert(webhookLogs)
+			// Create delivery record before sending
+			const [delivery] = await db
+				.insert(webhookDeliveries)
 				.values({
 					webhookId: webhook.id,
 					event,
 					payload: webhookPayload as unknown as Record<string, unknown>,
 					status: 'pending',
-					attempts: 0,
+					attemptCount: 0,
 				})
 				.returning()
 
-			if (!log) {
+			if (!delivery) {
 				return {
 					webhookId: webhook.id,
 					success: false,
-					error: 'Failed to create log entry',
+					error: 'Failed to create delivery record',
 					attempts: 0,
 				}
 			}
@@ -332,7 +417,7 @@ export async function triggerWebhook(
 					secret: webhook.secret,
 				},
 				payload: webhookPayload,
-				logId: log.id,
+				deliveryId: delivery.id,
 			})
 		}),
 	)
@@ -377,21 +462,23 @@ export async function getWebhookStats(options: { db: Database; agentId: string }
 		}
 	}
 
-	// Get all logs for these webhooks in a single query (fixes N+1)
-	const allLogs = await db
-		.select()
-		.from(webhookLogs)
-		.where(inArray(webhookLogs.webhookId, webhookIds))
+	// Get all deliveries for these webhooks
+	const deliveries = await Promise.all(
+		webhookIds.map((id) =>
+			db.select().from(webhookDeliveries).where(eq(webhookDeliveries.webhookId, id))
+		),
+	)
 
-	const successfulLogs = allLogs.filter((l) => l.status === 'success')
-	const failedLogs = allLogs.filter((l) => l.status === 'failed')
-	const activeWebhooks = agentWebhooks.filter((w) => w.status === 'active')
+	const allDeliveries = deliveries.flat()
+	const successfulDeliveries = allDeliveries.filter((d) => d.status === 'success')
+	const failedDeliveries = allDeliveries.filter((d) => d.status === 'failed')
+	const activeWebhooksList = agentWebhooks.filter((w) => w.status === 'active')
 
 	return {
-		totalDeliveries: allLogs.length,
-		successfulDeliveries: successfulLogs.length,
-		failedDeliveries: failedLogs.length,
-		activeWebhooks: activeWebhooks.length,
+		totalDeliveries: allDeliveries.length,
+		successfulDeliveries: successfulDeliveries.length,
+		failedDeliveries: failedDeliveries.length,
+		activeWebhooks: activeWebhooksList.length,
 	}
 }
 
