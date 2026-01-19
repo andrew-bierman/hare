@@ -10,6 +10,7 @@ import {
 	useUpdateAgentMutation,
 } from '../../shared/api'
 
+import { AgentHealthWidget } from '../../widgets/agent-health'
 import { AgentInstructionsEditor } from '../../widgets/agent-builder'
 import { MemoryViewer } from '../../widgets/memory-viewer'
 import { ScheduledTasksSection } from '../../widgets/scheduled-tasks'
@@ -382,15 +383,18 @@ export function AgentDetailPage({
 
 	return (
 		<div className="flex-1 space-y-4 p-8 pt-6">
-			<div className="flex items-center justify-between">
-				<div>
+			<div className="flex items-start justify-between gap-6">
+				<div className="flex-1">
 					<div className="flex items-center gap-3">
 						<h2 className="text-3xl font-bold tracking-tight">{agent.name}</h2>
 						<Badge className={statusDisplay.className}>{statusDisplay.label}</Badge>
 					</div>
 					<p className="text-muted-foreground mt-2">Configure your agent's settings and behavior</p>
 				</div>
-				<div className="flex gap-2">
+				<div className="w-72 shrink-0">
+					<AgentHealthWidget agentId={agentId} basePath={basePath} />
+				</div>
+				<div className="flex gap-2 shrink-0">
 					{/* Primary actions */}
 					{agent.status === 'deployed' && (
 						<Button
