@@ -20,7 +20,16 @@ import {
 	SelectValue,
 } from '@hare/ui/components/select'
 import { Skeleton } from '@hare/ui/components/skeleton'
-import { ArrowDownToLine, BarChart3, Calendar, DollarSign, TrendingUp, Zap } from 'lucide-react'
+import {
+	AlertTriangle,
+	ArrowDownToLine,
+	BarChart3,
+	Calendar,
+	DollarSign,
+	TrendingDown,
+	TrendingUp,
+	Zap,
+} from 'lucide-react'
 import { useMemo, useState } from 'react'
 import {
 	Bar,
@@ -58,6 +67,9 @@ const CHART_COLORS = [
 	'hsl(var(--chart-5))',
 ]
 
+// Budget threshold for warning display (can be made configurable later)
+const MONTHLY_BUDGET_THRESHOLD = 100
+
 function StatCardSkeleton() {
 	return (
 		<Card>
@@ -83,27 +95,44 @@ export function AnalyticsPage() {
 	const agents = agentsData?.agents ?? []
 
 	// Calculate date range
-	const { startDate, endDate } = useMemo(() => {
+	const { startDate, endDate, daysInPeriod } = useMemo(() => {
 		const end = new Date()
 		const start = new Date()
+		let days = 30
 
 		switch (dateRange) {
 			case '7d':
 				start.setDate(start.getDate() - 7)
+				days = 7
 				break
 			case '30d':
 				start.setDate(start.getDate() - 30)
+				days = 30
 				break
 			case '90d':
 				start.setDate(start.getDate() - 90)
+				days = 90
 				break
 		}
 
 		return {
 			startDate: start.toISOString(),
 			endDate: end.toISOString(),
+			daysInPeriod: days,
 		}
 	}, [dateRange])
+
+	// Calculate previous month date range for comparison
+	const { prevMonthStartDate, prevMonthEndDate } = useMemo(() => {
+		const now = new Date()
+		const prevMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0) // Last day of previous month
+		const prevMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1) // First day of previous month
+
+		return {
+			prevMonthStartDate: prevMonthStart.toISOString(),
+			prevMonthEndDate: prevMonthEnd.toISOString(),
+		}
+	}, [])
 
 	const { data: analyticsData, isLoading: analyticsLoading } = useAnalyticsQuery({
 		startDate,
@@ -112,7 +141,43 @@ export function AnalyticsPage() {
 		groupBy,
 	})
 
+	// Fetch previous month data for comparison
+	const { data: prevMonthData } = useAnalyticsQuery({
+		startDate: prevMonthStartDate,
+		endDate: prevMonthEndDate,
+		agentId: selectedAgentId === 'all' ? undefined : selectedAgentId,
+		groupBy: 'month',
+	})
+
 	const isLoading = workspaceLoading || analyticsLoading
+
+	// Calculate projected monthly cost
+	const projectedCost = useMemo(() => {
+		const currentCost = analyticsData?.summary.totalCost ?? 0
+		const now = new Date()
+		const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate()
+
+		// Calculate days elapsed in the current period
+		// For 30-day view, we use the full period cost and project to a full month
+		// For other views, we calculate based on elapsed days in the selection
+		const daysElapsed = daysInPeriod
+		const dailyRate = daysElapsed > 0 ? currentCost / daysElapsed : 0
+		const projected = dailyRate * daysInMonth
+
+		return projected
+	}, [analyticsData?.summary.totalCost, daysInPeriod])
+
+	// Calculate percentage change from last month
+	const projectionComparison = useMemo(() => {
+		const lastMonthCost = prevMonthData?.summary.totalCost ?? 0
+		if (lastMonthCost === 0) {
+			return projectedCost > 0 ? 100 : 0
+		}
+		return ((projectedCost - lastMonthCost) / lastMonthCost) * 100
+	}, [projectedCost, prevMonthData?.summary.totalCost])
+
+	// Check if projection exceeds budget threshold
+	const exceedsBudget = projectedCost > MONTHLY_BUDGET_THRESHOLD
 
 	const formatNumber = (num: number) => {
 		if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`
@@ -139,6 +204,12 @@ export function AnalyticsPage() {
 		} else {
 			exportToJSON(analyticsData, 'analytics')
 		}
+	}
+
+	// Format percentage change with sign
+	const formatPercentChange = (percent: number) => {
+		const sign = percent >= 0 ? '+' : ''
+		return `${sign}${percent.toFixed(1)}%`
 	}
 
 	const stats = [
@@ -257,6 +328,43 @@ export function AnalyticsPage() {
 							</Card>
 						))}
 			</div>
+
+			{/* Projected Cost Card */}
+			{isLoading ? (
+				<StatCardSkeleton />
+			) : (
+				<Card className={exceedsBudget ? 'border-amber-500 bg-amber-50 dark:bg-amber-950/20' : ''}>
+					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+						<CardTitle className="text-sm font-medium">Projected Monthly Cost</CardTitle>
+						<div className="flex items-center gap-2">
+							{exceedsBudget && <AlertTriangle className="h-4 w-4 text-amber-500" />}
+							{projectionComparison >= 0 ? (
+								<TrendingUp className="h-4 w-4 text-rose-500" />
+							) : (
+								<TrendingDown className="h-4 w-4 text-emerald-500" />
+							)}
+						</div>
+					</CardHeader>
+					<CardContent>
+						<div className="text-2xl font-bold">{formatCurrency(projectedCost)}</div>
+						<div className="flex items-center gap-2 mt-1">
+							<span
+								className={`text-xs font-medium ${projectionComparison >= 0 ? 'text-rose-500' : 'text-emerald-500'}`}
+							>
+								{formatPercentChange(projectionComparison)} vs last month
+							</span>
+							{exceedsBudget && (
+								<span className="text-xs text-amber-600 dark:text-amber-400">
+									(exceeds ${MONTHLY_BUDGET_THRESHOLD} threshold)
+								</span>
+							)}
+						</div>
+						<p className="text-xs text-muted-foreground mt-1">
+							Based on {daysInPeriod}-day average: {formatCurrency(projectedCost / 30)}/day
+						</p>
+					</CardContent>
+				</Card>
+			)}
 
 			{/* Token Usage Over Time */}
 			<ChartContainer
