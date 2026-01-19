@@ -5,8 +5,8 @@
  */
 
 import { z } from 'zod'
-import { and, count, desc, eq, inArray, max } from 'drizzle-orm'
-import { agents, agentTools, agentVersions, deployments } from '@hare/db/schema'
+import { and, count, desc, eq, gte, max, sql } from 'drizzle-orm'
+import { agents, agentTools, agentVersions, deployments, usage } from '@hare/db/schema'
 import { config } from '@hare/config'
 import { requireWrite, requireAdmin, notFound, badRequest, serverError, type WorkspaceContext } from '../base'
 import { logAudit } from '../audit'
@@ -25,6 +25,8 @@ import {
 	ValidationIssueSchema,
 	RollbackAgentSchema,
 	RollbackResponseSchema,
+	AgentHealthMetricsSchema,
+	type HealthStatus,
 } from '../../schemas'
 
 // =============================================================================
@@ -39,46 +41,6 @@ async function getAgentToolIds(agentId: string, db: WorkspaceContext['db']): Pro
 	return rows.map((r) => r.toolId)
 }
 
-/**
- * SQLite max parameters limit (SQLITE_MAX_VARIABLE_NUMBER).
- * D1/SQLite can't handle more than 999 parameters in a single query.
- */
-const SQLITE_MAX_PARAMS = 999
-
-/**
- * Batch fetch tool IDs for multiple agents (prevents N+1 queries)
- * Returns a Map of agentId -> toolIds[]
- * Handles SQLite's 999 parameter limit by chunking if needed.
- */
-async function getAgentToolIdsMap(
-	agentIds: string[],
-	db: WorkspaceContext['db'],
-): Promise<Map<string, string[]>> {
-	if (agentIds.length === 0) return new Map()
-
-	const toolsMap = new Map<string, string[]>()
-	for (const agentId of agentIds) {
-		toolsMap.set(agentId, [])
-	}
-
-	// Chunk to avoid SQLite's 999 parameter limit
-	for (let i = 0; i < agentIds.length; i += SQLITE_MAX_PARAMS) {
-		const chunk = agentIds.slice(i, i + SQLITE_MAX_PARAMS)
-		const rows = await db
-			.select({ agentId: agentTools.agentId, toolId: agentTools.toolId })
-			.from(agentTools)
-			.where(inArray(agentTools.agentId, chunk))
-
-		for (const row of rows) {
-			const existing = toolsMap.get(row.agentId) || []
-			existing.push(row.toolId)
-			toolsMap.set(row.agentId, existing)
-		}
-	}
-
-	return toolsMap
-}
-
 function serializeAgent(
 	agent: typeof agents.$inferSelect,
 	toolIds: string[],
@@ -90,8 +52,7 @@ function serializeAgent(
 		description: agent.description,
 		model: agent.model,
 		instructions: agent.instructions,
-		// config schema is optional (not nullable), so convert null to undefined
-		config: (agent.config ?? undefined) as z.infer<typeof AgentSchema>['config'],
+		config: agent.config as z.infer<typeof AgentSchema>['config'],
 		status: agent.status as z.infer<typeof AgentSchema>['status'],
 		systemToolsEnabled: agent.systemToolsEnabled,
 		toolIds,
@@ -106,6 +67,66 @@ async function findAgent(id: string, workspaceId: string, db: WorkspaceContext['
 		.from(agents)
 		.where(and(eq(agents.id, id), eq(agents.workspaceId, workspaceId)))
 	return agent || null
+}
+
+/**
+ * Derives health status from success rate.
+ * - healthy: >95% success rate
+ * - degraded: 80-95% success rate
+ * - unhealthy: <80% success rate
+ */
+function deriveHealthStatus(successRate: number): HealthStatus {
+	if (successRate > 95) return 'healthy'
+	if (successRate >= 80) return 'degraded'
+	return 'unhealthy'
+}
+
+/**
+ * Calculates agent health metrics from usage data over the last 24 hours.
+ */
+async function getAgentHealthMetrics(options: {
+	agentId: string
+	agentName: string
+	db: WorkspaceContext['db']
+}): Promise<z.infer<typeof AgentHealthMetricsSchema>> {
+	const { agentId, agentName, db } = options
+
+	// Calculate time window (last 24 hours)
+	const endDate = new Date()
+	const startDate = new Date(endDate.getTime() - 24 * 60 * 60 * 1000)
+
+	// Query usage metrics for the agent in the last 24 hours
+	const [metrics] = await db
+		.select({
+			totalRequests: sql<number>`COUNT(*)`,
+			errorCount: sql<number>`SUM(CASE WHEN json_extract(${usage.metadata}, '$.statusCode') >= 400 OR json_extract(${usage.metadata}, '$.statusCode') IS NULL THEN 0 ELSE CASE WHEN json_extract(${usage.metadata}, '$.statusCode') < 200 OR json_extract(${usage.metadata}, '$.statusCode') >= 300 THEN 1 ELSE 0 END END)`,
+			averageLatency: sql<number>`COALESCE(AVG(json_extract(${usage.metadata}, '$.duration')), 0)`,
+		})
+		.from(usage)
+		.where(and(eq(usage.agentId, agentId), gte(usage.createdAt, startDate)))
+
+	const totalRequests = metrics?.totalRequests ?? 0
+	const errorCount = metrics?.errorCount ?? 0
+	const averageLatencyMs = metrics?.averageLatency ?? 0
+
+	// Calculate success rate (handle division by zero)
+	const successRate = totalRequests > 0 ? ((totalRequests - errorCount) / totalRequests) * 100 : 100
+
+	return {
+		agentId,
+		agentName,
+		status: deriveHealthStatus(successRate),
+		metrics: {
+			successRate: Math.round(successRate * 100) / 100,
+			averageLatencyMs: Math.round(averageLatencyMs),
+			errorCount,
+			totalRequests,
+		},
+		period: {
+			startDate: startDate.toISOString(),
+			endDate: endDate.toISOString(),
+		},
+	}
 }
 
 // =============================================================================
@@ -123,14 +144,8 @@ export const list = requireWrite
 
 		const results = await db.select().from(agents).where(eq(agents.workspaceId, workspaceId))
 
-		// Batch fetch all tool IDs in a single query (prevents N+1)
-		const toolsMap = await getAgentToolIdsMap(
-			results.map((a) => a.id),
-			db,
-		)
-
-		const agentsData = results.map((agent) =>
-			serializeAgent(agent, toolsMap.get(agent.id) || []),
+		const agentsData = await Promise.all(
+			results.map(async (agent) => serializeAgent(agent, await getAgentToolIds(agent.id, db))),
 		)
 
 		return { agents: agentsData }
@@ -716,6 +731,37 @@ export const preview = requireWrite
 		return { valid, errors, warnings }
 	})
 
+/**
+ * Get agent health metrics
+ *
+ * Calculates health metrics from usage data over the last 24 hours:
+ * - Success rate (percentage of 2xx responses)
+ * - Average latency in milliseconds
+ * - Error count (non-2xx responses)
+ * - Total requests
+ *
+ * Health status is derived from success rate:
+ * - healthy: >95%
+ * - degraded: 80-95%
+ * - unhealthy: <80%
+ */
+export const getHealth = requireWrite
+	.route({ method: 'GET', path: '/agents/{id}/health' })
+	.input(IdParamSchema)
+	.output(AgentHealthMetricsSchema)
+	.handler(async ({ input, context }) => {
+		const { db, workspaceId } = context
+
+		const agent = await findAgent(input.id, workspaceId, db)
+		if (!agent) notFound('Agent not found')
+
+		return getAgentHealthMetrics({
+			agentId: agent.id,
+			agentName: agent.name,
+			db,
+		})
+	})
+
 // =============================================================================
 // Router Export
 // =============================================================================
@@ -733,4 +779,5 @@ export const agentsRouter = {
 	getVersions,
 	rollback,
 	preview,
+	getHealth,
 }

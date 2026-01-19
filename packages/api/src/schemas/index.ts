@@ -108,13 +108,17 @@ export {
 } from './tools'
 // Usage schemas
 export {
+	AgentHealthMetricsSchema,
 	AgentUsageResponseSchema,
+	HEALTH_STATUS,
+	HealthStatusSchema,
 	UsageByAgentSchema,
 	UsageByDaySchema,
 	UsageQuerySchema,
 	UsageResponseSchema,
 	UsageStatsSchema,
 } from './usage'
+export type { HealthStatus } from './usage'
 // Workspace schemas
 export {
 	CreateWorkspaceSchema,
