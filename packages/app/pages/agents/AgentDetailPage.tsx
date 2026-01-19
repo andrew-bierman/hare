@@ -4,6 +4,7 @@ import { useWorkspace } from '../../app/providers'
 import {
 	useAgentQuery,
 	useAgentUsageQuery,
+	useCloneAgentMutation,
 	useDeleteAgentMutation,
 	useDeployAgentMutation,
 	useToolsQuery,
@@ -47,6 +48,7 @@ import {
 	Brain,
 	CheckCircle,
 	Code,
+	Copy,
 	Database,
 	FileCode,
 	Globe,
@@ -179,6 +181,7 @@ export function AgentDetailPage({
 	const updateAgent = useUpdateAgentMutation()
 	const deleteAgent = useDeleteAgentMutation()
 	const deployAgent = useDeployAgentMutation()
+	const cloneAgentMutation = useCloneAgentMutation()
 
 	const [name, setName] = useState('')
 	const [description, setDescription] = useState('')
@@ -187,6 +190,7 @@ export function AgentDetailPage({
 	const [systemToolsEnabled, setSystemToolsEnabled] = useState(true)
 	const [selectedToolIds, setSelectedToolIds] = useState<string[]>([])
 	const [isDeleteOpen, setIsDeleteOpen] = useState(false)
+	const [isCloneOpen, setIsCloneOpen] = useState(false)
 	const [hasChanges, setHasChanges] = useState(false)
 	const [clientValidationErrors, setClientValidationErrors] = useState<ValidationErrors>({})
 	const [clientValidationWarnings, setClientValidationWarnings] = useState<ValidationWarnings>({})
@@ -340,6 +344,24 @@ export function AgentDetailPage({
 		}
 	}
 
+	const handleClone = async () => {
+		try {
+			const result = await cloneAgentMutation.mutateAsync({ id: agentId })
+			setIsCloneOpen(false)
+			toast.success('Agent cloned successfully', {
+				description: `${agent?.name} (Copy) has been created`,
+				action: {
+					label: 'View Agent',
+					onClick: () => {
+						navigate({ to: result.redirectUrl })
+					},
+				},
+			})
+		} catch (error) {
+			toast.error(error instanceof Error ? error.message : 'Failed to clone agent')
+		}
+	}
+
 	const getStatusDisplay = (status: string) => {
 		switch (status) {
 			case 'deployed':
@@ -423,6 +445,14 @@ export function AgentDetailPage({
 						{updateAgent.isPending ? 'Saving...' : 'Save Changes'}
 					</Button>
 					{/* Secondary actions */}
+					<Button
+						variant="outline"
+						size="icon"
+						onClick={() => setIsCloneOpen(true)}
+						title="Clone Agent"
+					>
+						<Copy className="h-4 w-4" />
+					</Button>
 					<Button
 						variant="outline"
 						size="icon"
@@ -868,6 +898,31 @@ export function AgentDetailPage({
 					</Card>
 				</TabsContent>
 			</Tabs>
+
+			{/* Clone Confirmation Dialog */}
+			<Dialog open={isCloneOpen} onOpenChange={setIsCloneOpen}>
+				<DialogContent>
+					<DialogHeader>
+						<DialogTitle>Clone Agent</DialogTitle>
+						<DialogDescription>
+							Create a copy of "{agent.name}" as a new agent?
+						</DialogDescription>
+					</DialogHeader>
+					<div className="py-4">
+						<p className="text-sm text-muted-foreground">The new agent will be named:</p>
+						<p className="text-sm font-medium mt-1">{agent.name} (Copy)</p>
+					</div>
+					<DialogFooter>
+						<Button variant="outline" onClick={() => setIsCloneOpen(false)}>
+							Cancel
+						</Button>
+						<Button onClick={handleClone} disabled={cloneAgentMutation.isPending}>
+							<Copy className="mr-2 h-4 w-4" />
+							{cloneAgentMutation.isPending ? 'Cloning...' : 'Clone Agent'}
+						</Button>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
 
 			<Dialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
 				<DialogContent>

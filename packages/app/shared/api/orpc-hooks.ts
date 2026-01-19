@@ -131,6 +131,16 @@ export function useUndeployAgentMutation() {
 	})
 }
 
+export function useCloneAgentMutation() {
+	const queryClient = useQueryClient()
+	return useMutation({
+		mutationFn: (input: { id: string }) => orpc.agents.clone(input),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ['agents'] })
+		},
+	})
+}
+
 // =============================================================================
 // Tool Hooks
 // =============================================================================
