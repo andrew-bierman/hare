@@ -5,10 +5,18 @@
  */
 
 import { z } from 'zod'
-import { and, desc, eq } from 'drizzle-orm'
-import { agents, WEBHOOK_EVENT_TYPES, WEBHOOK_STATUSES, webhookLogs, webhooks } from '@hare/db'
+import { and, count, desc, eq } from 'drizzle-orm'
+import {
+	agents,
+	WEBHOOK_DELIVERY_STATUSES,
+	WEBHOOK_EVENT_TYPES,
+	WEBHOOK_STATUSES,
+	webhookDeliveries,
+	webhookLogs,
+	webhooks,
+} from '@hare/db'
 import { requireWrite, requireAdmin, notFound, serverError } from '../base'
-import { generateWebhookSecret, reactivateWebhook } from '../../services/webhooks'
+import { generateWebhookSecret, reactivateWebhook, retryDelivery } from '../../services/webhooks'
 
 // =============================================================================
 // Schemas
@@ -43,6 +51,21 @@ const webhookLogSchema = z.object({
 	completedAt: z.string().nullable(),
 })
 
+const webhookDeliveryStatusSchema = z.enum(WEBHOOK_DELIVERY_STATUSES)
+
+const webhookDeliverySchema = z.object({
+	id: z.string(),
+	webhookId: z.string(),
+	event: z.string(),
+	payload: z.record(z.string(), z.unknown()),
+	status: webhookDeliveryStatusSchema,
+	statusCode: z.number().nullable(),
+	responseBody: z.string().nullable(),
+	attemptCount: z.number(),
+	nextRetryAt: z.string().nullable(),
+	createdAt: z.string(),
+})
+
 // =============================================================================
 // Helpers
 // =============================================================================
@@ -74,6 +97,21 @@ function serializeWebhookLog(log: typeof webhookLogs.$inferSelect) {
 		error: log.error,
 		createdAt: log.createdAt.toISOString(),
 		completedAt: log.completedAt?.toISOString() ?? null,
+	}
+}
+
+function serializeWebhookDelivery(delivery: typeof webhookDeliveries.$inferSelect) {
+	return {
+		id: delivery.id,
+		webhookId: delivery.webhookId,
+		event: delivery.event,
+		payload: delivery.payload,
+		status: delivery.status,
+		statusCode: delivery.statusCode,
+		responseBody: delivery.responseBody,
+		attemptCount: delivery.attemptCount,
+		nextRetryAt: delivery.nextRetryAt?.toISOString() ?? null,
+		createdAt: delivery.createdAt.toISOString(),
 	}
 }
 
@@ -373,6 +411,127 @@ const regenerateSecret = requireAdmin
 		return { secret: newSecret }
 	})
 
+/**
+ * List webhook deliveries
+ * GET /webhooks/{webhookId}/deliveries
+ */
+const listDeliveries = requireWrite
+	.route({ method: 'GET', path: '/webhooks/{webhookId}/deliveries' })
+	.input(
+		z.object({
+			webhookId: z.string(),
+			limit: z.number().min(1).max(100).optional().default(20),
+			offset: z.number().min(0).optional().default(0),
+		}),
+	)
+	.output(
+		z.object({
+			deliveries: z.array(webhookDeliverySchema),
+			total: z.number(),
+			limit: z.number(),
+			offset: z.number(),
+		}),
+	)
+	.handler(async ({ input, context }) => {
+		const { db, workspaceId } = context
+
+		// Find the webhook and verify it belongs to an agent in the user's workspace
+		const [webhook] = await db.select().from(webhooks).where(eq(webhooks.id, input.webhookId))
+
+		if (!webhook) {
+			notFound('Webhook not found')
+		}
+
+		// Verify the agent belongs to the user's workspace
+		const [agent] = await db
+			.select()
+			.from(agents)
+			.where(and(eq(agents.id, webhook.agentId), eq(agents.workspaceId, workspaceId)))
+
+		if (!agent) {
+			notFound('Webhook not found')
+		}
+
+		// Get deliveries sorted by createdAt descending
+		const deliveries = await db
+			.select()
+			.from(webhookDeliveries)
+			.where(eq(webhookDeliveries.webhookId, input.webhookId))
+			.orderBy(desc(webhookDeliveries.createdAt))
+			.limit(input.limit)
+			.offset(input.offset)
+
+		// Get total count
+		const [totalResult] = await db
+			.select({ count: count() })
+			.from(webhookDeliveries)
+			.where(eq(webhookDeliveries.webhookId, input.webhookId))
+
+		return {
+			deliveries: deliveries.map(serializeWebhookDelivery),
+			total: totalResult?.count ?? 0,
+			limit: input.limit,
+			offset: input.offset,
+		}
+	})
+
+/**
+ * Retry a failed webhook delivery
+ * POST /webhooks/{webhookId}/deliveries/{deliveryId}/retry
+ */
+const retryDeliveryEndpoint = requireWrite
+	.route({ method: 'POST', path: '/webhooks/{webhookId}/deliveries/{deliveryId}/retry' })
+	.input(z.object({ webhookId: z.string(), deliveryId: z.string() }))
+	.output(webhookDeliverySchema)
+	.handler(async ({ input, context }) => {
+		const { db, workspaceId } = context
+
+		// Find the webhook and verify it belongs to an agent in the user's workspace
+		const [webhook] = await db.select().from(webhooks).where(eq(webhooks.id, input.webhookId))
+
+		if (!webhook) {
+			notFound('Webhook not found')
+		}
+
+		// Verify the agent belongs to the user's workspace
+		const [agent] = await db
+			.select()
+			.from(agents)
+			.where(and(eq(agents.id, webhook.agentId), eq(agents.workspaceId, workspaceId)))
+
+		if (!agent) {
+			notFound('Webhook not found')
+		}
+
+		// Find the delivery
+		const [delivery] = await db
+			.select()
+			.from(webhookDeliveries)
+			.where(
+				and(
+					eq(webhookDeliveries.id, input.deliveryId),
+					eq(webhookDeliveries.webhookId, input.webhookId),
+				),
+			)
+
+		if (!delivery) {
+			notFound('Delivery not found')
+		}
+
+		// Retry the delivery
+		const updatedDelivery = await retryDelivery({
+			db,
+			deliveryId: input.deliveryId,
+			webhook: {
+				id: webhook.id,
+				url: webhook.url,
+				secret: webhook.secret,
+			},
+		})
+
+		return serializeWebhookDelivery(updatedDelivery)
+	})
+
 // =============================================================================
 // Export
 // =============================================================================
@@ -385,4 +544,6 @@ export const webhooksRouter = {
 	delete: deleteWebhook,
 	getLogs,
 	regenerateSecret,
+	listDeliveries,
+	retryDelivery: retryDeliveryEndpoint,
 }

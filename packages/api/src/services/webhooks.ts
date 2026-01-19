@@ -502,3 +502,118 @@ export async function reactivateWebhook(options: {
 
 	return result.length > 0
 }
+
+/**
+ * Retry a failed or pending webhook delivery.
+ *
+ * @returns The updated delivery record
+ */
+export async function retryDelivery(options: {
+	db: Database
+	deliveryId: string
+	webhook: {
+		id: string
+		url: string
+		secret: string
+	}
+}): Promise<typeof webhookDeliveries.$inferSelect> {
+	const { db, deliveryId, webhook } = options
+
+	// Get the delivery record
+	const [delivery] = await db
+		.select()
+		.from(webhookDeliveries)
+		.where(eq(webhookDeliveries.id, deliveryId))
+
+	if (!delivery) {
+		throw new Error('Delivery not found')
+	}
+
+	// Build the payload
+	const webhookPayload: WebhookPayload = delivery.payload as WebhookPayload
+
+	// Deliver the webhook
+	const payloadString = JSON.stringify(webhookPayload)
+	const signature = await generateSignature({ payload: payloadString, secret: webhook.secret })
+
+	const controller = new AbortController()
+	const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS)
+
+	let result: {
+		success: boolean
+		statusCode?: number
+		responseBody?: string
+		error?: string
+	}
+
+	try {
+		const response = await fetch(webhook.url, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				'X-Webhook-Signature': signature,
+				'X-Webhook-Event': webhookPayload.event,
+				'X-Webhook-Timestamp': webhookPayload.timestamp,
+				'X-Webhook-Id': webhook.id,
+			},
+			body: payloadString,
+			signal: controller.signal,
+		})
+
+		clearTimeout(timeoutId)
+
+		const responseBody = await response.text().catch(() => '')
+
+		result = {
+			success: response.ok,
+			statusCode: response.status,
+			responseBody: responseBody.slice(0, 1000),
+			error: response.ok ? undefined : `HTTP ${response.status}`,
+		}
+	} catch (error) {
+		clearTimeout(timeoutId)
+		const errorMessage =
+			error instanceof Error
+				? error.name === 'AbortError'
+					? 'Request timeout'
+					: error.message
+				: 'Unknown error'
+
+		result = {
+			success: false,
+			error: errorMessage,
+		}
+	}
+
+	const newAttemptCount = delivery.attemptCount + 1
+
+	// Update the delivery record
+	const [updatedDelivery] = await db
+		.update(webhookDeliveries)
+		.set({
+			status: result.success ? 'success' : newAttemptCount >= MAX_RETRY_ATTEMPTS ? 'failed' : 'pending',
+			statusCode: result.statusCode ?? null,
+			responseBody: result.responseBody ?? null,
+			attemptCount: newAttemptCount,
+			nextRetryAt: result.success || newAttemptCount >= MAX_RETRY_ATTEMPTS ? null : calculateNextRetryAt(newAttemptCount),
+		})
+		.where(eq(webhookDeliveries.id, deliveryId))
+		.returning()
+
+	if (!updatedDelivery) {
+		throw new Error('Failed to update delivery')
+	}
+
+	// If delivery failed after max retries, mark webhook as failed
+	if (!result.success && newAttemptCount >= MAX_RETRY_ATTEMPTS) {
+		await db
+			.update(webhooks)
+			.set({
+				status: 'failed',
+				updatedAt: new Date(),
+			})
+			.where(eq(webhooks.id, webhook.id))
+	}
+
+	return updatedDelivery
+}
