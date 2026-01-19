@@ -19,6 +19,8 @@ export const userPreferences = sqliteTable('user_preferences', {
 	// Notification preferences
 	emailNotifications: integer('emailNotifications', { mode: 'boolean' }).notNull().default(true),
 	usageAlerts: integer('usageAlerts', { mode: 'boolean' }).notNull().default(true),
+	// Onboarding preferences
+	tourCompleted: integer('tourCompleted', { mode: 'boolean' }).notNull().default(false),
 	// Timestamps
 	createdAt: integer('createdAt', { mode: 'timestamp' })
 		.notNull()
