@@ -69,11 +69,14 @@ export {
 	ChatRequestSchema,
 	ConversationExportSchema,
 	ConversationSchema,
+	ConversationSearchQuerySchema,
+	ConversationSearchResponseSchema,
 	ExportedMessageSchema,
 	ExportFormatSchema,
 	ExportQuerySchema,
 	MessageRoleSchema,
 	MessageSchema,
+	SearchResultItemSchema,
 } from './chat'
 // Common schemas
 export {

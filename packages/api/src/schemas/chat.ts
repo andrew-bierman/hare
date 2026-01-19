@@ -93,3 +93,61 @@ export const ConversationExportSchema = z
 		exportedAt: z.string().datetime(),
 	})
 	.openapi('ConversationExport')
+
+/**
+ * Query parameters for conversation search.
+ */
+export const ConversationSearchQuerySchema = z
+	.object({
+		query: z.string().min(1).max(500).openapi({
+			example: 'hello world',
+			description: 'Full-text search query for message content',
+		}),
+		dateFrom: z
+			.string()
+			.optional()
+			.openapi({ example: '2024-01-01T00:00:00Z', description: 'Filter messages from this date' }),
+		dateTo: z
+			.string()
+			.optional()
+			.openapi({ example: '2024-12-31T23:59:59Z', description: 'Filter messages until this date' }),
+		limit: z.coerce.number().min(1).max(100).optional().default(20).openapi({
+			example: 20,
+			description: 'Maximum number of results to return',
+		}),
+		offset: z.coerce.number().min(0).optional().default(0).openapi({
+			example: 0,
+			description: 'Number of results to skip for pagination',
+		}),
+	})
+	.openapi('ConversationSearchQuery')
+
+/**
+ * Search result item with message and conversation context.
+ */
+export const SearchResultItemSchema = z
+	.object({
+		messageId: z.string().openapi({ example: 'msg_abc123' }),
+		conversationId: z.string().openapi({ example: 'conv_xyz789' }),
+		conversationTitle: z.string().nullable().openapi({ example: 'Chat about features' }),
+		role: MessageRoleSchema,
+		content: z.string().openapi({ example: 'Hello! How can I help you?' }),
+		highlightedContent: z.string().openapi({
+			example: '...matching text with <mark>highlighted</mark> query...',
+			description: 'Content with matching text highlighted using <mark> tags',
+		}),
+		createdAt: z.string().datetime().openapi({ example: '2024-12-01T00:00:00Z' }),
+	})
+	.openapi('SearchResultItem')
+
+/**
+ * Conversation search response with pagination.
+ */
+export const ConversationSearchResponseSchema = z
+	.object({
+		results: z.array(SearchResultItemSchema),
+		total: z.number().openapi({ example: 42 }),
+		limit: z.number().openapi({ example: 20 }),
+		offset: z.number().openapi({ example: 0 }),
+	})
+	.openapi('ConversationSearchResponse')
