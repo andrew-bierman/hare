@@ -67,10 +67,10 @@ export const getWorkspaceUsage = requireWrite
 			.where(and(...conditions))
 			.groupBy(usage.agentId, agents.name)
 
-		// Get usage by day
+		// Get usage by day (createdAt is stored as epoch seconds, so use 'unixepoch' modifier)
 		const byDay = await db
 			.select({
-				date: sql<string>`DATE(${usage.createdAt})`,
+				date: sql<string>`DATE(${usage.createdAt}, 'unixepoch')`,
 				messages: sql<number>`COUNT(*)`,
 				tokensIn: sql<number>`COALESCE(SUM(${usage.inputTokens}), 0)`,
 				tokensOut: sql<number>`COALESCE(SUM(${usage.outputTokens}), 0)`,
@@ -78,8 +78,8 @@ export const getWorkspaceUsage = requireWrite
 			})
 			.from(usage)
 			.where(and(...conditions))
-			.groupBy(sql`DATE(${usage.createdAt})`)
-			.orderBy(sql`DATE(${usage.createdAt})`)
+			.groupBy(sql`DATE(${usage.createdAt}, 'unixepoch')`)
+			.orderBy(sql`DATE(${usage.createdAt}, 'unixepoch')`)
 
 		return {
 			usage: {
@@ -154,10 +154,10 @@ export const getAgentUsage = requireWrite
 			.where(eq(usage.agentId, agentId))
 			.groupBy(sql`json_extract(${usage.metadata}, '$.model')`)
 
-		// Get usage by day
+		// Get usage by day (createdAt is stored as epoch seconds, so use 'unixepoch' modifier)
 		const byDay = await db
 			.select({
-				date: sql<string>`DATE(${usage.createdAt})`,
+				date: sql<string>`DATE(${usage.createdAt}, 'unixepoch')`,
 				messages: sql<number>`COUNT(*)`,
 				tokensIn: sql<number>`COALESCE(SUM(${usage.inputTokens}), 0)`,
 				tokensOut: sql<number>`COALESCE(SUM(${usage.outputTokens}), 0)`,
@@ -165,8 +165,8 @@ export const getAgentUsage = requireWrite
 			})
 			.from(usage)
 			.where(eq(usage.agentId, agentId))
-			.groupBy(sql`DATE(${usage.createdAt})`)
-			.orderBy(sql`DATE(${usage.createdAt})`)
+			.groupBy(sql`DATE(${usage.createdAt}, 'unixepoch')`)
+			.orderBy(sql`DATE(${usage.createdAt}, 'unixepoch')`)
 
 		return {
 			agentId,
