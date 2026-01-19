@@ -437,3 +437,33 @@ export const AgentVersionsResponseSchema = z
 		offset: z.number().int().openapi({ example: 0, description: 'Offset used in query' }),
 	})
 	.openapi('AgentVersionsResponse')
+
+// =============================================================================
+// Agent Rollback Schemas
+// =============================================================================
+
+/**
+ * Schema for rollback request body.
+ */
+export const RollbackAgentSchema = z
+	.object({
+		version: z
+			.number()
+			.int()
+			.positive('Version must be a positive integer')
+			.openapi({ example: 1, description: 'Version number to rollback to' }),
+	})
+	.openapi('RollbackAgent')
+
+/**
+ * Response schema for agent rollback.
+ */
+export const RollbackResponseSchema = z
+	.object({
+		success: z.boolean().openapi({ example: true }),
+		previousVersion: z.number().int().openapi({ example: 3, description: 'Version before rollback' }),
+		restoredVersion: z.number().int().openapi({ example: 1, description: 'Version that was restored' }),
+		newVersion: z.number().int().openapi({ example: 4, description: 'New version number created' }),
+		deployment: DeploymentSchema.optional().openapi({ description: 'Deployment info if agent was redeployed' }),
+	})
+	.openapi('RollbackResponse')

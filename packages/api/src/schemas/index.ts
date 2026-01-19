@@ -24,6 +24,8 @@ export {
 	DeploymentSchema,
 	ModelIdSchema,
 	ModelPreviewSchema,
+	RollbackAgentSchema,
+	RollbackResponseSchema,
 	UpdateAgentSchema,
 	ValidationIssueSchema,
 } from './agents'

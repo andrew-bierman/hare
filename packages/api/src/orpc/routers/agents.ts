@@ -22,6 +22,8 @@ import {
 	AgentPreviewInputSchema,
 	AgentPreviewResponseSchema,
 	ValidationIssueSchema,
+	RollbackAgentSchema,
+	RollbackResponseSchema,
 } from '../../schemas'
 
 // =============================================================================
@@ -497,6 +499,131 @@ export const getVersions = requireWrite
 	})
 
 /**
+ * Rollback agent to a previous version
+ */
+export const rollback = requireAdmin
+	.route({ method: 'POST', path: '/agents/{id}/rollback' })
+	.input(IdParamSchema.merge(RollbackAgentSchema))
+	.output(RollbackResponseSchema)
+	.handler(async ({ input, context }) => {
+		const { db, workspaceId, user } = context
+		const { id, version: targetVersion } = input
+
+		// Find the agent
+		const agent = await findAgent(id, workspaceId, db)
+		if (!agent) notFound('Agent not found')
+
+		// Find the target version to restore
+		const [targetVersionRecord] = await db
+			.select()
+			.from(agentVersions)
+			.where(and(eq(agentVersions.agentId, id), eq(agentVersions.version, targetVersion)))
+
+		if (!targetVersionRecord) {
+			notFound(`Version ${targetVersion} not found for this agent`)
+		}
+
+		// Get the current max version number
+		const [maxVersionResult] = await db
+			.select({ maxVersion: max(agentVersions.version) })
+			.from(agentVersions)
+			.where(eq(agentVersions.agentId, id))
+
+		const previousVersion = maxVersionResult?.maxVersion ?? 0
+		const newVersionNumber = previousVersion + 1
+
+		// Restore agent config from the target version
+		await db
+			.update(agents)
+			.set({
+				instructions: targetVersionRecord.instructions,
+				model: targetVersionRecord.model,
+				config: targetVersionRecord.config,
+				updatedAt: new Date(),
+			})
+			.where(eq(agents.id, id))
+
+		// Update agent tools to match the target version
+		await db.delete(agentTools).where(eq(agentTools.agentId, id))
+		const restoredToolIds = targetVersionRecord.toolIds ?? []
+		if (restoredToolIds.length > 0) {
+			const customToolIds = restoredToolIds.filter((toolId) => !toolId.startsWith('system-'))
+			if (customToolIds.length > 0) {
+				await db.insert(agentTools).values(
+					customToolIds.map((toolId) => ({
+						agentId: id,
+						toolId,
+					})),
+				)
+			}
+		}
+
+		// Create a new version record for this rollback (non-destructive)
+		const [newAgentVersion] = await db
+			.insert(agentVersions)
+			.values({
+				agentId: id,
+				version: newVersionNumber,
+				instructions: targetVersionRecord.instructions,
+				model: targetVersionRecord.model,
+				config: targetVersionRecord.config,
+				toolIds: restoredToolIds,
+				createdBy: user.id,
+			})
+			.returning()
+
+		if (!newAgentVersion) serverError('Failed to create rollback version')
+
+		// Check if agent was deployed and redeploy if so
+		let deploymentInfo: z.infer<typeof DeploymentSchema> | undefined
+		if (agent.status === config.enums.agentStatus.DEPLOYED) {
+			// Mark current deployment as inactive
+			await db
+				.update(deployments)
+				.set({ status: config.enums.deploymentStatus.INACTIVE })
+				.where(eq(deployments.agentId, id))
+
+			// Create new deployment with restored config
+			const version = `${newVersionNumber}.0.0`
+			const [deployment] = await db
+				.insert(deployments)
+				.values({
+					agentId: id,
+					version,
+					status: config.enums.deploymentStatus.ACTIVE,
+					url: `/api/agents/${id}`,
+					deployedBy: user.id,
+					metadata: targetVersionRecord.config ? { config: targetVersionRecord.config } : undefined,
+				})
+				.returning()
+
+			if (deployment) {
+				const baseUrl = `/api/agents/${id}`
+				deploymentInfo = {
+					id: deployment.id,
+					status: config.enums.deploymentStatus.ACTIVE,
+					deployedAt: deployment.deployedAt.toISOString(),
+					version,
+					url: baseUrl,
+					endpoints: {
+						chat: `${baseUrl}/chat`,
+						websocket: `/api/agents/${id}/ws`,
+						state: `${baseUrl}/state`,
+					},
+				}
+			}
+		}
+
+		return {
+			success: true,
+			previousVersion,
+			restoredVersion: targetVersion,
+			newVersion: newVersionNumber,
+			deployment: deploymentInfo,
+		}
+	})
+
+/**
  * Preview/validate agent configuration
  */
 export const preview = requireWrite
@@ -551,5 +678,6 @@ export const agentsRouter = {
 	getDeployment,
 	getDeploymentHistory,
 	getVersions,
+	rollback,
 	preview,
 }
