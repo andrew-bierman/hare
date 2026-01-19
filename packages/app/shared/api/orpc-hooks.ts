@@ -91,7 +91,19 @@ export function useDeployAgentMutation() {
 		onSuccess: (_, variables) => {
 			queryClient.invalidateQueries({ queryKey: ['agents'] })
 			queryClient.invalidateQueries({ queryKey: ['agents', variables.id] })
+			queryClient.invalidateQueries({ queryKey: ['agents', variables.id, 'versions'] })
 		},
+	})
+}
+
+export function useAgentVersionsQuery(
+	agentId: string | undefined,
+	options?: { limit?: number; offset?: number },
+) {
+	return useQuery({
+		queryKey: ['agents', agentId, 'versions', options],
+		queryFn: () => orpc.agents.getVersions({ id: agentId!, ...options }),
+		enabled: !!agentId,
 	})
 }
 

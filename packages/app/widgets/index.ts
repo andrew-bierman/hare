@@ -71,3 +71,6 @@ export * from './onboarding-wizard'
 
 // Prompt generator widget
 export * from './prompt-generator'
+
+// Version history widget
+export * from './version-history'

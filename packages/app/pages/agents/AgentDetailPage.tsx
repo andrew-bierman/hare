@@ -14,6 +14,7 @@ import { AgentInstructionsEditor } from '../../widgets/agent-builder'
 import { MemoryViewer } from '../../widgets/memory-viewer'
 import { ScheduledTasksSection } from '../../widgets/scheduled-tasks'
 import { ToolPicker } from '../../widgets/tool-picker'
+import { VersionHistory } from '../../widgets/version-history'
 import { config } from '@hare/config'
 import { Badge } from '@hare/ui/components/badge'
 import { Button } from '@hare/ui/components/button'
@@ -436,6 +437,7 @@ export function AgentDetailPage({
 					<TabsTrigger value="tools">Tools</TabsTrigger>
 					<TabsTrigger value="memory">Memory</TabsTrigger>
 					<TabsTrigger value="schedules">Schedules</TabsTrigger>
+					<TabsTrigger value="versions">Version History</TabsTrigger>
 					<TabsTrigger value="preview">Preview</TabsTrigger>
 					<TabsTrigger value="analytics">Analytics</TabsTrigger>
 				</TabsList>
@@ -663,6 +665,10 @@ export function AgentDetailPage({
 					{activeWorkspace?.id && (
 						<ScheduledTasksSection agentId={agentId} />
 					)}
+				</TabsContent>
+
+				<TabsContent value="versions" className="space-y-4">
+					<VersionHistory agentId={agentId} />
 				</TabsContent>
 
 				<TabsContent value="preview" className="space-y-4">
