@@ -6,5 +6,6 @@
 
 export { SettingsPage } from './SettingsPage'
 export { ApiKeysPage } from './ApiKeysPage'
+export { AuditLogsPage } from './AuditLogsPage'
 export { BillingPage, type BillingPageProps } from './BillingPage'
 export { TeamPage } from './TeamPage'

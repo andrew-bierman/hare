@@ -25,7 +25,14 @@ export {
 export { ToolsListPage, ToolCreatePage, ToolDetailPage, type ToolDetailPageProps } from './tools'
 
 // Settings
-export { SettingsPage, ApiKeysPage, BillingPage, type BillingPageProps, TeamPage } from './settings'
+export {
+	SettingsPage,
+	ApiKeysPage,
+	AuditLogsPage,
+	BillingPage,
+	type BillingPageProps,
+	TeamPage,
+} from './settings'
 
 // Auth
 export * from './auth'

@@ -23,6 +23,7 @@ import {
 	Key,
 	CreditCard,
 	Users,
+	Shield,
 } from 'lucide-react'
 import { useAgentsQuery, useToolsQuery } from '../../../shared/api'
 
@@ -49,6 +50,7 @@ const PAGES: SearchItem[] = [
 	{ id: 'usage', type: 'page', title: 'Usage', path: '/dashboard/usage' },
 	{ id: 'settings', type: 'page', title: 'Settings', path: '/dashboard/settings' },
 	{ id: 'api-keys', type: 'page', title: 'API Keys', path: '/dashboard/settings/api-keys' },
+	{ id: 'audit-logs', type: 'page', title: 'Audit Logs', path: '/dashboard/settings/audit-logs' },
 	{ id: 'billing', type: 'page', title: 'Billing', path: '/dashboard/settings/billing' },
 	{ id: 'team', type: 'page', title: 'Team', path: '/dashboard/settings/team' },
 ]
@@ -65,6 +67,7 @@ const PAGE_ICONS: Record<string, React.ComponentType<{ className?: string }>> = 
 	usage: Activity,
 	settings: Settings,
 	'api-keys': Key,
+	'audit-logs': Shield,
 	billing: CreditCard,
 	team: Users,
 }

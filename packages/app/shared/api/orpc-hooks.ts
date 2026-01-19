@@ -9,6 +9,7 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { orpc } from '@hare/api'
+import type { AuditAction } from '@hare/config'
 
 // =============================================================================
 // Agent Hooks
@@ -611,5 +612,24 @@ export function useLogStatsQuery(options?: {
 	return useQuery({
 		queryKey: ['logs', 'stats', options],
 		queryFn: () => orpc.logs.getStats(options || {}),
+	})
+}
+
+// =============================================================================
+// Audit Logs Hooks
+// =============================================================================
+
+export function useAuditLogsQuery(options?: {
+	action?: AuditAction
+	resourceType?: string
+	userId?: string
+	dateFrom?: string
+	dateTo?: string
+	limit?: number
+	offset?: number
+}) {
+	return useQuery({
+		queryKey: ['audit-logs', options],
+		queryFn: () => orpc.auditLogs.list(options || {}),
 	})
 }
