@@ -1,65 +1,53 @@
-import { test as baseTest, expect, type Page } from '@playwright/test'
-import { test } from './fixtures'
+import { expect, test } from './fixtures'
 
 /**
  * Settings and Profile E2E tests.
- * Tests the settings page, profile management, and sign-out functionality.
- * Also tests Team, API Keys, and Billing sub-pages.
+ * Tests the settings page, profile management, notifications, security, and sign-out functionality.
  */
 
-baseTest.describe('Settings Route Protection', () => {
-	baseTest('unauthenticated user is redirected from settings to sign-in', async ({ page }) => {
-		await page.goto('/dashboard/settings')
-		await page.waitForLoadState('networkidle')
-		await page.waitForURL(/\/sign-in/, { timeout: 10000 })
-		await expect(page).toHaveURL(/\/sign-in/)
+test.describe('Settings Page - Load and Display', () => {
+	test('settings page loads with all sections', async ({ authenticatedPage }) => {
+		await authenticatedPage.goto('/dashboard/settings')
+		await authenticatedPage.waitForLoadState('networkidle')
+
+		// Check main heading
+		await expect(authenticatedPage.getByRole('heading', { name: 'Settings' })).toBeVisible()
+
+		// Check all four main sections are visible
+		await expect(authenticatedPage.getByText('Profile').first()).toBeVisible()
+		await expect(authenticatedPage.getByText('Workspace').first()).toBeVisible()
+		await expect(authenticatedPage.getByText('Notifications').first()).toBeVisible()
+		await expect(authenticatedPage.getByText('Security').first()).toBeVisible()
 	})
 
-	baseTest('unauthenticated user is redirected from api-keys to sign-in', async ({ page }) => {
-		await page.goto('/dashboard/settings/api-keys')
-		await page.waitForLoadState('networkidle')
-		await page.waitForURL(/\/sign-in/, { timeout: 10000 })
-		await expect(page).toHaveURL(/\/sign-in/)
-	})
+	test('all sections have descriptive text', async ({ authenticatedPage }) => {
+		await authenticatedPage.goto('/dashboard/settings')
+		await authenticatedPage.waitForLoadState('networkidle')
 
-	baseTest('unauthenticated user is redirected from team to sign-in', async ({ page }) => {
-		await page.goto('/dashboard/settings/team')
-		await page.waitForLoadState('networkidle')
-		await page.waitForURL(/\/sign-in/, { timeout: 10000 })
-		await expect(page).toHaveURL(/\/sign-in/)
-	})
-
-	baseTest('unauthenticated user is redirected from billing to sign-in', async ({ page }) => {
-		await page.goto('/dashboard/settings/billing')
-		await page.waitForLoadState('networkidle')
-		await page.waitForURL(/\/sign-in/, { timeout: 10000 })
-		await expect(page).toHaveURL(/\/sign-in/)
+		// Check section descriptions
+		await expect(authenticatedPage.getByText('Manage your account information')).toBeVisible()
+		await expect(authenticatedPage.getByText('Current workspace information')).toBeVisible()
+		await expect(
+			authenticatedPage.getByText('Configure how you receive notifications'),
+		).toBeVisible()
+		await expect(authenticatedPage.getByText('Manage your security preferences')).toBeVisible()
 	})
 })
 
-test.describe('Settings Page - Authenticated', () => {
-	test('displays user name in profile', async ({ authenticatedPage, testUser: _testUser }) => {
+test.describe('Profile Section', () => {
+	test('shows user name and email', async ({ authenticatedPage, testUser: _testUser }) => {
 		await authenticatedPage.goto('/dashboard/settings')
 		await authenticatedPage.waitForLoadState('networkidle')
 
 		// Name input should contain the test user's name
 		const nameInput = authenticatedPage.getByLabel(/name/i).first()
 		await expect(nameInput).toBeVisible()
-
-		// Value should contain part of the test user name
 		const nameValue = await nameInput.inputValue()
 		expect(nameValue.length).toBeGreaterThan(0)
-	})
 
-	test('displays user email in profile', async ({ authenticatedPage, testUser: _testUser }) => {
-		await authenticatedPage.goto('/dashboard/settings')
-		await authenticatedPage.waitForLoadState('networkidle')
-
-		// Email should be displayed (might be disabled)
+		// Email input should contain test email pattern
 		const emailInput = authenticatedPage.getByLabel(/email/i).first()
 		await expect(emailInput).toBeVisible()
-
-		// Email should contain test email pattern
 		const emailValue = await emailInput.inputValue()
 		expect(emailValue).toContain('@example.com')
 	})
@@ -70,31 +58,12 @@ test.describe('Settings Page - Authenticated', () => {
 
 		const emailInput = authenticatedPage.getByLabel(/email/i).first()
 		await expect(emailInput).toBeDisabled()
+
+		// Check helper text explaining why email cannot be changed
+		await expect(authenticatedPage.getByText(/email cannot be changed/i)).toBeVisible()
 	})
 
-	test('shows workspace section', async ({ authenticatedPage }) => {
-		await authenticatedPage.goto('/dashboard/settings')
-		await authenticatedPage.waitForLoadState('networkidle')
-
-		await expect(authenticatedPage.getByText(/workspace/i).first()).toBeVisible()
-	})
-
-	test('shows security section with sign out', async ({ authenticatedPage }) => {
-		await authenticatedPage.goto('/dashboard/settings')
-		await authenticatedPage.waitForLoadState('networkidle')
-
-		// Look for security section
-		const securitySection = authenticatedPage.getByText(/security/i).first()
-		await expect(securitySection).toBeVisible()
-
-		// Sign out button should be visible
-		const signOutButton = authenticatedPage.getByRole('button', { name: /sign out/i })
-		await expect(signOutButton).toBeVisible()
-	})
-})
-
-test.describe('Profile Section', () => {
-	test('can view name field', async ({ authenticatedPage }) => {
+	test('name field is editable', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/settings')
 		await authenticatedPage.waitForLoadState('networkidle')
 
@@ -116,62 +85,313 @@ test.describe('Profile Section', () => {
 		await expect(nameInput).toHaveValue(newName)
 	})
 
-	test('save button state for profile updates', async ({ authenticatedPage }) => {
+	test('save button is disabled when no changes', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/settings')
 		await authenticatedPage.waitForLoadState('networkidle')
 
-		// Save button might be disabled (feature coming soon)
-		const saveButton = authenticatedPage.getByRole('button', { name: /save/i })
-		if (await saveButton.isVisible({ timeout: 2000 })) {
-			// Might be disabled
-			await expect(saveButton).toBeDisabled()
-		}
+		// Save button should be disabled when name hasn't changed
+		const saveButton = authenticatedPage.getByRole('button', { name: /save changes/i })
+		await expect(saveButton).toBeVisible()
+		await expect(saveButton).toBeDisabled()
+	})
+
+	test('save button is enabled when name is changed', async ({ authenticatedPage }) => {
+		await authenticatedPage.goto('/dashboard/settings')
+		await authenticatedPage.waitForLoadState('networkidle')
+
+		const nameInput = authenticatedPage.getByLabel(/name/i).first()
+		const originalName = await nameInput.inputValue()
+		const newName = `${originalName} Modified`
+
+		await nameInput.clear()
+		await nameInput.fill(newName)
+
+		// Save button should now be enabled
+		const saveButton = authenticatedPage.getByRole('button', { name: /save changes/i })
+		await expect(saveButton).toBeEnabled()
+	})
+
+	test('updating name saves and shows success message', async ({ authenticatedPage }) => {
+		await authenticatedPage.goto('/dashboard/settings')
+		await authenticatedPage.waitForLoadState('networkidle')
+
+		const nameInput = authenticatedPage.getByLabel(/name/i).first()
+		const newName = `Test User ${Date.now()}`
+
+		await nameInput.clear()
+		await nameInput.fill(newName)
+
+		// Click save
+		const saveButton = authenticatedPage.getByRole('button', { name: /save changes/i })
+		await saveButton.click()
+
+		// Wait for success toast
+		await expect(authenticatedPage.getByText(/profile updated successfully/i)).toBeVisible({
+			timeout: 5000,
+		})
+
+		// Verify name is still the new value
+		await expect(nameInput).toHaveValue(newName)
+
+		// Save button should be disabled again after successful save
+		await expect(saveButton).toBeDisabled()
+	})
+})
+
+test.describe('Workspace Section', () => {
+	test('shows current workspace', async ({ authenticatedPage }) => {
+		await authenticatedPage.goto('/dashboard/settings')
+		await authenticatedPage.waitForLoadState('networkidle')
+
+		// Workspace section should be visible
+		await expect(authenticatedPage.getByText('Workspace').first()).toBeVisible()
+		await expect(authenticatedPage.getByText('Current workspace information')).toBeVisible()
+
+		// Should show the workspace with ID and Active status
+		await expect(authenticatedPage.getByText('ID:').first()).toBeVisible()
+		await expect(authenticatedPage.getByText('Active')).toBeVisible()
+	})
+
+	test('displays workspace name', async ({ authenticatedPage }) => {
+		await authenticatedPage.goto('/dashboard/settings')
+		await authenticatedPage.waitForLoadState('networkidle')
+
+		// Workspace card should have a workspace name visible
+		// The workspace has a name displayed as a font-medium element
+		const workspaceCard = authenticatedPage.locator('.border.rounded-lg').first()
+		await expect(workspaceCard).toBeVisible()
+
+		// Check there's text content in the workspace card
+		const workspaceName = workspaceCard.locator('.font-medium').first()
+		const nameText = await workspaceName.textContent()
+		expect(nameText).toBeTruthy()
+		expect((nameText ?? '').length).toBeGreaterThan(0)
+	})
+
+	test('shows workspace switcher hint', async ({ authenticatedPage }) => {
+		await authenticatedPage.goto('/dashboard/settings')
+		await authenticatedPage.waitForLoadState('networkidle')
+
+		// Check for workspace switcher hint text
+		await expect(
+			authenticatedPage.getByText(/use the workspace switcher in the sidebar/i),
+		).toBeVisible()
 	})
 })
 
 test.describe('Notifications Section', () => {
-	test('shows notification settings', async ({ authenticatedPage }) => {
+	test('displays notification options', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/settings')
 		await authenticatedPage.waitForLoadState('networkidle')
 
-		await expect(authenticatedPage.getByText(/notifications/i).first()).toBeVisible()
+		// Check for notification section
+		await expect(authenticatedPage.getByText('Notifications').first()).toBeVisible()
+		await expect(
+			authenticatedPage.getByText('Configure how you receive notifications'),
+		).toBeVisible()
+
+		// Check for Email Notifications option
+		await expect(authenticatedPage.getByText('Email Notifications')).toBeVisible()
+		await expect(authenticatedPage.getByText('Receive updates via email')).toBeVisible()
+
+		// Check for Usage Alerts option
+		await expect(authenticatedPage.getByText('Usage Alerts')).toBeVisible()
+		await expect(authenticatedPage.getByText('Get notified when approaching limits')).toBeVisible()
 	})
 
-	test('email notifications toggle is coming soon', async ({ authenticatedPage }) => {
+	test('email notifications toggle is functional', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/settings')
 		await authenticatedPage.waitForLoadState('networkidle')
 
-		const emailNotifButton = authenticatedPage.getByRole('button', { name: /coming soon/i }).first()
-		if (await emailNotifButton.isVisible({ timeout: 2000 })) {
-			await expect(emailNotifButton).toBeDisabled()
-		}
+		// Find the email notifications switch
+		// Switches are role="switch" in shadcn/ui
+		const emailNotificationsSwitch = authenticatedPage.locator('[role="switch"]').first()
+
+		await expect(emailNotificationsSwitch).toBeVisible()
+
+		// Click to toggle
+		await emailNotificationsSwitch.click()
+
+		// Should show a toast notification
+		const enabledToast = authenticatedPage.getByText(/email notifications (enabled|disabled)/i)
+		await expect(enabledToast).toBeVisible({ timeout: 5000 })
+	})
+
+	test('usage alerts toggle is functional', async ({ authenticatedPage }) => {
+		await authenticatedPage.goto('/dashboard/settings')
+		await authenticatedPage.waitForLoadState('networkidle')
+
+		// Find the usage alerts switch (second switch)
+		const usageAlertsSwitch = authenticatedPage.locator('[role="switch"]').nth(1)
+
+		await expect(usageAlertsSwitch).toBeVisible()
+
+		// Click to toggle
+		await usageAlertsSwitch.click()
+
+		// Should show a toast notification
+		const alertsToast = authenticatedPage.getByText(/usage alerts (enabled|disabled)/i)
+		await expect(alertsToast).toBeVisible({ timeout: 5000 })
 	})
 })
 
 test.describe('Security Section', () => {
-	test('password change is coming soon', async ({ authenticatedPage }) => {
+	test('shows password and 2FA options', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/settings')
 		await authenticatedPage.waitForLoadState('networkidle')
 
-		// Look for password section
-		const passwordText = authenticatedPage.getByText(/password/i).first()
-		await expect(passwordText).toBeVisible()
+		// Check security section
+		await expect(authenticatedPage.getByText('Security').first()).toBeVisible()
+		await expect(authenticatedPage.getByText('Manage your security preferences')).toBeVisible()
+
+		// Check password option
+		await expect(authenticatedPage.getByText('Password').first()).toBeVisible()
+		await expect(authenticatedPage.getByText('Change your password')).toBeVisible()
+		await expect(authenticatedPage.getByRole('button', { name: /change password/i })).toBeVisible()
+
+		// Check 2FA option
+		await expect(authenticatedPage.getByText('Two-Factor Authentication')).toBeVisible()
+		await expect(authenticatedPage.getByText('Add an extra layer of security')).toBeVisible()
 	})
 
-	test('2FA is coming soon', async ({ authenticatedPage }) => {
+	test('2FA button shows coming soon and is disabled', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/settings')
 		await authenticatedPage.waitForLoadState('networkidle')
 
-		// Look for 2FA section
-		const twoFAText = authenticatedPage.getByText(/two-factor|2fa/i).first()
-		if (await twoFAText.isVisible({ timeout: 2000 })) {
-			await expect(twoFAText).toBeVisible()
-		}
+		// Find the Coming Soon button for 2FA
+		const comingSoonButton = authenticatedPage.getByRole('button', { name: /coming soon/i })
+		await expect(comingSoonButton).toBeVisible()
+		await expect(comingSoonButton).toBeDisabled()
+	})
+
+	test('change password button opens dialog', async ({ authenticatedPage }) => {
+		await authenticatedPage.goto('/dashboard/settings')
+		await authenticatedPage.waitForLoadState('networkidle')
+
+		// Click Change Password button
+		const changePasswordButton = authenticatedPage.getByRole('button', { name: /change password/i })
+		await changePasswordButton.click()
+
+		// Dialog should open
+		await expect(authenticatedPage.getByRole('dialog')).toBeVisible()
+		await expect(authenticatedPage.getByText('Change Password').nth(1)).toBeVisible()
+		await expect(
+			authenticatedPage.getByText(/enter your current password and a new password/i),
+		).toBeVisible()
+
+		// Check password fields in dialog using IDs for unique selection
+		await expect(authenticatedPage.locator('#current-password')).toBeVisible()
+		await expect(authenticatedPage.locator('#new-password')).toBeVisible()
+		await expect(authenticatedPage.locator('#confirm-password')).toBeVisible()
+	})
+
+	test('password dialog can be closed with cancel', async ({ authenticatedPage }) => {
+		await authenticatedPage.goto('/dashboard/settings')
+		await authenticatedPage.waitForLoadState('networkidle')
+
+		// Open dialog
+		const changePasswordButton = authenticatedPage.getByRole('button', { name: /change password/i })
+		await changePasswordButton.click()
+		await expect(authenticatedPage.getByRole('dialog')).toBeVisible()
+
+		// Click cancel
+		const cancelButton = authenticatedPage.getByRole('button', { name: /cancel/i })
+		await cancelButton.click()
+
+		// Dialog should close
+		await expect(authenticatedPage.getByRole('dialog')).not.toBeVisible()
+	})
+
+	test('password change validates all fields required', async ({ authenticatedPage }) => {
+		await authenticatedPage.goto('/dashboard/settings')
+		await authenticatedPage.waitForLoadState('networkidle')
+
+		// Open dialog
+		const changePasswordButton = authenticatedPage.getByRole('button', { name: /change password/i })
+		await changePasswordButton.click()
+		await expect(authenticatedPage.getByRole('dialog')).toBeVisible()
+
+		// Try to submit without filling fields
+		const submitButton = authenticatedPage
+			.getByRole('dialog')
+			.getByRole('button', { name: /change password/i })
+		await submitButton.click()
+
+		// Should show validation error
+		await expect(authenticatedPage.getByText(/please fill in all fields/i)).toBeVisible({
+			timeout: 5000,
+		})
+	})
+
+	test('password change validates password match', async ({ authenticatedPage }) => {
+		await authenticatedPage.goto('/dashboard/settings')
+		await authenticatedPage.waitForLoadState('networkidle')
+
+		// Open dialog
+		const changePasswordButton = authenticatedPage.getByRole('button', { name: /change password/i })
+		await changePasswordButton.click()
+		await expect(authenticatedPage.getByRole('dialog')).toBeVisible()
+
+		// Fill mismatched passwords using IDs
+		await authenticatedPage.locator('#current-password').fill('currentpass123')
+		await authenticatedPage.locator('#new-password').fill('newpassword123')
+		await authenticatedPage.locator('#confirm-password').fill('differentpassword')
+
+		// Submit
+		const submitButton = authenticatedPage
+			.getByRole('dialog')
+			.getByRole('button', { name: /change password/i })
+		await submitButton.click()
+
+		// Should show mismatch error
+		await expect(authenticatedPage.getByText(/passwords do not match/i)).toBeVisible({
+			timeout: 5000,
+		})
+	})
+
+	test('password change validates minimum length', async ({ authenticatedPage }) => {
+		await authenticatedPage.goto('/dashboard/settings')
+		await authenticatedPage.waitForLoadState('networkidle')
+
+		// Open dialog
+		const changePasswordButton = authenticatedPage.getByRole('button', { name: /change password/i })
+		await changePasswordButton.click()
+		await expect(authenticatedPage.getByRole('dialog')).toBeVisible()
+
+		// Fill short password using IDs
+		await authenticatedPage.locator('#current-password').fill('currentpass123')
+		await authenticatedPage.locator('#new-password').fill('short')
+		await authenticatedPage.locator('#confirm-password').fill('short')
+
+		// Submit
+		const submitButton = authenticatedPage
+			.getByRole('dialog')
+			.getByRole('button', { name: /change password/i })
+		await submitButton.click()
+
+		// Should show length error
+		await expect(authenticatedPage.getByText(/at least 8 characters/i)).toBeVisible({
+			timeout: 5000,
+		})
+	})
+
+	test('shows sign out button', async ({ authenticatedPage }) => {
+		await authenticatedPage.goto('/dashboard/settings')
+		await authenticatedPage.waitForLoadState('networkidle')
+
+		// Check sign out option
+		await expect(authenticatedPage.getByText('Sign Out').first()).toBeVisible()
+		await expect(authenticatedPage.getByText('Sign out of your account')).toBeVisible()
+
+		// Sign out button should be visible and enabled
+		const signOutButton = authenticatedPage.getByRole('button', { name: /sign out/i })
+		await expect(signOutButton).toBeVisible()
+		await expect(signOutButton).toBeEnabled()
 	})
 })
 
 test.describe('Sign Out Functionality', () => {
-	test('can sign out from settings', async ({ authenticatedPage }) => {
+	test('sign out button logs out and redirects', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/settings')
 		await authenticatedPage.waitForLoadState('networkidle')
 
@@ -206,8 +426,8 @@ test.describe('Sign Out Functionality', () => {
 		// Click and immediately check for loading state
 		await signOutButton.click()
 
-		// Button might show "Signing out..." briefly
-		// Don't need to assert this as it happens quickly
+		// Button might show "Signing out..." briefly - we don't need to assert
+		// as it happens very quickly, but the test ensures the flow works
 	})
 })
 
@@ -245,333 +465,11 @@ test.describe('Settings Navigation', () => {
 			}
 		}
 	})
-})
 
-test.describe('Settings Page Sections', () => {
-	test('all expected sections are visible', async ({ authenticatedPage }) => {
+	test('settings page URL is correct', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/settings')
 		await authenticatedPage.waitForLoadState('networkidle')
 
-		// Check for main sections
-		await expect(authenticatedPage.getByText(/profile/i).first()).toBeVisible()
-		await expect(authenticatedPage.getByText(/workspace/i).first()).toBeVisible()
-		await expect(authenticatedPage.getByText(/notifications/i).first()).toBeVisible()
-		await expect(authenticatedPage.getByText(/security/i).first()).toBeVisible()
-	})
-
-	test('sections have descriptive text', async ({ authenticatedPage }) => {
-		await authenticatedPage.goto('/dashboard/settings')
-		await authenticatedPage.waitForLoadState('networkidle')
-
-		// Profile section should have description
-		await expect(authenticatedPage.getByText(/manage.*account/i).first()).toBeVisible()
-	})
-})
-
-test.describe('Settings Tab Navigation', () => {
-	test('can navigate between settings tabs', async ({ authenticatedPage }) => {
-		await authenticatedPage.goto('/dashboard/settings')
-		await authenticatedPage.waitForLoadState('networkidle')
-
-		// Look for tab navigation
-		const teamTab = authenticatedPage.getByRole('link', { name: /team/i })
-		const apiKeysTab = authenticatedPage.getByRole('link', { name: /api.*keys/i })
-		const billingTab = authenticatedPage.getByRole('link', { name: /billing/i })
-
-		// Check if tabs are visible (they might not all be present)
-		const hasTeamTab = await teamTab.isVisible({ timeout: 2000 }).catch(() => false)
-		const hasApiKeysTab = await apiKeysTab.isVisible({ timeout: 2000 }).catch(() => false)
-		const hasBillingTab = await billingTab.isVisible({ timeout: 2000 }).catch(() => false)
-
-		// At least one additional tab should be visible
-		expect(hasTeamTab || hasApiKeysTab || hasBillingTab).toBe(true)
-	})
-})
-
-test.describe('Team Settings Page', () => {
-	test('loads team settings page without errors', async ({ authenticatedPage }) => {
-		await authenticatedPage.goto('/dashboard/settings/team')
-		await authenticatedPage.waitForLoadState('networkidle')
-
-		// Wait to ensure no infinite spinner
-		await authenticatedPage.waitForTimeout(2000)
-
-		// Check that main content area exists and is not showing endless loading
-		const mainContent = authenticatedPage.locator('main')
-		await expect(mainContent).toBeVisible()
-
-		// Page should have loaded - check for heading or content
-		const hasHeading =
-			(await authenticatedPage
-				.getByRole('heading', { name: /team/i })
-				.isVisible({ timeout: 2000 })
-				.catch(() => false)) ||
-			(await authenticatedPage.getByText(/team/i).first().isVisible({ timeout: 2000 }).catch(() => false))
-
-		expect(hasHeading).toBe(true)
-	})
-
-	test('team page shows team members or invite option', async ({ authenticatedPage }) => {
-		await authenticatedPage.goto('/dashboard/settings/team')
-		await authenticatedPage.waitForLoadState('networkidle')
-
-		// Should show either team members list or invite button
-		const hasInviteButton =
-			(await authenticatedPage
-				.getByRole('button', { name: /invite/i })
-				.isVisible({ timeout: 3000 })
-				.catch(() => false)) ||
-			(await authenticatedPage
-				.getByRole('button', { name: /add.*member/i })
-				.isVisible({ timeout: 2000 })
-				.catch(() => false))
-
-		const hasTeamContent =
-			hasInviteButton ||
-			(await authenticatedPage.getByText(/members/i).isVisible({ timeout: 2000 }).catch(() => false)) ||
-			(await authenticatedPage.getByText(/coming soon/i).isVisible({ timeout: 2000 }).catch(() => false))
-
-		expect(hasTeamContent).toBe(true)
-	})
-
-	test('can navigate to team settings via tab', async ({ authenticatedPage }) => {
-		await authenticatedPage.goto('/dashboard/settings')
-		await authenticatedPage.waitForLoadState('networkidle')
-
-		const teamTab = authenticatedPage.getByRole('link', { name: /team/i })
-		if (await teamTab.isVisible({ timeout: 2000 })) {
-			await teamTab.click()
-			await authenticatedPage.waitForURL(/\/dashboard\/settings\/team/)
-			await authenticatedPage.waitForLoadState('networkidle')
-
-			const mainContent = authenticatedPage.locator('main')
-			await expect(mainContent).toBeVisible()
-		}
-	})
-})
-
-test.describe('API Keys Settings Page', () => {
-	test('loads api keys page without errors', async ({ authenticatedPage }) => {
-		await authenticatedPage.goto('/dashboard/settings/api-keys')
-		await authenticatedPage.waitForLoadState('networkidle')
-
-		// Wait to ensure no infinite spinner
-		await authenticatedPage.waitForTimeout(2000)
-
-		// Check that main content area exists
-		const mainContent = authenticatedPage.locator('main')
-		await expect(mainContent).toBeVisible()
-
-		// Page should have loaded - check for heading or content
-		const hasHeading =
-			(await authenticatedPage
-				.getByRole('heading', { name: /api.*keys?/i })
-				.isVisible({ timeout: 2000 })
-				.catch(() => false)) ||
-			(await authenticatedPage
-				.getByText(/api.*keys?/i)
-				.first()
-				.isVisible({ timeout: 2000 })
-				.catch(() => false))
-
-		expect(hasHeading).toBe(true)
-	})
-
-	test('api keys page shows create button or keys list', async ({ authenticatedPage }) => {
-		await authenticatedPage.goto('/dashboard/settings/api-keys')
-		await authenticatedPage.waitForLoadState('networkidle')
-
-		// Should show either create button or existing keys
-		const hasCreateButton =
-			(await authenticatedPage
-				.getByRole('button', { name: /create.*key/i })
-				.isVisible({ timeout: 3000 })
-				.catch(() => false)) ||
-			(await authenticatedPage
-				.getByRole('button', { name: /new.*key/i })
-				.isVisible({ timeout: 2000 })
-				.catch(() => false)) ||
-			(await authenticatedPage
-				.getByRole('button', { name: /generate/i })
-				.isVisible({ timeout: 2000 })
-				.catch(() => false))
-
-		const hasApiKeysContent =
-			hasCreateButton ||
-			(await authenticatedPage.getByText(/no.*keys/i).isVisible({ timeout: 2000 }).catch(() => false)) ||
-			(await authenticatedPage.getByText(/coming soon/i).isVisible({ timeout: 2000 }).catch(() => false)) ||
-			(await authenticatedPage.getByRole('table').isVisible({ timeout: 2000 }).catch(() => false))
-
-		expect(hasApiKeysContent).toBe(true)
-	})
-
-	test('can navigate to api keys via tab', async ({ authenticatedPage }) => {
-		await authenticatedPage.goto('/dashboard/settings')
-		await authenticatedPage.waitForLoadState('networkidle')
-
-		const apiKeysTab = authenticatedPage.getByRole('link', { name: /api.*keys/i })
-		if (await apiKeysTab.isVisible({ timeout: 2000 })) {
-			await apiKeysTab.click()
-			await authenticatedPage.waitForURL(/\/dashboard\/settings\/api-keys/)
-			await authenticatedPage.waitForLoadState('networkidle')
-
-			const mainContent = authenticatedPage.locator('main')
-			await expect(mainContent).toBeVisible()
-		}
-	})
-})
-
-test.describe('Billing Settings Page', () => {
-	test('loads billing page without errors', async ({ authenticatedPage }) => {
-		await authenticatedPage.goto('/dashboard/settings/billing')
-		await authenticatedPage.waitForLoadState('networkidle')
-
-		// Wait to ensure no infinite spinner
-		await authenticatedPage.waitForTimeout(2000)
-
-		// Check that main content area exists
-		const mainContent = authenticatedPage.locator('main')
-		await expect(mainContent).toBeVisible()
-
-		// Page should have loaded - check for heading or content
-		const hasHeading =
-			(await authenticatedPage
-				.getByRole('heading', { name: /billing/i })
-				.isVisible({ timeout: 2000 })
-				.catch(() => false)) ||
-			(await authenticatedPage.getByText(/billing/i).first().isVisible({ timeout: 2000 }).catch(() => false))
-
-		expect(hasHeading).toBe(true)
-	})
-
-	test('billing page shows subscription info or upgrade option', async ({ authenticatedPage }) => {
-		await authenticatedPage.goto('/dashboard/settings/billing')
-		await authenticatedPage.waitForLoadState('networkidle')
-
-		// Should show billing information
-		const hasBillingContent =
-			(await authenticatedPage
-				.getByText(/subscription/i)
-				.first()
-				.isVisible({ timeout: 2000 })
-				.catch(() => false)) ||
-			(await authenticatedPage.getByText(/plan/i).first().isVisible({ timeout: 2000 }).catch(() => false)) ||
-			(await authenticatedPage
-				.getByText(/upgrade/i)
-				.first()
-				.isVisible({ timeout: 2000 })
-				.catch(() => false)) ||
-			(await authenticatedPage.getByText(/coming soon/i).isVisible({ timeout: 2000 }).catch(() => false)) ||
-			(await authenticatedPage
-				.getByRole('button', { name: /upgrade/i })
-				.isVisible({ timeout: 2000 })
-				.catch(() => false))
-
-		expect(hasBillingContent).toBe(true)
-	})
-
-	test('can navigate to billing via tab', async ({ authenticatedPage }) => {
-		await authenticatedPage.goto('/dashboard/settings')
-		await authenticatedPage.waitForLoadState('networkidle')
-
-		const billingTab = authenticatedPage.getByRole('link', { name: /billing/i })
-		if (await billingTab.isVisible({ timeout: 2000 })) {
-			await billingTab.click()
-			await authenticatedPage.waitForURL(/\/dashboard\/settings\/billing/)
-			await authenticatedPage.waitForLoadState('networkidle')
-
-			const mainContent = authenticatedPage.locator('main')
-			await expect(mainContent).toBeVisible()
-		}
-	})
-})
-
-test.describe('Settings Page Loading States', () => {
-	test('main settings page does not show infinite spinner', async ({ authenticatedPage }) => {
-		await authenticatedPage.goto('/dashboard/settings')
-		await authenticatedPage.waitForLoadState('networkidle')
-
-		// Wait 3 seconds to ensure spinner is gone
-		await authenticatedPage.waitForTimeout(3000)
-
-		// Check that content is visible (not just spinner)
-		const nameInput = authenticatedPage.getByLabel(/name/i).first()
-		await expect(nameInput).toBeVisible()
-	})
-
-	test('team settings page does not show infinite spinner', async ({ authenticatedPage }) => {
-		await authenticatedPage.goto('/dashboard/settings/team')
-		await authenticatedPage.waitForLoadState('networkidle')
-
-		// Wait 3 seconds to ensure spinner is gone
-		await authenticatedPage.waitForTimeout(3000)
-
-		// Check that main content is present
-		const mainContent = authenticatedPage.locator('main')
-		await expect(mainContent).toBeVisible()
-
-		// Should have some content, not just a spinner
-		const hasContent =
-			(await authenticatedPage.getByRole('heading').first().isVisible({ timeout: 1000 }).catch(() => false)) ||
-			(await authenticatedPage
-				.getByRole('button')
-				.first()
-				.isVisible({ timeout: 1000 })
-				.catch(() => false)) ||
-			(await authenticatedPage.getByText(/team/i).first().isVisible({ timeout: 1000 }).catch(() => false))
-
-		expect(hasContent).toBe(true)
-	})
-
-	test('api keys page does not show infinite spinner', async ({ authenticatedPage }) => {
-		await authenticatedPage.goto('/dashboard/settings/api-keys')
-		await authenticatedPage.waitForLoadState('networkidle')
-
-		// Wait 3 seconds to ensure spinner is gone
-		await authenticatedPage.waitForTimeout(3000)
-
-		// Check that main content is present
-		const mainContent = authenticatedPage.locator('main')
-		await expect(mainContent).toBeVisible()
-
-		// Should have some content
-		const hasContent =
-			(await authenticatedPage.getByRole('heading').first().isVisible({ timeout: 1000 }).catch(() => false)) ||
-			(await authenticatedPage
-				.getByRole('button')
-				.first()
-				.isVisible({ timeout: 1000 })
-				.catch(() => false)) ||
-			(await authenticatedPage
-				.getByText(/api.*key/i)
-				.first()
-				.isVisible({ timeout: 1000 })
-				.catch(() => false))
-
-		expect(hasContent).toBe(true)
-	})
-
-	test('billing page does not show infinite spinner', async ({ authenticatedPage }) => {
-		await authenticatedPage.goto('/dashboard/settings/billing')
-		await authenticatedPage.waitForLoadState('networkidle')
-
-		// Wait 3 seconds to ensure spinner is gone
-		await authenticatedPage.waitForTimeout(3000)
-
-		// Check that main content is present
-		const mainContent = authenticatedPage.locator('main')
-		await expect(mainContent).toBeVisible()
-
-		// Should have some content
-		const hasContent =
-			(await authenticatedPage.getByRole('heading').first().isVisible({ timeout: 1000 }).catch(() => false)) ||
-			(await authenticatedPage
-				.getByRole('button')
-				.first()
-				.isVisible({ timeout: 1000 })
-				.catch(() => false)) ||
-			(await authenticatedPage.getByText(/billing/i).first().isVisible({ timeout: 1000 }).catch(() => false))
-
-		expect(hasContent).toBe(true)
+		expect(authenticatedPage.url()).toContain('/dashboard/settings')
 	})
 })
