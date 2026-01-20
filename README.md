@@ -3,6 +3,7 @@
 > **Fast as a hare**—Build and deploy AI agents to Cloudflare's edge in minutes
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![CI](https://github.com/andrew-bierman/hare/actions/workflows/ci.yml/badge.svg)](https://github.com/andrew-bierman/hare/actions/workflows/ci.yml)
 [![Vite](https://img.shields.io/badge/Vite-7-646CFF)](https://vitejs.dev/)
 [![Cloudflare](https://img.shields.io/badge/Cloudflare-Workers-orange)](https://workers.cloudflare.com/)
 [![Workers AI](https://img.shields.io/badge/Workers_AI-Native-F38020)](https://developers.cloudflare.com/workers-ai/)
