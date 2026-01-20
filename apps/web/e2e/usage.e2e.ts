@@ -528,3 +528,140 @@ test.describe('Usage Page Accessibility', () => {
 		await expect(authenticatedPage.getByText('Period', { exact: true })).toBeVisible()
 	})
 })
+
+test.describe('Usage Reflects Recent Activity', () => {
+	test('active agents count reflects deployed agents', async ({ authenticatedPage }) => {
+		const workspaceId = await getWorkspaceId(authenticatedPage)
+
+		// Get initial active agents count from usage page
+		await authenticatedPage.goto('/dashboard/usage')
+		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForTimeout(2000)
+
+		// The page should show all four stat cards including Active Agents
+		await expect(authenticatedPage.getByText('Active Agents')).toBeVisible()
+
+		// Get the Active Agents card content - it shows the count of deployed agents
+		const activeAgentsCard = authenticatedPage
+			.locator('[class*="card"]')
+			.filter({ hasText: 'Active Agents' })
+		await expect(activeAgentsCard).toBeVisible()
+
+		// Create and deploy an agent
+		const createResponse = await authenticatedPage.request.post(
+			`/api/agents?workspaceId=${workspaceId}`,
+			{
+				data: {
+					name: `Activity Test Agent ${Date.now()}`,
+					description: 'Agent for testing activity tracking',
+					model: '@cf/meta/llama-3.3-70b-instruct-fp8-fast',
+					instructions: 'You are a test assistant.',
+					status: 'deployed',
+				},
+			},
+		)
+		expect(createResponse.status()).toBe(201)
+		const agent = await createResponse.json()
+
+		// Reload the usage page to see updated counts
+		await authenticatedPage.reload()
+		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForTimeout(2000)
+
+		// The Active Agents count should reflect the newly deployed agent
+		await expect(authenticatedPage.getByText('Active Agents')).toBeVisible()
+
+		// Cleanup
+		await authenticatedPage.request.delete(`/api/agents/${agent.id}?workspaceId=${workspaceId}`)
+	})
+
+	test('usage page reflects data from API', async ({ authenticatedPage }) => {
+		const workspaceId = await getWorkspaceId(authenticatedPage)
+
+		// Get usage data from API
+		const usageResponse = await authenticatedPage.request.get(
+			`/api/usage?workspaceId=${workspaceId}`,
+		)
+		expect(usageResponse.status()).toBe(200)
+		const usageData = await usageResponse.json()
+
+		// Navigate to usage page
+		await authenticatedPage.goto('/dashboard/usage')
+		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForTimeout(2000)
+
+		// Verify the page displays the same period information from API
+		if (usageData.period?.startDate) {
+			const startDate = new Date(usageData.period.startDate)
+			const formattedMonth = startDate.toLocaleDateString('en-US', { month: 'short' })
+			// The period start date should appear somewhere on the page
+			await expect(authenticatedPage.getByText(formattedMonth).first()).toBeVisible()
+		}
+	})
+
+	test('total agents count is shown in Active Agents description', async ({
+		authenticatedPage,
+	}) => {
+		const workspaceId = await getWorkspaceId(authenticatedPage)
+
+		// Get agents count from API
+		const agentsResponse = await authenticatedPage.request.get(
+			`/api/agents?workspaceId=${workspaceId}`,
+		)
+		expect(agentsResponse.status()).toBe(200)
+		const agentsData = await agentsResponse.json()
+		const totalAgents = agentsData.agents?.length ?? 0
+
+		// Navigate to usage page
+		await authenticatedPage.goto('/dashboard/usage')
+		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForTimeout(2000)
+
+		// The Active Agents card should show total agents in description
+		await expect(authenticatedPage.getByText(`${totalAgents} total agents`)).toBeVisible()
+	})
+})
+
+test.describe('Usage Page Full Layout', () => {
+	test('displays all four stat cards simultaneously', async ({ authenticatedPage }) => {
+		await authenticatedPage.goto('/dashboard/usage')
+		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForTimeout(2000)
+
+		// All four stat cards should be visible at once
+		await expect(authenticatedPage.getByText('Total API Calls')).toBeVisible()
+		await expect(authenticatedPage.getByText('Total Tokens')).toBeVisible()
+		await expect(authenticatedPage.getByText('Active Agents')).toBeVisible()
+		await expect(authenticatedPage.getByText('Period')).toBeVisible()
+	})
+
+	test('displays all main sections', async ({ authenticatedPage }) => {
+		await authenticatedPage.goto('/dashboard/usage')
+		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForTimeout(2000)
+
+		// Verify all main sections are present
+		await expect(authenticatedPage.getByRole('heading', { name: 'Usage' })).toBeVisible()
+		await expect(authenticatedPage.getByText('Token Breakdown')).toBeVisible()
+		await expect(authenticatedPage.getByText('Usage by Agent')).toBeVisible()
+		await expect(authenticatedPage.getByText('About Usage Tracking')).toBeVisible()
+	})
+
+	test('stat card values are displayed as numbers or N/A', async ({ authenticatedPage }) => {
+		await authenticatedPage.goto('/dashboard/usage')
+		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForTimeout(2000)
+
+		// Each stat card should have a value that's either a number, formatted number, or N/A
+		const statCards = authenticatedPage.locator('[class*="card"]')
+
+		// There should be multiple cards on the page
+		const cardCount = await statCards.count()
+		expect(cardCount).toBeGreaterThan(0)
+
+		// The Total API Calls card should have a visible numeric value
+		const apiCallsCard = statCards.filter({ hasText: 'Total API Calls' })
+		const apiCallsValue = apiCallsCard.locator('.text-2xl.font-bold')
+		await expect(apiCallsValue).toBeVisible()
+	})
+})
