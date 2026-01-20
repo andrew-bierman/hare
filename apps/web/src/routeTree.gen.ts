@@ -30,6 +30,7 @@ import { Route as DashboardDashboardSettingsIndexRouteImport } from './routes/_d
 import { Route as DashboardDashboardAnalyticsIndexRouteImport } from './routes/_dashboard/dashboard/analytics/index'
 import { Route as DashboardDashboardAgentsIndexRouteImport } from './routes/_dashboard/dashboard/agents/index'
 import { Route as DashboardDashboardToolsNewRouteImport } from './routes/_dashboard/dashboard/tools/new'
+import { Route as DashboardDashboardToolsIdRouteImport } from './routes/_dashboard/dashboard/tools/$id'
 import { Route as DashboardDashboardSettingsTeamRouteImport } from './routes/_dashboard/dashboard/settings/team'
 import { Route as DashboardDashboardSettingsBillingRouteImport } from './routes/_dashboard/dashboard/settings/billing'
 import { Route as DashboardDashboardSettingsApiKeysRouteImport } from './routes/_dashboard/dashboard/settings/api-keys'
@@ -149,6 +150,12 @@ const DashboardDashboardToolsNewRoute =
     path: '/dashboard/tools/new',
     getParentRoute: () => DashboardRoute,
   } as any)
+const DashboardDashboardToolsIdRoute =
+  DashboardDashboardToolsIdRouteImport.update({
+    id: '/dashboard/tools/$id',
+    path: '/dashboard/tools/$id',
+    getParentRoute: () => DashboardRoute,
+  } as any)
 const DashboardDashboardSettingsTeamRoute =
   DashboardDashboardSettingsTeamRouteImport.update({
     id: '/dashboard/settings/team',
@@ -223,6 +230,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/settings/api-keys': typeof DashboardDashboardSettingsApiKeysRoute
   '/dashboard/settings/billing': typeof DashboardDashboardSettingsBillingRoute
   '/dashboard/settings/team': typeof DashboardDashboardSettingsTeamRoute
+  '/dashboard/tools/$id': typeof DashboardDashboardToolsIdRoute
   '/dashboard/tools/new': typeof DashboardDashboardToolsNewRoute
   '/dashboard/agents': typeof DashboardDashboardAgentsIndexRoute
   '/dashboard/analytics': typeof DashboardDashboardAnalyticsIndexRoute
@@ -252,6 +260,7 @@ export interface FileRoutesByTo {
   '/dashboard/settings/api-keys': typeof DashboardDashboardSettingsApiKeysRoute
   '/dashboard/settings/billing': typeof DashboardDashboardSettingsBillingRoute
   '/dashboard/settings/team': typeof DashboardDashboardSettingsTeamRoute
+  '/dashboard/tools/$id': typeof DashboardDashboardToolsIdRoute
   '/dashboard/tools/new': typeof DashboardDashboardToolsNewRoute
   '/dashboard/agents': typeof DashboardDashboardAgentsIndexRoute
   '/dashboard/analytics': typeof DashboardDashboardAnalyticsIndexRoute
@@ -285,6 +294,7 @@ export interface FileRoutesById {
   '/_dashboard/dashboard/settings/api-keys': typeof DashboardDashboardSettingsApiKeysRoute
   '/_dashboard/dashboard/settings/billing': typeof DashboardDashboardSettingsBillingRoute
   '/_dashboard/dashboard/settings/team': typeof DashboardDashboardSettingsTeamRoute
+  '/_dashboard/dashboard/tools/$id': typeof DashboardDashboardToolsIdRoute
   '/_dashboard/dashboard/tools/new': typeof DashboardDashboardToolsNewRoute
   '/_dashboard/dashboard/agents/': typeof DashboardDashboardAgentsIndexRoute
   '/_dashboard/dashboard/analytics/': typeof DashboardDashboardAnalyticsIndexRoute
@@ -317,6 +327,7 @@ export interface FileRouteTypes {
     | '/dashboard/settings/api-keys'
     | '/dashboard/settings/billing'
     | '/dashboard/settings/team'
+    | '/dashboard/tools/$id'
     | '/dashboard/tools/new'
     | '/dashboard/agents'
     | '/dashboard/analytics'
@@ -346,6 +357,7 @@ export interface FileRouteTypes {
     | '/dashboard/settings/api-keys'
     | '/dashboard/settings/billing'
     | '/dashboard/settings/team'
+    | '/dashboard/tools/$id'
     | '/dashboard/tools/new'
     | '/dashboard/agents'
     | '/dashboard/analytics'
@@ -378,6 +390,7 @@ export interface FileRouteTypes {
     | '/_dashboard/dashboard/settings/api-keys'
     | '/_dashboard/dashboard/settings/billing'
     | '/_dashboard/dashboard/settings/team'
+    | '/_dashboard/dashboard/tools/$id'
     | '/_dashboard/dashboard/tools/new'
     | '/_dashboard/dashboard/agents/'
     | '/_dashboard/dashboard/analytics/'
@@ -549,6 +562,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardDashboardToolsNewRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/_dashboard/dashboard/tools/$id': {
+      id: '/_dashboard/dashboard/tools/$id'
+      path: '/dashboard/tools/$id'
+      fullPath: '/dashboard/tools/$id'
+      preLoaderRoute: typeof DashboardDashboardToolsIdRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/_dashboard/dashboard/settings/team': {
       id: '/_dashboard/dashboard/settings/team'
       path: '/dashboard/settings/team'
@@ -638,6 +658,7 @@ interface DashboardRouteChildren {
   DashboardDashboardSettingsApiKeysRoute: typeof DashboardDashboardSettingsApiKeysRoute
   DashboardDashboardSettingsBillingRoute: typeof DashboardDashboardSettingsBillingRoute
   DashboardDashboardSettingsTeamRoute: typeof DashboardDashboardSettingsTeamRoute
+  DashboardDashboardToolsIdRoute: typeof DashboardDashboardToolsIdRoute
   DashboardDashboardToolsNewRoute: typeof DashboardDashboardToolsNewRoute
   DashboardDashboardAgentsIndexRoute: typeof DashboardDashboardAgentsIndexRoute
   DashboardDashboardAnalyticsIndexRoute: typeof DashboardDashboardAnalyticsIndexRoute
@@ -660,6 +681,7 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardDashboardSettingsBillingRoute:
     DashboardDashboardSettingsBillingRoute,
   DashboardDashboardSettingsTeamRoute: DashboardDashboardSettingsTeamRoute,
+  DashboardDashboardToolsIdRoute: DashboardDashboardToolsIdRoute,
   DashboardDashboardToolsNewRoute: DashboardDashboardToolsNewRoute,
   DashboardDashboardAgentsIndexRoute: DashboardDashboardAgentsIndexRoute,
   DashboardDashboardAnalyticsIndexRoute: DashboardDashboardAnalyticsIndexRoute,

@@ -6,5 +6,5 @@ export const Route = createFileRoute('/tools/')({
 })
 
 function ToolsPageWrapper() {
-	return <ToolsListPage />
+	return <ToolsListPage toolDetailBasePath="/tools" />
 }
