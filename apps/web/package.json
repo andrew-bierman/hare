@@ -96,6 +96,7 @@
 		"zod": "^4.2.1"
 	},
 	"devDependencies": {
+		"@axe-core/playwright": "^4.11.0",
 		"@cloudflare/vite-plugin": "^1.19.0",
 		"@cloudflare/workers-types": "^4.20251224.0",
 		"@hare/typescript-config": "workspace:*",
