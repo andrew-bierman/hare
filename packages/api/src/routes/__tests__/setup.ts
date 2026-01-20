@@ -8,8 +8,12 @@
 /**
  * Individual SQL statements for setting up test database.
  * Using an array of statements instead of a multiline string for better D1 compatibility.
+ * Foreign keys are enabled and cascade deletes are set up for agent_tools junction table.
  */
 const MIGRATION_STATEMENTS = [
+	// Enable foreign keys for SQLite (must be first)
+	`PRAGMA foreign_keys = ON`,
+
 	// Users table (required for auth)
 	`CREATE TABLE IF NOT EXISTS "user" ("id" text PRIMARY KEY NOT NULL, "name" text NOT NULL, "email" text NOT NULL, "emailVerified" integer DEFAULT false NOT NULL, "image" text, "createdAt" integer NOT NULL, "updatedAt" integer NOT NULL)`,
 
@@ -67,8 +71,8 @@ const MIGRATION_STATEMENTS = [
 	// Deployments table
 	`CREATE TABLE IF NOT EXISTS "deployments" ("id" text PRIMARY KEY NOT NULL, "agentId" text NOT NULL, "version" text NOT NULL, "environment" text DEFAULT 'production' NOT NULL, "status" text DEFAULT 'pending' NOT NULL, "url" text, "metadata" text, "deployedBy" text NOT NULL, "deployedAt" integer NOT NULL, "createdAt" integer NOT NULL)`,
 
-	// Agent tools junction table
-	`CREATE TABLE IF NOT EXISTS "agent_tools" ("id" text PRIMARY KEY NOT NULL, "agentId" text NOT NULL, "toolId" text NOT NULL, "createdAt" integer NOT NULL)`,
+	// Agent tools junction table with foreign key constraints for cascade delete
+	`CREATE TABLE IF NOT EXISTS "agent_tools" ("id" text PRIMARY KEY NOT NULL, "agentId" text NOT NULL REFERENCES "agents"("id") ON DELETE CASCADE, "toolId" text NOT NULL REFERENCES "tools"("id") ON DELETE CASCADE, "createdAt" integer NOT NULL)`,
 ]
 
 /**
