@@ -38,7 +38,7 @@ interface CreateAgentFormProps {
 	templateId?: string
 }
 
-export function CreateAgentForm({ workspaceId, templateId }: CreateAgentFormProps) {
+export function CreateAgentForm({ templateId }: CreateAgentFormProps) {
 	const navigate = useNavigate()
 	const createAgent = useCreateAgentMutation()
 	const { data: toolsData } = useToolsQuery()

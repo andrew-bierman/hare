@@ -1,6 +1,5 @@
 'use client'
 
-import { useNavigate } from '@tanstack/react-router'
 import { Button } from '@hare/ui/components/button'
 import {
 	Card,
@@ -35,7 +34,6 @@ import {
 } from '../../shared/api/hooks'
 
 export function SettingsPage() {
-	const navigate = useNavigate()
 	const { data: session, isPending: sessionLoading } = useAuth()
 	const { signOut } = useAuthActions()
 	const { activeWorkspace } = useWorkspace()
@@ -146,7 +144,7 @@ export function SettingsPage() {
 		try {
 			await signOut()
 			toast.success('Signed out successfully')
-			navigate({ to: '/sign-in' })
+			window.location.href = '/sign-in'
 		} catch (_error) {
 			toast.error('Failed to sign out')
 		} finally {

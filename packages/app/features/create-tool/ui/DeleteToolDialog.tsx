@@ -20,7 +20,6 @@ interface DeleteToolDialogProps {
 }
 
 export function DeleteToolDialog({
-	workspaceId,
 	toolId,
 	toolName,
 	onOpenChange,

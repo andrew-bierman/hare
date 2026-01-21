@@ -15,8 +15,6 @@ import {
 	notFound,
 	badRequest,
 	serverError,
-	type WorkspaceContext,
-	type AuthContext,
 } from '../base'
 import { SuccessSchema, IdParamSchema } from '../../schemas'
 

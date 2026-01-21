@@ -50,7 +50,7 @@ export function ResetPasswordPage({ token }: ResetPasswordPageProps) {
 							<h1 className="text-2xl font-bold tracking-tight">Invalid Link</h1>
 							<p className="text-muted-foreground">{content.invalidToken}</p>
 						</div>
-						<Link to="/forgot-password">
+						<Link to={'/forgot-password' as string}>
 							<Button
 								variant="outline"
 								size="lg"
@@ -95,7 +95,7 @@ export function ResetPasswordPage({ token }: ResetPasswordPageProps) {
 							</h1>
 							<p className="text-muted-foreground">{content.success.subtitle}</p>
 						</div>
-						<Link to="/sign-in">
+						<Link to={'/sign-in' as string}>
 							<Button
 								size="lg"
 								className="w-full gap-2 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white shadow-lg shadow-orange-500/25"

@@ -105,7 +105,7 @@ export function ForgotPasswordPage() {
 							</button>
 						</div>
 						<Link
-							to="/sign-in"
+							to={'/sign-in' as string}
 							className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
 						>
 							<ArrowLeft className="h-4 w-4" />
@@ -175,7 +175,7 @@ export function ForgotPasswordPage() {
 					</form>
 					<div className="text-center">
 						<Link
-							to="/sign-in"
+							to={'/sign-in' as string}
 							className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
 						>
 							<ArrowLeft className="h-4 w-4" />

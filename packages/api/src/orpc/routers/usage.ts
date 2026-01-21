@@ -6,7 +6,7 @@
 
 import { and, eq, gte, lte, sql } from 'drizzle-orm'
 import { agents, usage } from '@hare/db/schema'
-import { requireWrite, notFound, type WorkspaceContext } from '../base'
+import { requireWrite, notFound } from '../base'
 import {
 	AgentUsageResponseSchema,
 	IdParamSchema,

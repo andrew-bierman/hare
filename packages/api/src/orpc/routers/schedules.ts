@@ -21,7 +21,6 @@ type ScheduleType = z.infer<typeof ScheduleTypeSchema>
 
 /** Schedule status enum */
 const ScheduleStatusSchema = z.enum(SCHEDULE_STATUSES)
-type ScheduleStatus = z.infer<typeof ScheduleStatusSchema>
 
 /** Execution status enum */
 const ExecutionStatusSchema = z.enum(EXECUTION_STATUSES)

@@ -502,8 +502,7 @@ export const preview = requireWrite
 	.route({ method: 'POST', path: '/agents/preview' })
 	.input(AgentPreviewInputSchema)
 	.output(AgentPreviewResponseSchema)
-	.handler(async ({ input, context }) => {
-		const { workspaceId } = context
+	.handler(async ({ input }) => {
 		const errors: z.infer<typeof ValidationIssueSchema>[] = []
 		const warnings: z.infer<typeof ValidationIssueSchema>[] = []
 

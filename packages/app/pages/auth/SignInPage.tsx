@@ -187,7 +187,7 @@ export function SignInPage() {
 									{fields.password.label}
 								</Label>
 								<Link
-									to="/forgot-password"
+									to={'/forgot-password' as string}
 									className="text-xs text-primary hover:underline font-medium"
 								>
 									{content.forgotPassword}
@@ -226,7 +226,7 @@ export function SignInPage() {
 				<CardFooter className="flex flex-col space-y-4 pt-2">
 					<div className="text-sm text-center text-muted-foreground">
 						{content.noAccount}{' '}
-						<Link to="/sign-up" className="text-primary hover:underline font-medium">
+						<Link to={'/sign-up' as string} className="text-primary hover:underline font-medium">
 							{content.signUpLink}
 						</Link>
 					</div>

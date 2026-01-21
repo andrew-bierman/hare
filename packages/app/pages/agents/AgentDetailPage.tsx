@@ -646,7 +646,6 @@ export function AgentDetailPage({
 							<div className="space-y-2">
 								<Label className="text-sm font-medium">Custom Tools</Label>
 								<ToolPicker
-									workspaceId={activeWorkspace?.id || ''}
 									selectedToolIds={selectedToolIds}
 									onSelectionChange={setSelectedToolIds}
 									maxTools={20}
@@ -662,7 +661,7 @@ export function AgentDetailPage({
 
 				<TabsContent value="schedules" className="space-y-4">
 					{activeWorkspace?.id && (
-						<ScheduledTasksSection agentId={agentId} workspaceId={activeWorkspace.id} />
+						<ScheduledTasksSection agentId={agentId} />
 					)}
 				</TabsContent>
 

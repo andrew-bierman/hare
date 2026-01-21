@@ -24,7 +24,6 @@ import {
 	CreditCard,
 	Users,
 } from 'lucide-react'
-import { useWorkspace } from '../../../app/providers/workspace-provider'
 import { useAgentsQuery, useToolsQuery } from '../../../shared/api'
 
 interface CommandSearchProps {
@@ -73,7 +72,6 @@ const PAGE_ICONS: Record<string, React.ComponentType<{ className?: string }>> = 
 export function CommandSearch({ open, onOpenChange, onNavigate }: CommandSearchProps) {
 	const [query, setQuery] = useState('')
 
-	const { activeWorkspace } = useWorkspace()
 	const { data: agentsData } = useAgentsQuery()
 	const { data: toolsData } = useToolsQuery()
 
