@@ -1,17 +1,37 @@
+import { existsSync, readFileSync } from 'node:fs'
+import { dirname, resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { defineConfig, devices } from '@playwright/test'
 
-// Port configuration - use PORT env var or default to 3000
-const DEFAULT_PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000
+const __dirname = dirname(fileURLToPath(import.meta.url))
+
+// Read port from worktree config if available
+function getWorktreePort(): number | null {
+	const configPath = resolve(__dirname, '../../.worktree-config')
+	if (existsSync(configPath)) {
+		const content = readFileSync(configPath, 'utf-8')
+		const match = content.match(/^PORT=(\d+)/m)
+		if (match) return parseInt(match[1], 10)
+	}
+	return null
+}
+
+// Port configuration - prioritize: PORT env var > worktree config > default 3000
+const DEFAULT_PORT = process.env.PORT
+	? parseInt(process.env.PORT, 10)
+	: getWorktreePort() ?? 3000
 
 export default defineConfig({
 	testDir: './e2e',
 	testMatch: '**/*.e2e.ts',
+	// Global setup warms up all routes before tests run to avoid cold start timeouts
+	globalSetup: './e2e/global-setup.ts',
 	fullyParallel: false, // Run tests sequentially to avoid race conditions
 	forbidOnly: !!process.env.CI,
 	retries: process.env.CI ? 2 : 1,
 	workers: 1, // Single worker to avoid SQLite database locking issues
 	reporter: 'html',
-	timeout: 120000, // 120 second timeout per test (fixture setup can take time)
+	timeout: 60000, // 60 second timeout per test (reduced since routes are warmed up)
 	use: {
 		baseURL: process.env.BASE_URL || `http://localhost:${DEFAULT_PORT}`,
 		trace: 'on-first-retry',
@@ -27,8 +47,10 @@ export default defineConfig({
 		},
 	],
 	webServer: {
-		// In CI, force local mode to avoid requiring wrangler login
-		command: process.env.CI ? 'WRANGLER_DEV_LOCAL=true bun run dev' : 'bun run dev',
+		// Pass PORT to dev server command to match worktree config
+		command: process.env.CI
+			? `WRANGLER_DEV_LOCAL=true PORT=${DEFAULT_PORT} bun run dev`
+			: `PORT=${DEFAULT_PORT} bun run dev`,
 		url: `http://localhost:${DEFAULT_PORT}`,
 		reuseExistingServer: !process.env.CI,
 		timeout: 120 * 1000,

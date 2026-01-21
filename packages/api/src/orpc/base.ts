@@ -57,44 +57,32 @@ export const publicProcedure = os.$context<BaseContext>()
 
 /**
  * Authenticated procedure - requires logged-in user
- * Validates that user exists in context, returns 401 if not
+ * Validates user exists in context at runtime
  */
-export const authedProcedure = os
-	.$context<BaseContext & { user?: AuthContext['user'] }>()
-	.use(({ context, next }) => {
-		if (!context.user) {
-			throw new ORPCError('UNAUTHORIZED', { message: 'Authentication required' })
-		}
-		return next({
-			context: context as AuthContext,
-		})
-	})
+export const authedProcedure = os.$context<BaseContext>().use(({ context, next }) => {
+	// Runtime check for user - context comes from optionalAuthMiddleware
+	const user = (context as Partial<AuthContext>).user
+	if (!user) {
+		throw new ORPCError('UNAUTHORIZED', { message: 'Authentication required' })
+	}
+	// Return context with user guaranteed to exist
+	return next({ context: { ...context, user } as AuthContext })
+})
 
 /**
  * Workspace procedure - requires workspace access
  * Most routes use this as they operate within a workspace context
- * Validates that both user and workspace exist in context
  */
-export const workspaceProcedure = os
-	.$context<
-		BaseContext & {
-			user?: AuthContext['user']
-			workspace?: WorkspaceContext['workspace']
-			workspaceId?: string
-			workspaceRole?: WorkspaceContext['workspaceRole']
-		}
-	>()
-	.use(({ context, next }) => {
-		if (!context.user) {
-			throw new ORPCError('UNAUTHORIZED', { message: 'Authentication required' })
-		}
-		if (!context.workspace || !context.workspaceId || !context.workspaceRole) {
-			throw new ORPCError('FORBIDDEN', { message: 'Workspace access required' })
-		}
-		return next({
-			context: context as WorkspaceContext,
-		})
-	})
+export const workspaceProcedure = os.$context<AuthContext>().use(({ context, next }) => {
+	// Runtime check for workspace - context comes from workspaceMiddleware
+	const workspace = (context as Partial<WorkspaceContext>).workspace
+	const workspaceId = (context as Partial<WorkspaceContext>).workspaceId
+	const workspaceRole = (context as Partial<WorkspaceContext>).workspaceRole
+	if (!workspace || !workspaceId || !workspaceRole) {
+		throw new ORPCError('FORBIDDEN', { message: 'Workspace access required' })
+	}
+	return next({ context: { ...context, workspace, workspaceId, workspaceRole } as WorkspaceContext })
+})
 
 // =============================================================================
 // Permission Middleware

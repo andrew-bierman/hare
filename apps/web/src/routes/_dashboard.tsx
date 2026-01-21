@@ -17,8 +17,9 @@ import {
 	redirect,
 	useLocation,
 	useNavigate,
+	useRouteContext,
 } from '@tanstack/react-router'
-import { useEffect } from 'react'
+import { useLayoutEffect } from 'react'
 
 export const Route = createFileRoute('/_dashboard')({
 	beforeLoad: ({ context }) => {
@@ -39,14 +40,24 @@ export const Route = createFileRoute('/_dashboard')({
 function DashboardLayout() {
 	const { pathname } = useLocation()
 	const navigate = useNavigate()
+	const context = useRouteContext({ from: '/_dashboard' })
 	const { data: session, isPending } = useSession()
 
 	// Client-side auth guard - handles SSR hydration case
-	useEffect(() => {
-		if (!isPending && !session?.user) {
+	// Use useLayoutEffect for immediate redirect before paint
+	useLayoutEffect(() => {
+		// First check route context (from SSR), then session query
+		const isSSR = (context.auth as { _isSSR?: boolean })?._isSSR
+		if (isSSR) {
+			// During hydration, wait for session query
+			if (!isPending && !session?.user) {
+				navigate({ to: '/sign-in' })
+			}
+		} else if (!context.auth?.isAuthenticated) {
+			// On client navigation, context is reliable
 			navigate({ to: '/sign-in' })
 		}
-	}, [session, isPending, navigate])
+	}, [context.auth, session, isPending, navigate])
 
 	return (
 		<WorkspaceProvider>
