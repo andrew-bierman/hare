@@ -39,6 +39,21 @@ function createAxeBuilder(page: import('@playwright/test').Page) {
 		.disableRules(EXCLUDED_RULES)
 }
 
+// Helper to ensure the page is authenticated and workspace is loaded
+async function ensureAuthenticatedState(page: import('@playwright/test').Page) {
+	// Wait for workspace to be loaded (indicated by workspace name in sidebar)
+	const workspaceSwitcher = page.locator('button').filter({ hasText: /Workspace/i })
+	const userMenu = page.getByRole('button', { name: /user menu/i })
+
+	// Wait for either workspace switcher or user menu to be visible (indicating auth)
+	await Promise.race([
+		workspaceSwitcher.first().waitFor({ state: 'visible', timeout: 15000 }),
+		userMenu.waitFor({ state: 'visible', timeout: 15000 }),
+	]).catch(() => {
+		// If neither appears, log and continue - test may fail with more useful error
+	})
+}
+
 // ============================================================================
 // Dashboard Home Page Accessibility Tests
 // ============================================================================
@@ -47,7 +62,7 @@ test.describe('Accessibility - Dashboard Home Page', () => {
 	test('dashboard home page has no critical a11y violations', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard')
 		await authenticatedPage.waitForLoadState('networkidle')
-		await authenticatedPage.waitForTimeout(2000)
+		await ensureAuthenticatedState(authenticatedPage)
 
 		const accessibilityScanResults = await createAxeBuilder(authenticatedPage).analyze()
 
@@ -131,6 +146,7 @@ test.describe('Accessibility - Agent Detail Page', () => {
 		// Create an agent first
 		await authenticatedPage.goto('/dashboard/agents/new')
 		await authenticatedPage.waitForLoadState('networkidle')
+		await ensureAuthenticatedState(authenticatedPage)
 
 		const agentName = generateAgentName()
 		await authenticatedPage.locator('#name').fill(agentName)
@@ -160,7 +176,7 @@ test.describe('Accessibility - Tools Page', () => {
 	test('tools page has no critical a11y violations', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/tools')
 		await authenticatedPage.waitForLoadState('networkidle')
-		await authenticatedPage.waitForTimeout(2000)
+		await ensureAuthenticatedState(authenticatedPage)
 
 		const accessibilityScanResults = await createAxeBuilder(authenticatedPage).analyze()
 
@@ -180,7 +196,7 @@ test.describe('Accessibility - Settings Page', () => {
 	test('settings page has no critical a11y violations', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/settings')
 		await authenticatedPage.waitForLoadState('networkidle')
-		await authenticatedPage.waitForTimeout(2000)
+		await ensureAuthenticatedState(authenticatedPage)
 
 		const accessibilityScanResults = await createAxeBuilder(authenticatedPage).analyze()
 
@@ -329,7 +345,7 @@ test.describe('Accessibility - Keyboard Navigation', () => {
 	test('can navigate agents list with keyboard', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/agents')
 		await authenticatedPage.waitForLoadState('networkidle')
-		await authenticatedPage.waitForTimeout(2000)
+		await ensureAuthenticatedState(authenticatedPage)
 
 		// Start tabbing
 		await authenticatedPage.keyboard.press('Tab')
@@ -765,10 +781,11 @@ test.describe('Accessibility - Error Message Announcements', () => {
 	test('toast notifications are accessible', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/settings')
 		await authenticatedPage.waitForLoadState('networkidle')
+		await ensureAuthenticatedState(authenticatedPage)
 
 		// Trigger a notification by toggling email notifications
 		const emailNotificationsSwitch = authenticatedPage.locator('[role="switch"]').first()
-		await expect(emailNotificationsSwitch).toBeVisible()
+		await expect(emailNotificationsSwitch).toBeVisible({ timeout: 10000 })
 		await emailNotificationsSwitch.click()
 
 		// Wait for toast to appear
@@ -846,13 +863,23 @@ test.describe('Accessibility - Interactive Elements', () => {
 	})
 
 	test('tabs are keyboard accessible', async ({ authenticatedPage }) => {
-		await authenticatedPage.goto('/dashboard/agents')
+		// Navigate to agent detail page which has tabs (General, Prompt, etc.)
+		await authenticatedPage.goto('/dashboard/agents/new')
 		await authenticatedPage.waitForLoadState('networkidle')
-		await authenticatedPage.waitForTimeout(2000)
+		await ensureAuthenticatedState(authenticatedPage)
+
+		// Create an agent to get to detail page with tabs
+		const agentName = generateAgentName()
+		await authenticatedPage.locator('#name').fill(agentName)
+		const createButton = authenticatedPage.getByRole('button', { name: /create agent/i })
+		await createButton.click()
+
+		await authenticatedPage.waitForURL(/\/dashboard\/agents\/[^/]+$/, { timeout: 10000 })
+		await authenticatedPage.waitForLoadState('networkidle')
 
 		// Find the tab list
 		const tabList = authenticatedPage.locator('[role="tablist"]')
-		const hasTabList = await tabList.isVisible().catch(() => false)
+		const hasTabList = await tabList.isVisible({ timeout: 5000 }).catch(() => false)
 
 		if (hasTabList) {
 			// Focus on the first tab

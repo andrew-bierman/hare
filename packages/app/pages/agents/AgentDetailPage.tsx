@@ -77,6 +77,7 @@ const AGENT_LIMITS = config.agents.limits
 const AI_MODELS = config.models.list
 
 // Validation schema for agent configuration (client-side quick validation)
+// Note: Instructions are optional for saving, but required for deployment
 const agentConfigSchema = z.object({
 	name: z
 		.string()
@@ -95,11 +96,12 @@ const agentConfigSchema = z.object({
 		.or(z.literal('')),
 	instructions: z
 		.string()
-		.min(1, 'Instructions are required')
 		.max(
 			AGENT_LIMITS.instructionsMaxLength,
 			`Instructions must be at most ${AGENT_LIMITS.instructionsMaxLength} characters`,
-		),
+		)
+		.optional()
+		.or(z.literal('')),
 	model: z.string().min(1, 'Model is required'),
 })
 
