@@ -13,6 +13,16 @@ import { agents, deployments, type Database } from '@hare/db'
 import { serverEnv } from '@hare/config'
 
 // =============================================================================
+// Constants
+// =============================================================================
+
+/** Default health check timeout in milliseconds */
+const HEALTH_CHECK_TIMEOUT_MS = 5000
+
+/** Default local development port */
+const LOCAL_DEV_PORT = 3000
+
+// =============================================================================
 // Types
 // =============================================================================
 
@@ -58,7 +68,7 @@ function getBaseUrl(): string {
 	}
 
 	// Fallback for local development
-	return 'http://localhost:3000'
+	return `http://localhost:${LOCAL_DEV_PORT}`
 }
 
 /**
@@ -344,7 +354,7 @@ export async function checkDeploymentHealth(options: {
 	latencyMs: number
 	error?: string
 }> {
-	const { agentId, timeout = 5000 } = options
+	const { agentId, timeout = HEALTH_CHECK_TIMEOUT_MS } = options
 	const urls = generateDeploymentUrls({ agentId })
 
 	const start = Date.now()

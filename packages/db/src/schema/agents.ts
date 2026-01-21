@@ -42,5 +42,8 @@ export const agents = sqliteTable(
 	(table) => [
 		// Index for listing agents by workspace (most frequent query)
 		index('agents_workspace_idx').on(table.workspaceId),
+		index('agents_status_idx').on(table.status),
+		index('agents_created_by_idx').on(table.createdBy),
+		index('agents_workspace_status_idx').on(table.workspaceId, table.status),
 	],
 )

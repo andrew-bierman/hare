@@ -32,6 +32,8 @@ export const conversations = sqliteTable(
 		index('conversations_agent_idx').on(table.agentId),
 		// Index for listing conversations by workspace
 		index('conversations_workspace_idx').on(table.workspaceId),
+		index('conversations_user_idx').on(table.userId),
+		index('conversations_workspace_agent_idx').on(table.workspaceId, table.agentId),
 	],
 )
 
@@ -56,5 +58,6 @@ export const messages = sqliteTable(
 		index('messages_conversation_idx').on(table.conversationId),
 		// Composite index for fetching messages with ordering
 		index('messages_conversation_created_idx').on(table.conversationId, table.createdAt),
+		index('messages_created_at_idx').on(table.createdAt),
 	],
 )

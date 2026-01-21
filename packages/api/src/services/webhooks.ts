@@ -7,7 +7,7 @@
  * - Delivery logging
  */
 
-import { and, eq } from 'drizzle-orm'
+import { and, eq, inArray } from 'drizzle-orm'
 import {
 	WEBHOOK_EVENT_TYPES,
 	type WebhookEventType,
@@ -377,12 +377,12 @@ export async function getWebhookStats(options: { db: Database; agentId: string }
 		}
 	}
 
-	// Get all logs for these webhooks
-	const logs = await Promise.all(
-		webhookIds.map((id) => db.select().from(webhookLogs).where(eq(webhookLogs.webhookId, id))),
-	)
+	// Get all logs for these webhooks in a single query (fixes N+1)
+	const allLogs = await db
+		.select()
+		.from(webhookLogs)
+		.where(inArray(webhookLogs.webhookId, webhookIds))
 
-	const allLogs = logs.flat()
 	const successfulLogs = allLogs.filter((l) => l.status === 'success')
 	const failedLogs = allLogs.filter((l) => l.status === 'failed')
 	const activeWebhooks = agentWebhooks.filter((w) => w.status === 'active')

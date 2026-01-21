@@ -35,6 +35,8 @@ export const usage = sqliteTable(
 		index('usage_workspace_created_idx').on(table.workspaceId, table.createdAt),
 		// Index for filtering by agent
 		index('usage_agent_idx').on(table.agentId),
+		index('usage_type_idx').on(table.type),
+		index('usage_created_at_idx').on(table.createdAt),
 	],
 )
 

@@ -25,6 +25,17 @@ export const EMBEDDING_MODEL = '@cf/baai/bge-base-en-v1.5' as const satisfies ke
 export const EMBEDDING_DIMENSIONS = 768
 
 /**
+ * Maximum number of results for Vectorize queries.
+ * This is the maximum allowed by Cloudflare Vectorize.
+ */
+export const MAX_VECTORIZE_TOP_K = 1000
+
+/**
+ * Default pagination limit for memory listing.
+ */
+export const DEFAULT_MEMORY_PAGE_SIZE = 20
+
+/**
  * Memory metadata schema.
  */
 export const MemoryMetadataSchema = z.object({
@@ -311,7 +322,7 @@ export async function deleteAgentMemories(options: {
 	const dummyEmbedding = new Array(EMBEDDING_DIMENSIONS).fill(0)
 
 	const results = await env.VECTORIZE.query(dummyEmbedding, {
-		topK: 1000, // Max allowed
+		topK: MAX_VECTORIZE_TOP_K,
 		filter: { agentId: { $eq: agentId } },
 		returnMetadata: 'none',
 	})
@@ -335,14 +346,14 @@ export async function listMemories(options: {
 	offset?: number
 	env: CloudflareEnv
 }): Promise<{ memories: Memory[]; total: number }> {
-	const { agentId, limit = 20, offset = 0, env } = options
+	const { agentId, limit = DEFAULT_MEMORY_PAGE_SIZE, offset = 0, env } = options
 
 	// Use a dummy embedding to query by metadata filter
 	const dummyEmbedding = new Array(EMBEDDING_DIMENSIONS).fill(0)
 
 	// Query more than needed to handle offset
 	const results = await env.VECTORIZE.query(dummyEmbedding, {
-		topK: Math.min(limit + offset, 1000),
+		topK: Math.min(limit + offset, MAX_VECTORIZE_TOP_K),
 		filter: { agentId: { $eq: agentId } },
 		returnMetadata: 'all',
 	})
