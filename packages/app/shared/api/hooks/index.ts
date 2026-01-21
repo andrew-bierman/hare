@@ -44,11 +44,18 @@ export {
 } from './use-billing'
 
 // Chat hooks
-export { useChat, useConversationsQuery, useMessagesQuery } from './use-chat'
+export {
+	useChat,
+	useConversationsQuery,
+	useConversationSearchQuery,
+	useMessagesQuery,
+} from './use-chat'
 export type {
 	ChatStreamEventData,
 	ChatUsage,
 	Conversation,
+	ConversationSearchParams,
+	ConversationSearchResult,
 	Message,
 	ToolCallData,
 } from './use-chat'

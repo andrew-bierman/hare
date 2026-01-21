@@ -19,13 +19,22 @@ export {
 	type AgentWebhooksPageProps,
 	AgentDetailPage,
 	type AgentDetailPageProps,
+	AgentConversationsPage,
+	type AgentConversationsPageProps,
 } from './agents'
 
 // Tools
 export { ToolsListPage, ToolCreatePage, ToolDetailPage, type ToolDetailPageProps } from './tools'
 
 // Settings
-export { SettingsPage, ApiKeysPage, BillingPage, type BillingPageProps, TeamPage } from './settings'
+export {
+	SettingsPage,
+	ApiKeysPage,
+	AuditLogsPage,
+	BillingPage,
+	type BillingPageProps,
+	TeamPage,
+} from './settings'
 
 // Auth
 export * from './auth'

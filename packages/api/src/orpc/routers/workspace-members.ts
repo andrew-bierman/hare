@@ -7,8 +7,9 @@
 import { z } from 'zod'
 import { and, eq } from 'drizzle-orm'
 import { users, workspaceInvitations, workspaceMembers, workspaces } from '@hare/db/schema'
-import { WORKSPACE_ROLES, MEMBER_ROLES, INVITATION_STATUSES } from '@hare/config'
+import { config, WORKSPACE_ROLES, MEMBER_ROLES, INVITATION_STATUSES } from '@hare/config'
 import { requireWrite, requireAdmin, notFound, badRequest, serverError, type WorkspaceContext } from '../base'
+import { logAudit } from '../audit'
 import { SuccessSchema, IdParamSchema } from '../../schemas'
 
 // =============================================================================
@@ -234,6 +235,18 @@ export const sendInvitation = requireAdmin
 
 		if (!invitation) serverError('Failed to create invitation')
 
+		// Log audit event for member invitation
+		logAudit({
+			context,
+			action: config.enums.auditAction.MEMBER_INVITE,
+			resourceType: 'member',
+			resourceId: invitation.id,
+			details: {
+				email: invitation.email,
+				role: invitation.role,
+			},
+		})
+
 		return {
 			id: invitation.id,
 			email: invitation.email,
@@ -350,13 +363,31 @@ export const removeMember = requireWrite
 		}
 
 		const [member] = await db
-			.select()
+			.select({
+				id: workspaceMembers.id,
+				userId: workspaceMembers.userId,
+				role: workspaceMembers.role,
+				userEmail: users.email,
+			})
 			.from(workspaceMembers)
+			.innerJoin(users, eq(workspaceMembers.userId, users.id))
 			.where(and(eq(workspaceMembers.workspaceId, input.id), eq(workspaceMembers.userId, input.userId)))
 
 		if (!member) notFound('Member not found')
 
 		await db.delete(workspaceMembers).where(eq(workspaceMembers.id, member.id))
+
+		// Log audit event for member removal
+		logAudit({
+			context,
+			action: config.enums.auditAction.MEMBER_REMOVE,
+			resourceType: 'member',
+			resourceId: member.userId,
+			details: {
+				email: member.userEmail,
+				removedRole: member.role,
+			},
+		})
 
 		return { success: true }
 	})
@@ -396,10 +427,24 @@ export const updateMemberRole = requireAdmin
 		if (!member) notFound('Member not found')
 
 		// Update role
+		const previousRole = member.role
 		await db
 			.update(workspaceMembers)
 			.set({ role: newRole, updatedAt: new Date() })
 			.where(eq(workspaceMembers.id, member.id))
+
+		// Log audit event for member role change
+		logAudit({
+			context,
+			action: config.enums.auditAction.MEMBER_ROLE_CHANGE,
+			resourceType: 'member',
+			resourceId: member.userId,
+			details: {
+				email: member.userEmail,
+				previousRole,
+				newRole,
+			},
+		})
 
 		return {
 			id: member.id,

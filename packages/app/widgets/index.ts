@@ -71,3 +71,15 @@ export * from './onboarding-wizard'
 
 // Prompt generator widget
 export * from './prompt-generator'
+
+// Version history widget
+export * from './version-history'
+
+// Agent health widget
+export * from './agent-health'
+
+// Activity feed widget
+export * from './activity-feed'
+
+// Onboarding tour widget
+export * from './onboarding-tour'

@@ -7,8 +7,10 @@
 import { z } from 'zod'
 import { and, eq } from 'drizzle-orm'
 import { apiKeys } from '@hare/db/schema'
+import { config } from '@hare/config'
 import { generateApiKey } from '../../middleware/api-key'
 import { requireWrite, requireAdmin, notFound, serverError, type WorkspaceContext } from '../base'
+import { logAudit } from '../audit'
 import {
 	ApiKeySchema,
 	ApiKeyWithSecretSchema,
@@ -106,6 +108,18 @@ export const create = requireAdmin
 
 		if (!apiKey) serverError('Failed to create API key')
 
+		// Log audit event for API key creation
+		logAudit({
+			context,
+			action: config.enums.auditAction.APIKEY_CREATE,
+			resourceType: 'apikey',
+			resourceId: apiKey.id,
+			details: {
+				name: apiKey.name,
+				prefix: apiKey.prefix,
+			},
+		})
+
 		return {
 			id: apiKey.id,
 			workspaceId: apiKey.workspaceId,
@@ -160,6 +174,19 @@ export const remove = requireAdmin
 			.returning()
 
 		if (result.length === 0) notFound('API key not found')
+
+		// Log audit event for API key revocation
+		const deletedKey = result[0]
+		logAudit({
+			context,
+			action: config.enums.auditAction.APIKEY_REVOKE,
+			resourceType: 'apikey',
+			resourceId: input.id,
+			details: {
+				name: deletedKey?.name,
+				prefix: deletedKey?.prefix,
+			},
+		})
 
 		return { success: true }
 	})

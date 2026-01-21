@@ -4,16 +4,19 @@ import { useWorkspace } from '../../app/providers'
 import {
 	useAgentQuery,
 	useAgentUsageQuery,
+	useCloneAgentMutation,
 	useDeleteAgentMutation,
 	useDeployAgentMutation,
 	useToolsQuery,
 	useUpdateAgentMutation,
 } from '../../shared/api'
 
+import { AgentHealthWidget } from '../../widgets/agent-health'
 import { AgentInstructionsEditor } from '../../widgets/agent-builder'
 import { MemoryViewer } from '../../widgets/memory-viewer'
 import { ScheduledTasksSection } from '../../widgets/scheduled-tasks'
 import { ToolPicker } from '../../widgets/tool-picker'
+import { VersionHistory } from '../../widgets/version-history'
 import { config } from '@hare/config'
 import { Badge } from '@hare/ui/components/badge'
 import { Button } from '@hare/ui/components/button'
@@ -45,6 +48,7 @@ import {
 	Brain,
 	CheckCircle,
 	Code,
+	Copy,
 	Database,
 	FileCode,
 	Globe,
@@ -177,6 +181,7 @@ export function AgentDetailPage({
 	const updateAgent = useUpdateAgentMutation()
 	const deleteAgent = useDeleteAgentMutation()
 	const deployAgent = useDeployAgentMutation()
+	const cloneAgentMutation = useCloneAgentMutation()
 
 	const [name, setName] = useState('')
 	const [description, setDescription] = useState('')
@@ -185,6 +190,7 @@ export function AgentDetailPage({
 	const [systemToolsEnabled, setSystemToolsEnabled] = useState(true)
 	const [selectedToolIds, setSelectedToolIds] = useState<string[]>([])
 	const [isDeleteOpen, setIsDeleteOpen] = useState(false)
+	const [isCloneOpen, setIsCloneOpen] = useState(false)
 	const [hasChanges, setHasChanges] = useState(false)
 	const [clientValidationErrors, setClientValidationErrors] = useState<ValidationErrors>({})
 	const [clientValidationWarnings, setClientValidationWarnings] = useState<ValidationWarnings>({})
@@ -338,6 +344,24 @@ export function AgentDetailPage({
 		}
 	}
 
+	const handleClone = async () => {
+		try {
+			const result = await cloneAgentMutation.mutateAsync({ id: agentId })
+			setIsCloneOpen(false)
+			toast.success('Agent cloned successfully', {
+				description: `${agent?.name} (Copy) has been created`,
+				action: {
+					label: 'View Agent',
+					onClick: () => {
+						navigate({ to: result.redirectUrl })
+					},
+				},
+			})
+		} catch (error) {
+			toast.error(error instanceof Error ? error.message : 'Failed to clone agent')
+		}
+	}
+
 	const getStatusDisplay = (status: string) => {
 		switch (status) {
 			case 'deployed':
@@ -381,15 +405,18 @@ export function AgentDetailPage({
 
 	return (
 		<div className="flex-1 space-y-4 p-8 pt-6">
-			<div className="flex items-center justify-between">
-				<div>
+			<div className="flex items-start justify-between gap-6">
+				<div className="flex-1">
 					<div className="flex items-center gap-3">
 						<h2 className="text-3xl font-bold tracking-tight">{agent.name}</h2>
 						<Badge className={statusDisplay.className}>{statusDisplay.label}</Badge>
 					</div>
 					<p className="text-muted-foreground mt-2">Configure your agent's settings and behavior</p>
 				</div>
-				<div className="flex gap-2">
+				<div className="w-72 shrink-0">
+					<AgentHealthWidget agentId={agentId} basePath={basePath} />
+				</div>
+				<div className="flex gap-2 shrink-0">
 					{/* Primary actions */}
 					{agent.status === 'deployed' && (
 						<Button
@@ -421,6 +448,14 @@ export function AgentDetailPage({
 					<Button
 						variant="outline"
 						size="icon"
+						onClick={() => setIsCloneOpen(true)}
+						title="Clone Agent"
+					>
+						<Copy className="h-4 w-4" />
+					</Button>
+					<Button
+						variant="outline"
+						size="icon"
 						onClick={() => setIsDeleteOpen(true)}
 						title="Delete Agent"
 					>
@@ -436,6 +471,7 @@ export function AgentDetailPage({
 					<TabsTrigger value="tools">Tools</TabsTrigger>
 					<TabsTrigger value="memory">Memory</TabsTrigger>
 					<TabsTrigger value="schedules">Schedules</TabsTrigger>
+					<TabsTrigger value="versions">Version History</TabsTrigger>
 					<TabsTrigger value="preview">Preview</TabsTrigger>
 					<TabsTrigger value="analytics">Analytics</TabsTrigger>
 				</TabsList>
@@ -665,6 +701,10 @@ export function AgentDetailPage({
 					)}
 				</TabsContent>
 
+				<TabsContent value="versions" className="space-y-4">
+					<VersionHistory agentId={agentId} />
+				</TabsContent>
+
 				<TabsContent value="preview" className="space-y-4">
 					<div className="grid gap-4 md:grid-cols-2">
 						{/* Configuration Summary */}
@@ -858,6 +898,31 @@ export function AgentDetailPage({
 					</Card>
 				</TabsContent>
 			</Tabs>
+
+			{/* Clone Confirmation Dialog */}
+			<Dialog open={isCloneOpen} onOpenChange={setIsCloneOpen}>
+				<DialogContent>
+					<DialogHeader>
+						<DialogTitle>Clone Agent</DialogTitle>
+						<DialogDescription>
+							Create a copy of "{agent.name}" as a new agent?
+						</DialogDescription>
+					</DialogHeader>
+					<div className="py-4">
+						<p className="text-sm text-muted-foreground">The new agent will be named:</p>
+						<p className="text-sm font-medium mt-1">{agent.name} (Copy)</p>
+					</div>
+					<DialogFooter>
+						<Button variant="outline" onClick={() => setIsCloneOpen(false)}>
+							Cancel
+						</Button>
+						<Button onClick={handleClone} disabled={cloneAgentMutation.isPending}>
+							<Copy className="mr-2 h-4 w-4" />
+							{cloneAgentMutation.isPending ? 'Cloning...' : 'Clone Agent'}
+						</Button>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
 
 			<Dialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
 				<DialogContent>

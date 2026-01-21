@@ -18,12 +18,15 @@ export {
 	AgentVersionsQuerySchema,
 	AgentVersionsResponseSchema,
 	ALLOWED_MODEL_IDS,
+	CloneAgentResponseSchema,
 	ConfigPreviewSchema,
 	CreateAgentSchema,
 	DeployAgentSchema,
 	DeploymentSchema,
 	ModelIdSchema,
 	ModelPreviewSchema,
+	RollbackAgentSchema,
+	RollbackResponseSchema,
 	UpdateAgentSchema,
 	ValidationIssueSchema,
 } from './agents'
@@ -67,11 +70,14 @@ export {
 	ChatRequestSchema,
 	ConversationExportSchema,
 	ConversationSchema,
+	ConversationSearchQuerySchema,
+	ConversationSearchResponseSchema,
 	ExportedMessageSchema,
 	ExportFormatSchema,
 	ExportQuerySchema,
 	MessageRoleSchema,
 	MessageSchema,
+	SearchResultItemSchema,
 } from './chat'
 // Common schemas
 export {
@@ -106,13 +112,17 @@ export {
 } from './tools'
 // Usage schemas
 export {
+	AgentHealthMetricsSchema,
 	AgentUsageResponseSchema,
+	HEALTH_STATUS,
+	HealthStatusSchema,
 	UsageByAgentSchema,
 	UsageByDaySchema,
 	UsageQuerySchema,
 	UsageResponseSchema,
 	UsageStatsSchema,
 } from './usage'
+export type { HealthStatus } from './usage'
 // Workspace schemas
 export {
 	CreateWorkspaceSchema,

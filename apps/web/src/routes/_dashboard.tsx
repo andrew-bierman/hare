@@ -1,10 +1,12 @@
-import { WorkspaceGate, WorkspaceProvider } from '@hare/app'
+import { useTour, WorkspaceGate, WorkspaceProvider } from '@hare/app'
 import {
 	DashboardErrorComponent,
 	DashboardNotFound,
 	DashboardPendingComponent,
+	DEFAULT_TOUR_STEPS,
 	DevTools,
 	Header,
+	OnboardingTour,
 	Sidebar,
 	UserNav,
 	WorkspaceSwitcher,
@@ -43,6 +45,12 @@ function DashboardLayout() {
 	const context = useRouteContext({ from: '/_dashboard' })
 	const { data: session, isPending } = useSession()
 
+	// Onboarding tour state management
+	const tour = useTour({
+		totalSteps: DEFAULT_TOUR_STEPS.length,
+		autoStart: true,
+	})
+
 	// Client-side auth guard - handles SSR hydration case
 	// Use useLayoutEffect for immediate redirect before paint
 	useLayoutEffect(() => {
@@ -71,7 +79,7 @@ function DashboardLayout() {
 				<main className="md:pl-72 flex-1 flex flex-col min-h-screen">
 					<Header
 						Link={Link}
-						UserNav={() => <UserNav Link={Link} />}
+						UserNav={() => <UserNav Link={Link} onStartTour={tour.startTour} />}
 						onNavigate={(path) => navigate({ to: path })}
 					/>
 					<div className="flex-1 overflow-y-auto bg-muted/20">
@@ -82,6 +90,17 @@ function DashboardLayout() {
 				</main>
 			</div>
 			<DevTools />
+
+			{/* Onboarding Tour */}
+			<OnboardingTour
+				isActive={tour.isActive}
+				currentStep={tour.currentStep}
+				onNext={tour.nextStep}
+				onPrev={tour.prevStep}
+				onSkip={tour.skipTour}
+				onComplete={tour.completeTour}
+				steps={DEFAULT_TOUR_STEPS}
+			/>
 		</WorkspaceProvider>
 	)
 }

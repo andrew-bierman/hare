@@ -37,6 +37,7 @@
 	},
 	"devDependencies": {
 		"@hare/typescript-config": "workspace:*",
+		"@types/react": "^19",
 		"typescript": "^5"
 	}
 }

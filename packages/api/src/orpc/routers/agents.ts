@@ -5,15 +5,17 @@
  */
 
 import { z } from 'zod'
-import { and, count, desc, eq, inArray, max } from 'drizzle-orm'
-import { agents, agentTools, agentVersions, deployments } from '@hare/db/schema'
+import { and, count, desc, eq, gte, max, sql } from 'drizzle-orm'
+import { agents, agentTools, agentVersions, deployments, usage } from '@hare/db/schema'
 import { config } from '@hare/config'
 import { requireWrite, requireAdmin, notFound, badRequest, serverError, type WorkspaceContext } from '../base'
+import { logAudit } from '../audit'
 import {
 	AgentSchema,
 	AgentVersionSchema,
 	AgentVersionsQuerySchema,
 	AgentVersionsResponseSchema,
+	CloneAgentResponseSchema,
 	CreateAgentSchema,
 	UpdateAgentSchema,
 	DeploymentSchema,
@@ -22,6 +24,10 @@ import {
 	AgentPreviewInputSchema,
 	AgentPreviewResponseSchema,
 	ValidationIssueSchema,
+	RollbackAgentSchema,
+	RollbackResponseSchema,
+	AgentHealthMetricsSchema,
+	type HealthStatus,
 } from '../../schemas'
 
 // =============================================================================
@@ -36,46 +42,6 @@ async function getAgentToolIds(agentId: string, db: WorkspaceContext['db']): Pro
 	return rows.map((r) => r.toolId)
 }
 
-/**
- * SQLite max parameters limit (SQLITE_MAX_VARIABLE_NUMBER).
- * D1/SQLite can't handle more than 999 parameters in a single query.
- */
-const SQLITE_MAX_PARAMS = 999
-
-/**
- * Batch fetch tool IDs for multiple agents (prevents N+1 queries)
- * Returns a Map of agentId -> toolIds[]
- * Handles SQLite's 999 parameter limit by chunking if needed.
- */
-async function getAgentToolIdsMap(
-	agentIds: string[],
-	db: WorkspaceContext['db'],
-): Promise<Map<string, string[]>> {
-	if (agentIds.length === 0) return new Map()
-
-	const toolsMap = new Map<string, string[]>()
-	for (const agentId of agentIds) {
-		toolsMap.set(agentId, [])
-	}
-
-	// Chunk to avoid SQLite's 999 parameter limit
-	for (let i = 0; i < agentIds.length; i += SQLITE_MAX_PARAMS) {
-		const chunk = agentIds.slice(i, i + SQLITE_MAX_PARAMS)
-		const rows = await db
-			.select({ agentId: agentTools.agentId, toolId: agentTools.toolId })
-			.from(agentTools)
-			.where(inArray(agentTools.agentId, chunk))
-
-		for (const row of rows) {
-			const existing = toolsMap.get(row.agentId) || []
-			existing.push(row.toolId)
-			toolsMap.set(row.agentId, existing)
-		}
-	}
-
-	return toolsMap
-}
-
 function serializeAgent(
 	agent: typeof agents.$inferSelect,
 	toolIds: string[],
@@ -87,8 +53,7 @@ function serializeAgent(
 		description: agent.description,
 		model: agent.model,
 		instructions: agent.instructions,
-		// config schema is optional (not nullable), so convert null to undefined
-		config: (agent.config ?? undefined) as z.infer<typeof AgentSchema>['config'],
+		config: agent.config as z.infer<typeof AgentSchema>['config'],
 		status: agent.status as z.infer<typeof AgentSchema>['status'],
 		systemToolsEnabled: agent.systemToolsEnabled,
 		toolIds,
@@ -103,6 +68,66 @@ async function findAgent(id: string, workspaceId: string, db: WorkspaceContext['
 		.from(agents)
 		.where(and(eq(agents.id, id), eq(agents.workspaceId, workspaceId)))
 	return agent || null
+}
+
+/**
+ * Derives health status from success rate.
+ * - healthy: >95% success rate
+ * - degraded: 80-95% success rate
+ * - unhealthy: <80% success rate
+ */
+function deriveHealthStatus(successRate: number): HealthStatus {
+	if (successRate > 95) return 'healthy'
+	if (successRate >= 80) return 'degraded'
+	return 'unhealthy'
+}
+
+/**
+ * Calculates agent health metrics from usage data over the last 24 hours.
+ */
+async function getAgentHealthMetrics(options: {
+	agentId: string
+	agentName: string
+	db: WorkspaceContext['db']
+}): Promise<z.infer<typeof AgentHealthMetricsSchema>> {
+	const { agentId, agentName, db } = options
+
+	// Calculate time window (last 24 hours)
+	const endDate = new Date()
+	const startDate = new Date(endDate.getTime() - 24 * 60 * 60 * 1000)
+
+	// Query usage metrics for the agent in the last 24 hours
+	const [metrics] = await db
+		.select({
+			totalRequests: sql<number>`COUNT(*)`,
+			errorCount: sql<number>`SUM(CASE WHEN json_extract(${usage.metadata}, '$.statusCode') >= 400 OR json_extract(${usage.metadata}, '$.statusCode') IS NULL THEN 0 ELSE CASE WHEN json_extract(${usage.metadata}, '$.statusCode') < 200 OR json_extract(${usage.metadata}, '$.statusCode') >= 300 THEN 1 ELSE 0 END END)`,
+			averageLatency: sql<number>`COALESCE(AVG(json_extract(${usage.metadata}, '$.duration')), 0)`,
+		})
+		.from(usage)
+		.where(and(eq(usage.agentId, agentId), gte(usage.createdAt, startDate)))
+
+	const totalRequests = metrics?.totalRequests ?? 0
+	const errorCount = metrics?.errorCount ?? 0
+	const averageLatencyMs = metrics?.averageLatency ?? 0
+
+	// Calculate success rate (handle division by zero)
+	const successRate = totalRequests > 0 ? ((totalRequests - errorCount) / totalRequests) * 100 : 100
+
+	return {
+		agentId,
+		agentName,
+		status: deriveHealthStatus(successRate),
+		metrics: {
+			successRate: Math.round(successRate * 100) / 100,
+			averageLatencyMs: Math.round(averageLatencyMs),
+			errorCount,
+			totalRequests,
+		},
+		period: {
+			startDate: startDate.toISOString(),
+			endDate: endDate.toISOString(),
+		},
+	}
 }
 
 // =============================================================================
@@ -120,14 +145,8 @@ export const list = requireWrite
 
 		const results = await db.select().from(agents).where(eq(agents.workspaceId, workspaceId))
 
-		// Batch fetch all tool IDs in a single query (prevents N+1)
-		const toolsMap = await getAgentToolIdsMap(
-			results.map((a) => a.id),
-			db,
-		)
-
-		const agentsData = results.map((agent) =>
-			serializeAgent(agent, toolsMap.get(agent.id) || []),
+		const agentsData = await Promise.all(
+			results.map(async (agent) => serializeAgent(agent, await getAgentToolIds(agent.id, db))),
 		)
 
 		return { agents: agentsData }
@@ -189,6 +208,19 @@ export const create = requireWrite
 			}
 		}
 
+		// Log audit event for agent creation
+		logAudit({
+			context,
+			action: config.enums.auditAction.AGENT_CREATE,
+			resourceType: 'agent',
+			resourceId: agent.id,
+			details: {
+				name: agent.name,
+				model: agent.model,
+				toolIds: input.toolIds ?? [],
+			},
+		})
+
 		return serializeAgent(agent, input.toolIds || [])
 	})
 
@@ -237,6 +269,19 @@ export const update = requireWrite
 		}
 
 		const toolIds = await getAgentToolIds(id, db)
+
+		// Log audit event for agent update
+		logAudit({
+			context,
+			action: config.enums.auditAction.AGENT_UPDATE,
+			resourceType: 'agent',
+			resourceId: id,
+			details: {
+				updatedFields: Object.keys(data).filter((key) => data[key as keyof typeof data] !== undefined),
+				name: agent.name,
+			},
+		})
+
 		return serializeAgent(agent, toolIds)
 	})
 
@@ -256,6 +301,18 @@ export const remove = requireAdmin
 			.returning()
 
 		if (result.length === 0) notFound('Agent not found')
+
+		// Log audit event for agent deletion
+		const deletedAgent = result[0]
+		logAudit({
+			context,
+			action: config.enums.auditAction.AGENT_DELETE,
+			resourceType: 'agent',
+			resourceId: input.id,
+			details: {
+				name: deletedAgent?.name,
+			},
+		})
 
 		return { success: true }
 	})
@@ -328,6 +385,20 @@ export const deploy = requireAdmin
 		if (!deployment) serverError('Failed to create deployment')
 
 		const baseUrl = `/api/agents/${input.id}`
+
+		// Log audit event for agent deployment
+		logAudit({
+			context,
+			action: config.enums.auditAction.AGENT_DEPLOY,
+			resourceType: 'agent',
+			resourceId: input.id,
+			details: {
+				name: agent.name,
+				version,
+				deploymentId: deployment.id,
+				model: agent.model,
+			},
+		})
 
 		return {
 			id: deployment.id,
@@ -497,6 +568,131 @@ export const getVersions = requireWrite
 	})
 
 /**
+ * Rollback agent to a previous version
+ */
+export const rollback = requireAdmin
+	.route({ method: 'POST', path: '/agents/{id}/rollback' })
+	.input(IdParamSchema.merge(RollbackAgentSchema))
+	.output(RollbackResponseSchema)
+	.handler(async ({ input, context }) => {
+		const { db, workspaceId, user } = context
+		const { id, version: targetVersion } = input
+
+		// Find the agent
+		const agent = await findAgent(id, workspaceId, db)
+		if (!agent) notFound('Agent not found')
+
+		// Find the target version to restore
+		const [targetVersionRecord] = await db
+			.select()
+			.from(agentVersions)
+			.where(and(eq(agentVersions.agentId, id), eq(agentVersions.version, targetVersion)))
+
+		if (!targetVersionRecord) {
+			notFound(`Version ${targetVersion} not found for this agent`)
+		}
+
+		// Get the current max version number
+		const [maxVersionResult] = await db
+			.select({ maxVersion: max(agentVersions.version) })
+			.from(agentVersions)
+			.where(eq(agentVersions.agentId, id))
+
+		const previousVersion = maxVersionResult?.maxVersion ?? 0
+		const newVersionNumber = previousVersion + 1
+
+		// Restore agent config from the target version
+		await db
+			.update(agents)
+			.set({
+				instructions: targetVersionRecord.instructions,
+				model: targetVersionRecord.model,
+				config: targetVersionRecord.config,
+				updatedAt: new Date(),
+			})
+			.where(eq(agents.id, id))
+
+		// Update agent tools to match the target version
+		await db.delete(agentTools).where(eq(agentTools.agentId, id))
+		const restoredToolIds = targetVersionRecord.toolIds ?? []
+		if (restoredToolIds.length > 0) {
+			const customToolIds = restoredToolIds.filter((toolId) => !toolId.startsWith('system-'))
+			if (customToolIds.length > 0) {
+				await db.insert(agentTools).values(
+					customToolIds.map((toolId) => ({
+						agentId: id,
+						toolId,
+					})),
+				)
+			}
+		}
+
+		// Create a new version record for this rollback (non-destructive)
+		const [newAgentVersion] = await db
+			.insert(agentVersions)
+			.values({
+				agentId: id,
+				version: newVersionNumber,
+				instructions: targetVersionRecord.instructions,
+				model: targetVersionRecord.model,
+				config: targetVersionRecord.config,
+				toolIds: restoredToolIds,
+				createdBy: user.id,
+			})
+			.returning()
+
+		if (!newAgentVersion) serverError('Failed to create rollback version')
+
+		// Check if agent was deployed and redeploy if so
+		let deploymentInfo: z.infer<typeof DeploymentSchema> | undefined
+		if (agent.status === config.enums.agentStatus.DEPLOYED) {
+			// Mark current deployment as inactive
+			await db
+				.update(deployments)
+				.set({ status: config.enums.deploymentStatus.INACTIVE })
+				.where(eq(deployments.agentId, id))
+
+			// Create new deployment with restored config
+			const version = `${newVersionNumber}.0.0`
+			const [deployment] = await db
+				.insert(deployments)
+				.values({
+					agentId: id,
+					version,
+					status: config.enums.deploymentStatus.ACTIVE,
+					url: `/api/agents/${id}`,
+					deployedBy: user.id,
+					metadata: targetVersionRecord.config ? { config: targetVersionRecord.config } : undefined,
+				})
+				.returning()
+
+			if (deployment) {
+				const baseUrl = `/api/agents/${id}`
+				deploymentInfo = {
+					id: deployment.id,
+					status: config.enums.deploymentStatus.ACTIVE,
+					deployedAt: deployment.deployedAt.toISOString(),
+					version,
+					url: baseUrl,
+					endpoints: {
+						chat: `${baseUrl}/chat`,
+						websocket: `/api/agents/${id}/ws`,
+						state: `${baseUrl}/state`,
+					},
+				}
+			}
+		}
+
+		return {
+			success: true,
+			previousVersion,
+			restoredVersion: targetVersion,
+			newVersion: newVersionNumber,
+			deployment: deploymentInfo,
+		}
+	})
+
+/**
  * Preview/validate agent configuration
  */
 export const preview = requireWrite
@@ -536,6 +732,111 @@ export const preview = requireWrite
 		return { valid, errors, warnings }
 	})
 
+/**
+ * Get agent health metrics
+ *
+ * Calculates health metrics from usage data over the last 24 hours:
+ * - Success rate (percentage of 2xx responses)
+ * - Average latency in milliseconds
+ * - Error count (non-2xx responses)
+ * - Total requests
+ *
+ * Health status is derived from success rate:
+ * - healthy: >95%
+ * - degraded: 80-95%
+ * - unhealthy: <80%
+ */
+export const getHealth = requireWrite
+	.route({ method: 'GET', path: '/agents/{id}/health' })
+	.input(IdParamSchema)
+	.output(AgentHealthMetricsSchema)
+	.handler(async ({ input, context }) => {
+		const { db, workspaceId } = context
+
+		const agent = await findAgent(input.id, workspaceId, db)
+		if (!agent) notFound('Agent not found')
+
+		return getAgentHealthMetrics({
+			agentId: agent.id,
+			agentName: agent.name,
+			db,
+		})
+	})
+
+/**
+ * Clone an agent
+ *
+ * Creates a duplicate of an existing agent with all its properties:
+ * - Name with ' (Copy)' suffix
+ * - Description, instructions, model, config
+ * - Tool attachments
+ * - New agent starts in draft status
+ */
+export const clone = requireWrite
+	.route({ method: 'POST', path: '/agents/{id}/clone', successStatus: 201 })
+	.input(IdParamSchema)
+	.output(CloneAgentResponseSchema)
+	.handler(async ({ input, context }) => {
+		const { db, workspaceId, user } = context
+
+		// Find the source agent
+		const sourceAgent = await findAgent(input.id, workspaceId, db)
+		if (!sourceAgent) notFound('Agent not found')
+
+		// Get the source agent's tool IDs
+		const sourceToolIds = await getAgentToolIds(input.id, db)
+
+		// Create the cloned agent with ' (Copy)' suffix and draft status
+		const [clonedAgent] = await db
+			.insert(agents)
+			.values({
+				workspaceId,
+				name: `${sourceAgent.name} (Copy)`,
+				description: sourceAgent.description,
+				model: sourceAgent.model,
+				instructions: sourceAgent.instructions,
+				config: sourceAgent.config,
+				systemToolsEnabled: sourceAgent.systemToolsEnabled,
+				status: config.enums.agentStatus.DRAFT,
+				createdBy: user.id,
+			})
+			.returning()
+
+		if (!clonedAgent) serverError('Failed to clone agent')
+
+		// Copy tool attachments to new agent (filter out system tools)
+		if (sourceToolIds.length > 0) {
+			const customToolIds = sourceToolIds.filter((id) => !id.startsWith('system-'))
+			if (customToolIds.length > 0) {
+				await db.insert(agentTools).values(
+					customToolIds.map((toolId) => ({
+						agentId: clonedAgent.id,
+						toolId,
+					})),
+				)
+			}
+		}
+
+		// Log audit event for agent clone
+		logAudit({
+			context,
+			action: config.enums.auditAction.AGENT_CLONE,
+			resourceType: 'agent',
+			resourceId: clonedAgent.id,
+			details: {
+				sourceAgentId: input.id,
+				sourceAgentName: sourceAgent.name,
+				clonedAgentName: clonedAgent.name,
+				toolIds: sourceToolIds,
+			},
+		})
+
+		return {
+			id: clonedAgent.id,
+			redirectUrl: `/dashboard/agents/${clonedAgent.id}`,
+		}
+	})
+
 // =============================================================================
 // Router Export
 // =============================================================================
@@ -551,5 +852,8 @@ export const agentsRouter = {
 	getDeployment,
 	getDeploymentHistory,
 	getVersions,
+	rollback,
 	preview,
+	getHealth,
+	clone,
 }

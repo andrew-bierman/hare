@@ -10,12 +10,13 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from '@hare/ui/components/dropdown-menu'
-import { LogOut, Settings } from 'lucide-react'
+import { HelpCircle, LogOut, Settings } from 'lucide-react'
 import { useAuth, useAuthActions } from '../../../features/auth'
 
 export interface UserNavProps {
 	Link: React.ComponentType<{ to: string; children: React.ReactNode; className?: string }>
 	onSignOut?: () => void
+	onStartTour?: () => void
 }
 
 /**
@@ -23,15 +24,14 @@ export interface UserNavProps {
  *
  * @param Link - Router Link component
  * @param onSignOut - Optional callback after sign out
+ * @param onStartTour - Optional callback to start the onboarding tour
  */
-export function UserNav({ Link, onSignOut }: UserNavProps) {
-	const { data: session, error, isPending } = useAuth()
+export function UserNav({ Link, onSignOut, onStartTour }: UserNavProps) {
+	const { data: session, error } = useAuth()
 	const { signOut } = useAuthActions()
 
-	// If auth is pending, don't show login buttons (avoid flash)
 	// If auth errored, treat as logged out
 	const user = error ? null : session?.user
-	const isLoading = isPending && !user
 
 	const getInitials = (name?: string | null, email?: string | null) => {
 		if (name) {
@@ -51,11 +51,6 @@ export function UserNav({ Link, onSignOut }: UserNavProps) {
 	const handleSignOut = async () => {
 		await signOut()
 		onSignOut?.()
-	}
-
-	// While auth is loading, show nothing to avoid flash of login buttons
-	if (isLoading) {
-		return null
 	}
 
 	if (!user) {
@@ -97,6 +92,12 @@ export function UserNav({ Link, onSignOut }: UserNavProps) {
 						<span>Settings</span>
 					</Link>
 				</DropdownMenuItem>
+				{onStartTour && (
+					<DropdownMenuItem onClick={onStartTour}>
+						<HelpCircle className="mr-2 h-4 w-4" />
+						<span>Take a Tour</span>
+					</DropdownMenuItem>
+				)}
 				<DropdownMenuSeparator />
 				<DropdownMenuItem onClick={handleSignOut}>
 					<LogOut className="mr-2 h-4 w-4" />

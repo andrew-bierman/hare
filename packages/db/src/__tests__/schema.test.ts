@@ -1899,28 +1899,26 @@ describe('Unique Constraint Tests', () => {
 			updatedAt: new Date(now * 1000),
 		})
 
-		const apiKey = `hare_${Date.now()}_${Math.random().toString(36).substring(7)}`
+		const hashedKey = `hashed_${Date.now()}_${Math.random().toString(36).substring(7)}`
 
 		await db.insert(apiKeys).values({
 			id: uniqueId('key'),
 			workspaceId,
 			name: 'First Key',
-			key: apiKey,
-			hashedKey: 'hash1',
+			hashedKey,
 			prefix: 'hare_',
 			createdBy: userId,
 			createdAt: new Date(now * 1000),
 			updatedAt: new Date(now * 1000),
 		})
 
-		// Try to insert duplicate key
+		// Try to insert duplicate hashedKey
 		await expect(
 			db.insert(apiKeys).values({
 				id: uniqueId('key'),
 				workspaceId,
 				name: 'Second Key',
-				key: apiKey,
-				hashedKey: 'hash2',
+				hashedKey, // Same hashedKey should fail uniqueness constraint
 				prefix: 'hare_',
 				createdBy: userId,
 				createdAt: new Date(now * 1000),

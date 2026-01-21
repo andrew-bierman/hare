@@ -1,9 +1,11 @@
 // Auth tables
-export * from './auth'
 
 // Agent tables
 export * from './agents'
 export * from './agent-versions'
+export * from './activity-events'
+export * from './audit-logs'
+export * from './auth'
 
 // Conversation tables
 export * from './conversations'
@@ -19,18 +21,13 @@ export * from './tools'
 
 // Usage and API key tables
 export * from './usage'
-
 // User preferences tables
 export * from './user-preferences'
-
 // Webhook tables
 export * from './webhooks'
-
+export * from './webhook-deliveries'
 // Workspace tables
 export * from './workspaces'
-
-// Drizzle relations for type-safe queries
-export * from './relations'
 
 // Zod schemas derived from Drizzle tables (drizzle-zod)
 export * from './zod'

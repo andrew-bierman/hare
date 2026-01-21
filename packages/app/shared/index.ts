@@ -37,4 +37,11 @@ export {
 	type ToolRow,
 	type WorkspaceRow,
 	type ScheduleRow,
+	// Tour hook and atoms
+	useTour,
+	type UseTourReturn,
+	type UseTourOptions,
+	tourCompletedAtom,
+	tourActiveAtom,
+	tourCurrentStepAtom,
 } from './lib'

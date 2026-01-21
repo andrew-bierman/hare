@@ -9,6 +9,7 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { orpc } from '@hare/api'
+import type { AuditAction } from '@hare/config'
 
 // =============================================================================
 // Agent Hooks
@@ -91,6 +92,30 @@ export function useDeployAgentMutation() {
 		onSuccess: (_, variables) => {
 			queryClient.invalidateQueries({ queryKey: ['agents'] })
 			queryClient.invalidateQueries({ queryKey: ['agents', variables.id] })
+			queryClient.invalidateQueries({ queryKey: ['agents', variables.id, 'versions'] })
+		},
+	})
+}
+
+export function useAgentVersionsQuery(
+	agentId: string | undefined,
+	options?: { limit?: number; offset?: number },
+) {
+	return useQuery({
+		queryKey: ['agents', agentId, 'versions', options],
+		queryFn: () => orpc.agents.getVersions({ id: agentId!, ...options }),
+		enabled: !!agentId,
+	})
+}
+
+export function useRollbackAgentMutation() {
+	const queryClient = useQueryClient()
+	return useMutation({
+		mutationFn: (input: { id: string; version: number }) => orpc.agents.rollback(input),
+		onSuccess: (_, variables) => {
+			queryClient.invalidateQueries({ queryKey: ['agents'] })
+			queryClient.invalidateQueries({ queryKey: ['agents', variables.id] })
+			queryClient.invalidateQueries({ queryKey: ['agents', variables.id, 'versions'] })
 		},
 	})
 }
@@ -102,6 +127,16 @@ export function useUndeployAgentMutation() {
 		onSuccess: (_, variables) => {
 			queryClient.invalidateQueries({ queryKey: ['agents'] })
 			queryClient.invalidateQueries({ queryKey: ['agents', variables.id] })
+		},
+	})
+}
+
+export function useCloneAgentMutation() {
+	const queryClient = useQueryClient()
+	return useMutation({
+		mutationFn: (input: { id: string }) => orpc.agents.clone(input),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ['agents'] })
 		},
 	})
 }
@@ -587,5 +622,55 @@ export function useLogStatsQuery(options?: {
 	return useQuery({
 		queryKey: ['logs', 'stats', options],
 		queryFn: () => orpc.logs.getStats(options || {}),
+	})
+}
+
+// =============================================================================
+// Audit Logs Hooks
+// =============================================================================
+
+export function useAuditLogsQuery(options?: {
+	action?: AuditAction
+	resourceType?: string
+	userId?: string
+	dateFrom?: string
+	dateTo?: string
+	limit?: number
+	offset?: number
+}) {
+	return useQuery({
+		queryKey: ['audit-logs', options],
+		queryFn: () => orpc.auditLogs.list(options || {}),
+	})
+}
+
+// =============================================================================
+// Agent Health Hooks
+// =============================================================================
+
+export function useAgentHealthQuery(agentId: string | undefined, options?: { refetchInterval?: number }) {
+	return useQuery({
+		queryKey: ['agents', agentId, 'health'],
+		queryFn: () => orpc.agents.getHealth({ id: agentId! }),
+		enabled: !!agentId,
+		refetchInterval: options?.refetchInterval,
+	})
+}
+
+// =============================================================================
+// Activity Feed Hooks
+// =============================================================================
+
+export function useActivityFeedQuery(options?: {
+	agentId?: string
+	eventType?: 'agent.invocation' | 'tool.call' | 'error'
+	limit?: number
+	refetchInterval?: number
+}) {
+	const { refetchInterval, ...queryInput } = options || {}
+	return useQuery({
+		queryKey: ['activity', queryInput],
+		queryFn: () => orpc.activity.list(queryInput || {}),
+		refetchInterval,
 	})
 }

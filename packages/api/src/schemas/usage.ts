@@ -86,3 +86,47 @@ export const AgentUsageResponseSchema = z
 		usage: UsageStatsSchema,
 	})
 	.openapi('AgentUsageResponse')
+
+/**
+ * Health status derived from success rate thresholds.
+ */
+export const HEALTH_STATUS = ['healthy', 'degraded', 'unhealthy'] as const
+export type HealthStatus = (typeof HEALTH_STATUS)[number]
+
+export const HealthStatusSchema = z.enum(HEALTH_STATUS).openapi({
+	example: 'healthy',
+	description: 'Health status: healthy (>95% success), degraded (80-95%), unhealthy (<80%)',
+})
+
+/**
+ * Agent health metrics calculated from usage data (last 24 hours).
+ */
+export const AgentHealthMetricsSchema = z
+	.object({
+		agentId: z.string().openapi({ example: 'agent_abc123' }),
+		agentName: z.string().openapi({ example: 'Customer Support Agent' }),
+		status: HealthStatusSchema,
+		metrics: z.object({
+			successRate: z.number().openapi({
+				example: 98.5,
+				description: 'Percentage of successful requests (status code 2xx)',
+			}),
+			averageLatencyMs: z.number().openapi({
+				example: 245,
+				description: 'Average response latency in milliseconds',
+			}),
+			errorCount: z.number().int().openapi({
+				example: 3,
+				description: 'Number of failed requests (non-2xx status codes)',
+			}),
+			totalRequests: z.number().int().openapi({
+				example: 200,
+				description: 'Total number of requests in the period',
+			}),
+		}),
+		period: z.object({
+			startDate: z.string().datetime().openapi({ example: '2024-12-01T00:00:00Z' }),
+			endDate: z.string().datetime().openapi({ example: '2024-12-02T00:00:00Z' }),
+		}),
+	})
+	.openapi('AgentHealthMetrics')

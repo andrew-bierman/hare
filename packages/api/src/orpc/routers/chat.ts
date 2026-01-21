@@ -7,7 +7,7 @@
 import { z } from 'zod'
 import { eventIterator } from '@orpc/server'
 import { streamText, type ModelMessage } from 'ai'
-import { eq } from 'drizzle-orm'
+import { and, count, desc, eq, gte, like, lte } from 'drizzle-orm'
 import { agents, conversations, messages, usage } from '@hare/db/schema'
 import {
 	type AgentConfig,
@@ -20,6 +20,8 @@ import {
 	ChatRequestSchema,
 	ConversationExportSchema,
 	ConversationSchema,
+	ConversationSearchQuerySchema,
+	ConversationSearchResponseSchema,
 	IdParamSchema,
 	MessageSchema,
 } from '../../schemas'
@@ -29,45 +31,75 @@ import {
 // =============================================================================
 
 /**
- * Convert conversation messages to Markdown format.
+ * Escape a value for CSV format.
+ * Wraps in quotes if the value contains commas, quotes, or newlines.
  */
-function formatAsMarkdown(options: {
+function escapeCsvValue(value: string): string {
+	if (value.includes(',') || value.includes('"') || value.includes('\n') || value.includes('\r')) {
+		return `"${value.replace(/"/g, '""')}"`
+	}
+	return value
+}
+
+/**
+ * Convert conversation messages to CSV format.
+ * Columns: timestamp, role, content
+ */
+function formatAsCsv(options: {
+	messages: Array<{
+		role: string
+		content: string
+		createdAt: Date
+	}>
+}): string {
+	const { messages } = options
+
+	const lines: string[] = ['timestamp,role,content']
+
+	for (const msg of messages) {
+		const timestamp = msg.createdAt.toISOString()
+		const role = msg.role
+		const content = escapeCsvValue(msg.content)
+		lines.push(`${timestamp},${role},${content}`)
+	}
+
+	return lines.join('\n')
+}
+
+/**
+ * Convert conversation messages to plain text format.
+ * Human-readable format with clear message separation.
+ */
+function formatAsTxt(options: {
 	title: string
 	messages: Array<{
 		role: string
 		content: string
 		createdAt: Date
-		metadata?: Record<string, unknown> | null
 	}>
-	includeMetadata: boolean
 	exportedAt: string
 }): string {
-	const { title, messages, includeMetadata, exportedAt } = options
+	const { title, messages, exportedAt } = options
 
-	const lines: string[] = [`# ${title}`, '', `*Exported at: ${exportedAt}*`, '', '---', '']
+	const lines: string[] = [
+		title,
+		'='.repeat(title.length),
+		'',
+		`Exported: ${exportedAt}`,
+		'',
+		'-'.repeat(50),
+		'',
+	]
 
 	for (const msg of messages) {
 		const roleLabel = msg.role.charAt(0).toUpperCase() + msg.role.slice(1)
 		const timestamp = msg.createdAt.toISOString()
 
-		lines.push(`## ${roleLabel}`)
-		lines.push(`*${timestamp}*`)
+		lines.push(`[${roleLabel}] ${timestamp}`)
 		lines.push('')
 		lines.push(msg.content)
-
-		if (includeMetadata && msg.metadata) {
-			lines.push('')
-			lines.push('<details>')
-			lines.push('<summary>Metadata</summary>')
-			lines.push('')
-			lines.push('```json')
-			lines.push(JSON.stringify(msg.metadata, null, 2))
-			lines.push('```')
-			lines.push('</details>')
-		}
-
 		lines.push('')
-		lines.push('---')
+		lines.push('-'.repeat(50))
 		lines.push('')
 	}
 
@@ -300,14 +332,14 @@ export const getMessages = authedProcedure
 	})
 
 /**
- * Export a conversation in JSON or Markdown format.
+ * Export a conversation in JSON, CSV, or TXT format.
  */
 export const exportConversation = authedProcedure
 	.route({ method: 'GET', path: '/conversations/{id}/export' })
 	.input(
 		IdParamSchema.merge(
 			z.object({
-				format: z.enum(['json', 'markdown']).optional().default('json'),
+				format: z.enum(['json', 'csv', 'txt']).optional().default('json'),
 				includeMetadata: z
 					.union([z.boolean(), z.string().transform((v) => v === 'true')])
 					.optional()
@@ -319,7 +351,11 @@ export const exportConversation = authedProcedure
 		z.union([
 			ConversationExportSchema,
 			z.object({
-				markdown: z.string(),
+				csv: z.string(),
+				filename: z.string(),
+			}),
+			z.object({
+				txt: z.string(),
 				filename: z.string(),
 			}),
 		]),
@@ -345,31 +381,45 @@ export const exportConversation = authedProcedure
 			.where(eq(messages.conversationId, conversationId))
 
 		const exportedAt = new Date().toISOString()
+		const title = conversation.title || 'Untitled Conversation'
 
 		// Format based on requested format
-		if (format === 'markdown') {
-			const markdown = formatAsMarkdown({
-				title: conversation.title || 'Untitled Conversation',
+		if (format === 'csv') {
+			const csv = formatAsCsv({
 				messages: results.map((msg) => ({
 					role: msg.role,
 					content: msg.content,
 					createdAt: msg.createdAt,
-					metadata: includeMetadata ? (msg.metadata as Record<string, unknown> | null) : null,
 				})),
-				includeMetadata: Boolean(includeMetadata),
+			})
+
+			return {
+				csv,
+				filename: `conversation-${conversationId}.csv`,
+			}
+		}
+
+		if (format === 'txt') {
+			const txt = formatAsTxt({
+				title,
+				messages: results.map((msg) => ({
+					role: msg.role,
+					content: msg.content,
+					createdAt: msg.createdAt,
+				})),
 				exportedAt,
 			})
 
 			return {
-				markdown,
-				filename: `conversation-${conversationId}.md`,
+				txt,
+				filename: `conversation-${conversationId}.txt`,
 			}
 		}
 
-		// JSON format (default)
+		// JSON format (default) - includes full metadata and tool calls
 		return {
 			id: conversation.id,
-			title: conversation.title || 'Untitled Conversation',
+			title,
 			agentId: conversation.agentId,
 			createdAt: conversation.createdAt.toISOString(),
 			updatedAt: conversation.updatedAt.toISOString(),
@@ -386,6 +436,142 @@ export const exportConversation = authedProcedure
 	})
 
 // =============================================================================
+// Search Helpers
+// =============================================================================
+
+/**
+ * Highlight matching text in content using <mark> tags.
+ * Returns a snippet around the first match with context.
+ */
+function highlightMatch(options: { content: string; query: string; contextChars?: number }): string {
+	const { content, query, contextChars = 100 } = options
+
+	// Escape special regex characters in the query
+	const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+	const regex = new RegExp(`(${escapedQuery})`, 'gi')
+
+	// Find the first match position
+	const match = regex.exec(content)
+	if (!match) {
+		// No match found, return truncated content
+		return content.length > contextChars * 2
+			? `${content.substring(0, contextChars * 2)}...`
+			: content
+	}
+
+	const matchStart = match.index
+	const matchEnd = matchStart + match[0].length
+
+	// Calculate snippet boundaries
+	let snippetStart = Math.max(0, matchStart - contextChars)
+	let snippetEnd = Math.min(content.length, matchEnd + contextChars)
+
+	// Adjust to word boundaries if possible
+	if (snippetStart > 0) {
+		const spaceIndex = content.indexOf(' ', snippetStart)
+		if (spaceIndex !== -1 && spaceIndex < matchStart) {
+			snippetStart = spaceIndex + 1
+		}
+	}
+	if (snippetEnd < content.length) {
+		const spaceIndex = content.lastIndexOf(' ', snippetEnd)
+		if (spaceIndex !== -1 && spaceIndex > matchEnd) {
+			snippetEnd = spaceIndex
+		}
+	}
+
+	// Extract snippet and add ellipses
+	let snippet = content.substring(snippetStart, snippetEnd)
+	if (snippetStart > 0) {
+		snippet = `...${snippet}`
+	}
+	if (snippetEnd < content.length) {
+		snippet = `${snippet}...`
+	}
+
+	// Highlight all matches in the snippet
+	return snippet.replace(regex, '<mark>$1</mark>')
+}
+
+// =============================================================================
+// Search Procedure
+// =============================================================================
+
+/**
+ * Search conversations for an agent.
+ * Full-text search on message content with date filtering.
+ */
+export const searchConversations = authedProcedure
+	.route({ method: 'GET', path: '/agents/{id}/conversations/search' })
+	.input(IdParamSchema.merge(ConversationSearchQuerySchema))
+	.output(ConversationSearchResponseSchema)
+	.handler(async ({ input, context }) => {
+		const { id: agentId, query, dateFrom, dateTo, limit, offset } = input
+		const { db } = context
+
+		// Build filter conditions for messages
+		const conditions = [
+			eq(conversations.agentId, agentId),
+			like(messages.content, `%${query}%`),
+		]
+
+		if (dateFrom) {
+			const fromDate = new Date(dateFrom)
+			conditions.push(gte(messages.createdAt, fromDate))
+		}
+
+		if (dateTo) {
+			const toDate = new Date(dateTo)
+			conditions.push(lte(messages.createdAt, toDate))
+		}
+
+		const whereClause = and(...conditions)
+
+		// Get total count for pagination
+		const [countResult] = await db
+			.select({ total: count() })
+			.from(messages)
+			.innerJoin(conversations, eq(messages.conversationId, conversations.id))
+			.where(whereClause)
+
+		const total = countResult?.total ?? 0
+
+		// Get paginated results with conversation context
+		const results = await db
+			.select({
+				messageId: messages.id,
+				conversationId: messages.conversationId,
+				conversationTitle: conversations.title,
+				role: messages.role,
+				content: messages.content,
+				createdAt: messages.createdAt,
+			})
+			.from(messages)
+			.innerJoin(conversations, eq(messages.conversationId, conversations.id))
+			.where(whereClause)
+			.orderBy(desc(messages.createdAt))
+			.limit(limit)
+			.offset(offset)
+
+		return {
+			results: results
+				.filter((msg) => msg.role !== 'tool')
+				.map((msg) => ({
+					messageId: msg.messageId,
+					conversationId: msg.conversationId,
+					conversationTitle: msg.conversationTitle,
+					role: msg.role as 'user' | 'assistant' | 'system',
+					content: msg.content,
+					highlightedContent: highlightMatch({ content: msg.content, query }),
+					createdAt: msg.createdAt.toISOString(),
+				})),
+			total,
+			limit,
+			offset,
+		}
+	})
+
+// =============================================================================
 // Router Export
 // =============================================================================
 
@@ -394,4 +580,5 @@ export const chatRouter = {
 	listConversations,
 	getMessages,
 	exportConversation,
+	searchConversations,
 }

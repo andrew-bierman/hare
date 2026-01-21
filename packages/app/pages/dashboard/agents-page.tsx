@@ -3,13 +3,29 @@
 import { Badge } from '@hare/ui/components/badge'
 import { Button } from '@hare/ui/components/button'
 import { Card, CardContent } from '@hare/ui/components/card'
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+} from '@hare/ui/components/dialog'
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuTrigger,
+} from '@hare/ui/components/dropdown-menu'
 import { SearchInput } from '@hare/ui/components/search-input'
 import { Skeleton } from '@hare/ui/components/skeleton'
 import { Tabs, TabsList, TabsTrigger } from '@hare/ui/components/tabs'
-import { Bot, Clock, Plus, SearchIcon, Wrench } from 'lucide-react'
+import { Bot, Clock, Copy, MoreVertical, Plus, SearchIcon, Wrench } from 'lucide-react'
 import { type ChangeEvent, useState, type ReactNode } from 'react'
+import { toast } from 'sonner'
 import { useWorkspace } from '../../app/providers/workspace-provider'
 import type { Agent } from '../../shared/api'
+import { useCloneAgentMutation } from '../../shared/api'
 import { getModelName } from '@hare/config'
 import type { UseQueryResult } from '@tanstack/react-query'
 
@@ -88,6 +104,8 @@ export function AgentsPage({ renderLink, routes, useAgentsQuery }: AgentsPagePro
 	const { data, isLoading, error } = useAgentsQuery(activeWorkspace?.id)
 	const [search, setSearch] = useState('')
 	const [filter, setFilter] = useState<'all' | 'deployed' | 'draft'>('all')
+	const [cloneDialogAgent, setCloneDialogAgent] = useState<Agent | null>(null)
+	const cloneAgent = useCloneAgentMutation()
 
 	const agents = data?.agents ?? []
 	const filteredAgents = agents.filter((agent) => {
@@ -100,6 +118,25 @@ export function AgentsPage({ renderLink, routes, useAgentsQuery }: AgentsPagePro
 			(filter === 'draft' && agent.status === 'draft')
 		return matchesSearch && matchesFilter
 	})
+
+	const handleClone = async () => {
+		if (!cloneDialogAgent) return
+		try {
+			const result = await cloneAgent.mutateAsync({ id: cloneDialogAgent.id })
+			setCloneDialogAgent(null)
+			toast.success('Agent cloned successfully', {
+				description: `${cloneDialogAgent.name} (Copy) has been created`,
+				action: {
+					label: 'View Agent',
+					onClick: () => {
+						window.location.href = result.redirectUrl
+					},
+				},
+			})
+		} catch (error) {
+			toast.error(error instanceof Error ? error.message : 'Failed to clone agent')
+		}
+	}
 
 	const getStatusBadge = (status: string) => {
 		switch (status) {
@@ -197,7 +234,7 @@ export function AgentsPage({ renderLink, routes, useAgentsQuery }: AgentsPagePro
 			) : (
 				<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
 					{filteredAgents.map((agent) => (
-						<div key={agent.id}>
+						<div key={agent.id} className="relative group">
 							{renderLink({
 								to: r.agentDetail(agent.id),
 								children: (
@@ -217,7 +254,9 @@ export function AgentsPage({ renderLink, routes, useAgentsQuery }: AgentsPagePro
 														</p>
 													</div>
 												</div>
-												{getStatusBadge(agent.status)}
+												<div className="flex items-center gap-2">
+													{getStatusBadge(agent.status)}
+												</div>
 											</div>
 											<p className="text-xs sm:text-sm text-muted-foreground line-clamp-2 mb-3">
 												{agent.description || 'No description'}
@@ -241,6 +280,33 @@ export function AgentsPage({ renderLink, routes, useAgentsQuery }: AgentsPagePro
 									</Card>
 								),
 							})}
+							{/* Dropdown menu positioned in top-right corner */}
+							<div className="absolute top-2 right-2 z-10">
+								<DropdownMenu>
+									<DropdownMenuTrigger asChild>
+										<Button
+											variant="ghost"
+											size="icon"
+											className="h-8 w-8 opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity bg-background/80 hover:bg-background"
+											onClick={(e) => e.preventDefault()}
+										>
+											<MoreVertical className="h-4 w-4" />
+											<span className="sr-only">Open menu</span>
+										</Button>
+									</DropdownMenuTrigger>
+									<DropdownMenuContent align="end">
+										<DropdownMenuItem
+											onClick={(e) => {
+												e.preventDefault()
+												setCloneDialogAgent(agent)
+											}}
+										>
+											<Copy className="mr-2 h-4 w-4" />
+											Clone Agent
+										</DropdownMenuItem>
+									</DropdownMenuContent>
+								</DropdownMenu>
+							</div>
 						</div>
 					))}
 
@@ -260,6 +326,35 @@ export function AgentsPage({ renderLink, routes, useAgentsQuery }: AgentsPagePro
 					})}
 				</div>
 			)}
+
+			{/* Clone Confirmation Dialog */}
+			<Dialog open={!!cloneDialogAgent} onOpenChange={() => setCloneDialogAgent(null)}>
+				<DialogContent>
+					<DialogHeader>
+						<DialogTitle>Clone Agent</DialogTitle>
+						<DialogDescription>
+							Create a copy of "{cloneDialogAgent?.name}" as a new agent?
+						</DialogDescription>
+					</DialogHeader>
+					<div className="py-4">
+						<p className="text-sm text-muted-foreground">
+							The new agent will be named:
+						</p>
+						<p className="text-sm font-medium mt-1">
+							{cloneDialogAgent?.name} (Copy)
+						</p>
+					</div>
+					<DialogFooter>
+						<Button variant="outline" onClick={() => setCloneDialogAgent(null)}>
+							Cancel
+						</Button>
+						<Button onClick={handleClone} disabled={cloneAgent.isPending}>
+							<Copy className="mr-2 h-4 w-4" />
+							{cloneAgent.isPending ? 'Cloning...' : 'Clone Agent'}
+						</Button>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
 		</div>
 	)
 }

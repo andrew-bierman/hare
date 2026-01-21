@@ -33,6 +33,7 @@ import { Route as DashboardDashboardToolsNewRouteImport } from './routes/_dashbo
 import { Route as DashboardDashboardToolsIdRouteImport } from './routes/_dashboard/dashboard/tools/$id'
 import { Route as DashboardDashboardSettingsTeamRouteImport } from './routes/_dashboard/dashboard/settings/team'
 import { Route as DashboardDashboardSettingsBillingRouteImport } from './routes/_dashboard/dashboard/settings/billing'
+import { Route as DashboardDashboardSettingsAuditLogsRouteImport } from './routes/_dashboard/dashboard/settings/audit-logs'
 import { Route as DashboardDashboardSettingsApiKeysRouteImport } from './routes/_dashboard/dashboard/settings/api-keys'
 import { Route as DashboardDashboardAgentsTemplatesRouteImport } from './routes/_dashboard/dashboard/agents/templates'
 import { Route as DashboardDashboardAgentsNewRouteImport } from './routes/_dashboard/dashboard/agents/new'
@@ -40,6 +41,7 @@ import { Route as DashboardDashboardAgentsIdIndexRouteImport } from './routes/_d
 import { Route as DashboardDashboardAgentsIdWebhooksRouteImport } from './routes/_dashboard/dashboard/agents/$id/webhooks'
 import { Route as DashboardDashboardAgentsIdPlaygroundRouteImport } from './routes/_dashboard/dashboard/agents/$id/playground'
 import { Route as DashboardDashboardAgentsIdEmbedRouteImport } from './routes/_dashboard/dashboard/agents/$id/embed'
+import { Route as DashboardDashboardAgentsIdConversationsRouteImport } from './routes/_dashboard/dashboard/agents/$id/conversations'
 
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
@@ -168,6 +170,12 @@ const DashboardDashboardSettingsBillingRoute =
     path: '/dashboard/settings/billing',
     getParentRoute: () => DashboardRoute,
   } as any)
+const DashboardDashboardSettingsAuditLogsRoute =
+  DashboardDashboardSettingsAuditLogsRouteImport.update({
+    id: '/dashboard/settings/audit-logs',
+    path: '/dashboard/settings/audit-logs',
+    getParentRoute: () => DashboardRoute,
+  } as any)
 const DashboardDashboardSettingsApiKeysRoute =
   DashboardDashboardSettingsApiKeysRouteImport.update({
     id: '/dashboard/settings/api-keys',
@@ -210,6 +218,12 @@ const DashboardDashboardAgentsIdEmbedRoute =
     path: '/dashboard/agents/$id/embed',
     getParentRoute: () => DashboardRoute,
   } as any)
+const DashboardDashboardAgentsIdConversationsRoute =
+  DashboardDashboardAgentsIdConversationsRouteImport.update({
+    id: '/dashboard/agents/$id/conversations',
+    path: '/dashboard/agents/$id/conversations',
+    getParentRoute: () => DashboardRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -228,6 +242,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/agents/new': typeof DashboardDashboardAgentsNewRoute
   '/dashboard/agents/templates': typeof DashboardDashboardAgentsTemplatesRoute
   '/dashboard/settings/api-keys': typeof DashboardDashboardSettingsApiKeysRoute
+  '/dashboard/settings/audit-logs': typeof DashboardDashboardSettingsAuditLogsRoute
   '/dashboard/settings/billing': typeof DashboardDashboardSettingsBillingRoute
   '/dashboard/settings/team': typeof DashboardDashboardSettingsTeamRoute
   '/dashboard/tools/$id': typeof DashboardDashboardToolsIdRoute
@@ -237,6 +252,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/settings': typeof DashboardDashboardSettingsIndexRoute
   '/dashboard/tools': typeof DashboardDashboardToolsIndexRoute
   '/dashboard/usage': typeof DashboardDashboardUsageIndexRoute
+  '/dashboard/agents/$id/conversations': typeof DashboardDashboardAgentsIdConversationsRoute
   '/dashboard/agents/$id/embed': typeof DashboardDashboardAgentsIdEmbedRoute
   '/dashboard/agents/$id/playground': typeof DashboardDashboardAgentsIdPlaygroundRoute
   '/dashboard/agents/$id/webhooks': typeof DashboardDashboardAgentsIdWebhooksRoute
@@ -258,6 +274,7 @@ export interface FileRoutesByTo {
   '/dashboard/agents/new': typeof DashboardDashboardAgentsNewRoute
   '/dashboard/agents/templates': typeof DashboardDashboardAgentsTemplatesRoute
   '/dashboard/settings/api-keys': typeof DashboardDashboardSettingsApiKeysRoute
+  '/dashboard/settings/audit-logs': typeof DashboardDashboardSettingsAuditLogsRoute
   '/dashboard/settings/billing': typeof DashboardDashboardSettingsBillingRoute
   '/dashboard/settings/team': typeof DashboardDashboardSettingsTeamRoute
   '/dashboard/tools/$id': typeof DashboardDashboardToolsIdRoute
@@ -267,6 +284,7 @@ export interface FileRoutesByTo {
   '/dashboard/settings': typeof DashboardDashboardSettingsIndexRoute
   '/dashboard/tools': typeof DashboardDashboardToolsIndexRoute
   '/dashboard/usage': typeof DashboardDashboardUsageIndexRoute
+  '/dashboard/agents/$id/conversations': typeof DashboardDashboardAgentsIdConversationsRoute
   '/dashboard/agents/$id/embed': typeof DashboardDashboardAgentsIdEmbedRoute
   '/dashboard/agents/$id/playground': typeof DashboardDashboardAgentsIdPlaygroundRoute
   '/dashboard/agents/$id/webhooks': typeof DashboardDashboardAgentsIdWebhooksRoute
@@ -292,6 +310,7 @@ export interface FileRoutesById {
   '/_dashboard/dashboard/agents/new': typeof DashboardDashboardAgentsNewRoute
   '/_dashboard/dashboard/agents/templates': typeof DashboardDashboardAgentsTemplatesRoute
   '/_dashboard/dashboard/settings/api-keys': typeof DashboardDashboardSettingsApiKeysRoute
+  '/_dashboard/dashboard/settings/audit-logs': typeof DashboardDashboardSettingsAuditLogsRoute
   '/_dashboard/dashboard/settings/billing': typeof DashboardDashboardSettingsBillingRoute
   '/_dashboard/dashboard/settings/team': typeof DashboardDashboardSettingsTeamRoute
   '/_dashboard/dashboard/tools/$id': typeof DashboardDashboardToolsIdRoute
@@ -301,6 +320,7 @@ export interface FileRoutesById {
   '/_dashboard/dashboard/settings/': typeof DashboardDashboardSettingsIndexRoute
   '/_dashboard/dashboard/tools/': typeof DashboardDashboardToolsIndexRoute
   '/_dashboard/dashboard/usage/': typeof DashboardDashboardUsageIndexRoute
+  '/_dashboard/dashboard/agents/$id/conversations': typeof DashboardDashboardAgentsIdConversationsRoute
   '/_dashboard/dashboard/agents/$id/embed': typeof DashboardDashboardAgentsIdEmbedRoute
   '/_dashboard/dashboard/agents/$id/playground': typeof DashboardDashboardAgentsIdPlaygroundRoute
   '/_dashboard/dashboard/agents/$id/webhooks': typeof DashboardDashboardAgentsIdWebhooksRoute
@@ -325,6 +345,7 @@ export interface FileRouteTypes {
     | '/dashboard/agents/new'
     | '/dashboard/agents/templates'
     | '/dashboard/settings/api-keys'
+    | '/dashboard/settings/audit-logs'
     | '/dashboard/settings/billing'
     | '/dashboard/settings/team'
     | '/dashboard/tools/$id'
@@ -334,6 +355,7 @@ export interface FileRouteTypes {
     | '/dashboard/settings'
     | '/dashboard/tools'
     | '/dashboard/usage'
+    | '/dashboard/agents/$id/conversations'
     | '/dashboard/agents/$id/embed'
     | '/dashboard/agents/$id/playground'
     | '/dashboard/agents/$id/webhooks'
@@ -355,6 +377,7 @@ export interface FileRouteTypes {
     | '/dashboard/agents/new'
     | '/dashboard/agents/templates'
     | '/dashboard/settings/api-keys'
+    | '/dashboard/settings/audit-logs'
     | '/dashboard/settings/billing'
     | '/dashboard/settings/team'
     | '/dashboard/tools/$id'
@@ -364,6 +387,7 @@ export interface FileRouteTypes {
     | '/dashboard/settings'
     | '/dashboard/tools'
     | '/dashboard/usage'
+    | '/dashboard/agents/$id/conversations'
     | '/dashboard/agents/$id/embed'
     | '/dashboard/agents/$id/playground'
     | '/dashboard/agents/$id/webhooks'
@@ -388,6 +412,7 @@ export interface FileRouteTypes {
     | '/_dashboard/dashboard/agents/new'
     | '/_dashboard/dashboard/agents/templates'
     | '/_dashboard/dashboard/settings/api-keys'
+    | '/_dashboard/dashboard/settings/audit-logs'
     | '/_dashboard/dashboard/settings/billing'
     | '/_dashboard/dashboard/settings/team'
     | '/_dashboard/dashboard/tools/$id'
@@ -397,6 +422,7 @@ export interface FileRouteTypes {
     | '/_dashboard/dashboard/settings/'
     | '/_dashboard/dashboard/tools/'
     | '/_dashboard/dashboard/usage/'
+    | '/_dashboard/dashboard/agents/$id/conversations'
     | '/_dashboard/dashboard/agents/$id/embed'
     | '/_dashboard/dashboard/agents/$id/playground'
     | '/_dashboard/dashboard/agents/$id/webhooks'
@@ -583,6 +609,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardDashboardSettingsBillingRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/_dashboard/dashboard/settings/audit-logs': {
+      id: '/_dashboard/dashboard/settings/audit-logs'
+      path: '/dashboard/settings/audit-logs'
+      fullPath: '/dashboard/settings/audit-logs'
+      preLoaderRoute: typeof DashboardDashboardSettingsAuditLogsRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/_dashboard/dashboard/settings/api-keys': {
       id: '/_dashboard/dashboard/settings/api-keys'
       path: '/dashboard/settings/api-keys'
@@ -632,6 +665,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardDashboardAgentsIdEmbedRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/_dashboard/dashboard/agents/$id/conversations': {
+      id: '/_dashboard/dashboard/agents/$id/conversations'
+      path: '/dashboard/agents/$id/conversations'
+      fullPath: '/dashboard/agents/$id/conversations'
+      preLoaderRoute: typeof DashboardDashboardAgentsIdConversationsRouteImport
+      parentRoute: typeof DashboardRoute
+    }
   }
 }
 
@@ -656,6 +696,7 @@ interface DashboardRouteChildren {
   DashboardDashboardAgentsNewRoute: typeof DashboardDashboardAgentsNewRoute
   DashboardDashboardAgentsTemplatesRoute: typeof DashboardDashboardAgentsTemplatesRoute
   DashboardDashboardSettingsApiKeysRoute: typeof DashboardDashboardSettingsApiKeysRoute
+  DashboardDashboardSettingsAuditLogsRoute: typeof DashboardDashboardSettingsAuditLogsRoute
   DashboardDashboardSettingsBillingRoute: typeof DashboardDashboardSettingsBillingRoute
   DashboardDashboardSettingsTeamRoute: typeof DashboardDashboardSettingsTeamRoute
   DashboardDashboardToolsIdRoute: typeof DashboardDashboardToolsIdRoute
@@ -665,6 +706,7 @@ interface DashboardRouteChildren {
   DashboardDashboardSettingsIndexRoute: typeof DashboardDashboardSettingsIndexRoute
   DashboardDashboardToolsIndexRoute: typeof DashboardDashboardToolsIndexRoute
   DashboardDashboardUsageIndexRoute: typeof DashboardDashboardUsageIndexRoute
+  DashboardDashboardAgentsIdConversationsRoute: typeof DashboardDashboardAgentsIdConversationsRoute
   DashboardDashboardAgentsIdEmbedRoute: typeof DashboardDashboardAgentsIdEmbedRoute
   DashboardDashboardAgentsIdPlaygroundRoute: typeof DashboardDashboardAgentsIdPlaygroundRoute
   DashboardDashboardAgentsIdWebhooksRoute: typeof DashboardDashboardAgentsIdWebhooksRoute
@@ -678,6 +720,8 @@ const DashboardRouteChildren: DashboardRouteChildren = {
     DashboardDashboardAgentsTemplatesRoute,
   DashboardDashboardSettingsApiKeysRoute:
     DashboardDashboardSettingsApiKeysRoute,
+  DashboardDashboardSettingsAuditLogsRoute:
+    DashboardDashboardSettingsAuditLogsRoute,
   DashboardDashboardSettingsBillingRoute:
     DashboardDashboardSettingsBillingRoute,
   DashboardDashboardSettingsTeamRoute: DashboardDashboardSettingsTeamRoute,
@@ -688,6 +732,8 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardDashboardSettingsIndexRoute: DashboardDashboardSettingsIndexRoute,
   DashboardDashboardToolsIndexRoute: DashboardDashboardToolsIndexRoute,
   DashboardDashboardUsageIndexRoute: DashboardDashboardUsageIndexRoute,
+  DashboardDashboardAgentsIdConversationsRoute:
+    DashboardDashboardAgentsIdConversationsRoute,
   DashboardDashboardAgentsIdEmbedRoute: DashboardDashboardAgentsIdEmbedRoute,
   DashboardDashboardAgentsIdPlaygroundRoute:
     DashboardDashboardAgentsIdPlaygroundRoute,

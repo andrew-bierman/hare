@@ -112,9 +112,11 @@ orpcApp.all('/*', async (c) => {
 
 	// Handle the RPC request
 	// Note: Route is mounted at /rpc within /api, so full path is /api/rpc
+	// Type assertion needed because oRPC infers merged context types but procedures
+	// handle auth/workspace validation at runtime via middleware
 	const { matched, response } = await handler.handle(c.req.raw, {
 		prefix: '/api/rpc',
-		context,
+		context: context as Parameters<typeof handler.handle>[1]['context'],
 	})
 
 	if (matched) {
