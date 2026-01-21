@@ -1,0 +1,969 @@
+{
+  "name": "Comprehensive Test Suite for Hare Platform",
+  "description": "Complete test suite covering all features using Vitest unit/integration tests and Playwright E2E tests for authentication, dashboard, agents, tools, settings, webhooks, workspaces, real-time WebSocket features, and accessibility compliance",
+  "branchName": "ralph/comprehensive-test-suite",
+  "userStories": [
+    {
+      "id": "US-001",
+      "title": "Create test fixtures and factories",
+      "description": "As a developer, I want comprehensive test fixtures and data factories so that tests have consistent, reusable test data.",
+      "acceptanceCriteria": [
+        "Create packages/testing package with shared test utilities",
+        "Create factory functions for all core entities: createTestUser(), createTestAgent(), createTestTool(), createTestWorkspace(), createTestWebhook()",
+        "Each factory accepts optional overrides for customization",
+        "Create database seeding utilities for integration tests",
+        "Create mock builders for Cloudflare bindings (D1, KV, R2, AI)",
+        "Export all fixtures from a central @hare/testing package",
+        "Add documentation for fixture usage in README",
+        "bun run checks passes",
+        "bun run test passes"
+      ],
+      "priority": 1,
+      "passes": true,
+      "notes": "",
+      "dependsOn": [],
+      "completionNotes": "Completed by agent"
+    },
+    {
+      "id": "US-002",
+      "title": "Unit tests for authentication API routes",
+      "description": "As a developer, I want unit tests for all authentication API routes so that auth flows are verified at the API level.",
+      "acceptanceCriteria": [
+        "Test POST /api/auth/sign-up/email - successful registration",
+        "Test POST /api/auth/sign-up/email - duplicate email rejection",
+        "Test POST /api/auth/sign-up/email - invalid email format rejection",
+        "Test POST /api/auth/sign-up/email - weak password rejection",
+        "Test POST /api/auth/sign-in/email - successful login returns session",
+        "Test POST /api/auth/sign-in/email - invalid credentials return 401",
+        "Test GET /api/auth/session - returns session for authenticated user",
+        "Test GET /api/auth/session - returns null/401 for unauthenticated",
+        "Test POST /api/auth/sign-out - clears session",
+        "Test GET /api/auth/providers - returns available OAuth providers",
+        "All tests use mocked D1 database",
+        "Tests located in packages/api/src/routes/__tests__/auth.test.ts",
+        "bun run checks passes",
+        "bun run test passes"
+      ],
+      "priority": 2,
+      "passes": true,
+      "notes": "",
+      "dependsOn": [
+        "US-001"
+      ],
+      "completionNotes": "Completed by agent"
+    },
+    {
+      "id": "US-003",
+      "title": "Unit tests for agent API routes",
+      "description": "As a developer, I want unit tests for all agent CRUD API routes so that agent management is verified.",
+      "acceptanceCriteria": [
+        "Test GET /api/agents - returns list of user's agents",
+        "Test GET /api/agents - returns empty array for new user",
+        "Test GET /api/agents - filters by status (draft, deployed)",
+        "Test POST /api/agents - creates agent with valid data",
+        "Test POST /api/agents - rejects invalid model selection",
+        "Test POST /api/agents - rejects missing required fields",
+        "Test GET /api/agents/:id - returns agent details",
+        "Test GET /api/agents/:id - returns 404 for non-existent agent",
+        "Test GET /api/agents/:id - returns 403 for other user's agent",
+        "Test PATCH /api/agents/:id - updates agent fields",
+        "Test PATCH /api/agents/:id - validates model on update",
+        "Test DELETE /api/agents/:id - deletes agent",
+        "Test DELETE /api/agents/:id - returns 404 for non-existent",
+        "Test POST /api/agents/:id/deploy - deploys draft agent",
+        "Test POST /api/agents/:id/deploy - rejects already deployed agent",
+        "Tests located in packages/api/src/routes/__tests__/agents.test.ts",
+        "bun run checks passes",
+        "bun run test passes"
+      ],
+      "priority": 3,
+      "passes": true,
+      "notes": "",
+      "dependsOn": [
+        "US-001"
+      ],
+      "completionNotes": "Completed by agent"
+    },
+    {
+      "id": "US-004",
+      "title": "Unit tests for tools API routes",
+      "description": "As a developer, I want unit tests for tool management API routes so that tool CRUD operations are verified.",
+      "acceptanceCriteria": [
+        "Test GET /api/tools - returns system tools list",
+        "Test GET /api/tools - returns custom tools for workspace",
+        "Test GET /api/tools/system - returns only system tools",
+        "Test GET /api/tools/custom - returns only custom tools",
+        "Test POST /api/tools - creates custom HTTP tool",
+        "Test POST /api/tools - validates URL format",
+        "Test POST /api/tools - validates HTTP method",
+        "Test POST /api/tools - validates JSON schema for parameters",
+        "Test GET /api/tools/:id - returns tool details",
+        "Test PATCH /api/tools/:id - updates custom tool",
+        "Test PATCH /api/tools/:id - rejects updates to system tools",
+        "Test DELETE /api/tools/:id - deletes custom tool",
+        "Test DELETE /api/tools/:id - rejects deletion of system tools",
+        "Test POST /api/tools/:id/test - tests tool execution",
+        "Tests located in packages/api/src/routes/__tests__/tools.test.ts",
+        "bun run checks passes",
+        "bun run test passes"
+      ],
+      "priority": 4,
+      "passes": true,
+      "notes": "",
+      "dependsOn": [
+        "US-001"
+      ],
+      "completionNotes": "Completed by agent"
+    },
+    {
+      "id": "US-005",
+      "title": "Unit tests for webhook API routes",
+      "description": "As a developer, I want unit tests for webhook management API routes so that webhook configuration is verified.",
+      "acceptanceCriteria": [
+        "Test GET /api/agents/:id/webhooks - returns agent's webhooks",
+        "Test POST /api/agents/:id/webhooks - creates webhook with valid URL",
+        "Test POST /api/agents/:id/webhooks - rejects invalid URL",
+        "Test POST /api/agents/:id/webhooks - validates event types",
+        "Test PATCH /api/webhooks/:id - updates webhook configuration",
+        "Test PATCH /api/webhooks/:id - toggles webhook enabled/disabled",
+        "Test DELETE /api/webhooks/:id - deletes webhook",
+        "Test POST /api/webhooks/:id/test - sends test webhook payload",
+        "Test webhook secret generation and validation",
+        "Tests located in packages/api/src/routes/__tests__/webhooks.test.ts",
+        "bun run checks passes",
+        "bun run test passes"
+      ],
+      "priority": 5,
+      "passes": true,
+      "notes": "",
+      "dependsOn": [
+        "US-001"
+      ],
+      "completionNotes": "Completed by agent"
+    },
+    {
+      "id": "US-006",
+      "title": "Unit tests for workspace API routes",
+      "description": "As a developer, I want unit tests for workspace management API routes so that multi-workspace functionality is verified.",
+      "acceptanceCriteria": [
+        "Test GET /api/workspaces - returns user's workspaces",
+        "Test POST /api/workspaces - creates new workspace",
+        "Test POST /api/workspaces - validates workspace name uniqueness",
+        "Test GET /api/workspaces/:id - returns workspace details",
+        "Test PATCH /api/workspaces/:id - updates workspace settings",
+        "Test DELETE /api/workspaces/:id - deletes workspace (owner only)",
+        "Test POST /api/workspaces/:id/members - invites team member",
+        "Test DELETE /api/workspaces/:id/members/:userId - removes member",
+        "Test PATCH /api/workspaces/:id/members/:userId - updates member role",
+        "Test workspace switching persists in session",
+        "Tests located in packages/api/src/routes/__tests__/workspaces.test.ts",
+        "bun run checks passes",
+        "bun run test passes"
+      ],
+      "priority": 6,
+      "passes": true,
+      "notes": "",
+      "dependsOn": [
+        "US-001"
+      ],
+      "completionNotes": "Completed by agent"
+    },
+    {
+      "id": "US-007",
+      "title": "Unit tests for usage and analytics API routes",
+      "description": "As a developer, I want unit tests for usage tracking API routes so that analytics data is verified.",
+      "acceptanceCriteria": [
+        "Test GET /api/usage - returns usage stats for current period",
+        "Test GET /api/usage - filters by date range",
+        "Test GET /api/usage - aggregates by agent",
+        "Test GET /api/usage/agents/:id - returns agent-specific usage",
+        "Test GET /api/analytics - returns analytics dashboard data",
+        "Test GET /api/analytics/tokens - returns token usage breakdown",
+        "Test GET /api/analytics/calls - returns API call statistics",
+        "Test usage tracking middleware records requests",
+        "Tests located in packages/api/src/routes/__tests__/usage.test.ts",
+        "bun run checks passes",
+        "bun run test passes"
+      ],
+      "priority": 7,
+      "passes": true,
+      "notes": "",
+      "dependsOn": [
+        "US-001"
+      ],
+      "completionNotes": "Completed by agent"
+    },
+    {
+      "id": "US-008",
+      "title": "Unit tests for React hooks",
+      "description": "As a developer, I want unit tests for all custom React hooks so that client-side data fetching and state management is verified.",
+      "acceptanceCriteria": [
+        "Test useSession() - returns session when authenticated",
+        "Test useSession() - returns null when unauthenticated",
+        "Test useAgents() - fetches and caches agent list",
+        "Test useAgent(id) - fetches single agent details",
+        "Test useCreateAgent() - mutation creates agent and invalidates cache",
+        "Test useUpdateAgent() - mutation updates and invalidates cache",
+        "Test useDeleteAgent() - mutation deletes and invalidates cache",
+        "Test useTools() - fetches system and custom tools",
+        "Test useWorkspaces() - fetches user workspaces",
+        "Test useUsage() - fetches usage statistics",
+        "All hooks tested with React Testing Library and MSW for mocking",
+        "Tests located in packages/app/hooks/__tests__/",
+        "bun run checks passes",
+        "bun run test passes"
+      ],
+      "priority": 8,
+      "passes": true,
+      "notes": "",
+      "dependsOn": [
+        "US-001"
+      ],
+      "completionNotes": "Completed by agent"
+    },
+    {
+      "id": "US-009",
+      "title": "Unit tests for agent tool implementations",
+      "description": "As a developer, I want unit tests for all 40+ agent tool implementations so that tool execution is verified.",
+      "acceptanceCriteria": [
+        "Test each tool in apps/web/src/lib/agents/tools/ individually",
+        "Test tool input validation against Zod schemas",
+        "Test tool execution with mocked Cloudflare bindings",
+        "Test tool error handling returns proper failure responses",
+        "Test success() and failure() helper functions",
+        "Test tool context injection (env, user, workspace)",
+        "Test storage tools (KV get/set/delete)",
+        "Test database tools (D1 query execution)",
+        "Test HTTP tools (fetch with proper headers)",
+        "Test AI tools (Workers AI invocation)",
+        "Tests located in apps/web/src/lib/agents/tools/__tests__/",
+        "bun run checks passes",
+        "bun run test passes"
+      ],
+      "priority": 9,
+      "passes": true,
+      "notes": "",
+      "dependsOn": [
+        "US-001"
+      ],
+      "completionNotes": "Completed by agent"
+    },
+    {
+      "id": "US-010",
+      "title": "Unit tests for database schema and queries",
+      "description": "As a developer, I want unit tests for database schema validation and common queries so that data integrity is verified.",
+      "acceptanceCriteria": [
+        "Test all Drizzle schema definitions compile correctly",
+        "Test schema migrations apply without errors",
+        "Test agents table CRUD operations",
+        "Test agent_versions table versioning logic",
+        "Test tools table with JSON schema storage",
+        "Test workspaces table with member relationships",
+        "Test webhooks table with agent foreign key",
+        "Test conversations table message storage",
+        "Test usage table aggregation queries",
+        "Test cascade deletes work correctly",
+        "Test unique constraints are enforced",
+        "Tests located in packages/db/src/__tests__/",
+        "bun run checks passes",
+        "bun run test passes"
+      ],
+      "priority": 10,
+      "passes": true,
+      "notes": "",
+      "dependsOn": [
+        "US-001"
+      ],
+      "completionNotes": "Completed by agent"
+    },
+    {
+      "id": "US-011",
+      "title": "E2E tests for complete authentication flows",
+      "description": "As a developer, I want E2E tests for all authentication user journeys so that auth works end-to-end.",
+      "acceptanceCriteria": [
+        "Test sign-up flow with valid credentials creates account",
+        "Test sign-up shows validation errors for invalid email",
+        "Test sign-up shows validation errors for weak password",
+        "Test sign-up shows error for duplicate email",
+        "Test sign-in flow with valid credentials redirects to dashboard",
+        "Test sign-in shows error for invalid credentials",
+        "Test sign-in forgot password link navigates correctly",
+        "Test password reset flow sends email (mock verification)",
+        "Test sign-out clears session and redirects to landing",
+        "Test protected routes redirect to sign-in when unauthenticated",
+        "Test session persistence across page refreshes",
+        "Test OAuth buttons are visible (Google, GitHub)",
+        "Tests located in apps/web/e2e/auth-comprehensive.e2e.ts",
+        "bun run checks passes",
+        "bun run test:e2e passes"
+      ],
+      "priority": 11,
+      "passes": true,
+      "notes": "",
+      "dependsOn": [
+        "US-001"
+      ],
+      "completionNotes": "Completed by agent"
+    },
+    {
+      "id": "US-012",
+      "title": "E2E tests for dashboard home page",
+      "description": "As a developer, I want E2E tests for the dashboard home page so that the overview functionality is verified.",
+      "acceptanceCriteria": [
+        "Test dashboard loads with stats cards (Total Agents, API Calls, Tokens, Tools)",
+        "Test stats cards show correct counts from database",
+        "Test quick action links navigate to correct pages",
+        "Test recent agents section shows up to 5 agents",
+        "Test recent agents cards show name, status, last updated",
+        "Test clicking agent card navigates to agent detail",
+        "Test Create New Agent card navigates to create page",
+        "Test empty state displays for new users with no agents",
+        "Test onboarding wizard appears for new users",
+        "Test dashboard refreshes data on focus",
+        "Tests located in apps/web/e2e/dashboard-home.e2e.ts",
+        "bun run checks passes",
+        "bun run test:e2e passes"
+      ],
+      "priority": 12,
+      "passes": true,
+      "notes": "",
+      "dependsOn": [
+        "US-011"
+      ],
+      "completionNotes": "Completed by agent"
+    },
+    {
+      "id": "US-013",
+      "title": "E2E tests for agent list page",
+      "description": "As a developer, I want E2E tests for the agents list page so that agent browsing and filtering is verified.",
+      "acceptanceCriteria": [
+        "Test agents list page loads and displays agents",
+        "Test status filter All shows all agents",
+        "Test status filter Live shows only deployed agents",
+        "Test status filter Drafts shows only draft agents",
+        "Test search filters agents by name",
+        "Test search filters agents by description",
+        "Test search shows no results for non-matching query",
+        "Test clearing search shows all agents again",
+        "Test agent cards display name, model, status badge, tool count",
+        "Test clicking agent card navigates to detail page",
+        "Test New Agent button navigates to create page",
+        "Test pagination works for many agents (if implemented)",
+        "Test empty state with Create your first agent CTA",
+        "Tests located in apps/web/e2e/agents-list.e2e.ts",
+        "bun run checks passes",
+        "bun run test:e2e passes"
+      ],
+      "priority": 13,
+      "passes": true,
+      "notes": "",
+      "dependsOn": [
+        "US-012"
+      ],
+      "completionNotes": "Completed by agent"
+    },
+    {
+      "id": "US-014",
+      "title": "E2E tests for agent creation flow",
+      "description": "As a developer, I want E2E tests for agent creation so that the full creation flow is verified.",
+      "acceptanceCriteria": [
+        "Test create page loads with empty form",
+        "Test name field is required - shows error when empty",
+        "Test model dropdown shows available models",
+        "Test model selection updates form state",
+        "Test description field accepts text",
+        "Test system prompt field accepts multiline text",
+        "Test form submission with valid data creates agent",
+        "Test successful creation redirects to agent detail page",
+        "Test created agent appears in agents list",
+        "Test template query param pre-fills form (if templates exist)",
+        "Test cancel button returns to agents list",
+        "Test form preserves data on validation error",
+        "Tests located in apps/web/e2e/agent-create.e2e.ts",
+        "bun run checks passes",
+        "bun run test:e2e passes"
+      ],
+      "priority": 14,
+      "passes": true,
+      "notes": "",
+      "dependsOn": [
+        "US-013"
+      ],
+      "completionNotes": "Completed by agent"
+    },
+    {
+      "id": "US-015",
+      "title": "E2E tests for agent detail and configuration",
+      "description": "As a developer, I want E2E tests for agent detail page so that viewing and editing agents is verified.",
+      "acceptanceCriteria": [
+        "Test detail page loads with agent data",
+        "Test general settings section shows name, description, model",
+        "Test inline editing of name updates agent",
+        "Test inline editing of description updates agent",
+        "Test model dropdown changes model",
+        "Test prompt configuration section is visible",
+        "Test system prompt can be edited and saved",
+        "Test tools section shows assigned tools",
+        "Test adding tool to agent works",
+        "Test removing tool from agent works",
+        "Test status badge shows current status (draft/deployed)",
+        "Test deploy button visible for draft agents",
+        "Test deploy button hidden for deployed agents",
+        "Test delete button shows confirmation dialog",
+        "Test confirming delete removes agent and redirects",
+        "Tests located in apps/web/e2e/agent-detail.e2e.ts",
+        "bun run checks passes",
+        "bun run test:e2e passes"
+      ],
+      "priority": 15,
+      "passes": true,
+      "notes": "",
+      "dependsOn": [
+        "US-014"
+      ],
+      "completionNotes": "Completed by agent"
+    },
+    {
+      "id": "US-016",
+      "title": "E2E tests for agent deployment",
+      "description": "As a developer, I want E2E tests for agent deployment so that the deployment flow is verified.",
+      "acceptanceCriteria": [
+        "Test deploy button is visible on draft agent detail page",
+        "Test clicking deploy shows confirmation dialog",
+        "Test confirming deployment changes status to deployed",
+        "Test deployed agent shows Live status badge",
+        "Test deploy button is replaced with deployment info",
+        "Test deployed agent appears in Live filter on list page",
+        "Test deployment creates version history entry",
+        "Test undeploy/rollback functionality (if implemented)",
+        "Tests located in apps/web/e2e/agent-deploy.e2e.ts",
+        "bun run checks passes",
+        "bun run test:e2e passes"
+      ],
+      "priority": 16,
+      "passes": true,
+      "notes": "",
+      "dependsOn": [
+        "US-015"
+      ],
+      "completionNotes": "Completed by agent"
+    },
+    {
+      "id": "US-017",
+      "title": "E2E tests for agent playground/chat",
+      "description": "As a developer, I want E2E tests for the agent playground so that chat functionality is verified.",
+      "acceptanceCriteria": [
+        "Test playground page loads for deployed agent",
+        "Test playground shows deploy required message for draft agent",
+        "Test message input field is visible and focusable",
+        "Test sending message shows user message in chat",
+        "Test agent response appears after sending message",
+        "Test streaming response updates in real-time (visual verification)",
+        "Test clear messages button clears chat history",
+        "Test chat history persists during session",
+        "Test long messages are handled correctly",
+        "Test special characters in messages are handled",
+        "Test keyboard shortcuts (Enter to send, Shift+Enter for newline)",
+        "Tests located in apps/web/e2e/agent-playground.e2e.ts",
+        "bun run checks passes",
+        "bun run test:e2e passes"
+      ],
+      "priority": 17,
+      "passes": true,
+      "notes": "",
+      "dependsOn": [
+        "US-016"
+      ],
+      "completionNotes": "Completed by agent"
+    },
+    {
+      "id": "US-018",
+      "title": "E2E tests for agent version history",
+      "description": "As a developer, I want E2E tests for agent version history so that versioning is verified.",
+      "acceptanceCriteria": [
+        "Test version history section visible on agent detail",
+        "Test creating agent creates initial version (v1)",
+        "Test updating agent configuration creates new version",
+        "Test version list shows all versions with timestamps",
+        "Test clicking version shows version details",
+        "Test version diff shows what changed (if implemented)",
+        "Test rollback to previous version works (if implemented)",
+        "Tests located in apps/web/e2e/agent-versions.e2e.ts",
+        "bun run checks passes",
+        "bun run test:e2e passes"
+      ],
+      "priority": 18,
+      "passes": true,
+      "notes": "",
+      "dependsOn": [
+        "US-016"
+      ],
+      "completionNotes": "Completed by agent"
+    },
+    {
+      "id": "US-019",
+      "title": "E2E tests for tools list page",
+      "description": "As a developer, I want E2E tests for the tools list page so that tool browsing is verified.",
+      "acceptanceCriteria": [
+        "Test tools page loads with system and custom sections",
+        "Test system tools section shows built-in tools",
+        "Test system tools section is collapsible",
+        "Test custom tools section shows user-created tools",
+        "Test custom tools section is collapsible",
+        "Test search filters tools by name",
+        "Test search filters tools by description",
+        "Test Quick Add button opens dialog",
+        "Test Create HTTP Tool button navigates to create page",
+        "Test tool cards show name, description, type",
+        "Test clicking custom tool card shows edit options",
+        "Test system tools cannot be edited (no edit option)",
+        "Tests located in apps/web/e2e/tools-list.e2e.ts",
+        "bun run checks passes",
+        "bun run test:e2e passes"
+      ],
+      "priority": 19,
+      "passes": true,
+      "notes": "",
+      "dependsOn": [
+        "US-012"
+      ],
+      "completionNotes": "Completed by agent"
+    },
+    {
+      "id": "US-020",
+      "title": "E2E tests for custom tool creation",
+      "description": "As a developer, I want E2E tests for custom HTTP tool creation so that tool creation is verified.",
+      "acceptanceCriteria": [
+        "Test create tool page loads with empty form",
+        "Test name field is required",
+        "Test URL field is required and validates format",
+        "Test HTTP method dropdown shows GET, POST, PUT, DELETE, PATCH",
+        "Test headers section allows adding custom headers",
+        "Test parameters section allows defining input schema",
+        "Test authentication section allows API key configuration",
+        "Test Test Tool button executes tool with sample input",
+        "Test successful creation redirects to tools list",
+        "Test created tool appears in custom tools section",
+        "Test form validation shows appropriate errors",
+        "Tests located in apps/web/e2e/tool-create.e2e.ts",
+        "bun run checks passes",
+        "bun run test:e2e passes"
+      ],
+      "priority": 20,
+      "passes": true,
+      "notes": "",
+      "dependsOn": [
+        "US-019"
+      ],
+      "completionNotes": "Completed by agent"
+    },
+    {
+      "id": "US-021",
+      "title": "E2E tests for tool editing and deletion",
+      "description": "As a developer, I want E2E tests for tool editing and deletion so that tool management is verified.",
+      "acceptanceCriteria": [
+        "Test clicking edit on custom tool opens edit form",
+        "Test edit form is pre-filled with tool data",
+        "Test updating tool name saves changes",
+        "Test updating tool URL saves changes",
+        "Test updating tool headers saves changes",
+        "Test delete button shows confirmation dialog",
+        "Test confirming delete removes tool",
+        "Test deleted tool no longer appears in list",
+        "Test tools assigned to agents show warning on delete",
+        "Test system tools have no edit/delete options",
+        "Tests located in apps/web/e2e/tool-edit.e2e.ts",
+        "bun run checks passes",
+        "bun run test:e2e passes"
+      ],
+      "priority": 21,
+      "passes": true,
+      "notes": "",
+      "dependsOn": [
+        "US-020"
+      ],
+      "completionNotes": "Completed by agent"
+    },
+    {
+      "id": "US-022",
+      "title": "E2E tests for webhook management",
+      "description": "As a developer, I want E2E tests for webhook configuration so that webhook management is verified.",
+      "acceptanceCriteria": [
+        "Test webhooks tab visible on agent detail page",
+        "Test webhooks list shows existing webhooks",
+        "Test Add Webhook button opens creation form",
+        "Test URL field is required and validates format",
+        "Test event type selection (all events, specific events)",
+        "Test creating webhook adds it to list",
+        "Test webhook shows generated secret",
+        "Test editing webhook URL updates configuration",
+        "Test toggle webhook enabled/disabled works",
+        "Test delete webhook shows confirmation",
+        "Test Test Webhook sends sample payload",
+        "Test webhook history shows delivery attempts (if implemented)",
+        "Tests located in apps/web/e2e/webhooks.e2e.ts",
+        "bun run checks passes",
+        "bun run test:e2e passes"
+      ],
+      "priority": 22,
+      "passes": true,
+      "notes": "",
+      "dependsOn": [
+        "US-015"
+      ],
+      "completionNotes": "Completed by agent"
+    },
+    {
+      "id": "US-023",
+      "title": "E2E tests for settings page",
+      "description": "As a developer, I want E2E tests for the settings page so that user preferences are verified.",
+      "acceptanceCriteria": [
+        "Test settings page loads with all sections",
+        "Test profile section shows user name and email",
+        "Test updating name saves and shows success message",
+        "Test email field is disabled (cannot be changed)",
+        "Test workspace section shows current workspace",
+        "Test workspace name can be edited (if owner)",
+        "Test notifications section displays options",
+        "Test security section shows password and 2FA options",
+        "Test coming soon labels on unimplemented features",
+        "Test sign out button logs out and redirects",
+        "Test navigation within settings tabs works",
+        "Tests located in apps/web/e2e/settings.e2e.ts",
+        "bun run checks passes",
+        "bun run test:e2e passes"
+      ],
+      "priority": 23,
+      "passes": true,
+      "notes": "",
+      "dependsOn": [
+        "US-012"
+      ],
+      "completionNotes": "Completed by agent"
+    },
+    {
+      "id": "US-024",
+      "title": "E2E tests for workspace management",
+      "description": "As a developer, I want E2E tests for workspace management so that multi-workspace functionality is verified.",
+      "acceptanceCriteria": [
+        "Test workspace switcher shows current workspace",
+        "Test workspace switcher dropdown lists all workspaces",
+        "Test switching workspace updates context",
+        "Test agents list shows only current workspace agents",
+        "Test Create Workspace option in switcher",
+        "Test creating new workspace switches to it",
+        "Test workspace settings accessible for owners",
+        "Test team members section shows workspace members",
+        "Test inviting team member sends invitation",
+        "Test removing team member updates list",
+        "Test member role can be changed (admin, member)",
+        "Test non-owners cannot access workspace settings",
+        "Tests located in apps/web/e2e/workspace.e2e.ts",
+        "bun run checks passes",
+        "bun run test:e2e passes"
+      ],
+      "priority": 24,
+      "passes": true,
+      "notes": "",
+      "dependsOn": [
+        "US-023"
+      ],
+      "completionNotes": "Completed by agent"
+    },
+    {
+      "id": "US-025",
+      "title": "E2E tests for usage page",
+      "description": "As a developer, I want E2E tests for the usage page so that usage tracking display is verified.",
+      "acceptanceCriteria": [
+        "Test usage page loads with usage statistics",
+        "Test total API calls count is displayed",
+        "Test total tokens used is displayed",
+        "Test usage breakdown by agent is shown",
+        "Test date range filter changes displayed data",
+        "Test usage chart/graph renders correctly",
+        "Test export usage data button works (if implemented)",
+        "Test usage updates reflect recent activity",
+        "Tests located in apps/web/e2e/usage.e2e.ts",
+        "bun run checks passes",
+        "bun run test:e2e passes"
+      ],
+      "priority": 25,
+      "passes": true,
+      "notes": "",
+      "dependsOn": [
+        "US-012"
+      ],
+      "completionNotes": "Completed by agent"
+    },
+    {
+      "id": "US-026",
+      "title": "E2E tests for analytics page",
+      "description": "As a developer, I want E2E tests for the analytics page so that analytics display is verified.",
+      "acceptanceCriteria": [
+        "Test analytics page loads with dashboard",
+        "Test total requests metric is displayed",
+        "Test average response time metric is displayed",
+        "Test error rate metric is displayed",
+        "Test analytics charts render correctly",
+        "Test time period selector changes data range",
+        "Test per-agent analytics breakdown is available",
+        "Test analytics data refreshes on demand",
+        "Tests located in apps/web/e2e/analytics.e2e.ts",
+        "bun run checks passes",
+        "bun run test:e2e passes"
+      ],
+      "priority": 26,
+      "passes": true,
+      "notes": "",
+      "dependsOn": [
+        "US-025"
+      ],
+      "completionNotes": "Completed by agent"
+    },
+    {
+      "id": "US-027",
+      "title": "E2E tests for WebSocket real-time chat",
+      "description": "As a developer, I want E2E tests for WebSocket-based real-time chat so that live agent interactions are verified.",
+      "acceptanceCriteria": [
+        "Test WebSocket connection establishes on playground load",
+        "Test connection status indicator shows connected",
+        "Test sending message transmits via WebSocket",
+        "Test agent response streams in real-time",
+        "Test tool calls are displayed during execution",
+        "Test connection reconnects after disconnect",
+        "Test error state shown when connection fails",
+        "Test multiple rapid messages queue correctly",
+        "Test long-running responses don't timeout",
+        "Test connection closes cleanly on page navigation",
+        "Tests located in apps/web/e2e/websocket-chat.e2e.ts",
+        "bun run checks passes",
+        "bun run test:e2e passes"
+      ],
+      "priority": 27,
+      "passes": true,
+      "notes": "",
+      "dependsOn": [
+        "US-017"
+      ],
+      "completionNotes": "Completed by agent"
+    },
+    {
+      "id": "US-028",
+      "title": "E2E tests for responsive design",
+      "description": "As a developer, I want E2E tests for responsive design so that mobile and tablet layouts are verified.",
+      "acceptanceCriteria": [
+        "Test dashboard at mobile viewport (375px)",
+        "Test dashboard at tablet viewport (768px)",
+        "Test dashboard at desktop viewport (1280px)",
+        "Test sidebar collapses to hamburger menu on mobile",
+        "Test hamburger menu opens/closes sidebar",
+        "Test agent cards stack vertically on mobile",
+        "Test forms are usable on mobile (inputs accessible)",
+        "Test modals/dialogs fit mobile viewport",
+        "Test tables scroll horizontally on mobile",
+        "Test touch targets are minimum 44x44px",
+        "Tests located in apps/web/e2e/responsive.e2e.ts",
+        "bun run checks passes",
+        "bun run test:e2e passes"
+      ],
+      "priority": 28,
+      "passes": true,
+      "notes": "",
+      "dependsOn": [
+        "US-012"
+      ],
+      "completionNotes": "Completed by agent"
+    },
+    {
+      "id": "US-029",
+      "title": "E2E tests for accessibility compliance",
+      "description": "As a developer, I want E2E tests for accessibility so that WCAG 2.1 AA compliance is verified.",
+      "acceptanceCriteria": [
+        "Integrate @axe-core/playwright for automated a11y scanning",
+        "Test dashboard home page has no critical a11y violations",
+        "Test agents list page has no critical a11y violations",
+        "Test agent detail page has no critical a11y violations",
+        "Test tools page has no critical a11y violations",
+        "Test settings page has no critical a11y violations",
+        "Test all forms have proper labels and ARIA attributes",
+        "Test keyboard navigation works through all interactive elements",
+        "Test focus indicators are visible",
+        "Test color contrast meets AA standards (4.5:1 for text)",
+        "Test screen reader landmarks are present (header, main, nav)",
+        "Test images have alt text",
+        "Test error messages are announced to screen readers",
+        "Tests located in apps/web/e2e/accessibility.e2e.ts",
+        "bun run checks passes",
+        "bun run test:e2e passes"
+      ],
+      "priority": 29,
+      "passes": true,
+      "notes": "",
+      "dependsOn": [
+        "US-012"
+      ],
+      "completionNotes": "Completed by agent"
+    },
+    {
+      "id": "US-030",
+      "title": "E2E tests for error handling and edge cases",
+      "description": "As a developer, I want E2E tests for error handling so that the app gracefully handles failures.",
+      "acceptanceCriteria": [
+        "Test 404 page displays for invalid routes",
+        "Test error boundary catches component errors",
+        "Test API error shows user-friendly message",
+        "Test network timeout shows retry option",
+        "Test form submission during network error shows message",
+        "Test concurrent edits show conflict resolution (if implemented)",
+        "Test expired session redirects to login",
+        "Test rate limiting shows appropriate message",
+        "Test very long input strings are handled",
+        "Test special characters in all text fields",
+        "Test empty state when API returns no data",
+        "Tests located in apps/web/e2e/error-handling.e2e.ts",
+        "bun run checks passes",
+        "bun run test:e2e passes"
+      ],
+      "priority": 30,
+      "passes": true,
+      "notes": "",
+      "dependsOn": [
+        "US-012"
+      ],
+      "completionNotes": "Completed by agent"
+    },
+    {
+      "id": "US-031",
+      "title": "E2E tests for navigation and routing",
+      "description": "As a developer, I want E2E tests for navigation so that all routes and navigation patterns are verified.",
+      "acceptanceCriteria": [
+        "Test all sidebar navigation links work",
+        "Test breadcrumb navigation works (if implemented)",
+        "Test browser back/forward buttons work correctly",
+        "Test deep linking to agent detail page works",
+        "Test deep linking to settings section works",
+        "Test 404 handling for invalid agent IDs",
+        "Test redirect after sign-in returns to original destination",
+        "Test URL updates when switching tabs/sections",
+        "Test page titles update for each route",
+        "Tests located in apps/web/e2e/navigation.e2e.ts",
+        "bun run checks passes",
+        "bun run test:e2e passes"
+      ],
+      "priority": 31,
+      "passes": true,
+      "notes": "",
+      "dependsOn": [
+        "US-012"
+      ],
+      "completionNotes": "Completed by agent"
+    },
+    {
+      "id": "US-032",
+      "title": "Unit tests for WebSocket connection manager",
+      "description": "As a developer, I want unit tests for WebSocket connection handling so that real-time communication logic is verified.",
+      "acceptanceCriteria": [
+        "Test WebSocket connection initialization",
+        "Test message serialization/deserialization",
+        "Test reconnection logic with exponential backoff",
+        "Test heartbeat/ping-pong mechanism",
+        "Test connection state management",
+        "Test message queue during disconnect",
+        "Test error handling for malformed messages",
+        "Test cleanup on component unmount",
+        "Use mock WebSocket for unit tests",
+        "Tests located in packages/app/lib/__tests__/websocket.test.ts",
+        "bun run checks passes",
+        "bun run test passes"
+      ],
+      "priority": 32,
+      "passes": true,
+      "notes": "",
+      "dependsOn": [
+        "US-001"
+      ],
+      "completionNotes": "Completed by agent"
+    },
+    {
+      "id": "US-033",
+      "title": "Integration tests for agent-tool assignment",
+      "description": "As a developer, I want integration tests for agent-tool relationships so that tool assignment workflows are verified.",
+      "acceptanceCriteria": [
+        "Test assigning tool to agent creates relationship",
+        "Test agent retrieval includes assigned tools",
+        "Test removing tool from agent removes relationship",
+        "Test deleting tool removes from all agents",
+        "Test agent with tools executes tool correctly",
+        "Test tool permissions are respected per agent",
+        "Test bulk tool assignment works",
+        "Tests use real D1 database in test environment",
+        "Tests located in packages/api/src/__tests__/agent-tools.integration.test.ts",
+        "bun run checks passes",
+        "bun run test passes"
+      ],
+      "priority": 33,
+      "passes": true,
+      "notes": "",
+      "dependsOn": [
+        "US-003",
+        "US-004"
+      ],
+      "completionNotes": "Completed by agent"
+    },
+    {
+      "id": "US-034",
+      "title": "Performance baseline tests",
+      "description": "As a developer, I want performance baseline tests so that regressions in load time and responsiveness are caught.",
+      "acceptanceCriteria": [
+        "Test dashboard page loads in under 3 seconds",
+        "Test agents list with 50 agents loads in under 2 seconds",
+        "Test agent detail page loads in under 2 seconds",
+        "Test no memory leaks after repeated navigation",
+        "Test no significant layout shifts (CLS < 0.1)",
+        "Test first contentful paint under 1.5 seconds",
+        "Capture and store baseline metrics",
+        "Tests fail if metrics exceed baseline by >20%",
+        "Tests located in apps/web/e2e/performance.e2e.ts",
+        "bun run checks passes",
+        "bun run test:e2e passes"
+      ],
+      "priority": 34,
+      "passes": true,
+      "notes": "",
+      "dependsOn": [
+        "US-012"
+      ],
+      "completionNotes": "Completed by agent"
+    },
+    {
+      "id": "US-035",
+      "title": "Test documentation and CI integration",
+      "description": "As a developer, I want test documentation and CI integration so that tests run automatically and are maintainable.",
+      "acceptanceCriteria": [
+        "Document test structure and conventions in TESTING.md",
+        "Document how to run tests locally",
+        "Document how to add new tests",
+        "Document fixture and factory usage",
+        "Update CI workflow to run bun run test on PRs",
+        "Update CI workflow to run bun run test:e2e on PRs",
+        "Configure test coverage reporting in CI",
+        "Configure test failure notifications",
+        "Add test status badge to README",
+        "Tests run in parallel where possible",
+        "bun run checks passes"
+      ],
+      "priority": 35,
+      "passes": true,
+      "notes": "",
+      "dependsOn": [
+        "US-001",
+        "US-011"
+      ],
+      "completionNotes": "Completed by agent"
+    }
+  ],
+  "metadata": {
+    "createdAt": "2026-01-18T00:00:00.000Z",
+    "updatedAt": "2026-01-20T11:24:18.780Z"
+  }
+}
