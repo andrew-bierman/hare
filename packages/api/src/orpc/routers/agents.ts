@@ -87,7 +87,8 @@ function serializeAgent(
 		description: agent.description,
 		model: agent.model,
 		instructions: agent.instructions,
-		config: agent.config as z.infer<typeof AgentSchema>['config'],
+		// config schema is optional (not nullable), so convert null to undefined
+		config: (agent.config ?? undefined) as z.infer<typeof AgentSchema>['config'],
 		status: agent.status as z.infer<typeof AgentSchema>['status'],
 		systemToolsEnabled: agent.systemToolsEnabled,
 		toolIds,

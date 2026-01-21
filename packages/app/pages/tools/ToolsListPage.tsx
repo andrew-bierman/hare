@@ -19,7 +19,7 @@ import {
 	TableHeader,
 	TableRow,
 } from '@hare/ui/components/table'
-import { ChevronDown, Globe, Plus, Trash2, Wrench } from 'lucide-react'
+import { ChevronDown, Globe, Pencil, Plus, Trash2, Wrench } from 'lucide-react'
 import { type ChangeEvent, useState } from 'react'
 import type { ToolType } from '@hare/types'
 import { useToolsQuery } from '../../shared/api/hooks'
@@ -60,7 +60,16 @@ function getToolIcon(type: ToolType) {
 	return TOOL_TYPE_ICONS[type] || Wrench
 }
 
-export function ToolsListPage() {
+export interface ToolsListPageProps {
+	/**
+	 * Base path for tool detail pages.
+	 * Default: '/dashboard/tools' (will navigate to '/dashboard/tools/:id')
+	 * For Tauri: '/tools' (will navigate to '/tools/:id')
+	 */
+	toolDetailBasePath?: string
+}
+
+export function ToolsListPage({ toolDetailBasePath = '/dashboard/tools' }: ToolsListPageProps = {}) {
 	const { activeWorkspace } = useWorkspace()
 	const { data, isLoading, error } = useToolsQuery()
 
@@ -241,14 +250,26 @@ export function ToolsListPage() {
 																</span>
 															</TableCell>
 															<TableCell>
-																<Button
-																	variant="ghost"
-																	size="sm"
-																	className="h-8 w-8 p-0 hover:bg-destructive/10 hover:text-destructive"
-																	onClick={() => setDeleteToolId(tool.id)}
-																>
-																	<Trash2 className="h-4 w-4" />
-																</Button>
+																<div className="flex items-center gap-1">
+																	<Button
+																		variant="ghost"
+																		size="sm"
+																		className="h-8 w-8 p-0"
+																		asChild
+																	>
+																		<a href={`${toolDetailBasePath}/${tool.id}`}>
+																			<Pencil className="h-4 w-4" />
+																		</a>
+																	</Button>
+																	<Button
+																		variant="ghost"
+																		size="sm"
+																		className="h-8 w-8 p-0 hover:bg-destructive/10 hover:text-destructive"
+																		onClick={() => setDeleteToolId(tool.id)}
+																	>
+																		<Trash2 className="h-4 w-4" />
+																	</Button>
+																</div>
 															</TableCell>
 														</TableRow>
 													)

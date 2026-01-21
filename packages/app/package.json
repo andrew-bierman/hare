@@ -69,10 +69,12 @@
 	"devDependencies": {
 		"@hare/typescript-config": "workspace:*",
 		"@tanstack/react-router": "^1.144.0",
+		"@testing-library/react": "^16.0.0",
 		"@types/react": "^19",
 		"@types/react-dom": "^19",
 		"hono": "^4.11.3",
-		"typescript": "^5"
+		"typescript": "^5",
+		"vitest": "^3.2.4"
 	},
 	"peerDependencies": {
 		"@tanstack/react-router": "^1.120.5",
