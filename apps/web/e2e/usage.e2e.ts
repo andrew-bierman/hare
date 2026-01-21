@@ -11,26 +11,42 @@ import { test } from './fixtures'
  */
 async function getWorkspaceId(page: Page): Promise<string> {
 	await page.waitForLoadState('networkidle')
-	const response = await page.request.get('/api/workspaces')
+	const response = await page.request.get('/api/rpc/workspaces/list')
 	expect(response.status()).toBe(200)
 	const body = await response.json()
-	expect(body).toHaveProperty('workspaces')
-	expect(body.workspaces.length).toBeGreaterThan(0)
-	return body.workspaces[0].id
+	expect(Array.isArray(body)).toBe(true)
+	expect(body.length).toBeGreaterThan(0)
+	return body[0].id
 }
 
 baseTest.describe('Usage Page - Unauthenticated', () => {
-	baseTest(
-		'unauthenticated user is redirected to sign-in',
-		async ({ page }: { page: Page }) => {
-			await page.goto('/dashboard/usage')
-			await page.waitForLoadState('networkidle')
+	baseTest('redirects unauthenticated users to sign-in', async ({ page }: { page: Page }) => {
+		await page.goto('/dashboard/usage')
+		await page.waitForLoadState('networkidle')
 
-			// Should be redirected to sign-in page
-			await expect(page).toHaveURL(/sign-in/)
-			await expect(page.getByRole('button', { name: 'Sign In' })).toBeVisible()
-		},
-	)
+		// Protected route should redirect to sign-in
+		await expect(page).toHaveURL(/\/sign-in/)
+		await expect(page.getByRole('heading', { name: 'Welcome back' })).toBeVisible()
+	})
+})
+
+test.describe('Usage Page Access - Sidebar Navigation', () => {
+	test('can navigate to usage page from sidebar', async ({ authenticatedPage }) => {
+		await authenticatedPage.goto('/dashboard')
+		await authenticatedPage.waitForLoadState('networkidle')
+
+		await authenticatedPage.getByRole('link', { name: 'Usage' }).click()
+		await authenticatedPage.waitForURL(/\/dashboard\/usage/, { timeout: 10000 })
+		await expect(authenticatedPage.getByRole('heading', { name: 'Usage' })).toBeVisible()
+	})
+
+	test('usage link is visible in navigation', async ({ authenticatedPage }) => {
+		await authenticatedPage.goto('/dashboard')
+		await authenticatedPage.waitForLoadState('networkidle')
+
+		const nav = authenticatedPage.locator('nav')
+		await expect(nav.getByRole('link', { name: 'Usage' })).toBeVisible()
+	})
 })
 
 test.describe('Usage Page - Authenticated', () => {
@@ -95,8 +111,8 @@ test.describe('Usage Statistics Display', () => {
 		// Wait for loading to complete
 		await authenticatedPage.waitForTimeout(2000)
 
-		// Check for Period card
-		await expect(authenticatedPage.getByText('Period')).toBeVisible()
+		// Check for Period card - use exact match to avoid ambiguity
+		await expect(authenticatedPage.getByText('Period', { exact: true })).toBeVisible()
 	})
 
 	test('stat cards show billing period description', async ({ authenticatedPage }) => {
@@ -509,6 +525,6 @@ test.describe('Usage Page Accessibility', () => {
 		await expect(authenticatedPage.getByText('Total API Calls')).toBeVisible()
 		await expect(authenticatedPage.getByText('Total Tokens')).toBeVisible()
 		await expect(authenticatedPage.getByText('Active Agents')).toBeVisible()
-		await expect(authenticatedPage.getByText('Period')).toBeVisible()
+		await expect(authenticatedPage.getByText('Period', { exact: true })).toBeVisible()
 	})
 })

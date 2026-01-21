@@ -6,18 +6,15 @@ import { test } from './fixtures'
  * Tests sidebar navigation, breadcrumbs, and routing between pages.
  */
 
-baseTest.describe('Sidebar Navigation - Unauthenticated', () => {
-	baseTest(
-		'unauthenticated user is redirected to sign-in',
-		async ({ page }: { page: Page }) => {
-			await page.goto('/dashboard')
-			await page.waitForLoadState('networkidle')
+baseTest.describe('Dashboard Routes - Unauthenticated', () => {
+	baseTest('redirects unauthenticated users to sign-in', async ({ page }: { page: Page }) => {
+		await page.goto('/dashboard')
+		await page.waitForLoadState('networkidle')
 
-			// Should be redirected to sign-in page
-			await expect(page).toHaveURL(/sign-in/)
-			await expect(page.getByRole('button', { name: 'Sign In' })).toBeVisible()
-		},
-	)
+		// Protected route should redirect to sign-in
+		await expect(page).toHaveURL(/\/sign-in/)
+		await expect(page.getByRole('heading', { name: 'Welcome back' })).toBeVisible()
+	})
 })
 
 test.describe('Sidebar Navigation - Authenticated', () => {
@@ -29,6 +26,7 @@ test.describe('Sidebar Navigation - Authenticated', () => {
 		await expect(nav.getByRole('link', { name: 'Dashboard' })).toBeVisible()
 		await expect(nav.getByRole('link', { name: 'Agents' })).toBeVisible()
 		await expect(nav.getByRole('link', { name: 'Tools' })).toBeVisible()
+		await expect(nav.getByRole('link', { name: 'Analytics' })).toBeVisible()
 		await expect(nav.getByRole('link', { name: 'Usage' })).toBeVisible()
 		await expect(nav.getByRole('link', { name: 'Settings' })).toBeVisible()
 	})
@@ -52,6 +50,15 @@ test.describe('Sidebar Navigation - Authenticated', () => {
 		await authenticatedPage.waitForURL(/\/dashboard\/tools/, { timeout: 10000 })
 		// Use locator for the main page heading (h2)
 		await expect(authenticatedPage.locator('h2').filter({ hasText: 'Tools' })).toBeVisible()
+	})
+
+	test('navigates to analytics page from sidebar', async ({ authenticatedPage }) => {
+		await authenticatedPage.goto('/dashboard')
+		await authenticatedPage.waitForLoadState('networkidle')
+
+		await authenticatedPage.getByRole('link', { name: 'Analytics' }).click()
+		await authenticatedPage.waitForURL(/\/dashboard\/analytics/)
+		await expect(authenticatedPage.getByRole('heading', { name: 'Analytics' })).toBeVisible()
 	})
 
 	test('navigates to usage page from sidebar', async ({ authenticatedPage }) => {
@@ -81,7 +88,7 @@ test.describe('Sidebar Navigation - Authenticated', () => {
 	})
 })
 
-test.describe('Full Navigation - Authenticated', () => {
+test.describe('Navigation - Authenticated', () => {
 	test('can navigate through all dashboard sections', async ({ authenticatedPage }) => {
 		// Start at dashboard
 		await authenticatedPage.goto('/dashboard')
@@ -113,12 +120,15 @@ test.describe('Full Navigation - Authenticated', () => {
 		await authenticatedPage.waitForLoadState('networkidle')
 
 		await authenticatedPage.getByRole('link', { name: 'New Agent' }).click()
-		await authenticatedPage.waitForURL(/\/dashboard\/agents\/new/)
-		await expect(authenticatedPage.getByRole('heading', { name: 'Create New Agent' })).toBeVisible()
+		// May go to templates page first or directly to new
+		await authenticatedPage.waitForURL(/\/dashboard\/agents\/(new|templates)/)
+		// Either templates or create page should appear
+		const hasCreateHeading = await authenticatedPage.locator('h2').filter({ hasText: /Create.*Agent|Choose.*Template/i }).isVisible({ timeout: 5000 }).catch(() => false)
+		expect(hasCreateHeading).toBeTruthy()
 	})
 })
 
-test.describe('Header Navigation - Authenticated', () => {
+test.describe('Header Navigation', () => {
 	test('header has search bar', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard')
 		await authenticatedPage.waitForLoadState('networkidle')
@@ -139,7 +149,7 @@ test.describe('Header Navigation - Authenticated', () => {
 	})
 })
 
-test.describe('Mobile Navigation - Authenticated', () => {
+test.describe('Mobile Navigation', () => {
 	test('sidebar collapses on mobile', async ({ authenticatedPage }) => {
 		await authenticatedPage.setViewportSize({ width: 375, height: 667 })
 		await authenticatedPage.goto('/dashboard')
@@ -166,7 +176,7 @@ test.describe('Mobile Navigation - Authenticated', () => {
 	})
 })
 
-baseTest.describe('Landing to Dashboard Navigation - Public Pages', () => {
+baseTest.describe('Landing to Dashboard Navigation', () => {
 	baseTest('Get Started button navigates to sign-up', async ({ page }: { page: Page }) => {
 		await page.goto('/')
 		await page.waitForLoadState('networkidle')

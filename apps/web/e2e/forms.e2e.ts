@@ -2,17 +2,14 @@ import { test as baseTest, expect, type Page } from '@playwright/test'
 import { test } from './fixtures'
 
 baseTest.describe('Agent Creation Form - Unauthenticated', () => {
-	baseTest(
-		'unauthenticated user is redirected to sign-in',
-		async ({ page }: { page: Page }) => {
-			await page.goto('/dashboard/agents/new')
-			await page.waitForLoadState('networkidle')
+	baseTest('redirects unauthenticated users to sign-in', async ({ page }: { page: Page }) => {
+		await page.goto('/dashboard/agents/new')
+		await page.waitForLoadState('networkidle')
 
-			// Should be redirected to sign-in page
-			await expect(page).toHaveURL(/sign-in/)
-			await expect(page.getByRole('button', { name: 'Sign In' })).toBeVisible()
-		},
-	)
+		// Protected route should redirect to sign-in
+		await expect(page).toHaveURL(/\/sign-in/)
+		await expect(page.getByRole('heading', { name: 'Welcome back' })).toBeVisible()
+	})
 })
 
 test.describe('Agent Creation Form - Authenticated', () => {
@@ -49,17 +46,14 @@ test.describe('Agent Creation Form - Authenticated', () => {
 })
 
 baseTest.describe('Settings Form - Unauthenticated', () => {
-	baseTest(
-		'unauthenticated user is redirected to sign-in',
-		async ({ page }: { page: Page }) => {
-			await page.goto('/dashboard/settings')
-			await page.waitForLoadState('networkidle')
+	baseTest('redirects unauthenticated users to sign-in', async ({ page }: { page: Page }) => {
+		await page.goto('/dashboard/settings')
+		await page.waitForLoadState('networkidle')
 
-			// Should be redirected to sign-in page
-			await expect(page).toHaveURL(/sign-in/)
-			await expect(page.getByRole('button', { name: 'Sign In' })).toBeVisible()
-		},
-	)
+		// Protected route should redirect to sign-in
+		await expect(page).toHaveURL(/\/sign-in/)
+		await expect(page.getByRole('heading', { name: 'Welcome back' })).toBeVisible()
+	})
 })
 
 test.describe('Settings Form - Authenticated', () => {

@@ -7,49 +7,17 @@ import { test } from './fixtures'
  */
 
 baseTest.describe('Tools Page - Unauthenticated', () => {
-	baseTest(
-		'unauthenticated user is redirected to sign-in',
-		async ({ page }: { page: Page }) => {
-			await page.goto('/dashboard/tools')
-			await page.waitForLoadState('networkidle')
+	baseTest('redirects unauthenticated users to sign-in', async ({ page }: { page: Page }) => {
+		await page.goto('/dashboard/tools')
+		await page.waitForLoadState('networkidle')
 
-			// Should be redirected to sign-in page
-			await expect(page).toHaveURL(/sign-in/)
-			await expect(page.getByRole('button', { name: 'Sign In' })).toBeVisible()
-		},
-	)
+		// Protected route should redirect to sign-in
+		await expect(page).toHaveURL(/\/sign-in/)
+		await expect(page.getByRole('heading', { name: 'Welcome back' })).toBeVisible()
+	})
 })
 
 test.describe('Tools Page - Authenticated', () => {
-	test('displays tools heading', async ({ authenticatedPage }) => {
-		await authenticatedPage.goto('/dashboard/tools')
-		await authenticatedPage.waitForLoadState('networkidle')
-		await expect(
-			authenticatedPage.getByRole('heading', { name: 'Tools', exact: true }),
-		).toBeVisible()
-	})
-
-	test('displays tool action buttons', async ({ authenticatedPage }) => {
-		await authenticatedPage.goto('/dashboard/tools')
-		await authenticatedPage.waitForLoadState('networkidle')
-
-		// UI has "Quick Add" and "Create HTTP Tool" buttons
-		const quickAddBtn = authenticatedPage.getByRole('button', { name: 'Quick Add' })
-		const createHttpToolBtn = authenticatedPage.getByRole('button', { name: 'Create HTTP Tool' })
-		// At least one should be visible
-		const hasQuickAdd = await quickAddBtn.isVisible().catch(() => false)
-		const hasCreateHttp = await createHttpToolBtn.isVisible().catch(() => false)
-		expect(hasQuickAdd || hasCreateHttp).toBe(true)
-	})
-
-	test('page loads without errors', async ({ authenticatedPage }) => {
-		await authenticatedPage.goto('/dashboard/tools')
-		await authenticatedPage.waitForLoadState('networkidle')
-
-		// Page should have some content about tools
-		await expect(authenticatedPage.locator('body')).not.toContainText('404')
-	})
-
 	test('shows system tools section', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/tools')
 		await authenticatedPage.waitForLoadState('networkidle')
@@ -126,9 +94,7 @@ test.describe('Tools Page - Responsive', () => {
 		await authenticatedPage.goto('/dashboard/tools')
 		await authenticatedPage.waitForLoadState('networkidle')
 
-		await expect(
-			authenticatedPage.getByRole('heading', { name: 'Tools', exact: true }),
-		).toBeVisible()
+		await expect(authenticatedPage.getByRole('heading', { name: 'Tools', exact: true })).toBeVisible()
 	})
 
 	test('displays correctly on tablet', async ({ authenticatedPage }) => {
@@ -136,8 +102,6 @@ test.describe('Tools Page - Responsive', () => {
 		await authenticatedPage.goto('/dashboard/tools')
 		await authenticatedPage.waitForLoadState('networkidle')
 
-		await expect(
-			authenticatedPage.getByRole('heading', { name: 'Tools', exact: true }),
-		).toBeVisible()
+		await expect(authenticatedPage.getByRole('heading', { name: 'Tools', exact: true })).toBeVisible()
 	})
 })

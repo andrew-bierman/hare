@@ -126,17 +126,13 @@ test.describe('Workspace Context', () => {
 })
 
 baseTest.describe('Workspace Access Control', () => {
-	baseTest(
-		'unauthenticated user cannot access workspace-specific features',
-		async ({ page }: { page: Page }) => {
-			// Try to access workspace page directly
-			await page.goto('/dashboard')
-			await page.waitForLoadState('networkidle')
+	baseTest('unauthenticated user is redirected to sign-in', async ({ page }: { page: Page }) => {
+		// Try to access workspace page directly
+		await page.goto('/dashboard')
+		await page.waitForLoadState('networkidle')
 
-			// Page should still load (middleware might allow it) but show limited content
-			// or redirect to login
-			const url = page.url()
-			expect(url.includes('/dashboard') || url.includes('/sign-in')).toBe(true)
-		},
-	)
+		// Protected route should redirect to sign-in
+		await expect(page).toHaveURL(/\/sign-in/)
+		await expect(page.getByRole('heading', { name: 'Welcome back' })).toBeVisible()
+	})
 })
