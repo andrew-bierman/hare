@@ -7,7 +7,7 @@
 import { z } from 'zod'
 import { and, eq } from 'drizzle-orm'
 import { users, workspaceInvitations, workspaceMembers, workspaces } from '@hare/db/schema'
-import { WORKSPACE_ROLES, MEMBER_ROLES, INVITATION_STATUSES } from '@hare/config'
+import { config, WORKSPACE_ROLES, MEMBER_ROLES, INVITATION_STATUSES } from '@hare/config'
 import { requireWrite, requireAdmin, notFound, badRequest, serverError, type WorkspaceContext } from '../base'
 import { logAudit } from '../audit'
 import { SuccessSchema, IdParamSchema } from '../../schemas'

@@ -11,7 +11,7 @@ function getWorktreePort(): number | null {
 	if (existsSync(configPath)) {
 		const content = readFileSync(configPath, 'utf-8')
 		const match = content.match(/^PORT=(\d+)/m)
-		if (match) return parseInt(match[1], 10)
+		if (match?.[1]) return parseInt(match[1], 10)
 	}
 	return null
 }
