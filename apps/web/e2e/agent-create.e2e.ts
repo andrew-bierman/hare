@@ -116,8 +116,11 @@ test.describe('Agent Create Page - Model Dropdown', () => {
 		expect(optionCount).toBeGreaterThan(0)
 
 		// Should show at least one of the known models (Llama, Claude, GPT)
-		const hasKnownModel =
-			(await authenticatedPage.getByText(/Llama|Claude|GPT/).first().isVisible().catch(() => false))
+		const hasKnownModel = await authenticatedPage
+			.getByText(/Llama|Claude|GPT/)
+			.first()
+			.isVisible()
+			.catch(() => false)
 
 		expect(hasKnownModel).toBeTruthy()
 	})
@@ -206,7 +209,12 @@ test.describe('Agent Create Page - System Prompt Field', () => {
 			const instructionsTextarea = instructionsContainer.locator('textarea')
 
 			// Try to find any visible textarea
-			if (await instructionsTextarea.first().isVisible().catch(() => false)) {
+			if (
+				await instructionsTextarea
+					.first()
+					.isVisible()
+					.catch(() => false)
+			) {
 				await instructionsTextarea.first().fill(multilinePrompt)
 				await expect(instructionsTextarea.first()).toHaveValue(multilinePrompt)
 			} else {
