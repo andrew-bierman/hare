@@ -25,11 +25,7 @@ const ROUTES_TO_WARM = [
 ]
 
 // API endpoints to warm up
-const API_ENDPOINTS = [
-	'/api/auth/session',
-	'/api/rpc/workspaces/list',
-	'/api/rpc/agents/list',
-]
+const API_ENDPOINTS = ['/api/auth/session', '/api/rpc/workspaces/list', '/api/rpc/agents/list']
 
 async function warmupRoutes(baseURL: string): Promise<void> {
 	console.log('\n[Global Setup] Warming up routes...')

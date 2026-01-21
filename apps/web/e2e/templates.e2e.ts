@@ -112,9 +112,18 @@ test.describe('Template Cards', () => {
 		const leadsText = authenticatedPage.getByText(/lead|product|meeting/i)
 
 		const hasDescriptions =
-			(await faqText.first().isVisible({ timeout: 5000 }).catch(() => false)) ||
-			(await documentationText.first().isVisible({ timeout: 2000 }).catch(() => false)) ||
-			(await leadsText.first().isVisible({ timeout: 2000 }).catch(() => false))
+			(await faqText
+				.first()
+				.isVisible({ timeout: 5000 })
+				.catch(() => false)) ||
+			(await documentationText
+				.first()
+				.isVisible({ timeout: 2000 })
+				.catch(() => false)) ||
+			(await leadsText
+				.first()
+				.isVisible({ timeout: 2000 })
+				.catch(() => false))
 
 		expect(hasDescriptions).toBeTruthy()
 	})
@@ -124,7 +133,7 @@ test.describe('Template Cards', () => {
 		await authenticatedPage.waitForLoadState('networkidle')
 
 		// Should show multiple templates (at least 4)
-		const cards = authenticatedPage.locator('[class*="card"], [class*="Card"]')
+		const _cards = authenticatedPage.locator('[class*="card"], [class*="Card"]')
 		const templateText = authenticatedPage.getByText(/support|knowledge|sales|general|builder/i)
 
 		// Count visible template mentions
@@ -191,7 +200,12 @@ test.describe('Template Selection', () => {
 			.locator('[class*="card"], button, [role="button"]')
 			.filter({ hasText: /customer support/i })
 
-		if (await customerSupport.first().isVisible({ timeout: 5000 }).catch(() => false)) {
+		if (
+			await customerSupport
+				.first()
+				.isVisible({ timeout: 5000 })
+				.catch(() => false)
+		) {
 			await customerSupport.first().click()
 
 			// Should navigate to new agent page with template param
@@ -211,7 +225,12 @@ test.describe('Template Selection', () => {
 			.locator('[class*="card"], button, [role="button"]')
 			.filter({ hasText: /knowledge base/i })
 
-		if (await knowledgeBase.first().isVisible({ timeout: 5000 }).catch(() => false)) {
+		if (
+			await knowledgeBase
+				.first()
+				.isVisible({ timeout: 5000 })
+				.catch(() => false)
+		) {
 			await knowledgeBase.first().click()
 
 			// Should navigate to new agent page with template param
@@ -225,7 +244,9 @@ test.describe('Template Selection', () => {
 		await authenticatedPage.waitForLoadState('networkidle')
 
 		// Check that template cards have pointer cursor or are buttons
-		const cards = authenticatedPage.locator('[class*="card"], button').filter({ hasText: /support|knowledge|sales/i })
+		const cards = authenticatedPage
+			.locator('[class*="card"], button')
+			.filter({ hasText: /support|knowledge|sales/i })
 		const firstCard = cards.first()
 
 		await expect(firstCard).toBeVisible({ timeout: 10000 })
@@ -287,15 +308,28 @@ test.describe('Template Pre-fill', () => {
 			.locator('[class*="card"], button')
 			.filter({ hasText: /customer support/i })
 
-		if (await customerSupport.first().isVisible({ timeout: 5000 }).catch(() => false)) {
+		if (
+			await customerSupport
+				.first()
+				.isVisible({ timeout: 5000 })
+				.catch(() => false)
+		) {
 			await customerSupport.first().click()
 			await authenticatedPage.waitForURL(/\/dashboard\/agents\/new/, { timeout: 10000 })
 			await authenticatedPage.waitForLoadState('networkidle')
 
 			// Check if instructions field is pre-filled
 			const instructionsTextarea = authenticatedPage.locator('textarea')
-			if (await instructionsTextarea.first().isVisible({ timeout: 5000 }).catch(() => false)) {
-				const value = await instructionsTextarea.first().inputValue().catch(() => '')
+			if (
+				await instructionsTextarea
+					.first()
+					.isVisible({ timeout: 5000 })
+					.catch(() => false)
+			) {
+				const value = await instructionsTextarea
+					.first()
+					.inputValue()
+					.catch(() => '')
 				// Template should pre-fill some instructions
 				expect(value.length).toBeGreaterThanOrEqual(0)
 			}
@@ -348,7 +382,10 @@ test.describe('Templates - Responsive', () => {
 		await authenticatedPage.waitForTimeout(500)
 
 		// Knowledge base should be accessible (either visible or scrollable)
-		const hasKB = await knowledgeBase.first().isVisible({ timeout: 3000 }).catch(() => false)
+		const hasKB = await knowledgeBase
+			.first()
+			.isVisible({ timeout: 3000 })
+			.catch(() => false)
 		expect(hasKB || true).toBeTruthy()
 	})
 })

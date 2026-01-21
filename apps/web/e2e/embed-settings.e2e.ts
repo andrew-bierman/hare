@@ -28,12 +28,15 @@ async function createAgent(page: import('@playwright/test').Page): Promise<strin
 // ============================================================================
 
 baseTest.describe('Embed Settings Route Protection', () => {
-	baseTest('unauthenticated user is redirected from embed settings to sign-in', async ({ page }) => {
-		await page.goto('/dashboard/agents/test-agent-id/embed')
-		await page.waitForLoadState('networkidle')
-		await page.waitForURL(/\/sign-in/, { timeout: 10000 })
-		await expect(page).toHaveURL(/\/sign-in/)
-	})
+	baseTest(
+		'unauthenticated user is redirected from embed settings to sign-in',
+		async ({ page }) => {
+			await page.goto('/dashboard/agents/test-agent-id/embed')
+			await page.waitForLoadState('networkidle')
+			await page.waitForURL(/\/sign-in/, { timeout: 10000 })
+			await expect(page).toHaveURL(/\/sign-in/)
+		},
+	)
 })
 
 // ============================================================================
@@ -93,9 +96,18 @@ test.describe('Embed Appearance Settings', () => {
 		const darkOption = authenticatedPage.getByText(/dark/i)
 
 		const hasTheme =
-			(await themeText.first().isVisible({ timeout: 5000 }).catch(() => false)) ||
-			(await lightOption.first().isVisible({ timeout: 2000 }).catch(() => false)) ||
-			(await darkOption.first().isVisible({ timeout: 2000 }).catch(() => false))
+			(await themeText
+				.first()
+				.isVisible({ timeout: 5000 })
+				.catch(() => false)) ||
+			(await lightOption
+				.first()
+				.isVisible({ timeout: 2000 })
+				.catch(() => false)) ||
+			(await darkOption
+				.first()
+				.isVisible({ timeout: 2000 })
+				.catch(() => false))
 
 		expect(hasTheme).toBeTruthy()
 	})
@@ -111,9 +123,18 @@ test.describe('Embed Appearance Settings', () => {
 		const bottomLeft = authenticatedPage.getByText(/bottom.?left/i)
 
 		const hasPosition =
-			(await positionText.first().isVisible({ timeout: 5000 }).catch(() => false)) ||
-			(await bottomRight.first().isVisible({ timeout: 2000 }).catch(() => false)) ||
-			(await bottomLeft.first().isVisible({ timeout: 2000 }).catch(() => false))
+			(await positionText
+				.first()
+				.isVisible({ timeout: 5000 })
+				.catch(() => false)) ||
+			(await bottomRight
+				.first()
+				.isVisible({ timeout: 2000 })
+				.catch(() => false)) ||
+			(await bottomLeft
+				.first()
+				.isVisible({ timeout: 2000 })
+				.catch(() => false))
 
 		expect(hasPosition).toBeTruthy()
 	})
@@ -129,7 +150,10 @@ test.describe('Embed Appearance Settings', () => {
 		const hexInput = authenticatedPage.getByPlaceholder(/#|hex/i)
 
 		const hasColor =
-			(await colorText.first().isVisible({ timeout: 5000 }).catch(() => false)) ||
+			(await colorText
+				.first()
+				.isVisible({ timeout: 5000 })
+				.catch(() => false)) ||
 			(await colorInput.isVisible({ timeout: 2000 }).catch(() => false)) ||
 			(await hexInput.isVisible({ timeout: 2000 }).catch(() => false))
 
@@ -153,9 +177,18 @@ test.describe('Embed Behavior Settings', () => {
 		const enableText = authenticatedPage.getByText(/enable|active/i)
 
 		const hasEnable =
-			(await enableToggle.first().isVisible({ timeout: 5000 }).catch(() => false)) ||
-			(await enableCheckbox.first().isVisible({ timeout: 2000 }).catch(() => false)) ||
-			(await enableText.first().isVisible({ timeout: 2000 }).catch(() => false))
+			(await enableToggle
+				.first()
+				.isVisible({ timeout: 5000 })
+				.catch(() => false)) ||
+			(await enableCheckbox
+				.first()
+				.isVisible({ timeout: 2000 })
+				.catch(() => false)) ||
+			(await enableText
+				.first()
+				.isVisible({ timeout: 2000 })
+				.catch(() => false))
 
 		expect(hasEnable).toBeTruthy()
 	})
@@ -171,7 +204,10 @@ test.describe('Embed Behavior Settings', () => {
 
 		const hasWelcome =
 			(await welcomeLabel.isVisible({ timeout: 5000 }).catch(() => false)) ||
-			(await welcomeText.first().isVisible({ timeout: 2000 }).catch(() => false))
+			(await welcomeText
+				.first()
+				.isVisible({ timeout: 2000 })
+				.catch(() => false))
 
 		expect(hasWelcome).toBeTruthy()
 	})
@@ -193,7 +229,10 @@ test.describe('Embed Security Settings', () => {
 
 		const hasDomains =
 			(await domainsLabel.isVisible({ timeout: 5000 }).catch(() => false)) ||
-			(await domainsText.first().isVisible({ timeout: 2000 }).catch(() => false))
+			(await domainsText
+				.first()
+				.isVisible({ timeout: 2000 })
+				.catch(() => false))
 
 		expect(hasDomains).toBeTruthy()
 	})
@@ -214,8 +253,14 @@ test.describe('Embed Code Section', () => {
 		const scriptText = authenticatedPage.getByText(/<script/i)
 
 		const hasCode =
-			(await codeBlock.first().isVisible({ timeout: 10000 }).catch(() => false)) ||
-			(await scriptText.first().isVisible({ timeout: 5000 }).catch(() => false))
+			(await codeBlock
+				.first()
+				.isVisible({ timeout: 10000 })
+				.catch(() => false)) ||
+			(await scriptText
+				.first()
+				.isVisible({ timeout: 5000 })
+				.catch(() => false))
 
 		expect(hasCode).toBeTruthy()
 	})
@@ -230,8 +275,14 @@ test.describe('Embed Code Section', () => {
 		const copyIcon = authenticatedPage.locator('button:has([class*="copy"], [class*="clipboard"])')
 
 		const hasCopy =
-			(await copyButton.first().isVisible({ timeout: 5000 }).catch(() => false)) ||
-			(await copyIcon.first().isVisible({ timeout: 2000 }).catch(() => false))
+			(await copyButton
+				.first()
+				.isVisible({ timeout: 5000 })
+				.catch(() => false)) ||
+			(await copyIcon
+				.first()
+				.isVisible({ timeout: 2000 })
+				.catch(() => false))
 
 		expect(hasCopy).toBeTruthy()
 	})
@@ -262,8 +313,14 @@ test.describe('Embed Preview', () => {
 		const iframe = authenticatedPage.locator('iframe')
 
 		const hasPreview =
-			(await previewText.first().isVisible({ timeout: 5000 }).catch(() => false)) ||
-			(await iframe.first().isVisible({ timeout: 5000 }).catch(() => false))
+			(await previewText
+				.first()
+				.isVisible({ timeout: 5000 })
+				.catch(() => false)) ||
+			(await iframe
+				.first()
+				.isVisible({ timeout: 5000 })
+				.catch(() => false))
 
 		expect(hasPreview).toBeTruthy()
 	})

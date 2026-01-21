@@ -96,10 +96,13 @@ export const test = base.extend<{
 				await page.waitForLoadState('networkidle')
 
 				// Ensure default workspace is created by calling the API
-				const ensureWorkspaceResponse = await page.request.post('/api/rpc/workspaces/ensureDefault', {
-					headers: { 'Content-Type': 'application/json' },
-					data: {},
-				})
+				const ensureWorkspaceResponse = await page.request.post(
+					'/api/rpc/workspaces/ensureDefault',
+					{
+						headers: { 'Content-Type': 'application/json' },
+						data: {},
+					},
+				)
 
 				if (!ensureWorkspaceResponse.ok()) {
 					// If this fails, workspace might already exist, continue anyway

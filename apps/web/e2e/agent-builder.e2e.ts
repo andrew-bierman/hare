@@ -1,4 +1,4 @@
-import { test as baseTest, expect, type Page } from '@playwright/test'
+import { expect, type Page } from '@playwright/test'
 import { test } from './fixtures'
 
 /**
@@ -59,21 +59,21 @@ test.describe('Agent Builder - Tab Navigation', () => {
 		await authenticatedPage.getByRole('tab', { name: /prompt/i }).click()
 		await expect(authenticatedPage.getByRole('tab', { name: /prompt/i })).toHaveAttribute(
 			'aria-selected',
-			'true'
+			'true',
 		)
 
 		// Click Tools tab
 		await authenticatedPage.getByRole('tab', { name: /tools/i }).click()
 		await expect(authenticatedPage.getByRole('tab', { name: /tools/i })).toHaveAttribute(
 			'aria-selected',
-			'true'
+			'true',
 		)
 
 		// Click Preview tab
 		await authenticatedPage.getByRole('tab', { name: /preview/i }).click()
 		await expect(authenticatedPage.getByRole('tab', { name: /preview/i })).toHaveAttribute(
 			'aria-selected',
-			'true'
+			'true',
 		)
 	})
 })
@@ -90,7 +90,7 @@ test.describe('Agent Builder - General Tab', () => {
 		// General tab should be selected by default
 		await expect(authenticatedPage.getByRole('tab', { name: /general/i })).toHaveAttribute(
 			'aria-selected',
-			'true'
+			'true',
 		)
 
 		// Check agent name is displayed
@@ -186,7 +186,7 @@ test.describe('Agent Builder - Preview Tab', () => {
 
 		// Should show agent name in heading
 		await expect(
-			authenticatedPage.getByRole('heading', { name: new RegExp(agentName.slice(0, 10)) })
+			authenticatedPage.getByRole('heading', { name: new RegExp(agentName.slice(0, 10)) }),
 		).toBeVisible({ timeout: 10000 })
 	})
 })
@@ -215,9 +215,18 @@ test.describe('Agent Builder - Header Actions', () => {
 		const deployIcon = authenticatedPage.locator('button:has([class*="rocket"], [class*="upload"])')
 
 		const hasDeployAction =
-			(await deployButton.first().isVisible({ timeout: 5000 }).catch(() => false)) ||
-			(await deployLink.first().isVisible({ timeout: 2000 }).catch(() => false)) ||
-			(await deployIcon.first().isVisible({ timeout: 2000 }).catch(() => false))
+			(await deployButton
+				.first()
+				.isVisible({ timeout: 5000 })
+				.catch(() => false)) ||
+			(await deployLink
+				.first()
+				.isVisible({ timeout: 2000 })
+				.catch(() => false)) ||
+			(await deployIcon
+				.first()
+				.isVisible({ timeout: 2000 })
+				.catch(() => false))
 
 		// If no deploy action visible, the test should pass anyway - deployment may be auto
 		expect(hasDeployAction || true).toBeTruthy()
@@ -281,7 +290,10 @@ test.describe('Agent Templates', () => {
 
 		const hasTemplateContent =
 			(await heading.isVisible({ timeout: 10000 }).catch(() => false)) ||
-			(await templateContent.first().isVisible({ timeout: 5000 }).catch(() => false))
+			(await templateContent
+				.first()
+				.isVisible({ timeout: 5000 })
+				.catch(() => false))
 
 		expect(hasTemplateContent).toBeTruthy()
 	})

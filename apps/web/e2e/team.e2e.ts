@@ -113,9 +113,18 @@ test.describe('Member Management', () => {
 		const memberOption = authenticatedPage.getByText(/member/i)
 
 		const hasRole =
-			(await roleLabel.first().isVisible({ timeout: 5000 }).catch(() => false)) ||
-			(await adminOption.first().isVisible({ timeout: 2000 }).catch(() => false)) ||
-			(await memberOption.first().isVisible({ timeout: 2000 }).catch(() => false))
+			(await roleLabel
+				.first()
+				.isVisible({ timeout: 5000 })
+				.catch(() => false)) ||
+			(await adminOption
+				.first()
+				.isVisible({ timeout: 2000 })
+				.catch(() => false)) ||
+			(await memberOption
+				.first()
+				.isVisible({ timeout: 2000 })
+				.catch(() => false))
 
 		expect(hasRole).toBeTruthy()
 	})
@@ -181,7 +190,10 @@ test.describe('Member Display', () => {
 
 		// Should show email or @ symbol somewhere
 		const emailPattern = authenticatedPage.getByText(/@/)
-		const hasEmail = await emailPattern.first().isVisible({ timeout: 5000 }).catch(() => false)
+		const hasEmail = await emailPattern
+			.first()
+			.isVisible({ timeout: 5000 })
+			.catch(() => false)
 		expect(hasEmail || true).toBeTruthy()
 	})
 
@@ -191,13 +203,19 @@ test.describe('Member Display', () => {
 
 		// Look for action buttons or dropdown
 		const actionMenu = authenticatedPage.locator(
-			'button:has([class*=\"ellipsis\"], [class*=\"more\"], [class*=\"dots\"])'
+			'button:has([class*="ellipsis"], [class*="more"], [class*="dots"])',
 		)
 		const editButton = authenticatedPage.getByRole('button', { name: /edit|manage/i })
 
 		const hasActions =
-			(await actionMenu.first().isVisible({ timeout: 5000 }).catch(() => false)) ||
-			(await editButton.first().isVisible({ timeout: 2000 }).catch(() => false))
+			(await actionMenu
+				.first()
+				.isVisible({ timeout: 5000 })
+				.catch(() => false)) ||
+			(await editButton
+				.first()
+				.isVisible({ timeout: 2000 })
+				.catch(() => false))
 
 		// Actions may not be available for own user
 		expect(hasActions || true).toBeTruthy()
@@ -215,7 +233,10 @@ test.describe('Pending Invitations', () => {
 
 		// Look for pending section
 		const pendingText = authenticatedPage.getByText(/pending|invited|invitation/i)
-		const hasSection = await pendingText.first().isVisible({ timeout: 5000 }).catch(() => false)
+		const hasSection = await pendingText
+			.first()
+			.isVisible({ timeout: 5000 })
+			.catch(() => false)
 		expect(hasSection || true).toBeTruthy()
 	})
 })

@@ -1,5 +1,5 @@
 import { type APIRequestContext, test as baseTest, expect, type Page } from '@playwright/test'
-import { signUpViaUI, signInViaUI, test, generateTestUser } from './fixtures'
+import { signUpViaUI, test } from './fixtures'
 
 /**
  * Helper to fill a React form input using pressSequentially

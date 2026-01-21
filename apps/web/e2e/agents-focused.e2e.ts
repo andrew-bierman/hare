@@ -1,4 +1,4 @@
-import { test, expect } from './fixtures'
+import { expect, test } from './fixtures'
 
 /**
  * Focused E2E tests for the Agents section.
@@ -107,7 +107,11 @@ test.describe('Agents Section - Core Routes', () => {
 		const hasTemplatesText =
 			pageContent.includes('template') ||
 			pageContent.includes('Template') ||
-			(await authenticatedPage.getByText(/template/i).first().isVisible().catch(() => false))
+			(await authenticatedPage
+				.getByText(/template/i)
+				.first()
+				.isVisible()
+				.catch(() => false))
 
 		expect(hasTemplatesText).toBeTruthy()
 	})

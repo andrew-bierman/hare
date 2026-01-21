@@ -17,9 +17,7 @@ function getWorktreePort(): number | null {
 }
 
 // Port configuration - prioritize: PORT env var > worktree config > default 3000
-const DEFAULT_PORT = process.env.PORT
-	? parseInt(process.env.PORT, 10)
-	: getWorktreePort() ?? 3000
+const DEFAULT_PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : (getWorktreePort() ?? 3000)
 
 export default defineConfig({
 	testDir: './e2e',

@@ -32,7 +32,9 @@ test.describe('Agent Creation Flow - Authenticated', () => {
 		await authenticatedPage.waitForLoadState('networkidle')
 
 		// Wait for workspace to finish loading (indicated by form content appearing)
-		await expect(authenticatedPage.getByRole('heading', { name: 'Create New Agent' })).toBeVisible({ timeout: 20000 })
+		await expect(authenticatedPage.getByRole('heading', { name: 'Create New Agent' })).toBeVisible({
+			timeout: 20000,
+		})
 
 		// Check for required form fields
 		await expect(authenticatedPage.getByLabel(/Agent Name/i)).toBeVisible()
@@ -328,7 +330,9 @@ test.describe('Agent Chat/Conversation - Authenticated', () => {
 		await authenticatedPage.waitForLoadState('networkidle')
 
 		// Wait for form to load
-		await expect(authenticatedPage.getByRole('heading', { name: 'Create New Agent' })).toBeVisible({ timeout: 20000 })
+		await expect(authenticatedPage.getByRole('heading', { name: 'Create New Agent' })).toBeVisible({
+			timeout: 20000,
+		})
 
 		const agentName = generateAgentName()
 		const nameInput = authenticatedPage.getByLabel(/Agent Name/i)
@@ -368,7 +372,9 @@ test.describe('Agent Chat/Conversation - Authenticated', () => {
 		await authenticatedPage.waitForLoadState('networkidle')
 
 		// Wait for form to load
-		await expect(authenticatedPage.getByRole('heading', { name: 'Create New Agent' })).toBeVisible({ timeout: 20000 })
+		await expect(authenticatedPage.getByRole('heading', { name: 'Create New Agent' })).toBeVisible({
+			timeout: 20000,
+		})
 
 		const agentName = generateAgentName()
 		const nameInput = authenticatedPage.getByLabel(/Agent Name/i)
@@ -845,7 +851,9 @@ test.describe('Agent Pages - Responsive Design', () => {
 		await authenticatedPage.waitForLoadState('networkidle')
 
 		// Wait for workspace to load
-		await expect(authenticatedPage.getByRole('heading', { name: /agents/i })).toBeVisible({ timeout: 20000 })
+		await expect(authenticatedPage.getByRole('heading', { name: /agents/i })).toBeVisible({
+			timeout: 20000,
+		})
 	})
 
 	test('agent creation form displays correctly on mobile', async ({ authenticatedPage }) => {
@@ -854,7 +862,9 @@ test.describe('Agent Pages - Responsive Design', () => {
 		await authenticatedPage.waitForLoadState('networkidle')
 
 		// Wait for workspace to load
-		await expect(authenticatedPage.getByRole('heading', { name: 'Create New Agent' })).toBeVisible({ timeout: 20000 })
+		await expect(authenticatedPage.getByRole('heading', { name: 'Create New Agent' })).toBeVisible({
+			timeout: 20000,
+		})
 		await expect(authenticatedPage.getByLabel(/Agent Name/i)).toBeVisible()
 	})
 
@@ -864,6 +874,8 @@ test.describe('Agent Pages - Responsive Design', () => {
 		await authenticatedPage.waitForLoadState('networkidle')
 
 		// Wait for workspace to load
-		await expect(authenticatedPage.getByRole('heading', { name: /agents/i })).toBeVisible({ timeout: 20000 })
+		await expect(authenticatedPage.getByRole('heading', { name: /agents/i })).toBeVisible({
+			timeout: 20000,
+		})
 	})
 })

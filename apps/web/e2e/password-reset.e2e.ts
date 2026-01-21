@@ -86,7 +86,10 @@ baseTest.describe('Forgot Password Page', () => {
 
 		// Should show validation error
 		const errorText = page.getByText(/required|invalid|enter.*email/i)
-		const hasError = await errorText.first().isVisible({ timeout: 3000 }).catch(() => false)
+		const hasError = await errorText
+			.first()
+			.isVisible({ timeout: 3000 })
+			.catch(() => false)
 		expect(hasError || true).toBeTruthy()
 	})
 
@@ -110,7 +113,10 @@ baseTest.describe('Forgot Password Page', () => {
 
 		// Should show validation error
 		const errorText = page.getByText(/invalid|valid.*email/i)
-		const hasError = await errorText.first().isVisible({ timeout: 3000 }).catch(() => false)
+		const hasError = await errorText
+			.first()
+			.isVisible({ timeout: 3000 })
+			.catch(() => false)
 		expect(hasError || true).toBeTruthy()
 	})
 })
@@ -137,8 +143,14 @@ baseTest.describe('Reset Password Page', () => {
 		const errorText = page.getByText(/invalid|expired|token|link/i)
 
 		const hasContent =
-			(await heading.first().isVisible({ timeout: 5000 }).catch(() => false)) ||
-			(await errorText.first().isVisible({ timeout: 2000 }).catch(() => false))
+			(await heading
+				.first()
+				.isVisible({ timeout: 5000 })
+				.catch(() => false)) ||
+			(await errorText
+				.first()
+				.isVisible({ timeout: 2000 })
+				.catch(() => false))
 
 		expect(hasContent || true).toBeTruthy()
 	})
@@ -153,8 +165,14 @@ baseTest.describe('Reset Password Page', () => {
 		const errorText = page.getByText(/invalid|expired/i)
 
 		const hasContent =
-			(await passwordInput.first().isVisible({ timeout: 5000 }).catch(() => false)) ||
-			(await errorText.first().isVisible({ timeout: 2000 }).catch(() => false))
+			(await passwordInput
+				.first()
+				.isVisible({ timeout: 5000 })
+				.catch(() => false)) ||
+			(await errorText
+				.first()
+				.isVisible({ timeout: 2000 })
+				.catch(() => false))
 
 		expect(hasContent || true).toBeTruthy()
 	})
@@ -177,7 +195,12 @@ baseTest.describe('Password Reset Navigation', () => {
 			await forgotLink.click()
 			await page.waitForURL(/forgot-password/, { timeout: 10000 })
 			await expect(page).toHaveURL(/forgot-password/)
-		} else if (await forgotText.first().isVisible().catch(() => false)) {
+		} else if (
+			await forgotText
+				.first()
+				.isVisible()
+				.catch(() => false)
+		) {
 			// May be a clickable text
 			await forgotText.first().click()
 			await page.waitForURL(/forgot-password/, { timeout: 10000 }).catch(() => {})
@@ -189,7 +212,12 @@ baseTest.describe('Password Reset Navigation', () => {
 		await page.waitForLoadState('networkidle')
 
 		const backLink = page.getByRole('link', { name: /sign.?in|back|login/i })
-		if (await backLink.first().isVisible({ timeout: 5000 }).catch(() => false)) {
+		if (
+			await backLink
+				.first()
+				.isVisible({ timeout: 5000 })
+				.catch(() => false)
+		) {
 			await backLink.first().click()
 			await page.waitForURL(/sign-in/, { timeout: 10000 })
 			await expect(page).toHaveURL(/sign-in/)
@@ -255,7 +283,10 @@ baseTest.describe('Password Reset Security', () => {
 
 		// Check for success-like message or no error about "user not found"
 		const notFoundError = page.getByText(/user.*not.*found|no.*account|doesn't.*exist/i)
-		const isNotFoundVisible = await notFoundError.first().isVisible({ timeout: 2000 }).catch(() => false)
+		const isNotFoundVisible = await notFoundError
+			.first()
+			.isVisible({ timeout: 2000 })
+			.catch(() => false)
 
 		// Good security practice: should NOT reveal if email exists
 		// This test passes if we don't explicitly reveal email non-existence

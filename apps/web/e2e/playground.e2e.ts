@@ -106,7 +106,10 @@ test.describe('Playground Page', () => {
 		const hasExport =
 			(await exportButton.isVisible({ timeout: 5000 }).catch(() => false)) ||
 			(await downloadButton.isVisible({ timeout: 2000 }).catch(() => false)) ||
-			(await moreButton.first().isVisible({ timeout: 2000 }).catch(() => false))
+			(await moreButton
+				.first()
+				.isVisible({ timeout: 2000 })
+				.catch(() => false))
 
 		// Export may be in a dropdown - just verify page loaded
 		expect(hasExport || true).toBeTruthy()
@@ -169,9 +172,11 @@ test.describe('Playground Message Interaction', () => {
 
 		const button = (await sendButton.isVisible().catch(() => false)) ? sendButton : submitButton
 		// Button should be enabled after entering text
-		await expect(button).toBeEnabled({ timeout: 5000 }).catch(() => {
-			// Some UIs enable on any input
-		})
+		await expect(button)
+			.toBeEnabled({ timeout: 5000 })
+			.catch(() => {
+				// Some UIs enable on any input
+			})
 	})
 })
 
@@ -219,12 +224,17 @@ test.describe('Playground Navigation', () => {
 		// Look for back button
 		const backButton = authenticatedPage.getByRole('button', { name: /back/i })
 		const backLink = authenticatedPage.getByRole('link', { name: /back/i })
-		const arrowBack = authenticatedPage.locator('button:has([class*="arrow-left"], [class*="chevron-left"])')
+		const arrowBack = authenticatedPage.locator(
+			'button:has([class*="arrow-left"], [class*="chevron-left"])',
+		)
 
 		const hasBack =
 			(await backButton.isVisible({ timeout: 5000 }).catch(() => false)) ||
 			(await backLink.isVisible({ timeout: 2000 }).catch(() => false)) ||
-			(await arrowBack.first().isVisible({ timeout: 2000 }).catch(() => false))
+			(await arrowBack
+				.first()
+				.isVisible({ timeout: 2000 })
+				.catch(() => false))
 
 		expect(hasBack || true).toBeTruthy()
 	})

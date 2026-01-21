@@ -1,4 +1,4 @@
-import { test as baseTest, expect, type Page } from '@playwright/test'
+import { test as baseTest, expect } from '@playwright/test'
 import { test } from './fixtures'
 
 // ============================================================================
@@ -102,18 +102,16 @@ test.describe('Agent Creation Flow', () => {
 		await authenticatedPage.waitForLoadState('networkidle')
 
 		// Wait for form to load
-		await expect(
-			authenticatedPage.getByRole('heading', { name: 'Create New Agent' })
-		).toBeVisible({ timeout: 10000 })
+		await expect(authenticatedPage.getByRole('heading', { name: 'Create New Agent' })).toBeVisible({
+			timeout: 10000,
+		})
 
 		// Check for required form fields using labels
 		await expect(authenticatedPage.getByLabel(/Agent Name/i)).toBeVisible()
 		await expect(authenticatedPage.getByLabel(/Description/i)).toBeVisible()
 
 		// Check for create button
-		await expect(
-			authenticatedPage.getByRole('button', { name: /create agent/i })
-		).toBeVisible()
+		await expect(authenticatedPage.getByRole('button', { name: /create agent/i })).toBeVisible()
 	})
 
 	test('create button is disabled when name is empty', async ({ authenticatedPage }) => {

@@ -1,4 +1,4 @@
-import { test as baseTest, expect, type Page } from '@playwright/test'
+import { test as baseTest, expect } from '@playwright/test'
 import { test } from './fixtures'
 
 /**
@@ -121,8 +121,14 @@ test.describe('Tools List Page', () => {
 		const createLink = authenticatedPage.getByRole('link', { name: /create|add|new/i })
 
 		const hasCreate =
-			(await createButton.first().isVisible({ timeout: 5000 }).catch(() => false)) ||
-			(await createLink.first().isVisible({ timeout: 2000 }).catch(() => false))
+			(await createButton
+				.first()
+				.isVisible({ timeout: 5000 })
+				.catch(() => false)) ||
+			(await createLink
+				.first()
+				.isVisible({ timeout: 2000 })
+				.catch(() => false))
 
 		expect(hasCreate).toBeTruthy()
 	})

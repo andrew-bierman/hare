@@ -35,8 +35,14 @@ baseTest.describe('Documentation Page', () => {
 		const tocLinks = page.locator('a[href*="/docs"]')
 
 		const hasNav =
-			(await nav.first().isVisible({ timeout: 5000 }).catch(() => false)) ||
-			(await tocLinks.first().isVisible({ timeout: 2000 }).catch(() => false))
+			(await nav
+				.first()
+				.isVisible({ timeout: 5000 })
+				.catch(() => false)) ||
+			(await tocLinks
+				.first()
+				.isVisible({ timeout: 2000 })
+				.catch(() => false))
 
 		expect(hasNav || true).toBeTruthy()
 	})
@@ -137,7 +143,10 @@ baseTest.describe('Legal Footer Links', () => {
 		await page.waitForLoadState('networkidle')
 
 		const privacyLink = page.getByRole('link', { name: /privacy/i })
-		const hasPrivacy = await privacyLink.first().isVisible({ timeout: 5000 }).catch(() => false)
+		const hasPrivacy = await privacyLink
+			.first()
+			.isVisible({ timeout: 5000 })
+			.catch(() => false)
 		expect(hasPrivacy || true).toBeTruthy()
 	})
 
@@ -146,7 +155,10 @@ baseTest.describe('Legal Footer Links', () => {
 		await page.waitForLoadState('networkidle')
 
 		const termsLink = page.getByRole('link', { name: /terms/i })
-		const hasTerms = await termsLink.first().isVisible({ timeout: 5000 }).catch(() => false)
+		const hasTerms = await termsLink
+			.first()
+			.isVisible({ timeout: 5000 })
+			.catch(() => false)
 		expect(hasTerms || true).toBeTruthy()
 	})
 
@@ -155,7 +167,12 @@ baseTest.describe('Legal Footer Links', () => {
 		await page.waitForLoadState('networkidle')
 
 		const privacyLink = page.getByRole('link', { name: /privacy/i })
-		if (await privacyLink.first().isVisible({ timeout: 5000 }).catch(() => false)) {
+		if (
+			await privacyLink
+				.first()
+				.isVisible({ timeout: 5000 })
+				.catch(() => false)
+		) {
 			await privacyLink.first().click()
 			await page.waitForURL(/privacy/, { timeout: 10000 })
 			await expect(page).toHaveURL(/privacy/)
@@ -167,7 +184,12 @@ baseTest.describe('Legal Footer Links', () => {
 		await page.waitForLoadState('networkidle')
 
 		const termsLink = page.getByRole('link', { name: /terms/i })
-		if (await termsLink.first().isVisible({ timeout: 5000 }).catch(() => false)) {
+		if (
+			await termsLink
+				.first()
+				.isVisible({ timeout: 5000 })
+				.catch(() => false)
+		) {
 			await termsLink.first().click()
 			await page.waitForURL(/terms/, { timeout: 10000 })
 			await expect(page).toHaveURL(/terms/)
@@ -223,7 +245,10 @@ baseTest.describe('Legal Cross-Navigation', () => {
 		await page.waitForLoadState('networkidle')
 
 		const termsLink = page.getByRole('link', { name: /terms/i })
-		const hasTerms = await termsLink.first().isVisible({ timeout: 5000 }).catch(() => false)
+		const hasTerms = await termsLink
+			.first()
+			.isVisible({ timeout: 5000 })
+			.catch(() => false)
 		expect(hasTerms || true).toBeTruthy()
 	})
 
@@ -232,7 +257,10 @@ baseTest.describe('Legal Cross-Navigation', () => {
 		await page.waitForLoadState('networkidle')
 
 		const privacyLink = page.getByRole('link', { name: /privacy/i })
-		const hasPrivacy = await privacyLink.first().isVisible({ timeout: 5000 }).catch(() => false)
+		const hasPrivacy = await privacyLink
+			.first()
+			.isVisible({ timeout: 5000 })
+			.catch(() => false)
 		expect(hasPrivacy || true).toBeTruthy()
 	})
 })

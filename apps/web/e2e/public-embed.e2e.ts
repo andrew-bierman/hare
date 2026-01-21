@@ -43,7 +43,7 @@ baseTest.describe('Public Embed Access', () => {
 		await page.waitForLoadState('networkidle')
 
 		// Should show error or not found message
-		const errorText = page.getByText(/not found|error|invalid|doesn't exist/i)
+		const _errorText = page.getByText(/not found|error|invalid|doesn't exist/i)
 		const mainContent = page.locator('body')
 
 		// Either show error or just load something (not redirect)
@@ -77,8 +77,14 @@ test.describe('Public Embed - Valid Agent', () => {
 		const chatContainer = authenticatedPage.locator('[class*="chat"], [class*="message"]')
 
 		const hasChat =
-			(await messageInput.first().isVisible({ timeout: 10000 }).catch(() => false)) ||
-			(await chatContainer.first().isVisible({ timeout: 5000 }).catch(() => false))
+			(await messageInput
+				.first()
+				.isVisible({ timeout: 10000 })
+				.catch(() => false)) ||
+			(await chatContainer
+				.first()
+				.isVisible({ timeout: 5000 })
+				.catch(() => false))
 
 		expect(hasChat).toBeTruthy()
 	})
@@ -136,7 +142,7 @@ test.describe('Embed Widget Appearance', () => {
 
 		// Should NOT have dashboard navigation
 		const dashboardNav = authenticatedPage.getByRole('navigation', { name: /dashboard/i })
-		const sidebar = authenticatedPage.locator('[class*="sidebar"]')
+		const _sidebar = authenticatedPage.locator('[class*="sidebar"]')
 
 		const hasDashboardUI = await dashboardNav.isVisible({ timeout: 2000 }).catch(() => false)
 		expect(hasDashboardUI).toBeFalsy()
@@ -158,7 +164,10 @@ test.describe('Embed Functionality', () => {
 		const inputPlaceholder = authenticatedPage.getByPlaceholder(/message|type|ask/i)
 
 		const hasWelcome =
-			(await welcomeText.first().isVisible({ timeout: 5000 }).catch(() => false)) ||
+			(await welcomeText
+				.first()
+				.isVisible({ timeout: 5000 })
+				.catch(() => false)) ||
 			(await inputPlaceholder.isVisible({ timeout: 5000 }).catch(() => false))
 
 		expect(hasWelcome || true).toBeTruthy()

@@ -63,8 +63,14 @@ test.describe('Plan Display', () => {
 		const proText = authenticatedPage.getByText(/pro/i)
 
 		const hasPlans =
-			(await freeText.first().isVisible({ timeout: 10000 }).catch(() => false)) ||
-			(await proText.first().isVisible({ timeout: 5000 }).catch(() => false))
+			(await freeText
+				.first()
+				.isVisible({ timeout: 10000 })
+				.catch(() => false)) ||
+			(await proText
+				.first()
+				.isVisible({ timeout: 5000 })
+				.catch(() => false))
 
 		expect(hasPlans).toBeTruthy()
 	})
@@ -94,7 +100,10 @@ test.describe('Plan Display', () => {
 		// Pro plan usually marked as popular
 		const popularText = authenticatedPage.getByText(/popular|recommended/i)
 		// Popular badge may not always exist
-		const hasPopular = await popularText.first().isVisible({ timeout: 5000 }).catch(() => false)
+		const hasPopular = await popularText
+			.first()
+			.isVisible({ timeout: 5000 })
+			.catch(() => false)
 		expect(hasPopular || true).toBeTruthy()
 	})
 })
@@ -110,7 +119,10 @@ test.describe('Usage Display', () => {
 
 		// Should show usage info
 		const usageText = authenticatedPage.getByText(/usage|used|limit/i)
-		const hasUsage = await usageText.first().isVisible({ timeout: 10000 }).catch(() => false)
+		const hasUsage = await usageText
+			.first()
+			.isVisible({ timeout: 10000 })
+			.catch(() => false)
 		expect(hasUsage || true).toBeTruthy()
 	})
 
@@ -129,7 +141,10 @@ test.describe('Usage Display', () => {
 
 		// Should show message count
 		const messagesText = authenticatedPage.getByText(/message/i)
-		const hasMessages = await messagesText.first().isVisible({ timeout: 5000 }).catch(() => false)
+		const hasMessages = await messagesText
+			.first()
+			.isVisible({ timeout: 5000 })
+			.catch(() => false)
 		expect(hasMessages || true).toBeTruthy()
 	})
 })
@@ -163,7 +178,10 @@ test.describe('Plan Actions', () => {
 
 		// Enterprise should have contact option
 		const contactText = authenticatedPage.getByText(/contact|sales|enterprise/i)
-		const hasContact = await contactText.first().isVisible({ timeout: 5000 }).catch(() => false)
+		const hasContact = await contactText
+			.first()
+			.isVisible({ timeout: 5000 })
+			.catch(() => false)
 		expect(hasContact || true).toBeTruthy()
 	})
 })
@@ -179,7 +197,10 @@ test.describe('Billing FAQ', () => {
 
 		// Look for FAQ
 		const faqText = authenticatedPage.getByText(/faq|question|help/i)
-		const hasFaq = await faqText.first().isVisible({ timeout: 5000 }).catch(() => false)
+		const hasFaq = await faqText
+			.first()
+			.isVisible({ timeout: 5000 })
+			.catch(() => false)
 		expect(hasFaq || true).toBeTruthy()
 	})
 })
