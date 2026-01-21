@@ -25,11 +25,13 @@ export interface UserNavProps {
  * @param onSignOut - Optional callback after sign out
  */
 export function UserNav({ Link, onSignOut }: UserNavProps) {
-	const { data: session, error } = useAuth()
+	const { data: session, error, isPending } = useAuth()
 	const { signOut } = useAuthActions()
 
+	// If auth is pending, don't show login buttons (avoid flash)
 	// If auth errored, treat as logged out
 	const user = error ? null : session?.user
+	const isLoading = isPending && !user
 
 	const getInitials = (name?: string | null, email?: string | null) => {
 		if (name) {
@@ -49,6 +51,11 @@ export function UserNav({ Link, onSignOut }: UserNavProps) {
 	const handleSignOut = async () => {
 		await signOut()
 		onSignOut?.()
+	}
+
+	// While auth is loading, show nothing to avoid flash of login buttons
+	if (isLoading) {
+		return null
 	}
 
 	if (!user) {

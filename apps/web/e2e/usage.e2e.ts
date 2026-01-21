@@ -20,43 +20,17 @@ async function getWorkspaceId(page: Page): Promise<string> {
 }
 
 baseTest.describe('Usage Page - Unauthenticated', () => {
-	baseTest.beforeEach(async ({ page }: { page: Page }) => {
-		await page.goto('/dashboard/usage')
-		await page.waitForLoadState('networkidle')
-	})
+	baseTest(
+		'unauthenticated user is redirected to sign-in',
+		async ({ page }: { page: Page }) => {
+			await page.goto('/dashboard/usage')
+			await page.waitForLoadState('networkidle')
 
-	baseTest('displays usage heading', async ({ page }: { page: Page }) => {
-		await expect(page.getByRole('heading', { name: 'Usage' })).toBeVisible()
-	})
-
-	baseTest('page loads without 404 error', async ({ page }: { page: Page }) => {
-		await expect(page.locator('body')).not.toContainText('404')
-	})
-
-	baseTest('shows usage page layout with cards', async ({ page }: { page: Page }) => {
-		// Usage page should have card elements for stats
-		const cards = page.locator('[class*="card"]')
-		await expect(cards.first()).toBeVisible()
-	})
-})
-
-baseTest.describe('Usage Page Access - Sidebar Navigation', () => {
-	baseTest('can navigate to usage page from sidebar', async ({ page }: { page: Page }) => {
-		await page.goto('/dashboard')
-		await page.waitForLoadState('networkidle')
-
-		await page.getByRole('link', { name: 'Usage' }).click()
-		await page.waitForURL(/\/dashboard\/usage/, { timeout: 10000 })
-		await expect(page.getByRole('heading', { name: 'Usage' })).toBeVisible()
-	})
-
-	baseTest('usage link is visible in navigation', async ({ page }: { page: Page }) => {
-		await page.goto('/dashboard')
-		await page.waitForLoadState('networkidle')
-
-		const nav = page.locator('nav')
-		await expect(nav.getByRole('link', { name: 'Usage' })).toBeVisible()
-	})
+			// Should be redirected to sign-in page
+			await expect(page).toHaveURL(/sign-in/)
+			await expect(page.getByRole('button', { name: 'Sign In' })).toBeVisible()
+		},
+	)
 })
 
 test.describe('Usage Page - Authenticated', () => {
