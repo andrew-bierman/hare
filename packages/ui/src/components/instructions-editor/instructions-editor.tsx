@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo, useCallback, useState, useEffect, useRef } from 'react'
+import type ReactCodeMirror from '@uiw/react-codemirror'
 import { cn } from '../../lib/utils'
 import type { InstructionsEditorProps } from './types'
 import { useTokenCount } from './use-token-count'
@@ -8,12 +9,20 @@ import { StatsFooter } from './stats-footer'
 import { Toolbar, applyMarkdownFormat, type ToolbarAction } from './toolbar'
 
 // Dynamic import for CodeMirror to handle SSR
-let CodeMirror: any = null
+// Module-level state for dynamically loaded CodeMirror modules
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let CodeMirror: typeof ReactCodeMirror | null = null
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let markdown: any = null
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let markdownLanguage: any = null
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let languages: any = null
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let EditorView: any = null
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let templateVariableHighlight: any = null
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let templateVariableTheme: any = null
 
 export function InstructionsEditor({

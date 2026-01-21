@@ -5,7 +5,7 @@
  */
 
 import { z } from 'zod'
-import { and, count, desc, eq, max } from 'drizzle-orm'
+import { and, count, desc, eq, inArray, max } from 'drizzle-orm'
 import { agents, agentTools, agentVersions, deployments } from '@hare/db/schema'
 import { config } from '@hare/config'
 import { requireWrite, requireAdmin, notFound, badRequest, serverError, type WorkspaceContext } from '../base'
@@ -34,6 +34,46 @@ async function getAgentToolIds(agentId: string, db: WorkspaceContext['db']): Pro
 		.from(agentTools)
 		.where(eq(agentTools.agentId, agentId))
 	return rows.map((r) => r.toolId)
+}
+
+/**
+ * SQLite max parameters limit (SQLITE_MAX_VARIABLE_NUMBER).
+ * D1/SQLite can't handle more than 999 parameters in a single query.
+ */
+const SQLITE_MAX_PARAMS = 999
+
+/**
+ * Batch fetch tool IDs for multiple agents (prevents N+1 queries)
+ * Returns a Map of agentId -> toolIds[]
+ * Handles SQLite's 999 parameter limit by chunking if needed.
+ */
+async function getAgentToolIdsMap(
+	agentIds: string[],
+	db: WorkspaceContext['db'],
+): Promise<Map<string, string[]>> {
+	if (agentIds.length === 0) return new Map()
+
+	const toolsMap = new Map<string, string[]>()
+	for (const agentId of agentIds) {
+		toolsMap.set(agentId, [])
+	}
+
+	// Chunk to avoid SQLite's 999 parameter limit
+	for (let i = 0; i < agentIds.length; i += SQLITE_MAX_PARAMS) {
+		const chunk = agentIds.slice(i, i + SQLITE_MAX_PARAMS)
+		const rows = await db
+			.select({ agentId: agentTools.agentId, toolId: agentTools.toolId })
+			.from(agentTools)
+			.where(inArray(agentTools.agentId, chunk))
+
+		for (const row of rows) {
+			const existing = toolsMap.get(row.agentId) || []
+			existing.push(row.toolId)
+			toolsMap.set(row.agentId, existing)
+		}
+	}
+
+	return toolsMap
 }
 
 function serializeAgent(
@@ -79,8 +119,14 @@ export const list = requireWrite
 
 		const results = await db.select().from(agents).where(eq(agents.workspaceId, workspaceId))
 
-		const agentsData = await Promise.all(
-			results.map(async (agent) => serializeAgent(agent, await getAgentToolIds(agent.id, db))),
+		// Batch fetch all tool IDs in a single query (prevents N+1)
+		const toolsMap = await getAgentToolIdsMap(
+			results.map((a) => a.id),
+			db,
+		)
+
+		const agentsData = results.map((agent) =>
+			serializeAgent(agent, toolsMap.get(agent.id) || []),
 		)
 
 		return { agents: agentsData }
