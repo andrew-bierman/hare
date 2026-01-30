@@ -437,7 +437,9 @@ test.describe('Agent Chat/Conversation - Authenticated', () => {
 
 		// Check for chat interface elements - wait with proper timeout
 		// Look for the "Start a Conversation" heading specifically
-		const conversationHeading = authenticatedPage.getByRole('heading', { name: 'Start a Conversation' })
+		const conversationHeading = authenticatedPage.getByRole('heading', {
+			name: 'Start a Conversation',
+		})
 		await expect(conversationHeading).toBeVisible({ timeout: 15000 })
 	})
 
