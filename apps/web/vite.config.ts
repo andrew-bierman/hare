@@ -92,7 +92,8 @@ export default defineConfig({
 			rehypePlugins: [rehypeHighlight],
 			providerImportSource: '@mdx-js/react',
 		}),
-		cloudflare({ viteEnvironment: { name: 'ssr' } }),
+		// Only use Cloudflare plugin in non-CI environments
+		...(process.env.CI !== 'true' ? [cloudflare({ viteEnvironment: { name: 'ssr' } })] : []),
 		tanstackStart(),
 		react(),
 		tailwindcss(),
