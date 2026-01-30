@@ -47,7 +47,7 @@ export default defineConfig({
 	webServer: {
 		// Pass PORT to dev server command to match worktree config
 		command: process.env.CI
-			? `WRANGLER_DEV_LOCAL=true PORT=${DEFAULT_PORT} bun run dev`
+			? `CLOUDFLARE_ENVIRONMENT=local WRANGLER_LOG=debug bun run dev`
 			: `PORT=${DEFAULT_PORT} bun run dev`,
 		url: `http://localhost:${DEFAULT_PORT}`,
 		reuseExistingServer: !process.env.CI,

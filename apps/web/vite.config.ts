@@ -92,8 +92,14 @@ export default defineConfig({
 			rehypePlugins: [rehypeHighlight],
 			providerImportSource: '@mdx-js/react',
 		}),
-		// Only use Cloudflare plugin in non-CI environments
-		...(process.env.CI !== 'true' ? [cloudflare({ viteEnvironment: { name: 'ssr' } })] : []),
+		// Force local mode in CI to avoid Cloudflare authentication
+		cloudflare({ 
+			viteEnvironment: { 
+				name: 'ssr',
+				// Force local mode in CI to avoid authentication issues
+				...(process.env.CI === 'true' && { persist: false, entrypoint: 'worker' })
+			} 
+		}),
 		tanstackStart(),
 		react(),
 		tailwindcss(),
