@@ -93,12 +93,12 @@ export default defineConfig({
 			providerImportSource: '@mdx-js/react',
 		}),
 		// Force local mode in CI to avoid Cloudflare authentication
-		cloudflare({ 
-			viteEnvironment: { 
+		cloudflare({
+			viteEnvironment: {
 				name: 'ssr',
 				// Force local mode in CI to avoid authentication issues
-				...(process.env.CI === 'true' && { persist: false, entrypoint: 'worker' })
-			} 
+				...(process.env.CI === 'true' && { persist: false, entrypoint: 'worker' }),
+			},
 		}),
 		tanstackStart(),
 		react(),

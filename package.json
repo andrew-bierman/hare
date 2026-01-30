@@ -47,7 +47,7 @@
 		"test:coverage": "vitest run --coverage",
 		"test:e2e": "bun run --cwd apps/web test",
 		"test:ui": "vitest --ui",
-		"test:unit": "vitest run --filter unit",
+		"test:unit": "vitest run",
 		"test:watch": "vitest",
 		"typecheck": "turbo typecheck",
 		"typecheck:tsc": "tsc -b",
