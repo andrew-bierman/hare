@@ -92,13 +92,14 @@ export default defineConfig({
 			rehypePlugins: [rehypeHighlight],
 			providerImportSource: '@mdx-js/react',
 		}),
-		// Force local mode in CI to avoid Cloudflare authentication
+		// Cloudflare plugin - use local config in CI to avoid authentication
 		cloudflare({
-			viteEnvironment: {
-				name: 'ssr',
-				// Force local mode in CI to avoid authentication issues
-				...(process.env.CI === 'true' && { persist: false, entrypoint: 'worker' }),
-			},
+			viteEnvironment: { name: 'ssr' },
+			...(process.env.CI === 'true' && {
+				configPath: './wrangler.e2e.jsonc',
+				persist: false,
+				remoteBindings: false,
+			}),
 		}),
 		tanstackStart(),
 		react(),
