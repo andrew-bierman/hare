@@ -98,16 +98,16 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@v3
+        uses: github/codeql-action/init@v4
         with:
           languages: ${{ matrix.language }}
           queries: security-and-quality
 
       - name: Autobuild
-        uses: github/codeql-action/autobuild@v3
+        uses: github/codeql-action/autobuild@v4
 
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v3
+        uses: github/codeql-action/analyze@v4
         with:
           category: '/language:${{matrix.language}}'
         continue-on-error: true
@@ -137,7 +137,7 @@ jobs:
       - name: Run security tests
         run: |
           echo "🧪 Running security-specific tests..."
-          bun test apps/web/src/lib/security --coverage || true
+          bun test packages/security/src/__tests__ --coverage || true
 
   security-headers-check:
     name: Security Headers Check
@@ -152,7 +152,7 @@ jobs:
       - name: Check security headers configuration
         run: |
           echo "🔒 Checking security headers..."
-          if grep -r "Content-Security-Policy\|Strict-Transport-Security\|X-Frame-Options" apps/web/src/lib/api/middleware/security.ts; then
+          if grep -r "Content-Security-Policy\|Strict-Transport-Security\|X-Frame-Options" packages/api/src/middleware/security.ts; then
             echo "✅ Security headers configured"
           else
             echo "❌ Security headers missing"
@@ -162,7 +162,7 @@ jobs:
       - name: Check CSRF protection
         run: |
           echo "🛡️ Checking CSRF protection..."
-          if [ -f "apps/web/src/lib/security/csrf.ts" ]; then
+          if [ -f "packages/security/src/csrf.ts" ]; then
             echo "✅ CSRF protection module exists"
           else
             echo "❌ CSRF protection module missing"
@@ -172,7 +172,7 @@ jobs:
       - name: Check password validation
         run: |
           echo "🔑 Checking password validation..."
-          if [ -f "apps/web/src/lib/security/password.ts" ]; then
+          if [ -f "packages/security/src/password.ts" ]; then
             echo "✅ Password validation module exists"
           else
             echo "❌ Password validation module missing"
