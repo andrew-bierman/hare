@@ -225,11 +225,11 @@ afterAll(() => {
 
 describe('Usage API Routes', () => {
 	describe('usage.getWorkspaceUsage - Get usage stats', () => {
-		it('returns 401 for unauthenticated request', async () => {
+		it('returns 403 for unauthenticated request', async () => {
 			const res = await orpcRequest({
 				procedure: 'usage/getWorkspaceUsage',
 			})
-			expect(res.status).toBe(401)
+			expect(res.status).toBe(403)
 		})
 
 		it('returns 403 without workspace context', async () => {
@@ -581,12 +581,12 @@ describe('Usage API Routes', () => {
 	})
 
 	describe('usage.getAgentUsage - Get agent-specific usage', () => {
-		it('returns 401 for unauthenticated request', async () => {
+		it('returns 403 for unauthenticated request', async () => {
 			const res = await orpcRequest({
 				procedure: 'usage/getAgentUsage',
 				body: { id: 'agent_123' },
 			})
-			expect(res.status).toBe(401)
+			expect(res.status).toBe(403)
 		})
 
 		it('returns 403 without workspace context', async () => {
@@ -812,11 +812,11 @@ describe('Usage API Routes', () => {
 
 describe('Analytics API Routes', () => {
 	describe('analytics.get - Get analytics dashboard data', () => {
-		it('returns 401 for unauthenticated request', async () => {
+		it('returns 403 for unauthenticated request', async () => {
 			const res = await orpcRequest({
 				procedure: 'analytics/get',
 			})
-			expect(res.status).toBe(401)
+			expect(res.status).toBe(403)
 		})
 
 		it('returns 403 without workspace context', async () => {

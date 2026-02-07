@@ -351,6 +351,7 @@
       "version": "0.1.0",
       "dependencies": {
         "@react-email/components": "^1.0.3",
+        "react": "^19.0.0",
         "resend": "^6.6.0",
       },
       "devDependencies": {

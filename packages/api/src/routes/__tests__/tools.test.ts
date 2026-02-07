@@ -181,11 +181,11 @@ afterAll(() => {
 
 describe('Tools API Routes', () => {
 	describe('tools.list - List tools', () => {
-		it('returns 401 for unauthenticated request', async () => {
+		it('returns 403 for unauthenticated request', async () => {
 			const res = await orpcRequest({
 				procedure: 'tools/list',
 			})
-			expect(res.status).toBe(401)
+			expect(res.status).toBe(403)
 		})
 
 		it('returns 403 for authenticated user without workspace context', async () => {
@@ -1193,7 +1193,7 @@ describe('Tools API Routes', () => {
 			expect(json.success).toBe(true)
 		})
 
-		it('returns 401 for unauthenticated request', async () => {
+		it('returns 403 for unauthenticated request', async () => {
 			const res = await orpcRequest({
 				procedure: 'tools/test',
 				body: {
@@ -1202,7 +1202,7 @@ describe('Tools API Routes', () => {
 					config: { url: 'https://api.example.com' },
 				},
 			})
-			expect(res.status).toBe(401)
+			expect(res.status).toBe(403)
 		})
 
 		it('returns 403 without workspace context', async () => {

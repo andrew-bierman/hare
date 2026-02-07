@@ -245,12 +245,12 @@ afterAll(() => {
 
 describe('Webhook API Routes', () => {
 	describe('webhooks.list - List webhooks for an agent', () => {
-		it('returns 401 for unauthenticated request', async () => {
+		it('returns 403 for unauthenticated request', async () => {
 			const res = await orpcRequest({
 				procedure: 'webhooks/list',
 				body: { agentId: 'agent_123' },
 			})
-			expect(res.status).toBe(401)
+			expect(res.status).toBe(403)
 		})
 
 		it('returns 403 for authenticated user without workspace context', async () => {

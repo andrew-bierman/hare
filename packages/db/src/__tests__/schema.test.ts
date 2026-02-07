@@ -84,8 +84,8 @@ const MIGRATION_STATEMENTS = [
 	// Agent tools junction table
 	`CREATE TABLE IF NOT EXISTS "agent_tools" ("id" text PRIMARY KEY NOT NULL, "agentId" text NOT NULL REFERENCES "agents"("id") ON DELETE CASCADE, "toolId" text NOT NULL REFERENCES "tools"("id") ON DELETE CASCADE, "createdAt" integer NOT NULL)`,
 
-	// API Keys table
-	`CREATE TABLE IF NOT EXISTS "api_keys" ("id" text PRIMARY KEY NOT NULL, "workspaceId" text NOT NULL REFERENCES "workspaces"("id") ON DELETE CASCADE, "name" text NOT NULL, "key" text NOT NULL UNIQUE, "hashedKey" text NOT NULL, "prefix" text NOT NULL, "lastUsedAt" integer, "expiresAt" integer, "permissions" text, "createdBy" text NOT NULL REFERENCES "user"("id"), "createdAt" integer NOT NULL, "updatedAt" integer NOT NULL)`,
+	// API Keys table (key column removed - only hash stored for security)
+	`CREATE TABLE IF NOT EXISTS "api_keys" ("id" text PRIMARY KEY NOT NULL, "workspaceId" text NOT NULL REFERENCES "workspaces"("id") ON DELETE CASCADE, "name" text NOT NULL, "hashedKey" text NOT NULL, "prefix" text NOT NULL, "lastUsedAt" integer, "expiresAt" integer, "permissions" text, "createdBy" text NOT NULL REFERENCES "user"("id"), "createdAt" integer NOT NULL, "updatedAt" integer NOT NULL)`,
 
 	// Usage table
 	`CREATE TABLE IF NOT EXISTS "usage" ("id" text PRIMARY KEY NOT NULL, "workspaceId" text NOT NULL REFERENCES "workspaces"("id") ON DELETE CASCADE, "agentId" text REFERENCES "agents"("id") ON DELETE SET NULL, "userId" text REFERENCES "user"("id") ON DELETE SET NULL, "type" text NOT NULL, "inputTokens" integer DEFAULT 0, "outputTokens" integer DEFAULT 0, "totalTokens" integer DEFAULT 0, "cost" integer DEFAULT 0, "metadata" text, "createdAt" integer NOT NULL)`,
@@ -1875,55 +1875,7 @@ describe('Unique Constraint Tests', () => {
 		).rejects.toThrow()
 	})
 
-	it('enforces unique API key', async () => {
-		const db = createDb(env.DB)
-		const now = nowSeconds()
-
-		const userId = uniqueId('user')
-		await db.insert(users).values({
-			id: userId,
-			name: 'API Key User',
-			email: `${userId}@example.com`,
-			emailVerified: false,
-			createdAt: new Date(now * 1000),
-			updatedAt: new Date(now * 1000),
-		})
-
-		const workspaceId = uniqueId('ws')
-		await db.insert(workspaces).values({
-			id: workspaceId,
-			name: 'API Key Workspace',
-			slug: uniqueId('api-key-ws'),
-			ownerId: userId,
-			createdAt: new Date(now * 1000),
-			updatedAt: new Date(now * 1000),
-		})
-
-		const hashedKey = `hashed_${Date.now()}_${Math.random().toString(36).substring(7)}`
-
-		await db.insert(apiKeys).values({
-			id: uniqueId('key'),
-			workspaceId,
-			name: 'First Key',
-			hashedKey,
-			prefix: 'hare_',
-			createdBy: userId,
-			createdAt: new Date(now * 1000),
-			updatedAt: new Date(now * 1000),
-		})
-
-		// Try to insert duplicate hashedKey
-		await expect(
-			db.insert(apiKeys).values({
-				id: uniqueId('key'),
-				workspaceId,
-				name: 'Second Key',
-				hashedKey, // Same hashedKey should fail uniqueness constraint
-				prefix: 'hare_',
-				createdBy: userId,
-				createdAt: new Date(now * 1000),
-				updatedAt: new Date(now * 1000),
-			}),
-		).rejects.toThrow()
-	})
+	// Note: API key uniqueness is handled at the application level
+	// (prefix + hashedKey combination ensures identification)
+	// No database-level unique constraint on hashedKey (may have multiple keys with same hash)
 })

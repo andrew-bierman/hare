@@ -1,68 +1,47 @@
 {
-	"$schema": "node_modules/wrangler/config-schema.json",
-	"name": "hare-e2e",
-	"main": "./src/server.ts",
-	"compatibility_date": "2025-12-01",
-	"compatibility_flags": ["nodejs_compat"],
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "hare-e2e",
+  "main": "./src/server.ts",
+  "compatibility_date": "2025-12-01",
+  "compatibility_flags": ["nodejs_compat"],
 
-	// Use local persistence for all bindings (no remote Cloudflare connection needed)
-	// This config is used for E2E tests in CI where we don't have CF credentials
+  // Local-only mode - no remote bindings
+  "local": true,
 
-	// D1 Database - local only (no database_id means local D1)
-	"d1_databases": [
-		{
-			"binding": "DB",
-			"database_name": "hare-db"
-		}
-	],
+  // Environment variables for E2E testing
+  "vars": {
+    "ENVIRONMENT": "local",
+    "APP_URL": "http://localhost:3000"
+  },
 
-	// KV Namespace - local only (no id means local KV)
-	"kv_namespaces": [
-		{
-			"binding": "KV"
-		}
-	],
+  // Skip services that require remote binding
+  "services": [],
 
-	// R2 Bucket - local only (no bucket_name with ID = local persistence)
-	"r2_buckets": [
-		{
-			"binding": "R2"
-		}
-	],
+  // Skip D1 databases for E2E tests
+  "d1_databases": [],
 
-	// Workers AI - local mock (remote: false means use local AI)
-	"ai": {
-		"binding": "AI",
-		"remote": false
-	},
+  // Skip KV namespaces
+  "kv_namespaces": [],
 
-	// Vectorize - local only (use a dummy index_name for local development)
-	"vectorize": [
-		{
-			"binding": "VECTORIZE",
-			"index_name": "hare-memory-local"
-		}
-	],
+  // Skip R2 buckets
+  "r2_buckets": [],
 
-	// Durable Objects for CF Agents - local only
-	"durable_objects": {
-		"bindings": [
-			{
-				"name": "HARE_AGENT",
-				"class_name": "HareAgent"
-			},
-			{
-				"name": "MCP_AGENT",
-				"class_name": "HareMcpAgent"
-			}
-		]
-	},
+  // Disable AI for local testing
+  "ai": false,
 
-	// Migrations for Durable Objects
-	"migrations": [
-		{
-			"tag": "v1",
-			"new_sqlite_classes": ["HareAgent", "HareMcpAgent"]
-		}
-	]
+  // Disable Vectorize for local testing
+  "vectorize": [],
+
+  // Disable Durable Objects
+  "durable_objects": {
+    "bindings": []
+  },
+
+  // Disable unsafe bindings (rate limiting)
+  "unsafe": {},
+
+  // Disable observability
+  "observability": {
+    "enabled": false
+  }
 }
