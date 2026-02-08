@@ -10,16 +10,13 @@ import type { Context } from 'hono'
 import type { HonoEnv } from '@hare/types'
 
 // Mock Hono cookie functions
+const mockedGetCookie = vi.fn()
+const mockedSetCookie = vi.fn()
+
 vi.mock('hono/cookie', () => ({
-	getCookie: vi.fn(),
-	setCookie: vi.fn(),
+	getCookie: mockedGetCookie,
+	setCookie: mockedSetCookie,
 }))
-
-// Import mocked functions
-import { getCookie, setCookie } from 'hono/cookie'
-
-const mockedGetCookie = vi.mocked(getCookie)
-const mockedSetCookie = vi.mocked(setCookie)
 
 // Helper to create mock context
 function createMockContext(overrides: {

@@ -205,7 +205,10 @@ jobs:
           if [[ "${{ needs.security-tests.result }}" == "failure" ]]; then
             OVERALL_STATUS="failure"
           fi
-          if [[ "${{ needs.security-headers-check.result }}" == "failure" ]]; then
+
+          # Security headers check only runs on PRs - don't fail if skipped
+          SECURITY_HEADERS_STATUS="${{ needs.security-headers-check.result }}"
+          if [[ "$SECURITY_HEADERS_STATUS" == "failure" ]]; then
             OVERALL_STATUS="failure"
           fi
 
@@ -221,4 +224,4 @@ jobs:
           echo "- Secret scanning: ${{ needs.secret-scanning.result }} (⚠️ may fail if no new commits)" >> $GITHUB_STEP_SUMMARY
           echo "- CodeQL analysis: ${{ needs.codeql-analysis.result }} (⚠️ requires code scanning to be enabled)" >> $GITHUB_STEP_SUMMARY
           echo "- Security tests: ${{ needs.security-tests.result }}" >> $GITHUB_STEP_SUMMARY
-          echo "- Security headers check: ${{ needs.security-headers-check.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Security headers check: ${{ needs.security-headers-check.result }} (⚠️ only runs on PRs)" >> $GITHUB_STEP_SUMMARY
