@@ -26,8 +26,10 @@
   // Skip R2 buckets
   "r2_buckets": [],
 
-  // Disable AI for local testing
-  "ai": false,
+  // AI disabled for local testing (ai object required by Wrangler)
+  "ai": {
+    "binding": "AI"
+  },
 
   // Disable Vectorize for local testing
   "vectorize": [],

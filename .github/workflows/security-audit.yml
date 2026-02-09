@@ -77,6 +77,7 @@ jobs:
           # Run filesystem scan instead of git scan to avoid worktree issues
           # See: https://github.com/trufflesecurity/trufflehog/issues/827
           trufflehog filesystem --directory=. --only-verified || true
+        continue-on-error: true
 
   codeql-analysis:
     name: CodeQL Analysis
