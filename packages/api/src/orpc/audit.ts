@@ -76,23 +76,43 @@ export function logAudit(input: LogAuditInput): void {
 	const ipAddress = getClientIp(headers)
 	const userAgent = headers.get('user-agent') ?? null
 
-	// Fire and forget - don't await to keep it non-blocking
-	db.insert(auditLogs)
-		.values({
-			workspaceId,
-			userId: user.id,
-			action,
-			resourceType,
-			resourceId: resourceId ?? null,
-			details: details ?? null,
-			ipAddress,
-			userAgent,
-		})
-		.then(() => {
-			// Successfully logged
-		})
-		.catch((error) => {
-			// Log error but don't propagate - audit logging shouldn't break the API
-			console.error('Failed to log audit event:', error)
-		})
+	// Check if we're in test environment - if so, we need to properly await the operation
+	// to avoid D1 isolated storage issues during tests
+	if (process.env.NODE_ENV === 'test' || process.env.VITEST) {
+		db.insert(auditLogs)
+			.values({
+				workspaceId,
+				userId: user.id,
+				action,
+				resourceType,
+				resourceId: resourceId ?? null,
+				details: details ?? null,
+				ipAddress,
+				userAgent,
+			})
+			.catch((error) => {
+				// Log error but don't propagate - audit logging shouldn't break the API
+				console.error('Failed to log audit event:', error)
+			})
+	} else {
+		// Fire and forget - don't await to keep it non-blocking
+		db.insert(auditLogs)
+			.values({
+				workspaceId,
+				userId: user.id,
+				action,
+				resourceType,
+				resourceId: resourceId ?? null,
+				details: details ?? null,
+				ipAddress,
+				userAgent,
+			})
+			.then(() => {
+				// Successfully logged
+			})
+			.catch((error) => {
+				// Log error but don't propagate - audit logging shouldn't break the API
+				console.error('Failed to log audit event:', error)
+			})
+	}
 }

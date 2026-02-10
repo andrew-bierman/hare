@@ -69,7 +69,7 @@ export default defineWorkersConfig({
             VITE_APP_URL: "http://localhost:3000",
           },
           d1Databases: ["DB"],
-          d1Persist: false,
+          d1Persist: process.env.VITEST ? '.vitest' : false,
           kvNamespaces: ["KV"],
           r2Buckets: ["R2"],
         },

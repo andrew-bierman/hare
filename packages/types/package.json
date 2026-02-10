@@ -45,7 +45,8 @@
 	"main": "./src/index.ts",
 	"types": "./src/index.ts",
 	"files": [
-		"src"
+		"src",
+		"src/cloudflare-test.d.ts"
 	],
 	"scripts": {
 		"lint": "biome check .",
