@@ -209,7 +209,7 @@ export const create = requireWrite
 		}
 
 		// Log audit event for agent creation
-		logAudit({
+		await logAudit({
 			context,
 			action: config.enums.auditAction.AGENT_CREATE,
 			resourceType: 'agent',
@@ -271,7 +271,7 @@ export const update = requireWrite
 		const toolIds = await getAgentToolIds(id, db)
 
 		// Log audit event for agent update
-		logAudit({
+		await logAudit({
 			context,
 			action: config.enums.auditAction.AGENT_UPDATE,
 			resourceType: 'agent',
@@ -304,7 +304,7 @@ export const remove = requireAdmin
 
 		// Log audit event for agent deletion
 		const deletedAgent = result[0]
-		logAudit({
+		await logAudit({
 			context,
 			action: config.enums.auditAction.AGENT_DELETE,
 			resourceType: 'agent',
@@ -387,7 +387,7 @@ export const deploy = requireAdmin
 		const baseUrl = `/api/agents/${input.id}`
 
 		// Log audit event for agent deployment
-		logAudit({
+		await logAudit({
 			context,
 			action: config.enums.auditAction.AGENT_DEPLOY,
 			resourceType: 'agent',
@@ -818,7 +818,7 @@ export const clone = requireWrite
 		}
 
 		// Log audit event for agent clone
-		logAudit({
+		await logAudit({
 			context,
 			action: config.enums.auditAction.AGENT_CLONE,
 			resourceType: 'agent',

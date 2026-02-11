@@ -109,7 +109,7 @@ export const create = requireAdmin
 		if (!apiKey) serverError('Failed to create API key')
 
 		// Log audit event for API key creation
-		logAudit({
+		await logAudit({
 			context,
 			action: config.enums.auditAction.APIKEY_CREATE,
 			resourceType: 'apikey',
@@ -177,7 +177,7 @@ export const remove = requireAdmin
 
 		// Log audit event for API key revocation
 		const deletedKey = result[0]
-		logAudit({
+		await logAudit({
 			context,
 			action: config.enums.auditAction.APIKEY_REVOKE,
 			resourceType: 'apikey',

@@ -236,7 +236,7 @@ export const sendInvitation = requireAdmin
 		if (!invitation) serverError('Failed to create invitation')
 
 		// Log audit event for member invitation
-		logAudit({
+		await logAudit({
 			context,
 			action: config.enums.auditAction.MEMBER_INVITE,
 			resourceType: 'member',
@@ -378,7 +378,7 @@ export const removeMember = requireWrite
 		await db.delete(workspaceMembers).where(eq(workspaceMembers.id, member.id))
 
 		// Log audit event for member removal
-		logAudit({
+		await logAudit({
 			context,
 			action: config.enums.auditAction.MEMBER_REMOVE,
 			resourceType: 'member',
@@ -434,7 +434,7 @@ export const updateMemberRole = requireAdmin
 			.where(eq(workspaceMembers.id, member.id))
 
 		// Log audit event for member role change
-		logAudit({
+		await logAudit({
 			context,
 			action: config.enums.auditAction.MEMBER_ROLE_CHANGE,
 			resourceType: 'member',

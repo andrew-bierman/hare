@@ -113,7 +113,7 @@ export const create = requireWrite
 		if (!tool) serverError('Failed to create tool')
 
 		// Log audit event for tool creation
-		logAudit({
+		await logAudit({
 			context,
 			action: config.enums.auditAction.TOOL_CREATE,
 			resourceType: 'tool',
@@ -155,7 +155,7 @@ export const update = requireWrite
 		if (!tool) serverError('Failed to update tool')
 
 		// Log audit event for tool update
-		logAudit({
+		await logAudit({
 			context,
 			action: config.enums.auditAction.TOOL_UPDATE,
 			resourceType: 'tool',
@@ -188,7 +188,7 @@ export const remove = requireAdmin
 
 		// Log audit event for tool deletion
 		const deletedTool = result[0]
-		logAudit({
+		await logAudit({
 			context,
 			action: config.enums.auditAction.TOOL_DELETE,
 			resourceType: 'tool',

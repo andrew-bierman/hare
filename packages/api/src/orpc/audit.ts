@@ -68,7 +68,7 @@ function getClientIp(headers: Headers): string | null {
  * })
  * ```
  */
-export function logAudit(input: LogAuditInput): void {
+export async function logAudit(input: LogAuditInput): Promise<void> {
 	const { context, action, resourceType, resourceId, details } = input
 	const { db, workspaceId, user, headers } = context
 
@@ -79,8 +79,9 @@ export function logAudit(input: LogAuditInput): void {
 	// Check if we're in test environment - if so, we need to properly await the operation
 	// to avoid D1 isolated storage issues during tests
 	if (process.env.NODE_ENV === 'test' || process.env.VITEST) {
-		db.insert(auditLogs)
-			.values({
+		// In test mode, await the operation to ensure it completes before test ends
+		try {
+			await db.insert(auditLogs).values({
 				workspaceId,
 				userId: user.id,
 				action,
@@ -90,10 +91,10 @@ export function logAudit(input: LogAuditInput): void {
 				ipAddress,
 				userAgent,
 			})
-			.catch((error) => {
-				// Log error but don't propagate - audit logging shouldn't break the API
-				console.error('Failed to log audit event:', error)
-			})
+		} catch (error) {
+			// Log error but don't propagate - audit logging shouldn't break the API
+			console.error('Failed to log audit event:', error)
+		}
 	} else {
 		// Fire and forget - don't await to keep it non-blocking
 		db.insert(auditLogs)
