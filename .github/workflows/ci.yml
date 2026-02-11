@@ -101,9 +101,7 @@ jobs:
         run: bun install
 
       - name: Install Playwright
-        uses: browser-actions/playwright@v1
-        with:
-          install-chromium: true
+        uses: microsoft/playwright-github-action@v1
 
       - name: Run E2E tests
         working-directory: apps/web
