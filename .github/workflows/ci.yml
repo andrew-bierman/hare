@@ -75,8 +75,8 @@ jobs:
   e2e-tests:
     name: E2E Tests
     runs-on: ubuntu-latest
-    # Skipped - Playwright CI infrastructure issues, unit tests cover all code paths
-    if: false
+    # Essential - using playwright install with proper deps
+    if: github.actor != 'nektos/act'
     env:
       BETTER_AUTH_SECRET: test-secret-for-ci-must-be-at-least-32-characters
       BETTER_AUTH_URL: http://localhost:3000
@@ -100,11 +100,10 @@ jobs:
       - name: Install dependencies
         run: bun install
 
-      - name: Install Playwright browsers
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libnss3 libnspr4 libatk1.0-0 libatk-bridge2.0-0 libcups2 libdrm2 libxkbcommon0 libxcomposite1 libxdamage1 libxfixes3 libxrandr2 libgbm1 libasound2 libpango-1.0-0 libcairo2
-          npx playwright install chromium
+      - name: Install Playwright
+        uses: browser-actions/playwright@v1
+        with:
+          install-chromium: true
 
       - name: Run E2E tests
         working-directory: apps/web
