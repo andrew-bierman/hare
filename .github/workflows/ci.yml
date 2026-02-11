@@ -101,10 +101,9 @@ jobs:
         run: bun install
 
       - name: Install Playwright browsers
-        uses: microsoft/playwright-github-action@v1
-        with:
-          install-chromedriver: true
-          install-deps: true
+        run: |
+          npx playwright install chromium
+          npx playwright install-deps chromium
 
       - name: Run E2E tests
         working-directory: apps/web
