@@ -106,8 +106,7 @@ jobs:
       - name: Install Playwright
         run: |
           bun install
-          npm install -g playwright@1.57.0
-          playwright install chromium
+          npx playwright install chromium
 
       - name: Run E2E tests
         working-directory: apps/web
