@@ -17,8 +17,14 @@
   // Skip services that require remote binding
   "services": [],
 
-  // Skip D1 databases for E2E tests
-  "d1_databases": [],
+  // Local D1 database for E2E tests (no remote ID needed)
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "hare-e2e-db",
+      "database_id": "e2e-local-id"
+    }
+  ],
 
   // Skip KV namespaces
   "kv_namespaces": [],
