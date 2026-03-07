@@ -87,7 +87,7 @@ Hare provides a **visual builder** for AI agents that deploy instantly to Cloudf
 - **⚡ One-Click Deploy** - Agents run on 300+ edge locations worldwide (as fast as a hare!)
 - **🚀 Sub-50ms Latency** - Cloudflare Workers cold starts are nearly instant
 - **🧠 Built-in Memory** - Conversation history, semantic recall, working memory
-- **🛠️ Tool Library** - 57 built-in tools (HTTP, SQL, KV, R2, AI, validation, and more)
+- **🛠️ Tool Library** - 59 built-in tools (HTTP, SQL, KV, R2, AI, validation, and more)
 - **📜 Version Control** - Track changes, rollback to previous versions
 - **🔌 API Access** - REST API with streaming support
 - **👥 Team Collaboration** - Invite teammates, role-based access
@@ -96,9 +96,10 @@ Hare provides a **visual builder** for AI agents that deploy instantly to Cloudf
 - **🌐 WebSocket Real-time** - Live agent communication with state sync
 - **🏥 Health Monitoring** - Liveness/readiness probes for all services
 
+- **💬 Embed Widget** - Drop-in chat widget for websites
+
 ### 🔮 Coming Soon
 
-- **💬 Embed Widget** - Drop-in chat widget for websites
 - **🔧 Custom Tools** - Build tools with code or HTTP config
 - **⏰ Scheduled Agents** - Run agents on a cron schedule
 - **🔗 Multi-Agent Workflows** - Chain agents together for complex tasks
@@ -139,52 +140,67 @@ Hare provides a **visual builder** for AI agents that deploy instantly to Cloudf
 ```
 hare/
 ├── apps/
-│   └── web/                    # Vite + TanStack app (Cloudflare Workers)
-│       ├── src/
-│       │   ├── routes/               # TanStack Router pages
-│       │   │   ├── (auth)/           # Auth pages (sign-in, sign-up)
-│       │   │   ├── (dashboard)/      # Protected dashboard routes
-│       │   │   │   ├── agents/       # Agent management
-│       │   │   │   ├── settings/     # Workspace settings
-│       │   │   │   └── billing/      # Subscription management
-│       │   │   └── (marketing)/      # Landing, pricing, docs
-│       │   ├── components/           # React components
-│       │   │   ├── ui/               # shadcn/ui primitives
-│       │   │   ├── agent/            # Agent-specific components
-│       │   │   ├── chat/             # Chat components
-│       │   │   ├── layout/           # Layout components
-│       │   │   └── providers/        # React context providers
-│       │   ├── lib/
-│       │   │   ├── api/              # Hono app + routes
-│       │   │   │   ├── routes/       # API route handlers (11 modules)
-│       │   │   │   ├── middleware/   # Auth, workspace middleware
-│       │   │   │   └── hooks/        # React Query hooks
-│       │   │   ├── agents/           # Cloudflare Agents SDK
-│       │   │   │   ├── hare-agent.ts # Main agent (Durable Object)
-│       │   │   │   ├── mcp-agent.ts  # MCP server agent
-│       │   │   │   ├── tools/        # 57 tool implementations
-│       │   │   │   └── providers/    # LLM providers (Workers AI)
-│       │   │   ├── auth/             # Better Auth config
-│       │   │   └── client.ts         # Hono RPC client
-│       │   ├── db/                   # Database layer
-│       │   │   ├── schema/           # Drizzle table definitions
-│       │   │   ├── client.ts         # Database client
-│       │   │   └── types.ts          # TypeScript types
-│       │   └── hooks/                # Custom React hooks
-│       ├── migrations/               # SQL migrations (D1)
-│       ├── drizzle.config.ts         # Drizzle configuration
-│       ├── vite.config.ts            # Vite configuration
-│       ├── wrangler.jsonc            # Cloudflare Workers config
-│       └── package.json
+│   ├── web/                    # Vite + TanStack app (Cloudflare Workers)
+│   │   ├── src/
+│   │   │   ├── routes/               # TanStack Router pages
+│   │   │   │   ├── (auth)/           # Auth pages (sign-in, sign-up)
+│   │   │   │   ├── (dashboard)/      # Protected dashboard routes
+│   │   │   │   │   ├── agents/       # Agent management
+│   │   │   │   │   ├── settings/     # Workspace settings
+│   │   │   │   │   └── billing/      # Subscription management
+│   │   │   │   ├── (marketing)/      # Landing, pricing, docs
+│   │   │   │   └── embed/            # Embeddable chat widget
+│   │   │   ├── components/           # React components
+│   │   │   │   ├── ui/               # shadcn/ui primitives
+│   │   │   │   ├── agent/            # Agent-specific components
+│   │   │   │   ├── chat/             # Chat components
+│   │   │   │   ├── layout/           # Layout components
+│   │   │   │   └── providers/        # React context providers
+│   │   │   ├── lib/
+│   │   │   │   ├── api/              # Hono app + routes
+│   │   │   │   │   ├── routes/       # API route handlers (11 modules)
+│   │   │   │   │   ├── middleware/   # Auth, workspace middleware
+│   │   │   │   │   └── hooks/        # React Query hooks
+│   │   │   │   ├── agents/           # Cloudflare Agents SDK
+│   │   │   │   │   ├── hare-agent.ts # Main agent (Durable Object)
+│   │   │   │   │   ├── mcp-agent.ts  # MCP server agent
+│   │   │   │   │   ├── tools/        # 59 tool implementations
+│   │   │   │   │   └── providers/    # LLM providers (Workers AI)
+│   │   │   │   ├── auth/             # Better Auth config
+│   │   │   │   └── client.ts         # Hono RPC client
+│   │   │   ├── db/                   # Database layer
+│   │   │   │   ├── schema/           # Drizzle table definitions
+│   │   │   │   ├── client.ts         # Database client
+│   │   │   │   └── types.ts          # TypeScript types
+│   │   │   └── hooks/                # Custom React hooks
+│   │   ├── migrations/               # SQL migrations (D1)
+│   │   ├── drizzle.config.ts         # Drizzle configuration
+│   │   ├── vite.config.ts            # Vite configuration
+│   │   ├── wrangler.jsonc            # Cloudflare Workers config
+│   │   └── package.json
+│   └── tauri/                  # Tauri desktop app
 │
 ├── packages/                   # Shared packages
-│   ├── ui/                     # Shared UI components
-│   ├── e2e/                    # End-to-end tests (Playwright)
-│   └── typescript-config/      # Shared TypeScript configs
+│   ├── agent/                  # Agent runtime
+│   ├── api/                    # API layer
+│   ├── app/                    # App components & widgets
+│   ├── auth/                   # Authentication
+│   ├── cli/                    # CLI tooling
+│   ├── config/                 # Centralized configuration
+│   ├── db/                     # Database schema & client
+│   ├── docs/                   # Documentation
+│   ├── email/                  # Email services
+│   ├── sdk/                    # Hare SDK
+│   ├── security/               # Security utilities
+│   ├── testing/                # Test utilities
+│   ├── tools/                  # Agent tool implementations
+│   ├── types/                  # Shared TypeScript types
+│   ├── typescript-config/      # Shared TypeScript configs
+│   └── ui/                     # Shared UI components
 │
 ├── .env.local.example          # Environment template
 ├── package.json                # Root workspace config
-├── bun.lockb                   # Bun lockfile
+├── bun.lock                    # Bun lockfile
 ├── turbo.json                  # Turborepo configuration
 ├── CLAUDE.md                   # AI coding guidelines
 └── README.md                   # This file
@@ -201,7 +217,7 @@ The application is built as a **Vite + TanStack Router application** deployed to
 ### 📋 Prerequisites
 
 - **[Bun](https://bun.sh)** >= 1.3.5 (recommended) or Node.js >= 20
-- **[Wrangler](https://developers.cloudflare.com/workers/wrangler/)** >= 3.0 (Cloudflare CLI)
+- **[Wrangler](https://developers.cloudflare.com/workers/wrangler/)** >= 4.0 (Cloudflare CLI)
 - Cloudflare account (free tier works!)
 
 ### ⚡ Installation
@@ -255,7 +271,7 @@ bun run db:migrate:remote
 ### 🚀 Development
 
 ```bash
-# Start development server (with Turbopack ⚡)
+# Start development server (with Turborepo ⚡)
 bun run dev
 
 # Open http://localhost:3000
@@ -1077,7 +1093,7 @@ describe('isWorkspaceRole', () => {
 Example E2E test:
 
 ```typescript
-// packages/e2e/tests/home.spec.ts
+// packages/testing/tests/home.spec.ts
 import { test, expect } from '@playwright/test'
 
 test('homepage loads', async ({ page }) => {
@@ -1097,7 +1113,7 @@ Unit tests are located in `__tests__` directories alongside source files:
 
 E2E tests are in dedicated directories:
 - Web app: `apps/web/e2e/`
-- Shared: `packages/e2e/`
+- Shared: `packages/testing/`
 
 ---
 
@@ -1199,7 +1215,7 @@ Hare pricing is designed to be simple and predictable (no surprise bills! 💰):
 | ✅ | OAuth providers (Google, GitHub) | Complete | `medium` |
 | ✅ | Configuration validation and preview | Complete | `easy` |
 | ✅ | Workers deployment pipeline | Complete | `hard` |
-| 🥇 | Embed chat widget | Up Next | `medium` |
+| ✅ | Embed chat widget | Complete | `medium` |
 
 **Want to help?** Items marked `easy` are great for first-time contributors! See [How to Contribute](#-how-to-contribute) below.
 
@@ -1209,7 +1225,7 @@ Hare pricing is designed to be simple and predictable (no surprise bills! 💰):
 
 | Version | Codename | Target | Key Features |
 |---------|----------|--------|--------------|
-| `v0.1.0` | **Sprinter** | ✅ Complete | Agent builder, 57 tools, streaming API |
+| `v0.1.0` | **Sprinter** | ✅ Complete | Agent builder, 59 tools, streaming API |
 | `v0.2.0` | **Dasher** | 🚧 In Progress | MCP, Agents SDK, Analytics, Health checks |
 | `v0.3.0` | **Racer** | Planned | Billing, teams, custom tools, workflows |
 | `v1.0.0` | **Hare** | Planned | Enterprise features, SSO, SLA |
@@ -1250,7 +1266,7 @@ All core infrastructure is in place and production-ready:
 - [x] 🤖 **AI Agent Engine** - Production-ready execution layer
   - [x] Vercel AI SDK integration for streaming
   - [x] Workers AI provider with model abstraction
-  - [x] 57 built-in tools across 11 categories
+  - [x] 59 built-in tools across 12 categories
   - [x] Memory system with conversation persistence
   - [x] Tool calling and result handling
 - [x] 🎨 **UI Foundation** - shadcn/ui component library integrated
@@ -1273,7 +1289,7 @@ All core infrastructure is in place and production-ready:
 - [x] 🔐 **Auth System** - Better Auth with email/password (OAuth ready)
 - [x] 💬 **Streaming Chat** - SSE-based chat with real-time responses
 - [x] 🧠 **Memory & Context** - Conversation history and working memory
-- [x] 🛠️ **Tool Library** - 57 pre-built tools across 11 categories:
+- [x] 🛠️ **Tool Library** - 59 pre-built tools across 12 categories:
   - Cloudflare Native: KV, R2, SQL, HTTP, AI Search (17 tools)
   - Utility: datetime, json, text, math, uuid, hash, base64, url, delay (9 tools)
   - AI: sentiment, summarize, translate, image_generate, classify, NER, embedding, Q&A (8 tools)
@@ -1282,6 +1298,7 @@ All core infrastructure is in place and production-ready:
   - Transform: markdown, diff, QR code, compression, color (5 tools)
   - Sandbox: code_execute, code_validate, sandbox_file (3 tools)
   - Integrations: Zapier, webhook (2 tools)
+  - Memory: recall_memory, store_memory (2 tools)
 - [x] 📊 **Dashboard** - Pages for agents, settings, usage
 - [x] ⚙️ **Agent Configuration** - Backend API for full agent CRUD
 - [x] 🎮 **Agent Builder UI**
@@ -1304,7 +1321,7 @@ All core infrastructure is in place and production-ready:
 - [x] 🔗 **MCP (Model Context Protocol)**
   - [x] HareMcpAgent for external AI clients
   - [x] WebSocket endpoint for Claude Desktop, Cursor, etc.
-  - [x] All 57 tools exposed via MCP
+  - [x] All 59 tools exposed via MCP
   - [x] Workspace resources and context
 
 **Remaining:**
@@ -1330,7 +1347,6 @@ All core infrastructure is in place and production-ready:
 
 **Next Steps** (Priority order):
 1. Add deployment rollback mechanism
-2. Embed chat widget for websites
 
 ---
 
