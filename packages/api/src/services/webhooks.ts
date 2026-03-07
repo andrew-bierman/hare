@@ -108,6 +108,70 @@ export async function verifySignature(options: {
 }
 
 // =============================================================================
+// SSRF Protection
+// =============================================================================
+
+/** Hostnames that must never receive webhook deliveries */
+const BLOCKED_HOSTNAMES = new Set(['localhost', 'localhost.localdomain', 'metadata.google.internal'])
+const BLOCKED_HOSTNAME_SUFFIXES = ['.internal', '.local', '.localhost']
+
+function parseIPv4(ip: string): number[] | null {
+	const parts = ip.split('.')
+	if (parts.length !== 4) return null
+	const octets: number[] = []
+	for (const part of parts) {
+		const num = Number.parseInt(part, 10)
+		if (Number.isNaN(num) || num < 0 || num > 255 || part !== num.toString()) return null
+		octets.push(num)
+	}
+	return octets
+}
+
+function isPrivateIPv4(octets: number[]): boolean {
+	if (octets.length < 2) return false
+	const a = octets[0]!
+	const b = octets[1]!
+	if (a === 0 || a === 10 || a === 127) return true
+	if (a === 169 && b === 254) return true
+	if (a === 172 && b >= 16 && b <= 31) return true
+	if (a === 192 && b === 168) return true
+	if (a >= 224) return true
+	return false
+}
+
+export function isWebhookUrlSafe(url: string): { safe: boolean; reason?: string } {
+	try {
+		const parsed = new URL(url)
+		if (!['http:', 'https:'].includes(parsed.protocol)) {
+			return { safe: false, reason: 'Only HTTP and HTTPS protocols are allowed' }
+		}
+		const lower = parsed.hostname.toLowerCase()
+		if (BLOCKED_HOSTNAMES.has(lower)) {
+			return { safe: false, reason: 'Blocked hostname' }
+		}
+		for (const suffix of BLOCKED_HOSTNAME_SUFFIXES) {
+			if (lower.endsWith(suffix)) {
+				return { safe: false, reason: 'Internal network hostname' }
+			}
+		}
+		const octets = parseIPv4(lower)
+		if (octets && isPrivateIPv4(octets)) {
+			return { safe: false, reason: 'Private/internal IP address' }
+		}
+		const ipv6 = lower.startsWith('[') && lower.endsWith(']') ? lower.slice(1, -1) : lower
+		if (ipv6.includes(':')) {
+			const norm = ipv6.toLowerCase()
+			if (norm === '::1' || norm.startsWith('fe8') || norm.startsWith('fc') || norm.startsWith('fd')) {
+				return { safe: false, reason: 'Private/internal IPv6 address' }
+			}
+		}
+		return { safe: true }
+	} catch {
+		return { safe: false, reason: 'Invalid URL format' }
+	}
+}
+
+// =============================================================================
 // Webhook Delivery
 // =============================================================================
 
@@ -132,6 +196,13 @@ async function deliverWebhook(options: {
 	error?: string
 }> {
 	const { webhook, payload } = options
+
+	// SSRF protection: validate URL before making request
+	const urlCheck = isWebhookUrlSafe(webhook.url)
+	if (!urlCheck.safe) {
+		return { success: false, error: `Blocked URL: ${urlCheck.reason}` }
+	}
+
 	const payloadString = JSON.stringify(payload)
 	const signature = await generateSignature({ payload: payloadString, secret: webhook.secret })
 
@@ -518,6 +589,12 @@ export async function retryDelivery(options: {
 	}
 }): Promise<typeof webhookDeliveries.$inferSelect> {
 	const { db, deliveryId, webhook } = options
+
+	// SSRF protection: validate URL before making request
+	const urlCheck = isWebhookUrlSafe(webhook.url)
+	if (!urlCheck.safe) {
+		throw new Error(`Blocked URL: ${urlCheck.reason}`)
+	}
 
 	// Get the delivery record
 	const [delivery] = await db

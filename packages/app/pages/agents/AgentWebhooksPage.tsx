@@ -1,6 +1,5 @@
 'use client'
 
-import { useWorkspace } from '../../app/providers'
 import { useAgentQuery } from '../../shared/api'
 import {
 	useWebhooksQuery,
@@ -13,7 +12,6 @@ import {
 	useRetryWebhookDeliveryMutation,
 	type Webhook,
 	type WebhookDelivery,
-	type WebhookLog,
 } from '../../shared/api/hooks'
 import { Badge } from '@hare/ui/components/badge'
 import { Button } from '@hare/ui/components/button'
@@ -117,7 +115,7 @@ function LoadingSkeleton() {
 }
 
 function StatusBadge({ status }: { status: string }) {
-	const variants: Record<string, { className: string; icon: typeof CheckCircle2 }> = {
+	const variants = {
 		active: {
 			className: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300',
 			icon: CheckCircle2,
@@ -130,18 +128,18 @@ function StatusBadge({ status }: { status: string }) {
 			className: 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300',
 			icon: XCircle,
 		},
-	}
-	const { className, icon: Icon } = variants[status] ?? variants.inactive
+	} as const satisfies Record<string, { className: string; icon: typeof CheckCircle2 }>
+	const variant = variants[status as keyof typeof variants] ?? variants.inactive
 	return (
-		<Badge className={className}>
-			<Icon className="h-3 w-3 mr-1" />
+		<Badge className={variant.className}>
+			<variant.icon className="h-3 w-3 mr-1" />
 			{status}
 		</Badge>
 	)
 }
 
 function DeliveryStatusBadge({ status }: { status: string }) {
-	const variants: Record<string, { className: string; icon: typeof CheckCircle2 }> = {
+	const variants = {
 		success: {
 			className: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300',
 			icon: CheckCircle2,
@@ -154,11 +152,11 @@ function DeliveryStatusBadge({ status }: { status: string }) {
 			className: 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300',
 			icon: XCircle,
 		},
-	}
-	const { className, icon: Icon } = variants[status] ?? variants.pending
+	} as const satisfies Record<string, { className: string; icon: typeof CheckCircle2 }>
+	const variant = variants[status as keyof typeof variants] ?? variants.pending
 	return (
-		<Badge className={className}>
-			<Icon className="h-3 w-3 mr-1" />
+		<Badge className={variant.className}>
+			<variant.icon className="h-3 w-3 mr-1" />
 			{status}
 		</Badge>
 	)
@@ -587,8 +585,6 @@ function WebhookLogsDialog({ webhook, agentId, open, onOpenChange }: WebhookLogs
 // =============================================================================
 
 export function AgentWebhooksPage({ agentId }: AgentWebhooksPageProps) {
-	const { activeWorkspace } = useWorkspace()
-
 	const { data: agent, isLoading: agentLoading, error: agentError } = useAgentQuery(agentId)
 	const { data: webhooksData, isLoading: webhooksLoading } = useWebhooksQuery(agentId)
 

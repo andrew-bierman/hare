@@ -1,22 +1,20 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest'
-import {
-	csrfProtection,
-	generateCsrfToken,
-	getCsrfToken,
-	setCsrfCookie,
-	validateCsrfToken,
-} from '../csrf'
 import type { Context } from 'hono'
 import type { HonoEnv } from '@hare/types'
 
-// Mock Hono cookie functions
-const mockedGetCookie = vi.fn()
-const mockedSetCookie = vi.fn()
+// Mock Hono cookie functions — use vi.hoisted to avoid hoisting issues with Workers pool
+const { mockedGetCookie, mockedSetCookie } = vi.hoisted(() => ({
+	mockedGetCookie: vi.fn(),
+	mockedSetCookie: vi.fn(),
+}))
 
 vi.mock('hono/cookie', () => ({
 	getCookie: mockedGetCookie,
 	setCookie: mockedSetCookie,
 }))
+
+const { csrfProtection, generateCsrfToken, getCsrfToken, setCsrfCookie, validateCsrfToken } =
+	await import('../csrf')
 
 // Helper to create mock context
 function createMockContext(overrides: {
