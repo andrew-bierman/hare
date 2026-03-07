@@ -759,7 +759,7 @@ Be helpful, patient, and educational. Explain your recommendations. Make the pro
 				{ value: '300+', label: 'Edge Locations', icon: 'Globe' },
 				{ value: '<50ms', label: 'Global Latency', icon: 'Zap' },
 				{ value: '99.99%', label: 'Uptime SLA', icon: 'Shield' },
-				{ value: '10K+', label: 'Agents Deployed', icon: 'Bot' },
+				{ value: '✦', label: 'Growing Community', icon: 'Bot' },
 			],
 			badges: [
 				{ label: 'Open Source', icon: 'GitBranch' },
@@ -772,7 +772,7 @@ Be helpful, patient, and educational. Explain your recommendations. Make the pro
 				{ title: 'Built-in Tools', description: 'SQL, HTTP, KV, R2, and vector search ready to go.', icon: 'Layers' },
 				{ title: 'Developer SDK', description: 'Full TypeScript SDK with type-safe APIs.', icon: 'Code' },
 				{ title: 'Real-time Streaming', description: 'Stream responses with built-in WebSocket support.', icon: 'MessageSquare' },
-				{ title: 'Enterprise Security', description: 'SOC 2 compliant with end-to-end encryption.', icon: 'Shield' },
+				{ title: 'Enterprise Security', description: 'Security-first architecture with end-to-end encryption.', icon: 'Shield' },
 			],
 			steps: [
 				{ title: 'Define', description: 'Configure your agent', icon: 'Bot' },
