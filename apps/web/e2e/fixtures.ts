@@ -47,8 +47,7 @@ export const test = base.extend<{
 		for (let attempt = 1; attempt <= maxRetries; attempt++) {
 			try {
 				// Sign up via API (much faster than UI form typing)
-				const origin =
-					process.env.BASE_URL || `http://localhost:${process.env.PORT || '3000'}`
+				const origin = process.env.BASE_URL || `http://localhost:${process.env.PORT || '3000'}`
 				const signUpResponse = await page.request.post('/api/auth/sign-up/email', {
 					headers: { Origin: origin },
 					data: {
