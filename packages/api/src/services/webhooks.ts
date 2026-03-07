@@ -139,6 +139,36 @@ function isPrivateIPv4(octets: number[]): boolean {
 	return false
 }
 
+function isPrivateIPv6(hostname: string): boolean {
+	const norm = hostname.toLowerCase()
+	// Loopback ::1
+	if (norm === '::1' || norm === '0:0:0:0:0:0:0:1') return true
+	// Unspecified ::
+	if (norm === '::' || norm === '0:0:0:0:0:0:0:0') return true
+	// Link-local fe80::/10
+	if (norm.startsWith('fe8') || norm.startsWith('fe9') || norm.startsWith('fea') || norm.startsWith('feb')) return true
+	// Unique local fc00::/7
+	if (norm.startsWith('fc') || norm.startsWith('fd')) return true
+	// IPv4-mapped ::ffff: — URL parser normalizes to hex form (::ffff:7f00:1)
+	if (norm.startsWith('::ffff:')) {
+		const mapped = norm.slice(7)
+		// Try dot-decimal form first (::ffff:127.0.0.1)
+		const octets = parseIPv4(mapped)
+		if (octets && isPrivateIPv4(octets)) return true
+		// Handle hex-word form (::ffff:7f00:1) — convert to IPv4 octets
+		const hexParts = mapped.split(':')
+		if (hexParts.length === 2 && hexParts[0] && hexParts[1]) {
+			const hi = Number.parseInt(hexParts[0], 16)
+			const lo = Number.parseInt(hexParts[1], 16)
+			if (!Number.isNaN(hi) && !Number.isNaN(lo)) {
+				const ipv4Octets = [(hi >> 8) & 0xff, hi & 0xff, (lo >> 8) & 0xff, lo & 0xff]
+				if (isPrivateIPv4(ipv4Octets)) return true
+			}
+		}
+	}
+	return false
+}
+
 export function isWebhookUrlSafe(url: string): { safe: boolean; reason?: string } {
 	try {
 		const parsed = new URL(url)
@@ -154,17 +184,28 @@ export function isWebhookUrlSafe(url: string): { safe: boolean; reason?: string 
 				return { safe: false, reason: 'Internal network hostname' }
 			}
 		}
+
+		// Block decimal/hex/octal IP representations (e.g., http://2130706433 = 127.0.0.1)
+		if (/^\d+$/.test(lower) || lower.startsWith('0x')) {
+			return { safe: false, reason: 'Numeric IP representations are not allowed' }
+		}
+
 		const octets = parseIPv4(lower)
 		if (octets && isPrivateIPv4(octets)) {
 			return { safe: false, reason: 'Private/internal IP address' }
 		}
+
+		// IPv6 check (hostname may be wrapped in brackets from URL parser)
 		const ipv6 = lower.startsWith('[') && lower.endsWith(']') ? lower.slice(1, -1) : lower
-		if (ipv6.includes(':')) {
-			const norm = ipv6.toLowerCase()
-			if (norm === '::1' || norm.startsWith('fe8') || norm.startsWith('fc') || norm.startsWith('fd')) {
-				return { safe: false, reason: 'Private/internal IPv6 address' }
-			}
+		if (ipv6.includes(':') && isPrivateIPv6(ipv6)) {
+			return { safe: false, reason: 'Private/internal IPv6 address' }
 		}
+
+		// Explicit cloud metadata endpoint check
+		if (parsed.hostname === '169.254.169.254') {
+			return { safe: false, reason: 'Cloud metadata endpoint not allowed' }
+		}
+
 		return { safe: true }
 	} catch {
 		return { safe: false, reason: 'Invalid URL format' }

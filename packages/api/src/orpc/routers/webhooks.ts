@@ -15,7 +15,7 @@ import {
 	webhookLogs,
 	webhooks,
 } from '@hare/db'
-import { requireWrite, requireAdmin, notFound, serverError } from '../base'
+import { requireWrite, requireAdmin, notFound, serverError, badRequest } from '../base'
 import { generateWebhookSecret, isWebhookUrlSafe, reactivateWebhook, retryDelivery } from '../../services/webhooks'
 
 // =============================================================================
@@ -164,7 +164,7 @@ const create = requireWrite
 		// SSRF protection: block private/internal URLs
 		const urlCheck = isWebhookUrlSafe(input.url)
 		if (!urlCheck.safe) {
-			throw new Error(`Invalid webhook URL: ${urlCheck.reason}`)
+			badRequest(`Invalid webhook URL: ${urlCheck.reason}`)
 		}
 
 		const [agent] = await db
@@ -251,7 +251,7 @@ const update = requireWrite
 		if (input.url) {
 			const urlCheck = isWebhookUrlSafe(input.url)
 			if (!urlCheck.safe) {
-				throw new Error(`Invalid webhook URL: ${urlCheck.reason}`)
+				badRequest(`Invalid webhook URL: ${urlCheck.reason}`)
 			}
 		}
 
