@@ -21,7 +21,7 @@
   "d1_databases": [
     {
       "binding": "DB",
-      "database_name": "hare-e2e-db",
+      "database_name": "hare-db",
       "database_id": "e2e-local-id"
     }
   ],

@@ -106,7 +106,7 @@ jobs:
 
       - name: Setup E2E database
         working-directory: apps/web
-        run: bun run db:migrate:local
+        run: npx wrangler d1 migrations apply hare-db --local --config wrangler.e2e.jsonc
 
       - name: Run E2E tests
         working-directory: apps/web
