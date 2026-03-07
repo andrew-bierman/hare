@@ -7,11 +7,7 @@ import { test } from './fixtures'
  * creating, editing, deleting, and managing webhook settings.
  *
  * Note: All tests require authentication since webhook pages are protected routes.
- *
- * Important: Some tests that require creating webhooks via the API are skipped
- * because the AgentWebhooksPage component uses REST endpoints that need to be
- * migrated to use the oRPC client. These tests document the expected behavior
- * and should pass once the API integration is fixed.
+ * The AgentWebhooksPage was migrated from raw REST fetch to oRPC client calls.
  */
 
 // Helper to generate unique webhook URLs
@@ -340,7 +336,7 @@ test.describe('Webhooks Page - Navigation', () => {
 // ============================================================================
 
 test.describe('Webhooks Page - Create Webhook', () => {
-	test.skip('creating webhook adds it to list', async ({ authenticatedPage }) => {
+	test('creating webhook adds it to list', async ({ authenticatedPage }) => {
 		await createAgentAndGoToWebhooks(authenticatedPage)
 
 		const webhookUrl = generateWebhookUrl('create-test')
@@ -363,7 +359,7 @@ test.describe('Webhooks Page - Create Webhook', () => {
 		await expect(authenticatedPage.getByText(webhookUrl)).toBeVisible()
 	})
 
-	test.skip('created webhook shows active status', async ({ authenticatedPage }) => {
+	test('created webhook shows active status', async ({ authenticatedPage }) => {
 		await createAgentAndGoToWebhooks(authenticatedPage)
 
 		// Open create dialog
@@ -385,7 +381,7 @@ test.describe('Webhooks Page - Create Webhook', () => {
 // ============================================================================
 
 test.describe('Webhooks Page - List Display', () => {
-	test.skip('webhooks list shows existing webhooks', async ({ authenticatedPage }) => {
+	test('webhooks list shows existing webhooks', async ({ authenticatedPage }) => {
 		await createAgentAndGoToWebhooks(authenticatedPage)
 
 		// Create a webhook first
@@ -403,7 +399,7 @@ test.describe('Webhooks Page - List Display', () => {
 		await expect(authenticatedPage.getByText('active')).toBeVisible()
 	})
 
-	test.skip('webhook card shows subscribed events', async ({ authenticatedPage }) => {
+	test('webhook card shows subscribed events', async ({ authenticatedPage }) => {
 		await createAgentAndGoToWebhooks(authenticatedPage)
 
 		// Create webhook with multiple events
@@ -425,7 +421,7 @@ test.describe('Webhooks Page - List Display', () => {
 // ============================================================================
 
 test.describe('Webhooks Page - Secret Management', () => {
-	test.skip('webhook shows generated secret', async ({ authenticatedPage }) => {
+	test('webhook shows generated secret', async ({ authenticatedPage }) => {
 		await createAgentAndGoToWebhooks(authenticatedPage)
 
 		// Create a webhook
@@ -442,7 +438,7 @@ test.describe('Webhooks Page - Secret Management', () => {
 		await expect(authenticatedPage.getByText('************************')).toBeVisible()
 	})
 
-	test.skip('secret can be revealed by clicking show button', async ({ authenticatedPage }) => {
+	test('secret can be revealed by clicking show button', async ({ authenticatedPage }) => {
 		await createAgentAndGoToWebhooks(authenticatedPage)
 
 		// Create a webhook
@@ -475,7 +471,7 @@ test.describe('Webhooks Page - Secret Management', () => {
 // ============================================================================
 
 test.describe('Webhooks Page - Edit Webhook', () => {
-	test.skip('Edit button opens edit form', async ({ authenticatedPage }) => {
+	test('Edit button opens edit form', async ({ authenticatedPage }) => {
 		await createAgentAndGoToWebhooks(authenticatedPage)
 
 		// Create a webhook
@@ -493,7 +489,7 @@ test.describe('Webhooks Page - Edit Webhook', () => {
 		await expect(authenticatedPage.getByText('Edit Webhook')).toBeVisible()
 	})
 
-	test.skip('edit form is pre-filled with webhook data', async ({ authenticatedPage }) => {
+	test('edit form is pre-filled with webhook data', async ({ authenticatedPage }) => {
 		await createAgentAndGoToWebhooks(authenticatedPage)
 
 		const webhookUrl = generateWebhookUrl()
@@ -524,7 +520,7 @@ test.describe('Webhooks Page - Edit Webhook', () => {
 // ============================================================================
 
 test.describe('Webhooks Page - Enable/Disable Toggle', () => {
-	test.skip('toggle webhook disabled works', async ({ authenticatedPage }) => {
+	test('toggle webhook disabled works', async ({ authenticatedPage }) => {
 		await createAgentAndGoToWebhooks(authenticatedPage)
 
 		// Create a webhook
@@ -556,7 +552,7 @@ test.describe('Webhooks Page - Enable/Disable Toggle', () => {
 // ============================================================================
 
 test.describe('Webhooks Page - Delete Webhook', () => {
-	test.skip('delete webhook shows confirmation dialog', async ({ authenticatedPage }) => {
+	test('delete webhook shows confirmation dialog', async ({ authenticatedPage }) => {
 		await createAgentAndGoToWebhooks(authenticatedPage)
 
 		// Create a webhook
@@ -590,7 +586,7 @@ test.describe('Webhooks Page - Delete Webhook', () => {
 // ============================================================================
 
 test.describe('Webhooks Page - Delivery Logs', () => {
-	test.skip('View Logs button opens delivery logs dialog', async ({ authenticatedPage }) => {
+	test('View Logs button opens delivery logs dialog', async ({ authenticatedPage }) => {
 		await createAgentAndGoToWebhooks(authenticatedPage)
 
 		// Create a webhook
