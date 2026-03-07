@@ -95,15 +95,15 @@ Hare provides a **visual builder** for AI agents that deploy instantly to Cloudf
 - **🔌 MCP Support** - Model Context Protocol for external AI clients (Claude Desktop, Cursor)
 - **🌐 WebSocket Real-time** - Live agent communication with state sync
 - **🏥 Health Monitoring** - Liveness/readiness probes for all services
+- **⏰ Scheduled Tasks** - Run agent tasks on a cron schedule or one-time
+- **📣 Webhooks** - Event notifications for agent activity with HMAC signatures
 
 ### 🔮 Coming Soon
 
 - **💬 Embed Widget** - Drop-in chat widget for websites
 - **🔧 Custom Tools** - Build tools with code or HTTP config
-- **⏰ Scheduled Agents** - Run agents on a cron schedule
 - **🔗 Multi-Agent Workflows** - Chain agents together for complex tasks
 - **🌐 Custom Domains** - agents.yourcompany.com
-- **📣 Webhooks** - Event notifications for agent activity
 
 ---
 
