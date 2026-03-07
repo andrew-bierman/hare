@@ -97,7 +97,7 @@ export function DashboardPage() {
 		{
 			title: content.stats.tokensUsed.title,
 			value: formatNumber((usageData?.usage?.totalTokensIn ?? 0) + (usageData?.usage?.totalTokensOut ?? 0)),
-			description: `${formatNumber(usageData?.usage?.totalTokensIn ?? 0)} ${content.stats.tokensUsed.description.replace('in / out', '')} ${formatNumber(usageData?.usage?.totalTokensOut ?? 0)}`,
+			description: `${formatNumber(usageData?.usage?.totalTokensIn ?? 0)} in / ${formatNumber(usageData?.usage?.totalTokensOut ?? 0)} out`,
 			icon: TrendingUp,
 			color: 'bg-emerald-500',
 			trend: null,
