@@ -80,8 +80,8 @@ body: () => sessionIdRef.current ? { sessionId: sessionIdRef.current } : {},
 - [x] Replace raw `fetch()` calls (lines 127-268) with oRPC client calls — `AgentWebhooksPage.tsx`
 - [x] Replace inline `Webhook`/`WebhookLog`/`WebhookDelivery` types with shared schema imports
 - [x] Convert `WebhookLogsDialog` from `useState`+`useEffect` to `useQuery`
-- [ ] Verify webhook CRUD works end-to-end against oRPC backend
-- [ ] Verify database migration includes webhook tables in D1
+- [ ] Verify webhook CRUD works end-to-end against oRPC backend — needs running dev server
+- [x] Verify database migration includes webhook tables in D1 — **VERIFIED**: `webhooks` (migration 0001), `webhook_logs` (migration 0001), `webhook_deliveries` (migration 0007) all exist
 
 #### 1.4 Unfinished Features — "Coming Soon" Guards
 **Issue:** Several features have UI but no working backend or incomplete data pipelines. They currently show broken/empty states.
@@ -161,8 +161,8 @@ Convert the highest-value skipped tests from `cloudflare:test` to mock-based. Do
 
 #### 5.2 Verify & Ship
 - [x] Run `bun run checks` — all 6 checks pass
-- [x] Run `bun run test` — all 1,832 tests pass (27 new CSRF tests re-enabled)
-- [ ] Update README "Coming Soon" features list to reflect reality
+- [x] Run `bun run test` — all 1,872 tests pass (27 CSRF + 40 webhook SSRF tests added)
+- [x] Update README "Coming Soon" features list to reflect reality — moved Scheduled Tasks and Webhooks to main features list
 - [x] Verify Tauri app is not broken by chat session fix — **VERIFIED**: "Sync Tauri Routes" check passes, Tauri shares `packages/app` code, chat fix uses standard React APIs
 
 ## Acceptance Criteria
