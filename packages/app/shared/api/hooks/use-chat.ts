@@ -100,25 +100,27 @@ export function useChat(agentId: string | undefined) {
 	sessionIdRef.current = sessionId
 
 	// Custom fetch to capture session ID from response header
-	const fetchWithSessionCapture = async (url: RequestInfo | URL, init?: RequestInit) => {
-		const response = await fetch(url, init)
-		const newSessionId = response.headers.get('X-Session-Id')
-		if (newSessionId && !sessionIdRef.current) {
-			setSessionId(newSessionId)
-		}
-		return response
-	}
+	const fetchWithSessionCapture = useMemo(
+		() => async (url: RequestInfo | URL, init?: RequestInit) => {
+			const response = await fetch(url, init)
+			const newSessionId = response.headers.get('X-Session-Id')
+			if (newSessionId && !sessionIdRef.current) {
+				setSessionId(newSessionId)
+			}
+			return response
+		},
+		[],
+	)
 
 	// Create transport with the agent-specific API endpoint
 	const transport = useMemo(() => {
 		if (!agentId) return undefined
 		return new DefaultChatTransport({
 			api: `/api/chat/agents/${agentId}/chat`,
-			body: sessionIdRef.current ? { sessionId: sessionIdRef.current } : {},
+			body: () => (sessionIdRef.current ? { sessionId: sessionIdRef.current } : {}),
 			fetch: fetchWithSessionCapture as typeof globalThis.fetch,
 		})
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [agentId])
+	}, [agentId, fetchWithSessionCapture])
 
 	const chat = useAIChat({
 		id: agentId,

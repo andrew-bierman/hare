@@ -206,6 +206,110 @@ export function useTestExistingToolMutation() {
 }
 
 // =============================================================================
+// Webhook Hooks
+// =============================================================================
+
+export type Webhook = Awaited<ReturnType<typeof orpc.webhooks.list>>['webhooks'][number]
+export type WebhookLog = Awaited<ReturnType<typeof orpc.webhooks.getLogs>>['logs'][number]
+export type WebhookDelivery = Awaited<
+	ReturnType<typeof orpc.webhooks.listDeliveries>
+>['deliveries'][number]
+
+export function useWebhooksQuery(agentId: string | undefined) {
+	return useQuery({
+		queryKey: ['webhooks', agentId],
+		queryFn: () => orpc.webhooks.list({ agentId: agentId! }),
+		enabled: !!agentId,
+	})
+}
+
+export function useWebhookLogsQuery(options: {
+	agentId: string
+	webhookId: string
+	limit?: number
+	offset?: number
+	enabled?: boolean
+}) {
+	const { agentId, webhookId, limit, offset, enabled = true } = options
+	return useQuery({
+		queryKey: ['webhooks', webhookId, 'logs', { limit, offset }],
+		queryFn: () => orpc.webhooks.getLogs({ agentId, webhookId, limit, offset }),
+		enabled,
+	})
+}
+
+export function useWebhookDeliveriesQuery(options: {
+	webhookId: string
+	limit?: number
+	offset?: number
+	enabled?: boolean
+}) {
+	const { webhookId, limit, offset, enabled = true } = options
+	return useQuery({
+		queryKey: ['webhooks', webhookId, 'deliveries', { limit, offset }],
+		queryFn: () => orpc.webhooks.listDeliveries({ webhookId, limit, offset }),
+		enabled,
+	})
+}
+
+export function useCreateWebhookMutation() {
+	const queryClient = useQueryClient()
+	return useMutation({
+		mutationFn: (input: Parameters<typeof orpc.webhooks.create>[0]) =>
+			orpc.webhooks.create(input),
+		onSuccess: (_, variables) => {
+			queryClient.invalidateQueries({ queryKey: ['webhooks', variables.agentId] })
+		},
+	})
+}
+
+export function useUpdateWebhookMutation() {
+	const queryClient = useQueryClient()
+	return useMutation({
+		mutationFn: (input: Parameters<typeof orpc.webhooks.update>[0]) =>
+			orpc.webhooks.update(input),
+		onSuccess: (_, variables) => {
+			queryClient.invalidateQueries({ queryKey: ['webhooks', variables.agentId] })
+		},
+	})
+}
+
+export function useDeleteWebhookMutation() {
+	const queryClient = useQueryClient()
+	return useMutation({
+		mutationFn: (input: Parameters<typeof orpc.webhooks.delete>[0]) =>
+			orpc.webhooks.delete(input),
+		onSuccess: (_, variables) => {
+			queryClient.invalidateQueries({ queryKey: ['webhooks', variables.agentId] })
+		},
+	})
+}
+
+export function useRegenerateWebhookSecretMutation() {
+	const queryClient = useQueryClient()
+	return useMutation({
+		mutationFn: (input: Parameters<typeof orpc.webhooks.regenerateSecret>[0]) =>
+			orpc.webhooks.regenerateSecret(input),
+		onSuccess: (_, variables) => {
+			queryClient.invalidateQueries({ queryKey: ['webhooks', variables.agentId] })
+		},
+	})
+}
+
+export function useRetryWebhookDeliveryMutation() {
+	const queryClient = useQueryClient()
+	return useMutation({
+		mutationFn: (input: Parameters<typeof orpc.webhooks.retryDelivery>[0]) =>
+			orpc.webhooks.retryDelivery(input),
+		onSuccess: (_, variables) => {
+			queryClient.invalidateQueries({
+				queryKey: ['webhooks', variables.webhookId, 'deliveries'],
+			})
+		},
+	})
+}
+
+// =============================================================================
 // API Key Hooks
 // =============================================================================
 

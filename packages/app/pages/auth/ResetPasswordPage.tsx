@@ -144,9 +144,8 @@ export function ResetPasswordPage({ token }: ResetPasswordPageProps) {
 
 			setResetComplete(true)
 			toast.success(config.content.auth.success.passwordReset)
-		} catch (error) {
+		} catch (_error) {
 			toast.error('An unexpected error occurred')
-			console.error(error)
 		} finally {
 			setIsLoading(false)
 		}

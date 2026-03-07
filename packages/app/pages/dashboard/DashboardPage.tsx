@@ -18,7 +18,7 @@ import {
 } from 'lucide-react'
 import { useWorkspace } from '../../app/providers'
 import { config, getModelName } from '@hare/config'
-import { useAgentsQuery, useWorkspaceUsageQuery } from '../../shared/api/hooks'
+import { useAgentsQuery, useToolsQuery, useWorkspaceUsageQuery } from '../../shared/api/hooks'
 import { ActivityFeedWidget } from '../../widgets/activity-feed'
 
 const content = config.content.dashboard.home
@@ -63,6 +63,7 @@ export function DashboardPage() {
 	const { isLoading: workspaceLoading } = useWorkspace()
 	const { data: agentsData, isLoading: agentsLoading } = useAgentsQuery()
 	const { data: usageData, isLoading: usageLoading } = useWorkspaceUsageQuery()
+	const { data: toolsData } = useToolsQuery()
 
 	const agents = agentsData?.agents ?? []
 	const deployedAgents = agents.filter((a) => a.status === 'deployed')
@@ -103,7 +104,7 @@ export function DashboardPage() {
 		},
 		{
 			title: content.stats.activeTools.title,
-			value: '6',
+			value: toolsData?.tools?.length?.toString() ?? '--',
 			description: content.stats.activeTools.description,
 			icon: Wrench,
 			color: 'bg-orange-500',
