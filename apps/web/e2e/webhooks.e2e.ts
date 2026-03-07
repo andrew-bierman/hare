@@ -601,6 +601,6 @@ test.describe('Webhooks Page - Delivery Logs', () => {
 
 		// Logs dialog should appear
 		await expect(authenticatedPage.getByRole('dialog')).toBeVisible()
-		await expect(authenticatedPage.getByText('Delivery Logs')).toBeVisible()
+		await expect(authenticatedPage.getByText('Webhook Deliveries')).toBeVisible()
 	})
 })
