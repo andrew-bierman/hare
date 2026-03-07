@@ -251,6 +251,8 @@ async function deliverWebhook(options: {
 	const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS)
 
 	try {
+		// Use redirect: 'manual' to prevent SSRF via open redirects
+		// (attacker could redirect from public URL to internal IP)
 		const response = await fetch(webhook.url, {
 			method: 'POST',
 			headers: {
@@ -261,6 +263,7 @@ async function deliverWebhook(options: {
 				'X-Webhook-Id': webhook.id,
 			},
 			body: payloadString,
+			redirect: 'manual',
 			signal: controller.signal,
 		})
 
@@ -675,6 +678,7 @@ export async function retryDelivery(options: {
 				'X-Webhook-Id': webhook.id,
 			},
 			body: payloadString,
+			redirect: 'manual',
 			signal: controller.signal,
 		})
 
