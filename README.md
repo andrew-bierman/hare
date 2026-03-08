@@ -143,36 +143,16 @@ hare/
 │   ├── web/                    # Vite + TanStack app (Cloudflare Workers)
 │   │   ├── src/
 │   │   │   ├── routes/               # TanStack Router pages
-│   │   │   │   ├── (auth)/           # Auth pages (sign-in, sign-up)
-│   │   │   │   ├── (dashboard)/      # Protected dashboard routes
-│   │   │   │   │   ├── agents/       # Agent management
-│   │   │   │   │   ├── settings/     # Workspace settings
-│   │   │   │   │   └── billing/      # Subscription management
-│   │   │   │   ├── (marketing)/      # Landing, pricing, docs
+│   │   │   │   ├── _auth/            # Auth pages (sign-in, sign-up)
+│   │   │   │   ├── _dashboard/       # Protected dashboard routes
+│   │   │   │   │   └── dashboard/    # Dashboard sub-routes
+│   │   │   │   ├── docs/             # Documentation pages
 │   │   │   │   └── embed/            # Embeddable chat widget
-│   │   │   ├── components/           # React components
-│   │   │   │   ├── ui/               # shadcn/ui primitives
-│   │   │   │   ├── agent/            # Agent-specific components
-│   │   │   │   ├── chat/             # Chat components
-│   │   │   │   ├── layout/           # Layout components
-│   │   │   │   └── providers/        # React context providers
 │   │   │   ├── lib/
-│   │   │   │   ├── api/              # Hono app + routes
-│   │   │   │   │   ├── routes/       # API route handlers (11 modules)
-│   │   │   │   │   ├── middleware/   # Auth, workspace middleware
-│   │   │   │   │   └── hooks/        # React Query hooks
-│   │   │   │   ├── agents/           # Cloudflare Agents SDK
-│   │   │   │   │   ├── hare-agent.ts # Main agent (Durable Object)
-│   │   │   │   │   ├── mcp-agent.ts  # MCP server agent
-│   │   │   │   │   ├── tools/        # 59 tool implementations
-│   │   │   │   │   └── providers/    # LLM providers (Workers AI)
-│   │   │   │   ├── auth/             # Better Auth config
-│   │   │   │   └── client.ts         # Hono RPC client
-│   │   │   ├── db/                   # Database layer
-│   │   │   │   ├── schema/           # Drizzle table definitions
-│   │   │   │   ├── client.ts         # Database client
-│   │   │   │   └── types.ts          # TypeScript types
-│   │   │   └── hooks/                # Custom React hooks
+│   │   │   │   ├── api/              # API utilities
+│   │   │   │   ├── docs/             # Documentation helpers
+│   │   │   │   └── onboarding/       # Onboarding flow
+│   │   │   └── styles/               # CSS styles
 │   │   ├── migrations/               # SQL migrations (D1)
 │   │   ├── drizzle.config.ts         # Drizzle configuration
 │   │   ├── vite.config.ts            # Vite configuration
@@ -1093,7 +1073,7 @@ describe('isWorkspaceRole', () => {
 Example E2E test:
 
 ```typescript
-// packages/testing/tests/home.spec.ts
+// apps/web/e2e/landing.e2e.ts
 import { test, expect } from '@playwright/test'
 
 test('homepage loads', async ({ page }) => {
@@ -1111,9 +1091,9 @@ Unit tests are located in `__tests__` directories alongside source files:
 - Tool tests: `apps/web/src/lib/agents/tools/__tests__/`
 - UI tests: `packages/ui/src/lib/__tests__/`
 
-E2E tests are in dedicated directories:
-- Web app: `apps/web/e2e/`
-- Shared: `packages/testing/`
+E2E tests are in `apps/web/e2e/`.
+
+Shared test utilities (mocks, factories, seeds) are in `packages/testing/`.
 
 ---
 
