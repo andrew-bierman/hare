@@ -44,7 +44,7 @@ bindings = [
 
 [[migrations]]
 tag = "v1"
-new_classes = ["HareAgent"]
+new_sqlite_classes = ["HareAgent"]
 
 # Workers AI (required)
 [ai]
