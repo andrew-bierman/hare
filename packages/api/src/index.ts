@@ -24,6 +24,7 @@ import { secureHeaders } from 'hono/secure-headers'
 import { timing } from 'hono/timing'
 import { serverEnv } from '@hare/config'
 import { CloudflareEnvError } from './db'
+import { requestValidation } from '@hare/security'
 import {
 	corsMiddleware,
 	loggingMiddleware,
@@ -84,6 +85,7 @@ app.use('*', timing()) // Adds Server-Timing headers for performance monitoring
 app.use('*', secureHeaders()) // Security headers (X-Content-Type-Options, X-Frame-Options, etc.)
 app.use('*', corsMiddleware)
 app.use('*', securityHeadersMiddleware)
+app.use('*', requestValidation()) // Request size limits and dangerous header blocking
 app.use('*', loggingMiddleware) // Request logging to KV for observability
 
 // Auth middleware for oRPC routes - parses session cookies and sets user in context
