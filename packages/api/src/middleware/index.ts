@@ -38,6 +38,15 @@ export {
 } from './rate-limit'
 export { corsMiddleware, securityHeadersMiddleware } from './security'
 export {
+	blockDangerousHeaders,
+	csrfProtection,
+	requestSizeLimit,
+	requestValidation,
+	requireContentType,
+	validateJsonBody,
+	type RequestSizeLimitOptions,
+} from '@hare/security'
+export {
 	hasPermission,
 	requirePermission,
 	workspaceMiddleware,

@@ -23,6 +23,7 @@ import { requestId } from 'hono/request-id'
 import { secureHeaders } from 'hono/secure-headers'
 import { timing } from 'hono/timing'
 import { serverEnv } from '@hare/config'
+import { csrfProtection, requestValidation } from '@hare/security'
 import { CloudflareEnvError } from './db'
 import {
 	corsMiddleware,
@@ -84,18 +85,16 @@ app.use('*', timing()) // Adds Server-Timing headers for performance monitoring
 app.use('*', secureHeaders()) // Security headers (X-Content-Type-Options, X-Frame-Options, etc.)
 app.use('*', corsMiddleware)
 app.use('*', securityHeadersMiddleware)
-app.use('*', loggingMiddleware) // Request logging to KV for observability
+app.use('*', requestValidation())
+app.use('*', loggingMiddleware)
 
-// Auth middleware for oRPC routes - parses session cookies and sets user in context
+app.route('/billing', billingWebhook)
+app.use('*', csrfProtection())
 app.use('/rpc/*', optionalAuthMiddleware)
 
-// Mount routes - chain for type inference
-// Note: Most routes are now on oRPC at /api/rpc/*
-// Only special-case routes remain here (WebSocket, auth, Stripe webhook)
 const routes = app
 	.route('/agent-ws', agentWs)
 	.route('/auth', auth)
-	.route('/billing', billingWebhook)
 	.route('/dev', dev)
 	.route('/mcp', mcp)
 	.route('/rpc', orpcApp)
@@ -217,16 +216,23 @@ export * from './orpc'
 export {
 	apiKeyMiddleware,
 	authMiddleware,
+	blockDangerousHeaders,
 	corsMiddleware,
+	csrfProtection,
 	generateApiKey,
 	hasAgentAccess,
 	hasPermission,
 	hasScope,
 	loggingMiddleware,
 	optionalAuthMiddleware,
+	requestSizeLimit,
+	requestValidation,
+	requireContentType,
 	requirePermission,
 	securityHeadersMiddleware,
+	validateJsonBody,
 	workspaceMiddleware,
+	type RequestSizeLimitOptions,
 } from './middleware'
 
 // Re-export helpers
