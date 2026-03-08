@@ -135,7 +135,7 @@ export function ToolsListPage({ toolDetailBasePath = '/dashboard/tools' }: Tools
 				containerClassName="w-full sm:w-64"
 			/>
 
-			{isLoading ? (
+			{isLoading && !data ? (
 				<ToolTableSkeleton />
 			) : (
 				<div className="space-y-4">
