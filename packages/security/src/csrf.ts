@@ -6,19 +6,24 @@
 import type { HonoEnv } from '@hare/types'
 import type { Context } from 'hono'
 import { getCookie, setCookie } from 'hono/cookie'
+import { serverEnv } from '@hare/config'
 import { timingSafeEqual } from './encryption'
+
+const isDev = serverEnv.NODE_ENV === 'development'
 
 /**
  * CSRF token configuration
+ * In development: use plain cookie name and no secure flag (HTTP localhost)
+ * In production: use __Host- prefix with secure flag (HTTPS only)
  */
 const CSRF_CONFIG = {
-	cookieName: '__Host-csrf',
+	cookieName: isDev ? 'csrf' : '__Host-csrf',
 	headerName: 'X-CSRF-Token',
 	tokenLength: 32,
 	cookieMaxAge: 60 * 60 * 24, // 24 hours
 	cookieOptions: {
 		httpOnly: true,
-		secure: true, // Only send over HTTPS
+		secure: !isDev,
 		sameSite: 'Strict' as const,
 		path: '/',
 	},
