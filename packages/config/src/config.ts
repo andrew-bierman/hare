@@ -759,7 +759,7 @@ Be helpful, patient, and educational. Explain your recommendations. Make the pro
 				{ value: '300+', label: 'Edge Locations', icon: 'Globe' },
 				{ value: '<50ms', label: 'Global Latency', icon: 'Zap' },
 				{ value: '99.99%', label: 'Uptime SLA', icon: 'Shield' },
-				{ value: '✦', label: 'Growing Community', icon: 'Bot' },
+				{ value: '59+', label: 'Built-in Tools', icon: 'Bot' },
 			],
 			badges: [
 				{ label: 'Open Source', icon: 'GitBranch' },
