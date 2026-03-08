@@ -100,6 +100,8 @@ Hare provides a **visual builder** for AI agents that deploy instantly to Cloudf
 
 - **💬 Embed Widget** - Drop-in chat widget for websites
 
+- **💬 Embed Widget** - Drop-in chat widget for websites
+
 ### 🔮 Coming Soon
 
 - **🔧 Custom Tools** - Build tools with code or HTTP config
