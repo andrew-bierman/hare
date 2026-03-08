@@ -15,8 +15,8 @@ import {
 	webhookLogs,
 	webhooks,
 } from '@hare/db'
-import { requireWrite, requireAdmin, notFound, serverError } from '../base'
-import { generateWebhookSecret, reactivateWebhook, retryDelivery } from '../../services/webhooks'
+import { requireWrite, requireAdmin, notFound, serverError, badRequest } from '../base'
+import { generateWebhookSecret, isWebhookUrlSafe, reactivateWebhook, retryDelivery } from '../../services/webhooks'
 
 // =============================================================================
 // Schemas
@@ -161,6 +161,12 @@ const create = requireWrite
 	.handler(async ({ input, context }) => {
 		const { db, workspaceId } = context
 
+		// SSRF protection: block private/internal URLs
+		const urlCheck = isWebhookUrlSafe(input.url)
+		if (!urlCheck.safe) {
+			badRequest(`Invalid webhook URL: ${urlCheck.reason}`)
+		}
+
 		const [agent] = await db
 			.select()
 			.from(agents)
@@ -240,6 +246,14 @@ const update = requireWrite
 	.output(webhookSchema)
 	.handler(async ({ input, context }) => {
 		const { db, workspaceId } = context
+
+		// SSRF protection: block private/internal URLs on update
+		if (input.url) {
+			const urlCheck = isWebhookUrlSafe(input.url)
+			if (!urlCheck.safe) {
+				badRequest(`Invalid webhook URL: ${urlCheck.reason}`)
+			}
+		}
 
 		const [agent] = await db
 			.select()

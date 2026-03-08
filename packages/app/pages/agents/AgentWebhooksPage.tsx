@@ -1,7 +1,18 @@
 'use client'
 
-import { useWorkspace } from '../../app/providers'
 import { useAgentQuery } from '../../shared/api'
+import {
+	useWebhooksQuery,
+	useCreateWebhookMutation,
+	useUpdateWebhookMutation,
+	useDeleteWebhookMutation,
+	useRegenerateWebhookSecretMutation,
+	useWebhookDeliveriesQuery,
+	useWebhookLogsQuery,
+	useRetryWebhookDeliveryMutation,
+	type Webhook,
+	type WebhookDelivery,
+} from '../../shared/api/hooks'
 import { Badge } from '@hare/ui/components/badge'
 import { Button } from '@hare/ui/components/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@hare/ui/components/card'
@@ -51,7 +62,7 @@ import {
 	Webhook as WebhookIcon,
 	XCircle,
 } from 'lucide-react'
-import { type ChangeEvent, useCallback, useEffect, useState } from 'react'
+import { type ChangeEvent, useState } from 'react'
 import { toast } from 'sonner'
 
 export interface AgentWebhooksPageProps {
@@ -59,47 +70,8 @@ export interface AgentWebhooksPageProps {
 }
 
 // =============================================================================
-// Types
+// Constants
 // =============================================================================
-
-interface Webhook {
-	id: string
-	agentId: string
-	url: string
-	secret: string
-	events: WebhookEventType[]
-	status: 'active' | 'inactive' | 'failed'
-	description: string | null
-	createdAt: string
-	updatedAt: string
-}
-
-interface WebhookLog {
-	id: string
-	webhookId: string
-	event: string
-	payload: Record<string, unknown>
-	status: 'success' | 'failed' | 'pending'
-	responseStatus: number | null
-	responseBody: string | null
-	attempts: number
-	error: string | null
-	createdAt: string
-	completedAt: string | null
-}
-
-interface WebhookDelivery {
-	id: string
-	webhookId: string
-	event: string
-	payload: Record<string, unknown>
-	status: 'success' | 'failed' | 'pending'
-	statusCode: number | null
-	responseBody: string | null
-	attemptCount: number
-	nextRetryAt: string | null
-	createdAt: string
-}
 
 type WebhookEventType =
 	| 'message.received'
@@ -119,153 +91,6 @@ const WEBHOOK_EVENTS: { value: WebhookEventType; label: string; description: str
 	{ value: 'error', label: 'Error', description: 'When an error occurs' },
 	{ value: 'agent.deployed', label: 'Agent Deployed', description: 'When agent is deployed' },
 ]
-
-// =============================================================================
-// API Functions
-// =============================================================================
-
-async function fetchWebhooks(options: {
-	agentId: string
-	workspaceId: string
-}): Promise<Webhook[]> {
-	const { agentId, workspaceId } = options
-	const response = await fetch(`/api/agents/${agentId}/webhooks?workspaceId=${workspaceId}`)
-	if (!response.ok) {
-		throw new Error('Failed to fetch webhooks')
-	}
-	const data = (await response.json()) as { webhooks: Webhook[] }
-	return data.webhooks
-}
-
-async function createWebhook(options: {
-	agentId: string
-	workspaceId: string
-	url: string
-	events: WebhookEventType[]
-	description?: string
-}): Promise<Webhook> {
-	const { agentId, workspaceId, url, events, description } = options
-	const response = await fetch(`/api/agents/${agentId}/webhooks?workspaceId=${workspaceId}`, {
-		method: 'POST',
-		headers: { 'Content-Type': 'application/json' },
-		body: JSON.stringify({ url, events, description }),
-	})
-	if (!response.ok) {
-		const error = (await response.json()) as { error?: string }
-		throw new Error(error.error || 'Failed to create webhook')
-	}
-	return (await response.json()) as Webhook
-}
-
-async function updateWebhook(options: {
-	agentId: string
-	webhookId: string
-	workspaceId: string
-	data: Partial<{
-		url: string
-		events: WebhookEventType[]
-		status: 'active' | 'inactive' | 'failed'
-		description: string
-	}>
-}): Promise<Webhook> {
-	const { agentId, webhookId, workspaceId, data } = options
-	const response = await fetch(
-		`/api/agents/${agentId}/webhooks/${webhookId}?workspaceId=${workspaceId}`,
-		{
-			method: 'PATCH',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify(data),
-		},
-	)
-	if (!response.ok) {
-		const error = (await response.json()) as { error?: string }
-		throw new Error(error.error || 'Failed to update webhook')
-	}
-	return (await response.json()) as Webhook
-}
-
-async function deleteWebhook(options: {
-	agentId: string
-	webhookId: string
-	workspaceId: string
-}): Promise<void> {
-	const { agentId, webhookId, workspaceId } = options
-	const response = await fetch(
-		`/api/agents/${agentId}/webhooks/${webhookId}?workspaceId=${workspaceId}`,
-		{ method: 'DELETE' },
-	)
-	if (!response.ok) {
-		const error = (await response.json()) as { error?: string }
-		throw new Error(error.error || 'Failed to delete webhook')
-	}
-}
-
-async function fetchWebhookLogs(options: {
-	agentId: string
-	webhookId: string
-	workspaceId: string
-	limit?: number
-}): Promise<{ logs: WebhookLog[]; total: number }> {
-	const { agentId, webhookId, workspaceId, limit = 50 } = options
-	const response = await fetch(
-		`/api/agents/${agentId}/webhooks/${webhookId}/logs?workspaceId=${workspaceId}&limit=${limit}`,
-	)
-	if (!response.ok) {
-		throw new Error('Failed to fetch webhook logs')
-	}
-	return (await response.json()) as { logs: WebhookLog[]; total: number }
-}
-
-async function regenerateSecret(options: {
-	agentId: string
-	webhookId: string
-	workspaceId: string
-}): Promise<string> {
-	const { agentId, webhookId, workspaceId } = options
-	const response = await fetch(
-		`/api/agents/${agentId}/webhooks/${webhookId}/regenerate-secret?workspaceId=${workspaceId}`,
-		{ method: 'POST' },
-	)
-	if (!response.ok) {
-		const error = (await response.json()) as { error?: string }
-		throw new Error(error.error || 'Failed to regenerate secret')
-	}
-	const data = (await response.json()) as { secret: string }
-	return data.secret
-}
-
-async function fetchWebhookDeliveries(options: {
-	webhookId: string
-	workspaceId: string
-	limit?: number
-	offset?: number
-}): Promise<{ deliveries: WebhookDelivery[]; total: number }> {
-	const { webhookId, workspaceId, limit = 50, offset = 0 } = options
-	const response = await fetch(
-		`/api/webhooks/${webhookId}/deliveries?workspaceId=${workspaceId}&limit=${limit}&offset=${offset}`,
-	)
-	if (!response.ok) {
-		throw new Error('Failed to fetch webhook deliveries')
-	}
-	return (await response.json()) as { deliveries: WebhookDelivery[]; total: number }
-}
-
-async function retryWebhookDelivery(options: {
-	webhookId: string
-	deliveryId: string
-	workspaceId: string
-}): Promise<WebhookDelivery> {
-	const { webhookId, deliveryId, workspaceId } = options
-	const response = await fetch(
-		`/api/webhooks/${webhookId}/deliveries/${deliveryId}/retry?workspaceId=${workspaceId}`,
-		{ method: 'POST' },
-	)
-	if (!response.ok) {
-		const error = (await response.json()) as { error?: string }
-		throw new Error(error.error || 'Failed to retry delivery')
-	}
-	return (await response.json()) as WebhookDelivery
-}
 
 // =============================================================================
 // Components
@@ -289,7 +114,7 @@ function LoadingSkeleton() {
 	)
 }
 
-function StatusBadge({ status }: { status: 'active' | 'inactive' | 'failed' }) {
+function StatusBadge({ status }: { status: string }) {
 	const variants = {
 		active: {
 			className: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300',
@@ -303,17 +128,17 @@ function StatusBadge({ status }: { status: 'active' | 'inactive' | 'failed' }) {
 			className: 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300',
 			icon: XCircle,
 		},
-	}
-	const { className, icon: Icon } = variants[status]
+	} as const satisfies Record<string, { className: string; icon: typeof CheckCircle2 }>
+	const variant = variants[status as keyof typeof variants] ?? variants.inactive
 	return (
-		<Badge className={className}>
-			<Icon className="h-3 w-3 mr-1" />
+		<Badge className={variant.className}>
+			<variant.icon className="h-3 w-3 mr-1" />
 			{status}
 		</Badge>
 	)
 }
 
-function DeliveryStatusBadge({ status }: { status: 'success' | 'failed' | 'pending' }) {
+function DeliveryStatusBadge({ status }: { status: string }) {
 	const variants = {
 		success: {
 			className: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300',
@@ -327,11 +152,11 @@ function DeliveryStatusBadge({ status }: { status: 'success' | 'failed' | 'pendi
 			className: 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300',
 			icon: XCircle,
 		},
-	}
-	const { className, icon: Icon } = variants[status]
+	} as const satisfies Record<string, { className: string; icon: typeof CheckCircle2 }>
+	const variant = variants[status as keyof typeof variants] ?? variants.pending
 	return (
-		<Badge className={className}>
-			<Icon className="h-3 w-3 mr-1" />
+		<Badge className={variant.className}>
+			<variant.icon className="h-3 w-3 mr-1" />
 			{status}
 		</Badge>
 	)
@@ -350,7 +175,9 @@ interface WebhookFormProps {
 
 function WebhookForm({ initialData, onSubmit, onCancel, isSubmitting }: WebhookFormProps) {
 	const [url, setUrl] = useState(initialData?.url ?? '')
-	const [events, setEvents] = useState<WebhookEventType[]>(initialData?.events ?? [])
+	const [events, setEvents] = useState<WebhookEventType[]>(
+		(initialData?.events as WebhookEventType[]) ?? [],
+	)
 	const [description, setDescription] = useState(initialData?.description ?? '')
 	const [errors, setErrors] = useState<{ url?: string; events?: string }>({})
 
@@ -459,14 +286,6 @@ function WebhookForm({ initialData, onSubmit, onCancel, isSubmitting }: WebhookF
 	)
 }
 
-interface WebhookLogsDialogProps {
-	webhook: Webhook
-	workspaceId: string
-	agentId: string
-	open: boolean
-	onOpenChange: (open: boolean) => void
-}
-
 function formatRelativeTime(date: Date): string {
 	const now = new Date()
 	const diffMs = date.getTime() - now.getTime()
@@ -481,7 +300,7 @@ function formatRelativeTime(date: Date): string {
 
 interface DeliveryRowProps {
 	delivery: WebhookDelivery
-	onRetry: (deliveryId: string) => Promise<void>
+	onRetry: (deliveryId: string) => void
 	isRetrying: boolean
 }
 
@@ -599,61 +418,37 @@ function DeliveryRow({ delivery, onRetry, isRetrying }: DeliveryRowProps) {
 	)
 }
 
-function WebhookLogsDialog({
-	webhook,
-	workspaceId,
-	agentId,
-	open,
-	onOpenChange,
-}: WebhookLogsDialogProps) {
-	const [logs, setLogs] = useState<WebhookLog[]>([])
-	const [deliveries, setDeliveries] = useState<WebhookDelivery[]>([])
-	const [loading, setLoading] = useState(false)
-	const [deliveriesLoading, setDeliveriesLoading] = useState(false)
-	const [total, setTotal] = useState(0)
-	const [deliveriesTotal, setDeliveriesTotal] = useState(0)
-	const [retryingId, setRetryingId] = useState<string | null>(null)
+interface WebhookLogsDialogProps {
+	webhook: Webhook
+	agentId: string
+	open: boolean
+	onOpenChange: (open: boolean) => void
+}
+
+function WebhookLogsDialog({ webhook, agentId, open, onOpenChange }: WebhookLogsDialogProps) {
 	const [activeTab, setActiveTab] = useState('deliveries')
+	const [retryingId, setRetryingId] = useState<string | null>(null)
 
-	useEffect(() => {
-		if (open) {
-			// Load deliveries by default
-			setDeliveriesLoading(true)
-			fetchWebhookDeliveries({ webhookId: webhook.id, workspaceId })
-				.then((data) => {
-					setDeliveries(data.deliveries)
-					setDeliveriesTotal(data.total)
-				})
-				.catch(() => toast.error('Failed to load deliveries'))
-				.finally(() => setDeliveriesLoading(false))
-		}
-	}, [open, webhook.id, workspaceId])
+	const { data: deliveriesData, isLoading: deliveriesLoading } = useWebhookDeliveriesQuery({
+		webhookId: webhook.id,
+		enabled: open,
+	})
 
-	useEffect(() => {
-		// Load legacy logs when switching to that tab
-		if (open && activeTab === 'logs' && logs.length === 0) {
-			setLoading(true)
-			fetchWebhookLogs({ agentId, webhookId: webhook.id, workspaceId })
-				.then((data) => {
-					setLogs(data.logs)
-					setTotal(data.total)
-				})
-				.catch(() => toast.error('Failed to load logs'))
-				.finally(() => setLoading(false))
-		}
-	}, [open, activeTab, webhook.id, agentId, workspaceId, logs.length])
+	const { data: logsData, isLoading: logsLoading } = useWebhookLogsQuery({
+		agentId,
+		webhookId: webhook.id,
+		enabled: open && activeTab === 'logs',
+	})
+
+	const retryMutation = useRetryWebhookDeliveryMutation()
 
 	const handleRetry = async (deliveryId: string) => {
 		setRetryingId(deliveryId)
 		try {
-			const updatedDelivery = await retryWebhookDelivery({
+			await retryMutation.mutateAsync({
 				webhookId: webhook.id,
 				deliveryId,
-				workspaceId,
 			})
-			setDeliveries((prev) =>
-				prev.map((d) => (d.id === deliveryId ? updatedDelivery : d)),
-			)
 			toast.success('Delivery retry initiated')
 		} catch (error) {
 			toast.error(error instanceof Error ? error.message : 'Failed to retry delivery')
@@ -661,6 +456,9 @@ function WebhookLogsDialog({
 			setRetryingId(null)
 		}
 	}
+
+	const deliveries = deliveriesData?.deliveries ?? []
+	const logs = logsData?.logs ?? []
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
@@ -674,10 +472,10 @@ function WebhookLogsDialog({
 				<Tabs value={activeTab} onValueChange={setActiveTab}>
 					<TabsList>
 						<TabsTrigger value="deliveries">
-							Deliveries ({deliveriesTotal})
+							Deliveries ({deliveriesData?.total ?? 0})
 						</TabsTrigger>
 						<TabsTrigger value="logs">
-							Legacy Logs ({total})
+							Legacy Logs ({logsData?.total ?? 0})
 						</TabsTrigger>
 					</TabsList>
 					<TabsContent value="deliveries">
@@ -719,7 +517,7 @@ function WebhookLogsDialog({
 					</TabsContent>
 					<TabsContent value="logs">
 						<ScrollArea className="h-[500px]">
-							{loading ? (
+							{logsLoading ? (
 								<div className="flex items-center justify-center py-8">
 									<Loader2 className="h-6 w-6 animate-spin" />
 								</div>
@@ -787,56 +585,39 @@ function WebhookLogsDialog({
 // =============================================================================
 
 export function AgentWebhooksPage({ agentId }: AgentWebhooksPageProps) {
-	const { activeWorkspace } = useWorkspace()
-
 	const { data: agent, isLoading: agentLoading, error: agentError } = useAgentQuery(agentId)
+	const { data: webhooksData, isLoading: webhooksLoading } = useWebhooksQuery(agentId)
 
-	const [webhooks, setWebhooks] = useState<Webhook[]>([])
-	const [loading, setLoading] = useState(true)
+	const createMutation = useCreateWebhookMutation()
+	const updateMutation = useUpdateWebhookMutation()
+	const deleteMutation = useDeleteWebhookMutation()
+	const regenerateSecretMutation = useRegenerateWebhookSecretMutation()
+
 	const [isCreateOpen, setIsCreateOpen] = useState(false)
 	const [isEditOpen, setIsEditOpen] = useState(false)
 	const [isDeleteOpen, setIsDeleteOpen] = useState(false)
 	const [isLogsOpen, setIsLogsOpen] = useState(false)
 	const [selectedWebhook, setSelectedWebhook] = useState<Webhook | null>(null)
-	const [isSubmitting, setIsSubmitting] = useState(false)
 	const [showSecrets, setShowSecrets] = useState<Record<string, boolean>>({})
 
-	const loadWebhooks = useCallback(async () => {
-		if (!activeWorkspace?.id) return
-		try {
-			const data = await fetchWebhooks({ agentId, workspaceId: activeWorkspace.id })
-			setWebhooks(data)
-		} catch (error) {
-			toast.error(error instanceof Error ? error.message : 'Failed to load webhooks')
-		} finally {
-			setLoading(false)
-		}
-	}, [agentId, activeWorkspace?.id])
-
-	useEffect(() => {
-		loadWebhooks()
-	}, [loadWebhooks])
+	const webhooks = webhooksData?.webhooks ?? []
 
 	const handleCreate = async (data: {
 		url: string
 		events: WebhookEventType[]
 		description?: string
 	}) => {
-		if (!activeWorkspace?.id) return
-		setIsSubmitting(true)
 		try {
-			await createWebhook({
+			await createMutation.mutateAsync({
 				agentId,
-				workspaceId: activeWorkspace.id,
-				...data,
+				url: data.url,
+				events: data.events,
+				description: data.description,
 			})
 			toast.success('Webhook created successfully')
 			setIsCreateOpen(false)
-			await loadWebhooks()
 		} catch (error) {
 			toast.error(error instanceof Error ? error.message : 'Failed to create webhook')
-		} finally {
-			setIsSubmitting(false)
 		}
 	}
 
@@ -845,57 +626,44 @@ export function AgentWebhooksPage({ agentId }: AgentWebhooksPageProps) {
 		events: WebhookEventType[]
 		description?: string
 	}) => {
-		if (!activeWorkspace?.id || !selectedWebhook) return
-		setIsSubmitting(true)
+		if (!selectedWebhook) return
 		try {
-			await updateWebhook({
+			await updateMutation.mutateAsync({
 				agentId,
 				webhookId: selectedWebhook.id,
-				workspaceId: activeWorkspace.id,
-				data,
+				url: data.url,
+				events: data.events,
+				description: data.description,
 			})
 			toast.success('Webhook updated successfully')
 			setIsEditOpen(false)
 			setSelectedWebhook(null)
-			await loadWebhooks()
 		} catch (error) {
 			toast.error(error instanceof Error ? error.message : 'Failed to update webhook')
-		} finally {
-			setIsSubmitting(false)
 		}
 	}
 
 	const handleDelete = async () => {
-		if (!activeWorkspace?.id || !selectedWebhook) return
-		setIsSubmitting(true)
+		if (!selectedWebhook) return
 		try {
-			await deleteWebhook({
+			await deleteMutation.mutateAsync({
 				agentId,
 				webhookId: selectedWebhook.id,
-				workspaceId: activeWorkspace.id,
 			})
 			toast.success('Webhook deleted successfully')
 			setIsDeleteOpen(false)
 			setSelectedWebhook(null)
-			await loadWebhooks()
 		} catch (error) {
 			toast.error(error instanceof Error ? error.message : 'Failed to delete webhook')
-		} finally {
-			setIsSubmitting(false)
 		}
 	}
 
 	const handleRegenerateSecret = async (webhook: Webhook) => {
-		if (!activeWorkspace?.id) return
 		try {
-			const newSecret = await regenerateSecret({
+			await regenerateSecretMutation.mutateAsync({
 				agentId,
 				webhookId: webhook.id,
-				workspaceId: activeWorkspace.id,
 			})
-			setWebhooks((prev) =>
-				prev.map((w) => (w.id === webhook.id ? { ...w, secret: newSecret } : w)),
-			)
 			toast.success('Secret regenerated successfully')
 		} catch (error) {
 			toast.error(error instanceof Error ? error.message : 'Failed to regenerate secret')
@@ -903,16 +671,13 @@ export function AgentWebhooksPage({ agentId }: AgentWebhooksPageProps) {
 	}
 
 	const handleToggleStatus = async (webhook: Webhook) => {
-		if (!activeWorkspace?.id) return
 		const newStatus = webhook.status === 'active' ? 'inactive' : 'active'
 		try {
-			await updateWebhook({
+			await updateMutation.mutateAsync({
 				agentId,
 				webhookId: webhook.id,
-				workspaceId: activeWorkspace.id,
-				data: { status: newStatus },
+				status: newStatus,
 			})
-			await loadWebhooks()
 			toast.success(`Webhook ${newStatus === 'active' ? 'activated' : 'deactivated'}`)
 		} catch (error) {
 			toast.error(error instanceof Error ? error.message : 'Failed to update webhook')
@@ -924,7 +689,7 @@ export function AgentWebhooksPage({ agentId }: AgentWebhooksPageProps) {
 		toast.success('Copied to clipboard')
 	}
 
-	if (agentLoading || loading) {
+	if (agentLoading || webhooksLoading) {
 		return <LoadingSkeleton />
 	}
 
@@ -1135,7 +900,7 @@ export function AgentWebhooksPage({ agentId }: AgentWebhooksPageProps) {
 					<WebhookForm
 						onSubmit={handleCreate}
 						onCancel={() => setIsCreateOpen(false)}
-						isSubmitting={isSubmitting}
+						isSubmitting={createMutation.isPending}
 					/>
 				</DialogContent>
 			</Dialog>
@@ -1155,7 +920,7 @@ export function AgentWebhooksPage({ agentId }: AgentWebhooksPageProps) {
 								setIsEditOpen(false)
 								setSelectedWebhook(null)
 							}}
-							isSubmitting={isSubmitting}
+							isSubmitting={updateMutation.isPending}
 						/>
 					)}
 				</DialogContent>
@@ -1177,12 +942,12 @@ export function AgentWebhooksPage({ agentId }: AgentWebhooksPageProps) {
 								setIsDeleteOpen(false)
 								setSelectedWebhook(null)
 							}}
-							disabled={isSubmitting}
+							disabled={deleteMutation.isPending}
 						>
 							Cancel
 						</Button>
-						<Button variant="destructive" onClick={handleDelete} disabled={isSubmitting}>
-							{isSubmitting ? (
+						<Button variant="destructive" onClick={handleDelete} disabled={deleteMutation.isPending}>
+							{deleteMutation.isPending ? (
 								<>
 									<Loader2 className="mr-2 h-4 w-4 animate-spin" />
 									Deleting...
@@ -1196,10 +961,9 @@ export function AgentWebhooksPage({ agentId }: AgentWebhooksPageProps) {
 			</Dialog>
 
 			{/* Logs Dialog */}
-			{selectedWebhook && activeWorkspace?.id && (
+			{selectedWebhook && (
 				<WebhookLogsDialog
 					webhook={selectedWebhook}
-					workspaceId={activeWorkspace.id}
 					agentId={agentId}
 					open={isLogsOpen}
 					onOpenChange={(open) => {

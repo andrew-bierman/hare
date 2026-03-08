@@ -11,14 +11,22 @@
   // Environment variables for E2E testing
   "vars": {
     "ENVIRONMENT": "local",
-    "APP_URL": "http://localhost:3000"
+    "APP_URL": "http://localhost:3000",
+    "BETTER_AUTH_SECRET": "test-secret-for-e2e-must-be-at-least-32-characters",
+    "BETTER_AUTH_URL": "http://localhost:3000"
   },
 
   // Skip services that require remote binding
   "services": [],
 
-  // Skip D1 databases for E2E tests
-  "d1_databases": [],
+  // Local D1 database for E2E tests (no remote ID needed)
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "hare-db",
+      "database_id": "e2e-local-id"
+    }
+  ],
 
   // Skip KV namespaces
   "kv_namespaces": [],

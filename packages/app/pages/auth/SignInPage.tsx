@@ -48,9 +48,8 @@ export function SignInPage() {
 		setIsGoogleLoading(true)
 		try {
 			await signInWithGoogle()
-		} catch (error) {
+		} catch (_error) {
 			toast.error('Failed to sign in with Google')
-			console.error(error)
 			setIsGoogleLoading(false)
 		}
 	}
@@ -59,9 +58,8 @@ export function SignInPage() {
 		setIsGitHubLoading(true)
 		try {
 			await signInWithGitHub()
-		} catch (error) {
+		} catch (_error) {
 			toast.error('Failed to sign in with GitHub')
-			console.error(error)
 			setIsGitHubLoading(false)
 		}
 	}
@@ -83,9 +81,8 @@ export function SignInPage() {
 
 			toast.success(config.content.auth.success.signIn)
 			navigate({ to: '/dashboard' })
-		} catch (error) {
+		} catch (_error) {
 			toast.error('An unexpected error occurred')
-			console.error(error)
 		} finally {
 			setIsLoading(false)
 		}
