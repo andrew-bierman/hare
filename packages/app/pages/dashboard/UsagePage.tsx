@@ -24,7 +24,7 @@ export function UsagePage() {
 	const { data: usageData, isLoading: usageLoading } = useWorkspaceUsageQuery()
 	const { data: agentsData, isLoading: agentsLoading } = useAgentsQuery()
 
-	const isLoading = workspaceLoading || usageLoading || agentsLoading
+	const isLoading = workspaceLoading || (usageLoading && !usageData) || (agentsLoading && !agentsData)
 
 	const agents = agentsData?.agents ?? []
 	const deployedAgents = agents.filter((a) => a.status === 'deployed')
