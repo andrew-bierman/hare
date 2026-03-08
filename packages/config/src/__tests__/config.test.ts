@@ -145,6 +145,7 @@ describe('helper functions', () => {
 	describe('getModelName', () => {
 		it('returns a non-empty name for a known model ID', () => {
 			const defaultModel = config.models.list[0]
+			if (!defaultModel) throw new Error('No models configured')
 			const name = getModelName(defaultModel.id)
 			expect(name).toBeTruthy()
 			expect(typeof name).toBe('string')
