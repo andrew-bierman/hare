@@ -92,10 +92,10 @@ export default defineConfig({
 			rehypePlugins: [rehypeHighlight],
 			providerImportSource: '@mdx-js/react',
 		}),
-		// Cloudflare plugin - use local config in CI to avoid authentication
+		// Cloudflare plugin - use local config only for E2E tests (not deploy)
 		cloudflare({
 			viteEnvironment: { name: 'ssr' },
-			...(process.env.CI === 'true' && {
+			...(process.env.CI === 'true' && process.env.E2E === 'true' && {
 				configPath: './wrangler.e2e.jsonc',
 				persist: false,
 				remoteBindings: false,
