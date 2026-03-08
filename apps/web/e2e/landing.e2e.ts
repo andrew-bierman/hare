@@ -91,7 +91,7 @@ test.describe('Landing Page - Features Section', () => {
 
 	test('displays all feature cards', async ({ page }: { page: Page }) => {
 		const features = [
-			'Visual Agent Builder',
+			'Agent Configuration',
 			'Instant Deployment',
 			'Built-in Tools',
 			'Developer SDK',
