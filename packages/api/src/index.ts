@@ -57,7 +57,7 @@ export type DevRoute = typeof dev
 /** MCP routes: /api/mcp/* (WebSocket + HTTP for Durable Objects) */
 export type McpRoute = typeof mcp
 
-/** Agent WebSocket routes: /api/agent-ws/* (WebSocket for Durable Objects) */
+/** Agent WebSocket routes: /api/agent-ws/* and /api/chat/* (WebSocket + HTTP for Durable Objects) */
 export type AgentWsRoute = typeof agentWs
 
 // =============================================================================
@@ -96,6 +96,7 @@ app.use('/rpc/*', optionalAuthMiddleware)
 
 const routes = app
 	.route('/agent-ws', agentWs)
+	.route('/chat', agentWs)
 	.route('/dev', dev)
 	.route('/mcp', mcp)
 	.route('/rpc', orpcApp)
