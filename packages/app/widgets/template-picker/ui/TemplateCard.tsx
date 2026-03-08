@@ -8,6 +8,7 @@ import {
 	BookOpen,
 	TrendingUp,
 	Sparkles,
+	Wand2,
 	Plus,
 	type LucideIcon,
 } from 'lucide-react'
@@ -18,6 +19,7 @@ const ICON_MAP: Record<string, LucideIcon> = {
 	BookOpen,
 	TrendingUp,
 	Sparkles,
+	Wand2,
 	Plus,
 }
 
