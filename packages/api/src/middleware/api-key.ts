@@ -91,8 +91,9 @@ export const apiKeyMiddleware: MiddlewareHandler<ApiKeyEnv> = async (c, next) =>
 		return c.json({ error: 'Workspace not found' }, 404)
 	}
 
-	// Update last used timestamp (non-blocking)
-	db.update(apiKeys)
+	// Update last used timestamp (non-blocking, but kept alive by waitUntil)
+	const lastUsedUpdate = db
+		.update(apiKeys)
 		.set({ lastUsedAt: new Date() })
 		.where(eq(apiKeys.id, keyRecord.id))
 		.catch((error) => {
@@ -103,6 +104,9 @@ export const apiKeyMiddleware: MiddlewareHandler<ApiKeyEnv> = async (c, next) =>
 				error: error instanceof Error ? error.message : String(error),
 			})
 		})
+
+	// Ensure the Workers runtime keeps the request alive until the DB write completes
+	c.executionCtx?.waitUntil(lastUsedUpdate)
 
 	c.set('apiKey', {
 		id: keyRecord.id,
