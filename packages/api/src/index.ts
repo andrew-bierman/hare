@@ -32,7 +32,7 @@ import {
 	securityHeadersMiddleware,
 } from './middleware'
 import { orpcApp } from './orpc/hono'
-import agentWs from './routes/agent-ws'
+import agentWs, { chatApp } from './routes/agent-ws'
 import auth from './routes/auth'
 import billingWebhook from './routes/billing'
 import dev from './routes/dev'
@@ -57,8 +57,11 @@ export type DevRoute = typeof dev
 /** MCP routes: /api/mcp/* (WebSocket + HTTP for Durable Objects) */
 export type McpRoute = typeof mcp
 
-/** Agent WebSocket routes: /api/agent-ws/* and /api/chat/* (WebSocket + HTTP for Durable Objects) */
+/** Agent WebSocket routes: /api/agent-ws/* (WebSocket + HTTP for Durable Objects) */
 export type AgentWsRoute = typeof agentWs
+
+/** Chat routes: /api/chat/* (AI SDK streaming chat) */
+export type ChatRoute = typeof chatApp
 
 // =============================================================================
 // APP CREATION
@@ -96,7 +99,7 @@ app.use('/rpc/*', optionalAuthMiddleware)
 
 const routes = app
 	.route('/agent-ws', agentWs)
-	.route('/chat', agentWs)
+	.route('/chat', chatApp)
 	.route('/dev', dev)
 	.route('/mcp', mcp)
 	.route('/rpc', orpcApp)

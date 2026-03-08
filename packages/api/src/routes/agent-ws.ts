@@ -6,6 +6,7 @@
  */
 
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
+import type { Context } from 'hono'
 import { and, eq } from 'drizzle-orm'
 import { streamText, convertToModelMessages, type UIMessage } from 'ai'
 import { agents, workspaceMembers } from '@hare/db/schema'
@@ -407,19 +408,24 @@ const app = baseApp.openapi(agentWebSocketRoute, async (c) => {
 	return c.json(result, 200)
 })
 
-// AI SDK streaming chat endpoint
+// Shared chat handler for AI SDK streaming chat endpoint
 // Handles the AI SDK DefaultChatTransport protocol (messages array in, data stream out)
-app.post('/agents/:id/chat', async (c) => {
+async function handleChat(c: Context<OptionalAuthEnv>) {
 	const agentId = c.req.param('id')
 	const db = getDb(c)
 	const env = getCloudflareEnv(c)
 	const user = c.get('user')
 
 	// Parse the AI SDK request body (DefaultChatTransport sends UIMessage[] with parts)
-	const body = await c.req.json<{
-		messages?: UIMessage[]
-		sessionId?: string
-	}>()
+	let body: { messages?: UIMessage[]; sessionId?: string }
+	try {
+		body = await c.req.json<{
+			messages?: UIMessage[]
+			sessionId?: string
+		}>()
+	} catch {
+		return c.json({ error: 'Invalid JSON body' }, 400)
+	}
 
 	// Verify agent exists and is deployed
 	const [agentConfig] = await db.select().from(agents).where(eq(agents.id, agentId))
@@ -457,17 +463,17 @@ app.post('/agents/:id/chat', async (c) => {
 			userId: user?.id,
 		})
 
-		// Stream the response using AI SDK
+		// Stream the response using AI SDK (use enriched instructions from agent, not raw DB value)
 		const result = streamText({
 			model: agent.model,
-			system: agentConfig.instructions || undefined,
+			system: agent.instructions || undefined,
 			messages: modelMessages,
 		})
 
 		// Return as AI SDK UI message stream response
 		return result.toUIMessageStreamResponse({
 			headers: {
-				'X-Session-Id': body.sessionId || agentId,
+				'X-Session-Id': body.sessionId || crypto.randomUUID(),
 			},
 		})
 	} catch (error) {
@@ -477,6 +483,17 @@ app.post('/agents/:id/chat', async (c) => {
 			500,
 		)
 	}
-})
+}
+
+// Mount chat handler on the main agent-ws router
+app.post('/agents/:id/chat', handleChat)
+
+// Dedicated chat sub-router: only the /agents/:id/chat endpoint
+// Mounted separately at /api/chat to avoid exposing all agent-ws routes under /api/chat
+const chatApp = new OpenAPIHono<OptionalAuthEnv>()
+chatApp.use('*', optionalAuthMiddleware)
+chatApp.post('/agents/:id/chat', handleChat)
+
+export { chatApp }
 
 export default app
