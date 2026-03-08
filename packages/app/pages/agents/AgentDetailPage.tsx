@@ -45,23 +45,11 @@ import { Textarea } from '@hare/ui/components/textarea'
 import { useNavigate } from '@tanstack/react-router'
 import {
 	AlertTriangle,
-	Brain,
-	CheckCircle,
-	Code,
 	Copy,
-	Database,
-	FileCode,
-	Globe,
-	HardDrive,
-	Layers,
 	MessageSquare,
 	Play,
-	Plug,
-	RefreshCw,
 	Rocket,
-	Search,
 	Trash2,
-	Wrench,
 } from 'lucide-react'
 import { type ChangeEvent, useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
@@ -124,22 +112,6 @@ type ValidationWarnings = {
 	'config.temperature'?: string
 }
 
-// Tool category icons mapping
-const CATEGORY_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
-	storage: HardDrive,
-	database: Database,
-	http: Globe,
-	search: Search,
-	ai: Brain,
-	utility: Wrench,
-	integrations: Plug,
-	data: FileCode,
-	sandbox: Code,
-	validation: CheckCircle,
-	transform: RefreshCw,
-	all: Layers,
-}
-
 // Helper function to estimate token count (rough approximation: ~4 chars per token)
 function estimateTokenCount(text: string): number {
 	if (!text) return 0
@@ -178,7 +150,7 @@ export function AgentDetailPage({
 
 	const { activeWorkspace } = useWorkspace()
 	const { data: agent, isLoading, error } = useAgentQuery(agentId)
-	const { data: toolsData } = useToolsQuery()
+	useToolsQuery()
 	const { data: usageData } = useAgentUsageQuery(agentId)
 	const updateAgent = useUpdateAgentMutation()
 	const deleteAgent = useDeleteAgentMutation()
@@ -196,8 +168,6 @@ export function AgentDetailPage({
 	const [hasChanges, setHasChanges] = useState(false)
 	const [clientValidationErrors, setClientValidationErrors] = useState<ValidationErrors>({})
 	const [clientValidationWarnings, setClientValidationWarnings] = useState<ValidationWarnings>({})
-
-	const tools = toolsData?.tools ?? []
 
 	// Use client-side validation only (server-side preview not available in oRPC)
 	const validationErrors = clientValidationErrors
@@ -269,36 +239,12 @@ export function AgentDetailPage({
 		return Object.keys(validationErrors).length > 0 || (!isValidModel && model !== '')
 	}, [validationErrors, isValidModel, model])
 
-	// Tool type for type safety
-	type Tool = { id: string; name: string; type: string }
-
-	// Get selected tools with their details
-	const selectedTools = useMemo(() => {
-		return tools.filter((tool: Tool) => selectedToolIds.includes(tool.id))
-	}, [tools, selectedToolIds])
-
-	// Group selected tools by category/type
-	const toolsByCategory = useMemo(() => {
-		const grouped: Record<string, typeof tools> = {}
-		for (const tool of selectedTools) {
-			const category = tool.type || 'utility'
-			if (!grouped[category]) {
-				grouped[category] = []
-			}
-			grouped[category].push(tool)
-		}
-		return grouped
-	}, [selectedTools])
-
 	// Estimate token count for system prompt
 	const estimatedTokens = useMemo(() => {
 		return estimateTokenCount(instructions)
 	}, [instructions])
 
-	// Get model display name
-	const selectedModel = useMemo(() => {
-		return AI_MODELS.find((m) => m.id === model)
-	}, [model])
+
 
 	const handleSave = async () => {
 		try {
