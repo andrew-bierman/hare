@@ -33,8 +33,9 @@ export const LANDING_PAGE = {
 	],
 	features: [
 		{
-			title: 'Visual Agent Builder',
-			description: 'Design complex agent workflows with our intuitive drag-and-drop interface.',
+			title: 'Agent Configuration',
+			description:
+				'Set up agent behavior, tools, and capabilities with our streamlined interface.',
 			icon: 'Boxes',
 		},
 		{

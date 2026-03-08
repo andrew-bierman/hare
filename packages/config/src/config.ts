@@ -767,7 +767,7 @@ Be helpful, patient, and educational. Explain your recommendations. Make the pro
 				{ label: '<50ms Latency', icon: 'Zap' },
 			],
 			features: [
-				{ title: 'Visual Agent Builder', description: 'Design complex agent workflows with our intuitive drag-and-drop interface.', icon: 'Boxes' },
+				{ title: 'Agent Configuration', description: 'Set up agent behavior, tools, and capabilities with our streamlined interface.', icon: 'Boxes' },
 				{ title: 'Instant Deployment', description: "Deploy to Cloudflare's global edge network in seconds.", icon: 'Cloud' },
 				{ title: 'Built-in Tools', description: 'SQL, HTTP, KV, R2, and vector search ready to go.', icon: 'Layers' },
 				{ title: 'Developer SDK', description: 'Full TypeScript SDK with type-safe APIs.', icon: 'Code' },

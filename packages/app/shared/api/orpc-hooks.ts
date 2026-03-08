@@ -59,6 +59,8 @@ export function useCreateAgentMutation() {
 		mutationFn: (input: Parameters<typeof orpc.agents.create>[0]) => orpc.agents.create(input),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['agents'] })
+			queryClient.invalidateQueries({ queryKey: ['usage'] })
+			queryClient.invalidateQueries({ queryKey: ['analytics'] })
 		},
 	})
 }
@@ -89,10 +91,13 @@ export function useDeployAgentMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
 		mutationFn: (input: { id: string }) => orpc.agents.deploy(input),
-		onSuccess: (_, variables) => {
-			queryClient.invalidateQueries({ queryKey: ['agents'] })
-			queryClient.invalidateQueries({ queryKey: ['agents', variables.id] })
-			queryClient.invalidateQueries({ queryKey: ['agents', variables.id, 'versions'] })
+		onSuccess: async (_, variables) => {
+			await Promise.all([
+				queryClient.invalidateQueries({ queryKey: ['agents'] }),
+				queryClient.invalidateQueries({ queryKey: ['agents', variables.id] }),
+				queryClient.invalidateQueries({ queryKey: ['agents', variables.id, 'versions'] }),
+				queryClient.invalidateQueries({ queryKey: ['usage'] }),
+			])
 		},
 	})
 }

@@ -6,9 +6,17 @@
  */
 
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
+import type { Context } from 'hono'
 import { and, eq } from 'drizzle-orm'
+import { streamText, convertToModelMessages, type UIMessage } from 'ai'
 import { agents, workspaceMembers } from '@hare/db/schema'
-import { isWebSocketRequest, routeHttpToAgent, routeWebSocketToAgent } from '@hare/agent'
+import {
+	type AgentConfig,
+	createAgentFromConfig,
+	isWebSocketRequest,
+	routeHttpToAgent,
+	routeWebSocketToAgent,
+} from '@hare/agent'
 import { type Database, getCloudflareEnv, getDb } from '../db'
 import { optionalAuthMiddleware } from '../middleware'
 import { ErrorSchema, IdParamSchema } from '../schemas'
@@ -400,124 +408,92 @@ const app = baseApp.openapi(agentWebSocketRoute, async (c) => {
 	return c.json(result, 200)
 })
 
-// Chat route for deployed agents
-const agentChatRoute = createRoute({
-	method: 'post',
-	path: '/agents/{id}/chat',
-	tags: ['Agent WebSocket'],
-	summary: 'Send message to agent',
-	description:
-		'Send a chat message to a deployed agent and receive a response. This is the HTTP endpoint for the agent chat.',
-	request: {
-		params: IdParamSchema,
-		body: {
-			content: {
-				'application/json': {
-					schema: z.object({
-						message: z.string().min(1).describe('The message to send to the agent'),
-						userId: z.string().optional().describe('Optional user ID for tracking'),
-						sessionId: z
-							.string()
-							.optional()
-							.describe('Optional session ID for conversation continuity'),
-						metadata: z.record(z.string(), z.unknown()).optional().describe('Optional metadata'),
-					}),
-				},
-			},
-		},
-	},
-	responses: {
-		200: {
-			description: 'Chat response',
-			content: {
-				'application/json': {
-					schema: z.object({
-						response: z.string(),
-						sessionId: z.string().optional(),
-					}),
-				},
-			},
-		},
-		400: {
-			description: 'Agent not deployed',
-			content: { 'application/json': { schema: ErrorSchema } },
-		},
-		403: {
-			description: 'Access denied',
-			content: { 'application/json': { schema: ErrorSchema } },
-		},
-		404: {
-			description: 'Agent not found',
-			content: { 'application/json': { schema: ErrorSchema } },
-		},
-		503: {
-			description: 'Service unavailable',
-			content: { 'application/json': { schema: ErrorSchema } },
-		},
-	},
-})
-
-// Chat handler - routes to Durable Object
-const app2 = app.openapi(agentChatRoute, async (c) => {
-	const { id: agentId } = c.req.valid('param')
-	const body = c.req.valid('json')
+// Shared chat handler for AI SDK streaming chat endpoint
+// Handles the AI SDK DefaultChatTransport protocol (messages array in, data stream out)
+async function handleChat(c: Context<OptionalAuthEnv>) {
+	const agentId = c.req.param('id')
 	const db = getDb(c)
 	const env = getCloudflareEnv(c)
 	const user = c.get('user')
 
-	// Verify agent exists and is deployed
-	const [agent] = await db.select().from(agents).where(eq(agents.id, agentId))
+	// Parse the AI SDK request body (DefaultChatTransport sends UIMessage[] with parts)
+	let body: { messages?: UIMessage[]; sessionId?: string }
+	try {
+		body = await c.req.json<{
+			messages?: UIMessage[]
+			sessionId?: string
+		}>()
+	} catch {
+		return c.json({ error: 'Invalid JSON body' }, 400)
+	}
 
-	if (!agent) {
+	// Verify agent exists and is deployed
+	const [agentConfig] = await db.select().from(agents).where(eq(agents.id, agentId))
+
+	if (!agentConfig) {
 		return c.json({ error: 'Agent not found' }, 404)
 	}
 
-	if (agent.status !== 'deployed') {
+	if (agentConfig.status !== 'deployed') {
 		return c.json({ error: 'Agent not deployed' }, 400)
 	}
 
-	// Authorization: verify user has access to the agent's workspace
+	// Authorization
 	if (user?.id) {
-		const hasAccess = await hasWorkspaceAccess(db, user.id, agent.workspaceId)
+		const hasAccess = await hasWorkspaceAccess(db, user.id, agentConfig.workspaceId)
 		if (!hasAccess) {
-			return c.json({ error: 'Unauthorized: no access to this workspace' }, 403)
+			return c.json({ error: 'Unauthorized' }, 403)
 		}
 	}
 
-	// Create chat request for Durable Object
-	const chatRequest = new Request(new URL('/chat', c.req.url).toString(), {
-		method: 'POST',
-		headers: { 'Content-Type': 'application/json' },
-		body: JSON.stringify({
-			type: 'chat',
-			payload: {
-				message: body.message,
-				userId: body.userId || user?.id || 'anonymous',
-				sessionId: body.sessionId,
-				metadata: body.metadata,
+	if (!body.messages || !Array.isArray(body.messages) || body.messages.length === 0) {
+		return c.json({ error: 'No messages provided' }, 400)
+	}
+
+	try {
+		// Convert UI messages to model messages using AI SDK's converter
+		const modelMessages = await convertToModelMessages(body.messages)
+
+		// Create agent with model
+		const agent = await createAgentFromConfig({
+			agentConfig: agentConfig as AgentConfig,
+			db,
+			env,
+			includeSystemTools: true,
+			userId: user?.id,
+		})
+
+		// Stream the response using AI SDK (use enriched instructions from agent, not raw DB value)
+		const result = streamText({
+			model: agent.model,
+			system: agent.instructions || undefined,
+			messages: modelMessages,
+		})
+
+		// Return as AI SDK UI message stream response
+		return result.toUIMessageStreamResponse({
+			headers: {
+				'X-Session-Id': body.sessionId || crypto.randomUUID(),
 			},
-		}),
-	})
-
-	// Route to Durable Object
-	const response = await routeHttpToAgent({
-		request: chatRequest,
-		env,
-		agentId,
-		path: '/chat',
-	})
-
-	// Return the response from the Durable Object
-	if (!response.ok) {
-		const errorResult = (await response.json()) as { error: string }
-		if (response.status === 400) {
-			return c.json({ error: errorResult.error || 'Bad request' }, 400)
-		}
-		return c.json({ error: errorResult.error || 'Service unavailable' }, 503)
+		})
+	} catch (error) {
+		console.error('[chat] Error:', error)
+		return c.json(
+			{ error: error instanceof Error ? error.message : 'Internal server error' },
+			500,
+		)
 	}
+}
 
-	const result = (await response.json()) as { response: string; sessionId?: string }
-	return c.json(result, 200)
-})
+// Mount chat handler on the main agent-ws router
+app.post('/agents/:id/chat', handleChat)
 
-export default app2
+// Dedicated chat sub-router: only the /agents/:id/chat endpoint
+// Mounted separately at /api/chat to avoid exposing all agent-ws routes under /api/chat
+const chatApp = new OpenAPIHono<OptionalAuthEnv>()
+chatApp.use('*', optionalAuthMiddleware)
+chatApp.post('/agents/:id/chat', handleChat)
+
+export { chatApp }
+
+export default app

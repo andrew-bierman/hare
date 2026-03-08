@@ -17,6 +17,7 @@
  * Automatically runs via postinstall hook (skipped in CI).
  */
 
+import { randomBytes } from 'node:crypto'
 import fs from 'fs-extra'
 import { join } from 'node:path'
 
@@ -44,7 +45,26 @@ if (!fs.existsSync(envFilePath)) {
   process.exit(0);
 }
 
-const envFileContent = fs.readFileSync(envFilePath, 'utf8')
+let envFileContent = fs.readFileSync(envFilePath, 'utf8')
+
+// Auto-generate BETTER_AUTH_SECRET if it is empty or missing
+const authSecretMatch = envFileContent.match(/^BETTER_AUTH_SECRET=(.*)$/m)
+if (!authSecretMatch) {
+  // Key is missing entirely — append it
+  const generated = randomBytes(32).toString('hex')
+  envFileContent = `${envFileContent.trimEnd()}\nBETTER_AUTH_SECRET=${generated}\n`
+  fs.writeFileSync(envFilePath, envFileContent, 'utf8')
+  console.log("🔑 Generated BETTER_AUTH_SECRET (was missing)")
+} else if (!authSecretMatch[1].trim()) {
+  // Key exists but value is empty
+  const generated = randomBytes(32).toString('hex')
+  envFileContent = envFileContent.replace(
+    /^BETTER_AUTH_SECRET=.*$/m,
+    `BETTER_AUTH_SECRET=${generated}`,
+  )
+  fs.writeFileSync(envFilePath, envFileContent, 'utf8')
+  console.log("🔑 Generated BETTER_AUTH_SECRET (was empty)")
+}
 
 /**
  * ⚡ Generate Vite .env.local file

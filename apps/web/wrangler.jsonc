@@ -6,6 +6,13 @@
 	"compatibility_date": "2025-12-01",
 	"compatibility_flags": ["nodejs_compat"],
 
+  // Static assets config - directory is set automatically by @cloudflare/vite-plugin
+  // not_found_handling must be "none" so unmatched routes fall through to the Worker
+  // for TanStack Start SSR rendering (otherwise direct URL navigation returns 404)
+  "assets": {
+    "not_found_handling": "none"
+  },
+
   // Environment variables (non-secret)
   // Secrets (BETTER_AUTH_SECRET, STRIPE_SECRET_KEY, etc.) must be set via:
   //   wrangler secret put <SECRET_NAME>
