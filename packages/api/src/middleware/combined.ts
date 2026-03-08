@@ -1,7 +1,16 @@
 import { every } from 'hono/combine'
+import { csrfProtection, requestValidation } from '@hare/security'
 import { authMiddleware, optionalAuthMiddleware } from './auth'
 import { apiRateLimiter, chatRateLimiter, strictRateLimiter } from './rate-limit'
 import { requirePermission, workspaceMiddleware } from './workspace'
+
+/**
+ * Security middleware instances
+ * - CSRF protection: validates double-submit cookie token for state-changing requests
+ * - Request validation: enforces size limits and blocks dangerous headers
+ */
+const csrf = csrfProtection()
+const reqValidation = requestValidation()
 
 /**
  * Pre-combined middleware chains for common route patterns.
@@ -26,20 +35,41 @@ export const readRoute = every(authMiddleware, workspaceMiddleware, requirePermi
 /**
  * Write-enabled protected route (member+ access)
  * Use for: create, update operations
+ * Includes CSRF protection and request validation for state-changing requests
  */
-export const writeRoute = every(authMiddleware, workspaceMiddleware, requirePermission('write'))
+export const writeRoute = every(
+	reqValidation,
+	authMiddleware,
+	workspaceMiddleware,
+	requirePermission('write'),
+	csrf,
+)
 
 /**
  * Admin-only protected route (admin+ access)
  * Use for: delete, deploy operations
+ * Includes CSRF protection and request validation for state-changing requests
  */
-export const adminRoute = every(authMiddleware, workspaceMiddleware, requirePermission('admin'))
+export const adminRoute = every(
+	reqValidation,
+	authMiddleware,
+	workspaceMiddleware,
+	requirePermission('admin'),
+	csrf,
+)
 
 /**
  * Owner-only protected route
  * Use for: workspace deletion, ownership transfer
+ * Includes CSRF protection and request validation for state-changing requests
  */
-export const ownerRoute = every(authMiddleware, workspaceMiddleware, requirePermission('owner'))
+export const ownerRoute = every(
+	reqValidation,
+	authMiddleware,
+	workspaceMiddleware,
+	requirePermission('owner'),
+	csrf,
+)
 
 /**
  * Rate-limited protected routes
@@ -48,12 +78,15 @@ export const rateLimitedRoute = every(apiRateLimiter, authMiddleware, workspaceM
 
 /**
  * Strict rate-limited admin route (for sensitive operations like deploy)
+ * Includes CSRF protection and request validation for state-changing requests
  */
 export const strictAdminRoute = every(
+	reqValidation,
 	strictRateLimiter,
 	authMiddleware,
 	workspaceMiddleware,
 	requirePermission('admin'),
+	csrf,
 )
 
 /**

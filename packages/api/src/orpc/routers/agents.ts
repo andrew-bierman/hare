@@ -5,7 +5,7 @@
  */
 
 import { z } from 'zod'
-import { and, count, desc, eq, gte, max, sql } from 'drizzle-orm'
+import { and, count, desc, eq, gte, inArray, max, sql } from 'drizzle-orm'
 import { agents, agentTools, agentVersions, deployments, usage } from '@hare/db/schema'
 import { config } from '@hare/config'
 import { requireWrite, requireAdmin, notFound, badRequest, serverError, type WorkspaceContext } from '../base'
@@ -145,8 +145,23 @@ export const list = requireWrite
 
 		const results = await db.select().from(agents).where(eq(agents.workspaceId, workspaceId))
 
-		const agentsData = await Promise.all(
-			results.map(async (agent) => serializeAgent(agent, await getAgentToolIds(agent.id, db))),
+		// Batch fetch all agent-tool relationships in a single query
+		const agentIds = results.map((a) => a.id)
+		const allAgentTools =
+			agentIds.length > 0
+				? await db.select().from(agentTools).where(inArray(agentTools.agentId, agentIds))
+				: []
+
+		// Group tool IDs by agent ID
+		const toolIdsByAgentId = new Map<string, string[]>()
+		for (const at of allAgentTools) {
+			const existing = toolIdsByAgentId.get(at.agentId) || []
+			existing.push(at.toolId)
+			toolIdsByAgentId.set(at.agentId, existing)
+		}
+
+		const agentsData = results.map((agent) =>
+			serializeAgent(agent, toolIdsByAgentId.get(agent.id) || []),
 		)
 
 		return { agents: agentsData }
@@ -458,7 +473,7 @@ export const getDeployment = requireWrite
 			.select()
 			.from(deployments)
 			.where(eq(deployments.agentId, input.id))
-			.orderBy(deployments.deployedAt)
+			.orderBy(desc(deployments.deployedAt))
 			.limit(1)
 
 		if (!deployment) notFound('Deployment not found')
@@ -496,7 +511,7 @@ export const getDeploymentHistory = requireWrite
 			.select()
 			.from(deployments)
 			.where(eq(deployments.agentId, input.id))
-			.orderBy(deployments.deployedAt)
+			.orderBy(desc(deployments.deployedAt))
 			.limit(input.limit)
 
 		return {
