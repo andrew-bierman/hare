@@ -59,6 +59,8 @@ export function useCreateAgentMutation() {
 		mutationFn: (input: Parameters<typeof orpc.agents.create>[0]) => orpc.agents.create(input),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['agents'] })
+			queryClient.invalidateQueries({ queryKey: ['usage'] })
+			queryClient.invalidateQueries({ queryKey: ['analytics'] })
 		},
 	})
 }
