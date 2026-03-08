@@ -35,9 +35,8 @@ export function ForgotPasswordPage() {
 
 			setEmailSent(true)
 			toast.success(config.content.auth.success.passwordResetSent)
-		} catch (error) {
+		} catch (_error) {
 			toast.error('An unexpected error occurred')
-			console.error(error)
 		} finally {
 			setIsLoading(false)
 		}
@@ -51,9 +50,8 @@ export function ForgotPasswordPage() {
 				redirectTo: `${window.location.origin}/reset-password`,
 			})
 			toast.success(config.content.auth.success.passwordResetSent)
-		} catch (error) {
+		} catch (_error) {
 			toast.error('Failed to resend email')
-			console.error(error)
 		} finally {
 			setIsLoading(false)
 		}

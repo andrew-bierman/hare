@@ -108,6 +108,111 @@ export async function verifySignature(options: {
 }
 
 // =============================================================================
+// SSRF Protection
+// =============================================================================
+
+/** Hostnames that must never receive webhook deliveries */
+const BLOCKED_HOSTNAMES = new Set(['localhost', 'localhost.localdomain', 'metadata.google.internal'])
+const BLOCKED_HOSTNAME_SUFFIXES = ['.internal', '.local', '.localhost']
+
+function parseIPv4(ip: string): number[] | null {
+	const parts = ip.split('.')
+	if (parts.length !== 4) return null
+	const octets: number[] = []
+	for (const part of parts) {
+		const num = Number.parseInt(part, 10)
+		if (Number.isNaN(num) || num < 0 || num > 255 || part !== num.toString()) return null
+		octets.push(num)
+	}
+	return octets
+}
+
+function isPrivateIPv4(octets: number[]): boolean {
+	if (octets.length < 2) return false
+	const a = octets[0]!
+	const b = octets[1]!
+	if (a === 0 || a === 10 || a === 127) return true
+	if (a === 169 && b === 254) return true
+	if (a === 172 && b >= 16 && b <= 31) return true
+	if (a === 192 && b === 168) return true
+	if (a >= 224) return true
+	return false
+}
+
+function isPrivateIPv6(hostname: string): boolean {
+	const norm = hostname.toLowerCase()
+	// Loopback ::1
+	if (norm === '::1' || norm === '0:0:0:0:0:0:0:1') return true
+	// Unspecified ::
+	if (norm === '::' || norm === '0:0:0:0:0:0:0:0') return true
+	// Link-local fe80::/10
+	if (norm.startsWith('fe8') || norm.startsWith('fe9') || norm.startsWith('fea') || norm.startsWith('feb')) return true
+	// Unique local fc00::/7
+	if (norm.startsWith('fc') || norm.startsWith('fd')) return true
+	// IPv4-mapped ::ffff: — URL parser normalizes to hex form (::ffff:7f00:1)
+	if (norm.startsWith('::ffff:')) {
+		const mapped = norm.slice(7)
+		// Try dot-decimal form first (::ffff:127.0.0.1)
+		const octets = parseIPv4(mapped)
+		if (octets && isPrivateIPv4(octets)) return true
+		// Handle hex-word form (::ffff:7f00:1) — convert to IPv4 octets
+		const hexParts = mapped.split(':')
+		if (hexParts.length === 2 && hexParts[0] && hexParts[1]) {
+			const hi = Number.parseInt(hexParts[0], 16)
+			const lo = Number.parseInt(hexParts[1], 16)
+			if (!Number.isNaN(hi) && !Number.isNaN(lo)) {
+				const ipv4Octets = [(hi >> 8) & 0xff, hi & 0xff, (lo >> 8) & 0xff, lo & 0xff]
+				if (isPrivateIPv4(ipv4Octets)) return true
+			}
+		}
+	}
+	return false
+}
+
+export function isWebhookUrlSafe(url: string): { safe: boolean; reason?: string } {
+	try {
+		const parsed = new URL(url)
+		if (!['http:', 'https:'].includes(parsed.protocol)) {
+			return { safe: false, reason: 'Only HTTP and HTTPS protocols are allowed' }
+		}
+		const lower = parsed.hostname.toLowerCase()
+		if (BLOCKED_HOSTNAMES.has(lower)) {
+			return { safe: false, reason: 'Blocked hostname' }
+		}
+		for (const suffix of BLOCKED_HOSTNAME_SUFFIXES) {
+			if (lower.endsWith(suffix)) {
+				return { safe: false, reason: 'Internal network hostname' }
+			}
+		}
+
+		// Block decimal/hex/octal IP representations (e.g., http://2130706433 = 127.0.0.1)
+		if (/^\d+$/.test(lower) || lower.startsWith('0x')) {
+			return { safe: false, reason: 'Numeric IP representations are not allowed' }
+		}
+
+		const octets = parseIPv4(lower)
+		if (octets && isPrivateIPv4(octets)) {
+			return { safe: false, reason: 'Private/internal IP address' }
+		}
+
+		// IPv6 check (hostname may be wrapped in brackets from URL parser)
+		const ipv6 = lower.startsWith('[') && lower.endsWith(']') ? lower.slice(1, -1) : lower
+		if (ipv6.includes(':') && isPrivateIPv6(ipv6)) {
+			return { safe: false, reason: 'Private/internal IPv6 address' }
+		}
+
+		// Explicit cloud metadata endpoint check
+		if (parsed.hostname === '169.254.169.254') {
+			return { safe: false, reason: 'Cloud metadata endpoint not allowed' }
+		}
+
+		return { safe: true }
+	} catch {
+		return { safe: false, reason: 'Invalid URL format' }
+	}
+}
+
+// =============================================================================
 // Webhook Delivery
 // =============================================================================
 
@@ -132,6 +237,13 @@ async function deliverWebhook(options: {
 	error?: string
 }> {
 	const { webhook, payload } = options
+
+	// SSRF protection: validate URL before making request
+	const urlCheck = isWebhookUrlSafe(webhook.url)
+	if (!urlCheck.safe) {
+		return { success: false, error: `Blocked URL: ${urlCheck.reason}` }
+	}
+
 	const payloadString = JSON.stringify(payload)
 	const signature = await generateSignature({ payload: payloadString, secret: webhook.secret })
 
@@ -139,6 +251,8 @@ async function deliverWebhook(options: {
 	const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS)
 
 	try {
+		// Use redirect: 'manual' to prevent SSRF via open redirects
+		// (attacker could redirect from public URL to internal IP)
 		const response = await fetch(webhook.url, {
 			method: 'POST',
 			headers: {
@@ -149,6 +263,7 @@ async function deliverWebhook(options: {
 				'X-Webhook-Id': webhook.id,
 			},
 			body: payloadString,
+			redirect: 'manual',
 			signal: controller.signal,
 		})
 
@@ -519,6 +634,12 @@ export async function retryDelivery(options: {
 }): Promise<typeof webhookDeliveries.$inferSelect> {
 	const { db, deliveryId, webhook } = options
 
+	// SSRF protection: validate URL before making request
+	const urlCheck = isWebhookUrlSafe(webhook.url)
+	if (!urlCheck.safe) {
+		throw new Error(`Blocked URL: ${urlCheck.reason}`)
+	}
+
 	// Get the delivery record
 	const [delivery] = await db
 		.select()
@@ -557,6 +678,7 @@ export async function retryDelivery(options: {
 				'X-Webhook-Id': webhook.id,
 			},
 			body: payloadString,
+			redirect: 'manual',
 			signal: controller.signal,
 		})
 

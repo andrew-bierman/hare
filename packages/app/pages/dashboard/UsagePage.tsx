@@ -140,8 +140,8 @@ export function UsagePage() {
 
 				<Card>
 					<CardHeader>
-						<CardTitle>Usage by Agent</CardTitle>
-						<CardDescription>Token usage per deployed agent</CardDescription>
+						<CardTitle>Deployed Agents</CardTitle>
+						<CardDescription>Currently active agents in your workspace</CardDescription>
 					</CardHeader>
 					<CardContent>
 						{isLoading ? (

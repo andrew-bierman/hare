@@ -46,9 +46,11 @@ const ACTION_OPTIONS: { value: AuditAction; label: string }[] = [
 	{ value: 'agent.update', label: 'Agent Updated' },
 	{ value: 'agent.delete', label: 'Agent Deleted' },
 	{ value: 'agent.deploy', label: 'Agent Deployed' },
+	{ value: 'agent.clone', label: 'Agent Cloned' },
 	{ value: 'tool.create', label: 'Tool Created' },
 	{ value: 'tool.update', label: 'Tool Updated' },
 	{ value: 'tool.delete', label: 'Tool Deleted' },
+	{ value: 'tool.test', label: 'Tool Tested' },
 	{ value: 'member.invite', label: 'Member Invited' },
 	{ value: 'member.remove', label: 'Member Removed' },
 	{ value: 'member.role_change', label: 'Member Role Changed' },
@@ -71,8 +73,8 @@ const PAGE_SIZE_OPTIONS = [10, 20, 50, 100]
 
 export function AuditLogsPage() {
 	// Filter state
-	const [actionFilter, setActionFilter] = useState<AuditAction | ''>('')
-	const [resourceTypeFilter, setResourceTypeFilter] = useState<string>('')
+	const [actionFilter, setActionFilter] = useState<AuditAction | '__all__'>('__all__')
+	const [resourceTypeFilter, setResourceTypeFilter] = useState<string>('__all__')
 	const [dateFrom, setDateFrom] = useState<string>('')
 	const [dateTo, setDateTo] = useState<string>('')
 
@@ -81,8 +83,8 @@ export function AuditLogsPage() {
 	const [currentPage, setCurrentPage] = useState(0)
 
 	const { data, isPending, error } = useAuditLogsQuery({
-		action: actionFilter || undefined,
-		resourceType: resourceTypeFilter || undefined,
+		action: actionFilter === '__all__' ? undefined : actionFilter,
+		resourceType: resourceTypeFilter === '__all__' ? undefined : resourceTypeFilter,
 		dateFrom: dateFrom || undefined,
 		dateTo: dateTo || undefined,
 		limit: pageSize,
@@ -129,14 +131,18 @@ export function AuditLogsPage() {
 	}
 
 	const clearFilters = () => {
-		setActionFilter('')
-		setResourceTypeFilter('')
+		setActionFilter('__all__')
+		setResourceTypeFilter('__all__')
 		setDateFrom('')
 		setDateTo('')
 		setCurrentPage(0)
 	}
 
-	const hasFilters = actionFilter || resourceTypeFilter || dateFrom || dateTo
+	const hasFilters =
+		(actionFilter && actionFilter !== '__all__') ||
+		(resourceTypeFilter && resourceTypeFilter !== '__all__') ||
+		dateFrom ||
+		dateTo
 
 	if (isPending) {
 		return (
@@ -189,7 +195,7 @@ export function AuditLogsPage() {
 							<Select
 								value={actionFilter}
 								onValueChange={(value) => {
-									setActionFilter(value as AuditAction | '')
+									setActionFilter(value as AuditAction | '__all__')
 									setCurrentPage(0)
 								}}
 							>
@@ -197,7 +203,7 @@ export function AuditLogsPage() {
 									<SelectValue placeholder="All actions" />
 								</SelectTrigger>
 								<SelectContent>
-									<SelectItem value="">All actions</SelectItem>
+									<SelectItem value="__all__">All actions</SelectItem>
 									{ACTION_OPTIONS.map((option) => (
 										<SelectItem key={option.value} value={option.value}>
 											{option.label}
@@ -221,7 +227,7 @@ export function AuditLogsPage() {
 									<SelectValue placeholder="All resources" />
 								</SelectTrigger>
 								<SelectContent>
-									<SelectItem value="">All resources</SelectItem>
+									<SelectItem value="__all__">All resources</SelectItem>
 									{RESOURCE_TYPE_OPTIONS.map((option) => (
 										<SelectItem key={option.value} value={option.value}>
 											{option.label}

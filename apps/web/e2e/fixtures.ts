@@ -39,63 +39,30 @@ export const test = base.extend<{
 		await use(generateTestUser())
 	},
 
-	// Authenticated page fixture that automatically signs in
+	// Authenticated page fixture that signs up via API for speed, then navigates
 	authenticatedPage: async ({ page, testUser }, use) => {
 		const maxRetries = 3
 		let lastError: Error | null = null
 
 		for (let attempt = 1; attempt <= maxRetries; attempt++) {
 			try {
-				// Create and sign in the test user
-				await page.goto('/sign-up')
-				await page.waitForLoadState('networkidle')
+				// Sign up via API (much faster than UI form typing)
+				const origin = process.env.BASE_URL || `http://localhost:${process.env.PORT || '3000'}`
+				const signUpResponse = await page.request.post('/api/auth/sign-up/email', {
+					headers: { Origin: origin },
+					data: {
+						email: testUser.email,
+						password: testUser.password,
+						name: testUser.name,
+					},
+				})
 
-				// Wait for form to be ready
-				await page.getByLabel('Full Name').waitFor({ state: 'visible', timeout: 10000 })
-
-				// Fill in the sign-up form using pressSequentially for React compatibility
-				// Note: .fill() doesn't trigger React's onChange, so we use pressSequentially
-				const nameInput = page.getByLabel('Full Name')
-				const emailInput = page.getByLabel('Email')
-				const passwordInput = page.getByLabel('Password', { exact: true })
-				const confirmPasswordInput = page.getByLabel('Confirm Password')
-
-				await nameInput.click()
-				await nameInput.pressSequentially(testUser.name, { delay: 20 })
-				await emailInput.click()
-				await emailInput.pressSequentially(testUser.email, { delay: 20 })
-				await passwordInput.click()
-				await passwordInput.pressSequentially(testUser.password, { delay: 20 })
-				await confirmPasswordInput.click()
-				await confirmPasswordInput.pressSequentially(testUser.password, { delay: 20 })
-
-				// Submit the form and wait for navigation
-				const submitButton = page.getByRole('button', { name: 'Create Account' })
-				await submitButton.waitFor({ state: 'visible' })
-
-				// Click and wait for either navigation or error
-				// Routes are warmed up by global-setup.ts, so use shorter timeout
-				const [response] = await Promise.all([
-					page.waitForResponse(
-						(resp) => resp.url().includes('/api/auth') && resp.request().method() === 'POST',
-						{ timeout: 15000 },
-					),
-					submitButton.click(),
-				])
-
-				// Check if sign-up was successful
-				if (!response.ok()) {
-					const errorText = await response.text().catch(() => 'Unknown error')
-					throw new Error(`Sign-up API returned ${response.status()}: ${errorText}`)
+				if (!signUpResponse.ok()) {
+					const errorText = await signUpResponse.text().catch(() => 'Unknown error')
+					throw new Error(`Sign-up API returned ${signUpResponse.status()}: ${errorText}`)
 				}
 
-				// Wait for redirect to dashboard
-				await page.waitForURL(/\/dashboard/, { timeout: 15000 })
-
-				// Wait for dashboard to fully load
-				await page.waitForLoadState('networkidle')
-
-				// Ensure default workspace is created by calling the API
+				// Ensure default workspace is created
 				const ensureWorkspaceResponse = await page.request.post(
 					'/api/rpc/workspaces/ensureDefault',
 					{
@@ -105,17 +72,12 @@ export const test = base.extend<{
 				)
 
 				if (!ensureWorkspaceResponse.ok()) {
-					// If this fails, workspace might already exist, continue anyway
 					console.log('ensureDefault response:', await ensureWorkspaceResponse.text())
 				}
 
-				// Wait for the dashboard content to be visible
-				// Try multiple possible headings/content indicators
-				try {
-					await page.waitForSelector('main', { state: 'visible', timeout: 10000 })
-				} catch {
-					// Main might not be the right selector, try others
-				}
+				// Navigate to dashboard and wait for it to load
+				await page.goto('/dashboard')
+				await page.waitForSelector('main', { state: 'visible', timeout: 15000 })
 
 				// Success - break out of retry loop
 				break
@@ -123,17 +85,11 @@ export const test = base.extend<{
 				lastError = error as Error
 				console.log(`Attempt ${attempt} failed:`, lastError.message)
 				if (attempt < maxRetries) {
-					// Generate new unique user for retry to avoid duplicate email issues
 					const newId = createId()
 					testUser = {
 						...testUser,
 						email: `test-${newId}@example.com`,
 						name: `Test User ${newId.slice(0, 8)}`,
-					}
-					try {
-						await page.waitForTimeout(1000)
-					} catch {
-						// Page was closed, can't wait - just continue to next attempt
 					}
 				}
 			}
@@ -151,18 +107,6 @@ export const test = base.extend<{
 		}
 
 		await use(page)
-
-		// Cleanup: Sign out after the test
-		try {
-			// Try to sign out if there's a sign-out button/menu
-			await page.goto('/dashboard/settings')
-			const signOutButton = page.getByRole('button', { name: /sign out/i })
-			if (await signOutButton.isVisible({ timeout: 2000 })) {
-				await signOutButton.click()
-			}
-		} catch {
-			// Ignore cleanup errors
-		}
 	},
 })
 
