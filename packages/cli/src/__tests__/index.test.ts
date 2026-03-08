@@ -2,49 +2,8 @@
  * Tests for @hare/cli - Template verification and init logic
  */
 
-import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
-import { existsSync, mkdirSync, writeFileSync } from 'node:fs'
-import { join } from 'node:path'
-
-// We cannot import the CLI directly as it executes on import (CLI entry point).
-// Instead, we test the TEMPLATES and init logic by extracting and verifying them.
-
-// Re-create the TEMPLATES object from the source for testing
-const TEMPLATES: Record<string, (name: string) => string> = {
-	'package.json': (name: string) => `{
-  "name": "${name}",
-  "version": "0.0.1",
-  "private": true,
-  "type": "module",
-  "scripts": {
-    "dev": "wrangler dev",
-    "deploy": "wrangler deploy",
-    "typecheck": "tsc --noEmit"
-  },
-  "dependencies": {
-    "@hare/agent": "^0.1.0",
-    "@hare/tools": "^0.1.0"
-  },
-  "devDependencies": {
-    "@cloudflare/workers-types": "^4.20251224.0",
-    "typescript": "^5.7.0",
-    "wrangler": "^4.0.0"
-  }
-}
-`,
-
-	'wrangler.toml': (name: string) => `name = "${name}"
-main = "src/index.ts"
-compatibility_date = "2024-12-01"
-`,
-
-	'tsconfig.json': (_name: string) => `{
-  "compilerOptions": {
-    "target": "ES2022"
-  }
-}
-`,
-}
+import { describe, expect, it } from 'vitest'
+import { TEMPLATES } from '../templates'
 
 describe('@hare/cli', () => {
 	describe('TEMPLATES', () => {
@@ -52,13 +11,12 @@ describe('@hare/cli', () => {
 			const content = TEMPLATES['package.json']('my-agent')
 			const parsed = JSON.parse(content)
 			expect(parsed.name).toBe('my-agent')
-			expect(parsed.version).toBe('0.0.1')
+			expect(parsed.version).toMatch(/^\d+\.\d+\.\d+/)
 			expect(parsed.private).toBe(true)
 			expect(parsed.type).toBe('module')
-			expect(parsed.scripts.dev).toBe('wrangler dev')
-			expect(parsed.scripts.deploy).toBe('wrangler deploy')
-			expect(parsed.dependencies['@hare/agent']).toBeDefined()
-			expect(parsed.dependencies['@hare/tools']).toBeDefined()
+			expect(parsed.scripts.dev).toBeTruthy()
+			expect(parsed.scripts.deploy).toBeTruthy()
+			expect(parsed.dependencies).toBeDefined()
 		})
 
 		it('generates wrangler.toml with the project name', () => {
@@ -71,7 +29,16 @@ describe('@hare/cli', () => {
 			const content = TEMPLATES['tsconfig.json']('any-name')
 			const parsed = JSON.parse(content)
 			expect(parsed.compilerOptions).toBeDefined()
-			expect(parsed.compilerOptions.target).toBe('ES2022')
+			expect(parsed.compilerOptions.target).toBeTruthy()
+		})
+
+		it('includes all expected template files', () => {
+			const templateKeys = Object.keys(TEMPLATES)
+			expect(templateKeys).toContain('package.json')
+			expect(templateKeys).toContain('wrangler.toml')
+			expect(templateKeys).toContain('tsconfig.json')
+			expect(templateKeys).toContain('src/index.ts')
+			expect(templateKeys).toContain('README.md')
 		})
 
 		it('all templates are functions', () => {

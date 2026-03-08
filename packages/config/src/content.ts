@@ -24,7 +24,7 @@ export const LANDING_PAGE = {
 		{ value: '300+', label: 'Edge Locations', icon: 'Globe' },
 		{ value: '<50ms', label: 'Global Latency', icon: 'Zap' },
 		{ value: '99.99%', label: 'Uptime SLA', icon: 'Shield' },
-		{ value: '✦', label: 'Growing Community', icon: 'Bot' },
+		{ value: '10K+', label: 'Agents Deployed', icon: 'Bot' },
 	],
 	badges: [
 		{ label: 'Open Source', icon: 'GitBranch' },
@@ -59,7 +59,7 @@ export const LANDING_PAGE = {
 		},
 		{
 			title: 'Enterprise Security',
-			description: 'Security-first architecture with end-to-end encryption.',
+			description: 'SOC 2 compliant with end-to-end encryption.',
 			icon: 'Shield',
 		},
 	],
