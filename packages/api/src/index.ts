@@ -89,12 +89,13 @@ app.use('*', requestValidation())
 app.use('*', loggingMiddleware)
 
 app.route('/billing', billingWebhook)
+// Mount auth before CSRF - Better Auth has its own CSRF protection
+app.route('/auth', auth)
 app.use('*', csrfProtection())
 app.use('/rpc/*', optionalAuthMiddleware)
 
 const routes = app
 	.route('/agent-ws', agentWs)
-	.route('/auth', auth)
 	.route('/dev', dev)
 	.route('/mcp', mcp)
 	.route('/rpc', orpcApp)
