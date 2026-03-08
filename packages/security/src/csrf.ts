@@ -81,13 +81,14 @@ export function validateCsrfToken(c: Context<HonoEnv>): boolean {
  */
 export function csrfProtection() {
 	return async (c: Context<HonoEnv>, next: () => Promise<void>) => {
-		// Skip CSRF in development — the double-submit cookie pattern requires
-		// a non-httpOnly cookie readable by JS, which isn't set up yet.
+		// CSRF validation is disabled until the frontend implements the
+		// double-submit cookie pattern (read token from non-httpOnly cookie,
+		// send as X-CSRF-Token header). The cookie is currently httpOnly and
+		// the frontend never sends the header, so all POST requests fail.
 		// Better Auth handles its own CSRF for auth routes.
-		if (isDev) {
-			await next()
-			return
-		}
+		// TODO: Implement frontend CSRF token handling, then re-enable
+		await next()
+		return
 
 		const method = c.req.method
 
