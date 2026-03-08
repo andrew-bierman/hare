@@ -8,7 +8,7 @@
  * - Health monitoring integration
  */
 
-import { eq } from 'drizzle-orm'
+import { desc, eq } from 'drizzle-orm'
 import { agents, deployments, type Database } from '@hare/db'
 import { serverEnv } from '@hare/config'
 
@@ -174,7 +174,7 @@ export async function getActiveDeployment(options: {
 		.select()
 		.from(deployments)
 		.where(eq(deployments.agentId, agentId))
-		.orderBy(deployments.deployedAt)
+		.orderBy(desc(deployments.deployedAt))
 		.limit(1)
 
 	if (!deployment || deployment.status !== 'active') {
@@ -209,7 +209,7 @@ export async function getDeploymentHistory(options: {
 		.select()
 		.from(deployments)
 		.where(eq(deployments.agentId, agentId))
-		.orderBy(deployments.deployedAt)
+		.orderBy(desc(deployments.deployedAt))
 		.limit(limit)
 
 	return results.map((deployment) => {
