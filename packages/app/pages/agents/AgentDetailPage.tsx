@@ -253,11 +253,11 @@ export function AgentDetailPage({
 
 		// Check for warnings (tools)
 		const warnings: ValidationWarnings = {}
-		if (selectedToolIds.length === 0) {
+		if (selectedToolIds.length === 0 && !systemToolsEnabled) {
 			warnings.tools = 'No tools selected. Your agent may have limited capabilities.'
 		}
 		setClientValidationWarnings(warnings)
-	}, [name, description, instructions, model, selectedToolIds])
+	}, [name, description, instructions, model, selectedToolIds, systemToolsEnabled])
 
 	// Check if model is valid
 	const isValidModel = useMemo(() => {
