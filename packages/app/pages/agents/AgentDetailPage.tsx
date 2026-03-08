@@ -708,162 +708,39 @@ export function AgentDetailPage({
 				</TabsContent>
 
 				<TabsContent value="preview" className="space-y-4">
-					<div className="grid gap-4 md:grid-cols-2">
-						{/* Configuration Summary */}
-						<Card>
-							<CardHeader>
-								<CardTitle>Configuration Summary</CardTitle>
-								<CardDescription>Overview of your agent configuration</CardDescription>
-							</CardHeader>
-							<CardContent className="space-y-4">
-								<div className="space-y-3">
-									<div className="flex justify-between items-start border-b pb-2">
-										<span className="text-sm text-muted-foreground">Name</span>
-										<span className="text-sm font-medium text-right max-w-[60%] truncate">
-											{name || '-'}
-										</span>
-									</div>
-									<div className="flex justify-between items-start border-b pb-2">
-										<span className="text-sm text-muted-foreground">Model</span>
-										<span className="text-sm font-medium text-right">
-											{selectedModel?.name || model || '-'}
-										</span>
-									</div>
-									<div className="flex justify-between items-start border-b pb-2">
-										<span className="text-sm text-muted-foreground">Status</span>
-										<Badge className={statusDisplay.className}>{statusDisplay.label}</Badge>
-									</div>
-									<div className="flex justify-between items-start border-b pb-2">
-										<span className="text-sm text-muted-foreground">Tools Selected</span>
-										<span className="text-sm font-medium">{selectedToolIds.length}</span>
-									</div>
-									<div className="flex justify-between items-start">
-										<span className="text-sm text-muted-foreground">Est. Prompt Tokens</span>
-										<span className="text-sm font-medium">~{estimatedTokens.toLocaleString()}</span>
-									</div>
-								</div>
-
-								{/* Validation Status */}
-								<div className="pt-4 border-t">
-									<div className="flex items-center justify-between mb-2">
-										<h4 className="text-sm font-medium">Validation Status</h4>
-									</div>
-									{hasValidationErrors ? (
-										<div className="space-y-2">
-											<div className="flex items-center gap-2 text-destructive">
-												<AlertTriangle className="h-4 w-4" />
-												<span className="text-sm">
-													{Object.keys(validationErrors).length} validation error(s)
-												</span>
-											</div>
-											{/* Show individual errors */}
-											<ul className="pl-6 space-y-1">
-												{Object.entries(validationErrors).map(([field, message]) => (
-													<li key={field} className="text-xs text-destructive">
-														<span className="font-medium">{field}:</span> {message}
-													</li>
-												))}
-											</ul>
-										</div>
-									) : (
-										<div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400">
-											<CheckCircle className="h-4 w-4" />
-											<span className="text-sm">Configuration is valid</span>
-										</div>
-									)}
-									{Object.keys(validationWarnings).length > 0 && (
-										<div className="mt-2 space-y-1">
-											{Object.entries(validationWarnings).map(([field, message]) => (
-												<div
-													key={field}
-													className="flex items-start gap-2 text-yellow-600 dark:text-yellow-400"
-												>
-													<AlertTriangle className="h-4 w-4 flex-shrink-0 mt-0.5" />
-													<span className="text-xs">{message}</span>
-												</div>
-											))}
-										</div>
-									)}
-								</div>
-
-								{/* Description Preview */}
-								{description && (
-									<div className="pt-4 border-t">
-										<h4 className="text-sm font-medium mb-2">Description</h4>
-										<p className="text-sm text-muted-foreground line-clamp-3">{description}</p>
-									</div>
-								)}
-							</CardContent>
-						</Card>
-
-						{/* Selected Tools by Category */}
-						<Card>
-							<CardHeader>
-								<CardTitle>Selected Tools</CardTitle>
-								<CardDescription>
-									{selectedToolIds.length} tool{selectedToolIds.length !== 1 ? 's' : ''} selected
-								</CardDescription>
-							</CardHeader>
-							<CardContent>
-								{selectedToolIds.length === 0 ? (
-									<div className="flex flex-col items-center justify-center py-8 text-center">
-										<Wrench className="h-8 w-8 text-muted-foreground mb-2" />
-										<p className="text-sm text-muted-foreground">No tools selected</p>
-										<p className="text-xs text-muted-foreground mt-1">
-											Add tools in the Tools tab to extend your agent's capabilities
-										</p>
-									</div>
-								) : (
-									<div className="space-y-4">
-										{Object.entries(toolsByCategory).map(([category, categoryTools]) => {
-											const IconComponent = CATEGORY_ICONS[category] || Wrench
-											return (
-												<div key={category}>
-													<div className="flex items-center gap-2 mb-2">
-														<IconComponent className="h-4 w-4 text-muted-foreground" />
-														<span className="text-sm font-medium capitalize">{category}</span>
-														<Badge variant="secondary" className="text-xs">
-															{categoryTools.length}
-														</Badge>
-													</div>
-													<div className="flex flex-wrap gap-2 pl-6">
-														{categoryTools.map((tool: Tool) => (
-															<Badge key={tool.id} variant="outline" className="text-xs">
-																{tool.name}
-															</Badge>
-														))}
-													</div>
-												</div>
-											)
-										})}
-									</div>
-								)}
-							</CardContent>
-						</Card>
-					</div>
-
-					{/* System Prompt Preview */}
 					<Card>
-						<CardHeader>
-							<CardTitle>System Prompt Preview</CardTitle>
-							<CardDescription>
-								{instructions.length.toLocaleString()} characters | ~
-								{estimatedTokens.toLocaleString()} tokens
-							</CardDescription>
-						</CardHeader>
-						<CardContent>
-							{instructions ? (
-								<div className="rounded-md bg-muted p-4 max-h-64 overflow-y-auto">
-									<pre className="text-sm whitespace-pre-wrap font-mono">{instructions}</pre>
-								</div>
-							) : (
-								<div className="flex flex-col items-center justify-center py-8 text-center">
-									<FileCode className="h-8 w-8 text-muted-foreground mb-2" />
-									<p className="text-sm text-muted-foreground">No system prompt defined</p>
-									<p className="text-xs text-muted-foreground mt-1">
-										Add a system prompt in the Prompt tab to define your agent's behavior
+						<CardContent className="flex flex-col items-center justify-center py-16 text-center">
+							{agent.status === 'deployed' ? (
+								<>
+									<MessageSquare className="h-12 w-12 text-muted-foreground mb-4" />
+									<h3 className="text-lg font-semibold mb-2">Test your agent</h3>
+									<p className="text-sm text-muted-foreground mb-6 max-w-md">
+										Open the chat playground to send messages and test how your agent responds.
 									</p>
-								</div>
+									<Button
+										className="gap-2"
+										onClick={() => navigate({ to: `${basePath}/${agentId}/playground` })}
+									>
+										<Play className="h-4 w-4" />
+										Open Chat Playground
+									</Button>
+								</>
+							) : (
+								<>
+									<Rocket className="h-12 w-12 text-muted-foreground mb-4" />
+									<h3 className="text-lg font-semibold mb-2">Deploy to preview</h3>
+									<p className="text-sm text-muted-foreground mb-6 max-w-md">
+										Deploy your agent first to test it in the chat playground.
+									</p>
+									<Button
+										className="gap-2"
+										onClick={handleDeploy}
+										disabled={deployAgent.isPending || !instructions.trim()}
+									>
+										<Rocket className="h-4 w-4" />
+										{deployAgent.isPending ? 'Deploying...' : 'Deploy Agent'}
+									</Button>
+								</>
 							)}
 						</CardContent>
 					</Card>
