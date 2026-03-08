@@ -5,6 +5,12 @@
   "compatibility_date": "2025-12-01",
   "compatibility_flags": ["nodejs_compat"],
 
+  // Static assets config - directory is set automatically by @cloudflare/vite-plugin
+  // not_found_handling must be "none" so unmatched routes fall through to the Worker
+  "assets": {
+    "not_found_handling": "none"
+  },
+
   // Local-only mode - no remote bindings
   "local": true,
 
