@@ -99,6 +99,7 @@ export function createAuth({ d1, env }: CreateAuthOptions) {
 				? [
 						'http://localhost:3000',
 						'http://localhost:3001',
+						'http://localhost:3333',
 						'http://localhost:8787',
 						// Support worktree ports (3001-3099)
 						...Array.from({ length: 99 }, (_, i) => `http://localhost:${3001 + i}`),
