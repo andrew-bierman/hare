@@ -458,7 +458,7 @@ export const getDeployment = requireWrite
 			.select()
 			.from(deployments)
 			.where(eq(deployments.agentId, input.id))
-			.orderBy(deployments.deployedAt)
+			.orderBy(desc(deployments.deployedAt))
 			.limit(1)
 
 		if (!deployment) notFound('Deployment not found')
@@ -496,7 +496,7 @@ export const getDeploymentHistory = requireWrite
 			.select()
 			.from(deployments)
 			.where(eq(deployments.agentId, input.id))
-			.orderBy(deployments.deployedAt)
+			.orderBy(desc(deployments.deployedAt))
 			.limit(input.limit)
 
 		return {

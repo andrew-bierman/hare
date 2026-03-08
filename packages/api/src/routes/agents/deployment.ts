@@ -3,7 +3,7 @@
  */
 
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
-import { eq } from 'drizzle-orm'
+import { desc, eq } from 'drizzle-orm'
 import { agents, deployments } from '@hare/db/schema'
 import { routeHttpToAgent } from '@hare/agent'
 import { getCloudflareEnv, getDb } from '../../db'
@@ -357,7 +357,7 @@ export const deploymentApp = baseApp
 			.select()
 			.from(deployments)
 			.where(eq(deployments.agentId, id))
-			.orderBy(deployments.deployedAt)
+			.orderBy(desc(deployments.deployedAt))
 			.limit(1)
 
 		if (!deployment) {
