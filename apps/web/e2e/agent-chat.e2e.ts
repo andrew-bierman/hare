@@ -25,7 +25,7 @@ test.describe('Agent Chat - Real LLM Interaction', () => {
 		const url = page.url()
 		const match = url.match(/\/agents\/([^/]+)/)
 		if (match) {
-			agentId = match[1]
+			agentId = match[1] ?? null
 		}
 
 		// Navigate to agents list and find the agent
