@@ -26,7 +26,7 @@ export function toAISDKTools(hareTools: Tool<any, any>[], context: ToolContext<H
 						if (result.success) {
 							return result.data
 						}
-						// Return error as string for the model to see
+						// Return error as an object for the model to see
 						return { error: result.error ?? 'Tool execution failed' }
 					},
 				}),

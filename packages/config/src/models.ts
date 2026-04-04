@@ -33,6 +33,8 @@ export interface AIModel {
 	deprecated?: boolean
 	/** Recommended badge for UI */
 	recommended?: boolean
+	/** Whether this model can be used as a chat/agent model (false for STT, TTS, reranking, embeddings) */
+	chatCapable?: boolean
 }
 
 export const PROVIDER_LABELS: Record<ModelProvider, string> = {
@@ -216,6 +218,7 @@ export const AI_MODELS: AIModel[] = [
 		outputCostPer1M: 0,
 		speedTier: 'medium',
 		costTier: 'free',
+		chatCapable: false,
 	},
 	{
 		id: '@cf/openai/whisper-large-v3-turbo',
@@ -231,6 +234,7 @@ export const AI_MODELS: AIModel[] = [
 		outputCostPer1M: 0,
 		speedTier: 'fast',
 		costTier: 'free',
+		chatCapable: false,
 	},
 	{
 		id: '@cf/myshell-ai/melotts',
@@ -246,6 +250,7 @@ export const AI_MODELS: AIModel[] = [
 		outputCostPer1M: 0,
 		speedTier: 'fast',
 		costTier: 'free',
+		chatCapable: false,
 	},
 	{
 		id: '@cf/baai/bge-reranker-base',
@@ -261,6 +266,7 @@ export const AI_MODELS: AIModel[] = [
 		outputCostPer1M: 0,
 		speedTier: 'fast',
 		costTier: 'free',
+		chatCapable: false,
 	},
 ]
 
@@ -272,6 +278,14 @@ export function getModelById(id: string): AIModel | undefined {
 
 export function getModelName(id: string): string {
 	return getModelById(id)?.name ?? id
+}
+
+/**
+ * Get models that can be used as chat/agent models.
+ * Excludes STT, TTS, reranking, and embedding models.
+ */
+export function getChatCapableModels(): AIModel[] {
+	return AI_MODELS.filter((m) => m.chatCapable !== false)
 }
 
 /**

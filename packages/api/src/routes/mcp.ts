@@ -105,7 +105,7 @@ const mcpToolsRoute = createRoute({
 	path: '/{workspaceId}/tools',
 	tags: ['MCP'],
 	summary: 'List available MCP tools',
-	description: 'Returns all agent control tools available via MCP',
+	description: 'Returns all system tools and agent control tools available via MCP',
 	request: {
 		params: z.object({
 			workspaceId: z.string().describe('Workspace ID'),
@@ -144,7 +144,7 @@ const mcpToolExecuteRoute = createRoute({
 	path: '/{workspaceId}/tools/{toolId}',
 	tags: ['MCP'],
 	summary: 'Execute an MCP tool',
-	description: 'Execute a specific agent control tool with provided parameters',
+	description: 'Execute a system tool or agent control tool with provided parameters',
 	request: {
 		params: z.object({
 			workspaceId: z.string().describe('Workspace ID'),
