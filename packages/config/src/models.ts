@@ -9,12 +9,14 @@
 export type ModelProvider = 'anthropic' | 'openai' | 'workers-ai'
 export type SpeedTier = 'fast' | 'medium' | 'slow'
 export type CostTier = 'free' | 'low' | 'medium' | 'high'
+export type ModelCategory = 'chat' | 'code' | 'reasoning' | 'vision' | 'speech-to-text' | 'text-to-speech' | 'embeddings' | 'reranking'
 
 export interface AIModel {
 	id: string
 	name: string
 	description: string
 	provider: ModelProvider
+	category?: ModelCategory
 	contextWindow: number
 	maxOutputTokens: number
 	supportsStreaming: boolean
@@ -27,6 +29,10 @@ export interface AIModel {
 	speedTier: SpeedTier
 	/** Cost tier for UI display */
 	costTier: CostTier
+	/** Whether this model is deprecated */
+	deprecated?: boolean
+	/** Recommended badge for UI */
+	recommended?: boolean
 }
 
 export const PROVIDER_LABELS: Record<ModelProvider, string> = {
@@ -124,9 +130,132 @@ export const AI_MODELS: AIModel[] = [
 		name: 'Llama 3.3 70B',
 		description: 'Most capable open model',
 		provider: 'workers-ai',
+		category: 'chat',
 		contextWindow: 8192,
 		maxOutputTokens: 2048,
 		supportsStreaming: true,
+		supportsTools: false,
+		inputCostPer1M: 0,
+		outputCostPer1M: 0,
+		speedTier: 'fast',
+		costTier: 'free',
+		recommended: true,
+	},
+	{
+		id: '@cf/meta/llama-4-scout-17b-16e-instruct',
+		name: 'Llama 4 Scout 17B',
+		description: 'Newest MoE model, fast inference',
+		provider: 'workers-ai',
+		category: 'chat',
+		contextWindow: 8192,
+		maxOutputTokens: 2048,
+		supportsStreaming: true,
+		supportsTools: false,
+		inputCostPer1M: 0,
+		outputCostPer1M: 0,
+		speedTier: 'fast',
+		costTier: 'free',
+	},
+	{
+		id: '@cf/qwen/qwen2.5-coder-32b-instruct',
+		name: 'Qwen 2.5 Coder 32B',
+		description: 'Best for code generation tasks',
+		provider: 'workers-ai',
+		category: 'code',
+		contextWindow: 8192,
+		maxOutputTokens: 2048,
+		supportsStreaming: true,
+		supportsTools: false,
+		inputCostPer1M: 0,
+		outputCostPer1M: 0,
+		speedTier: 'medium',
+		costTier: 'free',
+		recommended: true,
+	},
+	{
+		id: '@cf/deepseek-ai/deepseek-r1-distill-qwen-32b',
+		name: 'DeepSeek R1 32B',
+		description: 'Strong reasoning capabilities',
+		provider: 'workers-ai',
+		category: 'reasoning',
+		contextWindow: 8192,
+		maxOutputTokens: 2048,
+		supportsStreaming: true,
+		supportsTools: false,
+		inputCostPer1M: 0,
+		outputCostPer1M: 0,
+		speedTier: 'medium',
+		costTier: 'free',
+	},
+	{
+		id: '@cf/zai-org/glm-4.7-flash',
+		name: 'GLM 4.7 Flash',
+		description: 'Fast inference model',
+		provider: 'workers-ai',
+		category: 'chat',
+		contextWindow: 8192,
+		maxOutputTokens: 2048,
+		supportsStreaming: true,
+		supportsTools: false,
+		inputCostPer1M: 0,
+		outputCostPer1M: 0,
+		speedTier: 'fast',
+		costTier: 'free',
+	},
+	{
+		id: '@cf/llava-hf/llava-1.5-7b-hf',
+		name: 'LLaVA 1.5 7B',
+		description: 'Vision model for image understanding',
+		provider: 'workers-ai',
+		category: 'vision',
+		contextWindow: 4096,
+		maxOutputTokens: 512,
+		supportsStreaming: false,
+		supportsTools: false,
+		inputCostPer1M: 0,
+		outputCostPer1M: 0,
+		speedTier: 'medium',
+		costTier: 'free',
+	},
+	{
+		id: '@cf/openai/whisper-large-v3-turbo',
+		name: 'Whisper Large V3 Turbo',
+		description: 'Fast speech-to-text transcription',
+		provider: 'workers-ai',
+		category: 'speech-to-text',
+		contextWindow: 0,
+		maxOutputTokens: 0,
+		supportsStreaming: false,
+		supportsTools: false,
+		inputCostPer1M: 0,
+		outputCostPer1M: 0,
+		speedTier: 'fast',
+		costTier: 'free',
+	},
+	{
+		id: '@cf/myshell-ai/melotts',
+		name: 'MeloTTS',
+		description: 'Text-to-speech audio generation',
+		provider: 'workers-ai',
+		category: 'text-to-speech',
+		contextWindow: 0,
+		maxOutputTokens: 0,
+		supportsStreaming: false,
+		supportsTools: false,
+		inputCostPer1M: 0,
+		outputCostPer1M: 0,
+		speedTier: 'fast',
+		costTier: 'free',
+	},
+	{
+		id: '@cf/baai/bge-reranker-base',
+		name: 'BGE Reranker Base',
+		description: 'Reranks search results for relevance',
+		provider: 'workers-ai',
+		category: 'reranking',
+		contextWindow: 512,
+		maxOutputTokens: 0,
+		supportsStreaming: false,
 		supportsTools: false,
 		inputCostPer1M: 0,
 		outputCostPer1M: 0,
