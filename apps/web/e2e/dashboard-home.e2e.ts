@@ -69,9 +69,12 @@ test.describe('Dashboard Home - Stats Cards', () => {
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		const agentName = generateAgentName()
-		await authenticatedPage.locator('#name').fill(agentName)
+		const nameInput = authenticatedPage.getByLabel(/name/i).first()
+		await nameInput.click()
+		await nameInput.fill('')
+		await nameInput.pressSequentially(agentName, { delay: 10 })
 
-		const createButton = authenticatedPage.getByRole('button', { name: /create agent/i })
+		const createButton = authenticatedPage.getByRole('button', { name: /create/i }).first()
 		await createButton.click()
 
 		// Wait for creation
@@ -190,9 +193,12 @@ test.describe('Dashboard Home - Recent Agents', () => {
 			await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 			const agentName = `Dashboard Test ${Date.now()}-${i}`
-			await authenticatedPage.locator('#name').fill(agentName)
+			const nameInput = authenticatedPage.getByLabel(/name/i).first()
+			await nameInput.click()
+			await nameInput.fill('')
+			await nameInput.pressSequentially(agentName, { delay: 10 })
 
-			const createButton = authenticatedPage.getByRole('button', { name: /create agent/i })
+			const createButton = authenticatedPage.getByRole('button', { name: /create/i }).first()
 			await createButton.click()
 
 			await authenticatedPage.waitForURL(/\/dashboard\/agents\/[^/]+$/, { timeout: 10000 })
@@ -220,10 +226,13 @@ test.describe('Dashboard Home - Recent Agents', () => {
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		const agentName = generateAgentName()
-		await authenticatedPage.locator('#name').fill(agentName)
+		const nameInput = authenticatedPage.getByLabel(/name/i).first()
+		await nameInput.click()
+		await nameInput.fill('')
+		await nameInput.pressSequentially(agentName, { delay: 10 })
 		await authenticatedPage.locator('#description').fill('Test agent for card info verification')
 
-		const createButton = authenticatedPage.getByRole('button', { name: /create agent/i })
+		const createButton = authenticatedPage.getByRole('button', { name: /create/i }).first()
 		await createButton.click()
 
 		await authenticatedPage.waitForURL(/\/dashboard\/agents\/[^/]+$/, { timeout: 10000 })
@@ -258,9 +267,12 @@ test.describe('Dashboard Home - Recent Agents', () => {
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		const agentName = generateAgentName()
-		await authenticatedPage.locator('#name').fill(agentName)
+		const nameInput = authenticatedPage.getByLabel(/name/i).first()
+		await nameInput.click()
+		await nameInput.fill('')
+		await nameInput.pressSequentially(agentName, { delay: 10 })
 
-		const createButton = authenticatedPage.getByRole('button', { name: /create agent/i })
+		const createButton = authenticatedPage.getByRole('button', { name: /create/i }).first()
 		await createButton.click()
 
 		// Wait for navigation to agent detail after creation
@@ -289,9 +301,12 @@ test.describe('Dashboard Home - Recent Agents', () => {
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		const agentName = generateAgentName()
-		await authenticatedPage.locator('#name').fill(agentName)
+		const nameInput = authenticatedPage.getByLabel(/name/i).first()
+		await nameInput.click()
+		await nameInput.fill('')
+		await nameInput.pressSequentially(agentName, { delay: 10 })
 
-		const createButton = authenticatedPage.getByRole('button', { name: /create agent/i })
+		const createButton = authenticatedPage.getByRole('button', { name: /create/i }).first()
 		await createButton.click()
 
 		await authenticatedPage.waitForURL(/\/dashboard\/agents\/[^/]+$/, { timeout: 10000 })
@@ -321,9 +336,12 @@ test.describe('Dashboard Home - Recent Agents', () => {
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		const agentName = generateAgentName()
-		await authenticatedPage.locator('#name').fill(agentName)
+		const nameInput = authenticatedPage.getByLabel(/name/i).first()
+		await nameInput.click()
+		await nameInput.fill('')
+		await nameInput.pressSequentially(agentName, { delay: 10 })
 
-		const createButton = authenticatedPage.getByRole('button', { name: /create agent/i })
+		const createButton = authenticatedPage.getByRole('button', { name: /create/i }).first()
 		await createButton.click()
 
 		await authenticatedPage.waitForURL(/\/dashboard\/agents\/[^/]+$/, { timeout: 10000 })
@@ -334,13 +352,18 @@ test.describe('Dashboard Home - Recent Agents', () => {
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		await authenticatedPage.waitForTimeout(2000)
 
-		// Click View all button
-		const viewAllButton = authenticatedPage.getByRole('button', { name: /view all/i })
-		if (await viewAllButton.isVisible()) {
-			await viewAllButton.click()
-
-			// Should navigate to agents list
-			await expect(authenticatedPage).toHaveURL('/dashboard/agents')
+		// Click View all link near "Recent Agents" section (not the audit logs one)
+		const recentAgentsSection = authenticatedPage.getByText('Recent Agents')
+		if (await recentAgentsSection.isVisible().catch(() => false)) {
+			// Find View all link specifically in the agents section
+			const viewAllLink = authenticatedPage
+				.locator('a[href="/dashboard/agents"]')
+				.filter({ hasText: /view all/i })
+				.first()
+			if (await viewAllLink.isVisible().catch(() => false)) {
+				await viewAllLink.click()
+				await expect(authenticatedPage).toHaveURL('/dashboard/agents')
+			}
 		}
 	})
 })
@@ -477,9 +500,12 @@ test.describe('Dashboard Home - Data Refresh', () => {
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		const agentName = generateAgentName()
-		await authenticatedPage.locator('#name').fill(agentName)
+		const nameInput = authenticatedPage.getByLabel(/name/i).first()
+		await nameInput.click()
+		await nameInput.fill('')
+		await nameInput.pressSequentially(agentName, { delay: 10 })
 
-		const createButton = authenticatedPage.getByRole('button', { name: /create agent/i })
+		const createButton = authenticatedPage.getByRole('button', { name: /create/i }).first()
 		await createButton.click()
 
 		await authenticatedPage.waitForURL(/\/dashboard\/agents\/[^/]+$/, { timeout: 10000 })

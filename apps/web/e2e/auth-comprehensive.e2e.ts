@@ -12,17 +12,26 @@ baseTest.describe('Sign-Up Flow', () => {
 			await page.goto('/sign-up')
 			await page.waitForSelector('form', { state: 'visible', timeout: 10000 })
 
-			// Use pressSequentially for React form compatibility
-			await page.getByLabel('Full Name').click()
-			await page.getByLabel('Full Name').pressSequentially(testUser.name, { delay: 20 })
-			await page.getByLabel('Email').click()
-			await page.getByLabel('Email').pressSequentially(testUser.email, { delay: 20 })
-			await page.getByLabel('Password', { exact: true }).click()
-			await page
-				.getByLabel('Password', { exact: true })
-				.pressSequentially(testUser.password, { delay: 20 })
-			await page.getByLabel('Confirm Password').click()
-			await page.getByLabel('Confirm Password').pressSequentially(testUser.password, { delay: 20 })
+			// Use click + fill + pressSequentially for React form compatibility
+			const nameField = page.getByLabel('Full Name')
+			await nameField.click()
+			await nameField.fill('')
+			await nameField.pressSequentially(testUser.name, { delay: 20 })
+
+			const emailField = page.getByLabel('Email')
+			await emailField.click()
+			await emailField.fill('')
+			await emailField.pressSequentially(testUser.email, { delay: 20 })
+
+			const passwordField = page.getByLabel('Password', { exact: true })
+			await passwordField.click()
+			await passwordField.fill('')
+			await passwordField.pressSequentially(testUser.password, { delay: 20 })
+
+			const confirmField = page.getByLabel('Confirm Password')
+			await confirmField.click()
+			await confirmField.fill('')
+			await confirmField.pressSequentially(testUser.password, { delay: 20 })
 
 			await page.getByRole('button', { name: 'Create Account' }).click()
 
