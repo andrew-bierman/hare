@@ -200,6 +200,12 @@ export {
 export { getMemoryTools, recallMemoryTool, storeMemoryTool } from './memory'
 
 // ==========================================
+// DOCUMENT TOOLS (toMarkdown)
+// ==========================================
+
+export { convertDocumentTool, getDocumentTools } from './document'
+
+// ==========================================
 // AGENT CONTROL TOOLS (MCP)
 // ==========================================
 

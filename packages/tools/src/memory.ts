@@ -182,30 +182,30 @@ export const recallMemoryTool = createTool({
 
 			// Rerank results if enabled — uses BGE Reranker via Workers AI
 			let matches = results.matches
+			let didRerank = false
 			if (reranking && matches.length > 1) {
 				try {
 					const documents = matches.map(
 						(m) => (m.metadata as MemoryMetadata | undefined)?.content || '',
 					)
-					const controller = new AbortController()
-					const timeout = setTimeout(() => controller.abort(), 500)
-					try {
-						const reranked = (await context.env.AI.run(
-							'@cf/baai/bge-reranker-base' as Parameters<typeof context.env.AI.run>[0],
-							{ query, documents },
-						)) as { data?: Array<{ index: number; score: number }> }
-						if (reranked.data) {
-							matches = reranked.data
-								.sort((a, b) => b.score - a.score)
-								.slice(0, requestedTopK)
-								.map((r) => matches[r.index]!)
-								.filter(Boolean)
-						}
-					} finally {
-						clearTimeout(timeout)
+					// 500ms timeout via Promise.race (env.AI.run may not support AbortSignal)
+					const timeoutPromise = new Promise<null>((resolve) => setTimeout(() => resolve(null), 500))
+					const rerankPromise = context.env.AI.run(
+						'@cf/baai/bge-reranker-base' as Parameters<typeof context.env.AI.run>[0],
+						{ query, documents },
+					) as Promise<{ data?: Array<{ index: number; score: number }> }>
+
+					const reranked = await Promise.race([rerankPromise, timeoutPromise])
+					if (reranked?.data) {
+						matches = reranked.data
+							.sort((a, b) => b.score - a.score)
+							.slice(0, requestedTopK)
+							.map((r) => matches[r.index]!)
+							.filter(Boolean)
+						didRerank = true
 					}
 				} catch {
-					// Reranking failed (timeout or error) — fall back to un-reranked results
+					// Reranking failed — fall back to un-reranked results
 					matches = matches.slice(0, requestedTopK)
 				}
 			}
@@ -228,7 +228,7 @@ export const recallMemoryTool = createTool({
 				count: formattedMemories.length,
 				query,
 				memories: formattedMemories,
-				reranked: reranking,
+				reranked: didRerank,
 			})
 		} catch (error) {
 			return failure(
