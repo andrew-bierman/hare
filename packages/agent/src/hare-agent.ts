@@ -95,6 +95,7 @@ const ConfigurePayloadSchema = z.object({
  */
 export interface HareAgentEnv extends HareEnv {
 	AI: Ai
+	AI_GATEWAY_ID?: string
 }
 
 /**
@@ -386,7 +387,13 @@ export class HareAgent<TEnv extends HareAgentEnv = HareAgentEnv> extends Agent<
 	 * Prepare inference options shared by both WebSocket and HTTP chat paths.
 	 */
 	private prepareInference(messages: ModelMessage[]) {
-		const model = createWorkersAIModel({ modelName: this.state.model, ai: this.env.AI })
+		// Route through AI Gateway if configured
+		const gatewayId = this.env.AI_GATEWAY_ID
+		const model = createWorkersAIModel({
+			modelName: this.state.model,
+			ai: this.env.AI,
+			...(gatewayId ? { gateway: { id: gatewayId } } : {}),
+		})
 		const systemMessage: ModelMessage = {
 			role: 'system',
 			content: this.buildSystemPrompt(),
@@ -408,6 +415,19 @@ export class HareAgent<TEnv extends HareAgentEnv = HareAgentEnv> extends Agent<
 			messages: [systemMessage, ...recentMessages],
 			tools: aiTools,
 			stopWhen: tools.length > 0 ? stepCountIs(5) : undefined,
+			onStepFinish: (step: { toolCalls?: unknown[]; usage?: { totalTokens?: number } }) => {
+				// Structured logging for observability
+				if (step.toolCalls && Array.isArray(step.toolCalls) && step.toolCalls.length > 0) {
+					console.log(JSON.stringify({
+						type: 'tool_call',
+						agentId: this.state.agentId,
+						model: this.state.model,
+						toolCount: step.toolCalls.length,
+						tokens: step.usage?.totalTokens,
+						gateway: gatewayId ?? 'direct',
+					}))
+				}
+			},
 		}
 	}
 
