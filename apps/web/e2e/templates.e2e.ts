@@ -132,11 +132,8 @@ test.describe('Template Cards', () => {
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Should show multiple templates (at least 4)
-		const _cards = authenticatedPage.locator('[class*="card"], [class*="Card"]')
-		const templateText = authenticatedPage.getByText(/support|knowledge|sales|general|builder/i)
-
-		// Count visible template mentions
-		const count = await templateText.count()
+		const cards = authenticatedPage.locator('[data-slot="card"]')
+		const count = await cards.count()
 		expect(count).toBeGreaterThanOrEqual(4)
 	})
 })
@@ -169,7 +166,7 @@ test.describe('Start From Scratch', () => {
 
 		// Find and click the scratch option
 		const scratchButton = authenticatedPage.getByText(/scratch|blank|start fresh/i).first()
-		const scratchCard = authenticatedPage.locator('[class*="card"]').filter({ hasText: /scratch/i })
+		const scratchCard = authenticatedPage.locator('[data-slot="card"]').filter({ hasText: /scratch/i })
 
 		if (await scratchButton.isVisible({ timeout: 5000 }).catch(() => false)) {
 			await scratchButton.click()

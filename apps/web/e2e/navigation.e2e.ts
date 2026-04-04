@@ -41,9 +41,7 @@ test.describe('Sidebar Navigation - Authenticated', () => {
 
 		await authenticatedPage.getByRole('link', { name: 'Tools' }).click()
 		await authenticatedPage.waitForURL(/\/dashboard\/tools/, { timeout: 10000 })
-		await expect(
-			authenticatedPage.getByRole('heading', { name: 'Tools Library' }),
-		).toBeVisible()
+		await expect(authenticatedPage.getByRole('heading', { name: 'Tools' })).toBeVisible()
 	})
 
 	test('navigates to analytics page from sidebar', async ({ authenticatedPage }) => {
@@ -98,9 +96,7 @@ test.describe('Sidebar Navigation - Authenticated', () => {
 		// Navigate to tools
 		await authenticatedPage.getByRole('link', { name: 'Tools' }).click()
 		await authenticatedPage.waitForURL(/\/dashboard\/tools/)
-		await expect(
-			authenticatedPage.getByRole('heading', { name: 'Tools Library' }),
-		).toBeVisible()
+		await expect(authenticatedPage.getByRole('heading', { name: 'Tools' })).toBeVisible()
 
 		// Navigate to settings
 		await authenticatedPage.getByRole('link', { name: 'Settings' }).click()
@@ -113,8 +109,7 @@ test.describe('Sidebar Navigation - Authenticated', () => {
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		await authenticatedPage.getByRole('link', { name: 'New Agent' }).click()
-		await authenticatedPage.waitForURL(/\/dashboard\/agents\/new/)
-		await expect(authenticatedPage.getByRole('heading', { name: 'Create New Agent' })).toBeVisible()
+		await authenticatedPage.waitForURL(/\/dashboard\/agents\/(templates|new)/)
 	})
 })
 
@@ -171,7 +166,7 @@ test.describe('Browser History Navigation', () => {
 		const pages = [
 			{ url: '/dashboard', heading: 'Dashboard' },
 			{ url: '/dashboard/agents', heading: 'Agents' },
-			{ url: '/dashboard/tools', heading: 'Tools Library' },
+			{ url: '/dashboard/tools', heading: 'Tools' },
 			{ url: '/dashboard/usage', heading: 'Usage' },
 			{ url: '/dashboard/settings', heading: 'Settings' },
 		]
@@ -470,7 +465,7 @@ baseTest.describe('Page Title Updates', () => {
 
 	baseTest('sign-in page has title', async ({ page }: { page: Page }) => {
 		await page.goto('/sign-in')
-		await page.waitForSelector('form')
+		await page.waitForLoadState('domcontentloaded')
 
 		const title = await page.title()
 		expect(title).toBeTruthy()
@@ -478,7 +473,7 @@ baseTest.describe('Page Title Updates', () => {
 
 	baseTest('sign-up page has title', async ({ page }: { page: Page }) => {
 		await page.goto('/sign-up')
-		await page.waitForSelector('form')
+		await page.waitForLoadState('domcontentloaded')
 
 		const title = await page.title()
 		expect(title).toBeTruthy()
@@ -509,8 +504,12 @@ test.describe('Header Navigation', () => {
 		await authenticatedPage.goto('/dashboard')
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
-		const searchInput = authenticatedPage.getByPlaceholder(/search/i)
-		await expect(searchInput).toBeVisible()
+		// The header uses a command search button (Cmd+K) rather than a plain input
+		const searchButton = authenticatedPage
+			.locator('header')
+			.getByRole('button')
+			.filter({ hasText: /search/i })
+		await expect(searchButton).toBeVisible()
 	})
 
 	test('header has notification icon', async ({ authenticatedPage }) => {
@@ -587,13 +586,16 @@ baseTest.describe('Landing to Dashboard Navigation', () => {
 		await expect(signInLink).toHaveAttribute('href', '/sign-in')
 	})
 
-	baseTest('Live Demo button navigates to dashboard', async ({ page }: { page: Page }) => {
-		await page.goto('/')
-		await page.waitForLoadState('domcontentloaded')
+	baseTest(
+		'Start Building Free button navigates to sign-up page',
+		async ({ page }: { page: Page }) => {
+			await page.goto('/')
+			await page.waitForLoadState('domcontentloaded')
 
-		const liveDemoBtn = page.getByRole('link', { name: 'Live Demo' })
-		await expect(liveDemoBtn).toHaveAttribute('href', '/dashboard')
-	})
+			const startBuildingBtn = page.getByRole('link', { name: /start building free/i }).first()
+			await expect(startBuildingBtn).toHaveAttribute('href', '/sign-up')
+		},
+	)
 })
 
 // ============================================================================

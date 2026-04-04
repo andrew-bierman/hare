@@ -63,10 +63,19 @@ export const test = base.extend<{
 				}
 
 				// Ensure default workspace is created
+				// Extract CSRF token from cookies (set by server on sign-up response)
+				const cookies = await page.context().cookies()
+				const csrfCookie =
+					cookies.find((c) => c.name === 'csrf') ?? cookies.find((c) => c.name === '__Host-csrf')
+				const csrfToken = csrfCookie?.value ?? ''
+
 				const ensureWorkspaceResponse = await page.request.post(
 					'/api/rpc/workspaces/ensureDefault',
 					{
-						headers: { 'Content-Type': 'application/json' },
+						headers: {
+							'Content-Type': 'application/json',
+							...(csrfToken && { 'X-CSRF-Token': csrfToken }),
+						},
 						data: {},
 					},
 				)

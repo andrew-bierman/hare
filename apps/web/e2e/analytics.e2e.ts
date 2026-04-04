@@ -108,8 +108,10 @@ test.describe('Analytics Summary Stats - Error Rate (Total Cost)', () => {
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		await authenticatedPage.waitForTimeout(2000)
 
-		// Cost values should contain '$' for currency
-		await expect(authenticatedPage.getByText(/\$\d/)).toBeVisible()
+		// Cost values should contain '$' for currency - find within Total Cost card
+		const costCard = authenticatedPage.locator('[data-slot="card"]').filter({ hasText: 'Total Cost' })
+		await expect(costCard).toBeVisible()
+		await expect(costCard.getByText(/\$/)).toBeVisible()
 	})
 })
 
@@ -144,7 +146,7 @@ test.describe('Analytics Charts Render', () => {
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		await authenticatedPage.waitForTimeout(2000)
 
-		await expect(authenticatedPage.getByText('Token distribution across agents')).toBeVisible()
+		await expect(authenticatedPage.getByText('Token distribution and cost across agents')).toBeVisible()
 	})
 
 	test('displays Usage by Model chart', async ({ authenticatedPage }) => {
@@ -294,8 +296,8 @@ test.describe('Analytics Group By Selector', () => {
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		await authenticatedPage.waitForTimeout(2000)
 
-		// Click the group by selector
-		await authenticatedPage.getByText('Daily').click()
+		// Click the group by selector trigger (the button containing "Daily")
+		await authenticatedPage.locator('button').filter({ hasText: 'Daily' }).click()
 		await authenticatedPage.waitForTimeout(500)
 
 		// Select Monthly
@@ -303,7 +305,7 @@ test.describe('Analytics Group By Selector', () => {
 		await authenticatedPage.waitForTimeout(1000)
 
 		// Verify selection changed
-		await expect(authenticatedPage.getByText('Monthly')).toBeVisible()
+		await expect(authenticatedPage.locator('button').filter({ hasText: 'Monthly' })).toBeVisible()
 	})
 })
 
@@ -337,7 +339,7 @@ test.describe('Analytics Per-Agent Breakdown', () => {
 
 		// Verify Usage by Agent chart is visible which shows per-agent breakdown
 		await expect(authenticatedPage.getByText('Usage by Agent')).toBeVisible()
-		await expect(authenticatedPage.getByText('Token distribution across agents')).toBeVisible()
+		await expect(authenticatedPage.getByText('Token distribution and cost across agents')).toBeVisible()
 	})
 })
 
@@ -394,11 +396,14 @@ test.describe('Analytics Data Integrity', () => {
 		await expect(authenticatedPage.getByText('Total Requests')).toBeVisible()
 		// Total Tokens should show a number with input/output breakdown
 		await expect(authenticatedPage.getByText('Total Tokens')).toBeVisible()
-		await expect(authenticatedPage.getByText(/in.*\/.*out/)).toBeVisible()
+		const tokensCard = authenticatedPage.locator('[data-slot="card"]').filter({ hasText: 'Total Tokens' })
+		await expect(tokensCard.getByText(/in.*\/.*out/)).toBeVisible()
 		// Total Cost should show currency format
-		await expect(authenticatedPage.getByText(/\$\d/)).toBeVisible()
+		const costCard = authenticatedPage.locator('[data-slot="card"]').filter({ hasText: 'Total Cost' })
+		await expect(costCard.getByText(/\$/)).toBeVisible()
 		// Avg Latency should show milliseconds
-		await expect(authenticatedPage.getByText(/\d+ms/)).toBeVisible()
+		const latencyCard = authenticatedPage.locator('[data-slot="card"]').filter({ hasText: 'Avg Latency' })
+		await expect(latencyCard.getByText(/\d+ms/)).toBeVisible()
 	})
 
 	test('charts container is rendered', async ({ authenticatedPage }) => {

@@ -65,7 +65,7 @@ test.describe('Usage Page - Authenticated', () => {
 		await expect(authenticatedPage.getByRole('heading', { name: 'Usage' })).toBeVisible()
 
 		// Verify page contains card elements
-		const cards = authenticatedPage.locator('[class*="card"]')
+		const cards = authenticatedPage.locator('[data-slot="card"]')
 		await expect(cards.first()).toBeVisible()
 	})
 })
@@ -176,19 +176,19 @@ test.describe('Token Breakdown Section', () => {
 	})
 })
 
-test.describe('Usage by Agent Section', () => {
-	test('displays Usage by Agent card', async ({ authenticatedPage }) => {
+test.describe('Deployed Agents Section', () => {
+	test('displays Deployed Agents card', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/usage')
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Wait for loading to complete
 		await authenticatedPage.waitForTimeout(2000)
 
-		// Check for Usage by Agent title
-		await expect(authenticatedPage.getByText('Usage by Agent')).toBeVisible()
+		// Check for Deployed Agents title
+		await expect(authenticatedPage.getByText('Deployed Agents')).toBeVisible()
 	})
 
-	test('shows per-agent usage description', async ({ authenticatedPage }) => {
+	test('shows deployed agents description', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/usage')
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
@@ -196,7 +196,7 @@ test.describe('Usage by Agent Section', () => {
 		await authenticatedPage.waitForTimeout(2000)
 
 		// Check for description text
-		await expect(authenticatedPage.getByText('Token usage per deployed agent')).toBeVisible()
+		await expect(authenticatedPage.getByText('Currently active agents in your workspace')).toBeVisible()
 	})
 
 	test('shows empty state when no deployed agents', async ({ authenticatedPage }) => {
@@ -256,15 +256,19 @@ test.describe('Usage API Integration', () => {
 	baseTest(
 		'usage endpoint requires authentication',
 		async ({ request }: { request: APIRequestContext }) => {
-			const response = await request.get('/api/usage?workspaceId=test')
-			expect(response.status()).toBe(401)
+			const response = await request.get('/api/rpc/usage/getWorkspaceUsage')
+			// Should return 401 or 403 (CSRF protection may trigger before auth check)
+			expect([401, 403]).toContain(response.status())
 		},
 	)
 
 	test('can get workspace usage stats via API', async ({ authenticatedPage }) => {
 		const workspaceId = await getWorkspaceId(authenticatedPage)
 
-		const response = await authenticatedPage.request.get(`/api/usage?workspaceId=${workspaceId}`)
+		const response = await authenticatedPage.request.get(
+			`/api/rpc/usage/getWorkspaceUsage`,
+			{ headers: { 'X-Workspace-Id': workspaceId } },
+		)
 		expect(response.status()).toBe(200)
 
 		const body = await response.json()
@@ -278,7 +282,10 @@ test.describe('Usage API Integration', () => {
 	test('usage API returns period information', async ({ authenticatedPage }) => {
 		const workspaceId = await getWorkspaceId(authenticatedPage)
 
-		const response = await authenticatedPage.request.get(`/api/usage?workspaceId=${workspaceId}`)
+		const response = await authenticatedPage.request.get(
+			`/api/rpc/usage/getWorkspaceUsage`,
+			{ headers: { 'X-Workspace-Id': workspaceId } },
+		)
 		expect(response.status()).toBe(200)
 
 		const body = await response.json()
@@ -289,7 +296,10 @@ test.describe('Usage API Integration', () => {
 	test('usage API returns byAgent breakdown', async ({ authenticatedPage }) => {
 		const workspaceId = await getWorkspaceId(authenticatedPage)
 
-		const response = await authenticatedPage.request.get(`/api/usage?workspaceId=${workspaceId}`)
+		const response = await authenticatedPage.request.get(
+			`/api/rpc/usage/getWorkspaceUsage`,
+			{ headers: { 'X-Workspace-Id': workspaceId } },
+		)
 		expect(response.status()).toBe(200)
 
 		const body = await response.json()
@@ -300,7 +310,10 @@ test.describe('Usage API Integration', () => {
 	test('usage API returns byDay breakdown', async ({ authenticatedPage }) => {
 		const workspaceId = await getWorkspaceId(authenticatedPage)
 
-		const response = await authenticatedPage.request.get(`/api/usage?workspaceId=${workspaceId}`)
+		const response = await authenticatedPage.request.get(
+			`/api/rpc/usage/getWorkspaceUsage`,
+			{ headers: { 'X-Workspace-Id': workspaceId } },
+		)
 		expect(response.status()).toBe(200)
 
 		const body = await response.json()
@@ -316,7 +329,8 @@ test.describe('Usage API Integration', () => {
 		const endDate = new Date().toISOString()
 
 		const response = await authenticatedPage.request.get(
-			`/api/usage?workspaceId=${workspaceId}&startDate=${startDate}&endDate=${endDate}`,
+			`/api/rpc/usage/getWorkspaceUsage?startDate=${encodeURIComponent(startDate)}&endDate=${encodeURIComponent(endDate)}`,
+			{ headers: { 'X-Workspace-Id': workspaceId } },
 		)
 		expect(response.status()).toBe(200)
 
@@ -328,7 +342,10 @@ test.describe('Usage API Integration', () => {
 	test('usage API returns numeric values for totals', async ({ authenticatedPage }) => {
 		const workspaceId = await getWorkspaceId(authenticatedPage)
 
-		const response = await authenticatedPage.request.get(`/api/usage?workspaceId=${workspaceId}`)
+		const response = await authenticatedPage.request.get(
+			`/api/rpc/usage/getWorkspaceUsage`,
+			{ headers: { 'X-Workspace-Id': workspaceId } },
+		)
 		expect(response.status()).toBe(200)
 
 		const body = await response.json()
@@ -344,7 +361,8 @@ test.describe('Agent Usage API', () => {
 
 		// Try to get usage for non-existent agent
 		const response = await authenticatedPage.request.get(
-			`/api/usage/agents/non-existent-id?workspaceId=${workspaceId}`,
+			`/api/rpc/usage/getAgentUsage?id=non-existent-id`,
+			{ headers: { 'X-Workspace-Id': workspaceId } },
 		)
 		expect(response.status()).toBe(404)
 	})
@@ -352,10 +370,11 @@ test.describe('Agent Usage API', () => {
 	test('can get usage for a created agent', async ({ authenticatedPage }) => {
 		const workspaceId = await getWorkspaceId(authenticatedPage)
 
-		// Create an agent first
+		// Create an agent first via oRPC
 		const createResponse = await authenticatedPage.request.post(
-			`/api/agents?workspaceId=${workspaceId}`,
+			'/api/rpc/agents/create',
 			{
+				headers: { 'X-Workspace-Id': workspaceId, 'Content-Type': 'application/json' },
 				data: {
 					name: `Usage Test Agent ${Date.now()}`,
 					description: 'Agent for usage testing',
@@ -367,9 +386,10 @@ test.describe('Agent Usage API', () => {
 		expect(createResponse.status()).toBe(201)
 		const agent = await createResponse.json()
 
-		// Get usage for the agent
+		// Get usage for the agent via oRPC
 		const usageResponse = await authenticatedPage.request.get(
-			`/api/usage/agents/${agent.id}?workspaceId=${workspaceId}`,
+			`/api/rpc/usage/getAgentUsage?id=${agent.id}`,
+			{ headers: { 'X-Workspace-Id': workspaceId } },
 		)
 		expect(usageResponse.status()).toBe(200)
 
@@ -380,8 +400,14 @@ test.describe('Agent Usage API', () => {
 		expect(body.usage).toHaveProperty('totalTokensIn')
 		expect(body.usage).toHaveProperty('totalTokensOut')
 
-		// Cleanup
-		await authenticatedPage.request.delete(`/api/agents/${agent.id}?workspaceId=${workspaceId}`)
+		// Cleanup via oRPC
+		await authenticatedPage.request.post(
+			'/api/rpc/agents/delete',
+			{
+				headers: { 'X-Workspace-Id': workspaceId, 'Content-Type': 'application/json' },
+				data: { id: agent.id },
+			},
+		)
 	})
 })
 
@@ -391,8 +417,8 @@ test.describe('Usage Page Loading States', () => {
 		await authenticatedPage.goto('/dashboard/usage')
 
 		// Skeletons should appear briefly while data loads
-		// The skeleton class is used in the StatCardSkeleton component
-		const skeletons = authenticatedPage.locator('[class*="skeleton"]')
+		// The skeleton component uses data-slot="skeleton" attribute
+		const skeletons = authenticatedPage.locator('[data-slot="skeleton"]')
 
 		// Either skeletons are visible (still loading) or content has loaded
 		const hasSkeletons = await skeletons
@@ -543,20 +569,20 @@ test.describe('Usage Reflects Recent Activity', () => {
 
 		// Get the Active Agents card content - it shows the count of deployed agents
 		const activeAgentsCard = authenticatedPage
-			.locator('[class*="card"]')
+			.locator('[data-slot="card"]')
 			.filter({ hasText: 'Active Agents' })
 		await expect(activeAgentsCard).toBeVisible()
 
-		// Create and deploy an agent
+		// Create an agent via oRPC
 		const createResponse = await authenticatedPage.request.post(
-			`/api/agents?workspaceId=${workspaceId}`,
+			'/api/rpc/agents/create',
 			{
+				headers: { 'X-Workspace-Id': workspaceId, 'Content-Type': 'application/json' },
 				data: {
 					name: `Activity Test Agent ${Date.now()}`,
 					description: 'Agent for testing activity tracking',
 					model: '@cf/meta/llama-3.3-70b-instruct-fp8-fast',
 					instructions: 'You are a test assistant.',
-					status: 'deployed',
 				},
 			},
 		)
@@ -568,19 +594,26 @@ test.describe('Usage Reflects Recent Activity', () => {
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		await authenticatedPage.waitForTimeout(2000)
 
-		// The Active Agents count should reflect the newly deployed agent
+		// The Active Agents count should reflect the agent count
 		await expect(authenticatedPage.getByText('Active Agents')).toBeVisible()
 
-		// Cleanup
-		await authenticatedPage.request.delete(`/api/agents/${agent.id}?workspaceId=${workspaceId}`)
+		// Cleanup via oRPC
+		await authenticatedPage.request.post(
+			'/api/rpc/agents/delete',
+			{
+				headers: { 'X-Workspace-Id': workspaceId, 'Content-Type': 'application/json' },
+				data: { id: agent.id },
+			},
+		)
 	})
 
 	test('usage page reflects data from API', async ({ authenticatedPage }) => {
 		const workspaceId = await getWorkspaceId(authenticatedPage)
 
-		// Get usage data from API
+		// Get usage data from API via oRPC
 		const usageResponse = await authenticatedPage.request.get(
-			`/api/usage?workspaceId=${workspaceId}`,
+			'/api/rpc/usage/getWorkspaceUsage',
+			{ headers: { 'X-Workspace-Id': workspaceId } },
 		)
 		expect(usageResponse.status()).toBe(200)
 		const usageData = await usageResponse.json()
@@ -604,9 +637,10 @@ test.describe('Usage Reflects Recent Activity', () => {
 	}) => {
 		const workspaceId = await getWorkspaceId(authenticatedPage)
 
-		// Get agents count from API
+		// Get agents count from API via oRPC
 		const agentsResponse = await authenticatedPage.request.get(
-			`/api/agents?workspaceId=${workspaceId}`,
+			'/api/rpc/agents/list',
+			{ headers: { 'X-Workspace-Id': workspaceId } },
 		)
 		expect(agentsResponse.status()).toBe(200)
 		const agentsData = await agentsResponse.json()
@@ -643,7 +677,7 @@ test.describe('Usage Page Full Layout', () => {
 		// Verify all main sections are present
 		await expect(authenticatedPage.getByRole('heading', { name: 'Usage' })).toBeVisible()
 		await expect(authenticatedPage.getByText('Token Breakdown')).toBeVisible()
-		await expect(authenticatedPage.getByText('Usage by Agent')).toBeVisible()
+		await expect(authenticatedPage.getByText('Deployed Agents')).toBeVisible()
 		await expect(authenticatedPage.getByText('About Usage Tracking')).toBeVisible()
 	})
 
@@ -653,7 +687,7 @@ test.describe('Usage Page Full Layout', () => {
 		await authenticatedPage.waitForTimeout(2000)
 
 		// Each stat card should have a value that's either a number, formatted number, or N/A
-		const statCards = authenticatedPage.locator('[class*="card"]')
+		const statCards = authenticatedPage.locator('[data-slot="card"]')
 
 		// There should be multiple cards on the page
 		const cardCount = await statCards.count()
