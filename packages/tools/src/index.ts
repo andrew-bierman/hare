@@ -92,6 +92,20 @@ export {
 	zapierTriggerTool,
 } from './integrations'
 
+// ==========================================
+// SECURITY (SSRF Protection)
+// ==========================================
+
+export {
+	isBlockedHost,
+	isPrivateIPv4,
+	isPrivateIPv6,
+	isRedirectSafe,
+	isUrlSafe,
+	MAX_REDIRECT_HOPS,
+	parseIPv4,
+} from './security/ssrf'
+
 // Constants
 export {
 	AutoRAGConfig,
