@@ -21,6 +21,7 @@ export {
 	hasScope,
 } from './api-key'
 export { authMiddleware, optionalAuthMiddleware } from './auth'
+export { mcpAuthMiddleware, type McpAuthEnv } from './mcp-auth'
 export { aiChatFeatureMiddleware } from './beta-access'
 export {
 	getLogStats,

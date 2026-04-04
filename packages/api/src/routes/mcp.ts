@@ -15,9 +15,8 @@ import { workspaceMembers } from '@hare/db/schema'
 import { isWebSocketRequest, routeToMcpAgent } from '@hare/agent'
 import { agentControlTools, createRegistry, type ToolContext } from '@hare/tools'
 import { type Database, getCloudflareEnv, getDb } from '../db'
-import { optionalAuthMiddleware } from '../middleware'
+import { mcpAuthMiddleware, type McpAuthEnv } from '../middleware/mcp-auth'
 import { ErrorSchema } from '../schemas'
-import type { OptionalAuthEnv } from '@hare/types'
 
 // Create a registry for tool execution
 const toolRegistry = createRegistry(agentControlTools)
@@ -232,10 +231,10 @@ const mcpRpcRoute = createRoute({
 })
 
 // Create app
-const baseApp = new OpenAPIHono<OptionalAuthEnv>()
+const baseApp = new OpenAPIHono<McpAuthEnv>()
 
-// Apply optional auth middleware
-baseApp.use('*', optionalAuthMiddleware)
+// Apply required auth middleware (session or API key)
+baseApp.use('*', mcpAuthMiddleware)
 
 // MCP WebSocket connection
 const app = baseApp.openapi(mcpConnectRoute, async (c) => {
@@ -250,11 +249,9 @@ const app = baseApp.openapi(mcpConnectRoute, async (c) => {
 	}
 
 	// Authorization: verify user has access to the workspace
-	if (user?.id) {
-		const hasAccess = await hasWorkspaceAccess(db, user.id, workspaceId)
-		if (!hasAccess) {
-			return c.json({ error: 'Unauthorized: no access to this workspace' }, 403)
-		}
+	const hasAccess = await hasWorkspaceAccess(db, user!.id, workspaceId)
+	if (!hasAccess) {
+		return c.json({ error: 'Unauthorized: no access to this workspace' }, 403)
 	}
 
 	// Route to the MCP Agent Durable Object
@@ -312,7 +309,7 @@ async function createToolContext(
 	return {
 		env,
 		workspaceId,
-		userId: user?.id || 'mcp-client',
+		userId: user!.id,
 	}
 }
 
@@ -323,11 +320,9 @@ const app2 = app.openapi(mcpToolsRoute, async (c) => {
 	const user = c.get('user')
 
 	// Verify workspace access
-	if (user?.id) {
-		const hasAccess = await hasWorkspaceAccess(db, user.id, workspaceId)
-		if (!hasAccess) {
-			return c.json({ error: 'Unauthorized: no access to this workspace' }, 403)
-		}
+	const hasAccess = await hasWorkspaceAccess(db, user!.id, workspaceId)
+	if (!hasAccess) {
+		return c.json({ error: 'Unauthorized: no access to this workspace' }, 403)
 	}
 
 	const tools = agentControlTools.map((tool) => ({
@@ -344,11 +339,9 @@ const app2 = app.openapi(mcpToolsRoute, async (c) => {
 	const user = c.get('user')
 
 	// Verify workspace access
-	if (user?.id) {
-		const hasAccess = await hasWorkspaceAccess(db, user.id, workspaceId)
-		if (!hasAccess) {
-			return c.json({ error: 'Unauthorized: no access to this workspace' }, 403)
-		}
+	const hasToolAccess = await hasWorkspaceAccess(db, user!.id, workspaceId)
+	if (!hasToolAccess) {
+		return c.json({ error: 'Unauthorized: no access to this workspace' }, 403)
 	}
 
 	if (!toolRegistry.has(toolId)) {
@@ -369,8 +362,8 @@ const app2 = app.openapi(mcpToolsRoute, async (c) => {
 	const user = c.get('user')
 
 	// Verify workspace access for non-initialize methods
-	if (method !== 'initialize' && user?.id) {
-		const hasAccess = await hasWorkspaceAccess(db, user.id, workspaceId)
+	if (method !== 'initialize') {
+		const hasAccess = await hasWorkspaceAccess(db, user!.id, workspaceId)
 		if (!hasAccess) {
 			return c.json({
 				jsonrpc: '2.0',
