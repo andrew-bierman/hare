@@ -39,6 +39,7 @@ const RecallMemoryOutputSchema = z.object({
 		)
 		.describe('List of matching memories'),
 	count: z.number().optional().describe('Number of memories returned'),
+	reranked: z.boolean().optional().describe('Whether results were reranked'),
 })
 
 /**
@@ -125,6 +126,11 @@ export const recallMemoryTool = createTool({
 			.describe('Number of memories to retrieve'),
 		type: MemoryTypeSchema.optional().describe('Filter by memory type'),
 		tags: z.array(z.string()).optional().describe('Filter by specific tags'),
+		reranking: z
+			.boolean()
+			.optional()
+			.default(false)
+			.describe('Enable reranking with BGE Reranker for better relevance'),
 	}),
 	outputSchema: RecallMemoryOutputSchema,
 	execute: async (params, context): Promise<ToolResult<unknown>> => {
@@ -135,7 +141,7 @@ export const recallMemoryTool = createTool({
 				)
 			}
 
-			const { query, topK, type, tags } = params
+			const { query, topK, type, tags, reranking } = params
 			// Use agentId for per-agent memory isolation; fall back to workspaceId
 			// for legacy vectors stored before this fix
 			const agentId = context.agentId || context.workspaceId
@@ -148,9 +154,12 @@ export const recallMemoryTool = createTool({
 			if (type) filter.type = type
 			// Note: Vectorize filter doesn't support array values, so we filter tags client-side
 
-			// Query Vectorize
+			// Query Vectorize — fetch larger candidate set for reranking
+			const requestedTopK = topK ?? 5
+			const fetchMultiplier = tags && tags.length > 0 ? 3 : 1
+			const rerankMultiplier = reranking ? 4 : 1
 			const results = await context.env.VECTORIZE.query(queryVector, {
-				topK: (topK ?? 5) * (tags && tags.length > 0 ? 3 : 1), // Fetch more if we need to filter by tags
+				topK: requestedTopK * fetchMultiplier * rerankMultiplier,
 				filter,
 				returnMetadata: 'all',
 			})
@@ -171,8 +180,38 @@ export const recallMemoryTool = createTool({
 				})
 			}
 
+			// Rerank results if enabled — uses BGE Reranker via Workers AI
+			let matches = results.matches
+			if (reranking && matches.length > 1) {
+				try {
+					const documents = matches.map(
+						(m) => (m.metadata as MemoryMetadata | undefined)?.content || '',
+					)
+					const controller = new AbortController()
+					const timeout = setTimeout(() => controller.abort(), 500)
+					try {
+						const reranked = (await context.env.AI.run(
+							'@cf/baai/bge-reranker-base' as Parameters<typeof context.env.AI.run>[0],
+							{ query, documents },
+						)) as { data?: Array<{ index: number; score: number }> }
+						if (reranked.data) {
+							matches = reranked.data
+								.sort((a, b) => b.score - a.score)
+								.slice(0, requestedTopK)
+								.map((r) => matches[r.index]!)
+								.filter(Boolean)
+						}
+					} finally {
+						clearTimeout(timeout)
+					}
+				} catch {
+					// Reranking failed (timeout or error) — fall back to un-reranked results
+					matches = matches.slice(0, requestedTopK)
+				}
+			}
+
 			// Format memories for the agent
-			const formattedMemories = results.matches.map((match) => {
+			const formattedMemories = matches.map((match) => {
 				const metadata = match.metadata as MemoryMetadata | undefined
 				return {
 					id: match.id,
@@ -189,6 +228,7 @@ export const recallMemoryTool = createTool({
 				count: formattedMemories.length,
 				query,
 				memories: formattedMemories,
+				reranked: reranking,
 			})
 		} catch (error) {
 			return failure(
