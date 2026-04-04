@@ -61,23 +61,37 @@ export function getWorkersAIModelId(modelName: string): string {
 }
 
 /**
+ * AI Gateway configuration for caching and analytics.
+ */
+export interface GatewayConfig {
+	id: string
+	skipCache?: boolean
+	cacheTtl?: number
+}
+
+/**
  * Input for creating a Workers AI model.
  */
 export interface CreateWorkersAIModelInput {
 	modelName: string
 	ai: Ai
+	/** AI Gateway configuration for caching, rate limiting, and analytics */
+	gateway?: GatewayConfig
 }
 
 /**
  * Create a Workers AI model instance for use with the Vercel AI SDK.
  * Returns a LanguageModel compatible model (supports both v1 and v2).
  *
- * Note: workers-ai-provider v2 returns LanguageModelV2 internally but
- * it's fully compatible with the AI SDK's streamText/generateText functions.
+ * When a gateway is provided, all inference calls are routed through
+ * Cloudflare AI Gateway for caching, rate limiting, and analytics.
  */
 export function createWorkersAIModel(input: CreateWorkersAIModelInput): LanguageModel {
-	const { modelName, ai } = input
-	const workersai = createWorkersAI({ binding: ai })
+	const { modelName, ai, gateway } = input
+	const workersai = createWorkersAI({
+		binding: ai,
+		...(gateway ? { gateway } : {}),
+	})
 	const modelId = getWorkersAIModelId(modelName)
 	// Cast to LanguageModel - workers-ai-provider v2 is fully compatible with the AI SDK
 	return workersai(modelId as Parameters<typeof workersai>[0]) as unknown as LanguageModel
