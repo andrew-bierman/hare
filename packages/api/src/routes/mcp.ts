@@ -13,7 +13,7 @@ import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
 import { and, eq } from 'drizzle-orm'
 import { workspaceMembers } from '@hare/db/schema'
 import { isWebSocketRequest, routeToMcpAgent } from '@hare/agent'
-import { agentControlTools, createRegistry, type ToolContext } from '@hare/tools'
+import { agentControlTools, createRegistry, getSystemTools, type ToolContext } from '@hare/tools'
 import { type Database, getCloudflareEnv, getDb } from '../db'
 import { optionalAuthMiddleware } from '../middleware'
 import { ErrorSchema } from '../schemas'
@@ -130,6 +130,10 @@ const mcpToolsRoute = createRoute({
 				},
 			},
 		},
+		401: {
+			description: 'Authentication required',
+			content: { 'application/json': { schema: ErrorSchema } },
+		},
 		403: {
 			description: 'Unauthorized',
 			content: { 'application/json': { schema: ErrorSchema } },
@@ -172,6 +176,10 @@ const mcpToolExecuteRoute = createRoute({
 		},
 		400: {
 			description: 'Invalid tool parameters',
+			content: { 'application/json': { schema: ErrorSchema } },
+		},
+		401: {
+			description: 'Authentication required',
 			content: { 'application/json': { schema: ErrorSchema } },
 		},
 		403: {
@@ -249,12 +257,13 @@ const app = baseApp.openapi(mcpConnectRoute, async (c) => {
 		return c.json({ error: 'WebSocket upgrade required' }, 400)
 	}
 
-	// Authorization: verify user has access to the workspace
-	if (user?.id) {
-		const hasAccess = await hasWorkspaceAccess(db, user.id, workspaceId)
-		if (!hasAccess) {
-			return c.json({ error: 'Unauthorized: no access to this workspace' }, 403)
-		}
+	// Authorization: require authentication and verify workspace access
+	if (!user?.id) {
+		return c.json({ error: 'Authentication required' }, 401)
+	}
+	const hasAccess = await hasWorkspaceAccess(db, user.id, workspaceId)
+	if (!hasAccess) {
+		return c.json({ error: 'Unauthorized: no access to this workspace' }, 403)
 	}
 
 	// Route to the MCP Agent Durable Object
@@ -312,7 +321,8 @@ async function createToolContext(
 	return {
 		env,
 		workspaceId,
-		userId: user?.id || 'mcp-client',
+		userId: user?.id ?? 'mcp-client',
+		agentId: undefined, // MCP operates at workspace level, not per-agent
 	}
 }
 
@@ -322,15 +332,21 @@ const app2 = app.openapi(mcpToolsRoute, async (c) => {
 	const db = getDb(c)
 	const user = c.get('user')
 
-	// Verify workspace access
-	if (user?.id) {
-		const hasAccess = await hasWorkspaceAccess(db, user.id, workspaceId)
-		if (!hasAccess) {
-			return c.json({ error: 'Unauthorized: no access to this workspace' }, 403)
-		}
+	// Require authentication
+	if (!user?.id) {
+		return c.json({ error: 'Authentication required' }, 401)
+	}
+	const hasAccess = await hasWorkspaceAccess(db, user.id, workspaceId)
+	if (!hasAccess) {
+		return c.json({ error: 'Unauthorized: no access to this workspace' }, 403)
 	}
 
-	const tools = agentControlTools.map((tool) => ({
+	// Return ALL system tools + agent control tools
+	const context = await createToolContext(c, workspaceId)
+	const systemTools = getSystemTools(context)
+	const allTools = [...systemTools, ...agentControlTools]
+
+	const tools = allTools.map((tool) => ({
 		name: tool.id,
 		description: tool.description,
 	}))
@@ -343,21 +359,26 @@ const app2 = app.openapi(mcpToolsRoute, async (c) => {
 	const db = getDb(c)
 	const user = c.get('user')
 
-	// Verify workspace access
-	if (user?.id) {
-		const hasAccess = await hasWorkspaceAccess(db, user.id, workspaceId)
-		if (!hasAccess) {
-			return c.json({ error: 'Unauthorized: no access to this workspace' }, 403)
-		}
+	// Require authentication
+	if (!user?.id) {
+		return c.json({ error: 'Authentication required' }, 401)
+	}
+	const hasAccess = await hasWorkspaceAccess(db, user.id, workspaceId)
+	if (!hasAccess) {
+		return c.json({ error: 'Unauthorized: no access to this workspace' }, 403)
 	}
 
-	if (!toolRegistry.has(toolId)) {
+	// Build registry with ALL tools (system + agent control)
+	const context = await createToolContext(c, workspaceId)
+	const systemTools = getSystemTools(context)
+	const allToolsRegistry = createRegistry([...systemTools, ...agentControlTools])
+
+	if (!allToolsRegistry.has(toolId)) {
 		return c.json({ error: `Tool not found: ${toolId}` }, 404)
 	}
 
 	const params = await c.req.json()
-	const context = await createToolContext(c, workspaceId)
-	const result = await toolRegistry.execute({ id: toolId, params, context })
+	const result = await allToolsRegistry.execute({ id: toolId, params, context })
 
 	return c.json({ success: result.success, data: result.data, error: result.error }, 200)
 })
@@ -368,8 +389,15 @@ const app2 = app.openapi(mcpToolsRoute, async (c) => {
 	const db = getDb(c)
 	const user = c.get('user')
 
-	// Verify workspace access for non-initialize methods
-	if (method !== 'initialize' && user?.id) {
+	// Require authentication for non-initialize methods
+	if (method !== 'initialize') {
+		if (!user?.id) {
+			return c.json({
+				jsonrpc: '2.0',
+				id,
+				error: { code: -32600, message: 'Authentication required' },
+			})
+		}
 		const hasAccess = await hasWorkspaceAccess(db, user.id, workspaceId)
 		if (!hasAccess) {
 			return c.json({
@@ -401,18 +429,21 @@ const app2 = app.openapi(mcpToolsRoute, async (c) => {
 				},
 			})
 
-		case 'tools/list':
+		case 'tools/list': {
+			const systemTools = getSystemTools(context)
+			const allTools = [...systemTools, ...agentControlTools]
 			return c.json({
 				jsonrpc: '2.0',
 				id,
 				result: {
-					tools: agentControlTools.map((tool) => ({
+					tools: allTools.map((tool) => ({
 						name: tool.id,
 						description: tool.description,
 						inputSchema: z.toJSONSchema(tool.inputSchema, { unrepresentable: 'any' }),
 					})),
 				},
 			})
+		}
 
 		case 'tools/call': {
 			const { name, arguments: args } = params as {
@@ -420,7 +451,11 @@ const app2 = app.openapi(mcpToolsRoute, async (c) => {
 				arguments: Record<string, unknown>
 			}
 
-			if (!toolRegistry.has(name)) {
+			// Build registry with ALL tools
+			const callSystemTools = getSystemTools(context)
+			const allToolsRegistry = createRegistry([...callSystemTools, ...agentControlTools])
+
+			if (!allToolsRegistry.has(name)) {
 				return c.json({
 					jsonrpc: '2.0',
 					id,
@@ -428,7 +463,7 @@ const app2 = app.openapi(mcpToolsRoute, async (c) => {
 				})
 			}
 
-			const result = await toolRegistry.execute({ id: name, params: args ?? {}, context })
+			const result = await allToolsRegistry.execute({ id: name, params: args ?? {}, context })
 
 			return c.json({
 				jsonrpc: '2.0',
