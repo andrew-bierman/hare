@@ -1,8 +1,6 @@
 import { expect, test } from './fixtures'
 
 test.describe('Agent Chat - Real LLM Interaction', () => {
-	let agentId: string | null = null
-
 	test('create agent and navigate to playground', async ({ authenticatedPage: page }) => {
 		const agentName = `Chat Agent ${Date.now()}`
 
@@ -25,7 +23,10 @@ test.describe('Agent Chat - Real LLM Interaction', () => {
 		const url = page.url()
 		const match = url.match(/\/agents\/([^/]+)/)
 		if (match) {
-			agentId = match[1] ?? null
+			const id = match[1]
+			// Navigate to playground
+			await page.goto(`/dashboard/agents/${id}/playground`)
+			await page.waitForSelector('main', { state: 'visible' })
 		}
 
 		// Navigate to agents list and find the agent
@@ -61,7 +62,9 @@ test.describe('Agent Chat - Real LLM Interaction', () => {
 			await page.waitForSelector('main', { state: 'visible' })
 
 			// Should see chat interface elements
-			const chatInput = page.getByPlaceholder(/type a message|message/i).first()
+			const chatInput = page
+				.getByPlaceholder(/type a message|message/i)
+				.first()
 				.or(page.locator('textarea').first())
 			await expect(chatInput).toBeVisible({ timeout: 10000 })
 		}
@@ -97,7 +100,9 @@ test.describe('Agent Chat - Real LLM Interaction', () => {
 		await page.waitForSelector('main', { state: 'visible' })
 
 		// Find chat input
-		const chatInput = page.getByPlaceholder(/type a message|message/i).first()
+		const chatInput = page
+			.getByPlaceholder(/type a message|message/i)
+			.first()
 			.or(page.locator('textarea').first())
 		await expect(chatInput).toBeVisible({ timeout: 10000 })
 
@@ -106,7 +111,9 @@ test.describe('Agent Chat - Real LLM Interaction', () => {
 		await chatInput.pressSequentially('Hello! What is 2 + 2?', { delay: 10 })
 
 		// Send the message (press Enter or click send button)
-		const sendButton = page.getByRole('button', { name: /send/i }).first()
+		const sendButton = page
+			.getByRole('button', { name: /send/i })
+			.first()
 			.or(page.locator('button[type="submit"]').first())
 
 		if (await sendButton.isVisible().catch(() => false)) {
@@ -122,15 +129,19 @@ test.describe('Agent Chat - Real LLM Interaction', () => {
 
 		// Wait for assistant response (may take time for LLM)
 		// Look for any response text that isn't the user's message
-		const responseIndicator = page.locator('[data-role="assistant"]').first()
+		const responseIndicator = page
+			.locator('[data-role="assistant"]')
+			.first()
 			.or(page.locator('.assistant-message').first())
 			.or(page.getByText(/4|four/i).first())
 
 		// Allow up to 60 seconds for LLM response (Workers AI can be slow)
-		await expect(responseIndicator).toBeVisible({ timeout: 60000 }).catch(() => {
-			// If no specific response element, check for any new content
-			// The chat should show at least a "thinking" or streaming indicator
-		})
+		await expect(responseIndicator)
+			.toBeVisible({ timeout: 60000 })
+			.catch(() => {
+				// If no specific response element, check for any new content
+				// The chat should show at least a "thinking" or streaming indicator
+			})
 	})
 
 	test('chat input clears after sending', async ({ authenticatedPage: page }) => {
@@ -158,7 +169,9 @@ test.describe('Agent Chat - Real LLM Interaction', () => {
 		await page.goto(`/dashboard/agents/${match[1]}/playground`)
 		await page.waitForSelector('main', { state: 'visible' })
 
-		const chatInput = page.getByPlaceholder(/type a message|message/i).first()
+		const chatInput = page
+			.getByPlaceholder(/type a message|message/i)
+			.first()
 			.or(page.locator('textarea').first())
 		await expect(chatInput).toBeVisible({ timeout: 10000 })
 
@@ -169,9 +182,11 @@ test.describe('Agent Chat - Real LLM Interaction', () => {
 		await chatInput.press('Enter')
 
 		// Input should be cleared after send
-		await expect(chatInput).toHaveValue('', { timeout: 5000 }).catch(() => {
-			// Input may not clear immediately during streaming
-		})
+		await expect(chatInput)
+			.toHaveValue('', { timeout: 5000 })
+			.catch(() => {
+				// Input may not clear immediately during streaming
+			})
 	})
 
 	test('quick-start suggestions are clickable', async ({ authenticatedPage: page }) => {
@@ -205,12 +220,17 @@ test.describe('Agent Chat - Real LLM Interaction', () => {
 			await suggestion.click()
 
 			// Should populate or send the message
-			const chatInput = page.getByPlaceholder(/type a message|message/i).first()
+			const chatInput = page
+				.getByPlaceholder(/type a message|message/i)
+				.first()
 				.or(page.locator('textarea').first())
 
 			// Either the input was populated or the message was sent
 			const inputValue = await chatInput.inputValue().catch(() => '')
-			const messageVisible = await page.getByText(/what can you|hello|capabilities/i).first().isVisible()
+			const messageVisible = await page
+				.getByText(/what can you|hello|capabilities/i)
+				.first()
+				.isVisible()
 			expect(inputValue.length > 0 || messageVisible).toBeTruthy()
 		}
 	})
