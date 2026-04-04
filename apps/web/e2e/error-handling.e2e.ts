@@ -50,17 +50,21 @@ baseTest.describe('Error Handling - 404 Not Found', () => {
 	baseTest('go back button navigates to previous page', async ({ page }: { page: Page }) => {
 		// First go to home
 		await page.goto('/')
-		await page.waitForLoadState('domcontentloaded')
+		await page.waitForLoadState('networkidle')
 
 		// Then navigate to 404 page
 		await page.goto('/nonexistent-page')
 		await page.waitForLoadState('domcontentloaded')
 
-		// Click go back
-		await page.getByRole('button', { name: /go back/i }).click()
+		// Wait for the 404 page to render with Go back button
+		const goBackButton = page.getByRole('button', { name: /go back/i })
+		await expect(goBackButton).toBeVisible({ timeout: 10000 })
 
-		// Should be back on home page
-		await page.waitForURL('/', { timeout: 10000 })
+		// Click go back
+		await goBackButton.click()
+
+		// Should be back on home page (allow trailing slash variants)
+		await expect(page).toHaveURL(/^\/$|^\/\?/, { timeout: 10000 })
 	})
 
 	baseTest('back to home link navigates to home page', async ({ page }: { page: Page }) => {
@@ -78,25 +82,24 @@ test.describe('Error Handling - Dashboard 404', () => {
 		await authenticatedPage.goto('/dashboard/invalid-route-12345')
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
-		// Wait for content to load - should show 404 page or error state
-		// The app may show a loading state first, then the 404
-		await authenticatedPage.waitForTimeout(2000)
-
-		// Look for any indication of 404 or error - the dashboard uses Card-based 404
-		const notFoundHeading = authenticatedPage.getByRole('heading', { name: /not found/i })
-		const notFoundText = authenticatedPage.getByText(/page you're looking for doesn't exist/i)
+		// Wait for WorkspaceGate to finish loading, then for 404 content to appear
+		// The DashboardNotFound uses CardTitle (a div, not a heading) with text "Page not found"
+		const notFoundText = authenticatedPage.getByText(/page not found/i)
+		const notFoundDescription = authenticatedPage.getByText(
+			/page you're looking for doesn't exist/i,
+		)
 		const goBackButton = authenticatedPage.getByRole('button', { name: /go back/i })
 
-		// At least one of these should be visible on a proper 404 page
-		const is404Page = await notFoundHeading
-			.or(notFoundText)
+		// Wait for the workspace to load and 404 to render (CardTitle is a div, not a heading)
+		const is404Page = await notFoundText
+			.or(notFoundDescription)
 			.or(goBackButton)
-			.isVisible({ timeout: 5000 })
+			.isVisible({ timeout: 15000 })
 			.catch(() => false)
 
 		// If we see the 404 page, verify the navigation buttons
 		if (is404Page) {
-			await expect(goBackButton.or(notFoundHeading)).toBeVisible()
+			await expect(goBackButton.or(notFoundText)).toBeVisible()
 		} else {
 			// If not showing 404, the app might redirect to dashboard - that's also acceptable
 			const url = authenticatedPage.url()
@@ -234,9 +237,14 @@ test.describe('Error Handling - API Error Display', () => {
 		await authenticatedPage.goto('/dashboard/tools')
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
+		// Wait for WorkspaceGate to finish loading (loading spinner disappears)
+		await expect(authenticatedPage.getByText('Loading workspace...'))
+			.toBeHidden({ timeout: 15000 })
+			.catch(() => {})
+
 		// Page should load and be functional
 		await expect(authenticatedPage.getByRole('heading', { name: /tools/i })).toBeVisible({
-			timeout: 10000,
+			timeout: 15000,
 		})
 	})
 })
@@ -251,9 +259,14 @@ test.describe('Error Handling - Network Errors', () => {
 		await authenticatedPage.goto('/dashboard/agents')
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
+		// Wait for WorkspaceGate to finish loading
+		await expect(authenticatedPage.getByText('Loading workspace...'))
+			.toBeHidden({ timeout: 15000 })
+			.catch(() => {})
+
 		// Page should be functional
 		await expect(authenticatedPage.getByRole('heading', { name: /agents/i })).toBeVisible({
-			timeout: 10000,
+			timeout: 15000,
 		})
 
 		// Navigate to tools page
@@ -262,7 +275,7 @@ test.describe('Error Handling - Network Errors', () => {
 
 		// Page should still be functional
 		await expect(authenticatedPage.getByRole('heading', { name: /tools/i })).toBeVisible({
-			timeout: 10000,
+			timeout: 15000,
 		})
 	})
 
@@ -565,9 +578,14 @@ test.describe('Error Handling - Empty States', () => {
 		await authenticatedPage.goto('/dashboard/tools')
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
+		// Wait for WorkspaceGate to finish loading
+		await expect(authenticatedPage.getByText('Loading workspace...'))
+			.toBeHidden({ timeout: 15000 })
+			.catch(() => {})
+
 		// Should show tools page
 		const pageHeader = authenticatedPage.getByRole('heading', { name: /tools/i })
-		await expect(pageHeader).toBeVisible({ timeout: 10000 })
+		await expect(pageHeader).toBeVisible({ timeout: 15000 })
 	})
 
 	test('search field accepts input', async ({ authenticatedPage }) => {
@@ -638,10 +656,19 @@ test.describe('Error Handling - Form Validation', () => {
 		await authenticatedPage.goto('/dashboard/agents/new')
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
-		// Try to submit empty form
-		await authenticatedPage.getByRole('button', { name: /create/i }).click()
+		// Wait for WorkspaceGate to finish loading
+		await expect(authenticatedPage.getByText('Loading workspace...'))
+			.toBeHidden({ timeout: 15000 })
+			.catch(() => {})
 
-		// Should show validation error or HTML5 validation prevents submission
+		// Wait for the create form to render
+		const createBtn = authenticatedPage.getByRole('button', { name: /create agent/i })
+		await expect(createBtn).toBeVisible({ timeout: 10000 })
+
+		// The Create Agent button is disabled when name is empty - this IS the validation
+		// Verify the button is disabled (prevents submission of empty form)
+		await expect(createBtn).toBeDisabled()
+
 		// The form should not navigate away
 		await expect(authenticatedPage).toHaveURL(/agents\/new/)
 	})

@@ -53,7 +53,7 @@ test.describe('Team Page', () => {
 // ============================================================================
 
 test.describe('Member Management', () => {
-	// Helper: navigate to team page and wait for members to load
+	// Helper: navigate to team page and wait for members and invite button to load
 	async function goToTeamPage(page: import('@playwright/test').Page) {
 		await page.goto('/dashboard/settings/team')
 		await page.waitForSelector('main', { state: 'visible' })
@@ -61,7 +61,14 @@ test.describe('Member Management', () => {
 		const heading = page.getByRole('heading', { name: /team/i })
 		await heading.first().waitFor({ state: 'visible', timeout: 15000 })
 		// Wait for members to finish loading - the Members card should show member count
-		await page.getByText(/member(s)? in this workspace/i).waitFor({ state: 'visible', timeout: 15000 })
+		await page
+			.getByText(/member(s)? in this workspace/i)
+			.waitFor({ state: 'visible', timeout: 15000 })
+		// Wait for the Invite Member button which requires workspace role to be loaded
+		// The test user is the workspace owner, so canManageTeam should be true
+		await page
+			.getByRole('button', { name: /invite member/i })
+			.waitFor({ state: 'visible', timeout: 15000 })
 	}
 
 	test('has invite member button', async ({ authenticatedPage }) => {

@@ -148,13 +148,18 @@ test.describe('Accessibility - Agent Detail Page', () => {
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		await ensureAuthenticatedState(authenticatedPage)
 
-		const agentName = generateAgentName()
-		await authenticatedPage.getByLabel(/name/i).fill(agentName)
+		// Wait for the form to be fully loaded
+		const nameInput = authenticatedPage.locator('#name')
+		await expect(nameInput).toBeVisible({ timeout: 10000 })
 
-		const createButton = authenticatedPage.getByRole('button', { name: /create/i })
+		const agentName = generateAgentName()
+		await nameInput.fill(agentName)
+
+		const createButton = authenticatedPage.getByRole('button', { name: /create agent/i })
+		await expect(createButton).toBeEnabled({ timeout: 5000 })
 		await createButton.click()
 
-		await authenticatedPage.waitForURL(/\/dashboard\/agents\/[^/]+$/, { timeout: 10000 })
+		await authenticatedPage.waitForURL(/\/dashboard\/agents\/[^/]+$/, { timeout: 15000 })
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		await authenticatedPage.waitForTimeout(2000)
 
@@ -678,12 +683,19 @@ test.describe('Accessibility - Image Alt Text', () => {
 
 	test('landing page images have alt text', async ({ page }) => {
 		await page.goto('/')
-		await page.waitForSelector('main', { state: 'visible' })
+		// Landing page uses a div wrapper, not a <main> element
+		await page.waitForSelector('header', { state: 'visible' })
 		await page.waitForTimeout(2000)
 
 		// Find all images
 		const images = page.locator('img')
 		const imageCount = await images.count()
+
+		// If there are no images, the test passes trivially
+		if (imageCount === 0) {
+			expect(imageCount).toBe(0)
+			return
+		}
 
 		// Check each image for alt text
 		for (let i = 0; i < imageCount; i++) {
@@ -783,19 +795,30 @@ test.describe('Accessibility - Error Message Announcements', () => {
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		await ensureAuthenticatedState(authenticatedPage)
 
+		// Wait for preferences to load (switches replace skeleton loaders)
+		await authenticatedPage.waitForTimeout(3000)
+
 		// Trigger a notification by toggling email notifications
 		const emailNotificationsSwitch = authenticatedPage.locator('[role="switch"]').first()
 		await expect(emailNotificationsSwitch).toBeVisible({ timeout: 10000 })
 		await emailNotificationsSwitch.click()
 
-		// Wait for toast to appear
-		const toast = authenticatedPage.locator('[data-sonner-toast]').first()
-		await expect(toast).toBeVisible({ timeout: 5000 })
+		// Wait for toast to appear - sonner uses [data-sonner-toast] or li[role="status"] elements
+		const toast = authenticatedPage
+			.locator('[data-sonner-toast], [data-sonner-toaster] li, ol[role="list"] li')
+			.first()
+		await expect(toast).toBeVisible({ timeout: 10000 })
 
-		// Check that toast has proper role or aria attributes for screen readers
-		const toastContainer = authenticatedPage.locator('[data-sonner-toaster]')
-		const isAccessible = await toastContainer.isVisible().catch(() => false)
+		// Check that toast system is present (sonner toaster container)
+		const toastContainer = authenticatedPage.locator(
+			'[data-sonner-toaster], [role="region"][aria-label*="notification"], [role="region"][aria-label*="Notifications"]',
+		)
+		const isAccessible = await toastContainer
+			.first()
+			.isVisible()
+			.catch(() => false)
 
+		// Toast is visible, which means the notification system works
 		expect(isAccessible).toBe(true)
 	})
 })

@@ -41,7 +41,10 @@ test.describe('Sidebar Navigation - Authenticated', () => {
 
 		await authenticatedPage.getByRole('link', { name: 'Tools' }).click()
 		await authenticatedPage.waitForURL(/\/dashboard\/tools/, { timeout: 10000 })
-		await expect(authenticatedPage.getByRole('heading', { name: 'Tools' })).toBeVisible()
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
+		await expect(authenticatedPage.getByRole('heading', { name: 'Tools' })).toBeVisible({
+			timeout: 10000,
+		})
 	})
 
 	test('navigates to analytics page from sidebar', async ({ authenticatedPage }) => {
@@ -84,24 +87,33 @@ test.describe('Sidebar Navigation - Authenticated', () => {
 		// Start at dashboard
 		await authenticatedPage.goto('/dashboard')
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
-		await expect(authenticatedPage.getByRole('heading', { name: 'Dashboard' })).toBeVisible()
+		await expect(authenticatedPage.getByRole('heading', { name: 'Dashboard' })).toBeVisible({
+			timeout: 10000,
+		})
 
 		// Navigate to agents
 		await authenticatedPage.getByRole('link', { name: 'Agents' }).click()
 		await authenticatedPage.waitForURL(/\/dashboard\/agents/)
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		await expect(
 			authenticatedPage.getByRole('heading', { name: 'Agents', exact: true }),
-		).toBeVisible()
+		).toBeVisible({ timeout: 10000 })
 
 		// Navigate to tools
 		await authenticatedPage.getByRole('link', { name: 'Tools' }).click()
 		await authenticatedPage.waitForURL(/\/dashboard\/tools/)
-		await expect(authenticatedPage.getByRole('heading', { name: 'Tools' })).toBeVisible()
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
+		await expect(authenticatedPage.getByRole('heading', { name: 'Tools' })).toBeVisible({
+			timeout: 10000,
+		})
 
 		// Navigate to settings
 		await authenticatedPage.getByRole('link', { name: 'Settings' }).click()
 		await authenticatedPage.waitForURL(/\/dashboard\/settings/)
-		await expect(authenticatedPage.getByRole('heading', { name: 'Settings' })).toBeVisible()
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
+		await expect(authenticatedPage.getByRole('heading', { name: 'Settings' })).toBeVisible({
+			timeout: 10000,
+		})
 	})
 
 	test('new agent button navigates to create page', async ({ authenticatedPage }) => {
@@ -456,27 +468,24 @@ test.describe('URL Updates on Tab/Section Changes', () => {
 baseTest.describe('Page Title Updates', () => {
 	baseTest('landing page has correct title', async ({ page }: { page: Page }) => {
 		await page.goto('/')
-		await page.waitForLoadState('domcontentloaded')
+		await page.waitForLoadState('networkidle')
 
-		const title = await page.title()
-		expect(title).toBeTruthy()
-		expect(title.length).toBeGreaterThan(0)
+		// TanStack Router sets the title after hydration; wait for it
+		await expect(page).toHaveTitle(/.+/, { timeout: 10000 })
 	})
 
 	baseTest('sign-in page has title', async ({ page }: { page: Page }) => {
 		await page.goto('/sign-in')
-		await page.waitForLoadState('domcontentloaded')
+		await page.waitForLoadState('networkidle')
 
-		const title = await page.title()
-		expect(title).toBeTruthy()
+		await expect(page).toHaveTitle(/.+/, { timeout: 10000 })
 	})
 
 	baseTest('sign-up page has title', async ({ page }: { page: Page }) => {
 		await page.goto('/sign-up')
-		await page.waitForLoadState('domcontentloaded')
+		await page.waitForLoadState('networkidle')
 
-		const title = await page.title()
-		expect(title).toBeTruthy()
+		await expect(page).toHaveTitle(/.+/, { timeout: 10000 })
 	})
 })
 
@@ -488,9 +497,8 @@ test.describe('Page Titles - Authenticated Routes', () => {
 			await authenticatedPage.goto(pagePath)
 			await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
-			const title = await authenticatedPage.title()
-			expect(title).toBeTruthy()
-			expect(title.length).toBeGreaterThan(0)
+			// TanStack Router sets the title after hydration; use retry-friendly assertion
+			await expect(authenticatedPage).toHaveTitle(/.+/, { timeout: 10000 })
 		}
 	})
 })

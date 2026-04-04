@@ -105,33 +105,26 @@ test.describe('Template Cards', () => {
 		await authenticatedPage.goto('/dashboard/agents/templates')
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
-		// Check for template descriptions
-		const faqText = authenticatedPage.getByText(/faq|ticket|order/i)
-		const documentationText = authenticatedPage.getByText(/documentation|content/i)
-		const leadsText = authenticatedPage.getByText(/lead|product|meeting/i)
-
-		const hasDescriptions =
-			(await faqText
-				.first()
-				.isVisible({ timeout: 5000 })
-				.catch(() => false)) ||
-			(await documentationText
-				.first()
-				.isVisible({ timeout: 2000 })
-				.catch(() => false)) ||
-			(await leadsText
-				.first()
-				.isVisible({ timeout: 2000 })
-				.catch(() => false))
-
-		expect(hasDescriptions).toBeTruthy()
+		// Wait for template cards to render, then check for description text.
+		// Descriptions include: "Handle FAQs, route tickets, and check order status",
+		// "Answer questions from documentation and content",
+		// "Qualify leads, share product info, and schedule meetings"
+		const descriptionText = authenticatedPage.getByText(
+			/Handle FAQs|documentation and content|Qualify leads|sensible defaults|helps create/i,
+		)
+		await expect(descriptionText.first()).toBeVisible({ timeout: 10000 })
 	})
 
 	test('displays multiple template cards', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/agents/templates')
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
-		// Should show multiple templates (at least 4)
+		// Wait for at least one template card to appear before counting
+		await expect(authenticatedPage.locator('[data-slot="card"]').first()).toBeVisible({
+			timeout: 10000,
+		})
+
+		// Should show multiple templates (5 templates + 1 scratch = 6 cards)
 		const cards = authenticatedPage.locator('[data-slot="card"]')
 		const count = await cards.count()
 		expect(count).toBeGreaterThanOrEqual(4)
@@ -164,15 +157,10 @@ test.describe('Start From Scratch', () => {
 		await authenticatedPage.goto('/dashboard/agents/templates')
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
-		// Find and click the scratch option
-		const scratchButton = authenticatedPage.getByText(/scratch|blank|start fresh/i).first()
-		const scratchCard = authenticatedPage.locator('[data-slot="card"]').filter({ hasText: /scratch/i })
-
-		if (await scratchButton.isVisible({ timeout: 5000 }).catch(() => false)) {
-			await scratchButton.click()
-		} else if (await scratchCard.isVisible({ timeout: 2000 }).catch(() => false)) {
-			await scratchCard.click()
-		}
+		// The ScratchCard has role="button" and aria-label="Start from scratch"
+		const scratchCard = authenticatedPage.getByRole('button', { name: 'Start from scratch' })
+		await expect(scratchCard).toBeVisible({ timeout: 10000 })
+		await scratchCard.click()
 
 		// Should navigate to new agent page without template param
 		await authenticatedPage.waitForURL(/\/dashboard\/agents\/new/, { timeout: 10000 })

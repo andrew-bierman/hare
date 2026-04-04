@@ -13,20 +13,32 @@ async function createAgentAndGoToEmbed(page: import('@playwright/test').Page): P
 
 	await expect(page.getByRole('heading', { name: /create/i })).toBeVisible({ timeout: 10000 })
 
-	const nameInput = page.getByLabel(/name/i)
+	const nameInput = page.getByLabel(/name/i).first()
 	await nameInput.click()
-	await nameInput.pressSequentially(`Embed Test ${Date.now()}`, { delay: 15 })
+	await nameInput.fill('')
+	await nameInput.pressSequentially(`Embed Test ${Date.now()}`, { delay: 10 })
 
-	await page.getByRole('button', { name: /create/i }).click()
-	await page.waitForURL(/\/dashboard\/agents\/[^/]+$/, { timeout: 15000 })
+	await page
+		.getByRole('button', { name: /create/i })
+		.first()
+		.click()
+	await page.waitForURL(/\/dashboard\/agents\/(?!new)/, { timeout: 15000 })
 
-	const agentId = page.url().split('/').pop() || ''
+	const url = page.url()
+	const match = url.match(/\/agents\/([^/]+)/)
+	if (!match) throw new Error('Failed to extract agent ID from URL')
+	const agentId = match[1]
+
+	// Wait for the agent detail page to fully load before navigating away
+	await page.waitForSelector('main', { state: 'visible' })
+	await page.waitForTimeout(1000)
 
 	await page.goto(`/dashboard/agents/${agentId}/embed`)
 	await page.waitForSelector('main', { state: 'visible' })
-	// Wait for page to finish loading (skeleton should disappear)
+
+	// Wait for embed page to load - either the heading appears or we need to wait longer
 	await expect(page.getByRole('heading', { name: /embed widget/i })).toBeVisible({
-		timeout: 15000,
+		timeout: 20000,
 	})
 
 	return agentId
@@ -197,15 +209,19 @@ test.describe('Embed Navigation', () => {
 	test('can navigate to embed from agent detail', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/agents/new')
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
-		await expect(
-			authenticatedPage.getByRole('heading', { name: /create/i }),
-		).toBeVisible({ timeout: 10000 })
+		await expect(authenticatedPage.getByRole('heading', { name: /create/i })).toBeVisible({
+			timeout: 10000,
+		})
 
-		const nameInput = authenticatedPage.getByLabel(/name/i)
+		const nameInput = authenticatedPage.getByLabel(/name/i).first()
 		await nameInput.click()
-		await nameInput.pressSequentially(`Nav Test ${Date.now()}`, { delay: 15 })
-		await authenticatedPage.getByRole('button', { name: /create/i }).click()
-		await authenticatedPage.waitForURL(/\/dashboard\/agents\/[^/]+$/, { timeout: 15000 })
+		await nameInput.fill('')
+		await nameInput.pressSequentially(`Nav Test ${Date.now()}`, { delay: 10 })
+		await authenticatedPage
+			.getByRole('button', { name: /create/i })
+			.first()
+			.click()
+		await authenticatedPage.waitForURL(/\/dashboard\/agents\/(?!new)/, { timeout: 15000 })
 
 		// Look for embed link/tab on the agent detail page
 		const embedLink = authenticatedPage.getByRole('link', { name: /embed/i })

@@ -312,6 +312,17 @@ test.describe('Team Page - Owner Access', () => {
 		await authenticatedPage.goto('/dashboard/settings/team')
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
+		// Wait for the team heading to confirm page loaded (not skeleton)
+		await authenticatedPage
+			.getByRole('heading', { name: /team/i })
+			.first()
+			.waitFor({ state: 'visible', timeout: 15000 })
+
+		// Wait for members to finish loading - the Members card should show member count
+		await authenticatedPage
+			.getByText(/member(s)? in this workspace/i)
+			.waitFor({ state: 'visible', timeout: 15000 })
+
 		// Members section should be visible
 		await expect(authenticatedPage.getByText('Members').first()).toBeVisible()
 
@@ -320,11 +331,12 @@ test.describe('Team Page - Owner Access', () => {
 			has: authenticatedPage.locator('.font-medium'),
 		})
 
+		await expect(memberCards.first()).toBeVisible({ timeout: 10000 })
 		const memberCount = await memberCards.count()
 		expect(memberCount).toBeGreaterThanOrEqual(1)
 
 		// Current user should have "You" badge
-		await expect(authenticatedPage.getByText('You')).toBeVisible()
+		await expect(authenticatedPage.getByText('You')).toBeVisible({ timeout: 10000 })
 	})
 
 	test('owner sees danger zone with delete workspace option', async ({ authenticatedPage }) => {

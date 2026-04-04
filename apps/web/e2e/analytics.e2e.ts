@@ -109,7 +109,9 @@ test.describe('Analytics Summary Stats - Error Rate (Total Cost)', () => {
 		await authenticatedPage.waitForTimeout(2000)
 
 		// Cost values should contain '$' for currency - find within Total Cost card
-		const costCard = authenticatedPage.locator('[data-slot="card"]').filter({ hasText: 'Total Cost' })
+		const costCard = authenticatedPage
+			.locator('[data-slot="card"]')
+			.filter({ hasText: 'Total Cost' })
 		await expect(costCard).toBeVisible()
 		await expect(costCard.getByText(/\$/)).toBeVisible()
 	})
@@ -146,7 +148,9 @@ test.describe('Analytics Charts Render', () => {
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		await authenticatedPage.waitForTimeout(2000)
 
-		await expect(authenticatedPage.getByText('Token distribution and cost across agents')).toBeVisible()
+		await expect(
+			authenticatedPage.getByText('Token distribution and cost across agents'),
+		).toBeVisible()
 	})
 
 	test('displays Usage by Model chart', async ({ authenticatedPage }) => {
@@ -339,7 +343,9 @@ test.describe('Analytics Per-Agent Breakdown', () => {
 
 		// Verify Usage by Agent chart is visible which shows per-agent breakdown
 		await expect(authenticatedPage.getByText('Usage by Agent')).toBeVisible()
-		await expect(authenticatedPage.getByText('Token distribution and cost across agents')).toBeVisible()
+		await expect(
+			authenticatedPage.getByText('Token distribution and cost across agents'),
+		).toBeVisible()
 	})
 })
 
@@ -396,13 +402,19 @@ test.describe('Analytics Data Integrity', () => {
 		await expect(authenticatedPage.getByText('Total Requests')).toBeVisible()
 		// Total Tokens should show a number with input/output breakdown
 		await expect(authenticatedPage.getByText('Total Tokens')).toBeVisible()
-		const tokensCard = authenticatedPage.locator('[data-slot="card"]').filter({ hasText: 'Total Tokens' })
+		const tokensCard = authenticatedPage
+			.locator('[data-slot="card"]')
+			.filter({ hasText: 'Total Tokens' })
 		await expect(tokensCard.getByText(/in.*\/.*out/)).toBeVisible()
 		// Total Cost should show currency format
-		const costCard = authenticatedPage.locator('[data-slot="card"]').filter({ hasText: 'Total Cost' })
+		const costCard = authenticatedPage
+			.locator('[data-slot="card"]')
+			.filter({ hasText: 'Total Cost' })
 		await expect(costCard.getByText(/\$/)).toBeVisible()
 		// Avg Latency should show milliseconds
-		const latencyCard = authenticatedPage.locator('[data-slot="card"]').filter({ hasText: 'Avg Latency' })
+		const latencyCard = authenticatedPage
+			.locator('[data-slot="card"]')
+			.filter({ hasText: 'Avg Latency' })
 		await expect(latencyCard.getByText(/\d+ms/)).toBeVisible()
 	})
 

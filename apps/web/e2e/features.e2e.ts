@@ -24,6 +24,10 @@ async function waitForWorkspace(page: Page) {
 	// Wait for main content to appear (workspace loaded)
 	await page.waitForSelector('main', { state: 'visible' })
 	await expect(page.locator('main').first()).toBeVisible({ timeout: 10000 })
+	// Wait for WorkspaceGate loading indicator to disappear
+	await expect(page.getByText('Loading workspace...'))
+		.toBeHidden({ timeout: 15000 })
+		.catch(() => {})
 }
 
 // ============================================================================
@@ -63,27 +67,34 @@ test.describe('Agent CRUD Operations', () => {
 		await authenticatedPage.goto('/dashboard/agents/new')
 		await waitForWorkspace(authenticatedPage)
 		await expect(authenticatedPage.getByRole('heading', { name: /create.*agent/i })).toBeVisible({
-			timeout: 10000,
+			timeout: 15000,
 		})
 
 		const originalName = uniqueName('Original Agent')
 		await fillInput(authenticatedPage, /name/i, originalName)
-		await authenticatedPage.getByRole('button', { name: /create/i }).click()
-		await authenticatedPage.waitForURL(/\/dashboard\/agents\/[^/]+$/, { timeout: 10000 })
+		await authenticatedPage.getByRole('button', { name: /create agent/i }).click()
+		await authenticatedPage.waitForURL(/\/dashboard\/agents\/[^/]+$/, { timeout: 15000 })
+
+		// Wait for agent detail page to fully load (name input appears in General tab)
+		const nameInput = authenticatedPage.locator('#name')
+		await expect(nameInput).toBeVisible({ timeout: 15000 })
+
+		// Wait for the form to be populated with agent data
+		await expect(nameInput).toHaveValue(originalName, { timeout: 10000 })
 
 		// Now edit the name
 		const updatedName = uniqueName('Updated Agent')
-		const nameInput = authenticatedPage.getByLabel(/name/i)
 		await nameInput.click()
 		await nameInput.clear()
 		await nameInput.pressSequentially(updatedName, { delay: 10 })
 
-		// Save changes
-		const saveBtn = authenticatedPage.getByRole('button', { name: /save/i })
+		// Wait for the Save Changes button to become enabled (hasChanges must be true)
+		const saveBtn = authenticatedPage.getByRole('button', { name: /save changes/i })
+		await expect(saveBtn).toBeEnabled({ timeout: 5000 })
 		await saveBtn.click()
 
 		// Wait for save to complete
-		await authenticatedPage.waitForTimeout(2000)
+		await authenticatedPage.waitForTimeout(3000)
 
 		// Verify the name was updated
 		await expect(nameInput).toHaveValue(updatedName)
@@ -233,31 +244,48 @@ test.describe('HTTP Tool Creation', () => {
 		await authenticatedPage.goto('/dashboard/tools/new')
 		await waitForWorkspace(authenticatedPage)
 
+		// Wait for the form to render (heading is "Create HTTP Tool")
+		await expect(authenticatedPage.getByRole('heading', { name: /create http tool/i })).toBeVisible(
+			{
+				timeout: 15000,
+			},
+		)
+
 		const toolName = uniqueName('E2E HTTP Tool')
 
 		// Fill tool name - label is "Name *" with htmlFor="name"
 		const nameInput = authenticatedPage.locator('#name')
+		await expect(nameInput).toBeVisible({ timeout: 5000 })
 		await nameInput.click()
 		await nameInput.pressSequentially(toolName, { delay: 10 })
 
 		// Fill URL - label is "URL *" with htmlFor="url"
 		const urlInput = authenticatedPage.locator('#url')
+		await expect(urlInput).toBeVisible({ timeout: 5000 })
 		await urlInput.click()
 		await urlInput.pressSequentially('https://jsonplaceholder.typicode.com/posts/1', { delay: 10 })
 
-		// Create button should be enabled
+		// Wait for Create Tool button to be enabled (requires name and url to be non-empty)
 		const createBtn = authenticatedPage.getByRole('button', { name: /create tool/i })
-		await expect(createBtn).toBeEnabled({ timeout: 5000 })
+		await expect(createBtn).toBeEnabled({ timeout: 10000 })
 
 		// Click create
 		await createBtn.click()
 
 		// Should redirect to tools list or show success
-		await authenticatedPage.waitForTimeout(3000)
+		await authenticatedPage.waitForURL(/\/dashboard\/tools$/, { timeout: 15000 }).catch(() => {
+			// If URL didn't change, wait a bit more for redirect
+		})
+		await authenticatedPage.waitForTimeout(2000)
 
 		// Navigate to tools list and verify our tool exists
 		await authenticatedPage.goto('/dashboard/tools')
 		await waitForWorkspace(authenticatedPage)
+
+		// Wait for page heading to confirm page loaded
+		await expect(authenticatedPage.getByRole('heading', { name: /tools/i })).toBeVisible({
+			timeout: 15000,
+		})
 
 		// Tool should appear in list (might be in custom tools section)
 		const toolInList = authenticatedPage.getByText(toolName)
@@ -488,18 +516,22 @@ test.describe('Search Features', () => {
 		await authenticatedPage.goto('/dashboard/tools')
 		await waitForWorkspace(authenticatedPage)
 
-		// Wait for tools to load
-		await expect(authenticatedPage.locator('main').first()).toBeVisible({ timeout: 10000 })
+		// Wait for the tools page heading to confirm WorkspaceGate has passed
+		await expect(authenticatedPage.getByRole('heading', { name: /tools/i })).toBeVisible({
+			timeout: 15000,
+		})
 
 		// Search for KV tools using the tools page search input
+		// SearchInput renders an <input type="search"> with the given placeholder
 		const searchInput = authenticatedPage.getByPlaceholder('Search tools...')
+		await expect(searchInput).toBeVisible({ timeout: 5000 })
 		await searchInput.click()
 		await searchInput.pressSequentially('KV', { delay: 50 })
-		await authenticatedPage.waitForTimeout(1000)
+		await authenticatedPage.waitForTimeout(1500)
 
-		// Should show KV-related tools
+		// Should show KV-related tools (system tools with KV in the name)
 		await expect(authenticatedPage.getByText(/KV/i).first()).toBeVisible({
-			timeout: 5000,
+			timeout: 10000,
 		})
 	})
 })

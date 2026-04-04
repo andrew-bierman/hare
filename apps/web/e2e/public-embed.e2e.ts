@@ -12,14 +12,17 @@ async function createAgent(page: import('@playwright/test').Page): Promise<strin
 	await page.goto('/dashboard/agents/new')
 	await page.waitForSelector('main', { state: 'visible' })
 
-	await expect(page.getByRole('heading', { name: /create/i })).toBeVisible({ timeout: 10000 })
+	// Wait for the form input to be ready (not just the heading)
+	const nameInput = page.locator('#name')
+	await expect(nameInput).toBeVisible({ timeout: 10000 })
 
-	const nameInput = page.getByLabel(/name/i)
 	await nameInput.click()
 	await nameInput.pressSequentially(`Embed Widget ${Date.now()}`, { delay: 15 })
 
-	await page.getByRole('button', { name: /create/i }).click()
-	await page.waitForURL(/\/dashboard\/agents\/[^/]+$/, { timeout: 10000 })
+	const createButton = page.getByRole('button', { name: /create agent/i })
+	await expect(createButton).toBeEnabled({ timeout: 5000 })
+	await createButton.click()
+	await page.waitForURL(/\/dashboard\/agents\/[^/]+$/, { timeout: 15000 })
 
 	return page.url().split('/').pop() || ''
 }
@@ -70,18 +73,15 @@ test.describe('Public Embed - Valid Agent', () => {
 	test('embed has chat interface', async ({ authenticatedPage }) => {
 		const agentId = await createAgent(authenticatedPage)
 		await authenticatedPage.goto(`/embed/${agentId}`)
-		await authenticatedPage.waitForLoadState('domcontentloaded')
+		await authenticatedPage.waitForLoadState('networkidle')
 
-		// Look for chat input
-		const messageInput = authenticatedPage.locator('textarea, input[type="text"]')
-		const chatContainer = authenticatedPage.locator('[class*="chat"], [class*="message"]')
+		// Look for chat textarea (the embed page uses a textarea for message input)
+		const messageInput = authenticatedPage.locator('textarea[placeholder="Type a message..."]')
+		const genericInput = authenticatedPage.locator('textarea, input[type="text"]')
 
 		const hasChat =
-			(await messageInput
-				.first()
-				.isVisible({ timeout: 10000 })
-				.catch(() => false)) ||
-			(await chatContainer
+			(await messageInput.isVisible({ timeout: 10000 }).catch(() => false)) ||
+			(await genericInput
 				.first()
 				.isVisible({ timeout: 5000 })
 				.catch(() => false))
@@ -92,17 +92,12 @@ test.describe('Public Embed - Valid Agent', () => {
 	test('embed has send button', async ({ authenticatedPage }) => {
 		const agentId = await createAgent(authenticatedPage)
 		await authenticatedPage.goto(`/embed/${agentId}`)
-		await authenticatedPage.waitForLoadState('domcontentloaded')
+		await authenticatedPage.waitForLoadState('networkidle')
 
-		// Look for send button
-		const sendButton = authenticatedPage.getByRole('button', { name: /send/i })
+		// The embed page has a submit button with type="submit"
 		const submitButton = authenticatedPage.locator('button[type="submit"]')
 
-		const hasSend =
-			(await sendButton.isVisible({ timeout: 10000 }).catch(() => false)) ||
-			(await submitButton.isVisible({ timeout: 5000 }).catch(() => false))
-
-		expect(hasSend).toBeTruthy()
+		await expect(submitButton).toBeVisible({ timeout: 10000 })
 	})
 
 	test('can type message in embed', async ({ authenticatedPage }) => {

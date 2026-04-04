@@ -114,7 +114,12 @@ test.describe('Workspaces API - Authenticated', () => {
 test.describe('Agents API - Authenticated', () => {
 	test('can list agents for workspace', async ({ authenticatedPage }) => {
 		const workspaceId = await getWorkspaceId(authenticatedPage)
-		const response = await orpc(authenticatedPage, 'agents/list', {}, { 'X-Workspace-Id': workspaceId })
+		const response = await orpc(
+			authenticatedPage,
+			'agents/list',
+			{},
+			{ 'X-Workspace-Id': workspaceId },
+		)
 		expect(response.status()).toBe(200)
 
 		const data = await parseOrpc(response)
@@ -158,7 +163,12 @@ test.describe('Agents API - Authenticated', () => {
 test.describe('Tools API - Authenticated', () => {
 	test('can list tools', async ({ authenticatedPage }) => {
 		const workspaceId = await getWorkspaceId(authenticatedPage)
-		const response = await orpc(authenticatedPage, 'tools/list', {}, { 'X-Workspace-Id': workspaceId })
+		const response = await orpc(
+			authenticatedPage,
+			'tools/list',
+			{},
+			{ 'X-Workspace-Id': workspaceId },
+		)
 		expect(response.status()).toBe(200)
 
 		const data = await parseOrpc(response)

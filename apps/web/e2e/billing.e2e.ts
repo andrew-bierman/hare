@@ -58,9 +58,21 @@ test.describe('Plan Display', () => {
 		await authenticatedPage.goto('/dashboard/settings/billing')
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
-		// Should show plan options (Free, Pro, Team, Enterprise)
+		// Wait for loading skeletons to disappear and actual content to render
+		await authenticatedPage.waitForTimeout(3000)
+
+		// Should show plan options - look for plan card content
+		// The billing page renders plan cards with plan names as CardTitle elements
+		const billingHeading = authenticatedPage.getByRole('heading', { name: /billing/i })
+		await expect(billingHeading.first()).toBeVisible({ timeout: 10000 })
+
+		// Look for plan-related content: plan names, prices, or action buttons
 		const freeText = authenticatedPage.getByText(/free/i)
 		const proText = authenticatedPage.getByText(/pro/i)
+		const currentPlanText = authenticatedPage.getByText(/current plan/i)
+		const upgradeButton = authenticatedPage.getByRole('button', {
+			name: /upgrade|switch|select|manage|current/i,
+		})
 
 		const hasPlans =
 			(await freeText
@@ -68,6 +80,14 @@ test.describe('Plan Display', () => {
 				.isVisible({ timeout: 10000 })
 				.catch(() => false)) ||
 			(await proText
+				.first()
+				.isVisible({ timeout: 5000 })
+				.catch(() => false)) ||
+			(await currentPlanText
+				.first()
+				.isVisible({ timeout: 5000 })
+				.catch(() => false)) ||
+			(await upgradeButton
 				.first()
 				.isVisible({ timeout: 5000 })
 				.catch(() => false))
