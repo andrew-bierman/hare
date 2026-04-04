@@ -278,6 +278,7 @@ import { getTransformTools } from './transform'
 import type { AnyTool, ToolContext } from './types'
 import { getUtilityTools } from './utility'
 import { getValidationTools } from './validation'
+import { getBrowserTools } from './browser'
 import { getDocumentTools } from './document'
 
 /**
@@ -297,6 +298,7 @@ export type ToolCategory =
 	| 'transform'
 	| 'memory'
 	| 'document'
+	| 'browser'
 	| 'all'
 
 /**
@@ -338,6 +340,8 @@ export function getSystemTools(context: ToolContext): AnyTool[] {
 		...getMemoryTools(context),
 		// Document tools (toMarkdown)
 		...getDocumentTools(context),
+		// Browser tools (web scraping, screenshots)
+		...getBrowserTools(context),
 	]
 }
 
@@ -384,6 +388,8 @@ export function getToolsByCategory({
 			return getMemoryTools(context)
 		case 'document':
 			return getDocumentTools(context)
+		case 'browser':
+			return getBrowserTools(context)
 		default:
 			return getSystemTools(context)
 	}
@@ -471,6 +477,9 @@ export const SYSTEM_TOOL_IDS = [
 	'store_memory',
 	// Document (toMarkdown)
 	'convert_document',
+	// Browser (web scraping, screenshots)
+	'browse_url',
+	'screenshot',
 ] as const
 
 export type SystemToolId = (typeof SYSTEM_TOOL_IDS)[number]

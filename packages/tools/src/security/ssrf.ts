@@ -1,46 +1,57 @@
 /**
- * Consolidated SSRF (Server-Side Request Forgery) Protection
+ * SSRF (Server-Side Request Forgery) Protection
  *
- * Single source of truth for URL validation used by:
- * - HTTP tool (packages/tools/src/http.ts)
- * - Webhook service (packages/api/src/services/webhooks.ts)
- * - Browser tool (future)
- *
- * Blocks:
- * - Private IP ranges (localhost, 127.x, 10.x, 172.16-31.x, 192.168.x)
- * - Cloud metadata endpoints (169.254.169.254)
- * - Internal hostnames (.internal, .local, .localhost)
- * - Decimal/hex/octal IP encodings (2130706433 = 127.0.0.1, 0x7f000001)
- * - IPv6 private ranges (::1, fe80::, fc00::, fd00::)
- * - IPv4-mapped IPv6 (::ffff:127.0.0.1, ::ffff:7f00:1)
- * - Non-HTTP protocols
+ * Shared module for URL validation across HTTP tools, webhooks, and browser tools.
+ * Consolidates protections from packages/tools/src/http.ts and
+ * packages/api/src/services/webhooks.ts into a single source of truth.
  */
 
-// =============================================================================
-// Constants
-// =============================================================================
+// ============================================================================
+// Types
+// ============================================================================
 
-/** Blocked hostnames (exact match) */
+export interface UrlSafetyResult {
+	safe: boolean
+	reason?: string
+}
+
+// ============================================================================
+// Constants
+// ============================================================================
+
 const BLOCKED_HOSTNAMES = new Set([
 	'localhost',
 	'localhost.localdomain',
 	'metadata.google.internal',
+	'metadata.google',
+	'metadata',
+	'kubernetes.default.svc',
 ])
 
-/** Blocked hostname suffixes (for subdomains) */
 const BLOCKED_HOSTNAME_SUFFIXES = ['.internal', '.local', '.localhost']
 
-/** Maximum number of redirect hops to follow */
-export const MAX_REDIRECT_HOPS = 5
+/** Protocols allowed for HTTP requests */
+const ALLOWED_HTTP_PROTOCOLS = new Set(['http:', 'https:'])
 
-// =============================================================================
+/** Protocols forbidden for browser navigation */
+const DANGEROUS_PROTOCOLS = new Set([
+	'file:',
+	'javascript:',
+	'data:',
+	'blob:',
+	'chrome:',
+	'chrome-extension:',
+	'about:',
+	'view-source:',
+	'vbscript:',
+	'ftp:',
+	'gopher:',
+])
+
+// ============================================================================
 // IPv4 Parsing and Validation
-// =============================================================================
+// ============================================================================
 
-/**
- * Parse a standard dotted-decimal IPv4 address into its numeric octets.
- * Returns null if not a valid IPv4 in strict dotted-decimal form.
- */
 export function parseIPv4(ip: string): number[] | null {
 	const parts = ip.split('.')
 	if (parts.length !== 4) return null
@@ -55,66 +66,43 @@ export function parseIPv4(ip: string): number[] | null {
 	return octets
 }
 
-/**
- * Check if an IPv4 address (as octets) is in a private/blocked range.
- */
 export function isPrivateIPv4(octets: number[]): boolean {
 	if (octets.length < 2) return false
 	const a = octets[0]!
 	const b = octets[1]!
 
-	// 0.0.0.0/8 - Current network
-	if (a === 0) return true
-	// 10.0.0.0/8 - Private Class A
-	if (a === 10) return true
-	// 127.0.0.0/8 - Loopback
-	if (a === 127) return true
-	// 169.254.0.0/16 - Link-local (cloud metadata)
-	if (a === 169 && b === 254) return true
-	// 172.16.0.0/12 - Private Class B (172.16.0.0 - 172.31.255.255)
-	if (a === 172 && b >= 16 && b <= 31) return true
-	// 192.168.0.0/16 - Private Class C
-	if (a === 192 && b === 168) return true
-	// 224.0.0.0/4 - Multicast
-	if (a >= 224 && a <= 239) return true
-	// 240.0.0.0/4 - Reserved
-	if (a >= 240) return true
+	if (a === 0) return true // 0.0.0.0/8 - Current network
+	if (a === 10) return true // 10.0.0.0/8 - Private
+	if (a === 127) return true // 127.0.0.0/8 - Loopback
+	if (a === 169 && b === 254) return true // 169.254.0.0/16 - Link-local / cloud metadata
+	if (a === 172 && b >= 16 && b <= 31) return true // 172.16.0.0/12 - Private
+	if (a === 192 && b === 168) return true // 192.168.0.0/16 - Private
+	if (a >= 224) return true // 224.0.0.0+ - Multicast + Reserved
 
 	return false
 }
 
-// =============================================================================
+// ============================================================================
 // IPv6 Validation
-// =============================================================================
+// ============================================================================
 
-/**
- * Check if an IPv6 address is in a private/blocked range.
- */
 export function isPrivateIPv6(hostname: string): boolean {
-	const normalized = hostname.toLowerCase()
+	const norm = hostname.toLowerCase()
 
-	// Loopback ::1
-	if (normalized === '::1' || normalized === '0:0:0:0:0:0:0:1') return true
-	// Unspecified ::
-	if (normalized === '::' || normalized === '0:0:0:0:0:0:0:0') return true
-	// Link-local fe80::/10
-	if (
-		normalized.startsWith('fe8') ||
-		normalized.startsWith('fe9') ||
-		normalized.startsWith('fea') ||
-		normalized.startsWith('feb')
-	)
-		return true
-	// Unique local fc00::/7 (includes fd00::/8)
-	if (normalized.startsWith('fc') || normalized.startsWith('fd')) return true
+	if (norm === '::1' || norm === '0:0:0:0:0:0:0:1') return true // Loopback
+	if (norm === '::' || norm === '0:0:0:0:0:0:0:0') return true // Unspecified
+	if (/^fe[89ab]/.test(norm)) return true // Link-local fe80::/10
+	if (norm.startsWith('fc') || norm.startsWith('fd')) return true // Unique local fc00::/7
 
 	// IPv4-mapped ::ffff:x.x.x.x or ::ffff:7f00:1
-	if (normalized.startsWith('::ffff:')) {
-		const mapped = normalized.slice(7)
-		// Try dot-decimal form first (::ffff:127.0.0.1)
+	if (norm.startsWith('::ffff:')) {
+		const mapped = norm.slice(7)
+
+		// Dot-decimal form (::ffff:127.0.0.1)
 		const octets = parseIPv4(mapped)
 		if (octets && isPrivateIPv4(octets)) return true
-		// Handle hex-word form (::ffff:7f00:1) — convert to IPv4 octets
+
+		// Hex-word form (::ffff:7f00:1)
 		const hexParts = mapped.split(':')
 		if (hexParts.length === 2 && hexParts[0] && hexParts[1]) {
 			const hi = Number.parseInt(hexParts[0], 16)
@@ -125,32 +113,37 @@ export function isPrivateIPv6(hostname: string): boolean {
 			}
 		}
 	}
+	return false
+}
+
+// ============================================================================
+// Numeric IP Bypass Prevention
+// ============================================================================
+
+function isNumericHostBypass(hostname: string): boolean {
+	// Decimal IP (e.g., 2130706433 = 127.0.0.1)
+	if (/^\d+$/.test(hostname)) return true
+
+	// Hex IP (e.g., 0x7f000001 = 127.0.0.1)
+	if (hostname.startsWith('0x')) return true
+
+	// Octal notation (e.g., 0177.0.0.1 = 127.0.0.1)
+	if (/^0\d/.test(hostname)) return true
 
 	return false
 }
 
-// =============================================================================
-// Host Validation
-// =============================================================================
+// ============================================================================
+// Core Hostname Validation
+// ============================================================================
 
-export interface BlockedResult {
-	blocked: boolean
-	reason?: string
-}
-
-/**
- * Check if a hostname is a blocked/private address.
- *
- * Covers:
- * - Exact hostname blocklist
- * - Suffix blocklist (.internal, .local, .localhost)
- * - Decimal IP encoding (e.g., http://2130706433 = 127.0.0.1)
- * - Hex IP encoding (e.g., http://0x7f000001 = 127.0.0.1)
- * - Standard dotted-decimal IPv4 private ranges
- * - IPv6 private ranges
- */
-export function isBlockedHost(hostname: string): BlockedResult {
+export function isBlockedHost(hostname: string): { blocked: boolean; reason?: string } {
 	const lower = hostname.toLowerCase()
+
+	// Numeric IP bypass (decimal/hex/octal)
+	if (isNumericHostBypass(lower)) {
+		return { blocked: true, reason: 'Numeric IP encoding not allowed' }
+	}
 
 	// Exact hostname blocklist
 	if (BLOCKED_HOSTNAMES.has(lower)) {
@@ -164,24 +157,7 @@ export function isBlockedHost(hostname: string): BlockedResult {
 		}
 	}
 
-	// Block decimal IP representations (e.g., 2130706433 = 127.0.0.1)
-	if (/^\d+$/.test(lower)) {
-		return { blocked: true, reason: 'Numeric IP representations are not allowed' }
-	}
-
-	// Block hex IP representations (e.g., 0x7f000001 = 127.0.0.1)
-	if (lower.startsWith('0x')) {
-		return { blocked: true, reason: 'Numeric IP representations are not allowed' }
-	}
-
-	// Block dotted-quad hostnames with leading-zero octets (e.g., 0127.0.0.1)
-	// These bypass parseIPv4 (which requires canonical form) but may be resolved
-	// by DNS or HTTP libraries using octal interpretation.
-	if (/^\d{1,3}(\.\d{1,3}){3}$/.test(lower) && /(?:^|\.)0\d/.test(lower)) {
-		return { blocked: true, reason: 'Leading-zero octets in IP address are not allowed' }
-	}
-
-	// Check if it's a standard dotted-decimal IPv4 address
+	// IPv4
 	const ipv4Octets = parseIPv4(lower)
 	if (ipv4Octets) {
 		if (isPrivateIPv4(ipv4Octets)) {
@@ -190,7 +166,7 @@ export function isBlockedHost(hostname: string): BlockedResult {
 		return { blocked: false }
 	}
 
-	// Check if it's an IPv6 address (may be in brackets for URLs)
+	// IPv6 (may be in brackets)
 	const ipv6 = lower.startsWith('[') && lower.endsWith(']') ? lower.slice(1, -1) : lower
 	if (ipv6.includes(':')) {
 		if (isPrivateIPv6(ipv6)) {
@@ -201,43 +177,24 @@ export function isBlockedHost(hostname: string): BlockedResult {
 	return { blocked: false }
 }
 
-// =============================================================================
-// URL Validation
-// =============================================================================
-
-export interface UrlSafetyResult {
-	safe: boolean
-	reason?: string
-}
+// ============================================================================
+// Public API
+// ============================================================================
 
 /**
- * Check if a URL is safe to call (SSRF protection).
- *
- * Validates:
- * - Protocol (only http: and https: allowed)
- * - Hostname against blocklist, private ranges, numeric encodings
- * - Cloud metadata endpoint (169.254.169.254)
+ * Validate a URL for safe HTTP fetching.
+ * Blocks private IPs, cloud metadata, numeric IP bypasses, and non-HTTP protocols.
  */
 export function isUrlSafe(url: string): UrlSafetyResult {
 	try {
 		const parsed = new URL(url)
-
-		// Only allow http and https
-		if (!['http:', 'https:'].includes(parsed.protocol)) {
-			return { safe: false, reason: 'Only HTTP and HTTPS protocols are allowed' }
+		if (!ALLOWED_HTTP_PROTOCOLS.has(parsed.protocol)) {
+			return { safe: false, reason: `Protocol '${parsed.protocol}' not allowed` }
 		}
-
-		// Check blocked hosts (includes decimal/hex IP protection)
 		const hostCheck = isBlockedHost(parsed.hostname)
 		if (hostCheck.blocked) {
 			return { safe: false, reason: hostCheck.reason }
 		}
-
-		// Additional cloud metadata endpoint check (dotted-decimal form)
-		if (parsed.hostname === '169.254.169.254') {
-			return { safe: false, reason: 'Cloud metadata endpoint not allowed' }
-		}
-
 		return { safe: true }
 	} catch {
 		return { safe: false, reason: 'Invalid URL format' }
@@ -245,30 +202,46 @@ export function isUrlSafe(url: string): UrlSafetyResult {
 }
 
 /**
- * Validate a redirect URL for SSRF safety.
- * Used when following redirects manually with redirect: 'manual'.
- *
- * @param locationHeader - The Location header from a redirect response
- * @param originalUrl - The original request URL (for resolving relative redirects)
- * @returns Safety result
+ * Validate a URL for browser navigation (stricter than HTTP).
+ * Additionally blocks dangerous protocols (file://, javascript://, data://, etc.)
+ */
+export function isBrowserUrlSafe(url: string): UrlSafetyResult {
+	const lowerUrl = url.toLowerCase().trim()
+	for (const proto of DANGEROUS_PROTOCOLS) {
+		if (lowerUrl.startsWith(proto)) {
+			return { safe: false, reason: `Protocol '${proto}' is forbidden for browser navigation` }
+		}
+	}
+	return isUrlSafe(url)
+}
+
+// ============================================================================
+// Redirect Safety
+// ============================================================================
+
+export const MAX_REDIRECT_HOPS = 5
+
+/**
+ * Check if a redirect URL is safe to follow.
+ * Resolves relative redirects against the original URL.
  */
 export function isRedirectSafe(options: {
 	locationHeader: string
 	originalUrl: string
+	currentHop?: number
 }): UrlSafetyResult {
-	const { locationHeader, originalUrl } = options
-
+	const { locationHeader, originalUrl, currentHop = 0 } = options
 	if (!locationHeader) {
 		return { safe: false, reason: 'Missing Location header in redirect' }
 	}
-
-	// Resolve relative URLs against the original URL
-	let redirectUrl: string
+	if (currentHop >= MAX_REDIRECT_HOPS) {
+		return { safe: false, reason: `Too many redirects (max ${MAX_REDIRECT_HOPS})` }
+	}
+	// Resolve relative URLs against the original
 	try {
-		redirectUrl = new URL(locationHeader, originalUrl).toString()
+		const resolvedUrl = new URL(locationHeader, originalUrl).toString()
+		return isUrlSafe(resolvedUrl)
 	} catch {
 		return { safe: false, reason: 'Invalid redirect URL' }
 	}
-
-	return isUrlSafe(redirectUrl)
 }
