@@ -25,19 +25,13 @@ baseTest.describe('Responsive - Landing Page', () => {
 			})
 
 			baseTest(`hero section is visible on ${device}`, async ({ page }) => {
-				await expect(
-					page.getByRole('heading', { name: /Build & Deploy/i }),
-				).toBeVisible()
-				await expect(
-					page.getByRole('link', { name: 'Start Building Free' }),
-				).toBeVisible()
+				await expect(page.getByRole('heading', { name: /Build & Deploy/i })).toBeVisible()
+				await expect(page.getByRole('link', { name: 'Start Building Free' })).toBeVisible()
 			})
 
 			baseTest(`features section is visible on ${device}`, async ({ page }) => {
 				await page.getByText('Everything you need').scrollIntoViewIfNeeded()
-				await expect(
-					page.getByRole('heading', { name: 'Everything you need' }),
-				).toBeVisible()
+				await expect(page.getByRole('heading', { name: 'Everything you need' })).toBeVisible()
 			})
 
 			if (device === 'mobile') {
@@ -58,12 +52,8 @@ baseTest.describe('Responsive - Landing Page', () => {
 			if (device === 'desktop') {
 				baseTest('navigation links are visible on desktop', async ({ page }) => {
 					const header = page.locator('header')
-					await expect(
-						header.getByRole('link', { name: 'Features' }),
-					).toBeVisible()
-					await expect(
-						header.getByRole('link', { name: 'How it Works' }),
-					).toBeVisible()
+					await expect(header.getByRole('link', { name: 'Features' })).toBeVisible()
+					await expect(header.getByRole('link', { name: 'How it Works' })).toBeVisible()
 				})
 			}
 		})
@@ -84,9 +74,7 @@ baseTest.describe('Responsive - Auth Pages', () => {
 
 				await expect(page.getByLabel('Email').first()).toBeVisible()
 				await expect(page.getByLabel('Password').first()).toBeVisible()
-				await expect(
-					page.getByRole('button', { name: /sign in/i }).first(),
-				).toBeVisible()
+				await expect(page.getByRole('button', { name: /sign in/i }).first()).toBeVisible()
 			})
 
 			baseTest(`sign-up page renders on ${device}`, async ({ page }) => {
@@ -133,19 +121,19 @@ test.describe('Responsive - Dashboard', () => {
 			})
 
 			if (device === 'mobile') {
-				test('sidebar is hidden by default on mobile', async ({
-					authenticatedPage: page,
-				}) => {
+				test('sidebar is hidden by default on mobile', async ({ authenticatedPage: page }) => {
 					await page.setViewportSize(viewport)
 					await page.goto('/dashboard')
 					await page.waitForSelector('main', { state: 'visible' })
 
 					// Sidebar should be hidden on mobile
-					const sidebar = page.locator('aside').first()
+					const sidebar = page
+						.locator('aside')
+						.first()
 						.or(page.locator('[data-sidebar]').first())
 						.or(page.locator('nav').first())
 
-					const isVisible = await sidebar.isVisible().catch(() => false)
+					const _isVisible = await sidebar.isVisible().catch(() => false)
 					// On mobile, sidebar is typically hidden or behind a toggle
 					// Just verify main content takes full width
 					const main = page.locator('main')
@@ -155,37 +143,37 @@ test.describe('Responsive - Dashboard', () => {
 					}
 				})
 
-				test('mobile has menu toggle button', async ({
-					authenticatedPage: page,
-				}) => {
+				test('mobile has menu toggle button', async ({ authenticatedPage: page }) => {
 					await page.setViewportSize(viewport)
 					await page.goto('/dashboard')
 					await page.waitForSelector('main', { state: 'visible' })
 
 					// Should have some kind of menu/hamburger button
-					const menuButton = page.getByRole('button', { name: /menu|toggle/i }).first()
+					const menuButton = page
+						.getByRole('button', { name: /menu|toggle/i })
+						.first()
 						.or(page.locator('button[data-sidebar-toggle]').first())
 						.or(page.locator('header button').first())
 
 					// Menu toggle should exist
-					const exists = await menuButton.isVisible().catch(() => false)
+					const _exists = await menuButton.isVisible().catch(() => false)
 					// This is ok if there's no explicit toggle - some mobile layouts use tabs
 				})
 			}
 
 			if (device === 'desktop') {
-				test('sidebar is visible on desktop', async ({
-					authenticatedPage: page,
-				}) => {
+				test('sidebar is visible on desktop', async ({ authenticatedPage: page }) => {
 					await page.setViewportSize(viewport)
 					await page.goto('/dashboard')
 					await page.waitForSelector('main', { state: 'visible' })
 
 					// Desktop should show sidebar navigation
 					const navLinks = page.getByRole('link', { name: /agents/i }).first()
-					await expect(navLinks).toBeVisible({ timeout: 5000 }).catch(() => {
-						// May use different nav pattern
-					})
+					await expect(navLinks)
+						.toBeVisible({ timeout: 5000 })
+						.catch(() => {
+							// May use different nav pattern
+						})
 				})
 			}
 		})
@@ -245,9 +233,7 @@ test.describe('Responsive - Settings', () => {
 // ============================================================
 
 test.describe('Responsive - Touch Targets (Mobile)', () => {
-	test('interactive elements meet 44px minimum tap target', async ({
-		authenticatedPage: page,
-	}) => {
+	test('interactive elements meet 44px minimum tap target', async ({ authenticatedPage: page }) => {
 		await page.setViewportSize(VIEWPORTS.mobile)
 		await page.goto('/dashboard')
 		await page.waitForSelector('main', { state: 'visible' })
