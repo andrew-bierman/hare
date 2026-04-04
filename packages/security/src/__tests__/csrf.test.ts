@@ -354,6 +354,41 @@ describe('CSRF Protection', () => {
 			expect(next).toHaveBeenCalled()
 			expect(context.json).not.toHaveBeenCalled()
 		})
+
+		it('skips CSRF validation for Bearer token auth', async () => {
+			const context = createMockContext({
+				method: 'POST',
+				cookieToken: undefined, // No CSRF token
+				headers: { Authorization: 'Bearer some-jwt-or-api-token' },
+			})
+			const next = vi.fn().mockResolvedValue(undefined)
+
+			const middleware = csrfProtection()
+			await middleware(context, next)
+
+			expect(next).toHaveBeenCalled()
+			expect(context.json).not.toHaveBeenCalled()
+		})
+
+		it('does not skip CSRF for non-Bearer Authorization headers', async () => {
+			const context = createMockContext({
+				method: 'POST',
+				cookieToken: undefined,
+				headers: { Authorization: 'Basic dXNlcjpwYXNz' },
+			})
+			const next = vi.fn().mockResolvedValue(undefined)
+
+			const middleware = csrfProtection()
+			await middleware(context, next)
+
+			expect(next).not.toHaveBeenCalled()
+			expect(context.json).toHaveBeenCalledWith(
+				expect.objectContaining({
+					error: 'CSRF validation failed',
+				}),
+				403,
+			)
+		})
 	})
 
 	describe('setCsrfCookie', () => {
