@@ -50,8 +50,8 @@ export default defineConfig({
 			? `E2E=true CI=true CLOUDFLARE_ENVIRONMENT=local PORT=${DEFAULT_PORT} bun run dev`
 			: `E2E=true CI=true PORT=${DEFAULT_PORT} bun run dev`,
 		url: `http://localhost:${DEFAULT_PORT}`,
-		// Always reuse if server is already running on the port
-		reuseExistingServer: true,
+		// Reuse existing server locally; in CI always start fresh
+		reuseExistingServer: !process.env.CI,
 		timeout: 120 * 1000,
 		// Ignore HTTPS certificate errors during tests
 		ignoreHTTPSErrors: true,

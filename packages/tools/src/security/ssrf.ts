@@ -174,6 +174,13 @@ export function isBlockedHost(hostname: string): BlockedResult {
 		return { blocked: true, reason: 'Numeric IP representations are not allowed' }
 	}
 
+	// Block dotted-quad hostnames with leading-zero octets (e.g., 0127.0.0.1)
+	// These bypass parseIPv4 (which requires canonical form) but may be resolved
+	// by DNS or HTTP libraries using octal interpretation.
+	if (/^\d{1,3}(\.\d{1,3}){3}$/.test(lower) && /(?:^|\.)0\d/.test(lower)) {
+		return { blocked: true, reason: 'Leading-zero octets in IP address are not allowed' }
+	}
+
 	// Check if it's a standard dotted-decimal IPv4 address
 	const ipv4Octets = parseIPv4(lower)
 	if (ipv4Octets) {

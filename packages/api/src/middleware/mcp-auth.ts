@@ -86,11 +86,13 @@ async function hashApiKey(key: string): Promise<string> {
  */
 export const mcpAuthMiddleware: MiddlewareHandler<McpAuthEnv> = async (c, next) => {
 	// Try session auth first (web UI users)
-	try {
-		const d1 = getD1(c)
-		const authEnv = getAuthEnv(c)
-		const auth = createAuth({ d1, env: authEnv })
+	// Config errors (e.g., missing BETTER_AUTH_SECRET) must propagate as 500,
+	// so only catch the session lookup itself.
+	const d1 = getD1(c)
+	const authEnv = getAuthEnv(c)
+	const auth = createAuth({ d1, env: authEnv })
 
+	try {
 		const session = await auth.api.getSession({
 			headers: c.req.raw.headers,
 		})
@@ -110,7 +112,7 @@ export const mcpAuthMiddleware: MiddlewareHandler<McpAuthEnv> = async (c, next) 
 			return
 		}
 	} catch {
-		// Session auth failed, try API key
+		// Session lookup failed (no cookie, invalid session, etc.) — try API key
 	}
 
 	// Try API key auth (external MCP clients)
@@ -136,6 +138,16 @@ export const mcpAuthMiddleware: MiddlewareHandler<McpAuthEnv> = async (c, next) 
 					.where(eq(workspaces.id, keyRecord.workspaceId))
 
 				if (workspace) {
+					// Validate that the requested workspace matches the API key's workspace.
+					// Without this, a key for workspace A could access workspace B if the same owner.
+					const requestedWorkspaceId =
+						c.req.param('workspaceId') ||
+						c.req.header('X-Workspace-Id') ||
+						c.req.query('workspaceId')
+					if (requestedWorkspaceId && requestedWorkspaceId !== keyRecord.workspaceId) {
+						return c.json({ error: 'API key not authorized for this workspace' }, 403)
+					}
+
 					// Set user context from API key owner
 					c.set('user', {
 						id: workspace.ownerId,

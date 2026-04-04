@@ -86,10 +86,13 @@ const link = new RPCLink({
 			headers.set('X-Workspace-Id', currentWorkspaceId)
 		}
 
-		// Inject CSRF token for state-changing methods
-		const csrfToken = getCsrfToken()
-		if (csrfToken) {
-			headers.set('X-CSRF-Token', csrfToken)
+		// Inject CSRF token only for state-changing methods
+		const method = ((init as RequestInit)?.method ?? 'GET').toUpperCase()
+		if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
+			const csrfToken = getCsrfToken()
+			if (csrfToken) {
+				headers.set('X-CSRF-Token', csrfToken)
+			}
 		}
 
 		return fetch(input, {
