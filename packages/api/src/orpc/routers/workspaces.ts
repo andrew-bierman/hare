@@ -28,10 +28,6 @@ const WorkspaceSchema = z.object({
 	updatedAt: z.string().datetime(),
 })
 
-const WorkspaceWithRoleSchema = WorkspaceSchema.extend({
-	role: z.enum(['owner', 'admin', 'member', 'viewer']).optional(),
-})
-
 const CreateWorkspaceInputSchema = z.object({
 	name: z.string().min(1).max(100),
 	slug: z.string().min(1).max(50).regex(/^[a-z0-9-]+$/),
@@ -69,22 +65,19 @@ function serializeWorkspace(
  */
 export const list = authedProcedure
 	.route({ method: 'GET', path: '/workspaces' })
-	.output(z.object({ workspaces: z.array(WorkspaceWithRoleSchema) }))
+	.output(z.object({ workspaces: z.array(WorkspaceSchema) }))
 	.handler(async ({ context }) => {
 		const { db, user } = context
 
-		// Get workspaces where user is a member, including their role
+		// Get workspaces where user is a member
 		const memberships = await db
-			.select({ workspace: workspaces, role: workspaceMembers.role })
+			.select({ workspace: workspaces })
 			.from(workspaceMembers)
 			.innerJoin(workspaces, eq(workspaceMembers.workspaceId, workspaces.id))
 			.where(eq(workspaceMembers.userId, user.id))
 
 		return {
-			workspaces: memberships.map((m) => ({
-				...serializeWorkspace(m.workspace),
-				role: m.role,
-			})),
+			workspaces: memberships.map((m) => serializeWorkspace(m.workspace)),
 		}
 	})
 
@@ -133,7 +126,7 @@ export const get = requireWrite
 export const create = authedProcedure
 	.route({ method: 'POST', path: '/workspaces', successStatus: 201 })
 	.input(CreateWorkspaceInputSchema)
-	.output(WorkspaceWithRoleSchema)
+	.output(WorkspaceSchema)
 	.handler(async ({ input, context }) => {
 		const { db, user } = context
 
@@ -166,10 +159,7 @@ export const create = authedProcedure
 			role: config.enums.workspaceRole.OWNER,
 		})
 
-		return {
-			...serializeWorkspace(workspace),
-			role: config.enums.workspaceRole.OWNER,
-		}
+		return serializeWorkspace(workspace)
 	})
 
 /**
@@ -226,23 +216,20 @@ export const remove = requireOwner
  */
 export const ensureDefault = authedProcedure
 	.route({ method: 'POST', path: '/workspaces/ensure-default' })
-	.output(WorkspaceWithRoleSchema)
+	.output(WorkspaceSchema)
 	.handler(async ({ context }) => {
 		const { db, user } = context
 
 		// Check if user already has a workspace
 		const memberships = await db
-			.select({ workspace: workspaces, role: workspaceMembers.role })
+			.select({ workspace: workspaces })
 			.from(workspaceMembers)
 			.innerJoin(workspaces, eq(workspaceMembers.workspaceId, workspaces.id))
 			.where(eq(workspaceMembers.userId, user.id))
 			.limit(1)
 
 		if (memberships.length > 0 && memberships[0]) {
-			return {
-				...serializeWorkspace(memberships[0].workspace),
-				role: memberships[0].role,
-			}
+			return serializeWorkspace(memberships[0].workspace)
 		}
 
 		// Create default workspace
@@ -266,10 +253,7 @@ export const ensureDefault = authedProcedure
 			role: config.enums.workspaceRole.OWNER,
 		})
 
-		return {
-			...serializeWorkspace(workspace),
-			role: config.enums.workspaceRole.OWNER,
-		}
+		return serializeWorkspace(workspace)
 	})
 
 // =============================================================================
