@@ -124,7 +124,7 @@ describe('CSRF Protection', () => {
 				'__Host-csrf',
 				token,
 				expect.objectContaining({
-					httpOnly: true,
+					httpOnly: false,
 					secure: true,
 					sameSite: 'Strict',
 					path: '/',
