@@ -62,31 +62,15 @@ export const test = base.extend<{
 					throw new Error(`Sign-up API returned ${signUpResponse.status()}: ${errorText}`)
 				}
 
-				// Ensure default workspace is created
-				// First, make a GET request to seed the CSRF cookie (auth routes run before CSRF middleware)
-				await page.request.get('/api/rpc/health/live')
-				const cookies = await page.context().cookies()
-				const csrfCookie =
-					cookies.find((c) => c.name === 'csrf') ?? cookies.find((c) => c.name === '__Host-csrf')
-				const csrfToken = csrfCookie?.value ?? ''
-
-				const ensureWorkspaceResponse = await page.request.post(
-					'/api/rpc/workspaces/ensureDefault',
-					{
-						headers: {
-							'Content-Type': 'application/json',
-							...(csrfToken && { 'X-CSRF-Token': csrfToken }),
-						},
-						data: { json: {} },
-					},
-				)
-
-				if (!ensureWorkspaceResponse.ok()) {
-					console.log('ensureDefault response:', await ensureWorkspaceResponse.text())
-				}
-
-				// Navigate to dashboard and wait for it to load
+				// Navigate to dashboard — the app auto-creates a workspace for new users
 				await page.goto('/dashboard')
+
+				// Wait for workspace to finish loading (WorkspaceGate shows "Loading workspace...")
+				await page
+					.getByText('Loading workspace...')
+					.waitFor({ state: 'hidden', timeout: 30000 })
+					.catch(() => {})
+
 				await page.waitForSelector('main', { state: 'visible', timeout: 15000 })
 
 				// Dismiss the onboarding tour overlay if it appears (blocks page interactions)
