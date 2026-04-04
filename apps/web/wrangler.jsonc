@@ -3,7 +3,7 @@
 	"name": "hare",
 	"account_id": "a0adf59e1ef3edc3d2bbc2ff272474bc",
 	"main": "./src/server.ts",
-	"compatibility_date": "2025-12-01",
+	"compatibility_date": "2026-03-31",
 	"compatibility_flags": ["nodejs_compat"],
 
   // Static assets config - directory is set automatically by @cloudflare/vite-plugin
@@ -18,7 +18,8 @@
   //   wrangler secret put <SECRET_NAME>
   "vars": {
     "ENVIRONMENT": "production",
-    "APP_URL": "https://hare.abbierman101.workers.dev"
+    "APP_URL": "https://hare.abbierman101.workers.dev",
+    "AI_GATEWAY_ID": "hare-gateway"
   },
 
   // Self-reference for caching
@@ -127,9 +128,9 @@
       "invocation_logs": true
     },
     "traces": {
-      "enabled": false,
+      "enabled": true,
       "persist": true,
-      "head_sampling_rate": 0.1
+      "head_sampling_rate": 0.01
     }
   },
 

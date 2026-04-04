@@ -36,4 +36,7 @@ export interface HareEnv {
 
 	/** Vectorize index - required for memory tools */
 	VECTORIZE?: VectorizeIndex
+
+	/** Browser Rendering binding - required for browser tools */
+	BROWSER?: Fetcher
 }
