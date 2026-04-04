@@ -210,15 +210,21 @@ export {
 	type ExecutableTool,
 	configureAgentTool,
 	createAgentTool,
+	createWebhookTool,
 	deleteAgentTool,
+	deleteWebhookTool,
+	deployAgentTool,
 	executeToolTool,
 	getAgentControlTools,
 	getAgentMetricsTool,
 	getAgentTool,
 	listAgentsTool,
 	listAgentToolsTool,
+	listWebhooksTool,
+	rollbackAgentTool,
 	scheduleTaskTool,
 	sendMessageTool,
+	undeployAgentTool,
 } from './agent-control'
 
 // ==========================================
