@@ -83,6 +83,7 @@ jobs:
       VITE_APP_URL: http://localhost:3000
       CLOUDFLARE_ENVIRONMENT: local
       WRANGLER_SEND_METRICS: false
+      E2E: 'true'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
