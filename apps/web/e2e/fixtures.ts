@@ -63,7 +63,8 @@ export const test = base.extend<{
 				}
 
 				// Ensure default workspace is created
-				// Extract CSRF token from cookies (set by server on sign-up response)
+				// First, make a GET request to seed the CSRF cookie (auth routes run before CSRF middleware)
+				await page.request.get('/api/rpc/health/live')
 				const cookies = await page.context().cookies()
 				const csrfCookie =
 					cookies.find((c) => c.name === 'csrf') ?? cookies.find((c) => c.name === '__Host-csrf')
