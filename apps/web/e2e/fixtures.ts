@@ -120,7 +120,7 @@ export const test = base.extend<{
 	},
 })
 
-export { expect }
+export { expect, type Page }
 
 /**
  * Helper to create a test user via API.

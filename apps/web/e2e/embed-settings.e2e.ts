@@ -26,8 +26,8 @@ async function createAgentAndGoToEmbed(page: import('@playwright/test').Page): P
 
 	const url = page.url()
 	const match = url.match(/\/agents\/([^/]+)/)
-	if (!match) throw new Error('Failed to extract agent ID from URL')
-	const agentId = match[1]
+	const agentId = match?.[1]
+	if (!agentId) throw new Error('Failed to extract agent ID from URL')
 
 	// Wait for the agent detail page to fully load before navigating away
 	await page.waitForSelector('main', { state: 'visible' })

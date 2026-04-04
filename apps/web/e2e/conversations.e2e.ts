@@ -48,10 +48,11 @@ test.describe('Agent Conversations Page', () => {
 		// Extract agent ID from URL
 		const url = page.url()
 		const match = url.match(/\/dashboard\/agents\/([^/]+)/)
-		if (!match) {
+		const agentId = match?.[1]
+		if (!agentId) {
 			throw new Error(`Could not extract agent ID from URL: ${url}`)
 		}
-		return match[1]
+		return agentId
 	}
 
 	test('page loads after creating an agent', async ({ authenticatedPage: page }) => {
@@ -174,10 +175,11 @@ test.describe('Agent Conversations - Responsive', () => {
 
 		const url = page.url()
 		const match = url.match(/\/dashboard\/agents\/([^/]+)/)
-		if (!match) {
+		const agentId = match?.[1]
+		if (!agentId) {
 			throw new Error(`Could not extract agent ID from URL: ${url}`)
 		}
-		return match[1]
+		return agentId
 	}
 
 	for (const [device, viewport] of Object.entries(VIEWPORTS)) {

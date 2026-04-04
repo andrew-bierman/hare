@@ -71,7 +71,8 @@ const mockEnv = {
 const mockExecutionCtx = {
 	waitUntil: vi.fn(),
 	passThroughOnException: vi.fn(),
-}
+	props: {},
+} as ExecutionContext
 
 function createTestApp() {
 	const app = new Hono<McpAuthEnv>()
