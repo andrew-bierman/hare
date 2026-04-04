@@ -34,7 +34,7 @@ test.describe('Agent Conversations Page', () => {
 
 		// Wait for WorkspaceGate to finish loading
 		await expect(page.getByText('Loading workspace...'))
-			.toBeHidden({ timeout: 15000 })
+			.toBeHidden({ timeout: 5000 })
 			.catch(() => {})
 
 		const nameInput = page.getByLabel(/name/i).first()
@@ -68,7 +68,7 @@ test.describe('Agent Conversations Page', () => {
 
 		// Wait for WorkspaceGate to finish loading
 		await expect(page.getByText('Loading workspace...'))
-			.toBeHidden({ timeout: 15000 })
+			.toBeHidden({ timeout: 5000 })
 			.catch(() => {})
 
 		// Should show the Search Conversations heading
@@ -85,7 +85,7 @@ test.describe('Agent Conversations Page', () => {
 
 		// Wait for WorkspaceGate to finish loading
 		await expect(page.getByText('Loading workspace...'))
-			.toBeHidden({ timeout: 15000 })
+			.toBeHidden({ timeout: 5000 })
 			.catch(() => {})
 
 		// Search card should be visible
@@ -106,7 +106,7 @@ test.describe('Agent Conversations Page', () => {
 
 		// Wait for WorkspaceGate to finish loading
 		await expect(page.getByText('Loading workspace...'))
-			.toBeHidden({ timeout: 15000 })
+			.toBeHidden({ timeout: 5000 })
 			.catch(() => {})
 
 		// Results card should show the initial empty state
@@ -127,7 +127,7 @@ test.describe('Agent Conversations Page', () => {
 
 		// Wait for WorkspaceGate to finish loading
 		await expect(page.getByText('Loading workspace...'))
-			.toBeHidden({ timeout: 15000 })
+			.toBeHidden({ timeout: 5000 })
 			.catch(() => {})
 
 		// Type a search query that will not match anything
@@ -152,7 +152,7 @@ test.describe('Agent Conversations Page', () => {
 
 		// Wait for WorkspaceGate to finish loading
 		await expect(page.getByText('Loading workspace...'))
-			.toBeHidden({ timeout: 15000 })
+			.toBeHidden({ timeout: 5000 })
 			.catch(() => {})
 
 		// Back button (ArrowLeft icon) should be visible
@@ -193,7 +193,7 @@ test.describe('Agent Conversations - Responsive', () => {
 
 		// Wait for WorkspaceGate to finish loading
 		await expect(page.getByText('Loading workspace...'))
-			.toBeHidden({ timeout: 15000 })
+			.toBeHidden({ timeout: 5000 })
 			.catch(() => {})
 
 		const nameInput = page.getByLabel(/name/i).first()
@@ -229,7 +229,7 @@ test.describe('Agent Conversations - Responsive', () => {
 
 			// Wait for WorkspaceGate to finish loading
 			await expect(page.getByText('Loading workspace...'))
-				.toBeHidden({ timeout: 15000 })
+				.toBeHidden({ timeout: 5000 })
 				.catch(() => {})
 
 			// Heading should be visible

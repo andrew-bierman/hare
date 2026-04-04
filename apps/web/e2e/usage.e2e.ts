@@ -73,7 +73,7 @@ test.describe('Usage Page Access - Sidebar Navigation', () => {
 		await authenticatedPage.getByRole('link', { name: 'Usage' }).click()
 		await authenticatedPage.waitForURL(/\/dashboard\/usage/, { timeout: 10000 })
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
-		await expect(authenticatedPage.getByText('Loading workspace...')).toBeHidden({ timeout: 15000 }).catch(() => {})
+		await expect(authenticatedPage.getByText('Loading workspace...')).toBeHidden({ timeout: 5000 }).catch(() => {})
 		await expect(authenticatedPage.getByRole('heading', { name: 'Usage' })).toBeVisible({ timeout: 10000 })
 	})
 
@@ -90,7 +90,7 @@ test.describe('Usage Page - Authenticated', () => {
 	test('authenticated user can access usage page', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/usage')
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
-		await expect(authenticatedPage.getByText('Loading workspace...')).toBeHidden({ timeout: 15000 }).catch(() => {})
+		await expect(authenticatedPage.getByText('Loading workspace...')).toBeHidden({ timeout: 5000 }).catch(() => {})
 		await expect(authenticatedPage).toHaveURL(/\/dashboard\/usage/)
 		await expect(authenticatedPage.getByRole('heading', { name: 'Usage' })).toBeVisible({ timeout: 10000 })
 	})
@@ -98,7 +98,7 @@ test.describe('Usage Page - Authenticated', () => {
 	test('usage page layout loads correctly', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/usage')
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
-		await expect(authenticatedPage.getByText('Loading workspace...')).toBeHidden({ timeout: 15000 }).catch(() => {})
+		await expect(authenticatedPage.getByText('Loading workspace...')).toBeHidden({ timeout: 5000 }).catch(() => {})
 
 		// Verify the main heading
 		await expect(authenticatedPage.getByRole('heading', { name: 'Usage' })).toBeVisible({ timeout: 10000 })
@@ -115,7 +115,7 @@ test.describe('Usage Statistics Display', () => {
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Wait for WorkspaceGate and loading to complete
-		await expect(authenticatedPage.getByText('Loading workspace...')).toBeHidden({ timeout: 15000 }).catch(() => {})
+		await expect(authenticatedPage.getByText('Loading workspace...')).toBeHidden({ timeout: 5000 }).catch(() => {})
 		await authenticatedPage.waitForTimeout(2000)
 
 		// Check for Total API Calls card
@@ -127,7 +127,7 @@ test.describe('Usage Statistics Display', () => {
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Wait for WorkspaceGate and loading to complete
-		await expect(authenticatedPage.getByText('Loading workspace...')).toBeHidden({ timeout: 15000 }).catch(() => {})
+		await expect(authenticatedPage.getByText('Loading workspace...')).toBeHidden({ timeout: 5000 }).catch(() => {})
 		await authenticatedPage.waitForTimeout(2000)
 
 		// Check for Total Tokens card
@@ -139,7 +139,7 @@ test.describe('Usage Statistics Display', () => {
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Wait for WorkspaceGate and loading to complete
-		await expect(authenticatedPage.getByText('Loading workspace...')).toBeHidden({ timeout: 15000 }).catch(() => {})
+		await expect(authenticatedPage.getByText('Loading workspace...')).toBeHidden({ timeout: 5000 }).catch(() => {})
 		await authenticatedPage.waitForTimeout(2000)
 
 		// Check for Active Agents card
@@ -151,7 +151,7 @@ test.describe('Usage Statistics Display', () => {
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Wait for WorkspaceGate and loading to complete
-		await expect(authenticatedPage.getByText('Loading workspace...')).toBeHidden({ timeout: 15000 }).catch(() => {})
+		await expect(authenticatedPage.getByText('Loading workspace...')).toBeHidden({ timeout: 5000 }).catch(() => {})
 		await authenticatedPage.waitForTimeout(2000)
 
 		// Check for Period card - use exact match to avoid ambiguity
@@ -163,7 +163,7 @@ test.describe('Usage Statistics Display', () => {
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Wait for WorkspaceGate and loading to complete
-		await expect(authenticatedPage.getByText('Loading workspace...')).toBeHidden({ timeout: 15000 }).catch(() => {})
+		await expect(authenticatedPage.getByText('Loading workspace...')).toBeHidden({ timeout: 5000 }).catch(() => {})
 		await authenticatedPage.waitForTimeout(2000)
 
 		// Check for billing period text
@@ -175,7 +175,7 @@ test.describe('Usage Statistics Display', () => {
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Wait for WorkspaceGate and loading to complete
-		await expect(authenticatedPage.getByText('Loading workspace...')).toBeHidden({ timeout: 15000 }).catch(() => {})
+		await expect(authenticatedPage.getByText('Loading workspace...')).toBeHidden({ timeout: 5000 }).catch(() => {})
 		await authenticatedPage.waitForTimeout(2000)
 
 		// Check for input/output breakdown text pattern
@@ -190,7 +190,7 @@ test.describe('Token Breakdown Section', () => {
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Wait for WorkspaceGate and loading to complete
-		await expect(authenticatedPage.getByText('Loading workspace...')).toBeHidden({ timeout: 15000 }).catch(() => {})
+		await expect(authenticatedPage.getByText('Loading workspace...')).toBeHidden({ timeout: 5000 }).catch(() => {})
 		await authenticatedPage.waitForTimeout(2000)
 
 		// Check for Token Breakdown title
@@ -202,7 +202,7 @@ test.describe('Token Breakdown Section', () => {
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Wait for WorkspaceGate and loading to complete
-		await expect(authenticatedPage.getByText('Loading workspace...')).toBeHidden({ timeout: 15000 }).catch(() => {})
+		await expect(authenticatedPage.getByText('Loading workspace...')).toBeHidden({ timeout: 5000 }).catch(() => {})
 		await authenticatedPage.waitForTimeout(2000)
 
 		// Check for Input Tokens label
@@ -215,7 +215,7 @@ test.describe('Token Breakdown Section', () => {
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Wait for WorkspaceGate and loading to complete
-		await expect(authenticatedPage.getByText('Loading workspace...')).toBeHidden({ timeout: 15000 }).catch(() => {})
+		await expect(authenticatedPage.getByText('Loading workspace...')).toBeHidden({ timeout: 5000 }).catch(() => {})
 		await authenticatedPage.waitForTimeout(2000)
 
 		// Check for Output Tokens label
@@ -230,7 +230,7 @@ test.describe('Deployed Agents Section', () => {
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Wait for WorkspaceGate and loading to complete
-		await expect(authenticatedPage.getByText('Loading workspace...')).toBeHidden({ timeout: 15000 }).catch(() => {})
+		await expect(authenticatedPage.getByText('Loading workspace...')).toBeHidden({ timeout: 5000 }).catch(() => {})
 		await authenticatedPage.waitForTimeout(2000)
 
 		// Check for Deployed Agents title
@@ -242,7 +242,7 @@ test.describe('Deployed Agents Section', () => {
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Wait for WorkspaceGate and loading to complete
-		await expect(authenticatedPage.getByText('Loading workspace...')).toBeHidden({ timeout: 15000 }).catch(() => {})
+		await expect(authenticatedPage.getByText('Loading workspace...')).toBeHidden({ timeout: 5000 }).catch(() => {})
 		await authenticatedPage.waitForTimeout(2000)
 
 		// Check for description text
@@ -256,7 +256,7 @@ test.describe('Deployed Agents Section', () => {
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Wait for WorkspaceGate and loading to complete
-		await expect(authenticatedPage.getByText('Loading workspace...')).toBeHidden({ timeout: 15000 }).catch(() => {})
+		await expect(authenticatedPage.getByText('Loading workspace...')).toBeHidden({ timeout: 5000 }).catch(() => {})
 		await authenticatedPage.waitForTimeout(2000)
 
 		// For new users, should show no deployed agents message
@@ -276,7 +276,7 @@ test.describe('About Usage Tracking Section', () => {
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Wait for WorkspaceGate and loading to complete
-		await expect(authenticatedPage.getByText('Loading workspace...')).toBeHidden({ timeout: 15000 }).catch(() => {})
+		await expect(authenticatedPage.getByText('Loading workspace...')).toBeHidden({ timeout: 5000 }).catch(() => {})
 		await authenticatedPage.waitForTimeout(2000)
 
 		// Check for About Usage Tracking title
@@ -288,7 +288,7 @@ test.describe('About Usage Tracking Section', () => {
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Wait for WorkspaceGate and loading to complete
-		await expect(authenticatedPage.getByText('Loading workspace...')).toBeHidden({ timeout: 15000 }).catch(() => {})
+		await expect(authenticatedPage.getByText('Loading workspace...')).toBeHidden({ timeout: 5000 }).catch(() => {})
 		await authenticatedPage.waitForTimeout(2000)
 
 		// Check for description text about automatic tracking
@@ -300,7 +300,7 @@ test.describe('About Usage Tracking Section', () => {
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Wait for WorkspaceGate and loading to complete
-		await expect(authenticatedPage.getByText('Loading workspace...')).toBeHidden({ timeout: 15000 }).catch(() => {})
+		await expect(authenticatedPage.getByText('Loading workspace...')).toBeHidden({ timeout: 5000 }).catch(() => {})
 		await authenticatedPage.waitForTimeout(2000)
 
 		// Check for Cloudflare Workers AI pricing text
@@ -527,7 +527,7 @@ test.describe('Usage Page Loading States', () => {
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Wait for WorkspaceGate and content to load
-		await expect(authenticatedPage.getByText('Loading workspace...')).toBeHidden({ timeout: 15000 }).catch(() => {})
+		await expect(authenticatedPage.getByText('Loading workspace...')).toBeHidden({ timeout: 5000 }).catch(() => {})
 		await authenticatedPage.waitForTimeout(3000)
 
 		// After loading, stat cards should be visible
@@ -541,7 +541,7 @@ test.describe('Usage Page Responsive Layout', () => {
 		await authenticatedPage.setViewportSize({ width: 375, height: 667 })
 		await authenticatedPage.goto('/dashboard/usage')
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
-		await expect(authenticatedPage.getByText('Loading workspace...')).toBeHidden({ timeout: 15000 }).catch(() => {})
+		await expect(authenticatedPage.getByText('Loading workspace...')).toBeHidden({ timeout: 5000 }).catch(() => {})
 
 		// Page should still load without 404
 		await expect(authenticatedPage.locator('body')).not.toContainText('404')
@@ -553,7 +553,7 @@ test.describe('Usage Page Responsive Layout', () => {
 		await authenticatedPage.setViewportSize({ width: 768, height: 1024 })
 		await authenticatedPage.goto('/dashboard/usage')
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
-		await expect(authenticatedPage.getByText('Loading workspace...')).toBeHidden({ timeout: 15000 }).catch(() => {})
+		await expect(authenticatedPage.getByText('Loading workspace...')).toBeHidden({ timeout: 5000 }).catch(() => {})
 
 		await expect(authenticatedPage.locator('body')).not.toContainText('404')
 		await expect(authenticatedPage.getByRole('heading', { name: 'Usage' })).toBeVisible({ timeout: 10000 })
@@ -563,7 +563,7 @@ test.describe('Usage Page Responsive Layout', () => {
 		await authenticatedPage.setViewportSize({ width: 375, height: 667 })
 		await authenticatedPage.goto('/dashboard/usage')
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
-		await expect(authenticatedPage.getByText('Loading workspace...')).toBeHidden({ timeout: 15000 }).catch(() => {})
+		await expect(authenticatedPage.getByText('Loading workspace...')).toBeHidden({ timeout: 5000 }).catch(() => {})
 
 		// Wait for content to load
 		await authenticatedPage.waitForTimeout(2000)
@@ -581,7 +581,7 @@ test.describe('Usage Page Navigation', () => {
 
 		await authenticatedPage.getByRole('link', { name: 'Usage' }).click()
 		await authenticatedPage.waitForURL(/\/dashboard\/usage/)
-		await expect(authenticatedPage.getByText('Loading workspace...')).toBeHidden({ timeout: 15000 }).catch(() => {})
+		await expect(authenticatedPage.getByText('Loading workspace...')).toBeHidden({ timeout: 5000 }).catch(() => {})
 
 		await expect(authenticatedPage.getByRole('heading', { name: 'Usage' })).toBeVisible({ timeout: 10000 })
 	})
@@ -592,7 +592,7 @@ test.describe('Usage Page Navigation', () => {
 
 		await authenticatedPage.getByRole('link', { name: 'Dashboard' }).click()
 		await authenticatedPage.waitForURL(/\/dashboard$/)
-		await expect(authenticatedPage.getByText('Loading workspace...')).toBeHidden({ timeout: 15000 }).catch(() => {})
+		await expect(authenticatedPage.getByText('Loading workspace...')).toBeHidden({ timeout: 5000 }).catch(() => {})
 
 		await expect(authenticatedPage.getByRole('heading', { name: 'Dashboard' })).toBeVisible({ timeout: 10000 })
 	})
@@ -603,7 +603,7 @@ test.describe('Usage Page Navigation', () => {
 
 		await authenticatedPage.getByRole('link', { name: 'Agents' }).click()
 		await authenticatedPage.waitForURL(/\/dashboard\/agents/)
-		await expect(authenticatedPage.getByText('Loading workspace...')).toBeHidden({ timeout: 15000 }).catch(() => {})
+		await expect(authenticatedPage.getByText('Loading workspace...')).toBeHidden({ timeout: 5000 }).catch(() => {})
 
 		await expect(
 			authenticatedPage.getByRole('heading', { name: 'Agents', exact: true }),
@@ -630,7 +630,7 @@ test.describe('Usage Page Accessibility', () => {
 	test('has proper heading hierarchy', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/usage')
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
-		await expect(authenticatedPage.getByText('Loading workspace...')).toBeHidden({ timeout: 15000 }).catch(() => {})
+		await expect(authenticatedPage.getByText('Loading workspace...')).toBeHidden({ timeout: 5000 }).catch(() => {})
 
 		// Should have h2 heading for main page title
 		const h2 = authenticatedPage.locator('h2').filter({ hasText: 'Usage' })
@@ -640,7 +640,7 @@ test.describe('Usage Page Accessibility', () => {
 	test('stat cards have proper labels', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/usage')
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
-		await expect(authenticatedPage.getByText('Loading workspace...')).toBeHidden({ timeout: 15000 }).catch(() => {})
+		await expect(authenticatedPage.getByText('Loading workspace...')).toBeHidden({ timeout: 5000 }).catch(() => {})
 
 		// Wait for content to load by checking for first stat card
 		await expect(authenticatedPage.getByText('Total API Calls')).toBeVisible({ timeout: 15000 })

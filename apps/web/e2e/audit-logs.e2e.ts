@@ -29,7 +29,7 @@ test.describe('Audit Logs Page', () => {
 
 		// Wait for WorkspaceGate to finish loading
 		await expect(page.getByText('Loading workspace...'))
-			.toBeHidden({ timeout: 15000 })
+			.toBeHidden({ timeout: 5000 })
 			.catch(() => {})
 
 		await expect(page.getByRole('heading', { name: 'Audit Logs' })).toBeVisible({
@@ -45,7 +45,7 @@ test.describe('Audit Logs Page', () => {
 
 		// Wait for WorkspaceGate to finish loading
 		await expect(page.getByText('Loading workspace...'))
-			.toBeHidden({ timeout: 15000 })
+			.toBeHidden({ timeout: 5000 })
 			.catch(() => {})
 
 		// Filters section should be visible
@@ -64,7 +64,7 @@ test.describe('Audit Logs Page', () => {
 
 		// Wait for WorkspaceGate to finish loading
 		await expect(page.getByText('Loading workspace...'))
-			.toBeHidden({ timeout: 15000 })
+			.toBeHidden({ timeout: 5000 })
 			.catch(() => {})
 
 		// The Workspace Activity card should be visible
@@ -89,7 +89,7 @@ test.describe('Audit Logs Page', () => {
 
 		// Wait for WorkspaceGate to finish loading
 		await expect(page.getByText('Loading workspace...'))
-			.toBeHidden({ timeout: 15000 })
+			.toBeHidden({ timeout: 5000 })
 			.catch(() => {})
 
 		// A fresh test user workspace likely has no audit logs
@@ -115,7 +115,7 @@ test.describe('Audit Logs - Responsive', () => {
 
 			// Wait for WorkspaceGate to finish loading
 			await expect(page.getByText('Loading workspace...'))
-				.toBeHidden({ timeout: 15000 })
+				.toBeHidden({ timeout: 5000 })
 				.catch(() => {})
 
 			// Heading should still be visible

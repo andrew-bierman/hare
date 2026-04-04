@@ -26,7 +26,7 @@ async function waitForWorkspace(page: Page) {
 	await expect(page.locator('main').first()).toBeVisible({ timeout: 10000 })
 	// Wait for WorkspaceGate loading indicator to disappear
 	await expect(page.getByText('Loading workspace...'))
-		.toBeHidden({ timeout: 15000 })
+		.toBeHidden({ timeout: 5000 })
 		.catch(() => {})
 }
 

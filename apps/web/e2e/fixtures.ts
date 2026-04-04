@@ -77,7 +77,7 @@ export const test = base.extend<{
 							'Content-Type': 'application/json',
 							...(csrfToken && { 'X-CSRF-Token': csrfToken }),
 						},
-						data: {},
+						data: { json: {} },
 					},
 				)
 
