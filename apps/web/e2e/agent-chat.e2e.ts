@@ -22,7 +22,7 @@ async function createAndDeployAgent(page: Page, name: string): Promise<string> {
 
 	const url = page.url()
 	const match = url.match(/\/agents\/([^/]+)/)
-	if (!match) throw new Error('Failed to extract agent ID from URL')
+	if (!match?.[1]) throw new Error('Failed to extract agent ID from URL')
 	const agentId = match[1]
 
 	// Step 2: Add instructions on the detail page
