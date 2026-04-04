@@ -150,7 +150,7 @@ describe('Memory Tools', () => {
 		describe('execution', () => {
 			it('recalls memories successfully', async () => {
 				const result = await recallMemoryTool.execute(
-					{ query: 'What do I know?', topK: 5 },
+					{ query: 'What do I know?', topK: 5, reranking: false },
 					context,
 				)
 
@@ -161,7 +161,7 @@ describe('Memory Tools', () => {
 
 			it('returns formatted memories', async () => {
 				const result = await recallMemoryTool.execute(
-					{ query: 'test', topK: 5 },
+					{ query: 'test', topK: 5, reranking: false },
 					context,
 				)
 
@@ -175,7 +175,7 @@ describe('Memory Tools', () => {
 
 			it('generates embedding for query', async () => {
 				await recallMemoryTool.execute(
-					{ query: 'test query', topK: 5 },
+					{ query: 'test query', topK: 5, reranking: false },
 					context,
 				)
 
@@ -190,7 +190,7 @@ describe('Memory Tools', () => {
 				;(emptyContext.env.VECTORIZE as unknown as { query: ReturnType<typeof vi.fn> }).query.mockResolvedValueOnce({ matches: [] })
 
 				const result = await recallMemoryTool.execute(
-					{ query: 'nonexistent topic', topK: 5 },
+					{ query: 'nonexistent topic', topK: 5, reranking: false },
 					emptyContext,
 				)
 
@@ -203,7 +203,7 @@ describe('Memory Tools', () => {
 				const contextWithoutAI = createMockContext(false, true)
 
 				const result = await recallMemoryTool.execute(
-					{ query: 'test', topK: 5 },
+					{ query: 'test', topK: 5, reranking: false },
 					contextWithoutAI,
 				)
 
@@ -216,7 +216,7 @@ describe('Memory Tools', () => {
 				const contextWithoutVectorize = createMockContext(true, false)
 
 				const result = await recallMemoryTool.execute(
-					{ query: 'test', topK: 5 },
+					{ query: 'test', topK: 5, reranking: false },
 					contextWithoutVectorize,
 				)
 

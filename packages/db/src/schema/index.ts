@@ -10,6 +10,9 @@ export * from './auth'
 // Conversation tables
 export * from './conversations'
 
+// Document tables
+export * from './documents'
+
 // Deployment tables
 export * from './deployments'
 
