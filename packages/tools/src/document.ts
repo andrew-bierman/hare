@@ -40,6 +40,10 @@ export const convertDocumentTool = createTool({
 		if (!context.env.AI) return failure('AI binding not available')
 		if (!context.env.R2) return failure('R2 bucket not available')
 		try {
+			// Validate R2 key — block path traversal
+			if (params.r2Key.includes('..') || params.r2Key.includes('\0')) {
+				return failure('Invalid R2 key: path traversal not allowed')
+			}
 			const obj = await context.env.R2.get(params.r2Key)
 			if (!obj) return failure('Document not found in R2')
 
