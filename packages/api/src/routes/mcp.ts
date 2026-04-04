@@ -19,9 +19,6 @@ import { optionalAuthMiddleware } from '../middleware'
 import { ErrorSchema } from '../schemas'
 import type { OptionalAuthEnv } from '@hare/types'
 
-// Create a registry for tool execution
-const toolRegistry = createRegistry(agentControlTools)
-
 /**
  * Check if a user has access to a workspace.
  */
