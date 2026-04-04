@@ -185,6 +185,7 @@ export class HareMcpAgent<TEnv extends McpAgentEnv = McpAgentEnv> extends McpAge
 			env: this.env,
 			workspaceId: this.state.workspaceId || 'default',
 			userId: 'mcp-client',
+			agentId: this.state.agentId,
 		}
 	}
 }

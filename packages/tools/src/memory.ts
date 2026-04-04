@@ -136,7 +136,9 @@ export const recallMemoryTool = createTool({
 			}
 
 			const { query, topK, type, tags } = params
-			const agentId = context.workspaceId
+			// Use agentId for per-agent memory isolation; fall back to workspaceId
+			// for legacy vectors stored before this fix
+			const agentId = context.agentId || context.workspaceId
 
 			// Generate embedding for the query
 			const queryVector = await generateEmbedding({ ai: context.env.AI, text: query })
@@ -228,7 +230,7 @@ export const storeMemoryTool = createTool({
 			}
 
 			const { content, type, tags, source } = params
-			const agentId = context.workspaceId
+			const agentId = context.agentId || context.workspaceId
 			const memoryId = `mem_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`
 
 			// Generate embedding for the content

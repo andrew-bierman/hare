@@ -18,6 +18,8 @@ export interface ToolContext<TEnv extends HareEnv = HareEnv> {
 	workspaceId: string
 	/** User ID for audit trail (optional for anonymous sessions) */
 	userId?: string | null
+	/** Agent ID for per-agent scoping (e.g., memory isolation) */
+	agentId?: string | null
 }
 
 /**

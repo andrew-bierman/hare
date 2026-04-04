@@ -13,8 +13,8 @@
  */
 
 import { Agent, type Connection, type ConnectionContext, type WSMessage } from 'agents'
-import type { ModelMessage } from 'ai'
-import { streamText } from 'ai'
+import type { ModelMessage, ToolSet } from 'ai'
+import { streamText, stepCountIs } from 'ai'
 import { z } from 'zod'
 import { type HareEnv, type ToolContext, type ToolResult, getSystemTools, ToolRegistry } from '@hare/tools'
 import {
@@ -28,6 +28,7 @@ import {
 	type ToolExecutePayload,
 } from '@hare/types'
 import { createWorkersAIModel } from './providers/workers-ai'
+import { toAISDKTools } from './tool-adapter'
 
 // Re-export types for convenience
 export type { HareAgentState, ClientMessage, ServerMessage }
@@ -381,6 +382,35 @@ export class HareAgent<TEnv extends HareAgentEnv = HareAgentEnv> extends Agent<
 	/**
 	 * Handle chat message via WebSocket.
 	 */
+	/**
+	 * Prepare inference options shared by both WebSocket and HTTP chat paths.
+	 */
+	private prepareInference(messages: ModelMessage[]) {
+		const model = createWorkersAIModel({ modelName: this.state.model, ai: this.env.AI })
+		const systemMessage: ModelMessage = {
+			role: 'system',
+			content: this.buildSystemPrompt(),
+		}
+
+		// Cap message history to avoid context overflow
+		const recentMessages = messages.slice(-50)
+
+		// Convert Hare tools to AI SDK format for tool calling
+		const context = this.createToolContext()
+		const tools = this.toolRegistry.list()
+		const aiTools: ToolSet = tools.length > 0
+			// biome-ignore lint/suspicious/noExplicitAny: Required for heterogeneous tool cast
+			? toAISDKTools(tools as any, context)
+			: {}
+
+		return {
+			model,
+			messages: [systemMessage, ...recentMessages],
+			tools: aiTools,
+			stopWhen: tools.length > 0 ? stepCountIs(5) : undefined,
+		}
+	}
+
 	private async handleChat(connection: Connection, payload: ChatPayload): Promise<void> {
 		const { message, userId, metadata } = payload
 
@@ -397,20 +427,9 @@ export class HareAgent<TEnv extends HareAgentEnv = HareAgentEnv> extends Agent<
 			const userMessage: ModelMessage = { role: 'user', content: message }
 			const messages = [...this.state.messages, userMessage]
 
-			// Create AI model
-			const model = createWorkersAIModel({ modelName: this.state.model, ai: this.env.AI })
-
-			// Build system prompt
-			const systemMessage: ModelMessage = {
-				role: 'system',
-				content: this.buildSystemPrompt(),
-			}
-
-			// Stream response
-			const result = await streamText({
-				model,
-				messages: [systemMessage, ...messages],
-			})
+			// Stream response with tools
+			const inference = this.prepareInference(messages)
+			const result = await streamText(inference)
 
 			let fullResponse = ''
 
@@ -477,20 +496,9 @@ export class HareAgent<TEnv extends HareAgentEnv = HareAgentEnv> extends Agent<
 			const userMessage: ModelMessage = { role: 'user', content: message }
 			const messages = [...this.state.messages, userMessage]
 
-			// Create AI model
-			const model = createWorkersAIModel({ modelName: this.state.model, ai: this.env.AI })
-
-			// Build system prompt
-			const systemMessage: ModelMessage = {
-				role: 'system',
-				content: this.buildSystemPrompt(),
-			}
-
-			// Stream response
-			const result = await streamText({
-				model,
-				messages: [systemMessage, ...messages],
-			})
+			// Stream response with tools
+			const inference = this.prepareInference(messages)
+			const result = await streamText(inference)
 
 			// Create readable stream for SSE
 			const encoder = new TextEncoder()
@@ -779,16 +787,19 @@ export class HareAgent<TEnv extends HareAgentEnv = HareAgentEnv> extends Agent<
 	private buildSystemPrompt(): string {
 		const parts: string[] = [this.state.instructions]
 
+		// Inject agent configuration context
+		parts.push(`\n\n## Your Configuration`)
+		parts.push(`- Model: ${this.state.model}`)
+		if (this.state.agentId) parts.push(`- Agent ID: ${this.state.agentId}`)
+
 		const tools = this.toolRegistry.list()
 		if (tools.length > 0) {
-			parts.push('\n\n## Available Tools\n')
-			parts.push('You have access to the following tools:\n')
+			parts.push('\n## Available Tools\n')
+			parts.push('You have access to the following tools. Call them directly when needed:\n')
 
 			for (const tool of tools) {
 				parts.push(`- **${tool.id}**: ${tool.description}`)
 			}
-
-			parts.push('\nTo use a tool, describe what you want to do and the system will execute it.')
 		}
 
 		return parts.join('\n')
@@ -802,6 +813,7 @@ export class HareAgent<TEnv extends HareAgentEnv = HareAgentEnv> extends Agent<
 			env: this.env,
 			workspaceId: this.state.workspaceId,
 			userId: 'agent', // Tools executed by agent itself
+			agentId: this.state.agentId,
 		}
 	}
 
