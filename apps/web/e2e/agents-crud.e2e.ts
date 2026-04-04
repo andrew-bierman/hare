@@ -42,7 +42,10 @@ test.describe('Agents CRUD - Real Functionality', () => {
 		await nameInput.fill('')
 		await nameInput.pressSequentially(agentName, { delay: 10 })
 
-		await page.getByRole('button', { name: /create/i }).first().click()
+		await page
+			.getByRole('button', { name: /create/i })
+			.first()
+			.click()
 
 		// Should navigate away from /new
 		await page.waitForURL(/\/dashboard\/agents\/(?!new)/, { timeout: 15000 })

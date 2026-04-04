@@ -9,14 +9,14 @@ import { test } from './fixtures'
 test.describe('Analytics Page - Dashboard Load', () => {
 	test('analytics page loads with dashboard', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/analytics')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		await expect(authenticatedPage).toHaveURL(/\/dashboard\/analytics/)
 		await expect(authenticatedPage.getByRole('heading', { name: 'Analytics' })).toBeVisible()
 	})
 
 	test('analytics page layout loads correctly', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/analytics')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Verify the main heading
 		await expect(authenticatedPage.getByRole('heading', { name: 'Analytics' })).toBeVisible()
@@ -28,7 +28,7 @@ test.describe('Analytics Page - Dashboard Load', () => {
 
 	test('page loads without 404 error', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/analytics')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		await expect(authenticatedPage.locator('body')).not.toContainText('404')
 	})
 })
@@ -36,7 +36,7 @@ test.describe('Analytics Page - Dashboard Load', () => {
 test.describe('Analytics Summary Stats - Total Requests', () => {
 	test('displays Total Requests metric', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/analytics')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Wait for loading to complete (skeletons disappear)
 		await authenticatedPage.waitForTimeout(2000)
@@ -47,7 +47,7 @@ test.describe('Analytics Summary Stats - Total Requests', () => {
 
 	test('Total Requests card shows API calls description', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/analytics')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		await authenticatedPage.waitForTimeout(2000)
 
 		// Check for description text
@@ -58,7 +58,7 @@ test.describe('Analytics Summary Stats - Total Requests', () => {
 test.describe('Analytics Summary Stats - Average Response Time', () => {
 	test('displays Avg Latency metric', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/analytics')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		await authenticatedPage.waitForTimeout(2000)
 
 		// Check for Avg Latency stat card
@@ -67,7 +67,7 @@ test.describe('Analytics Summary Stats - Average Response Time', () => {
 
 	test('Avg Latency card shows response time description', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/analytics')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		await authenticatedPage.waitForTimeout(2000)
 
 		// Check for description text
@@ -76,7 +76,7 @@ test.describe('Analytics Summary Stats - Average Response Time', () => {
 
 	test('Avg Latency shows value in milliseconds', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/analytics')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		await authenticatedPage.waitForTimeout(2000)
 
 		// Latency values should contain 'ms' suffix - look for the value pattern
@@ -87,7 +87,7 @@ test.describe('Analytics Summary Stats - Average Response Time', () => {
 test.describe('Analytics Summary Stats - Error Rate (Total Cost)', () => {
 	test('displays Total Cost metric', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/analytics')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		await authenticatedPage.waitForTimeout(2000)
 
 		// The analytics page shows Total Cost instead of error rate
@@ -96,7 +96,7 @@ test.describe('Analytics Summary Stats - Error Rate (Total Cost)', () => {
 
 	test('Total Cost card shows estimated spend description', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/analytics')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		await authenticatedPage.waitForTimeout(2000)
 
 		// Check for description text
@@ -105,7 +105,7 @@ test.describe('Analytics Summary Stats - Error Rate (Total Cost)', () => {
 
 	test('Total Cost shows currency formatted value', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/analytics')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		await authenticatedPage.waitForTimeout(2000)
 
 		// Cost values should contain '$' for currency
@@ -116,7 +116,7 @@ test.describe('Analytics Summary Stats - Error Rate (Total Cost)', () => {
 test.describe('Analytics Charts Render', () => {
 	test('displays Token Usage Over Time chart', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/analytics')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		await authenticatedPage.waitForTimeout(2000)
 
 		// Check for Token Usage Over Time chart title
@@ -125,7 +125,7 @@ test.describe('Analytics Charts Render', () => {
 
 	test('Token Usage Over Time chart has description', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/analytics')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		await authenticatedPage.waitForTimeout(2000)
 
 		await expect(authenticatedPage.getByText('Input and output tokens trend')).toBeVisible()
@@ -133,7 +133,7 @@ test.describe('Analytics Charts Render', () => {
 
 	test('displays Usage by Agent chart', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/analytics')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		await authenticatedPage.waitForTimeout(2000)
 
 		await expect(authenticatedPage.getByText('Usage by Agent')).toBeVisible()
@@ -141,7 +141,7 @@ test.describe('Analytics Charts Render', () => {
 
 	test('Usage by Agent chart has description', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/analytics')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		await authenticatedPage.waitForTimeout(2000)
 
 		await expect(authenticatedPage.getByText('Token distribution across agents')).toBeVisible()
@@ -149,7 +149,7 @@ test.describe('Analytics Charts Render', () => {
 
 	test('displays Usage by Model chart', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/analytics')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		await authenticatedPage.waitForTimeout(2000)
 
 		await expect(authenticatedPage.getByText('Usage by Model')).toBeVisible()
@@ -157,7 +157,7 @@ test.describe('Analytics Charts Render', () => {
 
 	test('Usage by Model chart has description', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/analytics')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		await authenticatedPage.waitForTimeout(2000)
 
 		await expect(authenticatedPage.getByText('Token distribution across AI models')).toBeVisible()
@@ -165,7 +165,7 @@ test.describe('Analytics Charts Render', () => {
 
 	test('displays Cost Trend chart', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/analytics')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		await authenticatedPage.waitForTimeout(2000)
 
 		await expect(authenticatedPage.getByText('Cost Trend')).toBeVisible()
@@ -173,7 +173,7 @@ test.describe('Analytics Charts Render', () => {
 
 	test('Cost Trend chart has description', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/analytics')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		await authenticatedPage.waitForTimeout(2000)
 
 		await expect(authenticatedPage.getByText('Estimated API costs over time')).toBeVisible()
@@ -181,7 +181,7 @@ test.describe('Analytics Charts Render', () => {
 
 	test('displays Request Volume chart', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/analytics')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		await authenticatedPage.waitForTimeout(2000)
 
 		await expect(authenticatedPage.getByText('Request Volume')).toBeVisible()
@@ -189,7 +189,7 @@ test.describe('Analytics Charts Render', () => {
 
 	test('Request Volume chart has description', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/analytics')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		await authenticatedPage.waitForTimeout(2000)
 
 		await expect(authenticatedPage.getByText('API calls over time')).toBeVisible()
@@ -199,7 +199,7 @@ test.describe('Analytics Charts Render', () => {
 test.describe('Analytics Time Period Selector', () => {
 	test('displays date range selector', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/analytics')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		await authenticatedPage.waitForTimeout(2000)
 
 		// Check for date range selector - default is Last 30 days
@@ -208,7 +208,7 @@ test.describe('Analytics Time Period Selector', () => {
 
 	test('can change to Last 7 days', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/analytics')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		await authenticatedPage.waitForTimeout(2000)
 
 		// Click the date range selector
@@ -225,7 +225,7 @@ test.describe('Analytics Time Period Selector', () => {
 
 	test('can change to Last 90 days', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/analytics')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		await authenticatedPage.waitForTimeout(2000)
 
 		// Click the date range selector
@@ -242,7 +242,7 @@ test.describe('Analytics Time Period Selector', () => {
 
 	test('time period change triggers data refresh', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/analytics')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		await authenticatedPage.waitForTimeout(2000)
 
 		// Listen for network requests
@@ -265,7 +265,7 @@ test.describe('Analytics Time Period Selector', () => {
 test.describe('Analytics Group By Selector', () => {
 	test('displays group by selector with Daily default', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/analytics')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		await authenticatedPage.waitForTimeout(2000)
 
 		// Check for group by selector - default is Daily
@@ -274,7 +274,7 @@ test.describe('Analytics Group By Selector', () => {
 
 	test('can change to Weekly grouping', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/analytics')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		await authenticatedPage.waitForTimeout(2000)
 
 		// Click the group by selector
@@ -291,7 +291,7 @@ test.describe('Analytics Group By Selector', () => {
 
 	test('can change to Monthly grouping', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/analytics')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		await authenticatedPage.waitForTimeout(2000)
 
 		// Click the group by selector
@@ -310,7 +310,7 @@ test.describe('Analytics Group By Selector', () => {
 test.describe('Analytics Per-Agent Breakdown', () => {
 	test('displays agent selector', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/analytics')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		await authenticatedPage.waitForTimeout(2000)
 
 		// Check for agent selector - default is All agents
@@ -319,7 +319,7 @@ test.describe('Analytics Per-Agent Breakdown', () => {
 
 	test('agent selector shows All agents option', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/analytics')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		await authenticatedPage.waitForTimeout(2000)
 
 		// Click the agent selector
@@ -332,7 +332,7 @@ test.describe('Analytics Per-Agent Breakdown', () => {
 
 	test('Usage by Agent chart shows per-agent breakdown', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/analytics')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		await authenticatedPage.waitForTimeout(2000)
 
 		// Verify Usage by Agent chart is visible which shows per-agent breakdown
@@ -344,7 +344,7 @@ test.describe('Analytics Per-Agent Breakdown', () => {
 test.describe('Analytics Data Refresh', () => {
 	test('export button is visible', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/analytics')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		await authenticatedPage.waitForTimeout(2000)
 
 		await expect(authenticatedPage.getByRole('button', { name: /export/i })).toBeVisible()
@@ -352,7 +352,7 @@ test.describe('Analytics Data Refresh', () => {
 
 	test('export dropdown shows CSV and JSON options', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/analytics')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		await authenticatedPage.waitForTimeout(2000)
 
 		// Click export button to open dropdown
@@ -366,7 +366,7 @@ test.describe('Analytics Data Refresh', () => {
 
 	test('page reload refreshes analytics data', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/analytics')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		await authenticatedPage.waitForTimeout(2000)
 
 		// Listen for analytics request on reload
@@ -387,7 +387,7 @@ test.describe('Analytics Data Refresh', () => {
 test.describe('Analytics Data Integrity', () => {
 	test('stat cards display numeric values', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/analytics')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		await authenticatedPage.waitForTimeout(2000)
 
 		// Total Requests should show a number (0 or more)
@@ -403,7 +403,7 @@ test.describe('Analytics Data Integrity', () => {
 
 	test('charts container is rendered', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/analytics')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		await authenticatedPage.waitForTimeout(2000)
 
 		// Verify Recharts containers are rendered
@@ -417,7 +417,7 @@ test.describe('Analytics Data Integrity', () => {
 test.describe('Analytics Page Loading States', () => {
 	test('content loads and is displayed', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/analytics')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Wait for content to load
 		await authenticatedPage.waitForTimeout(3000)
@@ -432,7 +432,7 @@ test.describe('Analytics Page Responsive Layout', () => {
 	test('analytics page is responsive on mobile', async ({ authenticatedPage }) => {
 		await authenticatedPage.setViewportSize({ width: 375, height: 667 })
 		await authenticatedPage.goto('/dashboard/analytics')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Page should still load without 404
 		await expect(authenticatedPage.locator('body')).not.toContainText('404')
@@ -443,7 +443,7 @@ test.describe('Analytics Page Responsive Layout', () => {
 	test('analytics page is responsive on tablet', async ({ authenticatedPage }) => {
 		await authenticatedPage.setViewportSize({ width: 768, height: 1024 })
 		await authenticatedPage.goto('/dashboard/analytics')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		await expect(authenticatedPage.locator('body')).not.toContainText('404')
 		await expect(authenticatedPage.getByRole('heading', { name: 'Analytics' })).toBeVisible()
@@ -452,7 +452,7 @@ test.describe('Analytics Page Responsive Layout', () => {
 	test('stat cards stack correctly on mobile', async ({ authenticatedPage }) => {
 		await authenticatedPage.setViewportSize({ width: 375, height: 667 })
 		await authenticatedPage.goto('/dashboard/analytics')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Wait for content to load
 		await authenticatedPage.waitForTimeout(2000)
@@ -466,7 +466,7 @@ test.describe('Analytics Page Responsive Layout', () => {
 test.describe('Analytics Page Navigation', () => {
 	test('can navigate to analytics from dashboard', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		await authenticatedPage.getByRole('link', { name: 'Analytics' }).click()
 		await authenticatedPage.waitForURL(/\/dashboard\/analytics/)
@@ -476,7 +476,7 @@ test.describe('Analytics Page Navigation', () => {
 
 	test('can navigate back to dashboard from analytics', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/analytics')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		await authenticatedPage.getByRole('link', { name: 'Dashboard' }).click()
 		await authenticatedPage.waitForURL(/\/dashboard$/)
@@ -486,7 +486,7 @@ test.describe('Analytics Page Navigation', () => {
 
 	test('can navigate to usage from analytics', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/analytics')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		await authenticatedPage.getByRole('link', { name: 'Usage' }).click()
 		await authenticatedPage.waitForURL(/\/dashboard\/usage/)
@@ -498,7 +498,7 @@ test.describe('Analytics Page Navigation', () => {
 test.describe('Analytics Data Display', () => {
 	test('displays all four stat cards simultaneously', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/analytics')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		await authenticatedPage.waitForTimeout(2000)
 
 		// All four stat cards should be visible at once
@@ -510,7 +510,7 @@ test.describe('Analytics Data Display', () => {
 
 	test('displays Total Tokens with input/output breakdown', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/analytics')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		await authenticatedPage.waitForTimeout(2000)
 
 		// Total Tokens card should show input/output breakdown
@@ -522,7 +522,7 @@ test.describe('Analytics Data Display', () => {
 
 	test('displays all chart sections', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/analytics')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		await authenticatedPage.waitForTimeout(2000)
 
 		// Verify all chart sections are present
@@ -537,7 +537,7 @@ test.describe('Analytics Data Display', () => {
 test.describe('Analytics Page Accessibility', () => {
 	test('has proper heading hierarchy', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/analytics')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Should have h2 heading for main page title
 		const h2 = authenticatedPage.locator('h2').filter({ hasText: 'Analytics' })
@@ -546,7 +546,7 @@ test.describe('Analytics Page Accessibility', () => {
 
 	test('filter controls are accessible', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/analytics')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		await authenticatedPage.waitForTimeout(2000)
 
 		// All filter controls should be interactive
@@ -561,7 +561,7 @@ test.describe('Analytics Page Accessibility', () => {
 
 	test('export button is keyboard accessible', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/analytics')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		await authenticatedPage.waitForTimeout(2000)
 
 		const exportButton = authenticatedPage.getByRole('button', { name: /export/i })
@@ -576,7 +576,7 @@ test.describe('Analytics Page Accessibility', () => {
 test.describe('Analytics Full Layout', () => {
 	test('page has correct overall structure', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/analytics')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		await authenticatedPage.waitForTimeout(2000)
 
 		// Header with title and export button

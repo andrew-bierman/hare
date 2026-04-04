@@ -47,8 +47,8 @@ async function ensureAuthenticatedState(page: import('@playwright/test').Page) {
 
 	// Wait for either workspace switcher or user menu to be visible (indicating auth)
 	await Promise.race([
-		workspaceSwitcher.first().waitFor({ state: 'visible', timeout: 15000 }),
-		userMenu.waitFor({ state: 'visible', timeout: 15000 }),
+		workspaceSwitcher.first().waitFor({ state: 'visible', timeout: 10000 }),
+		userMenu.waitFor({ state: 'visible', timeout: 10000 }),
 	]).catch(() => {
 		// If neither appears, log and continue - test may fail with more useful error
 	})
@@ -61,7 +61,7 @@ async function ensureAuthenticatedState(page: import('@playwright/test').Page) {
 test.describe('Accessibility - Dashboard Home Page', () => {
 	test('dashboard home page has no critical a11y violations', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		await ensureAuthenticatedState(authenticatedPage)
 
 		const accessibilityScanResults = await createAxeBuilder(authenticatedPage).analyze()
@@ -76,7 +76,7 @@ test.describe('Accessibility - Dashboard Home Page', () => {
 
 	test('dashboard has screen reader landmarks', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Check for main landmark
 		const mainLandmark = authenticatedPage.locator('main, [role="main"]')
@@ -108,7 +108,7 @@ test.describe('Accessibility - Dashboard Home Page', () => {
 test.describe('Accessibility - Agents List Page', () => {
 	test('agents list page has no critical a11y violations', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/agents')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		await authenticatedPage.waitForTimeout(2000)
 
 		const accessibilityScanResults = await createAxeBuilder(authenticatedPage).analyze()
@@ -122,7 +122,7 @@ test.describe('Accessibility - Agents List Page', () => {
 
 	test('agents list search input has proper label', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/agents')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		const searchInput = authenticatedPage.getByPlaceholder(/search agents/i)
 		await expect(searchInput).toBeVisible()
@@ -145,17 +145,17 @@ test.describe('Accessibility - Agent Detail Page', () => {
 	test('agent detail page has no critical a11y violations', async ({ authenticatedPage }) => {
 		// Create an agent first
 		await authenticatedPage.goto('/dashboard/agents/new')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		await ensureAuthenticatedState(authenticatedPage)
 
 		const agentName = generateAgentName()
-		await authenticatedPage.locator('#name').fill(agentName)
+		await authenticatedPage.getByLabel(/name/i).fill(agentName)
 
-		const createButton = authenticatedPage.getByRole('button', { name: /create agent/i })
+		const createButton = authenticatedPage.getByRole('button', { name: /create/i })
 		await createButton.click()
 
 		await authenticatedPage.waitForURL(/\/dashboard\/agents\/[^/]+$/, { timeout: 10000 })
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		await authenticatedPage.waitForTimeout(2000)
 
 		const accessibilityScanResults = await createAxeBuilder(authenticatedPage).analyze()
@@ -175,7 +175,7 @@ test.describe('Accessibility - Agent Detail Page', () => {
 test.describe('Accessibility - Tools Page', () => {
 	test('tools page has no critical a11y violations', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/tools')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		await ensureAuthenticatedState(authenticatedPage)
 
 		const accessibilityScanResults = await createAxeBuilder(authenticatedPage).analyze()
@@ -195,7 +195,7 @@ test.describe('Accessibility - Tools Page', () => {
 test.describe('Accessibility - Settings Page', () => {
 	test('settings page has no critical a11y violations', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/settings')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		await ensureAuthenticatedState(authenticatedPage)
 
 		const accessibilityScanResults = await createAxeBuilder(authenticatedPage).analyze()
@@ -209,7 +209,7 @@ test.describe('Accessibility - Settings Page', () => {
 
 	test('settings form fields have proper labels', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/settings')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Name input should have a label
 		const nameInput = authenticatedPage.getByLabel(/name/i).first()
@@ -228,7 +228,7 @@ test.describe('Accessibility - Settings Page', () => {
 test.describe('Accessibility - Forms', () => {
 	test('agent create form has proper labels and ARIA attributes', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/agents/new')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Check that name input has a label
 		const nameInput = authenticatedPage.locator('#name')
@@ -250,7 +250,7 @@ test.describe('Accessibility - Forms', () => {
 
 	test('sign-up form has proper labels', async ({ page }) => {
 		await page.goto('/sign-up')
-		await page.waitForLoadState('networkidle')
+		await page.waitForSelector('form', { state: 'visible' })
 
 		// Check Full Name field
 		const nameField = page.getByLabel('Full Name')
@@ -271,7 +271,7 @@ test.describe('Accessibility - Forms', () => {
 
 	test('sign-in form has proper labels', async ({ page }) => {
 		await page.goto('/sign-in')
-		await page.waitForLoadState('networkidle')
+		await page.waitForSelector('form', { state: 'visible' })
 
 		// Check Email field
 		const emailField = page.getByLabel('Email')
@@ -284,7 +284,7 @@ test.describe('Accessibility - Forms', () => {
 
 	test('password change dialog has proper labels', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/settings')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Open the password change dialog
 		const changePasswordButton = authenticatedPage.getByRole('button', {
@@ -321,7 +321,7 @@ test.describe('Accessibility - Forms', () => {
 test.describe('Accessibility - Keyboard Navigation', () => {
 	test('can navigate dashboard with keyboard', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		await authenticatedPage.waitForTimeout(2000)
 
 		// Press Tab to start keyboard navigation
@@ -344,7 +344,7 @@ test.describe('Accessibility - Keyboard Navigation', () => {
 
 	test('can navigate agents list with keyboard', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/agents')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		await ensureAuthenticatedState(authenticatedPage)
 
 		// Start tabbing
@@ -368,7 +368,7 @@ test.describe('Accessibility - Keyboard Navigation', () => {
 
 	test('can navigate settings page with keyboard', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/settings')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		await authenticatedPage.waitForTimeout(2000)
 
 		// Start tabbing
@@ -393,10 +393,10 @@ test.describe('Accessibility - Keyboard Navigation', () => {
 
 	test('can use Enter key to activate buttons', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/agents/new')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Fill in required field
-		const nameInput = authenticatedPage.locator('#name')
+		const nameInput = authenticatedPage.getByLabel(/name/i)
 		await nameInput.fill(generateAgentName())
 
 		// Tab to the create button
@@ -419,7 +419,7 @@ test.describe('Accessibility - Keyboard Navigation', () => {
 
 	test('tab navigation works through sidebar navigation', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		await authenticatedPage.waitForTimeout(2000)
 
 		// Tab through to find sidebar navigation links
@@ -446,7 +446,7 @@ test.describe('Accessibility - Keyboard Navigation', () => {
 test.describe('Accessibility - Focus Indicators', () => {
 	test('focus indicators are visible on buttons', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		await authenticatedPage.waitForTimeout(2000)
 
 		// Find a button and focus it
@@ -480,7 +480,7 @@ test.describe('Accessibility - Focus Indicators', () => {
 
 	test('focus indicators are visible on form inputs', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/settings')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Find the name input and focus it
 		const nameInput = authenticatedPage.getByLabel(/name/i).first()
@@ -512,7 +512,7 @@ test.describe('Accessibility - Focus Indicators', () => {
 
 	test('focus indicators are visible on links', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		await authenticatedPage.waitForTimeout(2000)
 
 		// Find a link and focus it
@@ -531,7 +531,7 @@ test.describe('Accessibility - Focus Indicators', () => {
 test.describe('Accessibility - Color Contrast', () => {
 	test('dashboard page passes color contrast requirements', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		await authenticatedPage.waitForTimeout(2000)
 
 		// Run axe specifically for color contrast
@@ -554,7 +554,7 @@ test.describe('Accessibility - Color Contrast', () => {
 
 	test('agents page passes color contrast requirements', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/agents')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		await authenticatedPage.waitForTimeout(2000)
 
 		const accessibilityScanResults = await new AxeBuilder({ page: authenticatedPage })
@@ -570,7 +570,7 @@ test.describe('Accessibility - Color Contrast', () => {
 
 	test('settings page passes color contrast requirements', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/settings')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		await authenticatedPage.waitForTimeout(2000)
 
 		const accessibilityScanResults = await new AxeBuilder({ page: authenticatedPage })
@@ -592,7 +592,7 @@ test.describe('Accessibility - Color Contrast', () => {
 test.describe('Accessibility - Screen Reader Landmarks', () => {
 	test('agents page has proper landmarks', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/agents')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Check for main content area
 		const mainLandmark = authenticatedPage.locator('main, [role="main"]')
@@ -606,7 +606,7 @@ test.describe('Accessibility - Screen Reader Landmarks', () => {
 
 	test('settings page has proper landmarks', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/settings')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Check for main content area
 		const mainLandmark = authenticatedPage.locator('main, [role="main"]')
@@ -620,7 +620,7 @@ test.describe('Accessibility - Screen Reader Landmarks', () => {
 
 	test('tools page has proper landmarks', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/tools')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Check for main content area
 		const mainLandmark = authenticatedPage.locator('main, [role="main"]')
@@ -634,7 +634,7 @@ test.describe('Accessibility - Screen Reader Landmarks', () => {
 
 	test('headings follow proper hierarchy', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		await authenticatedPage.waitForTimeout(2000)
 
 		// Get all headings on the page
@@ -654,7 +654,7 @@ test.describe('Accessibility - Screen Reader Landmarks', () => {
 test.describe('Accessibility - Image Alt Text', () => {
 	test('dashboard images have alt text', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		await authenticatedPage.waitForTimeout(2000)
 
 		// Find all images
@@ -678,7 +678,7 @@ test.describe('Accessibility - Image Alt Text', () => {
 
 	test('landing page images have alt text', async ({ page }) => {
 		await page.goto('/')
-		await page.waitForLoadState('networkidle')
+		await page.waitForSelector('main', { state: 'visible' })
 		await page.waitForTimeout(2000)
 
 		// Find all images
@@ -708,7 +708,7 @@ test.describe('Accessibility - Image Alt Text', () => {
 test.describe('Accessibility - Error Message Announcements', () => {
 	test('form validation errors are announced', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/settings')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Open password change dialog
 		const changePasswordButton = authenticatedPage.getByRole('button', {
@@ -744,7 +744,7 @@ test.describe('Accessibility - Error Message Announcements', () => {
 
 	test('sign-up form shows accessible error messages', async ({ page }) => {
 		await page.goto('/sign-up')
-		await page.waitForLoadState('networkidle')
+		await page.waitForSelector('form', { state: 'visible' })
 
 		// Fill in mismatched passwords
 		await page.getByLabel('Full Name').fill('Test User')
@@ -780,7 +780,7 @@ test.describe('Accessibility - Error Message Announcements', () => {
 
 	test('toast notifications are accessible', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/settings')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		await ensureAuthenticatedState(authenticatedPage)
 
 		// Trigger a notification by toggling email notifications
@@ -807,7 +807,7 @@ test.describe('Accessibility - Error Message Announcements', () => {
 test.describe('Accessibility - Interactive Elements', () => {
 	test('buttons have accessible names', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		await authenticatedPage.waitForTimeout(2000)
 
 		// Run axe check for buttons without accessible names
@@ -826,7 +826,7 @@ test.describe('Accessibility - Interactive Elements', () => {
 
 	test('links have accessible names', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		await authenticatedPage.waitForTimeout(2000)
 
 		// Run axe check for links without accessible names
@@ -843,7 +843,7 @@ test.describe('Accessibility - Interactive Elements', () => {
 
 	test('switches have accessible names', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/settings')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Find all switches
 		const switches = authenticatedPage.locator('[role="switch"]')
@@ -865,17 +865,17 @@ test.describe('Accessibility - Interactive Elements', () => {
 	test('tabs are keyboard accessible', async ({ authenticatedPage }) => {
 		// Navigate to agent detail page which has tabs (General, Prompt, etc.)
 		await authenticatedPage.goto('/dashboard/agents/new')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		await ensureAuthenticatedState(authenticatedPage)
 
 		// Create an agent to get to detail page with tabs
 		const agentName = generateAgentName()
-		await authenticatedPage.locator('#name').fill(agentName)
-		const createButton = authenticatedPage.getByRole('button', { name: /create agent/i })
+		await authenticatedPage.getByLabel(/name/i).fill(agentName)
+		const createButton = authenticatedPage.getByRole('button', { name: /create/i })
 		await createButton.click()
 
 		await authenticatedPage.waitForURL(/\/dashboard\/agents\/[^/]+$/, { timeout: 10000 })
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Find the tab list
 		const tabList = authenticatedPage.locator('[role="tablist"]')
@@ -899,7 +899,7 @@ test.describe('Accessibility - Interactive Elements', () => {
 
 	test('dialogs trap focus', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/settings')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Open password change dialog
 		const changePasswordButton = authenticatedPage.getByRole('button', {
@@ -934,7 +934,7 @@ test.describe('Accessibility - Interactive Elements', () => {
 
 	test('dialog can be closed with Escape key', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/settings')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Open password change dialog
 		const changePasswordButton = authenticatedPage.getByRole('button', {
@@ -960,7 +960,7 @@ test.describe('Accessibility - Interactive Elements', () => {
 test.describe('Accessibility - Skip Links', () => {
 	test('skip to main content link exists and works', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Look for skip link (might be visually hidden until focused)
 		const skipLink = authenticatedPage.locator(

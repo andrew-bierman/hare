@@ -15,14 +15,14 @@ baseTest.describe('Documentation Page', () => {
 		await page.goto('/docs')
 		await page.waitForLoadState('networkidle')
 
-		await expect(page.locator('main, body')).toBeVisible({ timeout: 20000 })
+		await expect(page.locator('main').first()).toBeVisible({ timeout: 10000 })
 	})
 
 	baseTest('shows documentation heading', async ({ page }) => {
 		await page.goto('/docs')
 		await page.waitForLoadState('networkidle')
 
-		const heading = page.getByRole('heading', { name: /doc|guide|api|getting started/i })
+		const heading = page.getByRole('heading', { name: /build ai agents|hare|getting started/i })
 		await expect(heading.first()).toBeVisible({ timeout: 10000 })
 	})
 
@@ -66,7 +66,7 @@ baseTest.describe('Privacy Policy Page', () => {
 		await page.goto('/privacy')
 		await page.waitForLoadState('networkidle')
 
-		await expect(page.locator('main, body')).toBeVisible({ timeout: 20000 })
+		await expect(page.locator('main').first()).toBeVisible({ timeout: 10000 })
 	})
 
 	baseTest('shows privacy heading', async ({ page }) => {
@@ -104,7 +104,7 @@ baseTest.describe('Terms of Service Page', () => {
 		await page.goto('/terms')
 		await page.waitForLoadState('networkidle')
 
-		await expect(page.locator('main, body')).toBeVisible({ timeout: 20000 })
+		await expect(page.locator('main').first()).toBeVisible({ timeout: 10000 })
 	})
 
 	baseTest('shows terms heading', async ({ page }) => {
@@ -207,7 +207,7 @@ baseTest.describe('Legal Pages - Responsive', () => {
 		await page.goto('/docs')
 		await page.waitForLoadState('networkidle')
 
-		await expect(page.locator('main, body')).toBeVisible({ timeout: 20000 })
+		await expect(page.locator('main').first()).toBeVisible({ timeout: 10000 })
 	})
 
 	baseTest('privacy displays correctly on mobile', async ({ page }) => {
@@ -215,7 +215,7 @@ baseTest.describe('Legal Pages - Responsive', () => {
 		await page.goto('/privacy')
 		await page.waitForLoadState('networkidle')
 
-		await expect(page.locator('main, body')).toBeVisible({ timeout: 20000 })
+		await expect(page.locator('main').first()).toBeVisible({ timeout: 10000 })
 	})
 
 	baseTest('terms displays correctly on mobile', async ({ page }) => {
@@ -223,7 +223,7 @@ baseTest.describe('Legal Pages - Responsive', () => {
 		await page.goto('/terms')
 		await page.waitForLoadState('networkidle')
 
-		await expect(page.locator('main, body')).toBeVisible({ timeout: 20000 })
+		await expect(page.locator('main').first()).toBeVisible({ timeout: 10000 })
 	})
 
 	baseTest('docs displays correctly on tablet', async ({ page }) => {
@@ -231,7 +231,7 @@ baseTest.describe('Legal Pages - Responsive', () => {
 		await page.goto('/docs')
 		await page.waitForLoadState('networkidle')
 
-		await expect(page.locator('main, body')).toBeVisible({ timeout: 20000 })
+		await expect(page.locator('main').first()).toBeVisible({ timeout: 10000 })
 	})
 })
 

@@ -15,7 +15,7 @@ baseTest.describe('Forgot Password Page', () => {
 		await page.goto('/forgot-password')
 		await page.waitForLoadState('networkidle')
 
-		await expect(page.locator('main, body')).toBeVisible({ timeout: 20000 })
+		await expect(page.locator('form, main').first()).toBeVisible({ timeout: 10000 })
 	})
 
 	baseTest('shows forgot password heading', async ({ page }) => {
@@ -131,7 +131,7 @@ baseTest.describe('Reset Password Page', () => {
 		await page.goto('/reset-password')
 		await page.waitForLoadState('networkidle')
 
-		await expect(page.locator('main, body')).toBeVisible({ timeout: 20000 })
+		await expect(page.locator('form, main').first()).toBeVisible({ timeout: 10000 })
 	})
 
 	baseTest('shows reset password or error for missing token', async ({ page }) => {
@@ -235,7 +235,7 @@ baseTest.describe('Password Reset - Responsive', () => {
 		await page.goto('/forgot-password')
 		await page.waitForLoadState('networkidle')
 
-		await expect(page.locator('main, body')).toBeVisible({ timeout: 20000 })
+		await expect(page.locator('form, main').first()).toBeVisible({ timeout: 10000 })
 	})
 
 	baseTest('forgot password displays correctly on tablet', async ({ page }) => {
@@ -243,7 +243,7 @@ baseTest.describe('Password Reset - Responsive', () => {
 		await page.goto('/forgot-password')
 		await page.waitForLoadState('networkidle')
 
-		await expect(page.locator('main, body')).toBeVisible({ timeout: 20000 })
+		await expect(page.locator('form, main').first()).toBeVisible({ timeout: 10000 })
 	})
 
 	baseTest('reset password displays correctly on mobile', async ({ page }) => {
@@ -251,7 +251,7 @@ baseTest.describe('Password Reset - Responsive', () => {
 		await page.goto('/reset-password')
 		await page.waitForLoadState('networkidle')
 
-		await expect(page.locator('main, body')).toBeVisible({ timeout: 20000 })
+		await expect(page.locator('form, main').first()).toBeVisible({ timeout: 10000 })
 	})
 })
 

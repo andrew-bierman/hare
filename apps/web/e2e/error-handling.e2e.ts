@@ -27,7 +27,7 @@ const SPECIAL_CHARACTERS = {
 baseTest.describe('Error Handling - 404 Not Found', () => {
 	baseTest('displays 404 page for completely invalid routes', async ({ page }: { page: Page }) => {
 		await page.goto('/this-route-does-not-exist-12345')
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('domcontentloaded')
 
 		// Should show the not found page
 		await expect(page.getByRole('heading', { name: /not found/i })).toBeVisible()
@@ -42,7 +42,7 @@ baseTest.describe('Error Handling - 404 Not Found', () => {
 
 	baseTest('displays 404 page for invalid nested routes', async ({ page }: { page: Page }) => {
 		await page.goto('/invalid/nested/route/path')
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('domcontentloaded')
 
 		await expect(page.getByRole('heading', { name: /not found/i })).toBeVisible()
 	})
@@ -50,11 +50,11 @@ baseTest.describe('Error Handling - 404 Not Found', () => {
 	baseTest('go back button navigates to previous page', async ({ page }: { page: Page }) => {
 		// First go to home
 		await page.goto('/')
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('domcontentloaded')
 
 		// Then navigate to 404 page
 		await page.goto('/nonexistent-page')
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('domcontentloaded')
 
 		// Click go back
 		await page.getByRole('button', { name: /go back/i }).click()
@@ -65,7 +65,7 @@ baseTest.describe('Error Handling - 404 Not Found', () => {
 
 	baseTest('back to home link navigates to home page', async ({ page }: { page: Page }) => {
 		await page.goto('/nonexistent-page')
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('domcontentloaded')
 
 		await page.getByRole('link', { name: /back to home/i }).click()
 
@@ -76,7 +76,7 @@ baseTest.describe('Error Handling - 404 Not Found', () => {
 test.describe('Error Handling - Dashboard 404', () => {
 	test('displays dashboard 404 for invalid dashboard routes', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/invalid-route-12345')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Wait for content to load - should show 404 page or error state
 		// The app may show a loading state first, then the 404
@@ -106,7 +106,7 @@ test.describe('Error Handling - Dashboard 404', () => {
 
 	test('handles invalid agent ID gracefully', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/agents/nonexistent-agent-id-12345')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		await authenticatedPage.waitForTimeout(2000)
 
 		// Should show not found, error, or redirect - page should handle gracefully
@@ -121,7 +121,7 @@ test.describe('Error Handling - Dashboard 404', () => {
 
 	test('handles invalid tool ID gracefully', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/tools/nonexistent-tool-id-12345')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		await authenticatedPage.waitForTimeout(2000)
 
 		// Should show not found, error, or redirect - page should handle gracefully
@@ -142,7 +142,7 @@ test.describe('Error Handling - Error Boundaries', () => {
 	test('error page has retry button', async ({ authenticatedPage }) => {
 		// Navigate to a page that might trigger an error boundary
 		await authenticatedPage.goto('/dashboard')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Verify the error component structure exists in the app
 		// We check this indirectly by verifying the dashboard loads correctly
@@ -153,7 +153,7 @@ test.describe('Error Handling - Error Boundaries', () => {
 	test('error messages are user-friendly', async ({ authenticatedPage }) => {
 		// Navigate to an invalid agent to trigger an error state
 		await authenticatedPage.goto('/dashboard/agents/invalid-uuid-format')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// The error message should not expose internal details
 		// It should either show "not found" or a generic error
@@ -221,22 +221,22 @@ test.describe('Error Handling - API Error Display', () => {
 	test('agents page loads successfully and handles data', async ({ authenticatedPage }) => {
 		// Navigate to agents page
 		await authenticatedPage.goto('/dashboard/agents')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Page should load and be functional
 		await expect(authenticatedPage.getByRole('heading', { name: /agents/i })).toBeVisible({
-			timeout: 15000,
+			timeout: 10000,
 		})
 	})
 
 	test('tools page loads successfully and handles data', async ({ authenticatedPage }) => {
 		// Navigate to tools page
 		await authenticatedPage.goto('/dashboard/tools')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Page should load and be functional
 		await expect(authenticatedPage.getByRole('heading', { name: /tools/i })).toBeVisible({
-			timeout: 15000,
+			timeout: 10000,
 		})
 	})
 })
@@ -249,39 +249,39 @@ test.describe('Error Handling - Network Errors', () => {
 	test('page remains functional after navigation', async ({ authenticatedPage }) => {
 		// Navigate to agents page
 		await authenticatedPage.goto('/dashboard/agents')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Page should be functional
 		await expect(authenticatedPage.getByRole('heading', { name: /agents/i })).toBeVisible({
-			timeout: 15000,
+			timeout: 10000,
 		})
 
 		// Navigate to tools page
 		await authenticatedPage.goto('/dashboard/tools')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Page should still be functional
 		await expect(authenticatedPage.getByRole('heading', { name: /tools/i })).toBeVisible({
-			timeout: 15000,
+			timeout: 10000,
 		})
 	})
 
 	test('form page loads without errors', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/agents/new')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Form should be visible
 		const nameField = authenticatedPage.locator('#name')
-		await expect(nameField).toBeVisible({ timeout: 15000 })
+		await expect(nameField).toBeVisible({ timeout: 10000 })
 	})
 
 	test('offline state does not crash the app', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Verify dashboard loaded
 		await expect(authenticatedPage.getByRole('heading', { name: 'Dashboard' })).toBeVisible({
-			timeout: 15000,
+			timeout: 10000,
 		})
 
 		// Go offline
@@ -309,10 +309,10 @@ baseTest.describe('Error Handling - Session Errors', () => {
 		async ({ page }: { page: Page }) => {
 			// Try to access dashboard without authentication
 			await page.goto('/dashboard')
-			await page.waitForLoadState('networkidle')
+			await page.waitForLoadState('domcontentloaded')
 
 			// Should redirect to sign-in
-			await page.waitForURL(/sign-in/, { timeout: 15000 })
+			await page.waitForURL(/sign-in/, { timeout: 10000 })
 		},
 	)
 
@@ -320,9 +320,9 @@ baseTest.describe('Error Handling - Session Errors', () => {
 		'unauthenticated access to agents page redirects to login',
 		async ({ page }: { page: Page }) => {
 			await page.goto('/dashboard/agents')
-			await page.waitForLoadState('networkidle')
+			await page.waitForLoadState('domcontentloaded')
 
-			await page.waitForURL(/sign-in/, { timeout: 15000 })
+			await page.waitForURL(/sign-in/, { timeout: 10000 })
 		},
 	)
 
@@ -330,9 +330,9 @@ baseTest.describe('Error Handling - Session Errors', () => {
 		'unauthenticated access to settings redirects to login',
 		async ({ page }: { page: Page }) => {
 			await page.goto('/dashboard/settings')
-			await page.waitForLoadState('networkidle')
+			await page.waitForLoadState('domcontentloaded')
 
-			await page.waitForURL(/sign-in/, { timeout: 15000 })
+			await page.waitForURL(/sign-in/, { timeout: 10000 })
 		},
 	)
 })
@@ -341,21 +341,21 @@ test.describe('Error Handling - Session Management', () => {
 	test('authenticated user can access protected pages', async ({ authenticatedPage }) => {
 		// Navigate through protected pages
 		await authenticatedPage.goto('/dashboard')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		await expect(authenticatedPage.getByRole('heading', { name: 'Dashboard' })).toBeVisible({
-			timeout: 15000,
+			timeout: 10000,
 		})
 
 		await authenticatedPage.goto('/dashboard/agents')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		await expect(authenticatedPage.getByRole('heading', { name: /agents/i })).toBeVisible({
-			timeout: 15000,
+			timeout: 10000,
 		})
 
 		await authenticatedPage.goto('/dashboard/settings')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		await expect(authenticatedPage.getByRole('heading', { name: /settings/i })).toBeVisible({
-			timeout: 15000,
+			timeout: 10000,
 		})
 	})
 })
@@ -368,11 +368,11 @@ test.describe('Error Handling - Rate Limiting', () => {
 	test('pages load without rate limiting under normal use', async ({ authenticatedPage }) => {
 		// Under normal use, pages should load without rate limit errors
 		await authenticatedPage.goto('/dashboard/agents')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Page should load normally
 		await expect(authenticatedPage.getByRole('heading', { name: /agents/i })).toBeVisible({
-			timeout: 15000,
+			timeout: 10000,
 		})
 	})
 })
@@ -384,7 +384,7 @@ test.describe('Error Handling - Rate Limiting', () => {
 test.describe('Error Handling - Long Input Strings', () => {
 	test('very long agent name is handled', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/agents/new')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		const longName = generateLongString(1000) // 1000 character name
 		await authenticatedPage.locator('#name').fill(longName)
@@ -400,7 +400,7 @@ test.describe('Error Handling - Long Input Strings', () => {
 
 	test('very long description is handled', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/agents/new')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		const longDescription = generateLongString(10000) // 10000 character description
 		await authenticatedPage.locator('#description').fill(longDescription)
@@ -414,7 +414,7 @@ test.describe('Error Handling - Long Input Strings', () => {
 
 	test('long system prompt is handled', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/agents/new')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Find system prompt textarea
 		const systemPromptField = authenticatedPage.locator('#systemPrompt')
@@ -430,7 +430,7 @@ test.describe('Error Handling - Long Input Strings', () => {
 
 	test('form submission with max length values', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/agents/new')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Use reasonable max lengths that the app should handle
 		const maxNameLength = 255
@@ -440,7 +440,7 @@ test.describe('Error Handling - Long Input Strings', () => {
 		await authenticatedPage.locator('#description').fill(generateLongString(maxDescriptionLength))
 
 		// Try to submit - should either succeed or show validation error
-		await authenticatedPage.getByRole('button', { name: /create agent/i }).click()
+		await authenticatedPage.getByRole('button', { name: /create/i }).click()
 
 		// Wait for response
 		await authenticatedPage.waitForTimeout(2000)
@@ -458,7 +458,7 @@ test.describe('Error Handling - Long Input Strings', () => {
 test.describe('Error Handling - Special Characters', () => {
 	test('basic special characters in agent name', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/agents/new')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		const specialName = `Test Agent ${SPECIAL_CHARACTERS.basic}`
 		await authenticatedPage.locator('#name').fill(specialName)
@@ -469,7 +469,7 @@ test.describe('Error Handling - Special Characters', () => {
 
 	test('unicode characters in agent name', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/agents/new')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		const unicodeName = `Agent ${SPECIAL_CHARACTERS.unicode}`
 		await authenticatedPage.locator('#name').fill(unicodeName)
@@ -480,7 +480,7 @@ test.describe('Error Handling - Special Characters', () => {
 
 	test('emoji in agent name and description', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/agents/new')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		const emojiName = `Agent ${SPECIAL_CHARACTERS.emoji}`
 		const emojiDescription = `Description with ${SPECIAL_CHARACTERS.emoji}`
@@ -494,7 +494,7 @@ test.describe('Error Handling - Special Characters', () => {
 
 	test('HTML/XSS attempt in form fields is escaped', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/agents/new')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		const xssAttempt = SPECIAL_CHARACTERS.html
 		await authenticatedPage.locator('#name').fill(xssAttempt)
@@ -504,12 +504,12 @@ test.describe('Error Handling - Special Characters', () => {
 		await expect(authenticatedPage.locator('#name')).toHaveValue(xssAttempt)
 
 		// Verify no script executed (page should still be functional)
-		await expect(authenticatedPage.getByRole('button', { name: /create agent/i })).toBeVisible()
+		await expect(authenticatedPage.getByRole('button', { name: /create/i })).toBeVisible()
 	})
 
 	test('SQL injection attempt in form fields is handled', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/agents/new')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		const sqlAttempt = SPECIAL_CHARACTERS.sql
 		await authenticatedPage.locator('#name').fill(sqlAttempt)
@@ -520,7 +520,7 @@ test.describe('Error Handling - Special Characters', () => {
 
 	test('newlines in text fields are handled', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/agents/new')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		const multilineText = SPECIAL_CHARACTERS.newlines
 		await authenticatedPage.locator('#description').fill(multilineText)
@@ -533,7 +533,7 @@ test.describe('Error Handling - Special Characters', () => {
 
 	test('special characters in search field', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/agents')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Find search input
 		const searchInput = authenticatedPage.getByPlaceholder(/search/i)
@@ -554,29 +554,29 @@ test.describe('Error Handling - Special Characters', () => {
 test.describe('Error Handling - Empty States', () => {
 	test('agents page handles data correctly', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/agents')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Should show agents page with either agents or empty state
 		const pageHeader = authenticatedPage.getByRole('heading', { name: /agents/i })
-		await expect(pageHeader).toBeVisible({ timeout: 15000 })
+		await expect(pageHeader).toBeVisible({ timeout: 10000 })
 	})
 
 	test('tools page handles data correctly', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/tools')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Should show tools page
 		const pageHeader = authenticatedPage.getByRole('heading', { name: /tools/i })
-		await expect(pageHeader).toBeVisible({ timeout: 15000 })
+		await expect(pageHeader).toBeVisible({ timeout: 10000 })
 	})
 
 	test('search field accepts input', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/agents')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Wait for page to load
 		await expect(authenticatedPage.getByRole('heading', { name: /agents/i })).toBeVisible({
-			timeout: 15000,
+			timeout: 10000,
 		})
 
 		// Search for something that won't exist
@@ -599,7 +599,7 @@ test.describe('Error Handling - Empty States', () => {
 test.describe('Error Handling - Concurrent Operations', () => {
 	test('rapid navigation does not cause errors', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Rapidly navigate between pages
 		const pages = ['/dashboard/agents', '/dashboard/tools', '/dashboard/settings', '/dashboard']
@@ -610,7 +610,7 @@ test.describe('Error Handling - Concurrent Operations', () => {
 		}
 
 		// Final page should load without errors
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Should be on a valid page
 		const pageContent = authenticatedPage.locator('body')
@@ -619,7 +619,7 @@ test.describe('Error Handling - Concurrent Operations', () => {
 
 	test('multiple concurrent API calls are handled', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// The dashboard should handle multiple simultaneous data fetches
 		// This is implicitly tested by loading the dashboard which may fetch
@@ -636,10 +636,10 @@ test.describe('Error Handling - Concurrent Operations', () => {
 test.describe('Error Handling - Form Validation', () => {
 	test('empty form submission shows validation', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/agents/new')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Try to submit empty form
-		await authenticatedPage.getByRole('button', { name: /create agent/i }).click()
+		await authenticatedPage.getByRole('button', { name: /create/i }).click()
 
 		// Should show validation error or HTML5 validation prevents submission
 		// The form should not navigate away
@@ -648,7 +648,7 @@ test.describe('Error Handling - Form Validation', () => {
 
 	test('invalid email format shows error on sign-in', async ({ page }: { page: Page }) => {
 		await page.goto('/sign-in')
-		await page.waitForLoadState('networkidle')
+		await page.waitForSelector('form')
 
 		// Enter invalid email
 		await page.getByLabel('Email').fill('not-an-email')
@@ -663,7 +663,7 @@ test.describe('Error Handling - Form Validation', () => {
 		const testUser = generateTestUser()
 
 		await page.goto('/sign-up')
-		await page.waitForLoadState('networkidle')
+		await page.waitForSelector('form')
 
 		await page.getByLabel('Full Name').fill(testUser.name)
 		await page.getByLabel('Email').fill(testUser.email)

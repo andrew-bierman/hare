@@ -10,7 +10,7 @@ import { test } from './fixtures'
  * Helper to get the first workspace ID from an authenticated page.
  */
 async function getWorkspaceId(page: Page): Promise<string> {
-	await page.waitForLoadState('networkidle')
+	await page.waitForSelector('main', { state: 'visible' })
 	const response = await page.request.get('/api/rpc/workspaces/list')
 	expect(response.status()).toBe(200)
 	const body = await response.json()
@@ -22,7 +22,7 @@ async function getWorkspaceId(page: Page): Promise<string> {
 baseTest.describe('Usage Page - Unauthenticated', () => {
 	baseTest('redirects unauthenticated users to sign-in', async ({ page }: { page: Page }) => {
 		await page.goto('/dashboard/usage')
-		await page.waitForLoadState('networkidle')
+		await page.waitForSelector('form', { state: 'visible' })
 
 		// Protected route should redirect to sign-in
 		await expect(page).toHaveURL(/\/sign-in/)
@@ -33,7 +33,7 @@ baseTest.describe('Usage Page - Unauthenticated', () => {
 test.describe('Usage Page Access - Sidebar Navigation', () => {
 	test('can navigate to usage page from sidebar', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		await authenticatedPage.getByRole('link', { name: 'Usage' }).click()
 		await authenticatedPage.waitForURL(/\/dashboard\/usage/, { timeout: 10000 })
@@ -42,7 +42,7 @@ test.describe('Usage Page Access - Sidebar Navigation', () => {
 
 	test('usage link is visible in navigation', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		const nav = authenticatedPage.locator('nav')
 		await expect(nav.getByRole('link', { name: 'Usage' })).toBeVisible()
@@ -52,14 +52,14 @@ test.describe('Usage Page Access - Sidebar Navigation', () => {
 test.describe('Usage Page - Authenticated', () => {
 	test('authenticated user can access usage page', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/usage')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		await expect(authenticatedPage).toHaveURL(/\/dashboard\/usage/)
 		await expect(authenticatedPage.getByRole('heading', { name: 'Usage' })).toBeVisible()
 	})
 
 	test('usage page layout loads correctly', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/usage')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Verify the main heading
 		await expect(authenticatedPage.getByRole('heading', { name: 'Usage' })).toBeVisible()
@@ -73,7 +73,7 @@ test.describe('Usage Page - Authenticated', () => {
 test.describe('Usage Statistics Display', () => {
 	test('displays Total API Calls stat card', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/usage')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Wait for loading to complete (skeletons disappear)
 		await authenticatedPage.waitForTimeout(2000)
@@ -84,7 +84,7 @@ test.describe('Usage Statistics Display', () => {
 
 	test('displays Total Tokens stat card', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/usage')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Wait for loading to complete
 		await authenticatedPage.waitForTimeout(2000)
@@ -95,7 +95,7 @@ test.describe('Usage Statistics Display', () => {
 
 	test('displays Active Agents stat card', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/usage')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Wait for loading to complete
 		await authenticatedPage.waitForTimeout(2000)
@@ -106,7 +106,7 @@ test.describe('Usage Statistics Display', () => {
 
 	test('displays Period stat card', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/usage')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Wait for loading to complete
 		await authenticatedPage.waitForTimeout(2000)
@@ -117,7 +117,7 @@ test.describe('Usage Statistics Display', () => {
 
 	test('stat cards show billing period description', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/usage')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Wait for loading to complete
 		await authenticatedPage.waitForTimeout(2000)
@@ -128,7 +128,7 @@ test.describe('Usage Statistics Display', () => {
 
 	test('shows input/output token breakdown in description', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/usage')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Wait for loading to complete
 		await authenticatedPage.waitForTimeout(2000)
@@ -142,7 +142,7 @@ test.describe('Usage Statistics Display', () => {
 test.describe('Token Breakdown Section', () => {
 	test('displays Token Breakdown card', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/usage')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Wait for loading to complete
 		await authenticatedPage.waitForTimeout(2000)
@@ -153,7 +153,7 @@ test.describe('Token Breakdown Section', () => {
 
 	test('shows Input Tokens section', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/usage')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Wait for loading to complete
 		await authenticatedPage.waitForTimeout(2000)
@@ -165,7 +165,7 @@ test.describe('Token Breakdown Section', () => {
 
 	test('shows Output Tokens section', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/usage')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Wait for loading to complete
 		await authenticatedPage.waitForTimeout(2000)
@@ -179,7 +179,7 @@ test.describe('Token Breakdown Section', () => {
 test.describe('Usage by Agent Section', () => {
 	test('displays Usage by Agent card', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/usage')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Wait for loading to complete
 		await authenticatedPage.waitForTimeout(2000)
@@ -190,7 +190,7 @@ test.describe('Usage by Agent Section', () => {
 
 	test('shows per-agent usage description', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/usage')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Wait for loading to complete
 		await authenticatedPage.waitForTimeout(2000)
@@ -201,7 +201,7 @@ test.describe('Usage by Agent Section', () => {
 
 	test('shows empty state when no deployed agents', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/usage')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Wait for loading to complete
 		await authenticatedPage.waitForTimeout(2000)
@@ -220,7 +220,7 @@ test.describe('Usage by Agent Section', () => {
 test.describe('About Usage Tracking Section', () => {
 	test('displays About Usage Tracking card', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/usage')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Wait for loading to complete
 		await authenticatedPage.waitForTimeout(2000)
@@ -231,7 +231,7 @@ test.describe('About Usage Tracking Section', () => {
 
 	test('shows usage tracking description', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/usage')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Wait for loading to complete
 		await authenticatedPage.waitForTimeout(2000)
@@ -242,7 +242,7 @@ test.describe('About Usage Tracking Section', () => {
 
 	test('shows billing information', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/usage')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Wait for loading to complete
 		await authenticatedPage.waitForTimeout(2000)
@@ -409,7 +409,7 @@ test.describe('Usage Page Loading States', () => {
 
 	test('content loads after skeletons', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/usage')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Wait for content to load
 		await authenticatedPage.waitForTimeout(3000)
@@ -424,7 +424,7 @@ test.describe('Usage Page Responsive Layout', () => {
 	test('usage page is responsive on mobile', async ({ authenticatedPage }) => {
 		await authenticatedPage.setViewportSize({ width: 375, height: 667 })
 		await authenticatedPage.goto('/dashboard/usage')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Page should still load without 404
 		await expect(authenticatedPage.locator('body')).not.toContainText('404')
@@ -435,7 +435,7 @@ test.describe('Usage Page Responsive Layout', () => {
 	test('usage page is responsive on tablet', async ({ authenticatedPage }) => {
 		await authenticatedPage.setViewportSize({ width: 768, height: 1024 })
 		await authenticatedPage.goto('/dashboard/usage')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		await expect(authenticatedPage.locator('body')).not.toContainText('404')
 		await expect(authenticatedPage.getByRole('heading', { name: 'Usage' })).toBeVisible()
@@ -444,7 +444,7 @@ test.describe('Usage Page Responsive Layout', () => {
 	test('stat cards stack correctly on mobile', async ({ authenticatedPage }) => {
 		await authenticatedPage.setViewportSize({ width: 375, height: 667 })
 		await authenticatedPage.goto('/dashboard/usage')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Wait for content to load
 		await authenticatedPage.waitForTimeout(2000)
@@ -458,7 +458,7 @@ test.describe('Usage Page Responsive Layout', () => {
 test.describe('Usage Page Navigation', () => {
 	test('can navigate to usage from dashboard', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		await authenticatedPage.getByRole('link', { name: 'Usage' }).click()
 		await authenticatedPage.waitForURL(/\/dashboard\/usage/)
@@ -468,7 +468,7 @@ test.describe('Usage Page Navigation', () => {
 
 	test('can navigate back to dashboard from usage', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/usage')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		await authenticatedPage.getByRole('link', { name: 'Dashboard' }).click()
 		await authenticatedPage.waitForURL(/\/dashboard$/)
@@ -478,7 +478,7 @@ test.describe('Usage Page Navigation', () => {
 
 	test('can navigate to agents from usage', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/usage')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		await authenticatedPage.getByRole('link', { name: 'Agents' }).click()
 		await authenticatedPage.waitForURL(/\/dashboard\/agents/)
@@ -492,7 +492,7 @@ test.describe('Usage Page Navigation', () => {
 test.describe('Usage Data Formatting', () => {
 	test('large numbers are formatted with K/M suffix', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/usage')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Wait for content to load
 		await authenticatedPage.waitForTimeout(2000)
@@ -507,7 +507,7 @@ test.describe('Usage Data Formatting', () => {
 test.describe('Usage Page Accessibility', () => {
 	test('has proper heading hierarchy', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/usage')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Should have h2 heading for main page title
 		const h2 = authenticatedPage.locator('h2').filter({ hasText: 'Usage' })
@@ -516,7 +516,7 @@ test.describe('Usage Page Accessibility', () => {
 
 	test('stat cards have proper labels', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/usage')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Wait for content to load
 		await authenticatedPage.waitForTimeout(2000)
@@ -535,7 +535,7 @@ test.describe('Usage Reflects Recent Activity', () => {
 
 		// Get initial active agents count from usage page
 		await authenticatedPage.goto('/dashboard/usage')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		await authenticatedPage.waitForTimeout(2000)
 
 		// The page should show all four stat cards including Active Agents
@@ -565,7 +565,7 @@ test.describe('Usage Reflects Recent Activity', () => {
 
 		// Reload the usage page to see updated counts
 		await authenticatedPage.reload()
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		await authenticatedPage.waitForTimeout(2000)
 
 		// The Active Agents count should reflect the newly deployed agent
@@ -587,7 +587,7 @@ test.describe('Usage Reflects Recent Activity', () => {
 
 		// Navigate to usage page
 		await authenticatedPage.goto('/dashboard/usage')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		await authenticatedPage.waitForTimeout(2000)
 
 		// Verify the page displays the same period information from API
@@ -614,7 +614,7 @@ test.describe('Usage Reflects Recent Activity', () => {
 
 		// Navigate to usage page
 		await authenticatedPage.goto('/dashboard/usage')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		await authenticatedPage.waitForTimeout(2000)
 
 		// The Active Agents card should show total agents in description
@@ -625,7 +625,7 @@ test.describe('Usage Reflects Recent Activity', () => {
 test.describe('Usage Page Full Layout', () => {
 	test('displays all four stat cards simultaneously', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/usage')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		await authenticatedPage.waitForTimeout(2000)
 
 		// All four stat cards should be visible at once
@@ -637,7 +637,7 @@ test.describe('Usage Page Full Layout', () => {
 
 	test('displays all main sections', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/usage')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		await authenticatedPage.waitForTimeout(2000)
 
 		// Verify all main sections are present
@@ -649,7 +649,7 @@ test.describe('Usage Page Full Layout', () => {
 
 	test('stat card values are displayed as numbers or N/A', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/usage')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		await authenticatedPage.waitForTimeout(2000)
 
 		// Each stat card should have a value that's either a number, formatted number, or N/A

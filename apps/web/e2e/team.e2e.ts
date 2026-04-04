@@ -13,7 +13,7 @@ import { test } from './fixtures'
 baseTest.describe('Team Route Protection', () => {
 	baseTest('unauthenticated user is redirected from team to sign-in', async ({ page }) => {
 		await page.goto('/dashboard/settings/team')
-		await page.waitForLoadState('networkidle')
+		await page.waitForSelector('form', { state: 'visible' })
 		await page.waitForURL(/\/sign-in/, { timeout: 10000 })
 		await expect(page).toHaveURL(/\/sign-in/)
 	})
@@ -26,14 +26,14 @@ baseTest.describe('Team Route Protection', () => {
 test.describe('Team Page', () => {
 	test('displays team page', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/settings/team')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
-		await expect(authenticatedPage.locator('main')).toBeVisible({ timeout: 20000 })
+		await expect(authenticatedPage.locator('main')).toBeVisible({ timeout: 10000 })
 	})
 
 	test('shows team heading', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/settings/team')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		const teamHeading = authenticatedPage.getByRole('heading', { name: /team|member/i })
 		await expect(teamHeading.first()).toBeVisible({ timeout: 10000 })
@@ -41,7 +41,7 @@ test.describe('Team Page', () => {
 
 	test('displays current user in members list', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/settings/team')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Should show at least one member (current user)
 		const memberText = authenticatedPage.getByText(/member|owner|admin/i)
@@ -56,7 +56,7 @@ test.describe('Team Page', () => {
 test.describe('Member Management', () => {
 	test('has invite member button', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/settings/team')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		const inviteButton = authenticatedPage.getByRole('button', { name: /invite|add member/i })
 		await expect(inviteButton.first()).toBeVisible({ timeout: 10000 })
@@ -64,7 +64,7 @@ test.describe('Member Management', () => {
 
 	test('opens invite dialog when clicking invite button', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/settings/team')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		const inviteButton = authenticatedPage.getByRole('button', { name: /invite|add member/i })
 		await inviteButton.first().click()
@@ -82,7 +82,7 @@ test.describe('Member Management', () => {
 
 	test('invite dialog has email field', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/settings/team')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		const inviteButton = authenticatedPage.getByRole('button', { name: /invite|add member/i })
 		await inviteButton.first().click()
@@ -101,7 +101,7 @@ test.describe('Member Management', () => {
 
 	test('invite dialog has role selector', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/settings/team')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		const inviteButton = authenticatedPage.getByRole('button', { name: /invite|add member/i })
 		await inviteButton.first().click()
@@ -131,7 +131,7 @@ test.describe('Member Management', () => {
 
 	test('can fill invite form', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/settings/team')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		const inviteButton = authenticatedPage.getByRole('button', { name: /invite|add member/i })
 		await inviteButton.first().click()
@@ -153,7 +153,7 @@ test.describe('Member Management', () => {
 
 	test('can cancel invite dialog', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/settings/team')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		const inviteButton = authenticatedPage.getByRole('button', { name: /invite|add member/i })
 		await inviteButton.first().click()
@@ -177,7 +177,7 @@ test.describe('Member Management', () => {
 test.describe('Member Display', () => {
 	test('shows member roles', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/settings/team')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Should show role labels
 		const roleText = authenticatedPage.getByText(/owner|admin|member/i)
@@ -186,7 +186,7 @@ test.describe('Member Display', () => {
 
 	test('shows member emails', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/settings/team')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Should show email or @ symbol somewhere
 		const emailPattern = authenticatedPage.getByText(/@/)
@@ -199,7 +199,7 @@ test.describe('Member Display', () => {
 
 	test('has member action menu', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/settings/team')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Look for action buttons or dropdown
 		const actionMenu = authenticatedPage.locator(
@@ -229,7 +229,7 @@ test.describe('Member Display', () => {
 test.describe('Pending Invitations', () => {
 	test('shows pending invitations section', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/settings/team')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Look for pending section
 		const pendingText = authenticatedPage.getByText(/pending|invited|invitation/i)
@@ -248,7 +248,7 @@ test.describe('Pending Invitations', () => {
 test.describe('Team Navigation', () => {
 	test('can navigate to team from settings', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/settings')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Look for team link
 		const teamLink = authenticatedPage.getByRole('link', { name: /team/i })
@@ -277,16 +277,16 @@ test.describe('Team - Responsive', () => {
 	test('displays correctly on mobile', async ({ authenticatedPage }) => {
 		await authenticatedPage.setViewportSize({ width: 375, height: 667 })
 		await authenticatedPage.goto('/dashboard/settings/team')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
-		await expect(authenticatedPage.locator('main')).toBeVisible({ timeout: 20000 })
+		await expect(authenticatedPage.locator('main')).toBeVisible({ timeout: 10000 })
 	})
 
 	test('displays correctly on tablet', async ({ authenticatedPage }) => {
 		await authenticatedPage.setViewportSize({ width: 768, height: 1024 })
 		await authenticatedPage.goto('/dashboard/settings/team')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
-		await expect(authenticatedPage.locator('main')).toBeVisible({ timeout: 20000 })
+		await expect(authenticatedPage.locator('main')).toBeVisible({ timeout: 10000 })
 	})
 })

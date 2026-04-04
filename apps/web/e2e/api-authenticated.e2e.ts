@@ -11,7 +11,7 @@ import { test } from './fixtures'
  * Ensures page is ready and validates the API response.
  */
 async function getWorkspaceId(page: Page): Promise<string> {
-	await page.waitForLoadState('networkidle')
+	await page.waitForSelector('main', { state: 'visible' })
 	const response = await page.request.get('/api/rpc/workspaces/list')
 	expect(response.status()).toBe(200)
 	const body = await response.json()
@@ -66,7 +66,7 @@ baseTest.describe('API Authentication Requirements', () => {
 test.describe('Workspaces API - Authenticated', () => {
 	test('can list workspaces', async ({ authenticatedPage }) => {
 		// Ensure page is on the right domain for cookies to be included in requests
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Make API request using page context (inherits auth cookies)
 		const response = await authenticatedPage.request.get('/api/rpc/workspaces/list')
@@ -79,7 +79,7 @@ test.describe('Workspaces API - Authenticated', () => {
 	})
 
 	test('workspace has required fields', async ({ authenticatedPage }) => {
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		const response = await authenticatedPage.request.get('/api/rpc/workspaces/list')
 		expect(response.status()).toBe(200)
 
@@ -316,7 +316,7 @@ test.describe('Usage API - Authenticated', () => {
 
 test.describe('Dev API - Authenticated', () => {
 	test('can seed sample agents in development', async ({ authenticatedPage }) => {
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		const response = await authenticatedPage.request.post('/api/dev/seed')
 
 		// Should succeed in dev mode

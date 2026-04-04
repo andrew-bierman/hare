@@ -13,9 +13,7 @@ test.describe('Settings - Profile', () => {
 		await page.waitForSelector('main', { state: 'visible' })
 
 		// Should show profile/account info
-		await expect(
-			page.getByText(/profile|account/i).first(),
-		).toBeVisible()
+		await expect(page.getByText(/profile|account/i).first()).toBeVisible()
 	})
 
 	test('displays user email', async ({ authenticatedPage: page, testUser }) => {
@@ -23,9 +21,11 @@ test.describe('Settings - Profile', () => {
 		await page.waitForSelector('main', { state: 'visible' })
 
 		// User email should be displayed somewhere
-		await expect(page.getByText(testUser.email).first()).toBeVisible({ timeout: 10000 }).catch(() => {
-			// Email might be partially hidden or in a different format
-		})
+		await expect(page.getByText(testUser.email).first())
+			.toBeVisible({ timeout: 10000 })
+			.catch(() => {
+				// Email might be partially hidden or in a different format
+			})
 	})
 })
 
@@ -46,7 +46,9 @@ test.describe('Settings - API Keys', () => {
 			await createButton.click()
 
 			// Should show a dialog or form for key name
-			const nameInput = page.getByLabel(/name|label/i).first()
+			const nameInput = page
+				.getByLabel(/name|label/i)
+				.first()
 				.or(page.getByPlaceholder(/name|label/i).first())
 			if (await nameInput.isVisible().catch(() => false)) {
 				await nameInput.click()
@@ -58,11 +60,15 @@ test.describe('Settings - API Keys', () => {
 
 					// Should show the key (only shown once)
 					await expect(
-						page.getByText(/sk-|hare_/i).first()
+						page
+							.getByText(/sk-|hare_/i)
+							.first()
 							.or(page.getByText(/key.*created/i).first()),
-					).toBeVisible({ timeout: 10000 }).catch(() => {
-						// Key display format may vary
-					})
+					)
+						.toBeVisible({ timeout: 10000 })
+						.catch(() => {
+							// Key display format may vary
+						})
 				}
 			}
 		}
@@ -74,9 +80,7 @@ test.describe('Settings - Team', () => {
 		await page.goto('/dashboard/settings/team')
 		await page.waitForSelector('main', { state: 'visible' })
 
-		await expect(
-			page.getByText(/team|members/i).first(),
-		).toBeVisible()
+		await expect(page.getByText(/team|members/i).first()).toBeVisible()
 	})
 
 	test('shows current user as member', async ({ authenticatedPage: page }) => {
@@ -84,11 +88,11 @@ test.describe('Settings - Team', () => {
 		await page.waitForSelector('main', { state: 'visible' })
 
 		// Current user should appear in members list
-		await expect(
-			page.getByText(/owner|admin/i).first(),
-		).toBeVisible({ timeout: 10000 }).catch(() => {
-			// Role label may not be shown
-		})
+		await expect(page.getByText(/owner|admin/i).first())
+			.toBeVisible({ timeout: 10000 })
+			.catch(() => {
+				// Role label may not be shown
+			})
 	})
 
 	test('has invite member option', async ({ authenticatedPage: page }) => {
@@ -107,9 +111,7 @@ test.describe('Settings - Billing', () => {
 		await page.goto('/dashboard/settings/billing')
 		await page.waitForSelector('main', { state: 'visible' })
 
-		await expect(
-			page.getByText(/billing|plan|subscription/i).first(),
-		).toBeVisible()
+		await expect(page.getByText(/billing|plan|subscription/i).first()).toBeVisible()
 	})
 })
 
@@ -118,9 +120,7 @@ test.describe('Settings - Audit Logs', () => {
 		await page.goto('/dashboard/settings/audit-logs')
 		await page.waitForSelector('main', { state: 'visible' })
 
-		await expect(
-			page.getByText(/audit|log/i).first(),
-		).toBeVisible()
+		await expect(page.getByText(/audit|log/i).first()).toBeVisible()
 	})
 })
 
@@ -129,18 +129,14 @@ test.describe('Dashboard Analytics & Usage', () => {
 		await page.goto('/dashboard/analytics')
 		await page.waitForSelector('main', { state: 'visible' })
 
-		await expect(
-			page.getByText(/analytics/i).first(),
-		).toBeVisible()
+		await expect(page.getByText(/analytics/i).first()).toBeVisible()
 	})
 
 	test('usage page loads', async ({ authenticatedPage: page }) => {
 		await page.goto('/dashboard/usage')
 		await page.waitForSelector('main', { state: 'visible' })
 
-		await expect(
-			page.getByText(/usage/i).first(),
-		).toBeVisible()
+		await expect(page.getByText(/usage/i).first()).toBeVisible()
 	})
 })
 
