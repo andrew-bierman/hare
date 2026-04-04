@@ -528,7 +528,7 @@ test.describe('Dashboard Home - Data Refresh', () => {
 		// Open a new tab to trigger blur/focus cycle
 		const newPage = await context.newPage()
 		await newPage.goto('/dashboard')
-		await newPage.waitForLoadState('networkidle')
+		await newPage.waitForLoadState('domcontentloaded')
 
 		// Close the new page to return focus to original
 		await newPage.close()

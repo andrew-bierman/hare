@@ -13,14 +13,14 @@ import { test as baseTest, expect } from '@playwright/test'
 baseTest.describe('Forgot Password Page', () => {
 	baseTest('displays forgot password page', async ({ page }) => {
 		await page.goto('/forgot-password')
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('domcontentloaded')
 
 		await expect(page.locator('form, main').first()).toBeVisible({ timeout: 10000 })
 	})
 
 	baseTest('shows forgot password heading', async ({ page }) => {
 		await page.goto('/forgot-password')
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('domcontentloaded')
 
 		const heading = page.getByRole('heading', { name: /forgot|reset|password/i })
 		await expect(heading.first()).toBeVisible({ timeout: 10000 })
@@ -28,7 +28,7 @@ baseTest.describe('Forgot Password Page', () => {
 
 	baseTest('has email input field', async ({ page }) => {
 		await page.goto('/forgot-password')
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('domcontentloaded')
 
 		const emailInput = page.getByLabel(/email/i)
 		const emailPlaceholder = page.getByPlaceholder(/email/i)
@@ -42,7 +42,7 @@ baseTest.describe('Forgot Password Page', () => {
 
 	baseTest('has submit button', async ({ page }) => {
 		await page.goto('/forgot-password')
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('domcontentloaded')
 
 		const submitButton = page.getByRole('button', {
 			name: /send|reset|submit|continue/i,
@@ -52,7 +52,7 @@ baseTest.describe('Forgot Password Page', () => {
 
 	baseTest('has back to sign-in link', async ({ page }) => {
 		await page.goto('/forgot-password')
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('domcontentloaded')
 
 		const backLink = page.getByRole('link', { name: /sign.?in|back|login/i })
 		await expect(backLink.first()).toBeVisible({ timeout: 10000 })
@@ -60,7 +60,7 @@ baseTest.describe('Forgot Password Page', () => {
 
 	baseTest('can type email address', async ({ page }) => {
 		await page.goto('/forgot-password')
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('domcontentloaded')
 
 		const emailInput = page.getByLabel(/email/i).first()
 		const emailPlaceholder = page.getByPlaceholder(/email/i).first()
@@ -76,7 +76,7 @@ baseTest.describe('Forgot Password Page', () => {
 
 	baseTest('shows validation for empty email', async ({ page }) => {
 		await page.goto('/forgot-password')
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('domcontentloaded')
 
 		// Click submit without entering email
 		const submitButton = page.getByRole('button', {
@@ -95,7 +95,7 @@ baseTest.describe('Forgot Password Page', () => {
 
 	baseTest('shows validation for invalid email format', async ({ page }) => {
 		await page.goto('/forgot-password')
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('domcontentloaded')
 
 		const emailInput = page.getByLabel(/email/i).first()
 		const emailPlaceholder = page.getByPlaceholder(/email/i).first()
@@ -129,14 +129,14 @@ baseTest.describe('Reset Password Page', () => {
 	baseTest('displays reset password page', async ({ page }) => {
 		// Reset password requires a token - navigate without token to test page loads
 		await page.goto('/reset-password')
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('domcontentloaded')
 
 		await expect(page.locator('form, main').first()).toBeVisible({ timeout: 10000 })
 	})
 
 	baseTest('shows reset password or error for missing token', async ({ page }) => {
 		await page.goto('/reset-password')
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('domcontentloaded')
 
 		// Either shows reset form or error about missing/invalid token
 		const heading = page.getByRole('heading', { name: /reset|password|invalid|expired/i })
@@ -158,7 +158,7 @@ baseTest.describe('Reset Password Page', () => {
 	baseTest('reset password page with token shows password fields', async ({ page }) => {
 		// Simulate having a token (even if invalid, form should show)
 		await page.goto('/reset-password?token=test-token-12345')
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('domcontentloaded')
 
 		// Look for password fields (may show form or error)
 		const passwordInput = page.getByLabel(/password/i)
@@ -185,7 +185,7 @@ baseTest.describe('Reset Password Page', () => {
 baseTest.describe('Password Reset Navigation', () => {
 	baseTest('can navigate from sign-in to forgot password', async ({ page }) => {
 		await page.goto('/sign-in')
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('domcontentloaded')
 
 		// Look for forgot password link
 		const forgotLink = page.getByRole('link', { name: /forgot/i })
@@ -209,7 +209,7 @@ baseTest.describe('Password Reset Navigation', () => {
 
 	baseTest('can navigate from forgot password back to sign-in', async ({ page }) => {
 		await page.goto('/forgot-password')
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('domcontentloaded')
 
 		const backLink = page.getByRole('link', { name: /sign.?in|back|login/i })
 		if (
@@ -233,7 +233,7 @@ baseTest.describe('Password Reset - Responsive', () => {
 	baseTest('forgot password displays correctly on mobile', async ({ page }) => {
 		await page.setViewportSize({ width: 375, height: 667 })
 		await page.goto('/forgot-password')
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('domcontentloaded')
 
 		await expect(page.locator('form, main').first()).toBeVisible({ timeout: 10000 })
 	})
@@ -241,7 +241,7 @@ baseTest.describe('Password Reset - Responsive', () => {
 	baseTest('forgot password displays correctly on tablet', async ({ page }) => {
 		await page.setViewportSize({ width: 768, height: 1024 })
 		await page.goto('/forgot-password')
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('domcontentloaded')
 
 		await expect(page.locator('form, main').first()).toBeVisible({ timeout: 10000 })
 	})
@@ -249,7 +249,7 @@ baseTest.describe('Password Reset - Responsive', () => {
 	baseTest('reset password displays correctly on mobile', async ({ page }) => {
 		await page.setViewportSize({ width: 375, height: 667 })
 		await page.goto('/reset-password')
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('domcontentloaded')
 
 		await expect(page.locator('form, main').first()).toBeVisible({ timeout: 10000 })
 	})
@@ -262,7 +262,7 @@ baseTest.describe('Password Reset - Responsive', () => {
 baseTest.describe('Password Reset Security', () => {
 	baseTest('forgot password does not reveal if email exists', async ({ page }) => {
 		await page.goto('/forgot-password')
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('domcontentloaded')
 
 		const emailInput = page.getByLabel(/email/i).first()
 		const emailPlaceholder = page.getByPlaceholder(/email/i).first()

@@ -4,7 +4,7 @@ import { test } from './fixtures'
 baseTest.describe('Agent Creation Form - Unauthenticated', () => {
 	baseTest('redirects unauthenticated users to sign-in', async ({ page }: { page: Page }) => {
 		await page.goto('/dashboard/agents/new')
-		await page.waitForLoadState('networkidle')
+		await page.waitForSelector('form', { state: 'visible' })
 
 		// Protected route should redirect to sign-in
 		await expect(page).toHaveURL(/\/sign-in/)
@@ -15,7 +15,7 @@ baseTest.describe('Agent Creation Form - Unauthenticated', () => {
 test.describe('Agent Creation Form - Authenticated', () => {
 	test('can successfully fill and submit agent form', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/agents/new')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Fill all fields using id selectors
 		const agentName = `Test Agent ${Date.now()}`
@@ -31,7 +31,7 @@ test.describe('Agent Creation Form - Authenticated', () => {
 
 	test('form fields persist after typing', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/agents/new')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Fill agent name
 		const agentName = 'Persistent Test Agent'
@@ -48,7 +48,7 @@ test.describe('Agent Creation Form - Authenticated', () => {
 baseTest.describe('Settings Form - Unauthenticated', () => {
 	baseTest('redirects unauthenticated users to sign-in', async ({ page }: { page: Page }) => {
 		await page.goto('/dashboard/settings')
-		await page.waitForLoadState('networkidle')
+		await page.waitForSelector('form', { state: 'visible' })
 
 		// Protected route should redirect to sign-in
 		await expect(page).toHaveURL(/\/sign-in/)
@@ -59,7 +59,7 @@ baseTest.describe('Settings Form - Unauthenticated', () => {
 test.describe('Settings Form - Authenticated', () => {
 	test('authenticated user can view settings', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/settings')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		await expect(authenticatedPage.getByText('Profile', { exact: true }).first()).toBeVisible()
 		await expect(authenticatedPage.getByLabel(/name/i).first()).toBeVisible()
@@ -70,7 +70,7 @@ test.describe('Settings Form - Authenticated', () => {
 baseTest.describe('Sign In Form', () => {
 	baseTest.beforeEach(async ({ page }: { page: Page }) => {
 		await page.goto('/sign-in')
-		await page.waitForLoadState('networkidle')
+		await page.waitForSelector('form', { state: 'visible' })
 	})
 
 	baseTest('displays all form fields', async ({ page }: { page: Page }) => {
@@ -100,7 +100,7 @@ baseTest.describe('Sign In Form', () => {
 baseTest.describe('Sign Up Form', () => {
 	baseTest.beforeEach(async ({ page }: { page: Page }) => {
 		await page.goto('/sign-up')
-		await page.waitForLoadState('networkidle')
+		await page.waitForSelector('form', { state: 'visible' })
 	})
 
 	baseTest('displays all form fields', async ({ page }: { page: Page }) => {

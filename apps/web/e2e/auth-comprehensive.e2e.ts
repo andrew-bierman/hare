@@ -211,7 +211,7 @@ baseTest.describe('Protected Routes', () => {
 		'should redirect unauthenticated user from dashboard to sign-in',
 		async ({ page }: { page: Page }) => {
 			await page.goto('/dashboard')
-			await page.waitForLoadState('networkidle')
+			await page.waitForLoadState('domcontentloaded')
 
 			// Should redirect to sign-in or landing page
 			await expect(page).toHaveURL(/\/(sign-in)?$/, { timeout: 10000 })

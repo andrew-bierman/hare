@@ -13,14 +13,14 @@ import { test as baseTest, expect } from '@playwright/test'
 baseTest.describe('Documentation Page', () => {
 	baseTest('displays docs page', async ({ page }) => {
 		await page.goto('/docs')
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('domcontentloaded')
 
 		await expect(page.locator('main').first()).toBeVisible({ timeout: 10000 })
 	})
 
 	baseTest('shows documentation heading', async ({ page }) => {
 		await page.goto('/docs')
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('domcontentloaded')
 
 		const heading = page.getByRole('heading', { name: /build ai agents|hare|getting started/i })
 		await expect(heading.first()).toBeVisible({ timeout: 10000 })
@@ -28,7 +28,7 @@ baseTest.describe('Documentation Page', () => {
 
 	baseTest('has navigation or table of contents', async ({ page }) => {
 		await page.goto('/docs')
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('domcontentloaded')
 
 		// Look for navigation elements
 		const nav = page.getByRole('navigation')
@@ -49,7 +49,7 @@ baseTest.describe('Documentation Page', () => {
 
 	baseTest('docs content is readable', async ({ page }) => {
 		await page.goto('/docs')
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('domcontentloaded')
 
 		// Should have text content
 		const contentText = page.getByText(/install|setup|usage|api|agent/i)
@@ -64,14 +64,14 @@ baseTest.describe('Documentation Page', () => {
 baseTest.describe('Privacy Policy Page', () => {
 	baseTest('displays privacy page', async ({ page }) => {
 		await page.goto('/privacy')
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('domcontentloaded')
 
 		await expect(page.locator('main').first()).toBeVisible({ timeout: 10000 })
 	})
 
 	baseTest('shows privacy heading', async ({ page }) => {
 		await page.goto('/privacy')
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('domcontentloaded')
 
 		const heading = page.getByRole('heading', { name: /privacy/i })
 		await expect(heading.first()).toBeVisible({ timeout: 10000 })
@@ -79,7 +79,7 @@ baseTest.describe('Privacy Policy Page', () => {
 
 	baseTest('privacy has policy content', async ({ page }) => {
 		await page.goto('/privacy')
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('domcontentloaded')
 
 		// Should have privacy-related content
 		const contentText = page.getByText(/data|information|collect|personal|cookies/i)
@@ -88,7 +88,7 @@ baseTest.describe('Privacy Policy Page', () => {
 
 	baseTest('privacy page is publicly accessible', async ({ page }) => {
 		await page.goto('/privacy')
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('domcontentloaded')
 
 		// Should NOT redirect to sign-in
 		await expect(page).not.toHaveURL(/\/sign-in/)
@@ -102,14 +102,14 @@ baseTest.describe('Privacy Policy Page', () => {
 baseTest.describe('Terms of Service Page', () => {
 	baseTest('displays terms page', async ({ page }) => {
 		await page.goto('/terms')
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('domcontentloaded')
 
 		await expect(page.locator('main').first()).toBeVisible({ timeout: 10000 })
 	})
 
 	baseTest('shows terms heading', async ({ page }) => {
 		await page.goto('/terms')
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('domcontentloaded')
 
 		const heading = page.getByRole('heading', { name: /terms|service|condition/i })
 		await expect(heading.first()).toBeVisible({ timeout: 10000 })
@@ -117,7 +117,7 @@ baseTest.describe('Terms of Service Page', () => {
 
 	baseTest('terms has legal content', async ({ page }) => {
 		await page.goto('/terms')
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('domcontentloaded')
 
 		// Should have terms-related content
 		const contentText = page.getByText(/agreement|accept|service|user|account|liability/i)
@@ -126,7 +126,7 @@ baseTest.describe('Terms of Service Page', () => {
 
 	baseTest('terms page is publicly accessible', async ({ page }) => {
 		await page.goto('/terms')
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('domcontentloaded')
 
 		// Should NOT redirect to sign-in
 		await expect(page).not.toHaveURL(/\/sign-in/)
@@ -140,7 +140,7 @@ baseTest.describe('Terms of Service Page', () => {
 baseTest.describe('Legal Footer Links', () => {
 	baseTest('landing page has privacy link', async ({ page }) => {
 		await page.goto('/')
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('domcontentloaded')
 
 		const privacyLink = page.getByRole('link', { name: /privacy/i })
 		const hasPrivacy = await privacyLink
@@ -152,7 +152,7 @@ baseTest.describe('Legal Footer Links', () => {
 
 	baseTest('landing page has terms link', async ({ page }) => {
 		await page.goto('/')
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('domcontentloaded')
 
 		const termsLink = page.getByRole('link', { name: /terms/i })
 		const hasTerms = await termsLink
@@ -164,7 +164,7 @@ baseTest.describe('Legal Footer Links', () => {
 
 	baseTest('can navigate from landing to privacy', async ({ page }) => {
 		await page.goto('/')
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('domcontentloaded')
 
 		const privacyLink = page.getByRole('link', { name: /privacy/i })
 		if (
@@ -181,7 +181,7 @@ baseTest.describe('Legal Footer Links', () => {
 
 	baseTest('can navigate from landing to terms', async ({ page }) => {
 		await page.goto('/')
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('domcontentloaded')
 
 		const termsLink = page.getByRole('link', { name: /terms/i })
 		if (
@@ -205,7 +205,7 @@ baseTest.describe('Legal Pages - Responsive', () => {
 	baseTest('docs displays correctly on mobile', async ({ page }) => {
 		await page.setViewportSize({ width: 375, height: 667 })
 		await page.goto('/docs')
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('domcontentloaded')
 
 		await expect(page.locator('main').first()).toBeVisible({ timeout: 10000 })
 	})
@@ -213,7 +213,7 @@ baseTest.describe('Legal Pages - Responsive', () => {
 	baseTest('privacy displays correctly on mobile', async ({ page }) => {
 		await page.setViewportSize({ width: 375, height: 667 })
 		await page.goto('/privacy')
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('domcontentloaded')
 
 		await expect(page.locator('main').first()).toBeVisible({ timeout: 10000 })
 	})
@@ -221,7 +221,7 @@ baseTest.describe('Legal Pages - Responsive', () => {
 	baseTest('terms displays correctly on mobile', async ({ page }) => {
 		await page.setViewportSize({ width: 375, height: 667 })
 		await page.goto('/terms')
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('domcontentloaded')
 
 		await expect(page.locator('main').first()).toBeVisible({ timeout: 10000 })
 	})
@@ -229,7 +229,7 @@ baseTest.describe('Legal Pages - Responsive', () => {
 	baseTest('docs displays correctly on tablet', async ({ page }) => {
 		await page.setViewportSize({ width: 768, height: 1024 })
 		await page.goto('/docs')
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('domcontentloaded')
 
 		await expect(page.locator('main').first()).toBeVisible({ timeout: 10000 })
 	})
@@ -242,7 +242,7 @@ baseTest.describe('Legal Pages - Responsive', () => {
 baseTest.describe('Legal Cross-Navigation', () => {
 	baseTest('privacy links to terms', async ({ page }) => {
 		await page.goto('/privacy')
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('domcontentloaded')
 
 		const termsLink = page.getByRole('link', { name: /terms/i })
 		const hasTerms = await termsLink
@@ -254,7 +254,7 @@ baseTest.describe('Legal Cross-Navigation', () => {
 
 	baseTest('terms links to privacy', async ({ page }) => {
 		await page.goto('/terms')
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('domcontentloaded')
 
 		const privacyLink = page.getByRole('link', { name: /privacy/i })
 		const hasPrivacy = await privacyLink
