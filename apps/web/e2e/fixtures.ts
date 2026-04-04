@@ -89,6 +89,17 @@ export const test = base.extend<{
 				await page.goto('/dashboard')
 				await page.waitForSelector('main', { state: 'visible', timeout: 15000 })
 
+				// Dismiss the onboarding tour overlay if it appears (blocks page interactions)
+				const skipTourButton = page.getByRole('button', { name: /skip tour/i })
+				const tourVisible = await skipTourButton
+					.isVisible({ timeout: 3000 })
+					.catch(() => false)
+				if (tourVisible) {
+					await skipTourButton.click()
+					// Wait for the tour overlay to disappear
+					await skipTourButton.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {})
+				}
+
 				// Success - break out of retry loop
 				break
 			} catch (error) {

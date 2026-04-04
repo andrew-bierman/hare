@@ -11,6 +11,11 @@ async function createAgentAndGoToEmbed(page: import('@playwright/test').Page): P
 	await page.goto('/dashboard/agents/new')
 	await page.waitForSelector('main', { state: 'visible' })
 
+	// Wait for WorkspaceGate to finish loading
+	await expect(page.getByText('Loading workspace...'))
+		.toBeHidden({ timeout: 15000 })
+		.catch(() => {})
+
 	await expect(page.getByRole('heading', { name: /create/i })).toBeVisible({ timeout: 10000 })
 
 	const nameInput = page.getByLabel(/name/i).first()
@@ -209,6 +214,7 @@ test.describe('Embed Navigation', () => {
 	test('can navigate to embed from agent detail', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/agents/new')
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
+		await expect(authenticatedPage.getByText('Loading workspace...')).toBeHidden({ timeout: 15000 }).catch(() => {})
 		await expect(authenticatedPage.getByRole('heading', { name: /create/i })).toBeVisible({
 			timeout: 10000,
 		})
