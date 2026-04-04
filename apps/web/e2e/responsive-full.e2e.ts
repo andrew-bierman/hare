@@ -1,4 +1,4 @@
-import { expect, type Page, test as baseTest } from '@playwright/test'
+import { test as baseTest, expect } from '@playwright/test'
 import { test } from './fixtures'
 
 const VIEWPORTS = {
@@ -70,7 +70,7 @@ baseTest.describe('Responsive - Auth Pages', () => {
 			baseTest(`sign-in page renders on ${device}`, async ({ page }) => {
 				await page.setViewportSize(viewport)
 				await page.goto('/sign-in')
-				await page.waitForSelector('main', { state: 'visible' })
+				await page.waitForSelector('form', { state: 'visible', timeout: 10000 })
 
 				await expect(page.getByLabel('Email').first()).toBeVisible()
 				await expect(page.getByLabel('Password').first()).toBeVisible()
@@ -80,7 +80,7 @@ baseTest.describe('Responsive - Auth Pages', () => {
 			baseTest(`sign-up page renders on ${device}`, async ({ page }) => {
 				await page.setViewportSize(viewport)
 				await page.goto('/sign-up')
-				await page.waitForSelector('main', { state: 'visible' })
+				await page.waitForSelector('form', { state: 'visible', timeout: 10000 })
 
 				await expect(page.getByLabel(/name/i).first()).toBeVisible()
 				await expect(page.getByLabel('Email').first()).toBeVisible()
@@ -90,7 +90,7 @@ baseTest.describe('Responsive - Auth Pages', () => {
 				baseTest('auth form is full width on mobile', async ({ page }) => {
 					await page.setViewportSize(viewport)
 					await page.goto('/sign-in')
-					await page.waitForSelector('main', { state: 'visible' })
+					await page.waitForSelector('form', { state: 'visible', timeout: 10000 })
 
 					const form = page.locator('form').first()
 					const formBox = await form.boundingBox()

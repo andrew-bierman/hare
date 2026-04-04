@@ -9,34 +9,10 @@ baseTest.describe('Sign-Up Flow', () => {
 	baseTest.describe('Successful Registration', () => {
 		baseTest('should create account with valid credentials', async ({ page }: { page: Page }) => {
 			const testUser = generateTestUser()
-			await page.goto('/sign-up')
-			await page.waitForSelector('form', { state: 'visible', timeout: 10000 })
 
-			// Use click + fill + pressSequentially for React form compatibility
-			const nameField = page.getByLabel('Full Name')
-			await nameField.click()
-			await nameField.fill('')
-			await nameField.pressSequentially(testUser.name, { delay: 20 })
+			// signUpViaUI navigates to /sign-up, fills form, clicks Create Account, waits for /dashboard
+			await signUpViaUI(page, testUser)
 
-			const emailField = page.getByLabel('Email')
-			await emailField.click()
-			await emailField.fill('')
-			await emailField.pressSequentially(testUser.email, { delay: 20 })
-
-			const passwordField = page.getByLabel('Password', { exact: true })
-			await passwordField.click()
-			await passwordField.fill('')
-			await passwordField.pressSequentially(testUser.password, { delay: 20 })
-
-			const confirmField = page.getByLabel('Confirm Password')
-			await confirmField.click()
-			await confirmField.fill('')
-			await confirmField.pressSequentially(testUser.password, { delay: 20 })
-
-			await page.getByRole('button', { name: 'Create Account' }).click()
-
-			// Should redirect to dashboard after successful signup
-			await page.waitForURL(/\/dashboard/, { timeout: 15000 })
 			await expect(page).toHaveURL(/\/dashboard/)
 			await page.waitForSelector('main', { state: 'visible' })
 		})

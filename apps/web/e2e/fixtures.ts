@@ -180,7 +180,7 @@ export async function deleteTestUser(request: APIRequestContext, userId: string)
  */
 export async function signInViaUI(page: Page, user = TEST_USER): Promise<void> {
 	await page.goto('/sign-in')
-	await page.waitForLoadState('networkidle')
+	await page.waitForSelector('form', { state: 'visible', timeout: 10000 })
 
 	const emailInput = page.getByLabel('Email')
 	const passwordInput = page.getByLabel('Password')
@@ -203,24 +203,30 @@ export async function signInViaUI(page: Page, user = TEST_USER): Promise<void> {
  */
 export async function signUpViaUI(page: Page, user = TEST_USER): Promise<void> {
 	await page.goto('/sign-up')
-	await page.waitForLoadState('networkidle')
+	await page.waitForSelector('form', { state: 'visible', timeout: 10000 })
 
-	const nameInput = page.getByLabel('Full Name')
-	const emailInput = page.getByLabel('Email')
-	const passwordInput = page.getByLabel('Password', { exact: true })
-	const confirmPasswordInput = page.getByLabel('Confirm Password')
-
+	// Wait for React hydration - the form inputs need event handlers attached
+	// Click the name field and wait for it to become focused (proves hydration)
+	const nameInput = page.locator('#name')
 	await nameInput.waitFor({ state: 'visible', timeout: 10000 })
-
-	// Use pressSequentially for React form compatibility
 	await nameInput.click()
-	await nameInput.pressSequentially(user.name, { delay: 20 })
+	// Wait for React hydration to complete (SSR form is visible before event handlers attach)
+	await page.waitForTimeout(1000)
+
+	// Use pressSequentially for React controlled input compatibility
+	await nameInput.pressSequentially(user.name, { delay: 30 })
+
+	const emailInput = page.locator('#email')
 	await emailInput.click()
 	await emailInput.pressSequentially(user.email, { delay: 20 })
+
+	const passwordInput = page.locator('#password')
 	await passwordInput.click()
 	await passwordInput.pressSequentially(user.password, { delay: 20 })
-	await confirmPasswordInput.click()
-	await confirmPasswordInput.pressSequentially(user.password, { delay: 20 })
+
+	const confirmInput = page.locator('#confirm-password')
+	await confirmInput.click()
+	await confirmInput.pressSequentially(user.password, { delay: 20 })
 
 	await page.getByRole('button', { name: 'Create Account' }).click()
 	await page.waitForURL(/\/dashboard/, { timeout: 15000 })

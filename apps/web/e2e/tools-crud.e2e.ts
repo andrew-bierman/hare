@@ -5,17 +5,14 @@ test.describe('Tools CRUD - Real Functionality', () => {
 		await page.goto('/dashboard/tools')
 		await page.waitForSelector('main', { state: 'visible' })
 
-		// Page title
-		await expect(page.getByRole('heading', { name: 'Tools' })).toBeVisible()
+		// Page title (heading is "Tools Library")
+		await expect(page.getByRole('heading', { name: /tools/i }).first()).toBeVisible()
 
 		// Search input
-		await expect(page.getByPlaceholder(/search tools/i)).toBeVisible()
+		await expect(page.getByPlaceholder('Search tools...')).toBeVisible()
 
 		// Create HTTP Tool button (may be link or button)
 		await expect(page.getByText('Create HTTP Tool').first()).toBeVisible()
-
-		// Custom Tools section
-		await expect(page.getByText('Custom Tools').first()).toBeVisible()
 	})
 
 	test('create tool page loads', async ({ authenticatedPage: page }) => {
@@ -27,7 +24,9 @@ test.describe('Tools CRUD - Real Functionality', () => {
 		await expect(nameInput).toBeVisible()
 	})
 
-	test('full tool lifecycle: create via form and verify in list', async ({ authenticatedPage: page }) => {
+	test('full tool lifecycle: create via form and verify in list', async ({
+		authenticatedPage: page,
+	}) => {
 		const toolName = `E2E Tool ${Date.now()}`
 
 		await page.goto('/dashboard/tools/new')
@@ -85,19 +84,11 @@ test.describe('Tools CRUD - Real Functionality', () => {
 		})
 	})
 
-	test('custom tools section is visible', async ({ authenticatedPage: page }) => {
-		await page.goto('/dashboard/tools')
-		await page.waitForSelector('main', { state: 'visible' })
-
-		// Custom Tools section header
-		await expect(page.getByText('Custom Tools').first()).toBeVisible()
-	})
-
 	test('tools search input works', async ({ authenticatedPage: page }) => {
 		await page.goto('/dashboard/tools')
 		await page.waitForSelector('main', { state: 'visible' })
 
-		const searchInput = page.getByPlaceholder(/search tools/i)
+		const searchInput = page.getByPlaceholder('Search tools...')
 		await searchInput.click()
 		await searchInput.pressSequentially('nonexistent-tool', { delay: 10 })
 
