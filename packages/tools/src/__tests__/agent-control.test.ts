@@ -400,7 +400,7 @@ describe('Agent Control Tools', () => {
 		it('returns all agent control tools', () => {
 			const tools = getAgentControlTools(context)
 
-			expect(tools).toHaveLength(10)
+			expect(tools).toHaveLength(16)
 			expect(tools.map((t) => t.id)).toEqual(Array.from(AGENT_CONTROL_TOOL_IDS))
 		})
 

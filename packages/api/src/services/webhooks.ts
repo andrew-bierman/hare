@@ -111,7 +111,7 @@ export async function verifySignature(options: {
 // SSRF Protection (delegated to consolidated module)
 // =============================================================================
 
-import { isUrlSafe } from '@hare/tools/security/ssrf'
+import { isUrlSafe } from '@hare/tools'
 
 /**
  * Check if a webhook URL is safe to deliver to.
