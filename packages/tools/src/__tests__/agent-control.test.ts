@@ -6,6 +6,12 @@ import {
 	configureAgentTool,
 	createAgentTool,
 	deleteAgentTool,
+	deployAgentTool,
+	undeployAgentTool,
+	rollbackAgentTool,
+	listWebhooksTool,
+	createWebhookTool,
+	deleteWebhookTool,
 	scheduleTaskTool,
 	executeToolTool,
 	listAgentToolsTool,
@@ -392,6 +398,424 @@ describe('Agent Control Tools', () => {
 					period: 'week',
 				})
 				expect(result.success).toBe(true)
+			})
+		})
+	})
+
+	describe('deployAgentTool', () => {
+		describe('schema validation', () => {
+			it('has correct tool id', () => {
+				expect(deployAgentTool.id).toBe('agent_deploy')
+			})
+
+			it('validates with agentId', () => {
+				const result = deployAgentTool.inputSchema.safeParse({
+					agentId: 'agent-123',
+				})
+				expect(result.success).toBe(true)
+			})
+
+			it('rejects missing agentId', () => {
+				const result = deployAgentTool.inputSchema.safeParse({})
+				expect(result.success).toBe(false)
+			})
+		})
+
+		describe('execution', () => {
+			it('deploys agent successfully', async () => {
+				mockDB._statement.first.mockResolvedValueOnce({
+					id: 'agent-123',
+					status: 'draft',
+				})
+
+				const result = await deployAgentTool.execute(
+					{ agentId: 'agent-123' },
+					context,
+				)
+
+				expect(result.success).toBe(true)
+				expect(result.data?.status).toBe('deployed')
+				expect(result.data?.previousStatus).toBe('draft')
+			})
+
+			it('fails when agent is already deployed', async () => {
+				mockDB._statement.first.mockResolvedValueOnce({
+					id: 'agent-123',
+					status: 'deployed',
+				})
+
+				const result = await deployAgentTool.execute(
+					{ agentId: 'agent-123' },
+					context,
+				)
+
+				expect(result.success).toBe(false)
+				expect(result.error).toContain('already deployed')
+			})
+
+			it('fails when agent not found', async () => {
+				mockDB._statement.first.mockResolvedValueOnce(null)
+
+				const result = await deployAgentTool.execute(
+					{ agentId: 'nonexistent' },
+					context,
+				)
+
+				expect(result.success).toBe(false)
+				expect(result.error).toContain('not found')
+			})
+
+			it('fails when DB is not available', async () => {
+				const contextWithoutDB = createMockContext(false)
+
+				const result = await deployAgentTool.execute(
+					{ agentId: 'agent-123' },
+					contextWithoutDB,
+				)
+
+				expect(result.success).toBe(false)
+				expect(result.error).toContain('Database not available')
+			})
+		})
+	})
+
+	describe('undeployAgentTool', () => {
+		describe('schema validation', () => {
+			it('has correct tool id', () => {
+				expect(undeployAgentTool.id).toBe('agent_undeploy')
+			})
+
+			it('validates with agentId', () => {
+				const result = undeployAgentTool.inputSchema.safeParse({
+					agentId: 'agent-123',
+				})
+				expect(result.success).toBe(true)
+			})
+		})
+
+		describe('execution', () => {
+			it('undeploys agent successfully', async () => {
+				mockDB._statement.first.mockResolvedValueOnce({
+					id: 'agent-123',
+					status: 'deployed',
+				})
+
+				const result = await undeployAgentTool.execute(
+					{ agentId: 'agent-123' },
+					context,
+				)
+
+				expect(result.success).toBe(true)
+				expect(result.data?.status).toBe('draft')
+				expect(result.data?.previousStatus).toBe('deployed')
+			})
+
+			it('fails when agent is not deployed', async () => {
+				mockDB._statement.first.mockResolvedValueOnce({
+					id: 'agent-123',
+					status: 'draft',
+				})
+
+				const result = await undeployAgentTool.execute(
+					{ agentId: 'agent-123' },
+					context,
+				)
+
+				expect(result.success).toBe(false)
+				expect(result.error).toContain('not deployed')
+			})
+
+			it('fails when agent not found', async () => {
+				mockDB._statement.first.mockResolvedValueOnce(null)
+
+				const result = await undeployAgentTool.execute(
+					{ agentId: 'nonexistent' },
+					context,
+				)
+
+				expect(result.success).toBe(false)
+				expect(result.error).toContain('not found')
+			})
+		})
+	})
+
+	describe('rollbackAgentTool', () => {
+		describe('schema validation', () => {
+			it('has correct tool id', () => {
+				expect(rollbackAgentTool.id).toBe('agent_rollback')
+			})
+
+			it('validates with agentId only (defaults to most recent)', () => {
+				const result = rollbackAgentTool.inputSchema.safeParse({
+					agentId: 'agent-123',
+				})
+				expect(result.success).toBe(true)
+			})
+
+			it('validates with agentId and snapshotId', () => {
+				const result = rollbackAgentTool.inputSchema.safeParse({
+					agentId: 'agent-123',
+					snapshotId: 'snap_abc123',
+				})
+				expect(result.success).toBe(true)
+			})
+		})
+
+		describe('execution', () => {
+			it('rolls back agent to a snapshot', async () => {
+				// First call: agent lookup
+				mockDB._statement.first
+					.mockResolvedValueOnce({
+						id: 'agent-123',
+						config: '{"temperature":0.9}',
+						instructions: 'Current instructions',
+						model: 'llama-3.3-70b',
+					})
+					// Second call: snapshot lookup
+					.mockResolvedValueOnce({
+						id: 'snap_old',
+						config: '{"temperature":0.5}',
+						instructions: 'Old instructions',
+						model: 'llama-3.1-8b',
+						createdAt: Date.now() - 86400000,
+					})
+
+				const result = await rollbackAgentTool.execute(
+					{ agentId: 'agent-123' },
+					context,
+				)
+
+				expect(result.success).toBe(true)
+				expect(result.data?.rolledBackTo).toBe('snap_old')
+			})
+
+			it('fails when no snapshot exists', async () => {
+				mockDB._statement.first
+					.mockResolvedValueOnce({
+						id: 'agent-123',
+						config: '{}',
+						instructions: '',
+						model: 'llama-3.3-70b',
+					})
+					.mockResolvedValueOnce(null)
+
+				const result = await rollbackAgentTool.execute(
+					{ agentId: 'agent-123' },
+					context,
+				)
+
+				expect(result.success).toBe(false)
+				expect(result.error).toContain('No snapshot found')
+			})
+
+			it('fails when agent not found', async () => {
+				mockDB._statement.first.mockResolvedValueOnce(null)
+
+				const result = await rollbackAgentTool.execute(
+					{ agentId: 'nonexistent' },
+					context,
+				)
+
+				expect(result.success).toBe(false)
+				expect(result.error).toContain('not found')
+			})
+		})
+	})
+
+	describe('listWebhooksTool', () => {
+		describe('schema validation', () => {
+			it('has correct tool id', () => {
+				expect(listWebhooksTool.id).toBe('agent_webhook_list')
+			})
+
+			it('validates with agentId', () => {
+				const result = listWebhooksTool.inputSchema.safeParse({
+					agentId: 'agent-123',
+				})
+				expect(result.success).toBe(true)
+			})
+		})
+
+		describe('execution', () => {
+			it('lists webhooks for an agent', async () => {
+				// Agent lookup
+				mockDB._statement.first.mockResolvedValueOnce({ id: 'agent-123' })
+				// Webhooks query
+				mockDB._statement.all.mockResolvedValueOnce({
+					results: [
+						{
+							id: 'wh_1',
+							url: 'https://example.com/hook',
+							events: '["agent.message"]',
+							status: 'active',
+							createdAt: Date.now(),
+						},
+					],
+				})
+
+				const result = await listWebhooksTool.execute(
+					{ agentId: 'agent-123' },
+					context,
+				)
+
+				expect(result.success).toBe(true)
+				expect(result.data?.webhooks).toHaveLength(1)
+				expect(result.data?.total).toBe(1)
+			})
+
+			it('fails when agent not found', async () => {
+				mockDB._statement.first.mockResolvedValueOnce(null)
+
+				const result = await listWebhooksTool.execute(
+					{ agentId: 'nonexistent' },
+					context,
+				)
+
+				expect(result.success).toBe(false)
+				expect(result.error).toContain('not found')
+			})
+		})
+	})
+
+	describe('createWebhookTool', () => {
+		describe('schema validation', () => {
+			it('has correct tool id', () => {
+				expect(createWebhookTool.id).toBe('agent_webhook_create')
+			})
+
+			it('validates with required fields', () => {
+				const result = createWebhookTool.inputSchema.safeParse({
+					agentId: 'agent-123',
+					url: 'https://example.com/webhook',
+					events: ['agent.message'],
+				})
+				expect(result.success).toBe(true)
+			})
+
+			it('validates with optional secret', () => {
+				const result = createWebhookTool.inputSchema.safeParse({
+					agentId: 'agent-123',
+					url: 'https://example.com/webhook',
+					events: ['agent.message', 'agent.deployed'],
+					secret: 'my-secret',
+				})
+				expect(result.success).toBe(true)
+			})
+
+			it('rejects empty events array', () => {
+				const result = createWebhookTool.inputSchema.safeParse({
+					agentId: 'agent-123',
+					url: 'https://example.com/webhook',
+					events: [],
+				})
+				expect(result.success).toBe(false)
+			})
+
+			it('rejects invalid URL', () => {
+				const result = createWebhookTool.inputSchema.safeParse({
+					agentId: 'agent-123',
+					url: 'not-a-url',
+					events: ['agent.message'],
+				})
+				expect(result.success).toBe(false)
+			})
+		})
+
+		describe('execution', () => {
+			it('creates a webhook', async () => {
+				mockDB._statement.first.mockResolvedValueOnce({ id: 'agent-123' })
+
+				const result = await createWebhookTool.execute(
+					{
+						agentId: 'agent-123',
+						url: 'https://example.com/webhook',
+						events: ['agent.message'],
+					},
+					context,
+				)
+
+				expect(result.success).toBe(true)
+				expect(result.data?.id).toMatch(/^wh_/)
+				expect(result.data?.url).toBe('https://example.com/webhook')
+				expect(result.data?.events).toEqual(['agent.message'])
+				expect(result.data?.status).toBe('active')
+			})
+
+			it('fails when agent not found', async () => {
+				mockDB._statement.first.mockResolvedValueOnce(null)
+
+				const result = await createWebhookTool.execute(
+					{
+						agentId: 'nonexistent',
+						url: 'https://example.com/webhook',
+						events: ['agent.message'],
+					},
+					context,
+				)
+
+				expect(result.success).toBe(false)
+				expect(result.error).toContain('not found')
+			})
+		})
+	})
+
+	describe('deleteWebhookTool', () => {
+		describe('schema validation', () => {
+			it('has correct tool id', () => {
+				expect(deleteWebhookTool.id).toBe('agent_webhook_delete')
+			})
+
+			it('validates with agentId and webhookId', () => {
+				const result = deleteWebhookTool.inputSchema.safeParse({
+					agentId: 'agent-123',
+					webhookId: 'wh_abc',
+				})
+				expect(result.success).toBe(true)
+			})
+		})
+
+		describe('execution', () => {
+			it('deletes a webhook', async () => {
+				// Agent lookup
+				mockDB._statement.first
+					.mockResolvedValueOnce({ id: 'agent-123' })
+					// Webhook lookup
+					.mockResolvedValueOnce({ id: 'wh_abc' })
+
+				const result = await deleteWebhookTool.execute(
+					{ agentId: 'agent-123', webhookId: 'wh_abc' },
+					context,
+				)
+
+				expect(result.success).toBe(true)
+				expect(result.data?.deleted).toBe(true)
+				expect(result.data?.webhookId).toBe('wh_abc')
+			})
+
+			it('fails when agent not found', async () => {
+				mockDB._statement.first.mockResolvedValueOnce(null)
+
+				const result = await deleteWebhookTool.execute(
+					{ agentId: 'nonexistent', webhookId: 'wh_abc' },
+					context,
+				)
+
+				expect(result.success).toBe(false)
+				expect(result.error).toContain('not found')
+			})
+
+			it('fails when webhook not found', async () => {
+				mockDB._statement.first
+					.mockResolvedValueOnce({ id: 'agent-123' })
+					.mockResolvedValueOnce(null)
+
+				const result = await deleteWebhookTool.execute(
+					{ agentId: 'agent-123', webhookId: 'nonexistent' },
+					context,
+				)
+
+				expect(result.success).toBe(false)
+				expect(result.error).toContain('not found')
 			})
 		})
 	})
