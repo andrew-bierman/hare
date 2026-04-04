@@ -299,7 +299,9 @@ describe('CSRF Protection', () => {
 			expect(next).toHaveBeenCalled()
 		})
 
-		it('rejects POST request with invalid token', async () => {
+		// CSRF validation is currently disabled until frontend implements token handling
+		// These tests verify the middleware passes through all requests while disabled
+		it('passes through POST request with invalid token (CSRF disabled)', async () => {
 			const context = createMockContext({
 				method: 'POST',
 				cookieToken: 'cookie-token',
@@ -310,16 +312,10 @@ describe('CSRF Protection', () => {
 			const middleware = csrfProtection()
 			await middleware(context, next)
 
-			expect(next).not.toHaveBeenCalled()
-			expect(context.json).toHaveBeenCalledWith(
-				expect.objectContaining({
-					error: 'CSRF validation failed',
-				}),
-				403,
-			)
+			expect(next).toHaveBeenCalled()
 		})
 
-		it('rejects POST request with missing token', async () => {
+		it('passes through POST request with missing token (CSRF disabled)', async () => {
 			const context = createMockContext({
 				method: 'POST',
 				cookieToken: undefined,
@@ -330,14 +326,7 @@ describe('CSRF Protection', () => {
 			const middleware = csrfProtection()
 			await middleware(context, next)
 
-			expect(next).not.toHaveBeenCalled()
-			expect(context.json).toHaveBeenCalledWith(
-				expect.objectContaining({
-					error: 'CSRF validation failed',
-					message: 'Invalid or missing CSRF token',
-				}),
-				403,
-			)
+			expect(next).toHaveBeenCalled()
 		})
 
 		it('skips CSRF validation for API key authenticated requests', async () => {
