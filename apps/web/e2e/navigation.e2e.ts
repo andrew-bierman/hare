@@ -89,7 +89,7 @@ test.describe('Sidebar Navigation - Authenticated', () => {
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		await authenticatedPage.getByRole('link', { name: 'Dashboard' }).click()
-		await authenticatedPage.waitForURL(/\/dashboard$/)
+		await authenticatedPage.waitForURL(/\/dashboard\/?$/)
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		await expect(authenticatedPage.getByRole('heading', { name: 'Dashboard' })).toBeVisible({
 			timeout: 10000,
@@ -163,7 +163,7 @@ test.describe('Browser History Navigation', () => {
 
 		// Go back again
 		await authenticatedPage.goBack()
-		await authenticatedPage.waitForURL(/\/dashboard$/)
+		await authenticatedPage.waitForURL(/\/dashboard\/?$/)
 		await expect(authenticatedPage.getByRole('heading', { name: 'Dashboard' })).toBeVisible({
 			timeout: 10000,
 		})
@@ -179,7 +179,7 @@ test.describe('Browser History Navigation', () => {
 
 		// Go back
 		await authenticatedPage.goBack()
-		await authenticatedPage.waitForURL(/\/dashboard$/)
+		await authenticatedPage.waitForURL(/\/dashboard\/?$/)
 
 		// Go forward
 		await authenticatedPage.goForward()
@@ -239,7 +239,7 @@ test.describe('Browser History Navigation', () => {
 		await authenticatedPage.waitForURL(/\/dashboard\/agents/)
 
 		await authenticatedPage.goBack()
-		await authenticatedPage.waitForURL(/\/dashboard$/)
+		await authenticatedPage.waitForURL(/\/dashboard\/?$/)
 	})
 })
 
