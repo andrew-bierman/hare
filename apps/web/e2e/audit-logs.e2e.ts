@@ -27,11 +27,6 @@ test.describe('Audit Logs Page', () => {
 		await page.goto('/dashboard/settings/audit-logs')
 		await page.waitForSelector('main', { state: 'visible' })
 
-		// Wait for WorkspaceGate to finish loading
-		await expect(page.getByText('Loading workspace...'))
-			.toBeHidden({ timeout: 5000 })
-			.catch(() => {})
-
 		await expect(page.getByRole('heading', { name: 'Audit Logs' })).toBeVisible({
 			timeout: 10000,
 		})
@@ -42,11 +37,6 @@ test.describe('Audit Logs Page', () => {
 	}) => {
 		await page.goto('/dashboard/settings/audit-logs')
 		await page.waitForSelector('main', { state: 'visible' })
-
-		// Wait for WorkspaceGate to finish loading
-		await expect(page.getByText('Loading workspace...'))
-			.toBeHidden({ timeout: 5000 })
-			.catch(() => {})
 
 		// Filters section should be visible
 		await expect(page.getByText('Filters').first()).toBeVisible({ timeout: 10000 })
@@ -61,11 +51,6 @@ test.describe('Audit Logs Page', () => {
 	}) => {
 		await page.goto('/dashboard/settings/audit-logs')
 		await page.waitForSelector('main', { state: 'visible' })
-
-		// Wait for WorkspaceGate to finish loading
-		await expect(page.getByText('Loading workspace...'))
-			.toBeHidden({ timeout: 5000 })
-			.catch(() => {})
 
 		// The Workspace Activity card should be visible
 		await expect(page.getByText('Workspace Activity').first()).toBeVisible({ timeout: 10000 })
@@ -87,11 +72,6 @@ test.describe('Audit Logs Page', () => {
 		await page.goto('/dashboard/settings/audit-logs')
 		await page.waitForSelector('main', { state: 'visible' })
 
-		// Wait for WorkspaceGate to finish loading
-		await expect(page.getByText('Loading workspace...'))
-			.toBeHidden({ timeout: 5000 })
-			.catch(() => {})
-
 		// A fresh test user workspace likely has no audit logs
 		const emptyState = page.getByText('No audit logs found')
 		if (await emptyState.isVisible().catch(() => false)) {
@@ -112,11 +92,6 @@ test.describe('Audit Logs - Responsive', () => {
 			await page.setViewportSize(viewport)
 			await page.goto('/dashboard/settings/audit-logs')
 			await page.waitForSelector('main', { state: 'visible' })
-
-			// Wait for WorkspaceGate to finish loading
-			await expect(page.getByText('Loading workspace...'))
-				.toBeHidden({ timeout: 5000 })
-				.catch(() => {})
 
 			// Heading should still be visible
 			await expect(page.getByRole('heading', { name: 'Audit Logs' })).toBeVisible({

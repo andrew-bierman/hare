@@ -32,11 +32,6 @@ test.describe('Agent Conversations Page', () => {
 		await page.goto('/dashboard/agents/new')
 		await page.waitForSelector('main', { state: 'visible' })
 
-		// Wait for WorkspaceGate to finish loading
-		await expect(page.getByText('Loading workspace...'))
-			.toBeHidden({ timeout: 5000 })
-			.catch(() => {})
-
 		const nameInput = page.getByLabel(/name/i).first()
 		await nameInput.click()
 		await nameInput.fill('')
@@ -66,11 +61,6 @@ test.describe('Agent Conversations Page', () => {
 		await page.goto(`/dashboard/agents/${agentId}/conversations`)
 		await page.waitForSelector('main', { state: 'visible' })
 
-		// Wait for WorkspaceGate to finish loading
-		await expect(page.getByText('Loading workspace...'))
-			.toBeHidden({ timeout: 5000 })
-			.catch(() => {})
-
 		// Should show the Search Conversations heading
 		await expect(page.getByRole('heading', { name: 'Search Conversations' })).toBeVisible({
 			timeout: 10000,
@@ -82,11 +72,6 @@ test.describe('Agent Conversations Page', () => {
 
 		await page.goto(`/dashboard/agents/${agentId}/conversations`)
 		await page.waitForSelector('main', { state: 'visible' })
-
-		// Wait for WorkspaceGate to finish loading
-		await expect(page.getByText('Loading workspace...'))
-			.toBeHidden({ timeout: 5000 })
-			.catch(() => {})
 
 		// Search card should be visible
 		await expect(page.getByText('Search').first()).toBeVisible({ timeout: 10000 })
@@ -104,11 +89,6 @@ test.describe('Agent Conversations Page', () => {
 		await page.goto(`/dashboard/agents/${agentId}/conversations`)
 		await page.waitForSelector('main', { state: 'visible' })
 
-		// Wait for WorkspaceGate to finish loading
-		await expect(page.getByText('Loading workspace...'))
-			.toBeHidden({ timeout: 5000 })
-			.catch(() => {})
-
 		// Results card should show the initial empty state
 		await expect(page.getByText('Results').first()).toBeVisible({ timeout: 10000 })
 		await expect(page.getByText('Search conversations')).toBeVisible()
@@ -124,11 +104,6 @@ test.describe('Agent Conversations Page', () => {
 
 		await page.goto(`/dashboard/agents/${agentId}/conversations`)
 		await page.waitForSelector('main', { state: 'visible' })
-
-		// Wait for WorkspaceGate to finish loading
-		await expect(page.getByText('Loading workspace...'))
-			.toBeHidden({ timeout: 5000 })
-			.catch(() => {})
 
 		// Type a search query that will not match anything
 		const searchInput = page.getByPlaceholder('Search messages...')
@@ -149,11 +124,6 @@ test.describe('Agent Conversations Page', () => {
 
 		await page.goto(`/dashboard/agents/${agentId}/conversations`)
 		await page.waitForSelector('main', { state: 'visible' })
-
-		// Wait for WorkspaceGate to finish loading
-		await expect(page.getByText('Loading workspace...'))
-			.toBeHidden({ timeout: 5000 })
-			.catch(() => {})
 
 		// Back button (ArrowLeft icon) should be visible
 		const backButton = page
@@ -191,11 +161,6 @@ test.describe('Agent Conversations - Responsive', () => {
 		await page.goto('/dashboard/agents/new')
 		await page.waitForSelector('main', { state: 'visible' })
 
-		// Wait for WorkspaceGate to finish loading
-		await expect(page.getByText('Loading workspace...'))
-			.toBeHidden({ timeout: 5000 })
-			.catch(() => {})
-
 		const nameInput = page.getByLabel(/name/i).first()
 		await nameInput.click()
 		await nameInput.fill('')
@@ -226,11 +191,6 @@ test.describe('Agent Conversations - Responsive', () => {
 			await page.setViewportSize(viewport)
 			await page.goto(`/dashboard/agents/${agentId}/conversations`)
 			await page.waitForSelector('main', { state: 'visible' })
-
-			// Wait for WorkspaceGate to finish loading
-			await expect(page.getByText('Loading workspace...'))
-				.toBeHidden({ timeout: 5000 })
-				.catch(() => {})
 
 			// Heading should be visible
 			await expect(page.getByRole('heading', { name: 'Search Conversations' })).toBeVisible({

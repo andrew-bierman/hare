@@ -15,11 +15,6 @@ test.describe('Sidebar Navigation - Authenticated', () => {
 		await authenticatedPage.goto('/dashboard')
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
-		// Wait for WorkspaceGate to finish loading
-		await expect(authenticatedPage.getByText('Loading workspace...'))
-			.toBeHidden({ timeout: 5000 })
-			.catch(() => {})
-
 		const nav = authenticatedPage.locator('nav')
 		await expect(nav.getByRole('link', { name: 'Dashboard' })).toBeVisible()
 		await expect(nav.getByRole('link', { name: 'Agents' })).toBeVisible()
@@ -36,9 +31,6 @@ test.describe('Sidebar Navigation - Authenticated', () => {
 		await authenticatedPage.getByRole('link', { name: 'Agents' }).click()
 		await authenticatedPage.waitForURL(/\/dashboard\/agents/)
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
-		await expect(authenticatedPage.getByText('Loading workspace...'))
-			.toBeHidden({ timeout: 5000 })
-			.catch(() => {})
 		await expect(
 			authenticatedPage.getByRole('heading', { name: 'Agents', exact: true }),
 		).toBeVisible({ timeout: 10000 })
@@ -51,9 +43,6 @@ test.describe('Sidebar Navigation - Authenticated', () => {
 		await authenticatedPage.getByRole('link', { name: 'Tools' }).click()
 		await authenticatedPage.waitForURL(/\/dashboard\/tools/, { timeout: 10000 })
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
-		await expect(authenticatedPage.getByText('Loading workspace...'))
-			.toBeHidden({ timeout: 5000 })
-			.catch(() => {})
 		await expect(authenticatedPage.getByRole('heading', { name: 'Tools' })).toBeVisible({
 			timeout: 10000,
 		})
@@ -66,9 +55,6 @@ test.describe('Sidebar Navigation - Authenticated', () => {
 		await authenticatedPage.getByRole('link', { name: 'Analytics' }).click()
 		await authenticatedPage.waitForURL(/\/dashboard\/analytics/)
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
-		await expect(authenticatedPage.getByText('Loading workspace...'))
-			.toBeHidden({ timeout: 5000 })
-			.catch(() => {})
 		await expect(authenticatedPage.getByRole('heading', { name: 'Analytics' })).toBeVisible({
 			timeout: 10000,
 		})
@@ -81,9 +67,6 @@ test.describe('Sidebar Navigation - Authenticated', () => {
 		await authenticatedPage.getByRole('link', { name: 'Usage' }).click()
 		await authenticatedPage.waitForURL(/\/dashboard\/usage/, { timeout: 10000 })
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
-		await expect(authenticatedPage.getByText('Loading workspace...'))
-			.toBeHidden({ timeout: 5000 })
-			.catch(() => {})
 		await expect(authenticatedPage.getByRole('heading', { name: 'Usage' })).toBeVisible({
 			timeout: 10000,
 		})
@@ -96,9 +79,6 @@ test.describe('Sidebar Navigation - Authenticated', () => {
 		await authenticatedPage.getByRole('link', { name: 'Settings' }).click()
 		await authenticatedPage.waitForURL(/\/dashboard\/settings/)
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
-		await expect(authenticatedPage.getByText('Loading workspace...'))
-			.toBeHidden({ timeout: 5000 })
-			.catch(() => {})
 		await expect(authenticatedPage.getByRole('heading', { name: 'Settings' })).toBeVisible({
 			timeout: 10000,
 		})
@@ -111,9 +91,6 @@ test.describe('Sidebar Navigation - Authenticated', () => {
 		await authenticatedPage.getByRole('link', { name: 'Dashboard' }).click()
 		await authenticatedPage.waitForURL(/\/dashboard$/)
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
-		await expect(authenticatedPage.getByText('Loading workspace...'))
-			.toBeHidden({ timeout: 5000 })
-			.catch(() => {})
 		await expect(authenticatedPage.getByRole('heading', { name: 'Dashboard' })).toBeVisible({
 			timeout: 10000,
 		})
@@ -123,9 +100,6 @@ test.describe('Sidebar Navigation - Authenticated', () => {
 		// Start at dashboard
 		await authenticatedPage.goto('/dashboard')
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
-		await expect(authenticatedPage.getByText('Loading workspace...'))
-			.toBeHidden({ timeout: 5000 })
-			.catch(() => {})
 		await expect(authenticatedPage.getByRole('heading', { name: 'Dashboard' })).toBeVisible({
 			timeout: 10000,
 		})
@@ -134,9 +108,6 @@ test.describe('Sidebar Navigation - Authenticated', () => {
 		await authenticatedPage.getByRole('link', { name: 'Agents' }).click()
 		await authenticatedPage.waitForURL(/\/dashboard\/agents/)
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
-		await expect(authenticatedPage.getByText('Loading workspace...'))
-			.toBeHidden({ timeout: 5000 })
-			.catch(() => {})
 		await expect(
 			authenticatedPage.getByRole('heading', { name: 'Agents', exact: true }),
 		).toBeVisible({ timeout: 10000 })
@@ -145,9 +116,6 @@ test.describe('Sidebar Navigation - Authenticated', () => {
 		await authenticatedPage.getByRole('link', { name: 'Tools' }).click()
 		await authenticatedPage.waitForURL(/\/dashboard\/tools/)
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
-		await expect(authenticatedPage.getByText('Loading workspace...'))
-			.toBeHidden({ timeout: 5000 })
-			.catch(() => {})
 		await expect(authenticatedPage.getByRole('heading', { name: 'Tools' })).toBeVisible({
 			timeout: 10000,
 		})
@@ -156,9 +124,6 @@ test.describe('Sidebar Navigation - Authenticated', () => {
 		await authenticatedPage.getByRole('link', { name: 'Settings' }).click()
 		await authenticatedPage.waitForURL(/\/dashboard\/settings/)
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
-		await expect(authenticatedPage.getByText('Loading workspace...'))
-			.toBeHidden({ timeout: 5000 })
-			.catch(() => {})
 		await expect(authenticatedPage.getByRole('heading', { name: 'Settings' })).toBeVisible({
 			timeout: 10000,
 		})
@@ -167,9 +132,6 @@ test.describe('Sidebar Navigation - Authenticated', () => {
 	test('new agent button navigates to create page', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/agents')
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
-		await expect(authenticatedPage.getByText('Loading workspace...'))
-			.toBeHidden({ timeout: 5000 })
-			.catch(() => {})
 
 		await authenticatedPage.getByRole('link', { name: 'New Agent' }).click()
 		await authenticatedPage.waitForURL(/\/dashboard\/agents\/(templates|new)/)
@@ -195,9 +157,6 @@ test.describe('Browser History Navigation', () => {
 		// Go back
 		await authenticatedPage.goBack()
 		await authenticatedPage.waitForURL(/\/dashboard\/agents/)
-		await expect(authenticatedPage.getByText('Loading workspace...'))
-			.toBeHidden({ timeout: 5000 })
-			.catch(() => {})
 		await expect(
 			authenticatedPage.getByRole('heading', { name: 'Agents', exact: true }),
 		).toBeVisible({ timeout: 10000 })
@@ -205,9 +164,6 @@ test.describe('Browser History Navigation', () => {
 		// Go back again
 		await authenticatedPage.goBack()
 		await authenticatedPage.waitForURL(/\/dashboard$/)
-		await expect(authenticatedPage.getByText('Loading workspace...'))
-			.toBeHidden({ timeout: 5000 })
-			.catch(() => {})
 		await expect(authenticatedPage.getByRole('heading', { name: 'Dashboard' })).toBeVisible({
 			timeout: 10000,
 		})
@@ -228,9 +184,6 @@ test.describe('Browser History Navigation', () => {
 		// Go forward
 		await authenticatedPage.goForward()
 		await authenticatedPage.waitForURL(/\/dashboard\/agents/)
-		await expect(authenticatedPage.getByText('Loading workspace...'))
-			.toBeHidden({ timeout: 5000 })
-			.catch(() => {})
 		await expect(
 			authenticatedPage.getByRole('heading', { name: 'Agents', exact: true }),
 		).toBeVisible({ timeout: 10000 })
@@ -299,9 +252,6 @@ test.describe('Deep Linking - Agent Detail Page', () => {
 		// First create an agent
 		await authenticatedPage.goto('/dashboard/agents/new')
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
-		await expect(authenticatedPage.getByText('Loading workspace...'))
-			.toBeHidden({ timeout: 5000 })
-			.catch(() => {})
 
 		const agentName = `Deep Link Test Agent ${Date.now()}`
 		await authenticatedPage.getByLabel(/name/i).fill(agentName)
@@ -332,9 +282,6 @@ test.describe('Deep Linking - Agent Detail Page', () => {
 		// Create agent first
 		await authenticatedPage.goto('/dashboard/agents/new')
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
-		await expect(authenticatedPage.getByText('Loading workspace...'))
-			.toBeHidden({ timeout: 5000 })
-			.catch(() => {})
 
 		await authenticatedPage.getByLabel(/name/i).fill(`URL Structure Test ${Date.now()}`)
 		await authenticatedPage.getByLabel(/description/i).fill('Testing URL structure')
@@ -472,9 +419,6 @@ test.describe('Redirect After Sign-In - Return to Original', () => {
 		// Verify we're on dashboard after authentication
 		await authenticatedPage.goto('/dashboard')
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
-		await expect(authenticatedPage.getByText('Loading workspace...'))
-			.toBeHidden({ timeout: 5000 })
-			.catch(() => {})
 
 		expect(authenticatedPage.url()).toContain('/dashboard')
 		await expect(authenticatedPage.getByRole('heading', { name: 'Dashboard' })).toBeVisible({
@@ -492,9 +436,6 @@ test.describe('URL Updates on Tab/Section Changes', () => {
 		// Create an agent first
 		await authenticatedPage.goto('/dashboard/agents/new')
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
-		await expect(authenticatedPage.getByText('Loading workspace...'))
-			.toBeHidden({ timeout: 5000 })
-			.catch(() => {})
 
 		await authenticatedPage.getByLabel(/name/i).fill(`Tab URL Test ${Date.now()}`)
 		await authenticatedPage.getByLabel(/description/i).fill('Testing tab URL updates')
@@ -587,9 +528,6 @@ test.describe('Header Navigation', () => {
 	test('header has search bar', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard')
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
-		await expect(authenticatedPage.getByText('Loading workspace...'))
-			.toBeHidden({ timeout: 5000 })
-			.catch(() => {})
 
 		// The header uses a command search button (Cmd+K) rather than a plain input
 		const searchButton = authenticatedPage
@@ -602,9 +540,6 @@ test.describe('Header Navigation', () => {
 	test('header has notification icon', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard')
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
-		await expect(authenticatedPage.getByText('Loading workspace...'))
-			.toBeHidden({ timeout: 5000 })
-			.catch(() => {})
 
 		const header = authenticatedPage.locator('header')
 		const notificationBtn = header
@@ -624,9 +559,6 @@ test.describe('Mobile Navigation', () => {
 		await authenticatedPage.setViewportSize({ width: 375, height: 667 })
 		await authenticatedPage.goto('/dashboard')
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
-		await expect(authenticatedPage.getByText('Loading workspace...'))
-			.toBeHidden({ timeout: 5000 })
-			.catch(() => {})
 
 		// On mobile, sidebar should be hidden or collapsed
 		await expect(authenticatedPage.getByRole('heading', { name: 'Dashboard' })).toBeVisible({
@@ -638,9 +570,6 @@ test.describe('Mobile Navigation', () => {
 		await authenticatedPage.setViewportSize({ width: 375, height: 667 })
 		await authenticatedPage.goto('/dashboard')
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
-		await expect(authenticatedPage.getByText('Loading workspace...'))
-			.toBeHidden({ timeout: 5000 })
-			.catch(() => {})
 
 		// Look for hamburger menu button
 		const menuButton = authenticatedPage
@@ -657,9 +586,6 @@ test.describe('Mobile Navigation', () => {
 		await authenticatedPage.setViewportSize({ width: 375, height: 667 })
 		await authenticatedPage.goto('/dashboard')
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
-		await expect(authenticatedPage.getByText('Loading workspace...'))
-			.toBeHidden({ timeout: 5000 })
-			.catch(() => {})
 
 		// Dashboard should still be accessible on mobile
 		await expect(authenticatedPage.getByRole('heading', { name: 'Dashboard' })).toBeVisible({
@@ -728,9 +654,6 @@ test.describe('Breadcrumb Navigation', () => {
 		// Create an agent first
 		await authenticatedPage.goto('/dashboard/agents/new')
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
-		await expect(authenticatedPage.getByText('Loading workspace...'))
-			.toBeHidden({ timeout: 5000 })
-			.catch(() => {})
 
 		await authenticatedPage.getByLabel(/name/i).fill(`Breadcrumb Test ${Date.now()}`)
 		await authenticatedPage.getByLabel(/description/i).fill('Testing navigation')
@@ -757,9 +680,6 @@ test.describe('Navigation State Preservation', () => {
 	test('navigating away and back preserves page state', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/agents')
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
-		await expect(authenticatedPage.getByText('Loading workspace...'))
-			.toBeHidden({ timeout: 5000 })
-			.catch(() => {})
 
 		// Interact with search if available
 		const searchInput = authenticatedPage.getByPlaceholder(/search/i)
@@ -790,9 +710,6 @@ test.describe('Keyboard Navigation', () => {
 	test('can navigate links with keyboard', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard')
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
-		await expect(authenticatedPage.getByText('Loading workspace...'))
-			.toBeHidden({ timeout: 5000 })
-			.catch(() => {})
 
 		// Tab to focus on a navigation link
 		const nav = authenticatedPage.locator('nav')
@@ -806,9 +723,6 @@ test.describe('Keyboard Navigation', () => {
 	test('enter key activates focused link', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard')
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
-		await expect(authenticatedPage.getByText('Loading workspace...'))
-			.toBeHidden({ timeout: 5000 })
-			.catch(() => {})
 
 		// Focus on Agents link
 		const agentsLink = authenticatedPage.locator('nav').getByRole('link', { name: 'Agents' })
@@ -848,9 +762,6 @@ test.describe('Navigation Edge Cases', () => {
 		// Reload the page
 		await authenticatedPage.reload()
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
-		await expect(authenticatedPage.getByText('Loading workspace...'))
-			.toBeHidden({ timeout: 5000 })
-			.catch(() => {})
 
 		// Dismiss tour if it reappears after reload
 		const skipTourButton = authenticatedPage.getByRole('button', { name: /skip tour/i })

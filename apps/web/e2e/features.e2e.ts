@@ -23,10 +23,9 @@ async function fillInput(page: Page, label: string | RegExp, value: string) {
 async function waitForWorkspace(page: Page) {
 	// Wait for main content to appear (workspace loaded)
 	await page.waitForSelector('main', { state: 'visible' })
-	await expect(page.locator('main').first()).toBeVisible({ timeout: 10000 })
-	// Wait for WorkspaceGate loading indicator to disappear
-	await expect(page.getByText('Loading workspace...'))
-		.toBeHidden({ timeout: 5000 })
+	await expect(page.locator('main').first())
+		.toBeVisible({ timeout: 10000 })
+		// Wait for WorkspaceGate loading indicator to disappear
 		.catch(() => {})
 }
 

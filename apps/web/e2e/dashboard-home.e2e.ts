@@ -169,10 +169,7 @@ test.describe('Dashboard Home - Recent Agents', () => {
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Wait for workspace to finish loading
-		await authenticatedPage
-			.getByText('Loading workspace...')
-			.waitFor({ state: 'hidden', timeout: 10000 })
-			.catch(() => {})
+		await authenticatedPage.waitFor({ state: 'hidden', timeout: 10000 }).catch(() => {})
 
 		// Dashboard should show either empty state or recent agents section
 		const emptyStateTitle = authenticatedPage.getByText('No agents yet')
@@ -380,10 +377,7 @@ test.describe('Dashboard Home - Empty State', () => {
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Wait for workspace to finish loading
-		await authenticatedPage
-			.getByText('Loading workspace...')
-			.waitFor({ state: 'hidden', timeout: 10000 })
-			.catch(() => {})
+		await authenticatedPage.waitFor({ state: 'hidden', timeout: 10000 }).catch(() => {})
 
 		// Dashboard should show either empty state or agent cards depending on state
 		const noAgentsText = authenticatedPage.getByText('No agents yet')
