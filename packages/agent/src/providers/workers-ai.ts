@@ -7,6 +7,7 @@ import { createWorkersAI } from 'workers-ai-provider'
 export const WORKERS_AI_MODELS = {
 	// Meta Llama models
 	'llama-3.3-70b': '@cf/meta/llama-3.3-70b-instruct-fp8-fast',
+	'llama-4-scout-17b': '@cf/meta/llama-4-scout-17b-16e-instruct',
 	'llama-3.1-8b': '@cf/meta/llama-3.1-8b-instruct',
 	'llama-3.2-3b': '@cf/meta/llama-3.2-3b-instruct',
 	'llama-3.2-1b': '@cf/meta/llama-3.2-1b-instruct',
@@ -15,11 +16,15 @@ export const WORKERS_AI_MODELS = {
 	'mistral-7b': '@cf/mistral/mistral-7b-instruct-v0.2',
 
 	// Qwen models
+	'qwen-2.5-coder-32b': '@cf/qwen/qwen2.5-coder-32b-instruct',
 	'qwen-1.5-14b': '@cf/qwen/qwen1.5-14b-chat-awq',
 	'qwen-1.5-7b': '@cf/qwen/qwen1.5-7b-chat-awq',
 
 	// DeepSeek models
 	'deepseek-r1-distill-qwen-32b': '@cf/deepseek-ai/deepseek-r1-distill-qwen-32b',
+
+	// GLM models
+	'glm-4.7-flash': '@cf/zai-org/glm-4.7-flash',
 
 	// Google Gemma models
 	'gemma-7b': '@cf/google/gemma-7b-it-lora',
@@ -134,17 +139,30 @@ export function getAvailableModels(): { id: string; name: string; description: s
 			description: 'Most capable Llama model, great for complex tasks',
 		},
 		{
-			id: 'llama-3.1-8b',
-			name: 'Llama 3.1 8B',
-			description: 'Fast and efficient for most use cases',
+			id: 'llama-4-scout-17b',
+			name: 'Llama 4 Scout 17B',
+			description: 'Newest MoE model, fast inference',
 		},
-		{ id: 'llama-3.2-3b', name: 'Llama 3.2 3B', description: 'Compact model for simple tasks' },
-		{ id: 'mistral-7b', name: 'Mistral 7B', description: 'Strong performance, good for chat' },
-		{ id: 'qwen-1.5-14b', name: 'Qwen 1.5 14B', description: 'Excellent multilingual support' },
+		{
+			id: 'qwen-2.5-coder-32b',
+			name: 'Qwen 2.5 Coder 32B',
+			description: 'Best for code generation tasks',
+		},
 		{
 			id: 'deepseek-r1-distill-qwen-32b',
 			name: 'DeepSeek R1 32B',
 			description: 'Strong reasoning capabilities',
 		},
+		{
+			id: 'glm-4.7-flash',
+			name: 'GLM 4.7 Flash',
+			description: 'Fast inference model',
+		},
+		{
+			id: 'llama-3.1-8b',
+			name: 'Llama 3.1 8B',
+			description: 'Fast and efficient for most use cases',
+		},
+		{ id: 'mistral-7b', name: 'Mistral 7B', description: 'Strong performance, good for chat' },
 	]
 }

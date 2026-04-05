@@ -124,6 +124,7 @@ export type ServerMessage = z.infer<typeof ServerMessageSchema>
 
 export const McpAgentStateSchema = z.object({
 	workspaceId: z.string(),
+	agentId: z.string().optional(),
 	systemToolsEnabled: z.boolean(),
 	connectedClients: z.number(),
 	lastActivity: z.number(),

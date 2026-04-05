@@ -26,6 +26,8 @@ export interface CloudflareEnv {
 	ASSETS: Fetcher
 	// Self-reference for caching
 	WORKER_SELF_REFERENCE: Fetcher
+	// Browser Rendering
+	BROWSER?: Fetcher
 	// Durable Objects for CF Agents
 	HARE_AGENT: DurableObjectNamespace
 	MCP_AGENT: DurableObjectNamespace
@@ -33,6 +35,8 @@ export interface CloudflareEnv {
 	RATE_LIMITER: RateLimitBinding
 	RATE_LIMITER_STRICT: RateLimitBinding
 	RATE_LIMITER_CHAT: RateLimitBinding
+	// AI Gateway ID
+	AI_GATEWAY_ID?: string
 	// Environment variables
 	ENVIRONMENT: string
 	NODE_ENV?: string

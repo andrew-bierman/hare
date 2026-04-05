@@ -230,6 +230,7 @@ export async function createAgentFromConfig(input: CreateAgentFromConfigInput): 
 		env,
 		workspaceId: agentConfig.workspaceId,
 		userId,
+		agentId: agentConfig.id,
 	}
 
 	// Load agent's tools from database

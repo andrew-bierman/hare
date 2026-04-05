@@ -75,9 +75,7 @@ export const test = base.extend<{
 
 				// Dismiss the onboarding tour overlay if it appears (blocks page interactions)
 				const skipTourButton = page.getByRole('button', { name: /skip tour/i })
-				const tourVisible = await skipTourButton
-					.isVisible({ timeout: 3000 })
-					.catch(() => false)
+				const tourVisible = await skipTourButton.isVisible({ timeout: 3000 }).catch(() => false)
 				if (tourVisible) {
 					await skipTourButton.click()
 					// Wait for the tour overlay to disappear
