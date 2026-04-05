@@ -97,19 +97,9 @@ test.describe('Sidebar Navigation - Authenticated', () => {
 	})
 
 	test('can navigate through all dashboard sections', async ({ authenticatedPage }) => {
-		// Helper to dismiss tour if it reappears after navigation
-		async function dismissTour() {
-			const skipTourButton = authenticatedPage.getByRole('button', { name: /skip tour/i })
-			if (await skipTourButton.isVisible({ timeout: 1500 }).catch(() => false)) {
-				await skipTourButton.click()
-				await skipTourButton.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {})
-			}
-		}
-
 		// Start at dashboard
 		await authenticatedPage.goto('/dashboard')
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
-		await dismissTour()
 		await expect(authenticatedPage.getByRole('heading', { name: 'Dashboard' })).toBeVisible({
 			timeout: 10000,
 		})
@@ -118,7 +108,6 @@ test.describe('Sidebar Navigation - Authenticated', () => {
 		await authenticatedPage.getByRole('link', { name: 'Agents' }).click()
 		await authenticatedPage.waitForURL(/\/dashboard\/agents/)
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
-		await dismissTour()
 		await expect(
 			authenticatedPage.getByRole('heading', { name: 'Agents', exact: true }),
 		).toBeVisible({ timeout: 10000 })
@@ -127,7 +116,6 @@ test.describe('Sidebar Navigation - Authenticated', () => {
 		await authenticatedPage.getByRole('link', { name: 'Tools' }).click()
 		await authenticatedPage.waitForURL(/\/dashboard\/tools/)
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
-		await dismissTour()
 		await expect(authenticatedPage.getByRole('heading', { name: 'Tools' })).toBeVisible({
 			timeout: 10000,
 		})
@@ -136,7 +124,6 @@ test.describe('Sidebar Navigation - Authenticated', () => {
 		await authenticatedPage.getByRole('link', { name: 'Settings' }).click()
 		await authenticatedPage.waitForURL(/\/dashboard\/settings/)
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
-		await dismissTour()
 		await expect(authenticatedPage.getByRole('heading', { name: 'Settings' })).toBeVisible({
 			timeout: 10000,
 		})
@@ -801,13 +788,6 @@ test.describe('Navigation Edge Cases', () => {
 		// Reload the page
 		await authenticatedPage.reload()
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
-
-		// Dismiss tour if it reappears after reload
-		const skipTourButton = authenticatedPage.getByRole('button', { name: /skip tour/i })
-		if (await skipTourButton.isVisible({ timeout: 2000 }).catch(() => false)) {
-			await skipTourButton.click()
-			await skipTourButton.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {})
-		}
 
 		// Should still be on agents page
 		await expect(

@@ -2,13 +2,6 @@ import { test as baseTest, expect, type Page } from '@playwright/test'
 import { test } from './fixtures'
 
 // Helper to dismiss the onboarding tour if it reappears after navigation
-async function dismissTourIfVisible(page: Page) {
-	const skipTourButton = page.getByRole('button', { name: /skip tour/i })
-	if (await skipTourButton.isVisible({ timeout: 1500 }).catch(() => false)) {
-		await skipTourButton.click()
-		await skipTourButton.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {})
-	}
-}
 
 const VIEWPORTS = {
 	mobile: { width: 375, height: 667 },
@@ -40,7 +33,6 @@ test.describe('Agent Conversations Page', () => {
 
 		await page.goto('/dashboard/agents/new')
 		await page.waitForSelector('main', { state: 'visible' })
-		await dismissTourIfVisible(page)
 
 		const nameInput = page.getByLabel(/name/i).first()
 		await nameInput.click()

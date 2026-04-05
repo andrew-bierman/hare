@@ -9,13 +9,6 @@ import { test } from './fixtures'
  */
 
 // Helper to dismiss the onboarding tour if it reappears after navigation
-async function dismissTourIfVisible(page: Page) {
-	const skipTourButton = page.getByRole('button', { name: /skip tour/i })
-	if (await skipTourButton.isVisible({ timeout: 1500 }).catch(() => false)) {
-		await skipTourButton.click()
-		await skipTourButton.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {})
-	}
-}
 
 async function getCsrfToken(page: Page): Promise<string> {
 	const cookies = await page.context().cookies()
@@ -125,7 +118,6 @@ test.describe('Usage Statistics Display', () => {
 	test('displays Total API Calls stat card', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/usage')
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
-		await dismissTourIfVisible(authenticatedPage)
 
 		// Wait for WorkspaceGate and loading to complete
 		await authenticatedPage.waitForTimeout(2000)

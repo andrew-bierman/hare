@@ -1,4 +1,4 @@
-import { expect, type Page } from '@playwright/test'
+import { expect } from '@playwright/test'
 import { test } from './fixtures'
 
 /**
@@ -7,19 +7,11 @@ import { test } from './fixtures'
  */
 
 // Helper to dismiss the onboarding tour if it reappears after navigation
-async function dismissTourIfVisible(page: Page) {
-	const skipTourButton = page.getByRole('button', { name: /skip tour/i })
-	if (await skipTourButton.isVisible({ timeout: 1500 }).catch(() => false)) {
-		await skipTourButton.click()
-		await skipTourButton.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {})
-	}
-}
 
 test.describe('Analytics Page - Dashboard Load', () => {
 	test('analytics page loads with dashboard', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/analytics')
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
-		await dismissTourIfVisible(authenticatedPage)
 		await expect(authenticatedPage).toHaveURL(/\/dashboard\/analytics/)
 		await expect(authenticatedPage.getByRole('heading', { name: 'Analytics' })).toBeVisible()
 	})
@@ -221,7 +213,6 @@ test.describe('Analytics Time Period Selector', () => {
 	test('displays date range selector', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/analytics')
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
-		await dismissTourIfVisible(authenticatedPage)
 		await authenticatedPage.waitForTimeout(2000)
 
 		// Check for date range selector - default is Last 30 days
@@ -231,7 +222,6 @@ test.describe('Analytics Time Period Selector', () => {
 	test('can change to Last 7 days', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/analytics')
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
-		await dismissTourIfVisible(authenticatedPage)
 		await authenticatedPage.waitForTimeout(2000)
 
 		// Click the date range selector
@@ -249,7 +239,6 @@ test.describe('Analytics Time Period Selector', () => {
 	test('can change to Last 90 days', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/analytics')
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
-		await dismissTourIfVisible(authenticatedPage)
 		await authenticatedPage.waitForTimeout(2000)
 
 		// Click the date range selector

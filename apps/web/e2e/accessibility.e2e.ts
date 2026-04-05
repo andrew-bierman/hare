@@ -41,16 +41,6 @@ function createAxeBuilder(page: import('@playwright/test').Page) {
 		.exclude('[data-radix-popper-content-wrapper]') // Exclude floating popper elements
 }
 
-// Helper to dismiss the onboarding tour if it reappears after navigation
-async function dismissTourIfVisible(page: import('@playwright/test').Page) {
-	const skipTourButton = page.getByRole('button', { name: /skip tour/i })
-	const tourVisible = await skipTourButton.isVisible({ timeout: 2000 }).catch(() => false)
-	if (tourVisible) {
-		await skipTourButton.click()
-		await skipTourButton.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {})
-	}
-}
-
 // Helper to ensure the page is authenticated and workspace is loaded
 async function ensureAuthenticatedState(page: import('@playwright/test').Page) {
 	// Wait for workspace to be loaded (indicated by workspace name in sidebar)
@@ -74,7 +64,6 @@ test.describe('Accessibility - Dashboard Home Page', () => {
 	test('dashboard home page has no critical a11y violations', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard')
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
-		await dismissTourIfVisible(authenticatedPage)
 		await ensureAuthenticatedState(authenticatedPage)
 		await authenticatedPage.waitForTimeout(1000)
 
@@ -123,7 +112,6 @@ test.describe('Accessibility - Agents List Page', () => {
 	test('agents list page has no critical a11y violations', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/agents')
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
-		await dismissTourIfVisible(authenticatedPage)
 		await authenticatedPage.waitForTimeout(2000)
 
 		const accessibilityScanResults = await createAxeBuilder(authenticatedPage).analyze()
@@ -161,7 +149,6 @@ test.describe('Accessibility - Agent Detail Page', () => {
 		// Create an agent first
 		await authenticatedPage.goto('/dashboard/agents/new')
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
-		await dismissTourIfVisible(authenticatedPage)
 		await ensureAuthenticatedState(authenticatedPage)
 
 		// Wait for the form to be fully loaded
@@ -177,7 +164,6 @@ test.describe('Accessibility - Agent Detail Page', () => {
 
 		await authenticatedPage.waitForURL(/\/dashboard\/agents\/[^/]+$/, { timeout: 15000 })
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
-		await dismissTourIfVisible(authenticatedPage)
 		await authenticatedPage.waitForTimeout(2000)
 
 		const accessibilityScanResults = await createAxeBuilder(authenticatedPage).analyze()
@@ -198,7 +184,6 @@ test.describe('Accessibility - Tools Page', () => {
 	test('tools page has no critical a11y violations', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/tools')
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
-		await dismissTourIfVisible(authenticatedPage)
 		await ensureAuthenticatedState(authenticatedPage)
 		await authenticatedPage.waitForTimeout(1000)
 
@@ -220,7 +205,6 @@ test.describe('Accessibility - Settings Page', () => {
 	test('settings page has no critical a11y violations', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/settings')
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
-		await dismissTourIfVisible(authenticatedPage)
 		await ensureAuthenticatedState(authenticatedPage)
 		await authenticatedPage.waitForTimeout(1000)
 
@@ -814,7 +798,6 @@ test.describe('Accessibility - Error Message Announcements', () => {
 	test('toast notifications are accessible', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/settings')
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
-		await dismissTourIfVisible(authenticatedPage)
 		await ensureAuthenticatedState(authenticatedPage)
 
 		// Wait for preferences to load (switches replace skeleton loaders)
@@ -853,7 +836,6 @@ test.describe('Accessibility - Interactive Elements', () => {
 	test('buttons have accessible names', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard')
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
-		await dismissTourIfVisible(authenticatedPage)
 		await authenticatedPage.waitForTimeout(2000)
 
 		// Run axe check for buttons without accessible names

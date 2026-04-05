@@ -26,13 +26,6 @@ async function waitForWorkspace(page: Page) {
 	await expect(page.locator('main').first())
 		.toBeVisible({ timeout: 10000 })
 		.catch(() => {})
-
-	// Dismiss tour if it reappears after navigation
-	const skipTourButton = page.getByRole('button', { name: /skip tour/i })
-	if (await skipTourButton.isVisible({ timeout: 1500 }).catch(() => false)) {
-		await skipTourButton.click()
-		await skipTourButton.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {})
-	}
 }
 
 // ============================================================================
