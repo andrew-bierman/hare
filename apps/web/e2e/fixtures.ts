@@ -62,15 +62,16 @@ export const test = base.extend<{
 					throw new Error(`Sign-up API returned ${signUpResponse.status()}: ${errorText}`)
 				}
 
-				// Seed CSRF cookie by hitting an API endpoint (auth routes skip CSRF middleware)
-				await page.request.get('/api/rpc/health/live')
-
-				// Disable onboarding tour via localStorage before navigating to dashboard
+				// Navigate to landing page to set localStorage and seed CSRF cookie
 				await page.goto('/')
 				await page.evaluate(() => {
 					localStorage.setItem('hare-tour-completed', 'true')
 					localStorage.setItem('hare-onboarding-dismissed', 'true')
 				})
+				// Seed CSRF cookie by making a fetch call from the browser context
+				await page.evaluate(() =>
+					fetch('/api/rpc/health/live').catch(() => {}),
+				)
 
 				// Navigate to dashboard — the app auto-creates a workspace for new users
 				await page.goto('/dashboard')
