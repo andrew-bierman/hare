@@ -47,7 +47,7 @@ const ActivityResponseSchema = z.object({
  * Returns recent agent invocations, tool calls, and errors
  */
 export const list = requireViewer
-	.route({ method: 'GET', path: '/activity' })
+	.route({ method: 'POST', path: '/activity' })
 	.input(ActivityQueryInputSchema)
 	.output(ActivityResponseSchema)
 	.handler(async ({ input, context }) => {
