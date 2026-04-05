@@ -32,6 +32,15 @@ function generateAgentName(prefix = 'Perf'): string {
 	return `${prefix} Agent ${Date.now()}`
 }
 
+// Helper to dismiss tour if visible
+async function dismissTourIfVisible(page: import('@playwright/test').Page) {
+	const skipTourButton = page.getByRole('button', { name: /skip tour/i })
+	if (await skipTourButton.isVisible({ timeout: 1500 }).catch(() => false)) {
+		await skipTourButton.click()
+		await skipTourButton.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {})
+	}
+}
+
 // Helper to create an agent and return its ID
 async function createAgent(
 	page: import('@playwright/test').Page,
@@ -42,6 +51,7 @@ async function createAgent(
 
 	await page.goto('/dashboard/agents/new')
 	await page.waitForSelector('main', { state: 'visible' })
+	await dismissTourIfVisible(page)
 
 	await page.getByLabel(/name/i).fill(agentName)
 	await page.locator('#description').fill(description)
@@ -68,6 +78,7 @@ async function measurePageLoad(
 	await page.goto(url)
 	await page.waitForSelector('main', { state: 'visible' })
 	const endTime = Date.now()
+	await dismissTourIfVisible(page)
 	return endTime - startTime
 }
 

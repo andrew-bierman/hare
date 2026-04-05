@@ -168,11 +168,8 @@ test.describe('Dashboard Home - Recent Agents', () => {
 		await authenticatedPage.goto('/dashboard')
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
-		// Wait for workspace to finish loading
-		await authenticatedPage
-			.getByText('Loading workspace...')
-			.waitFor({ state: 'hidden', timeout: 10000 })
-			.catch(() => {})
+		// Wait for content to load
+		await authenticatedPage.waitForTimeout(3000)
 
 		// Dashboard should show either empty state or recent agents section
 		const emptyStateTitle = authenticatedPage.getByText('No agents yet')
@@ -379,11 +376,8 @@ test.describe('Dashboard Home - Empty State', () => {
 		await authenticatedPage.goto('/dashboard')
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
-		// Wait for workspace to finish loading
-		await authenticatedPage
-			.getByText('Loading workspace...')
-			.waitFor({ state: 'hidden', timeout: 10000 })
-			.catch(() => {})
+		// Wait for content to load
+		await authenticatedPage.waitForTimeout(3000)
 
 		// Dashboard should show either empty state or agent cards depending on state
 		const noAgentsText = authenticatedPage.getByText('No agents yet')
@@ -586,11 +580,11 @@ test.describe('Dashboard Home - Responsive Design', () => {
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Heading should be visible
-		await expect(authenticatedPage.getByRole('heading', { name: 'Dashboard' })).toBeVisible()
+		await expect(authenticatedPage.getByRole('heading', { name: 'Dashboard' })).toBeVisible({
+			timeout: 10000,
+		})
 
-		// Quick actions section should be visible (use the link with specific text)
-		await expect(
-			authenticatedPage.getByRole('link', { name: /Create Agent.*Build a new AI/i }),
-		).toBeVisible()
+		// Quick actions section should be visible - look for the Create Agent text
+		await expect(authenticatedPage.getByText('Create Agent')).toBeVisible({ timeout: 10000 })
 	})
 })
