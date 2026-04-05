@@ -95,6 +95,12 @@ export {
 } from './integrations'
 
 // ==========================================
+// BROWSER TOOLS (Browser Rendering)
+// ==========================================
+
+export { browseUrlTool, getBrowserTools, screenshotTool } from './browser'
+
+// ==========================================
 // SECURITY (SSRF Protection)
 // ==========================================
 
@@ -261,6 +267,7 @@ export {
 // ==========================================
 
 import { getAITools } from './ai'
+import { getBrowserTools } from './browser'
 import { getDataTools } from './data'
 import { getHTTPTools } from './http'
 import { getIntegrationTools } from './integrations'
@@ -291,6 +298,7 @@ export type ToolCategory =
 	| 'validation'
 	| 'transform'
 	| 'memory'
+	| 'browser'
 	| 'all'
 
 /**
@@ -330,6 +338,8 @@ export function getSystemTools(context: ToolContext): AnyTool[] {
 		...getTransformTools(context),
 		// Memory tools (Vectorize)
 		...getMemoryTools(context),
+		// Browser tools (Browser Rendering)
+		...getBrowserTools(context),
 	]
 }
 
@@ -374,6 +384,8 @@ export function getToolsByCategory({
 			return getTransformTools(context)
 		case 'memory':
 			return getMemoryTools(context)
+		case 'browser':
+			return getBrowserTools(context)
 		default:
 			return getSystemTools(context)
 	}
@@ -459,6 +471,9 @@ export const SYSTEM_TOOL_IDS = [
 	// Memory (Vectorize)
 	'recall_memory',
 	'store_memory',
+	// Browser (Browser Rendering)
+	'browse_url',
+	'screenshot',
 ] as const
 
 export type SystemToolId = (typeof SYSTEM_TOOL_IDS)[number]
@@ -483,5 +498,6 @@ export const TOOL_COUNTS = {
 	validation: 6,
 	transform: 5,
 	memory: 2, // recall_memory, store_memory
-	total: 59,
+	browser: 2, // browse_url, screenshot
+	total: 61,
 } as const
