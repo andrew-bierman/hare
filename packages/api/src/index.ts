@@ -94,7 +94,13 @@ app.use('*', loggingMiddleware)
 app.route('/billing', billingWebhook)
 // Mount auth before CSRF - Better Auth has its own CSRF protection
 app.route('/auth', auth)
-app.use('*', csrfProtection())
+app.use('*', async (c, next) => {
+	// Skip CSRF for oRPC routes — they use session cookies with SameSite protection
+	if (c.req.path.startsWith('/api/rpc')) {
+		return next()
+	}
+	return csrfProtection()(c, next)
+})
 app.use('/rpc/*', optionalAuthMiddleware)
 
 const routes = app

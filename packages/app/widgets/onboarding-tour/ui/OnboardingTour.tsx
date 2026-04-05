@@ -211,10 +211,8 @@ export function OnboardingTour({
 
 		const targetElement = document.querySelector(currentStep.targetSelector)
 		if (!targetElement) {
-			// Target not found, skip to next step if not last
-			if (!isLastStep) {
-				onNext()
-			}
+			// Target not found — skip tour entirely to avoid grey overlay with no tooltip
+			onSkip()
 			return
 		}
 
@@ -312,9 +310,9 @@ export function OnboardingTour({
 	const tourContent = (
 		<>
 			{/* Overlay with cutout for highlighted element */}
-			<div className="fixed inset-0 z-[9998] pointer-events-none">
-				{/* Semi-transparent backdrop */}
-				<div className="absolute inset-0 bg-black/50" />
+			<div className="fixed inset-0 z-[9998]">
+				{/* Semi-transparent backdrop — click to dismiss */}
+				<div className="absolute inset-0 bg-black/50 cursor-pointer" onClick={handleSkip} />
 
 				{/* Cutout for highlighted element */}
 				{highlightRect && (

@@ -393,7 +393,7 @@ export const deploy = requireAdmin
 				status: config.enums.deploymentStatus.ACTIVE,
 				url: `/api/agents/${input.id}`,
 				deployedBy: user.id,
-				metadata: agent.config ? { config: agent.config } : undefined,
+				metadata: agent.config ? { config: agent.config } : null,
 			})
 			.returning()
 
@@ -677,7 +677,7 @@ export const rollback = requireAdmin
 					status: config.enums.deploymentStatus.ACTIVE,
 					url: `/api/agents/${id}`,
 					deployedBy: user.id,
-					metadata: targetVersionRecord.config ? { config: targetVersionRecord.config } : undefined,
+					metadata: targetVersionRecord.config ? { config: targetVersionRecord.config } : null,
 				})
 				.returning()
 
