@@ -61,6 +61,12 @@
     "remote": true,
   },
 
+  // Browser Rendering for web scraping and screenshots
+  "browser": {
+    "binding": "BROWSER",
+    "remote": true,
+  },
+
   // Vectorize for vector memory / semantic search (remote: true suppresses local dev warning)
   "vectorize": [
     {
