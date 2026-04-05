@@ -485,7 +485,7 @@ test.describe('URL Updates on Tab/Section Changes', () => {
 baseTest.describe('Page Title Updates', () => {
 	baseTest('landing page has correct title', async ({ page }: { page: Page }) => {
 		await page.goto('/')
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('domcontentloaded')
 
 		// TanStack Router sets the title after hydration; wait for it
 		await expect(page).toHaveTitle(/.+/, { timeout: 10000 })
@@ -493,14 +493,14 @@ baseTest.describe('Page Title Updates', () => {
 
 	baseTest('sign-in page has title', async ({ page }: { page: Page }) => {
 		await page.goto('/sign-in')
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('domcontentloaded')
 
 		await expect(page).toHaveTitle(/.+/, { timeout: 10000 })
 	})
 
 	baseTest('sign-up page has title', async ({ page }: { page: Page }) => {
 		await page.goto('/sign-up')
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('domcontentloaded')
 
 		await expect(page).toHaveTitle(/.+/, { timeout: 10000 })
 	})
