@@ -29,6 +29,7 @@ export {
 	createTool,
 	failure,
 	success,
+	toToolSet,
 	ToolRegistry,
 	type AnyTool,
 	type HareEnv,
@@ -36,6 +37,7 @@ export {
 	type ToolContext,
 	type ToolDefinition,
 	type ToolResult,
+	type ToolSet,
 } from './types'
 
 // Tool delegation utilities

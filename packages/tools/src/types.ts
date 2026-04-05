@@ -1,8 +1,13 @@
+import { tool as aiTool } from 'ai'
+import type { ToolSet } from 'ai'
 import { z } from 'zod'
 import type { HareEnv } from './env'
 
 // Re-export HareEnv for convenience
 export type { HareEnv }
+
+// Re-export AI SDK ToolSet for consumers
+export type { ToolSet }
 
 // Re-export tool type definitions from @hare/types
 export { ToolTypeSchema, type ToolType, ToolConfigSchema, type ToolConfig } from '@hare/types'
@@ -297,4 +302,42 @@ export function success<T>(data: T): ToolResult<T> {
  */
 export function failure(error: string): ToolResult<never> {
 	return { success: false, error }
+}
+
+/**
+ * Convert Hare tools to an AI SDK ToolSet for use with streamText/generateText.
+ *
+ * Binds each tool's execute to the provided ToolContext so Cloudflare
+ * bindings (env.AI, env.KV, etc.) are available during tool execution.
+ *
+ * @example
+ * ```ts
+ * const context = { env, workspaceId: 'ws-1' }
+ * const tools = getSystemTools(context)
+ * const toolSet = toToolSet(tools, context)
+ * const result = await streamText({ model, messages, tools: toolSet })
+ * ```
+ */
+export function toToolSet(tools: AnyTool[], context: ToolContext<HareEnv>): ToolSet {
+	return Object.fromEntries(
+		tools
+			.filter(
+				(t): t is Tool<unknown, unknown> =>
+					'execute' in t && typeof t.execute === 'function',
+			)
+			.map((t) => [
+				t.id,
+				aiTool({
+					description: t.description,
+					inputSchema: t.inputSchema,
+					execute: async (params: unknown) => {
+						const result = await t.execute(params as never, context)
+						if (result.success) {
+							return result.data
+						}
+						return { error: result.error ?? 'Tool execution failed' }
+					},
+				}),
+			]),
+	)
 }

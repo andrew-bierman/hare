@@ -214,7 +214,9 @@ test.describe('Embed Navigation', () => {
 	test('can navigate to embed from agent detail', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/agents/new')
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
-		await expect(authenticatedPage.getByText('Loading workspace...')).toBeHidden({ timeout: 5000 }).catch(() => {})
+		await expect(authenticatedPage.getByText('Loading workspace...'))
+			.toBeHidden({ timeout: 5000 })
+			.catch(() => {})
 		await expect(authenticatedPage.getByRole('heading', { name: /create/i })).toBeVisible({
 			timeout: 10000,
 		})

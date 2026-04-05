@@ -83,7 +83,9 @@ test.describe('Error Handling - Dashboard 404', () => {
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Wait for WorkspaceGate to finish loading
-		await expect(authenticatedPage.getByText('Loading workspace...')).toBeHidden({ timeout: 5000 }).catch(() => {})
+		await expect(authenticatedPage.getByText('Loading workspace...'))
+			.toBeHidden({ timeout: 5000 })
+			.catch(() => {})
 
 		// Wait for 404 content to appear
 		// The DashboardNotFound uses CardTitle (a div, not a heading) with text "Page not found"
@@ -149,12 +151,16 @@ test.describe('Error Handling - Error Boundaries', () => {
 		// Navigate to a page that might trigger an error boundary
 		await authenticatedPage.goto('/dashboard')
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
-		await expect(authenticatedPage.getByText('Loading workspace...')).toBeHidden({ timeout: 5000 }).catch(() => {})
+		await expect(authenticatedPage.getByText('Loading workspace...'))
+			.toBeHidden({ timeout: 5000 })
+			.catch(() => {})
 
 		// Verify the error component structure exists in the app
 		// We check this indirectly by verifying the dashboard loads correctly
 		// and the retry mechanism would be available if an error occurred
-		await expect(authenticatedPage.getByRole('heading', { name: 'Dashboard' })).toBeVisible({ timeout: 10000 })
+		await expect(authenticatedPage.getByRole('heading', { name: 'Dashboard' })).toBeVisible({
+			timeout: 10000,
+		})
 	})
 
 	test('error messages are user-friendly', async ({ authenticatedPage }) => {
@@ -295,7 +301,9 @@ test.describe('Error Handling - Network Errors', () => {
 	test('offline state does not crash the app', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard')
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
-		await expect(authenticatedPage.getByText('Loading workspace...')).toBeHidden({ timeout: 5000 }).catch(() => {})
+		await expect(authenticatedPage.getByText('Loading workspace...'))
+			.toBeHidden({ timeout: 5000 })
+			.catch(() => {})
 
 		// Verify dashboard loaded
 		await expect(authenticatedPage.getByRole('heading', { name: 'Dashboard' })).toBeVisible({
@@ -360,21 +368,27 @@ test.describe('Error Handling - Session Management', () => {
 		// Navigate through protected pages
 		await authenticatedPage.goto('/dashboard')
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
-		await expect(authenticatedPage.getByText('Loading workspace...')).toBeHidden({ timeout: 5000 }).catch(() => {})
+		await expect(authenticatedPage.getByText('Loading workspace...'))
+			.toBeHidden({ timeout: 5000 })
+			.catch(() => {})
 		await expect(authenticatedPage.getByRole('heading', { name: 'Dashboard' })).toBeVisible({
 			timeout: 10000,
 		})
 
 		await authenticatedPage.goto('/dashboard/agents')
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
-		await expect(authenticatedPage.getByText('Loading workspace...')).toBeHidden({ timeout: 5000 }).catch(() => {})
+		await expect(authenticatedPage.getByText('Loading workspace...'))
+			.toBeHidden({ timeout: 5000 })
+			.catch(() => {})
 		await expect(authenticatedPage.getByRole('heading', { name: /agents/i })).toBeVisible({
 			timeout: 10000,
 		})
 
 		await authenticatedPage.goto('/dashboard/settings')
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
-		await expect(authenticatedPage.getByText('Loading workspace...')).toBeHidden({ timeout: 5000 }).catch(() => {})
+		await expect(authenticatedPage.getByText('Loading workspace...'))
+			.toBeHidden({ timeout: 5000 })
+			.catch(() => {})
 		await expect(authenticatedPage.getByRole('heading', { name: /settings/i })).toBeVisible({
 			timeout: 10000,
 		})
@@ -626,7 +640,9 @@ test.describe('Error Handling - Concurrent Operations', () => {
 	test('rapid navigation does not cause errors', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard')
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
-		await expect(authenticatedPage.getByText('Loading workspace...')).toBeHidden({ timeout: 5000 }).catch(() => {})
+		await expect(authenticatedPage.getByText('Loading workspace...'))
+			.toBeHidden({ timeout: 5000 })
+			.catch(() => {})
 
 		// Rapidly navigate between pages
 		const pages = ['/dashboard/agents', '/dashboard/tools', '/dashboard/settings', '/dashboard']
@@ -647,13 +663,17 @@ test.describe('Error Handling - Concurrent Operations', () => {
 	test('multiple concurrent API calls are handled', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard')
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
-		await expect(authenticatedPage.getByText('Loading workspace...')).toBeHidden({ timeout: 5000 }).catch(() => {})
+		await expect(authenticatedPage.getByText('Loading workspace...'))
+			.toBeHidden({ timeout: 5000 })
+			.catch(() => {})
 
 		// The dashboard should handle multiple simultaneous data fetches
 		// This is implicitly tested by loading the dashboard which may fetch
 		// multiple resources at once
 
-		await expect(authenticatedPage.getByRole('heading', { name: 'Dashboard' })).toBeVisible({ timeout: 10000 })
+		await expect(authenticatedPage.getByRole('heading', { name: 'Dashboard' })).toBeVisible({
+			timeout: 10000,
+		})
 	})
 })
 

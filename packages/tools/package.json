@@ -33,7 +33,8 @@
 	},
 	"dependencies": {
 		"@hare/config": "workspace:*",
-		"@hare/types": "workspace:*"
+		"@hare/types": "workspace:*",
+		"ai": "^6.0.0"
 	},
 	"devDependencies": {
 		"@cloudflare/workers-types": "^4.20251224.0",
