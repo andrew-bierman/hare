@@ -8,7 +8,7 @@
 'use client'
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { orpc } from '@hare/api'
+import { orpc, getOrpcWorkspaceId } from '@hare/api'
 import type { AuditAction } from '@hare/config'
 
 // =============================================================================
@@ -777,9 +777,11 @@ export function useActivityFeedQuery(options?: {
 	refetchInterval?: number
 }) {
 	const { refetchInterval, ...queryInput } = options || {}
+	const workspaceId = getOrpcWorkspaceId()
 	return useQuery({
 		queryKey: ['activity', queryInput],
 		queryFn: () => orpc.activity.list(queryInput || {}),
+		enabled: !!workspaceId,
 		refetchInterval,
 	})
 }
