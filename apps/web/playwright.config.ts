@@ -45,11 +45,12 @@ export default defineConfig({
 		},
 	],
 	webServer: {
-		// Pass PORT to dev server command to match worktree config
+		// Pass PORT and E2E/CI vars to dev server to use local-only wrangler config
 		command: process.env.CI
-			? `CLOUDFLARE_ENVIRONMENT=local WRANGLER_LOG=debug bun run dev`
-			: `PORT=${DEFAULT_PORT} bun run dev`,
+			? `E2E=true CI=true CLOUDFLARE_ENVIRONMENT=local PORT=${DEFAULT_PORT} bun run dev`
+			: `E2E=true CI=true PORT=${DEFAULT_PORT} bun run dev`,
 		url: `http://localhost:${DEFAULT_PORT}`,
+		// Reuse existing server locally; in CI always start fresh
 		reuseExistingServer: !process.env.CI,
 		timeout: 120 * 1000,
 		// Ignore HTTPS certificate errors during tests

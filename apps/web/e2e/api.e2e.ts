@@ -34,7 +34,7 @@ test.describe('API Health & Infrastructure', () => {
 
 	test('API docs page is accessible', async ({ page }: { page: Page }) => {
 		await page.goto('/api/docs')
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('domcontentloaded')
 		await expect(page).toHaveURL('/api/docs')
 		// Check that the page has loaded content (not a 404)
 		await expect(page.locator('body')).not.toContainText('404')

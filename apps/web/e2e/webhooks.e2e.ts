@@ -24,19 +24,19 @@ function generateAgentName(prefix = 'Webhook'): string {
 async function createAgentAndGoToWebhooks(page: import('@playwright/test').Page) {
 	// Create an agent first
 	await page.goto('/dashboard/agents/new')
-	await page.waitForLoadState('networkidle')
+	await page.waitForSelector('main', { state: 'visible' })
 
 	const agentName = generateAgentName()
 	await page.locator('#name').fill(agentName)
 	await page.locator('#description').fill('Test agent for webhook E2E tests')
 
-	const createButton = page.getByRole('button', { name: /create agent/i })
+	const createButton = page.getByRole('button', { name: /create/i })
 	await expect(createButton).toBeEnabled()
 	await createButton.click()
 
 	// Wait for redirect to agent detail page
 	await page.waitForURL(/\/dashboard\/agents\/[a-f0-9-]+$/, { timeout: 15000 })
-	await page.waitForLoadState('networkidle')
+	await page.waitForSelector('main', { state: 'visible' })
 	await page.waitForTimeout(1000)
 
 	// Extract agent ID from URL
@@ -45,7 +45,7 @@ async function createAgentAndGoToWebhooks(page: import('@playwright/test').Page)
 
 	// Navigate to webhooks page
 	await page.goto(`/dashboard/agents/${agentId}/webhooks`)
-	await page.waitForLoadState('networkidle')
+	await page.waitForSelector('main', { state: 'visible' })
 	await page.waitForTimeout(1000)
 
 	return { agentName, agentId }

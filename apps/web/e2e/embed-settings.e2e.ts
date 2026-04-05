@@ -6,21 +6,47 @@ import { test } from './fixtures'
  * Tests the embed configuration page for agents.
  */
 
-// Helper to create an agent
-async function createAgent(page: import('@playwright/test').Page): Promise<string> {
+// Helper to create an agent and navigate to its embed page
+async function createAgentAndGoToEmbed(page: import('@playwright/test').Page): Promise<string> {
 	await page.goto('/dashboard/agents/new')
-	await page.waitForLoadState('networkidle')
+	await page.waitForSelector('main', { state: 'visible' })
 
-	await expect(page.getByRole('heading', { name: /create/i })).toBeVisible({ timeout: 20000 })
+	// Wait for WorkspaceGate to finish loading
+	await expect(page.getByText('Loading workspace...'))
+		.toBeHidden({ timeout: 5000 })
+		.catch(() => {})
 
-	const nameInput = page.getByLabel(/agent name/i)
+	await expect(page.getByRole('heading', { name: /create/i })).toBeVisible({ timeout: 10000 })
+
+	const nameInput = page.getByLabel(/name/i).first()
 	await nameInput.click()
-	await nameInput.pressSequentially(`Embed Test ${Date.now()}`, { delay: 15 })
+	await nameInput.fill('')
+	await nameInput.pressSequentially(`Embed Test ${Date.now()}`, { delay: 10 })
 
-	await page.getByRole('button', { name: /create agent/i }).click()
-	await page.waitForURL(/\/dashboard\/agents\/[^/]+$/, { timeout: 15000 })
+	await page
+		.getByRole('button', { name: /create/i })
+		.first()
+		.click()
+	await page.waitForURL(/\/dashboard\/agents\/(?!new)/, { timeout: 15000 })
 
-	return page.url().split('/').pop() || ''
+	const url = page.url()
+	const match = url.match(/\/agents\/([^/]+)/)
+	const agentId = match?.[1]
+	if (!agentId) throw new Error('Failed to extract agent ID from URL')
+
+	// Wait for the agent detail page to fully load before navigating away
+	await page.waitForSelector('main', { state: 'visible' })
+	await page.waitForTimeout(1000)
+
+	await page.goto(`/dashboard/agents/${agentId}/embed`)
+	await page.waitForSelector('main', { state: 'visible' })
+
+	// Wait for embed page to load - either the heading appears or we need to wait longer
+	await expect(page.getByRole('heading', { name: /embed widget/i })).toBeVisible({
+		timeout: 20000,
+	})
+
+	return agentId
 }
 
 // ============================================================================
@@ -32,7 +58,6 @@ baseTest.describe('Embed Settings Route Protection', () => {
 		'unauthenticated user is redirected from embed settings to sign-in',
 		async ({ page }) => {
 			await page.goto('/dashboard/agents/test-agent-id/embed')
-			await page.waitForLoadState('networkidle')
 			await page.waitForURL(/\/sign-in/, { timeout: 10000 })
 			await expect(page).toHaveURL(/\/sign-in/)
 		},
@@ -44,256 +69,125 @@ baseTest.describe('Embed Settings Route Protection', () => {
 // ============================================================================
 
 test.describe('Embed Settings Page', () => {
-	test('displays embed settings page', async ({ authenticatedPage }) => {
-		const agentId = await createAgent(authenticatedPage)
-		await authenticatedPage.goto(`/dashboard/agents/${agentId}/embed`)
-		await authenticatedPage.waitForLoadState('networkidle')
+	test('displays embed settings page with heading and action buttons', async ({
+		authenticatedPage,
+	}) => {
+		await createAgentAndGoToEmbed(authenticatedPage)
 
-		await expect(authenticatedPage.locator('main')).toBeVisible({ timeout: 20000 })
-	})
+		// Page is visible
+		await expect(authenticatedPage.locator('main').first()).toBeVisible({ timeout: 10000 })
 
-	test('shows embed heading', async ({ authenticatedPage }) => {
-		const agentId = await createAgent(authenticatedPage)
-		await authenticatedPage.goto(`/dashboard/agents/${agentId}/embed`)
-		await authenticatedPage.waitForLoadState('networkidle')
+		// Shows "Embed Widget" heading
+		const embedHeading = authenticatedPage.getByRole('heading', { name: /embed widget/i })
+		await expect(embedHeading).toBeVisible({ timeout: 10000 })
 
-		const embedHeading = authenticatedPage.getByRole('heading', { name: /embed|widget/i })
-		await expect(embedHeading.first()).toBeVisible({ timeout: 10000 })
-	})
-
-	test('has Save Changes button', async ({ authenticatedPage }) => {
-		const agentId = await createAgent(authenticatedPage)
-		await authenticatedPage.goto(`/dashboard/agents/${agentId}/embed`)
-		await authenticatedPage.waitForLoadState('networkidle')
-
+		// Has Save Changes button
 		const saveButton = authenticatedPage.getByRole('button', { name: /save/i })
 		await expect(saveButton.first()).toBeVisible({ timeout: 10000 })
-	})
 
-	test('has Test Widget button', async ({ authenticatedPage }) => {
-		const agentId = await createAgent(authenticatedPage)
-		await authenticatedPage.goto(`/dashboard/agents/${agentId}/embed`)
-		await authenticatedPage.waitForLoadState('networkidle')
-
-		const testButton = authenticatedPage.getByRole('button', { name: /test|preview/i })
+		// Has Test Widget button
+		const testButton = authenticatedPage.getByRole('button', { name: /test widget/i })
 		await expect(testButton.first()).toBeVisible({ timeout: 10000 })
 	})
 })
 
 // ============================================================================
-// Appearance Configuration
+// Appearance Configuration (default tab)
 // ============================================================================
 
 test.describe('Embed Appearance Settings', () => {
 	test('has theme selector', async ({ authenticatedPage }) => {
-		const agentId = await createAgent(authenticatedPage)
-		await authenticatedPage.goto(`/dashboard/agents/${agentId}/embed`)
-		await authenticatedPage.waitForLoadState('networkidle')
+		await createAgentAndGoToEmbed(authenticatedPage)
 
-		// Look for theme selector (light/dark)
-		const themeText = authenticatedPage.getByText(/theme/i)
-		const lightOption = authenticatedPage.getByText(/light/i)
-		const darkOption = authenticatedPage.getByText(/dark/i)
-
-		const hasTheme =
-			(await themeText
-				.first()
-				.isVisible({ timeout: 5000 })
-				.catch(() => false)) ||
-			(await lightOption
-				.first()
-				.isVisible({ timeout: 2000 })
-				.catch(() => false)) ||
-			(await darkOption
-				.first()
-				.isVisible({ timeout: 2000 })
-				.catch(() => false))
-
-		expect(hasTheme).toBeTruthy()
+		// Appearance tab is active by default - look for Theme label
+		const themeLabel = authenticatedPage.getByText('Theme', { exact: true })
+		await expect(themeLabel.first()).toBeVisible({ timeout: 5000 })
 	})
 
 	test('has position selector', async ({ authenticatedPage }) => {
-		const agentId = await createAgent(authenticatedPage)
-		await authenticatedPage.goto(`/dashboard/agents/${agentId}/embed`)
-		await authenticatedPage.waitForLoadState('networkidle')
+		await createAgentAndGoToEmbed(authenticatedPage)
 
-		// Look for position selector
-		const positionText = authenticatedPage.getByText(/position/i)
-		const bottomRight = authenticatedPage.getByText(/bottom.?right/i)
-		const bottomLeft = authenticatedPage.getByText(/bottom.?left/i)
-
-		const hasPosition =
-			(await positionText
-				.first()
-				.isVisible({ timeout: 5000 })
-				.catch(() => false)) ||
-			(await bottomRight
-				.first()
-				.isVisible({ timeout: 2000 })
-				.catch(() => false)) ||
-			(await bottomLeft
-				.first()
-				.isVisible({ timeout: 2000 })
-				.catch(() => false))
-
-		expect(hasPosition).toBeTruthy()
+		// Appearance tab is active by default - look for Position label
+		const positionLabel = authenticatedPage.getByText('Position', { exact: true })
+		await expect(positionLabel.first()).toBeVisible({ timeout: 5000 })
 	})
 
 	test('has color picker', async ({ authenticatedPage }) => {
-		const agentId = await createAgent(authenticatedPage)
-		await authenticatedPage.goto(`/dashboard/agents/${agentId}/embed`)
-		await authenticatedPage.waitForLoadState('networkidle')
+		await createAgentAndGoToEmbed(authenticatedPage)
 
-		// Look for color picker or color input
-		const colorText = authenticatedPage.getByText(/color/i)
-		const colorInput = authenticatedPage.locator('input[type="color"]')
-		const hexInput = authenticatedPage.getByPlaceholder(/#|hex/i)
-
-		const hasColor =
-			(await colorText
-				.first()
-				.isVisible({ timeout: 5000 })
-				.catch(() => false)) ||
-			(await colorInput.isVisible({ timeout: 2000 }).catch(() => false)) ||
-			(await hexInput.isVisible({ timeout: 2000 }).catch(() => false))
-
-		expect(hasColor).toBeTruthy()
+		// Appearance tab is active by default - look for Primary Color label
+		const colorLabel = authenticatedPage.getByText('Primary Color')
+		await expect(colorLabel.first()).toBeVisible({ timeout: 5000 })
 	})
 })
 
 // ============================================================================
-// Behavior Configuration
+// Behavior Configuration (requires clicking Behavior tab)
 // ============================================================================
 
 test.describe('Embed Behavior Settings', () => {
 	test('has enable/disable toggle', async ({ authenticatedPage }) => {
-		const agentId = await createAgent(authenticatedPage)
-		await authenticatedPage.goto(`/dashboard/agents/${agentId}/embed`)
-		await authenticatedPage.waitForLoadState('networkidle')
+		await createAgentAndGoToEmbed(authenticatedPage)
 
-		// Look for enable toggle
+		// Click the Behavior tab
+		await authenticatedPage.getByRole('tab', { name: /behavior/i }).click()
+
+		// Look for the Enable Widget switch
 		const enableToggle = authenticatedPage.locator('[role="switch"]')
-		const enableCheckbox = authenticatedPage.locator('input[type="checkbox"]')
-		const enableText = authenticatedPage.getByText(/enable|active/i)
-
-		const hasEnable =
-			(await enableToggle
-				.first()
-				.isVisible({ timeout: 5000 })
-				.catch(() => false)) ||
-			(await enableCheckbox
-				.first()
-				.isVisible({ timeout: 2000 })
-				.catch(() => false)) ||
-			(await enableText
-				.first()
-				.isVisible({ timeout: 2000 })
-				.catch(() => false))
-
-		expect(hasEnable).toBeTruthy()
+		await expect(enableToggle.first()).toBeVisible({ timeout: 5000 })
 	})
 
 	test('has welcome message field', async ({ authenticatedPage }) => {
-		const agentId = await createAgent(authenticatedPage)
-		await authenticatedPage.goto(`/dashboard/agents/${agentId}/embed`)
-		await authenticatedPage.waitForLoadState('networkidle')
+		await createAgentAndGoToEmbed(authenticatedPage)
 
-		// Look for welcome message textarea
-		const welcomeLabel = authenticatedPage.getByLabel(/welcome|greeting|initial/i)
-		const welcomeText = authenticatedPage.getByText(/welcome message/i)
+		// Click the Behavior tab
+		await authenticatedPage.getByRole('tab', { name: /behavior/i }).click()
 
-		const hasWelcome =
-			(await welcomeLabel.isVisible({ timeout: 5000 }).catch(() => false)) ||
-			(await welcomeText
-				.first()
-				.isVisible({ timeout: 2000 })
-				.catch(() => false))
-
-		expect(hasWelcome).toBeTruthy()
+		// Look for Welcome Message label
+		const welcomeLabel = authenticatedPage.getByText('Welcome Message')
+		await expect(welcomeLabel.first()).toBeVisible({ timeout: 5000 })
 	})
 })
 
 // ============================================================================
-// Security Configuration
+// Security Configuration (requires clicking Security tab)
 // ============================================================================
 
 test.describe('Embed Security Settings', () => {
 	test('has allowed domains field', async ({ authenticatedPage }) => {
-		const agentId = await createAgent(authenticatedPage)
-		await authenticatedPage.goto(`/dashboard/agents/${agentId}/embed`)
-		await authenticatedPage.waitForLoadState('networkidle')
+		await createAgentAndGoToEmbed(authenticatedPage)
 
-		// Look for domains field
-		const domainsLabel = authenticatedPage.getByLabel(/domain|allowed|whitelist/i)
-		const domainsText = authenticatedPage.getByText(/domain/i)
+		// Click the Security tab
+		await authenticatedPage.getByRole('tab', { name: /security/i }).click()
 
-		const hasDomains =
-			(await domainsLabel.isVisible({ timeout: 5000 }).catch(() => false)) ||
-			(await domainsText
-				.first()
-				.isVisible({ timeout: 2000 })
-				.catch(() => false))
-
-		expect(hasDomains).toBeTruthy()
+		// Look for Allowed Domains label
+		const domainsLabel = authenticatedPage.getByText('Allowed Domains')
+		await expect(domainsLabel.first()).toBeVisible({ timeout: 5000 })
 	})
 })
 
 // ============================================================================
-// Embed Code
+// Embed Code (visible on right side regardless of tab)
 // ============================================================================
 
 test.describe('Embed Code Section', () => {
-	test('shows embed code', async ({ authenticatedPage }) => {
-		const agentId = await createAgent(authenticatedPage)
-		await authenticatedPage.goto(`/dashboard/agents/${agentId}/embed`)
-		await authenticatedPage.waitForLoadState('networkidle')
+	test('shows embed code with copy button', async ({ authenticatedPage }) => {
+		await createAgentAndGoToEmbed(authenticatedPage)
 
-		// Look for code block or script tag
-		const codeBlock = authenticatedPage.locator('pre, code')
-		const scriptText = authenticatedPage.getByText(/<script/i)
+		// Look for code block containing script tag
+		const codeBlock = authenticatedPage.locator('pre')
+		await expect(codeBlock.first()).toBeVisible({ timeout: 10000 })
 
-		const hasCode =
-			(await codeBlock
-				.first()
-				.isVisible({ timeout: 10000 })
-				.catch(() => false)) ||
-			(await scriptText
-				.first()
-				.isVisible({ timeout: 5000 })
-				.catch(() => false))
-
-		expect(hasCode).toBeTruthy()
-	})
-
-	test('has copy button for embed code', async ({ authenticatedPage }) => {
-		const agentId = await createAgent(authenticatedPage)
-		await authenticatedPage.goto(`/dashboard/agents/${agentId}/embed`)
-		await authenticatedPage.waitForLoadState('networkidle')
-
-		// Look for copy button
+		// Has copy button
 		const copyButton = authenticatedPage.getByRole('button', { name: /copy/i })
-		const copyIcon = authenticatedPage.locator('button:has([class*="copy"], [class*="clipboard"])')
-
-		const hasCopy =
-			(await copyButton
-				.first()
-				.isVisible({ timeout: 5000 })
-				.catch(() => false)) ||
-			(await copyIcon
-				.first()
-				.isVisible({ timeout: 2000 })
-				.catch(() => false))
-
-		expect(hasCopy).toBeTruthy()
+		await expect(copyButton.first()).toBeVisible({ timeout: 5000 })
 	})
 
 	test('shows installation instructions', async ({ authenticatedPage }) => {
-		const agentId = await createAgent(authenticatedPage)
-		await authenticatedPage.goto(`/dashboard/agents/${agentId}/embed`)
-		await authenticatedPage.waitForLoadState('networkidle')
+		await createAgentAndGoToEmbed(authenticatedPage)
 
-		// Look for instructions
-		const instructionsText = authenticatedPage.getByText(/install|add|paste|copy/i)
+		// Look for "Installation Instructions" heading
+		const instructionsText = authenticatedPage.getByText('Installation Instructions')
 		await expect(instructionsText.first()).toBeVisible({ timeout: 10000 })
 	})
 })
@@ -304,25 +198,11 @@ test.describe('Embed Code Section', () => {
 
 test.describe('Embed Preview', () => {
 	test('shows preview section', async ({ authenticatedPage }) => {
-		const agentId = await createAgent(authenticatedPage)
-		await authenticatedPage.goto(`/dashboard/agents/${agentId}/embed`)
-		await authenticatedPage.waitForLoadState('networkidle')
+		await createAgentAndGoToEmbed(authenticatedPage)
 
-		// Look for preview
-		const previewText = authenticatedPage.getByText(/preview/i)
-		const iframe = authenticatedPage.locator('iframe')
-
-		const hasPreview =
-			(await previewText
-				.first()
-				.isVisible({ timeout: 5000 })
-				.catch(() => false)) ||
-			(await iframe
-				.first()
-				.isVisible({ timeout: 5000 })
-				.catch(() => false))
-
-		expect(hasPreview).toBeTruthy()
+		// Look for Preview heading
+		const previewText = authenticatedPage.getByText('Preview')
+		await expect(previewText.first()).toBeVisible({ timeout: 5000 })
 	})
 })
 
@@ -332,11 +212,24 @@ test.describe('Embed Preview', () => {
 
 test.describe('Embed Navigation', () => {
 	test('can navigate to embed from agent detail', async ({ authenticatedPage }) => {
-		const agentId = await createAgent(authenticatedPage)
-		await authenticatedPage.goto(`/dashboard/agents/${agentId}`)
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.goto('/dashboard/agents/new')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
+		await expect(authenticatedPage.getByText('Loading workspace...')).toBeHidden({ timeout: 5000 }).catch(() => {})
+		await expect(authenticatedPage.getByRole('heading', { name: /create/i })).toBeVisible({
+			timeout: 10000,
+		})
 
-		// Look for embed link/tab
+		const nameInput = authenticatedPage.getByLabel(/name/i).first()
+		await nameInput.click()
+		await nameInput.fill('')
+		await nameInput.pressSequentially(`Nav Test ${Date.now()}`, { delay: 10 })
+		await authenticatedPage
+			.getByRole('button', { name: /create/i })
+			.first()
+			.click()
+		await authenticatedPage.waitForURL(/\/dashboard\/agents\/(?!new)/, { timeout: 15000 })
+
+		// Look for embed link/tab on the agent detail page
 		const embedLink = authenticatedPage.getByRole('link', { name: /embed/i })
 		const embedTab = authenticatedPage.getByRole('tab', { name: /embed/i })
 
@@ -361,22 +254,16 @@ test.describe('Embed Navigation', () => {
 
 test.describe('Embed Settings - Responsive', () => {
 	test('displays correctly on mobile', async ({ authenticatedPage }) => {
-		const agentId = await createAgent(authenticatedPage)
-
 		await authenticatedPage.setViewportSize({ width: 375, height: 667 })
-		await authenticatedPage.goto(`/dashboard/agents/${agentId}/embed`)
-		await authenticatedPage.waitForLoadState('networkidle')
+		await createAgentAndGoToEmbed(authenticatedPage)
 
-		await expect(authenticatedPage.locator('main')).toBeVisible({ timeout: 20000 })
+		await expect(authenticatedPage.locator('main').first()).toBeVisible({ timeout: 10000 })
 	})
 
 	test('displays correctly on tablet', async ({ authenticatedPage }) => {
-		const agentId = await createAgent(authenticatedPage)
-
 		await authenticatedPage.setViewportSize({ width: 768, height: 1024 })
-		await authenticatedPage.goto(`/dashboard/agents/${agentId}/embed`)
-		await authenticatedPage.waitForLoadState('networkidle')
+		await createAgentAndGoToEmbed(authenticatedPage)
 
-		await expect(authenticatedPage.locator('main')).toBeVisible({ timeout: 20000 })
+		await expect(authenticatedPage.locator('main').first()).toBeVisible({ timeout: 10000 })
 	})
 })

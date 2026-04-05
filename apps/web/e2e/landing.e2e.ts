@@ -52,16 +52,16 @@ test.describe('Landing Page - Hero Section', () => {
 		await expect(primaryCta).toHaveAttribute('href', '/sign-up')
 	})
 
-	test('has secondary CTA button', async ({ page }: { page: Page }) => {
-		const secondaryCta = page.getByRole('link', { name: 'Live Demo' })
-		await expect(secondaryCta).toBeVisible()
-		await expect(secondaryCta).toHaveAttribute('href', '/dashboard')
+	test('displays hero feature badges', async ({ page }: { page: Page }) => {
+		await expect(page.getByText('Open Source', { exact: true })).toBeVisible()
+		await expect(page.getByText('300+ Locations')).toBeVisible()
+		await expect(page.getByText('<50ms Latency')).toBeVisible()
 	})
 
 	test('displays hero section content', async ({ page }: { page: Page }) => {
-		// Hero section should have CTAs visible
+		// Hero section should have primary CTA visible
 		await expect(page.getByRole('link', { name: 'Start Building Free' })).toBeVisible()
-		await expect(page.getByRole('link', { name: 'Live Demo' })).toBeVisible()
+		await expect(page.getByText(/fastest way to create/i)).toBeVisible()
 	})
 })
 
@@ -100,7 +100,7 @@ test.describe('Landing Page - Features Section', () => {
 		]
 
 		for (const feature of features) {
-			await expect(page.getByText(feature, { exact: true })).toBeVisible()
+			await expect(page.getByText(feature, { exact: true }).first()).toBeVisible()
 		}
 	})
 
