@@ -577,7 +577,6 @@ export function useWorkspaceMembersQuery(workspaceId: string | undefined) {
 	return useQuery({
 		queryKey: ['workspaces', workspaceId, 'members'],
 		queryFn: () => orpc.workspaceMembers.listMembers({ id: workspaceId! }),
-		enabled: !!workspaceId,
 	})
 }
 
@@ -585,7 +584,6 @@ export function useWorkspaceInvitationsQuery(workspaceId: string | undefined) {
 	return useQuery({
 		queryKey: ['workspaces', workspaceId, 'invitations'],
 		queryFn: () => orpc.workspaceMembers.listInvitations({ id: workspaceId! }),
-		enabled: !!workspaceId,
 	})
 }
 
@@ -669,7 +667,6 @@ export function useUsageQuery(workspaceId: string | undefined) {
 	return useQuery({
 		queryKey: ['usage', workspaceId],
 		queryFn: () => orpc.usage.getWorkspaceUsage({}),
-		enabled: !!workspaceId,
 	})
 }
 
