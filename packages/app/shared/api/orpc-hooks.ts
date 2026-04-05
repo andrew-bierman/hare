@@ -19,6 +19,7 @@ export function useAgentsQuery() {
 	return useQuery({
 		queryKey: ['agents'],
 		queryFn: () => orpc.agents.list({}),
+		enabled: !!getOrpcWorkspaceId(),
 	})
 }
 
@@ -154,6 +155,7 @@ export function useToolsQuery() {
 	return useQuery({
 		queryKey: ['tools'],
 		queryFn: () => orpc.tools.list({}),
+		enabled: !!getOrpcWorkspaceId(),
 	})
 }
 
