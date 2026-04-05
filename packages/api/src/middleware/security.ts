@@ -16,12 +16,13 @@ export const securityHeadersMiddleware: MiddlewareHandler = secureHeaders({
 		scriptSrc: [
 			"'self'",
 			"'unsafe-inline'",
+			'https://cdn.jsdelivr.net', // Required for Scalar API docs
 			...(serverEnv.NODE_ENV === 'development' ? ["'unsafe-eval'"] : []),
 		],
-		styleSrc: ["'self'", "'unsafe-inline'"], // Required for Tailwind
+		styleSrc: ["'self'", "'unsafe-inline'", 'https://cdn.jsdelivr.net'], // Required for Tailwind + Scalar
 		imgSrc: ["'self'", 'data:', 'https:', 'blob:'],
-		fontSrc: ["'self'", 'data:'],
-		connectSrc: ["'self'", 'https://*.cloudflare.com'],
+		fontSrc: ["'self'", 'data:', 'https://fonts.scalar.com'], // Scalar API docs fonts
+		connectSrc: ["'self'", 'https://*.cloudflare.com', 'https://api.scalar.com'], // Scalar API docs
 		frameSrc: ["'none'"],
 		objectSrc: ["'none'"],
 		baseUri: ["'self'"], // Prevent base tag hijacking

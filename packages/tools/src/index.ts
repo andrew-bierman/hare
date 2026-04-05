@@ -92,6 +92,20 @@ export {
 	zapierTriggerTool,
 } from './integrations'
 
+// ==========================================
+// SECURITY (SSRF Protection)
+// ==========================================
+
+export {
+	isBlockedHost,
+	isPrivateIPv4,
+	isPrivateIPv6,
+	isRedirectSafe,
+	isUrlSafe,
+	MAX_REDIRECT_HOPS,
+	parseIPv4,
+} from './security/ssrf'
+
 // Constants
 export {
 	AutoRAGConfig,
@@ -196,15 +210,21 @@ export {
 	type ExecutableTool,
 	configureAgentTool,
 	createAgentTool,
+	createWebhookTool,
 	deleteAgentTool,
+	deleteWebhookTool,
+	deployAgentTool,
 	executeToolTool,
 	getAgentControlTools,
 	getAgentMetricsTool,
 	getAgentTool,
 	listAgentsTool,
 	listAgentToolsTool,
+	listWebhooksTool,
+	rollbackAgentTool,
 	scheduleTaskTool,
 	sendMessageTool,
+	undeployAgentTool,
 } from './agent-control'
 
 // ==========================================

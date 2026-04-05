@@ -1289,6 +1289,438 @@ export const getAgentMetricsTool = createTool({
 	},
 })
 
+// =============================================================================
+// Deploy / Undeploy / Rollback Tools
+// =============================================================================
+
+const DeployAgentOutputSchema = z.object({
+	agentId: z.string(),
+	status: z.string(),
+	previousStatus: z.string(),
+	deployedAt: z.number(),
+})
+
+/**
+ * Deploy an agent (set status to 'deployed')
+ */
+export const deployAgentTool = createTool({
+	id: 'agent_deploy',
+	description: 'Deploy an agent, making it active and accessible for conversations',
+	inputSchema: z.object({
+		agentId: z.string().describe('The agent to deploy'),
+	}),
+	outputSchema: DeployAgentOutputSchema,
+	execute: async (params, context: ToolContext) => {
+		try {
+			if (!hasAgentControlCapabilities(context)) {
+				return failure('Database not available. Agent control tools require DB binding.')
+			}
+
+			const db = context.env.DB
+			const workspaceId = context.workspaceId
+
+			const existing = await db
+				.prepare('SELECT id, status FROM agents WHERE id = ? AND workspaceId = ?')
+				.bind(params.agentId, workspaceId)
+				.first()
+
+			if (!existing) {
+				return failure(`Agent not found: ${params.agentId}`)
+			}
+
+			if (existing.status === 'deployed') {
+				return failure('Agent is already deployed')
+			}
+
+			const now = Date.now()
+			await db
+				.prepare('UPDATE agents SET status = ?, updatedAt = ? WHERE id = ? AND workspaceId = ?')
+				.bind('deployed', now, params.agentId, workspaceId)
+				.run()
+
+			return success({
+				agentId: params.agentId,
+				status: 'deployed',
+				previousStatus: existing.status as string,
+				deployedAt: now,
+			})
+		} catch (error) {
+			return failure(error instanceof Error ? error.message : 'Failed to deploy agent')
+		}
+	},
+})
+
+const UndeployAgentOutputSchema = z.object({
+	agentId: z.string(),
+	status: z.string(),
+	previousStatus: z.string(),
+	undeployedAt: z.number(),
+})
+
+/**
+ * Undeploy an agent (set status to 'draft')
+ */
+export const undeployAgentTool = createTool({
+	id: 'agent_undeploy',
+	description: 'Undeploy an agent, stopping it from receiving new conversations',
+	inputSchema: z.object({
+		agentId: z.string().describe('The agent to undeploy'),
+	}),
+	outputSchema: UndeployAgentOutputSchema,
+	execute: async (params, context: ToolContext) => {
+		try {
+			if (!hasAgentControlCapabilities(context)) {
+				return failure('Database not available. Agent control tools require DB binding.')
+			}
+
+			const db = context.env.DB
+			const workspaceId = context.workspaceId
+
+			const existing = await db
+				.prepare('SELECT id, status FROM agents WHERE id = ? AND workspaceId = ?')
+				.bind(params.agentId, workspaceId)
+				.first()
+
+			if (!existing) {
+				return failure(`Agent not found: ${params.agentId}`)
+			}
+
+			if (existing.status !== 'deployed') {
+				return failure(`Agent is not deployed. Current status: ${existing.status}`)
+			}
+
+			const now = Date.now()
+			await db
+				.prepare('UPDATE agents SET status = ?, updatedAt = ? WHERE id = ? AND workspaceId = ?')
+				.bind('draft', now, params.agentId, workspaceId)
+				.run()
+
+			return success({
+				agentId: params.agentId,
+				status: 'draft',
+				previousStatus: existing.status as string,
+				undeployedAt: now,
+			})
+		} catch (error) {
+			return failure(error instanceof Error ? error.message : 'Failed to undeploy agent')
+		}
+	},
+})
+
+const RollbackAgentOutputSchema = z.object({
+	agentId: z.string(),
+	rolledBackTo: z.string(),
+	previousConfig: z.unknown(),
+	restoredConfig: z.unknown(),
+	rolledBackAt: z.number(),
+})
+
+/**
+ * Rollback an agent to a previous configuration snapshot
+ */
+export const rollbackAgentTool = createTool({
+	id: 'agent_rollback',
+	description: 'Rollback an agent to a previous configuration by restoring a snapshot',
+	inputSchema: z.object({
+		agentId: z.string().describe('The agent to rollback'),
+		snapshotId: z.string().optional().describe('Specific snapshot ID to rollback to (defaults to most recent)'),
+	}),
+	outputSchema: RollbackAgentOutputSchema,
+	execute: async (params, context: ToolContext) => {
+		try {
+			if (!hasAgentControlCapabilities(context)) {
+				return failure('Database not available. Agent control tools require DB binding.')
+			}
+
+			const db = context.env.DB
+			const workspaceId = context.workspaceId
+
+			// Verify agent exists
+			const existing = await db
+				.prepare('SELECT id, config, instructions, model FROM agents WHERE id = ? AND workspaceId = ?')
+				.bind(params.agentId, workspaceId)
+				.first()
+
+			if (!existing) {
+				return failure(`Agent not found: ${params.agentId}`)
+			}
+
+			// Get the snapshot to rollback to
+			let snapshotQuery: string
+			let snapshotBindings: unknown[]
+
+			if (params.snapshotId) {
+				snapshotQuery = 'SELECT id, config, instructions, model, createdAt FROM agent_snapshots WHERE id = ? AND agentId = ?'
+				snapshotBindings = [params.snapshotId, params.agentId]
+			} else {
+				snapshotQuery = 'SELECT id, config, instructions, model, createdAt FROM agent_snapshots WHERE agentId = ? ORDER BY createdAt DESC LIMIT 1'
+				snapshotBindings = [params.agentId]
+			}
+
+			const snapshot = await db
+				.prepare(snapshotQuery)
+				.bind(...snapshotBindings)
+				.first()
+
+			if (!snapshot) {
+				return failure('No snapshot found to rollback to')
+			}
+
+			const now = Date.now()
+
+			// Save current state as a new snapshot before rollback
+			await db
+				.prepare(
+					'INSERT INTO agent_snapshots (id, agentId, config, instructions, model, createdAt) VALUES (?, ?, ?, ?, ?, ?)',
+				)
+				.bind(
+					`snap_${now.toString(36)}_${Math.random().toString(36).slice(2, 8)}`,
+					params.agentId,
+					existing.config,
+					existing.instructions,
+					existing.model,
+					now,
+				)
+				.run()
+
+			// Restore the snapshot
+			await db
+				.prepare('UPDATE agents SET config = ?, instructions = ?, model = ?, updatedAt = ? WHERE id = ? AND workspaceId = ?')
+				.bind(snapshot.config, snapshot.instructions, snapshot.model, now, params.agentId, workspaceId)
+				.run()
+
+			return success({
+				agentId: params.agentId,
+				rolledBackTo: snapshot.id as string,
+				previousConfig: existing.config ? JSON.parse(existing.config as string) : null,
+				restoredConfig: snapshot.config ? JSON.parse(snapshot.config as string) : null,
+				rolledBackAt: now,
+			})
+		} catch (error) {
+			return failure(error instanceof Error ? error.message : 'Failed to rollback agent')
+		}
+	},
+})
+
+// =============================================================================
+// Webhook Management Tools
+// =============================================================================
+
+const WebhookSchema = z.object({
+	id: z.string(),
+	url: z.string(),
+	events: z.array(z.string()),
+	status: z.string(),
+	createdAt: z.unknown(),
+})
+
+const ListWebhooksOutputSchema = z.object({
+	agentId: z.string(),
+	webhooks: z.array(WebhookSchema),
+	total: z.number(),
+})
+
+/**
+ * List webhooks configured for an agent
+ */
+export const listWebhooksTool = createTool({
+	id: 'agent_webhook_list',
+	description: 'List all webhooks configured for a specific agent',
+	inputSchema: z.object({
+		agentId: z.string().describe('The agent to list webhooks for'),
+	}),
+	outputSchema: ListWebhooksOutputSchema,
+	execute: async (params, context: ToolContext) => {
+		try {
+			if (!hasAgentControlCapabilities(context)) {
+				return failure('Database not available. Agent control tools require DB binding.')
+			}
+
+			const db = context.env.DB
+			const workspaceId = context.workspaceId
+
+			// Verify agent exists in workspace
+			const agentResult = await db
+				.prepare('SELECT id FROM agents WHERE id = ? AND workspaceId = ?')
+				.bind(params.agentId, workspaceId)
+				.first()
+
+			if (!agentResult) {
+				return failure(`Agent not found: ${params.agentId}`)
+			}
+
+			const result = await db
+				.prepare('SELECT id, url, events, status, createdAt FROM webhooks WHERE agentId = ? ORDER BY createdAt DESC')
+				.bind(params.agentId)
+				.all()
+
+			const webhooks = (result.results || []).map((row) => ({
+				id: row.id as string,
+				url: row.url as string,
+				events: JSON.parse(row.events as string) as string[],
+				status: row.status as string,
+				createdAt: row.createdAt,
+			}))
+
+			return success({
+				agentId: params.agentId,
+				webhooks,
+				total: webhooks.length,
+			})
+		} catch (error) {
+			return failure(error instanceof Error ? error.message : 'Failed to list webhooks')
+		}
+	},
+})
+
+const CreateWebhookOutputSchema = z.object({
+	id: z.string(),
+	agentId: z.string(),
+	url: z.string(),
+	events: z.array(z.string()),
+	status: z.string(),
+	createdAt: z.number(),
+})
+
+/**
+ * Create a webhook for an agent
+ */
+export const createWebhookTool = createTool({
+	id: 'agent_webhook_create',
+	description: 'Create a new webhook to receive events for a specific agent',
+	inputSchema: z.object({
+		agentId: z.string().describe('The agent to attach the webhook to'),
+		url: z.string().url().describe('The URL to send webhook events to'),
+		events: z
+			.array(z.string())
+			.min(1)
+			.describe('Event types to subscribe to (e.g., agent.message, agent.deployed)'),
+		secret: z.string().optional().describe('Webhook signing secret (auto-generated if not provided)'),
+	}),
+	outputSchema: CreateWebhookOutputSchema,
+	execute: async (params, context: ToolContext) => {
+		try {
+			if (!hasAgentControlCapabilities(context)) {
+				return failure('Database not available. Agent control tools require DB binding.')
+			}
+
+			const db = context.env.DB
+			const workspaceId = context.workspaceId
+
+			// Verify agent exists in workspace
+			const agentResult = await db
+				.prepare('SELECT id FROM agents WHERE id = ? AND workspaceId = ?')
+				.bind(params.agentId, workspaceId)
+				.first()
+
+			if (!agentResult) {
+				return failure(`Agent not found: ${params.agentId}`)
+			}
+
+			const webhookId = `wh_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`
+			const now = Date.now()
+
+			// Generate secret if not provided
+			const secret =
+				params.secret ??
+				Array.from(crypto.getRandomValues(new Uint8Array(32)))
+					.map((b) => b.toString(16).padStart(2, '0'))
+					.join('')
+
+			await db
+				.prepare(
+					'INSERT INTO webhooks (id, agentId, url, events, secret, status, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+				)
+				.bind(
+					webhookId,
+					params.agentId,
+					params.url,
+					JSON.stringify(params.events),
+					secret,
+					'active',
+					now,
+					now,
+				)
+				.run()
+
+			return success({
+				id: webhookId,
+				agentId: params.agentId,
+				url: params.url,
+				events: params.events,
+				status: 'active',
+				createdAt: now,
+			})
+		} catch (error) {
+			return failure(error instanceof Error ? error.message : 'Failed to create webhook')
+		}
+	},
+})
+
+const DeleteWebhookOutputSchema = z.object({
+	webhookId: z.string(),
+	agentId: z.string(),
+	deleted: z.boolean(),
+	deletedAt: z.number(),
+})
+
+/**
+ * Delete a webhook
+ */
+export const deleteWebhookTool = createTool({
+	id: 'agent_webhook_delete',
+	description: 'Delete a webhook from an agent',
+	inputSchema: z.object({
+		agentId: z.string().describe('The agent the webhook belongs to'),
+		webhookId: z.string().describe('The webhook to delete'),
+	}),
+	outputSchema: DeleteWebhookOutputSchema,
+	execute: async (params, context: ToolContext) => {
+		try {
+			if (!hasAgentControlCapabilities(context)) {
+				return failure('Database not available. Agent control tools require DB binding.')
+			}
+
+			const db = context.env.DB
+			const workspaceId = context.workspaceId
+
+			// Verify agent exists in workspace
+			const agentResult = await db
+				.prepare('SELECT id FROM agents WHERE id = ? AND workspaceId = ?')
+				.bind(params.agentId, workspaceId)
+				.first()
+
+			if (!agentResult) {
+				return failure(`Agent not found: ${params.agentId}`)
+			}
+
+			// Verify webhook exists and belongs to this agent
+			const webhookResult = await db
+				.prepare('SELECT id FROM webhooks WHERE id = ? AND agentId = ?')
+				.bind(params.webhookId, params.agentId)
+				.first()
+
+			if (!webhookResult) {
+				return failure(`Webhook not found: ${params.webhookId}`)
+			}
+
+			await db
+				.prepare('DELETE FROM webhooks WHERE id = ? AND agentId = ?')
+				.bind(params.webhookId, params.agentId)
+				.run()
+
+			return success({
+				webhookId: params.webhookId,
+				agentId: params.agentId,
+				deleted: true,
+				deletedAt: Date.now(),
+			})
+		} catch (error) {
+			return failure(error instanceof Error ? error.message : 'Failed to delete webhook')
+		}
+	},
+})
+
 /**
  * Executable tool type that includes the execute method.
  * Use this when you need to call execute() on tools.
@@ -1312,10 +1744,16 @@ export const agentControlTools: ExecutableTool[] = [
 	configureAgentTool,
 	createAgentTool,
 	deleteAgentTool,
+	deployAgentTool,
+	undeployAgentTool,
+	rollbackAgentTool,
 	scheduleTaskTool,
 	executeToolTool,
 	listAgentToolsTool,
 	getAgentMetricsTool,
+	listWebhooksTool,
+	createWebhookTool,
+	deleteWebhookTool,
 ]
 
 /**
@@ -1335,10 +1773,16 @@ export const AGENT_CONTROL_TOOL_IDS = [
 	'agent_configure',
 	'agent_create',
 	'agent_delete',
+	'agent_deploy',
+	'agent_undeploy',
+	'agent_rollback',
 	'agent_schedule',
 	'agent_execute_tool',
 	'agent_list_tools',
 	'agent_metrics',
+	'agent_webhook_list',
+	'agent_webhook_create',
+	'agent_webhook_delete',
 ] as const
 
 export type AgentControlToolId = (typeof AGENT_CONTROL_TOOL_IDS)[number]

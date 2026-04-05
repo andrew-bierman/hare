@@ -56,16 +56,40 @@ export function getOrpcWorkspaceId(): string | null {
 // =============================================================================
 
 /**
- * Create the RPC link with credentials and workspace header
+ * Read a cookie value by name from document.cookie.
+ * Returns undefined if not found or not in a browser context.
+ */
+function getCookieValue(name: string): string | undefined {
+	if (typeof document === 'undefined') return undefined
+	const match = document.cookie.match(new RegExp(`(?:^|; )${name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}=([^;]*)`))
+	return match ? decodeURIComponent(match[1]!) : undefined
+}
+
+/**
+ * Get the CSRF token from the cookie.
+ * In dev mode the cookie is named 'csrf', in production '__Host-csrf'.
+ */
+function getCsrfToken(): string | undefined {
+	return getCookieValue('__Host-csrf') ?? getCookieValue('csrf')
+}
+
+/**
+ * Create the RPC link with credentials, workspace header, and CSRF token
  */
 const link = new RPCLink({
 	url: `${getBaseURL()}/api/rpc`,
 	fetch: (input, init) => {
-		// Build headers including workspace ID if available
+		// Build headers including workspace ID and CSRF token
 		const existingHeaders = (init as RequestInit)?.headers
 		const headers = new Headers(existingHeaders)
 		if (currentWorkspaceId) {
 			headers.set('X-Workspace-Id', currentWorkspaceId)
+		}
+
+		// Inject CSRF token for state-changing methods
+		const csrfToken = getCsrfToken()
+		if (csrfToken) {
+			headers.set('X-CSRF-Token', csrfToken)
 		}
 
 		return fetch(input, {

@@ -41,16 +41,16 @@ async function createAgent(
 	const description = options.description ?? 'Performance test agent'
 
 	await page.goto('/dashboard/agents/new')
-	await page.waitForLoadState('networkidle')
+	await page.waitForSelector('main', { state: 'visible' })
 
-	await page.locator('#name').fill(agentName)
+	await page.getByLabel(/name/i).fill(agentName)
 	await page.locator('#description').fill(description)
 
-	const createButton = page.getByRole('button', { name: /create agent/i })
+	const createButton = page.getByRole('button', { name: /create/i })
 	await createButton.click()
 
-	await page.waitForURL(/\/dashboard\/agents\/[a-f0-9-]+$/, { timeout: 15000 })
-	await page.waitForLoadState('networkidle')
+	await page.waitForURL(/\/dashboard\/agents\/[a-f0-9-]+$/, { timeout: 10000 })
+	await page.waitForSelector('main', { state: 'visible' })
 	await page.waitForTimeout(1000)
 
 	const url = page.url()
@@ -66,7 +66,7 @@ async function measurePageLoad(
 ): Promise<number> {
 	const startTime = Date.now()
 	await page.goto(url)
-	await page.waitForLoadState('networkidle')
+	await page.waitForSelector('main', { state: 'visible' })
 	const endTime = Date.now()
 	return endTime - startTime
 }
@@ -156,7 +156,7 @@ test.describe('Performance - Dashboard Page Load', () => {
 
 		// Navigate away and back
 		await authenticatedPage.goto('/dashboard/agents')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Second measurement
 		const secondLoadTime = await measurePageLoad(authenticatedPage, '/dashboard')
@@ -242,7 +242,7 @@ test.describe('Performance - Agent Detail Page Load', () => {
 
 		// Navigate away
 		await authenticatedPage.goto('/dashboard/agents')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Measure detail page load
 		const loadTime = await measurePageLoad(authenticatedPage, `/dashboard/agents/${agentId}`)
@@ -274,7 +274,7 @@ test.describe('Performance - Memory Leaks', () => {
 
 		// Initial memory measurement
 		await authenticatedPage.goto('/dashboard')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		await authenticatedPage.waitForTimeout(500)
 		const initialMemory = await getMemoryUsage(authenticatedPage)
 
@@ -288,19 +288,19 @@ test.describe('Performance - Memory Leaks', () => {
 		const navigationCycles = 10
 		for (let i = 0; i < navigationCycles; i++) {
 			await authenticatedPage.goto('/dashboard')
-			await authenticatedPage.waitForLoadState('networkidle')
+			await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 			await authenticatedPage.goto('/dashboard/agents')
-			await authenticatedPage.waitForLoadState('networkidle')
+			await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 			await authenticatedPage.goto(`/dashboard/agents/${agentId}`)
-			await authenticatedPage.waitForLoadState('networkidle')
+			await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 			await authenticatedPage.goto('/dashboard/tools')
-			await authenticatedPage.waitForLoadState('networkidle')
+			await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 			await authenticatedPage.goto('/dashboard/settings')
-			await authenticatedPage.waitForLoadState('networkidle')
+			await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		}
 
 		// Force garbage collection if available
@@ -338,7 +338,7 @@ test.describe('Performance - Memory Leaks', () => {
 test.describe('Performance - Cumulative Layout Shift', () => {
 	test('dashboard has no significant layout shifts (CLS < 0.1)', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Wait for content to stabilize
 		await authenticatedPage.waitForTimeout(2000)
@@ -363,7 +363,7 @@ test.describe('Performance - Cumulative Layout Shift', () => {
 		authenticatedPage,
 	}) => {
 		await authenticatedPage.goto('/dashboard/agents')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Wait for content to stabilize
 		await authenticatedPage.waitForTimeout(2000)
@@ -388,10 +388,10 @@ test.describe('Performance - Cumulative Layout Shift', () => {
 
 		// Navigate away and back
 		await authenticatedPage.goto('/dashboard')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		await authenticatedPage.goto(`/dashboard/agents/${agentId}`)
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Wait for content to stabilize
 		await authenticatedPage.waitForTimeout(2000)
@@ -417,7 +417,7 @@ test.describe('Performance - Cumulative Layout Shift', () => {
 test.describe('Performance - First Contentful Paint', () => {
 	test('dashboard FCP is under 1.5 seconds', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Wait for paint metrics to be recorded
 		await authenticatedPage.waitForTimeout(500)
@@ -440,7 +440,7 @@ test.describe('Performance - First Contentful Paint', () => {
 
 	test('agents list FCP is under 1.5 seconds', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/agents')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Wait for paint metrics to be recorded
 		await authenticatedPage.waitForTimeout(500)
@@ -463,10 +463,10 @@ test.describe('Performance - First Contentful Paint', () => {
 
 		// Navigate away first
 		await authenticatedPage.goto('/dashboard')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		await authenticatedPage.goto(`/dashboard/agents/${agentId}`)
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Wait for paint metrics to be recorded
 		await authenticatedPage.waitForTimeout(500)
@@ -506,7 +506,7 @@ test.describe('Performance - Baseline Metrics Capture', () => {
 
 		// Agent detail
 		await authenticatedPage.goto('/dashboard')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		const agentDetailLoadTime = await measurePageLoad(
 			authenticatedPage,
@@ -516,7 +516,7 @@ test.describe('Performance - Baseline Metrics Capture', () => {
 
 		// Get web vitals
 		await authenticatedPage.goto('/dashboard')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		await authenticatedPage.waitForTimeout(1000)
 
 		const { fcp, cls } = await getWebVitals(authenticatedPage)
@@ -554,7 +554,7 @@ test.describe('Performance - Threshold Comparison', () => {
 		// Create agent for detail page test
 		const { agentId } = await createAgent(authenticatedPage)
 		await authenticatedPage.goto('/dashboard')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		const agentDetailLoadTime = await measurePageLoad(
 			authenticatedPage,

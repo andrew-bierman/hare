@@ -13,7 +13,7 @@ import { test } from './fixtures'
 test.describe('Workspace Switcher - Display', () => {
 	test('workspace switcher shows current workspace name', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Look for workspace switcher button - shows workspace name or "Select workspace"
 		const workspaceButton = authenticatedPage
@@ -31,7 +31,7 @@ test.describe('Workspace Switcher - Display', () => {
 
 	test('workspace switcher dropdown lists all workspaces', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Find and click the workspace switcher
 		const workspaceButton = authenticatedPage
@@ -65,7 +65,7 @@ test.describe('Workspace Switcher - Display', () => {
 test.describe('Workspace Switcher - Switching', () => {
 	test('switching workspace updates context', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		await authenticatedPage.waitForTimeout(1000)
 
 		// Open workspace switcher
@@ -107,7 +107,7 @@ test.describe('Workspace Switcher - Switching', () => {
 test.describe('Workspace Switcher - Create Workspace', () => {
 	test('Create Workspace option is visible in dropdown', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Open workspace switcher
 		const workspaceButton = authenticatedPage
@@ -129,7 +129,7 @@ test.describe('Workspace Switcher - Create Workspace', () => {
 
 	test('creating new workspace opens dialog', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Open workspace switcher
 		const workspaceButton = authenticatedPage
@@ -167,7 +167,7 @@ test.describe('Workspace Switcher - Create Workspace', () => {
 
 	test('creating new workspace switches to it', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Open workspace switcher
 		const workspaceButton = authenticatedPage
@@ -216,13 +216,13 @@ test.describe('Workspace Context - Agents List', () => {
 	test('agents list displays agents for current workspace', async ({ authenticatedPage }) => {
 		// Create an agent in the current workspace
 		await authenticatedPage.goto('/dashboard/agents/new')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		await authenticatedPage.waitForTimeout(1000)
 
 		const agentName = `Workspace Agent ${Date.now()}`
 		await authenticatedPage.locator('#name').fill(agentName)
 
-		const createButton = authenticatedPage.getByRole('button', { name: /create agent/i })
+		const createButton = authenticatedPage.getByRole('button', { name: /create/i })
 		await createButton.click()
 
 		await authenticatedPage.waitForURL(/\/dashboard\/agents\/[^/]+$/, { timeout: 10000 })
@@ -230,7 +230,7 @@ test.describe('Workspace Context - Agents List', () => {
 
 		// Go to agents list
 		await authenticatedPage.goto('/dashboard/agents')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		await authenticatedPage.waitForTimeout(2000)
 
 		// Agent should be visible in the list
@@ -251,7 +251,7 @@ test.describe('Workspace Context - Agents List', () => {
 test.describe('Workspace Context - Navigation', () => {
 	test('workspace context is maintained across pages', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Get current workspace name
 		const workspaceButton = authenticatedPage
@@ -265,7 +265,7 @@ test.describe('Workspace Context - Navigation', () => {
 		// Navigate to agents
 		await authenticatedPage.getByRole('link', { name: 'Agents', exact: true }).click()
 		await authenticatedPage.waitForURL(/\/dashboard\/agents/)
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Workspace should still be the same
 		const agentsWorkspaceName = await workspaceButton.textContent()
@@ -274,7 +274,7 @@ test.describe('Workspace Context - Navigation', () => {
 		// Navigate to tools
 		await authenticatedPage.getByRole('link', { name: 'Tools', exact: true }).click()
 		await authenticatedPage.waitForURL(/\/dashboard\/tools/)
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Workspace should still be the same
 		const toolsWorkspaceName = await workspaceButton.textContent()
@@ -283,7 +283,7 @@ test.describe('Workspace Context - Navigation', () => {
 		// Navigate to settings
 		await authenticatedPage.getByRole('link', { name: 'Settings', exact: true }).click()
 		await authenticatedPage.waitForURL(/\/dashboard\/settings/)
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Workspace should still be the same
 		const settingsWorkspaceName = await workspaceButton.textContent()
@@ -298,7 +298,7 @@ test.describe('Workspace Context - Navigation', () => {
 test.describe('Team Page - Owner Access', () => {
 	test('workspace settings accessible for owners via team page', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/settings/team')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Team page should load
 		await expect(authenticatedPage.getByRole('heading', { name: 'Team' })).toBeVisible()
@@ -310,7 +310,18 @@ test.describe('Team Page - Owner Access', () => {
 
 	test('team members section shows workspace members', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/settings/team')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
+
+		// Wait for the team heading to confirm page loaded (not skeleton)
+		await authenticatedPage
+			.getByRole('heading', { name: /team/i })
+			.first()
+			.waitFor({ state: 'visible', timeout: 15000 })
+
+		// Wait for members to finish loading - the Members card should show member count
+		await authenticatedPage
+			.getByText(/member(s)? in this workspace/i)
+			.waitFor({ state: 'visible', timeout: 15000 })
 
 		// Members section should be visible
 		await expect(authenticatedPage.getByText('Members').first()).toBeVisible()
@@ -320,16 +331,17 @@ test.describe('Team Page - Owner Access', () => {
 			has: authenticatedPage.locator('.font-medium'),
 		})
 
+		await expect(memberCards.first()).toBeVisible({ timeout: 10000 })
 		const memberCount = await memberCards.count()
 		expect(memberCount).toBeGreaterThanOrEqual(1)
 
 		// Current user should have "You" badge
-		await expect(authenticatedPage.getByText('You')).toBeVisible()
+		await expect(authenticatedPage.getByText('You')).toBeVisible({ timeout: 10000 })
 	})
 
 	test('owner sees danger zone with delete workspace option', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/settings/team')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		await authenticatedPage.waitForTimeout(2000)
 
 		// Scroll to bottom to find Danger Zone (it's at the bottom of the page)
@@ -353,7 +365,7 @@ test.describe('Team Page - Owner Access', () => {
 
 	test('roles and permissions section is visible', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/settings/team')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Roles & Permissions section should be visible
 		await expect(authenticatedPage.getByText('Roles & Permissions')).toBeVisible()
@@ -373,7 +385,7 @@ test.describe('Team Page - Owner Access', () => {
 test.describe('Team Page - Invitations', () => {
 	test('invite member button is visible for owners/admins', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/settings/team')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		await authenticatedPage.waitForTimeout(2000)
 
 		// Invite Member button should be visible for owners/admins (at the top of the page)
@@ -390,7 +402,7 @@ test.describe('Team Page - Invitations', () => {
 
 	test('clicking invite member opens invitation dialog', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/settings/team')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		await authenticatedPage.waitForTimeout(2000)
 
 		// Click Invite Member button (only if visible for admins/owners)
@@ -427,7 +439,7 @@ test.describe('Team Page - Invitations', () => {
 
 	test('inviting team member shows success or validation', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/settings/team')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		await authenticatedPage.waitForTimeout(2000)
 
 		// Click Invite Member button (only if visible for admins/owners)
@@ -475,7 +487,7 @@ test.describe('Team Page - Invitations', () => {
 		authenticatedPage,
 	}) => {
 		await authenticatedPage.goto('/dashboard/settings/team')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		await authenticatedPage.waitForTimeout(2000)
 
 		// Scroll to find Pending Invitations section
@@ -504,7 +516,7 @@ test.describe('Team Page - Invitations', () => {
 test.describe('Team Page - Member Role Management', () => {
 	test('member role can be changed via dialog', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/settings/team')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Look for the more options button on a member card (not the current user)
 		// The owner cannot change their own role
@@ -554,7 +566,7 @@ test.describe('Team Page - Member Role Management', () => {
 test.describe('Team Page - Remove Member', () => {
 	test('remove member option structure is available', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/settings/team')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		await authenticatedPage.waitForTimeout(1000)
 
 		// Look for members section
@@ -587,7 +599,7 @@ test.describe('Workspace Access Control', () => {
 	test('workspace-specific routes require authentication', async ({ page }) => {
 		// Try to access team page directly without authentication
 		await page.goto('/dashboard/settings/team')
-		await page.waitForLoadState('networkidle')
+		await page.waitForSelector('form', { state: 'visible' })
 
 		// Should redirect to sign-in or show limited content
 		const url = page.url()
@@ -604,7 +616,7 @@ baseTest.describe('Workspace Access Control - Unauthenticated', () => {
 		async ({ page }: { page: Page }) => {
 			// Try to access workspace page directly
 			await page.goto('/dashboard')
-			await page.waitForLoadState('networkidle')
+			await page.waitForSelector('form', { state: 'visible' })
 
 			// Page should redirect to login
 			const url = page.url()
@@ -615,7 +627,7 @@ baseTest.describe('Workspace Access Control - Unauthenticated', () => {
 	baseTest('unauthenticated user cannot access team settings', async ({ page }: { page: Page }) => {
 		// Try to access team settings directly
 		await page.goto('/dashboard/settings/team')
-		await page.waitForLoadState('networkidle')
+		await page.waitForSelector('form', { state: 'visible' })
 
 		// Should redirect away from team page
 		const url = page.url()
@@ -634,7 +646,7 @@ baseTest.describe('Workspace Access Control - Unauthenticated', () => {
 test.describe('Settings Page - Workspace Info', () => {
 	test('settings page shows workspace info section', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/settings')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Workspace section should be visible
 		await expect(authenticatedPage.getByText('Workspace').first()).toBeVisible()
@@ -643,7 +655,7 @@ test.describe('Settings Page - Workspace Info', () => {
 
 	test('workspace info displays workspace details', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/settings')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Should show workspace ID
 		await expect(authenticatedPage.getByText('ID:').first()).toBeVisible()
@@ -654,7 +666,7 @@ test.describe('Settings Page - Workspace Info', () => {
 
 	test('workspace switcher hint is displayed', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/settings')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Check for workspace switcher hint text
 		await expect(
@@ -672,7 +684,7 @@ test.describe('Workspace Deletion', () => {
 		authenticatedPage,
 	}) => {
 		await authenticatedPage.goto('/dashboard/settings/team')
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		await authenticatedPage.waitForTimeout(2000)
 
 		// Scroll to bottom to find Danger Zone
