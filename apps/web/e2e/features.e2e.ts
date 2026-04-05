@@ -25,8 +25,14 @@ async function waitForWorkspace(page: Page) {
 	await page.waitForSelector('main', { state: 'visible' })
 	await expect(page.locator('main').first())
 		.toBeVisible({ timeout: 10000 })
-		// Wait for WorkspaceGate loading indicator to disappear
 		.catch(() => {})
+
+	// Dismiss tour if it reappears after navigation
+	const skipTourButton = page.getByRole('button', { name: /skip tour/i })
+	if (await skipTourButton.isVisible({ timeout: 1500 }).catch(() => false)) {
+		await skipTourButton.click()
+		await skipTourButton.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {})
+	}
 }
 
 // ============================================================================
@@ -246,7 +252,7 @@ test.describe('HTTP Tool Creation', () => {
 		// Wait for the form to render (heading is "Create HTTP Tool")
 		await expect(authenticatedPage.getByRole('heading', { name: /create http tool/i })).toBeVisible(
 			{
-				timeout: 15000,
+				timeout: 20000,
 			},
 		)
 

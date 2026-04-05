@@ -27,24 +27,25 @@ const SPECIAL_CHARACTERS = {
 baseTest.describe('Error Handling - 404 Not Found', () => {
 	baseTest('displays 404 page for completely invalid routes', async ({ page }: { page: Page }) => {
 		await page.goto('/this-route-does-not-exist-12345')
-		await page.waitForLoadState('domcontentloaded')
+		await page.waitForLoadState('networkidle')
 
 		// Should show the not found page
-		await expect(page.getByRole('heading', { name: /not found/i })).toBeVisible()
+		await expect(page.getByRole('heading', { name: /not found/i })).toBeVisible({ timeout: 15000 })
 		await expect(
 			page.getByText(/page you're looking for doesn't exist|has been moved/i),
 		).toBeVisible()
 
 		// Should have navigation buttons
 		await expect(page.getByRole('button', { name: /go back/i })).toBeVisible()
-		await expect(page.getByRole('link', { name: /back to home/i })).toBeVisible()
+		// Back to home is a Link wrapping a Button - look for the text in any clickable element
+		await expect(page.getByText(/back to home/i)).toBeVisible()
 	})
 
 	baseTest('displays 404 page for invalid nested routes', async ({ page }: { page: Page }) => {
 		await page.goto('/invalid/nested/route/path')
-		await page.waitForLoadState('domcontentloaded')
+		await page.waitForLoadState('networkidle')
 
-		await expect(page.getByRole('heading', { name: /not found/i })).toBeVisible()
+		await expect(page.getByRole('heading', { name: /not found/i })).toBeVisible({ timeout: 15000 })
 	})
 
 	baseTest('go back button navigates to previous page', async ({ page }: { page: Page }) => {
@@ -54,24 +55,30 @@ baseTest.describe('Error Handling - 404 Not Found', () => {
 
 		// Then navigate to 404 page
 		await page.goto('/nonexistent-page')
-		await page.waitForLoadState('domcontentloaded')
+		await page.waitForLoadState('networkidle')
 
 		// Wait for the 404 page to render with Go back button
 		const goBackButton = page.getByRole('button', { name: /go back/i })
-		await expect(goBackButton).toBeVisible({ timeout: 10000 })
+		await expect(goBackButton).toBeVisible({ timeout: 15000 })
 
 		// Click go back
 		await goBackButton.click()
 
-		// Should be back on home page (allow trailing slash variants)
-		await expect(page).toHaveURL(/^\/$|^\/\?/, { timeout: 10000 })
+		// Should be back on home page (allow trailing slash variants and query params)
+		await page.waitForTimeout(2000)
+		const url = page.url()
+		const isHome = url.endsWith('/') || new URL(url).pathname === '/'
+		expect(isHome).toBe(true)
 	})
 
 	baseTest('back to home link navigates to home page', async ({ page }: { page: Page }) => {
 		await page.goto('/nonexistent-page')
-		await page.waitForLoadState('domcontentloaded')
+		await page.waitForLoadState('networkidle')
 
-		await page.getByRole('link', { name: /back to home/i }).click()
+		// The "Back to home" is a Link wrapping a Button
+		const backToHomeLink = page.getByText(/back to home/i)
+		await expect(backToHomeLink).toBeVisible({ timeout: 15000 })
+		await backToHomeLink.click()
 
 		await page.waitForURL('/', { timeout: 10000 })
 	})

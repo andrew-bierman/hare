@@ -150,10 +150,13 @@ test.describe('Agents API - Authenticated', () => {
 			const agent = await parseOrpc(createResp)
 			expect(agent).toHaveProperty('id')
 		} else {
+			// Known issue: oRPC output validation may fail (500) even though agent was created
 			// Verify agent was created by listing
 			const listResp = await orpc(authenticatedPage, 'agents/list', {}, wsHeader)
+			expect(listResp.status()).toBe(200)
 			const data = await parseOrpc(listResp)
 			const agents = data.agents ?? data
+			expect(Array.isArray(agents)).toBe(true)
 			const found = agents.some((a: { name: string }) => a.name === agentName)
 			expect(found).toBe(true)
 		}

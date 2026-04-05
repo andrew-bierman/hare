@@ -1,5 +1,15 @@
-import { test as baseTest, expect } from '@playwright/test'
+import { test as baseTest, expect, type Page } from '@playwright/test'
 import { test } from './fixtures'
+
+// Helper to dismiss the onboarding tour if it reappears after navigation
+async function dismissTourIfVisible(page: Page) {
+	const skipTourButton = page.getByRole('button', { name: /skip tour/i })
+	const tourVisible = await skipTourButton.isVisible({ timeout: 2000 }).catch(() => false)
+	if (tourVisible) {
+		await skipTourButton.click()
+		await skipTourButton.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {})
+	}
+}
 
 const VIEWPORTS = {
 	mobile: { width: 375, height: 667 },
@@ -26,6 +36,7 @@ test.describe('Audit Logs Page', () => {
 	test('page loads with heading visible', async ({ authenticatedPage: page }) => {
 		await page.goto('/dashboard/settings/audit-logs')
 		await page.waitForSelector('main', { state: 'visible' })
+		await dismissTourIfVisible(page)
 
 		await expect(page.getByRole('heading', { name: 'Audit Logs' })).toBeVisible({
 			timeout: 10000,
@@ -37,6 +48,7 @@ test.describe('Audit Logs Page', () => {
 	}) => {
 		await page.goto('/dashboard/settings/audit-logs')
 		await page.waitForSelector('main', { state: 'visible' })
+		await dismissTourIfVisible(page)
 
 		// Filters section should be visible
 		await expect(page.getByText('Filters').first()).toBeVisible({ timeout: 10000 })
@@ -51,6 +63,7 @@ test.describe('Audit Logs Page', () => {
 	}) => {
 		await page.goto('/dashboard/settings/audit-logs')
 		await page.waitForSelector('main', { state: 'visible' })
+		await dismissTourIfVisible(page)
 
 		// The Workspace Activity card should be visible
 		await expect(page.getByText('Workspace Activity').first()).toBeVisible({ timeout: 10000 })
@@ -71,6 +84,7 @@ test.describe('Audit Logs Page', () => {
 	}) => {
 		await page.goto('/dashboard/settings/audit-logs')
 		await page.waitForSelector('main', { state: 'visible' })
+		await dismissTourIfVisible(page)
 
 		// A fresh test user workspace likely has no audit logs
 		const emptyState = page.getByText('No audit logs found')
@@ -92,6 +106,7 @@ test.describe('Audit Logs - Responsive', () => {
 			await page.setViewportSize(viewport)
 			await page.goto('/dashboard/settings/audit-logs')
 			await page.waitForSelector('main', { state: 'visible' })
+			await dismissTourIfVisible(page)
 
 			// Heading should still be visible
 			await expect(page.getByRole('heading', { name: 'Audit Logs' })).toBeVisible({
