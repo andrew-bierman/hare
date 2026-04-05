@@ -69,9 +69,10 @@ export const test = base.extend<{
 					localStorage.setItem('hare-onboarding-dismissed', 'true')
 				})
 				// Seed CSRF cookie by making a fetch call from the browser context
-				await page.evaluate(() =>
-					fetch('/api/rpc/health/live').catch(() => {}),
-				)
+				// The server sets a 'csrf' cookie on every API response
+				await page.evaluate(async () => {
+					await fetch('/api/rpc/health/live', { credentials: 'same-origin' })
+				})
 
 				// Navigate to dashboard — the app auto-creates a workspace for new users
 				await page.goto('/dashboard')

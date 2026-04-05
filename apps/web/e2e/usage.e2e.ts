@@ -8,14 +8,18 @@ import { test } from './fixtures'
  * oRPC uses POST for all procedures, body format: { json: { ...input } }
  */
 
-// Helper to dismiss the onboarding tour if it reappears after navigation
-
 async function getCsrfToken(page: Page): Promise<string> {
 	const cookies = await page.context().cookies()
-	const csrfCookie =
+	let csrfCookie =
 		cookies.find((c) => c.name === 'csrf') ?? cookies.find((c) => c.name === '__Host-csrf')
-	if (!csrfCookie) throw new Error('CSRF cookie not found')
-	return csrfCookie.value
+	if (!csrfCookie) {
+		await page.request.get('/api/rpc/health/live')
+		const updatedCookies = await page.context().cookies()
+		csrfCookie =
+			updatedCookies.find((c) => c.name === 'csrf') ??
+			updatedCookies.find((c) => c.name === '__Host-csrf')
+	}
+	return csrfCookie?.value ?? ''
 }
 
 async function orpc(
@@ -25,12 +29,13 @@ async function orpc(
 	extraHeaders: Record<string, string> = {},
 ) {
 	const csrfToken = await getCsrfToken(page)
+	const headers: Record<string, string> = {
+		'Content-Type': 'application/json',
+		...extraHeaders,
+	}
+	if (csrfToken) headers['X-CSRF-Token'] = csrfToken
 	const response = await page.request.post(`/api/rpc/${procedure}`, {
-		headers: {
-			'Content-Type': 'application/json',
-			'X-CSRF-Token': csrfToken,
-			...extraHeaders,
-		},
+		headers,
 		data: { json: input },
 	})
 	return response
