@@ -96,9 +96,10 @@ export {
 
 // ==========================================
 // BROWSER TOOLS (Browser Rendering)
+// Note: Browser tools use @cloudflare/puppeteer which requires node:buffer.
+// They cannot be imported in client bundles. Use getBrowserTools() from
+// '@hare/tools/browser' server-side only.
 // ==========================================
-
-export { browseUrlTool, getBrowserTools, screenshotTool } from './browser'
 
 // ==========================================
 // SECURITY (SSRF Protection)
@@ -267,7 +268,8 @@ export {
 // ==========================================
 
 import { getAITools } from './ai'
-import { getBrowserTools } from './browser'
+// Browser tools loaded lazily — they use @cloudflare/puppeteer (node:buffer)
+// which breaks client-side Vite builds. Only loaded server-side.
 import { getDataTools } from './data'
 import { getHTTPTools } from './http'
 import { getIntegrationTools } from './integrations'
@@ -338,8 +340,8 @@ export function getSystemTools(context: ToolContext): AnyTool[] {
 		...getTransformTools(context),
 		// Memory tools (Vectorize)
 		...getMemoryTools(context),
-		// Browser tools (Browser Rendering)
-		...getBrowserTools(context),
+		// Browser tools excluded from default getSystemTools — loaded lazily server-side
+		// to avoid bundling @cloudflare/puppeteer in client builds.
 	]
 }
 
@@ -385,7 +387,8 @@ export function getToolsByCategory({
 		case 'memory':
 			return getMemoryTools(context)
 		case 'browser':
-			return getBrowserTools(context)
+			// Browser tools must be loaded server-side only via dynamic import
+			return []
 		default:
 			return getSystemTools(context)
 	}

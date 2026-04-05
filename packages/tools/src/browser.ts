@@ -1,4 +1,3 @@
-import puppeteer from '@cloudflare/puppeteer'
 import { z } from 'zod'
 import { isUrlSafe } from './security/ssrf'
 import { createTool, failure, success, type ToolContext } from './types'
@@ -59,7 +58,9 @@ export const browseUrlTool = createTool({
 		}
 
 		try {
-			const browser = await puppeteer.launch(context.env.BROWSER)
+			// Dynamic import — puppeteer uses node:buffer which can't be bundled for client
+			const puppeteer = await import('@cloudflare/puppeteer')
+			const browser = await puppeteer.default.launch(context.env.BROWSER)
 
 			try {
 				const page = await browser.newPage()
@@ -152,7 +153,8 @@ export const screenshotTool = createTool({
 		}
 
 		try {
-			const browser = await puppeteer.launch(context.env.BROWSER)
+			const puppeteer = await import('@cloudflare/puppeteer')
+			const browser = await puppeteer.default.launch(context.env.BROWSER)
 
 			try {
 				const page = await browser.newPage()
