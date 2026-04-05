@@ -49,6 +49,13 @@ async function parseOrpc(response: Awaited<ReturnType<typeof orpc>>) {
 
 async function getWorkspaceId(page: Page): Promise<string> {
 	await page.waitForSelector('main', { state: 'visible' })
+	// Wait for workspace to be created by WorkspaceProvider
+	await page
+		.locator('button')
+		.filter({ hasText: /workspace/i })
+		.first()
+		.waitFor({ state: 'visible', timeout: 10000 })
+		.catch(() => {})
 	const response = await orpc(page, 'workspaces/list')
 	expect(response.status()).toBe(200)
 	const data = await parseOrpc(response)
@@ -98,6 +105,14 @@ baseTest.describe('API Authentication Requirements', () => {
 test.describe('Workspaces API - Authenticated', () => {
 	test('can list workspaces', async ({ authenticatedPage }) => {
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
+		// Wait for workspace to be created by the WorkspaceProvider (sidebar shows workspace name)
+		await authenticatedPage
+			.locator('button')
+			.filter({ hasText: /workspace/i })
+			.first()
+			.waitFor({ state: 'visible', timeout: 10000 })
+			.catch(() => {})
+
 		const response = await orpc(authenticatedPage, 'workspaces/list')
 		expect(response.status()).toBe(200)
 
