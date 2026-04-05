@@ -62,25 +62,17 @@ export const test = base.extend<{
 					throw new Error(`Sign-up API returned ${signUpResponse.status()}: ${errorText}`)
 				}
 
-				// Navigate to dashboard — the app auto-creates a workspace for new users
+				// Mark onboarding tour as completed in localStorage BEFORE navigating
+				// This prevents the tour overlay from appearing and blocking interactions
 				await page.goto('/dashboard')
-
-				// Wait for workspace to finish loading (WorkspaceGate shows "Loading workspace...")
-				await page
-					.getByText('Loading workspace...')
-					.waitFor({ state: 'hidden', timeout: 30000 })
-					.catch(() => {})
+				await page.evaluate(() => {
+					localStorage.setItem('hare-tour-completed', 'true')
+					localStorage.setItem('hare-onboarding-dismissed', 'true')
+				})
+				// Reload to pick up the localStorage change
+				await page.reload()
 
 				await page.waitForSelector('main', { state: 'visible', timeout: 15000 })
-
-				// Dismiss the onboarding tour overlay if it appears (blocks page interactions)
-				const skipTourButton = page.getByRole('button', { name: /skip tour/i })
-				const tourVisible = await skipTourButton.isVisible({ timeout: 3000 }).catch(() => false)
-				if (tourVisible) {
-					await skipTourButton.click()
-					// Wait for the tour overlay to disappear
-					await skipTourButton.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {})
-				}
 
 				// Success - break out of retry loop
 				break
