@@ -62,6 +62,9 @@ export const test = base.extend<{
 					throw new Error(`Sign-up API returned ${signUpResponse.status()}: ${errorText}`)
 				}
 
+				// Seed CSRF cookie by hitting an API endpoint (auth routes skip CSRF middleware)
+				await page.request.get('/api/rpc/health/live')
+
 				// Disable onboarding tour via localStorage before navigating to dashboard
 				await page.goto('/')
 				await page.evaluate(() => {

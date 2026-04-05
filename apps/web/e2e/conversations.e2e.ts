@@ -80,7 +80,7 @@ test.describe('Agent Conversations Page', () => {
 
 		// Search input and button
 		await expect(page.getByPlaceholder('Search messages...')).toBeVisible()
-		await expect(page.getByRole('button', { name: 'Search' })).toBeVisible()
+		await expect(page.getByRole('button', { name: 'Search' }).first()).toBeVisible()
 	})
 
 	test('shows empty state when no search has been performed', async ({
