@@ -200,6 +200,12 @@ export {
 export { getMemoryTools, recallMemoryTool, storeMemoryTool } from './memory'
 
 // ==========================================
+// DOCUMENT TOOLS (toMarkdown)
+// ==========================================
+
+export { convertDocumentTool, getDocumentTools } from './document'
+
+// ==========================================
 // AGENT CONTROL TOOLS (MCP)
 // ==========================================
 
@@ -272,6 +278,7 @@ import { getTransformTools } from './transform'
 import type { AnyTool, ToolContext } from './types'
 import { getUtilityTools } from './utility'
 import { getValidationTools } from './validation'
+import { getDocumentTools } from './document'
 
 /**
  * Tool categories for organization and filtering.
@@ -289,6 +296,7 @@ export type ToolCategory =
 	| 'validation'
 	| 'transform'
 	| 'memory'
+	| 'document'
 	| 'all'
 
 /**
@@ -328,6 +336,8 @@ export function getSystemTools(context: ToolContext): AnyTool[] {
 		...getTransformTools(context),
 		// Memory tools (Vectorize)
 		...getMemoryTools(context),
+		// Document tools (toMarkdown)
+		...getDocumentTools(context),
 	]
 }
 
@@ -372,6 +382,8 @@ export function getToolsByCategory({
 			return getTransformTools(context)
 		case 'memory':
 			return getMemoryTools(context)
+		case 'document':
+			return getDocumentTools(context)
 		default:
 			return getSystemTools(context)
 	}
@@ -457,6 +469,8 @@ export const SYSTEM_TOOL_IDS = [
 	// Memory (Vectorize)
 	'recall_memory',
 	'store_memory',
+	// Document (toMarkdown)
+	'convert_document',
 ] as const
 
 export type SystemToolId = (typeof SYSTEM_TOOL_IDS)[number]
