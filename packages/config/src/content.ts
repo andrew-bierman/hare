@@ -24,7 +24,7 @@ export const LANDING_PAGE = {
 		{ value: '300+', label: 'Edge Locations', icon: 'Globe' },
 		{ value: '<50ms', label: 'Global Latency', icon: 'Zap' },
 		{ value: '99.99%', label: 'Uptime SLA', icon: 'Shield' },
-		{ value: '59+', label: 'Built-in Tools', icon: 'Bot' },
+		{ value: '67+', label: 'Built-in Tools', icon: 'Bot' },
 	],
 	badges: [
 		{ label: 'Open Source', icon: 'GitBranch' },
@@ -33,34 +33,39 @@ export const LANDING_PAGE = {
 	],
 	features: [
 		{
-			title: 'Agent Configuration',
+			title: 'Cloudflare Native',
 			description:
-				'Set up agent behavior, tools, and capabilities with our streamlined interface.',
-			icon: 'Boxes',
-		},
-		{
-			title: 'Instant Deployment',
-			description: "Deploy to Cloudflare's global edge network in seconds.",
+				'Built on Workers, D1, KV, R2, Vectorize, and AI Gateway. No external dependencies.',
 			icon: 'Cloud',
 		},
 		{
-			title: 'Built-in Tools',
-			description: 'SQL, HTTP, KV, R2, and vector search ready to go.',
+			title: '67+ Built-in Tools',
+			description:
+				'SQL, HTTP, KV, R2, vector memory, browser rendering, document conversion, and more.',
 			icon: 'Layers',
 		},
 		{
-			title: 'Developer SDK',
-			description: 'Full TypeScript SDK with type-safe APIs.',
-			icon: 'Code',
+			title: 'AI Gateway',
+			description:
+				'Built-in caching, rate limiting, and cost analytics for all AI inference calls.',
+			icon: 'Zap',
 		},
 		{
-			title: 'Real-time Streaming',
-			description: 'Stream responses with built-in WebSocket support.',
+			title: 'Smart Retrieval',
+			description:
+				'Vectorize memory with BGE reranking for high-quality RAG and agent context.',
+			icon: 'Search',
+		},
+		{
+			title: 'MCP Server',
+			description:
+				'Connect Claude, Cursor, or any MCP client to your agents and tools.',
 			icon: 'MessageSquare',
 		},
 		{
 			title: 'Enterprise Security',
-			description: 'Security-first architecture with end-to-end encryption.',
+			description:
+				'SSRF protection, workspace isolation, API key auth, and audit logging.',
 			icon: 'Shield',
 		},
 	],
@@ -75,12 +80,12 @@ export const LANDING_PAGE = {
 		primaryCta: 'Get Started Free',
 		secondaryCta: 'GitHub',
 	},
-	codeExample: `import { Agent } from '@hare/sdk'
+	codeExample: `import { Agent } from 'hareai'
 
 const agent = new Agent({
   name: 'Support Bot',
-  model: 'claude-3-sonnet',
-  tools: ['database', 'email'],
+  model: '@cf/meta/llama-3.3-70b-instruct-fp8-fast',
+  tools: ['sql', 'kv', 'r2', 'http', 'memory'],
 })
 
 await agent.deploy()`,
