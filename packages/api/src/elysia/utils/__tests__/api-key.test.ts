@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { extractApiKey, generateApiKey, hasAgentAccess, hasScope, hashApiKey } from '../api-key'
+import { extractApiKey, generateApiKey, hasAgentAccess, hashApiKey, hasScope } from '../api-key'
 
 describe('hashApiKey', () => {
 	it('returns a 64-character hex string', async () => {
