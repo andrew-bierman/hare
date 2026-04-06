@@ -91,6 +91,14 @@ export {
 	WORKSPACE_ROLES,
 	WorkspaceRole,
 } from './config'
-
 // Environment (separate due to runtime dynamic values)
 export { type ClientEnv, clientEnv, type ServerEnv, serverEnv } from './env'
+// Instruction snippets / prompt library
+export {
+	getSnippetById,
+	getSnippetsByCategory,
+	INSTRUCTION_SNIPPETS,
+	type InstructionSnippet,
+	SNIPPET_CATEGORIES,
+	type SnippetCategory,
+} from './snippets'

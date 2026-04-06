@@ -29,6 +29,10 @@ export const agents = sqliteTable(
 			topK?: number
 			stopSequences?: string[]
 		}>(),
+		/** Suggested first messages shown in chat widget */
+		conversationStarters: text('conversationStarters', { mode: 'json' }).$type<string[]>(),
+		/** Guardrails configuration for input/output safety */
+		guardrailsEnabled: integer('guardrailsEnabled', { mode: 'boolean' }).notNull().default(false),
 		createdBy: text('createdBy')
 			.notNull()
 			.references(() => users.id),

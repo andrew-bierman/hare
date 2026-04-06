@@ -12,7 +12,10 @@ import { auditLogsRouter } from './audit-logs'
 import { billingRouter } from './billing'
 import { chatRouter } from './chat'
 import { embedRouter } from './embed'
+import { feedbackRouter } from './feedback'
+import { guardrailsRouter } from './guardrails'
 import { healthRouter } from './health'
+import { knowledgeBaseRouter } from './knowledge-base'
 import { logsRouter } from './logs'
 import { memoryRouter } from './memory'
 import { schedulesRouter } from './schedules'
@@ -43,6 +46,9 @@ export {
 	webhooksRouter,
 	embedRouter,
 	auditLogsRouter,
+	feedbackRouter,
+	guardrailsRouter,
+	knowledgeBaseRouter,
 }
 
 // Combined router for the app
@@ -65,6 +71,9 @@ export const appRouter = {
 	webhooks: webhooksRouter,
 	embed: embedRouter,
 	auditLogs: auditLogsRouter,
+	feedback: feedbackRouter,
+	guardrails: guardrailsRouter,
+	knowledgeBases: knowledgeBaseRouter,
 }
 
 export type AppRouter = typeof appRouter
