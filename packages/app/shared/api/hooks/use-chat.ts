@@ -1,7 +1,7 @@
 'use client'
 
 import { useChat as useAIChat } from '@ai-sdk/react'
-import { orpc } from '@hare/api'
+import { api } from '@hare/api/client'
 import { useQuery } from '@tanstack/react-query'
 import { DefaultChatTransport } from 'ai'
 import { useMemo, useRef, useState } from 'react'
@@ -10,11 +10,27 @@ import { useMemo, useRef, useState } from 'react'
 // Types (inferred from oRPC)
 // =============================================================================
 
-type ConversationsOutput = Awaited<ReturnType<typeof orpc.chat.listConversations>>
-type MessagesOutput = Awaited<ReturnType<typeof orpc.chat.getMessages>>
+// Helper to unwrap Eden Treaty response
+async function unwrap<T>(promise: Promise<{ data: T | null; error: unknown }>): Promise<T> {
+	const { data, error } = await promise
+	if (error) throw error
+	return data as T
+}
 
-export type Conversation = ConversationsOutput['conversations'][number]
-export type Message = MessagesOutput['messages'][number] & {
+export interface Conversation {
+	id: string
+	agentId: string
+	title: string | null
+	createdAt: string
+	updatedAt: string
+}
+
+export interface Message {
+	id: string
+	conversationId: string
+	role: string
+	content: string
+	createdAt: string
 	parts?: Array<{ type: string; text?: string }>
 }
 
@@ -25,7 +41,7 @@ export type Message = MessagesOutput['messages'][number] & {
 export function useConversationsQuery(agentId: string | undefined) {
 	return useQuery({
 		queryKey: ['conversations', agentId],
-		queryFn: () => orpc.chat.listConversations({ id: agentId! }),
+		queryFn: () => unwrap(api.api.chat.conversations.get({ query: { agentId: agentId! } })),
 		enabled: !!agentId,
 	})
 }
@@ -33,7 +49,7 @@ export function useConversationsQuery(agentId: string | undefined) {
 export function useMessagesQuery(conversationId: string | undefined) {
 	return useQuery({
 		queryKey: ['messages', conversationId],
-		queryFn: () => orpc.chat.getMessages({ id: conversationId! }),
+		queryFn: () => unwrap(api.api.chat.conversations({ id: conversationId! }).messages.get()),
 		enabled: !!conversationId,
 	})
 }
@@ -42,8 +58,12 @@ export function useMessagesQuery(conversationId: string | undefined) {
 // Search Hook
 // =============================================================================
 
-type SearchOutput = Awaited<ReturnType<typeof orpc.chat.searchConversations>>
-export type ConversationSearchResult = SearchOutput['results'][number]
+export interface ConversationSearchResult {
+	id: string
+	title: string | null
+	lastMessage: string | null
+	createdAt: string
+}
 
 export interface ConversationSearchParams {
 	agentId: string
@@ -60,14 +80,16 @@ export function useConversationSearchQuery(params: ConversationSearchParams | un
 	return useQuery({
 		queryKey: ['conversations', 'search', agentId, query, dateFrom, dateTo, limit, offset],
 		queryFn: () =>
-			orpc.chat.searchConversations({
-				id: agentId!,
-				query: query!,
-				dateFrom,
-				dateTo,
-				limit,
-				offset,
-			}),
+			unwrap(api.api.chat.conversations.search.get({
+				query: {
+					agentId: agentId!,
+					q: query!,
+					dateFrom,
+					dateTo,
+					limit,
+					offset,
+				},
+			})),
 		enabled: !!agentId && !!query && query.trim().length > 0,
 	})
 }

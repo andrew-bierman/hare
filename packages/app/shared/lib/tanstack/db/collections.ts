@@ -7,9 +7,15 @@
  * @see https://tanstack.com/db/latest/docs/collections/query-collection
  */
 
-import { orpc } from '@hare/api'
-// Types are inferred from API responses for proper compatibility
+import { api } from '@hare/api/client'
 import type { Schedule } from '@hare/types'
+
+// Helper to unwrap Eden Treaty response
+async function unwrap<T>(promise: Promise<{ data: T | null; error: unknown }>): Promise<T> {
+	const { data, error } = await promise
+	if (error) throw error
+	return data as T
+}
 import { createCollection } from '@tanstack/db'
 import { queryCollectionOptions } from '@tanstack/query-db-collection'
 import type { QueryClient } from '@tanstack/react-query'
@@ -19,15 +25,43 @@ import { agentKeys, scheduleKeys, toolKeys, workspaceKeys } from '../../../api/h
 // Collection Types
 // =============================================================================
 
-// Use inferred types from oRPC responses for proper compatibility
-type ApiAgentsResponse = Awaited<ReturnType<typeof orpc.agents.list>>
-type ApiAgent = ApiAgentsResponse['agents'][number]
+// Types from API responses
+interface ApiAgent {
+	id: string
+	workspaceId: string
+	name: string
+	description: string | null
+	model: string
+	instructions: string | null
+	config: Record<string, unknown> | null
+	status: string
+	systemToolsEnabled: boolean
+	toolIds: string[]
+	createdAt: string
+	updatedAt: string
+}
 
-type ApiToolsResponse = Awaited<ReturnType<typeof orpc.tools.list>>
-type ApiTool = ApiToolsResponse['tools'][number]
+interface ApiTool {
+	id: string
+	workspaceId: string
+	name: string
+	description: string | null
+	type: string
+	config: Record<string, unknown>
+	inputSchema: Record<string, unknown> | null
+	isSystem: boolean
+	createdAt: string
+	updatedAt: string
+}
 
-type ApiWorkspacesResponse = Awaited<ReturnType<typeof orpc.workspaces.list>>
-type ApiWorkspace = ApiWorkspacesResponse['workspaces'][number]
+interface ApiWorkspace {
+	id: string
+	name: string
+	slug: string
+	description: string | null
+	createdAt: string
+	updatedAt: string
+}
 
 export type AgentRow = ApiAgent & {
 	_workspaceId: string
@@ -64,7 +98,7 @@ export function createAgentCollection(options: { workspaceId: string; queryClien
 		queryClient,
 		queryKey: agentKeys.list(workspaceId),
 		queryFn: async (): Promise<AgentRow[]> => {
-			const response = await orpc.agents.list({})
+			const response = await unwrap(api.api.agents.index.get())
 			return response.agents.map((agent) => ({
 				...agent,
 				_workspaceId: workspaceId,
@@ -77,7 +111,7 @@ export function createAgentCollection(options: { workspaceId: string; queryClien
 			for (const mutation of mutations) {
 				if (mutation.type === 'insert' && mutation.modified) {
 					const { _workspaceId: _, ...data } = mutation.modified
-					await orpc.agents.create({
+					await unwrap(api.api.agents.index.post({
 						name: data.name,
 						description: data.description ?? undefined,
 						model: data.model,
@@ -105,7 +139,7 @@ export function createAgentCollection(options: { workspaceId: string; queryClien
 						toolIds,
 						status,
 					} = mutation.modified
-					await orpc.agents.update({
+					await unwrap(api.api.agents({ id }).patch({
 						id,
 						name,
 						description: description ?? undefined,
@@ -125,7 +159,7 @@ export function createAgentCollection(options: { workspaceId: string; queryClien
 			for (const mutation of mutations) {
 				if (mutation.type === 'delete' && mutation.original) {
 					const { id } = mutation.original
-					await orpc.agents.delete({ id })
+					await unwrap(api.api.agents({ id }).delete())
 				}
 			}
 		},
@@ -148,7 +182,7 @@ export function createToolCollection(options: { workspaceId: string; queryClient
 		queryClient,
 		queryKey: toolKeys.list(workspaceId),
 		queryFn: async (): Promise<ToolRow[]> => {
-			const response = await orpc.tools.list({})
+			const response = await unwrap(api.api.tools.index.get())
 			return response.tools.map((tool) => ({
 				...tool,
 				_workspaceId: workspaceId,
@@ -161,7 +195,7 @@ export function createToolCollection(options: { workspaceId: string; queryClient
 			for (const mutation of mutations) {
 				if (mutation.type === 'insert' && mutation.modified) {
 					const { _workspaceId: _, ...data } = mutation.modified
-					await orpc.tools.create({
+					await unwrap(api.api.tools.index.post({
 						name: data.name,
 						description: data.description ?? data.name,
 						type: data.type,
@@ -178,7 +212,7 @@ export function createToolCollection(options: { workspaceId: string; queryClient
 				if (mutation.type === 'update' && mutation.original && mutation.modified) {
 					const { id } = mutation.original
 					const { name, description, type, inputSchema, config } = mutation.modified
-					await orpc.tools.update({
+					await unwrap(api.api.tools({ id }).patch({
 						id,
 						name,
 						description: description ?? undefined,
@@ -195,7 +229,7 @@ export function createToolCollection(options: { workspaceId: string; queryClient
 			for (const mutation of mutations) {
 				if (mutation.type === 'delete' && mutation.original) {
 					const { id } = mutation.original
-					await orpc.tools.delete({ id })
+					await unwrap(api.api.tools({ id }).delete())
 				}
 			}
 		},
@@ -218,7 +252,7 @@ export function createWorkspaceCollection(options: { queryClient: QueryClient })
 		queryClient,
 		queryKey: workspaceKeys.list(),
 		queryFn: async (): Promise<WorkspaceRow[]> => {
-			const response = await orpc.workspaces.list({})
+			const response = await unwrap(api.api.workspaces.index.get())
 			return response.workspaces
 		},
 		getKey: (workspace) => workspace.id,
@@ -228,7 +262,7 @@ export function createWorkspaceCollection(options: { queryClient: QueryClient })
 			for (const mutation of mutations) {
 				if (mutation.type === 'insert' && mutation.modified) {
 					const { name, slug, description } = mutation.modified
-					await orpc.workspaces.create({
+					await unwrap(api.api.workspaces.index.post({
 						name,
 						slug,
 						description: description ?? undefined,
@@ -243,7 +277,7 @@ export function createWorkspaceCollection(options: { queryClient: QueryClient })
 				if (mutation.type === 'update' && mutation.original && mutation.modified) {
 					const { id } = mutation.original
 					const { name, description } = mutation.modified
-					await orpc.workspaces.update({
+					await unwrap(api.api.workspaces({ id }).patch({
 						id,
 						name,
 						description: description ?? undefined,
@@ -257,7 +291,7 @@ export function createWorkspaceCollection(options: { queryClient: QueryClient })
 			for (const mutation of mutations) {
 				if (mutation.type === 'delete' && mutation.original) {
 					const { id } = mutation.original
-					await orpc.workspaces.delete({ id })
+					await unwrap(api.api.workspaces({ id }).delete())
 				}
 			}
 		},
@@ -284,7 +318,7 @@ export function createScheduleCollection(options: {
 		queryClient,
 		queryKey: scheduleKeys.list(agentId, workspaceId),
 		queryFn: async (): Promise<ScheduleRow[]> => {
-			const response = await orpc.schedules.list({ agentId })
+			const response = await unwrap(api.api.schedules.index.get({ query: { agentId } }))
 			return response.schedules.map((schedule) => ({
 				...schedule,
 				_workspaceId: workspaceId,
@@ -305,7 +339,7 @@ export function createScheduleCollection(options: {
 						action,
 						payload,
 					} = mutation.modified
-					await orpc.schedules.create({
+					await unwrap(api.api.schedules.index.post({
 						agentId: aId,
 						type,
 						executeAt: executeAt ?? undefined,
@@ -323,7 +357,7 @@ export function createScheduleCollection(options: {
 				if (mutation.type === 'update' && mutation.original && mutation.modified) {
 					const { id } = mutation.original
 					const { status, executeAt, cron, payload } = mutation.modified
-					await orpc.schedules.update({
+					await unwrap(api.api.schedules({ id }).patch({
 						id,
 						status,
 						executeAt: executeAt ?? undefined,
@@ -339,7 +373,7 @@ export function createScheduleCollection(options: {
 			for (const mutation of mutations) {
 				if (mutation.type === 'delete' && mutation.original) {
 					const { id } = mutation.original
-					await orpc.schedules.delete({ id })
+					await unwrap(api.api.schedules({ id }).delete())
 				}
 			}
 		},

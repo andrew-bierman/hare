@@ -1,6 +1,6 @@
 'use client'
 
-import { setOrpcWorkspaceId } from '@hare/api'
+import { setWorkspaceId as setOrpcWorkspaceId } from '@hare/api/client'
 import {
 	createContext,
 	type ReactNode,
