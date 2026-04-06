@@ -13,6 +13,7 @@ import {
 	createMemoryStore,
 	toAgentMessages,
 } from '@hare/agent'
+import { config } from '@hare/config'
 import { agents, usage } from '@hare/db/schema'
 import type { ModelMessage } from 'ai'
 import { eq } from 'drizzle-orm'
@@ -58,7 +59,7 @@ export const embedPublicRoutes = new Elysia({ prefix: '/embed', name: 'embed-pub
 	.get('/agents/:agentId', async ({ db, params, request }) => {
 		const [agent] = await db.select().from(agents).where(eq(agents.id, params.agentId))
 		if (!agent) return status(404, { error: 'Agent not found' })
-		if (agent.status !== 'deployed') return status(400, { error: 'Agent not available' })
+		if (agent.status !== config.enums.agentStatus.DEPLOYED) return status(400, { error: 'Agent not available' })
 
 		const agentConfig = agent.config as { allowedDomains?: string[] } | null
 		const origin = request.headers.get('origin') || request.headers.get('referer')
@@ -89,7 +90,7 @@ export const embedPublicRoutes = new Elysia({ prefix: '/embed', name: 'embed-pub
 
 		const [agent] = await db.select().from(agents).where(eq(agents.id, params.agentId))
 		if (!agent) return status(404, { error: 'Agent not found' })
-		if (agent.status !== 'deployed') return status(400, { error: 'Agent not deployed' })
+		if (agent.status !== config.enums.agentStatus.DEPLOYED) return status(400, { error: 'Agent not deployed' })
 
 		const agentConfig = agent.config as { allowedDomains?: string[] } | null
 		const origin = request.headers.get('origin') || request.headers.get('referer')

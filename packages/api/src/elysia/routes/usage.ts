@@ -115,6 +115,8 @@ export const usageRoutes = new Elysia({ prefix: '/usage', name: 'usage-routes' }
 
 			if (!agent) return status(404, { error: 'Agent not found' })
 
+			const agentCondition = and(eq(usage.agentId, agentId), eq(usage.workspaceId, workspaceId))
+
 			const [totals] = await db
 				.select({
 					totalMessages: sql<number>`COUNT(*)`,
@@ -124,7 +126,7 @@ export const usageRoutes = new Elysia({ prefix: '/usage', name: 'usage-routes' }
 					averageLatency: sql<number>`COALESCE(AVG(json_extract(${usage.metadata}, '$.duration')), 0)`,
 				})
 				.from(usage)
-				.where(eq(usage.agentId, agentId))
+				.where(agentCondition)
 
 			const byModel = await db
 				.select({
@@ -135,7 +137,7 @@ export const usageRoutes = new Elysia({ prefix: '/usage', name: 'usage-routes' }
 					cost: sql<number>`COALESCE(SUM(${usage.cost}), 0)`,
 				})
 				.from(usage)
-				.where(eq(usage.agentId, agentId))
+				.where(agentCondition)
 				.groupBy(sql`json_extract(${usage.metadata}, '$.model')`)
 
 			const byDay = await db
@@ -147,7 +149,7 @@ export const usageRoutes = new Elysia({ prefix: '/usage', name: 'usage-routes' }
 					cost: sql<number>`COALESCE(SUM(${usage.cost}), 0)`,
 				})
 				.from(usage)
-				.where(eq(usage.agentId, agentId))
+				.where(agentCondition)
 				.groupBy(sql`DATE(${usage.createdAt}, 'unixepoch')`)
 				.orderBy(sql`DATE(${usage.createdAt}, 'unixepoch')`)
 

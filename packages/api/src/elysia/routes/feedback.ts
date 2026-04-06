@@ -8,7 +8,7 @@ import { agents, messageFeedback } from '@hare/db/schema'
 import { and, count, eq, gte, lte, sql } from 'drizzle-orm'
 import { Elysia, status } from 'elysia'
 import type { z } from 'zod'
-import { CreateFeedbackSchema, type FeedbackSchema } from '../../schemas'
+import { CreateFeedbackSchema, FeedbackSchema } from '../../schemas'
 import { cfContext, writePlugin } from '../context'
 
 // =============================================================================

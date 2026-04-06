@@ -37,8 +37,10 @@ export const securityHeaders = new Elysia({ name: 'security-headers' }).onAfterH
 	const csp = cspDirectives.join('; ')
 
 	set.headers['Content-Security-Policy'] = csp
-	// Strict-Transport-Security with preload
-	set.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains; preload'
+	// Strict-Transport-Security — only in production to avoid breaking HTTP-only local dev
+	if (!isDev) {
+		set.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains; preload'
+	}
 	// X-Content-Type-Options
 	set.headers['X-Content-Type-Options'] = 'nosniff'
 	// X-Frame-Options
