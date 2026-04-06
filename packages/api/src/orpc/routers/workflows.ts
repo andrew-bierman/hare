@@ -5,21 +5,14 @@
  */
 
 import {
-<<<<<<< Updated upstream
-=======
 	agents,
->>>>>>> Stashed changes
 	workflowEdges,
 	workflowExecutions,
 	workflowNodes,
 	workflowStepExecutions,
 	workflows,
 } from '@hare/db/schema'
-<<<<<<< Updated upstream
-import { and, count, desc, eq } from 'drizzle-orm'
-=======
 import { and, count, desc, eq, inArray } from 'drizzle-orm'
->>>>>>> Stashed changes
 import { z } from 'zod'
 import {
 	CreateWorkflowEdgeSchema,
@@ -34,7 +27,7 @@ import {
 	WorkflowSchema,
 	WorkflowStepExecutionSchema,
 } from '../../schemas'
-import { notFound, requireAdmin, requireWrite, serverError } from '../base'
+import { badRequest, notFound, requireAdmin, requireWrite, serverError } from '../base'
 
 // =============================================================================
 // Helpers
@@ -51,10 +44,7 @@ function serializeWorkflow(
 		name: w.name,
 		description: w.description,
 		status: w.status as z.infer<typeof WorkflowSchema>['status'],
-<<<<<<< Updated upstream
-=======
-		canvasLayout: w.canvasLayout ?? null,
->>>>>>> Stashed changes
+		canvasLayout: w.canvasLayout as z.infer<typeof WorkflowSchema>['canvasLayout'],
 		nodes,
 		edges,
 		createdAt: w.createdAt.toISOString(),
@@ -181,10 +171,7 @@ export const update = requireWrite
 			...(data.name !== undefined && { name: data.name }),
 			...(data.description !== undefined && { description: data.description }),
 			...(data.status !== undefined && { status: data.status }),
-<<<<<<< Updated upstream
-=======
 			...(data.canvasLayout !== undefined && { canvasLayout: data.canvasLayout }),
->>>>>>> Stashed changes
 		}
 
 		const [workflow] = await db
@@ -240,18 +227,15 @@ export const addNode = requireWrite
 			.where(and(eq(workflows.id, id), eq(workflows.workspaceId, workspaceId)))
 		if (!workflow) notFound('Workflow not found')
 
-<<<<<<< Updated upstream
-=======
-		// Verify agentId belongs to workspace
+		// Verify agent belongs to workspace if provided
 		if (data.agentId) {
 			const [agent] = await db
 				.select()
 				.from(agents)
 				.where(and(eq(agents.id, data.agentId), eq(agents.workspaceId, workspaceId)))
-			if (!agent) notFound('Agent not found')
+			if (!agent) notFound('Agent not found in this workspace')
 		}
 
->>>>>>> Stashed changes
 		const [node] = await db
 			.insert(workflowNodes)
 			.values({
@@ -287,17 +271,11 @@ export const removeNode = requireWrite
 			.where(and(eq(workflows.id, input.id), eq(workflows.workspaceId, workspaceId)))
 		if (!workflow) notFound('Workflow not found')
 
-<<<<<<< Updated upstream
-		await db.delete(workflowNodes).where(eq(workflowNodes.id, input.nodeId))
-=======
-		// Scope delete by both nodeId and workflowId
-		const result = await db
+		const [deleted] = await db
 			.delete(workflowNodes)
 			.where(and(eq(workflowNodes.id, input.nodeId), eq(workflowNodes.workflowId, input.id)))
 			.returning()
-
-		if (result.length === 0) notFound('Node not found')
->>>>>>> Stashed changes
+		if (!deleted) notFound('Node not found')
 
 		return { success: true }
 	})
@@ -324,22 +302,18 @@ export const addEdge = requireWrite
 			.where(and(eq(workflows.id, id), eq(workflows.workspaceId, workspaceId)))
 		if (!workflow) notFound('Workflow not found')
 
-<<<<<<< Updated upstream
-=======
-		// Verify both source and target nodes belong to this workflow
-		const [sourceNode] = await db
+		// Verify both nodes belong to this workflow
+		const edgeNodes = await db
 			.select()
 			.from(workflowNodes)
-			.where(and(eq(workflowNodes.id, data.sourceNodeId), eq(workflowNodes.workflowId, id)))
-		if (!sourceNode) notFound('Source node not found')
+			.where(
+				and(
+					inArray(workflowNodes.id, [data.sourceNodeId, data.targetNodeId]),
+					eq(workflowNodes.workflowId, id),
+				),
+			)
+		if (edgeNodes.length !== 2) badRequest('Source and target nodes must belong to this workflow')
 
-		const [targetNode] = await db
-			.select()
-			.from(workflowNodes)
-			.where(and(eq(workflowNodes.id, data.targetNodeId), eq(workflowNodes.workflowId, id)))
-		if (!targetNode) notFound('Target node not found')
-
->>>>>>> Stashed changes
 		const [edge] = await db
 			.insert(workflowEdges)
 			.values({
@@ -366,27 +340,17 @@ export const removeEdge = requireWrite
 	.handler(async ({ input, context }) => {
 		const { db, workspaceId } = context
 
-<<<<<<< Updated upstream
-=======
-		// Verify workflow belongs to workspace
->>>>>>> Stashed changes
 		const [workflow] = await db
 			.select()
 			.from(workflows)
 			.where(and(eq(workflows.id, input.id), eq(workflows.workspaceId, workspaceId)))
 		if (!workflow) notFound('Workflow not found')
 
-<<<<<<< Updated upstream
-		await db.delete(workflowEdges).where(eq(workflowEdges.id, input.edgeId))
-=======
-		// Scope delete by both edgeId and workflowId
-		const result = await db
+		const [deleted] = await db
 			.delete(workflowEdges)
 			.where(and(eq(workflowEdges.id, input.edgeId), eq(workflowEdges.workflowId, input.id)))
 			.returning()
-
-		if (result.length === 0) notFound('Edge not found')
->>>>>>> Stashed changes
+		if (!deleted) notFound('Edge not found')
 
 		return { success: true }
 	})
@@ -414,10 +378,6 @@ export const execute = requireWrite
 		const [workflow] = await db
 			.select()
 			.from(workflows)
-<<<<<<< Updated upstream
-			.where(and(eq(workflows.id, input.id), eq(workflows.workspaceId, workspaceId)))
-		if (!workflow) notFound('Workflow not found')
-=======
 			.where(
 				and(
 					eq(workflows.id, input.id),
@@ -425,8 +385,7 @@ export const execute = requireWrite
 					eq(workflows.status, 'active'),
 				),
 			)
-		if (!workflow) notFound('Workflow not found or not active')
->>>>>>> Stashed changes
+		if (!workflow) notFound('Workflow not found')
 
 		const [execution] = await db
 			.insert(workflowExecutions)
@@ -552,10 +511,6 @@ export const getExecutionDetails = requireWrite
 		const nodeIds = steps.map((s) => s.nodeId)
 		let nodeLabelMap = new Map<string, string>()
 		if (nodeIds.length > 0) {
-<<<<<<< Updated upstream
-			const { inArray } = await import('drizzle-orm')
-=======
->>>>>>> Stashed changes
 			const nodes = await db
 				.select({ id: workflowNodes.id, label: workflowNodes.label })
 				.from(workflowNodes)
