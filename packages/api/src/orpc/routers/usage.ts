@@ -83,10 +83,10 @@ export const getWorkspaceUsage = requireWrite
 
 		return {
 			usage: {
-				totalMessages: totals?.totalMessages || 0,
-				totalTokensIn: totals?.totalTokensIn || 0,
-				totalTokensOut: totals?.totalTokensOut || 0,
-				totalCost: (totals?.totalCost || 0) / 100,
+				totalMessages: totals?.totalMessages ?? 0,
+				totalTokensIn: totals?.totalTokensIn ?? 0,
+				totalTokensOut: totals?.totalTokensOut ?? 0,
+				totalCost: (totals?.totalCost ?? 0) / 100,
 				byAgent: byAgentRaw.map((a) => ({
 					agentId: a.agentId || 'unknown',
 					agentName: a.agentName || 'Unknown Agent',
@@ -129,6 +129,12 @@ export const getAgentUsage = requireWrite
 
 		if (!agent) notFound('Agent not found')
 
+		// Scope all queries to both agentId AND workspaceId for defense-in-depth
+		const agentUsageConditions = and(
+			eq(usage.agentId, agentId),
+			eq(usage.workspaceId, workspaceId),
+		)
+
 		// Get aggregated usage data for specific agent
 		const [totals] = await db
 			.select({
@@ -139,7 +145,7 @@ export const getAgentUsage = requireWrite
 				averageLatency: sql<number>`COALESCE(AVG(json_extract(${usage.metadata}, '$.duration')), 0)`,
 			})
 			.from(usage)
-			.where(eq(usage.agentId, agentId))
+			.where(agentUsageConditions)
 
 		// Get usage by model
 		const byModel = await db
@@ -151,7 +157,7 @@ export const getAgentUsage = requireWrite
 				cost: sql<number>`COALESCE(SUM(${usage.cost}), 0)`,
 			})
 			.from(usage)
-			.where(eq(usage.agentId, agentId))
+			.where(agentUsageConditions)
 			.groupBy(sql`json_extract(${usage.metadata}, '$.model')`)
 
 		// Get usage by day (createdAt is stored as epoch seconds, so use 'unixepoch' modifier)
@@ -164,18 +170,18 @@ export const getAgentUsage = requireWrite
 				cost: sql<number>`COALESCE(SUM(${usage.cost}), 0)`,
 			})
 			.from(usage)
-			.where(eq(usage.agentId, agentId))
+			.where(agentUsageConditions)
 			.groupBy(sql`DATE(${usage.createdAt}, 'unixepoch')`)
 			.orderBy(sql`DATE(${usage.createdAt}, 'unixepoch')`)
 
 		return {
 			agentId,
 			usage: {
-				totalMessages: totals?.totalMessages || 0,
-				totalTokensIn: totals?.totalTokensIn || 0,
-				totalTokensOut: totals?.totalTokensOut || 0,
-				totalCost: (totals?.totalCost || 0) / 100,
-				averageLatencyMs: totals?.averageLatency || 0,
+				totalMessages: totals?.totalMessages ?? 0,
+				totalTokensIn: totals?.totalTokensIn ?? 0,
+				totalTokensOut: totals?.totalTokensOut ?? 0,
+				totalCost: (totals?.totalCost ?? 0) / 100,
+				averageLatencyMs: totals?.averageLatency ?? 0,
 				byModel: byModel.map((m) => ({
 					model: m.model || 'unknown',
 					messages: m.messages,

@@ -5,8 +5,8 @@ import { z } from '@hono/zod-openapi'
  * Query parameters for usage endpoints.
  */
 export const UsageQuerySchema = z.object({
-	startDate: z.string().optional().openapi({ example: '2024-11-01T00:00:00Z' }),
-	endDate: z.string().optional().openapi({ example: '2024-12-01T00:00:00Z' }),
+	startDate: z.string().datetime().optional().openapi({ example: '2024-11-01T00:00:00Z' }),
+	endDate: z.string().datetime().optional().openapi({ example: '2024-12-01T00:00:00Z' }),
 	agentId: z.string().optional().openapi({ example: 'agent_abc123' }),
 	groupBy: z.enum(USAGE_GROUP_BY_OPTIONS).optional().openapi({ example: 'day' }),
 })
