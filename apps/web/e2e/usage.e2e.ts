@@ -484,7 +484,7 @@ test.describe('Agent Usage API', () => {
 					: []
 			const found = agentsList.find((a) => a.name === agentName)
 			expect(found).toBeTruthy()
-			agentId = found.id
+			agentId = found!.id
 		}
 
 		// Get usage for the agent via oRPC
