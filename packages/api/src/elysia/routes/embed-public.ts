@@ -17,7 +17,6 @@ import { agents, usage } from '@hare/db/schema'
 import type { ModelMessage } from 'ai'
 import { eq } from 'drizzle-orm'
 import { Elysia, status } from 'elysia'
-import { estimateTokens } from '../../utils/tokens'
 import { cfContext } from '../context'
 
 const CHAT_HISTORY_LIMIT = 20
@@ -157,11 +156,9 @@ export const embedPublicRoutes = new Elysia({ prefix: '/embed', name: 'embed-pub
 					})
 
 					const latencyMs = Date.now() - startTime
-					const tokensIn = agentMessages.reduce((acc, m) => {
-						const content = typeof m.content === 'string' ? m.content : JSON.stringify(m.content)
-						return acc + estimateTokens(content)
-					}, 0)
-					const tokensOut = estimateTokens(fullResponse)
+					const tokenUsage = await response.usage
+					const tokensIn = tokenUsage.inputTokens ?? 0
+					const tokensOut = tokenUsage.outputTokens ?? 0
 
 					await db.insert(usage).values({
 						workspaceId: agent.workspaceId,

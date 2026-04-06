@@ -209,11 +209,9 @@ export const chatRoutes = new Elysia({ prefix: '/chat', name: 'chat-routes' })
 						})
 
 						const latencyMs = Date.now() - startTime
-						const tokensIn = agentMessages.reduce((acc, m) => {
-							const content = typeof m.content === 'string' ? m.content : JSON.stringify(m.content)
-							return acc + Math.ceil(content.length / 4)
-						}, 0)
-						const tokensOut = Math.ceil(fullResponse.length / 4)
+						const tokenUsage = await result.usage
+						const tokensIn = tokenUsage.inputTokens ?? 0
+						const tokensOut = tokenUsage.outputTokens ?? 0
 
 						await db.insert(usage).values({
 							workspaceId: agentConfig.workspaceId,
