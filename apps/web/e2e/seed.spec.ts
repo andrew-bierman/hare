@@ -39,7 +39,7 @@ test.describe('Environment Seed', () => {
 	 * API test - demonstrates testing API endpoints
 	 */
 	test('seed - health check endpoint works', async ({ request }) => {
-		const response = await request.get('/api/health')
+		const response = await request.get('/api/health/live')
 		expect(response.ok()).toBeTruthy()
 	})
 })
