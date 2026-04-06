@@ -287,7 +287,6 @@ export function getToolCategory(type: ToolType): ToolCategory {
 		case 'compression':
 		case 'color':
 			return 'transform'
-		case 'custom':
 		default:
 			return 'utility'
 	}

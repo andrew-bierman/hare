@@ -44,6 +44,7 @@ function ProgressRing(props: { value: number; size?: number; strokeWidth?: numbe
 	return (
 		<div className="relative" style={{ width: size, height: size }}>
 			<svg className="transform -rotate-90" width={size} height={size}>
+				<title>Health score</title>
 				<circle
 					className="stroke-muted"
 					strokeWidth={strokeWidth}

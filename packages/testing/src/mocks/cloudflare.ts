@@ -419,7 +419,7 @@ export function createMockVectorize(): MockVectorizeIndex {
 				vectorCount: vectors.size,
 			}
 		},
-		async query(vector: number[], options?: { topK?: number }) {
+		async query(_vector: number[], options?: { topK?: number }) {
 			const topK = options?.topK ?? 10
 			const matches: {
 				id: string

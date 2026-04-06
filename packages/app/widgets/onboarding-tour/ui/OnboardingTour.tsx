@@ -239,7 +239,11 @@ export function OnboardingTour({
 		}
 
 		setIsVisible(true)
-	}, [currentStep, isActive, isLastStep, onNext])
+	}, [
+		currentStep,
+		isActive, // Target not found — skip tour entirely to avoid grey overlay with no tooltip
+		onSkip,
+	])
 
 	// Initial positioning and resize handling
 	useEffect(() => {
@@ -272,7 +276,7 @@ export function OnboardingTour({
 			}, 100)
 			return () => clearTimeout(timer)
 		}
-	}, [currentStepIndex, isActive, updatePositions])
+	}, [isActive, updatePositions])
 
 	// Re-calculate when tooltip ref becomes available
 	useEffect(() => {
@@ -312,7 +316,11 @@ export function OnboardingTour({
 			{/* Overlay with cutout for highlighted element */}
 			<div className="fixed inset-0 z-[9998]">
 				{/* Semi-transparent backdrop — click to dismiss */}
-				<div className="absolute inset-0 bg-black/50 cursor-pointer" onClick={handleSkip} />
+				<button
+					type="button"
+					className="absolute inset-0 bg-black/50 cursor-pointer border-none p-0 w-full h-full"
+					onClick={handleSkip}
+				/>
 
 				{/* Cutout for highlighted element */}
 				{highlightRect && (

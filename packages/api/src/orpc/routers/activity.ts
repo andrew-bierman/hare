@@ -48,7 +48,7 @@ const ActivityResponseSchema = z.object({
  */
 export const list = requireViewer
 	.route({ method: 'POST', path: '/activity' })
-	.input(ActivityQueryInputSchema.optional().default({}))
+	.input(ActivityQueryInputSchema.optional().default({ limit: 50 }))
 	.output(ActivityResponseSchema)
 	.handler(async ({ input, context }) => {
 		const { db, workspaceId } = context

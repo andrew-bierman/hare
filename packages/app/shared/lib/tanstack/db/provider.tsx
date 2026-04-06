@@ -169,6 +169,6 @@ export function useScheduleCollection(options: {
 	const { getScheduleCollection } = useTanStackDB()
 	return useMemo(
 		() => getScheduleCollection(options),
-		[getScheduleCollection, options.agentId, options.workspaceId],
+		[getScheduleCollection, options.agentId, options.workspaceId, options],
 	)
 }

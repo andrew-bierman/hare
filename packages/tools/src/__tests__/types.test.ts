@@ -153,7 +153,7 @@ describe('createTool()', () => {
 				description: 'A test tool',
 				inputSchema: z.object({ query: z.string() }),
 				outputSchema: z.object({ result: z.string() }),
-				execute: async (params, context) => {
+				execute: async (_params, context) => {
 					contextSpy(context)
 					return success({ result: 'done' })
 				},
