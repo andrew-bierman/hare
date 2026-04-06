@@ -32,10 +32,10 @@ test.describe('Dashboard Home - Stats Cards', () => {
 		).toBeVisible()
 
 		// All four stats cards should be visible
-		await expect(authenticatedPage.getByText('Total Agents')).toBeVisible()
-		await expect(authenticatedPage.getByText('API Calls')).toBeVisible()
-		await expect(authenticatedPage.getByText('Tokens Used')).toBeVisible()
-		await expect(authenticatedPage.getByText('Active Tools')).toBeVisible()
+		await expect(authenticatedPage.getByText('Total Agents').first()).toBeVisible()
+		await expect(authenticatedPage.getByText('API Calls').first()).toBeVisible()
+		await expect(authenticatedPage.getByText('Tokens Used').first()).toBeVisible()
+		await expect(authenticatedPage.getByText('Active Tools').first()).toBeVisible()
 	})
 
 	test('stats cards show correct counts from database', async ({ authenticatedPage }) => {
@@ -106,9 +106,9 @@ test.describe('Dashboard Home - Quick Actions', () => {
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Quick actions should be visible
-		await expect(authenticatedPage.getByText('Create Agent')).toBeVisible()
-		await expect(authenticatedPage.getByText('Manage Tools')).toBeVisible()
-		await expect(authenticatedPage.getByText('View Usage')).toBeVisible()
+		await expect(authenticatedPage.getByText('Create Agent').first()).toBeVisible()
+		await expect(authenticatedPage.getByText('Manage Tools').first()).toBeVisible()
+		await expect(authenticatedPage.getByText('View Usage').first()).toBeVisible()
 	})
 
 	test('Create Agent quick action navigates to create page', async ({ authenticatedPage }) => {
@@ -167,7 +167,7 @@ test.describe('Dashboard Home - Recent Agents', () => {
 		await expect(
 			authenticatedPage.getByRole('heading', { name: 'Recent Agents' }).first(),
 		).toBeVisible()
-		await expect(authenticatedPage.getByText('Ordered by last update')).toBeVisible()
+		await expect(authenticatedPage.getByText('Ordered by last update').first()).toBeVisible()
 	})
 
 	test('shows empty state or agents list for new users', async ({ authenticatedPage }) => {
@@ -597,6 +597,8 @@ test.describe('Dashboard Home - Responsive Design', () => {
 		)
 
 		// Quick actions section should be visible - look for the Create Agent text
-		await expect(authenticatedPage.getByText('Create Agent')).toBeVisible({ timeout: 10000 })
+		await expect(authenticatedPage.getByText('Create Agent').first()).toBeVisible({
+			timeout: 10000,
+		})
 	})
 })

@@ -115,8 +115,8 @@ test.describe('Agent Conversations Page', () => {
 		await page.getByRole('button', { name: 'Search' }).first().click()
 
 		// Should show no results or the empty search state
-		const noResults = page.getByText('No results found')
-		const searchConversations = page.getByText('Search conversations')
+		const noResults = page.getByText('No results found').first()
+		const searchConversations = page.getByText('Search conversations').first()
 
 		await expect(noResults.or(searchConversations)).toBeVisible({ timeout: 10000 })
 	})

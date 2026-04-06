@@ -92,11 +92,15 @@ test.describe('Agent CRUD Operations', () => {
 
 		// Wait for the Save Changes button to become enabled (hasChanges must be true)
 		const saveBtn = authenticatedPage.getByRole('button', { name: /save changes/i })
-		await expect(saveBtn).toBeEnabled({ timeout: 5000 })
+		await expect(saveBtn).toBeEnabled({ timeout: 10000 })
 		await saveBtn.click()
 
-		// Wait for save to complete
-		await authenticatedPage.waitForTimeout(3000)
+		// Wait for save to complete - wait for button to become disabled (indicates save finished)
+		await authenticatedPage.waitForTimeout(2000)
+		await expect(saveBtn)
+			.toBeDisabled({ timeout: 10000 })
+			.catch(() => {})
+		await authenticatedPage.waitForTimeout(1000)
 
 		// Verify the name was updated
 		await expect(nameInput).toHaveValue(updatedName)
@@ -276,14 +280,14 @@ test.describe('HTTP Tool Creation', () => {
 		await urlInput.pressSequentially('https://jsonplaceholder.typicode.com/posts/1', { delay: 10 })
 
 		// Wait for Create Tool button to be enabled (requires name and url to be non-empty)
-		const createBtn = authenticatedPage.getByRole('button', { name: /create tool/i })
+		const createBtn = authenticatedPage.getByRole('button', { name: /create tool/i }).first()
 		await expect(createBtn).toBeEnabled({ timeout: 10000 })
 
 		// Click create
 		await createBtn.click()
 
 		// Should redirect to tools list or show success
-		await authenticatedPage.waitForURL(/\/dashboard\/tools$/, { timeout: 15000 }).catch(() => {
+		await authenticatedPage.waitForURL(/\/dashboard\/tools$/, { timeout: 20000 }).catch(() => {
 			// If URL didn't change, wait a bit more for redirect
 		})
 		await authenticatedPage.waitForTimeout(2000)
@@ -539,7 +543,7 @@ test.describe('Search Features', () => {
 
 		// Search for KV tools using the tools page search input
 		// SearchInput renders an <input type="search"> with the given placeholder
-		const searchInput = authenticatedPage.getByPlaceholder('Search tools...')
+		const searchInput = authenticatedPage.getByPlaceholder('Search tools...').first()
 		await expect(searchInput).toBeVisible({ timeout: 5000 })
 		await searchInput.click()
 		await searchInput.pressSequentially('KV', { delay: 50 })

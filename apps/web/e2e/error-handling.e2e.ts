@@ -95,11 +95,11 @@ test.describe('Error Handling - Dashboard 404', () => {
 
 		// Wait for 404 content to appear
 		// The DashboardNotFound uses CardTitle (a div, not a heading) with text "Page not found"
-		const notFoundText = authenticatedPage.getByText(/page not found/i)
-		const notFoundDescription = authenticatedPage.getByText(
-			/page you're looking for doesn't exist/i,
-		)
-		const goBackButton = authenticatedPage.getByRole('button', { name: /go back/i })
+		const notFoundText = authenticatedPage.getByText(/page not found/i).first()
+		const notFoundDescription = authenticatedPage
+			.getByText(/page you're looking for doesn't exist/i)
+			.first()
+		const goBackButton = authenticatedPage.getByRole('button', { name: /go back/i }).first()
 
 		// Wait for the workspace to load and 404 to render (CardTitle is a div, not a heading)
 		const is404Page = await notFoundText
