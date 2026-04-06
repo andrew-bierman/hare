@@ -29,6 +29,9 @@ export const workspaces = sqliteTable(
 		stripeSubscriptionId: text('stripeSubscriptionId'),
 		planId: text('planId').default(config.defaults.planId).$type<PlanId>(),
 		currentPeriodEnd: integer('currentPeriodEnd', { mode: 'timestamp' }),
+		// Usage-based billing: credits balance (1 credit = 1 message)
+		creditsBalance: integer('creditsBalance').notNull().default(1000),
+		freeCreditsResetAt: integer('freeCreditsResetAt', { mode: 'timestamp' }),
 		createdAt: integer('createdAt', { mode: 'timestamp' })
 			.notNull()
 			.$defaultFn(() => new Date()),

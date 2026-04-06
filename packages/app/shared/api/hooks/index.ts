@@ -31,15 +31,11 @@ export { useOAuthProvidersQuery } from './use-auth'
 
 // Billing hooks
 export {
-	type BillingStatus,
-	type CheckoutRequest,
-	type PaymentHistoryItem,
-	type Plan,
-	useBillingStatusQuery,
-	useCreateCheckoutMutation,
-	useCreatePortalMutation,
-	usePaymentHistoryQuery,
-	usePlansQuery,
+	type BuyCreditsRequest,
+	type CreditPack,
+	type CreditsStatus,
+	useBuyCreditsMutation,
+	useCreditsStatusQuery,
 } from './use-billing'
 export type {
 	ChatStreamEventData,
