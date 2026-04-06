@@ -5,6 +5,7 @@
  */
 
 export * from './billing-usage'
+export * from './credits'
 export * from './custom-tool-executor'
 export * from './deployment'
 export * from './vector-memory'

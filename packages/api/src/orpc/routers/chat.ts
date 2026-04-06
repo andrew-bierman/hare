@@ -26,6 +26,7 @@ import {
 	IdParamSchema,
 	MessageSchema,
 } from '../../schemas'
+import { deductCredits, hasCredits } from '../../services/credits'
 import { estimateTokens } from '../../utils/tokens'
 import { authedProcedure, notFound } from '../base'
 
@@ -167,6 +168,16 @@ export const chatWithAgent = authedProcedure
 			return
 		}
 
+		// Check credits balance before processing
+		const canProceed = await hasCredits({ db, workspaceId: agentConfig.workspaceId })
+		if (!canProceed) {
+			yield {
+				type: 'error' as const,
+				message: 'No credits remaining. Buy more credits to continue using your agents.',
+			}
+			return
+		}
+
 		// Set up memory store
 		const memory = createMemoryStore(db, agentConfig.workspaceId)
 
@@ -254,6 +265,13 @@ export const chatWithAgent = authedProcedure
 					model: agentConfig.model,
 					duration: latencyMs,
 				},
+			})
+
+			// Deduct tokens used from credits balance
+			await deductCredits({
+				db,
+				workspaceId: agentConfig.workspaceId,
+				amount: tokensIn + tokensOut,
 			})
 
 			// Signal completion with session ID

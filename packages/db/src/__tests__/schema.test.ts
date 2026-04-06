@@ -64,7 +64,7 @@ const MIGRATION_STATEMENTS = [
 	`CREATE TABLE IF NOT EXISTS "verification" ("id" text PRIMARY KEY NOT NULL, "identifier" text NOT NULL, "value" text NOT NULL, "expiresAt" integer NOT NULL, "createdAt" integer NOT NULL, "updatedAt" integer NOT NULL)`,
 
 	// Workspaces table
-	`CREATE TABLE IF NOT EXISTS "workspaces" ("id" text PRIMARY KEY NOT NULL, "name" text NOT NULL, "slug" text NOT NULL UNIQUE, "description" text, "ownerId" text NOT NULL REFERENCES "user"("id") ON DELETE CASCADE, "stripeCustomerId" text, "stripeSubscriptionId" text, "planId" text DEFAULT 'free', "currentPeriodEnd" integer, "createdAt" integer NOT NULL, "updatedAt" integer NOT NULL)`,
+	`CREATE TABLE IF NOT EXISTS "workspaces" ("id" text PRIMARY KEY NOT NULL, "name" text NOT NULL, "slug" text NOT NULL UNIQUE, "description" text, "ownerId" text NOT NULL REFERENCES "user"("id") ON DELETE CASCADE, "stripeCustomerId" text, "stripeSubscriptionId" text, "planId" text DEFAULT 'free', "currentPeriodEnd" integer, "creditsBalance" integer DEFAULT 0 NOT NULL, "freeCreditsResetAt" integer, "createdAt" integer NOT NULL, "updatedAt" integer NOT NULL)`,
 
 	// Workspace members table
 	`CREATE TABLE IF NOT EXISTS "workspace_members" ("id" text PRIMARY KEY NOT NULL, "workspaceId" text NOT NULL REFERENCES "workspaces"("id") ON DELETE CASCADE, "userId" text NOT NULL REFERENCES "user"("id") ON DELETE CASCADE, "role" text DEFAULT 'member' NOT NULL, "createdAt" integer NOT NULL, "updatedAt" integer NOT NULL)`,
