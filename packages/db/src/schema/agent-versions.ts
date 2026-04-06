@@ -1,5 +1,5 @@
-import { createId } from '../id'
 import { integer, sqliteTable, text } from 'drizzle-orm/sqlite-core'
+import { createId } from '../id'
 import { agents } from './agents'
 import { users } from './auth'
 

@@ -1,6 +1,6 @@
-import { describe, expect, it, vi, beforeEach } from 'vitest'
-import type { Context } from 'hono'
 import type { HonoEnv } from '@hare/types'
+import type { Context } from 'hono'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 // Mock Hono cookie functions — use vi.hoisted to avoid hoisting issues with Workers pool
 const { mockedGetCookie, mockedSetCookie } = vi.hoisted(() => ({
@@ -17,16 +17,14 @@ const { csrfProtection, generateCsrfToken, getCsrfToken, setCsrfCookie, validate
 	await import('../csrf')
 
 // Helper to create mock context
-function createMockContext(overrides: {
-	method?: string
-	headers?: Record<string, string>
-	cookieToken?: string | undefined
-} = {}): Context<HonoEnv> {
-	const {
-		method = 'GET',
-		headers = {},
-		cookieToken = undefined,
-	} = overrides
+function createMockContext(
+	overrides: {
+		method?: string
+		headers?: Record<string, string>
+		cookieToken?: string | undefined
+	} = {},
+): Context<HonoEnv> {
+	const { method = 'GET', headers = {}, cookieToken = undefined } = overrides
 
 	const mockReq = {
 		method,

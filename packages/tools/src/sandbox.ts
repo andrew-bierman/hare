@@ -1,5 +1,13 @@
 import { z } from 'zod'
-import { createTool, failure, success, type HareEnv, type ToolContext, type ToolResult } from './types'
+import { SandboxLimits, Timeouts } from './constants'
+import {
+	createTool,
+	failure,
+	type HareEnv,
+	success,
+	type ToolContext,
+	type ToolResult,
+} from './types'
 
 /**
  * Output schema for code execution tool
@@ -103,9 +111,9 @@ export interface SandboxConfig {
 }
 
 const DEFAULT_CONFIG: SandboxConfig = {
-	timeout: 30000,
+	timeout: Timeouts.SANDBOX_DEFAULT,
 	allowNetwork: false, // Disabled by default for security
-	workDir: '/workspace',
+	workDir: SandboxLimits.WORK_DIR,
 }
 
 /**
@@ -517,7 +525,13 @@ print(json.dumps({"sum": sum(data), "avg": sum(data)/len(data)}))
 			.enum(['javascript', 'python'])
 			.default('javascript')
 			.describe('Programming language (bash is disabled for security)'),
-		timeout: z.number().min(1000).max(30000).optional().default(30000).describe('Timeout in ms'),
+		timeout: z
+			.number()
+			.min(1000)
+			.max(Timeouts.SANDBOX_DEFAULT)
+			.optional()
+			.default(Timeouts.SANDBOX_DEFAULT)
+			.describe('Timeout in ms'),
 	}),
 	outputSchema: CodeExecuteOutputSchema,
 	execute: async (input, context) => {
@@ -634,7 +648,7 @@ Requires SANDBOX binding.`,
 			)
 
 			// Ensure path is within workspace
-			const safePath = `/workspace/${input.path.replace(/^\/+/, '')}`
+			const safePath = `${SandboxLimits.WORK_DIR}/${input.path.replace(/^\/+/, '')}`
 
 			switch (input.operation) {
 				case 'read': {

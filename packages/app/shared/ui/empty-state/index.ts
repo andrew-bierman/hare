@@ -1,1 +1,1 @@
-export { EmptyState, type EmptyStateProps, type EmptyStateAction } from './EmptyState'
+export { EmptyState, type EmptyStateAction, type EmptyStateProps } from './EmptyState'

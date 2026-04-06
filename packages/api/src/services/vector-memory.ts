@@ -6,8 +6,8 @@
  * - Cloudflare Vectorize for vector storage and search
  */
 
-import { z } from 'zod'
 import type { CloudflareEnv } from '@hare/types'
+import { z } from 'zod'
 
 // =============================================================================
 // Types

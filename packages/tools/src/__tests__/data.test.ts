@@ -1,13 +1,13 @@
-import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
+	cryptoTool,
+	csvTool,
+	getDataTools,
+	jsonSchemaTool,
+	regexTool,
 	rssTool,
 	scrapeTool,
-	regexTool,
-	cryptoTool,
-	jsonSchemaTool,
-	csvTool,
 	templateTool,
-	getDataTools,
 } from '../data'
 import type { ToolContext } from '../types'
 import { createFetchMock, expectResultData, ResultSchemas } from './test-utils'
@@ -332,20 +332,14 @@ describe('Data Tools', () => {
 
 		describe('execution', () => {
 			it('generates encryption key', async () => {
-				const result = await cryptoTool.execute(
-					{ operation: 'generateKey', bytes: 32 },
-					context,
-				)
+				const result = await cryptoTool.execute({ operation: 'generateKey', bytes: 32 }, context)
 				const data = expectResultData({ result, schema: ResultSchemas.crypto })
 				expect(data.key).toBeDefined()
 				expect(data.algorithm).toBe('AES-GCM')
 			})
 
 			it('generates random bytes', async () => {
-				const result = await cryptoTool.execute(
-					{ operation: 'randomBytes', bytes: 16 },
-					context,
-				)
+				const result = await cryptoTool.execute({ operation: 'randomBytes', bytes: 16 }, context)
 				const data = expectResultData({ result, schema: ResultSchemas.crypto })
 				expect(data.hex).toBeDefined()
 				expect(data.base64).toBeDefined()
@@ -354,10 +348,7 @@ describe('Data Tools', () => {
 
 			it('encrypts and decrypts data', async () => {
 				// Generate a key first
-				const keyResult = await cryptoTool.execute(
-					{ operation: 'generateKey', bytes: 32 },
-					context,
-				)
+				const keyResult = await cryptoTool.execute({ operation: 'generateKey', bytes: 32 }, context)
 				const keyData = expectResultData({ result: keyResult, schema: ResultSchemas.crypto })
 				const key = keyData.key
 
@@ -366,7 +357,10 @@ describe('Data Tools', () => {
 					{ operation: 'encrypt', data: 'secret message', key, bytes: 32 },
 					context,
 				)
-				const encryptData = expectResultData({ result: encryptResult, schema: ResultSchemas.crypto })
+				const encryptData = expectResultData({
+					result: encryptResult,
+					schema: ResultSchemas.crypto,
+				})
 
 				// Decrypt
 				const decryptResult = await cryptoTool.execute(
@@ -379,7 +373,10 @@ describe('Data Tools', () => {
 					},
 					context,
 				)
-				const decryptData = expectResultData({ result: decryptResult, schema: ResultSchemas.crypto })
+				const decryptData = expectResultData({
+					result: decryptResult,
+					schema: ResultSchemas.crypto,
+				})
 				expect(decryptData.decrypted).toBe('secret message')
 			})
 		})

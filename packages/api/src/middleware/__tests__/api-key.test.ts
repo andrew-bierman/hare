@@ -1,7 +1,7 @@
-import { describe, expect, it, vi, beforeEach } from 'vitest'
-import { Hono } from 'hono'
-import { hasAgentAccess, hasScope, generateApiKey } from '../api-key'
 import type { ApiKeyEnv, CloudflareEnv } from '@hare/types'
+import { Hono } from 'hono'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { generateApiKey, hasAgentAccess, hasScope } from '../api-key'
 
 // Mock the db module
 vi.mock('../db', () => ({

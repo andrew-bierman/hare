@@ -1,6 +1,6 @@
-import type { Context } from 'hono'
-import type { WorkspaceRole } from '@hare/types'
 import { config } from '@hare/config'
+import type { WorkspaceRole } from '@hare/types'
+import type { Context } from 'hono'
 
 // =============================================================================
 // Types

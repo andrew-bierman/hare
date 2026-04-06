@@ -4,31 +4,38 @@
  * Handles all agent-related operations with full type safety.
  */
 
-import { z } from 'zod'
-import { and, count, desc, eq, gte, inArray, max, sql } from 'drizzle-orm'
-import { agents, agentTools, agentVersions, deployments, usage } from '@hare/db/schema'
 import { config } from '@hare/config'
-import { requireWrite, requireAdmin, notFound, badRequest, serverError, type WorkspaceContext } from '../base'
-import { logAudit } from '../audit'
+import { agents, agentTools, agentVersions, deployments, usage } from '@hare/db/schema'
+import { and, count, desc, eq, gte, inArray, max, sql } from 'drizzle-orm'
+import { z } from 'zod'
 import {
+	AgentHealthMetricsSchema,
+	AgentPreviewInputSchema,
+	AgentPreviewResponseSchema,
 	AgentSchema,
-	AgentVersionSchema,
+	type AgentVersionSchema,
 	AgentVersionsQuerySchema,
 	AgentVersionsResponseSchema,
 	CloneAgentResponseSchema,
 	CreateAgentSchema,
-	UpdateAgentSchema,
 	DeploymentSchema,
-	SuccessSchema,
+	type HealthStatus,
 	IdParamSchema,
-	AgentPreviewInputSchema,
-	AgentPreviewResponseSchema,
-	ValidationIssueSchema,
 	RollbackAgentSchema,
 	RollbackResponseSchema,
-	AgentHealthMetricsSchema,
-	type HealthStatus,
+	SuccessSchema,
+	UpdateAgentSchema,
+	type ValidationIssueSchema,
 } from '../../schemas'
+import { logAudit } from '../audit'
+import {
+	badRequest,
+	notFound,
+	requireAdmin,
+	requireWrite,
+	serverError,
+	type WorkspaceContext,
+} from '../base'
 
 // =============================================================================
 // Helpers
@@ -292,7 +299,9 @@ export const update = requireWrite
 			resourceType: 'agent',
 			resourceId: id,
 			details: {
-				updatedFields: Object.keys(data).filter((key) => data[key as keyof typeof data] !== undefined),
+				updatedFields: Object.keys(data).filter(
+					(key) => data[key as keyof typeof data] !== undefined,
+				),
 				name: agent.name,
 			},
 		})
@@ -447,7 +456,10 @@ export const undeploy = requireAdmin
 			.set({ status: config.enums.agentStatus.DRAFT, updatedAt: new Date() })
 			.where(eq(agents.id, input.id))
 
-		await db.update(deployments).set({ status: config.enums.deploymentStatus.INACTIVE }).where(eq(deployments.agentId, input.id))
+		await db
+			.update(deployments)
+			.set({ status: config.enums.deploymentStatus.INACTIVE })
+			.where(eq(deployments.agentId, input.id))
 
 		return { success: true }
 	})

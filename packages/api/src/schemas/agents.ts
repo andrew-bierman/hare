@@ -1,10 +1,10 @@
-import { z } from '@hono/zod-openapi'
 import {
 	AGENT_STATUSES,
 	config,
 	DEPLOYMENT_STATUSES,
 	VALIDATION_ISSUE_SEVERITIES,
 } from '@hare/config'
+import { z } from '@hono/zod-openapi'
 
 // =============================================================================
 // Validation Constants
@@ -114,7 +114,10 @@ export const AgentSchema = z
 		name: z.string().openapi({ example: 'Customer Support Agent' }),
 		description: z.string().nullable().openapi({ example: 'Handles customer inquiries' }),
 		model: z.string().openapi({ example: 'llama-3.3-70b-instruct' }),
-		instructions: z.string().nullable().openapi({ example: 'You are a helpful customer support agent.' }),
+		instructions: z
+			.string()
+			.nullable()
+			.openapi({ example: 'You are a helpful customer support agent.' }),
 		config: AgentConfigSchema.optional(),
 		status: AgentStatusSchema,
 		systemToolsEnabled: z
@@ -179,14 +182,10 @@ export const CreateAgentSchema = z
 				description: 'System prompt/instructions (1-10000 chars)',
 			}),
 		config: AgentConfigSchema.optional(),
-		systemToolsEnabled: z
-			.boolean()
-			.optional()
-			.default(true)
-			.openapi({
-				example: true,
-				description: 'Enable built-in system tools (storage, HTTP, AI, etc.). Defaults to true.',
-			}),
+		systemToolsEnabled: z.boolean().optional().default(true).openapi({
+			example: true,
+			description: 'Enable built-in system tools (storage, HTTP, AI, etc.). Defaults to true.',
+		}),
 		toolIds: z
 			.array(z.string())
 			.max(
@@ -397,7 +396,10 @@ export const AgentVersionSchema = z
 		instructions: z.string().nullable().openapi({ example: 'You are a helpful assistant.' }),
 		model: z.string().openapi({ example: '@cf/meta/llama-3.3-70b-instruct-fp8-fast' }),
 		config: AgentConfigSchema.nullable().optional(),
-		toolIds: z.array(z.string()).nullable().openapi({ example: ['tool_http'] }),
+		toolIds: z
+			.array(z.string())
+			.nullable()
+			.openapi({ example: ['tool_http'] }),
 		createdAt: z.string().datetime().openapi({ example: '2024-12-01T00:00:00Z' }),
 		createdBy: z.string().openapi({ example: 'user_abc123' }),
 	})
@@ -461,10 +463,18 @@ export const RollbackAgentSchema = z
 export const RollbackResponseSchema = z
 	.object({
 		success: z.boolean().openapi({ example: true }),
-		previousVersion: z.number().int().openapi({ example: 3, description: 'Version before rollback' }),
-		restoredVersion: z.number().int().openapi({ example: 1, description: 'Version that was restored' }),
+		previousVersion: z
+			.number()
+			.int()
+			.openapi({ example: 3, description: 'Version before rollback' }),
+		restoredVersion: z
+			.number()
+			.int()
+			.openapi({ example: 1, description: 'Version that was restored' }),
 		newVersion: z.number().int().openapi({ example: 4, description: 'New version number created' }),
-		deployment: DeploymentSchema.optional().openapi({ description: 'Deployment info if agent was redeployed' }),
+		deployment: DeploymentSchema.optional().openapi({
+			description: 'Deployment info if agent was redeployed',
+		}),
 	})
 	.openapi('RollbackResponse')
 
@@ -477,9 +487,12 @@ export const RollbackResponseSchema = z
  */
 export const CloneAgentResponseSchema = z
 	.object({
-		id: z.string().openapi({ example: 'agent_xyz789', description: 'ID of the newly cloned agent' }),
-		redirectUrl: z
+		id: z
 			.string()
-			.openapi({ example: '/dashboard/agents/agent_xyz789', description: 'URL to redirect to the new agent' }),
+			.openapi({ example: 'agent_xyz789', description: 'ID of the newly cloned agent' }),
+		redirectUrl: z.string().openapi({
+			example: '/dashboard/agents/agent_xyz789',
+			description: 'URL to redirect to the new agent',
+		}),
 	})
 	.openapi('CloneAgentResponse')

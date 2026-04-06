@@ -4,9 +4,9 @@
  * Defines context types, base procedures, and middleware for oRPC routes.
  */
 
-import { os, ORPCError } from '@orpc/server'
 import type { Database } from '@hare/db'
 import type { CloudflareEnv, WorkspaceRole } from '@hare/types'
+import { ORPCError, os } from '@orpc/server'
 
 // =============================================================================
 // Context Types
@@ -81,7 +81,9 @@ export const workspaceProcedure = os.$context<AuthContext>().use(({ context, nex
 	if (!workspace || !workspaceId || !workspaceRole) {
 		throw new ORPCError('FORBIDDEN', { message: 'Workspace access required' })
 	}
-	return next({ context: { ...context, workspace, workspaceId, workspaceRole } as WorkspaceContext })
+	return next({
+		context: { ...context, workspace, workspaceId, workspaceRole } as WorkspaceContext,
+	})
 })
 
 // =============================================================================

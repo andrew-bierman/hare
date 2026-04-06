@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { Timeouts } from './constants'
 import { createTool, success, type ToolContext } from './types'
 
 // Output schema constants
@@ -288,7 +289,11 @@ export const validateUrlTool = createTool({
 			.optional()
 			.default(false)
 			.describe('Check if URL is reachable (HEAD request)'),
-		timeout: z.number().optional().default(5000).describe('Timeout for reachability check'),
+		timeout: z
+			.number()
+			.optional()
+			.default(Timeouts.URL_REACHABILITY)
+			.describe('Timeout for reachability check'),
 	}),
 	outputSchema: UrlValidationOutputSchema,
 	execute: async (params, _context) => {

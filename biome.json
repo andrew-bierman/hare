@@ -14,15 +14,23 @@
 			},
 			"correctness": {
 				"noUnusedImports": "error",
-				"noUnusedVariables": "error"
+				"noUnusedVariables": "error",
+				"noUnusedFunctionParameters": "warn"
 			},
 			"style": {
-				"noNonNullAssertion": "off"
+				"noNonNullAssertion": "off",
+				"useImportType": "error",
+				"useTemplate": "warn"
 			},
 			"suspicious": {
 				"noExplicitAny": "warn",
 				"noArrayIndexKey": "warn",
-				"noAssignInExpressions": "warn"
+				"noAssignInExpressions": "warn",
+				"noConsole": "warn"
+			},
+			"nursery": {
+				"noFloatingPromises": "warn",
+				"noEqualsToNull": "warn"
 			}
 		}
 	},
@@ -40,6 +48,14 @@
 	},
 	"files": {
 		"ignoreUnknown": true,
-		"includes": ["apps/**/*.ts", "apps/**/*.tsx", "**/*.json", "!**/routeTree.gen.ts"]
+		"includes": [
+			"apps/**/*.ts",
+			"apps/**/*.tsx",
+			"packages/**/*.ts",
+			"packages/**/*.tsx",
+			"**/*.json",
+			"!**/routeTree.gen.ts",
+			"!packages/ui/**"
+		]
 	}
 }

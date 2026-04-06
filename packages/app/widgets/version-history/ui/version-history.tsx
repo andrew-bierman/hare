@@ -2,13 +2,12 @@
 
 import { Badge } from '@hare/ui/components/badge'
 import { Button } from '@hare/ui/components/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@hare/ui/components/card'
 import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from '@hare/ui/components/card'
+	Collapsible,
+	CollapsibleContent,
+	CollapsibleTrigger,
+} from '@hare/ui/components/collapsible'
 import {
 	Dialog,
 	DialogContent,
@@ -18,13 +17,8 @@ import {
 	DialogTitle,
 } from '@hare/ui/components/dialog'
 import { Skeleton } from '@hare/ui/components/skeleton'
-import {
-	Collapsible,
-	CollapsibleContent,
-	CollapsibleTrigger,
-} from '@hare/ui/components/collapsible'
 import { ChevronDown, Clock, GitCommit, History, User, Wrench } from 'lucide-react'
-import { useState, useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { toast } from 'sonner'
 import { useAgentVersionsQuery, useRollbackAgentMutation } from '../../../shared/api'
 

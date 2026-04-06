@@ -5,10 +5,11 @@
  * Webhook endpoint remains as a Hono route since it doesn't need auth and has special signature verification.
  */
 
+import { BILLING_LIMITS } from '@hare/config'
+import { workspaces } from '@hare/db/schema'
+import type { CloudflareEnv } from '@hare/types'
 import { eq } from 'drizzle-orm'
 import Stripe from 'stripe'
-import { workspaces } from '@hare/db/schema'
-import { requireWrite, badRequest, serverError } from '../base'
 import {
 	BillingStatusSchema,
 	CheckoutRequestSchema,
@@ -19,7 +20,7 @@ import {
 	PortalResponseSchema,
 } from '../../schemas'
 import { getBillingUsage } from '../../services/billing-usage'
-import type { CloudflareEnv } from '@hare/types'
+import { badRequest, requireWrite, serverError } from '../base'
 
 // =============================================================================
 // Pricing Plans
@@ -32,10 +33,7 @@ const BILLING_PLANS = {
 		description: 'Get started with AI agents',
 		price: 0,
 		priceId: null, // No Stripe price for free tier
-		features: {
-			maxAgents: 3,
-			maxMessagesPerMonth: 1000,
-		},
+		features: BILLING_LIMITS.free,
 	},
 	pro: {
 		id: 'pro',
@@ -43,10 +41,7 @@ const BILLING_PLANS = {
 		description: 'For growing teams',
 		price: 29,
 		priceId: 'price_pro_monthly', // Replace with actual Stripe price ID
-		features: {
-			maxAgents: 20,
-			maxMessagesPerMonth: 50000,
-		},
+		features: BILLING_LIMITS.pro,
 	},
 	team: {
 		id: 'team',
@@ -54,10 +49,7 @@ const BILLING_PLANS = {
 		description: 'For larger organizations',
 		price: 99,
 		priceId: 'price_team_monthly', // Replace with actual Stripe price ID
-		features: {
-			maxAgents: -1, // Unlimited
-			maxMessagesPerMonth: 500000,
-		},
+		features: BILLING_LIMITS.team,
 	},
 	enterprise: {
 		id: 'enterprise',
@@ -65,10 +57,7 @@ const BILLING_PLANS = {
 		description: 'Custom solutions for your business',
 		price: null, // Custom pricing
 		priceId: null,
-		features: {
-			maxAgents: -1, // Unlimited
-			maxMessagesPerMonth: -1, // Unlimited
-		},
+		features: BILLING_LIMITS.enterprise,
 	},
 } as const
 

@@ -1,7 +1,5 @@
 'use client'
 
-import { useAgentQuery, useChat } from '../../shared/api'
-import { MarkdownContent, ToolCallList } from '../../widgets/chat-interface'
 import { getModelName } from '@hare/config'
 import { Avatar, AvatarFallback } from '@hare/ui/components/avatar'
 import { Badge } from '@hare/ui/components/badge'
@@ -31,15 +29,10 @@ import {
 	User,
 	Wrench,
 } from 'lucide-react'
-import {
-	type FormEvent,
-	type KeyboardEvent,
-	useCallback,
-	useEffect,
-	useRef,
-	useState,
-} from 'react'
+import { type FormEvent, type KeyboardEvent, useCallback, useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
+import { useAgentQuery, useChat } from '../../shared/api'
+import { MarkdownContent, ToolCallList } from '../../widgets/chat-interface'
 
 export interface AgentPlaygroundPageProps {
 	agentId: string

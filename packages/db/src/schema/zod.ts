@@ -8,6 +8,7 @@
  * - Use `z.infer<typeof Schema>` to get TypeScript types from schemas
  */
 
+import { LLM_LIMITS } from '@hare/config'
 import { createInsertSchema, createSelectSchema } from 'drizzle-zod'
 import { z } from 'zod'
 
@@ -94,7 +95,7 @@ export type InsertWorkspaceMember = z.infer<typeof insertWorkspaceMemberSchema>
 /** Agent config JSON schema */
 export const AgentConfigJsonSchema = z.object({
 	temperature: z.number().min(0).max(2).optional(),
-	maxTokens: z.number().min(1).max(100000).optional(),
+	maxTokens: z.number().min(1).max(LLM_LIMITS.MAX_TOKENS).optional(),
 	topP: z.number().min(0).max(1).optional(),
 	topK: z.number().min(0).optional(),
 	stopSequences: z.array(z.string()).optional(),
@@ -185,7 +186,10 @@ const conversationInsertRefinements = {
 	title: z.string().max(200).optional(),
 }
 /** Schema for inserting conversations into the database */
-export const insertConversationSchema = createInsertSchema(conversations, conversationInsertRefinements)
+export const insertConversationSchema = createInsertSchema(
+	conversations,
+	conversationInsertRefinements,
+)
 
 export type SelectConversation = z.infer<typeof selectConversationSchema>
 export type InsertConversation = z.infer<typeof insertConversationSchema>

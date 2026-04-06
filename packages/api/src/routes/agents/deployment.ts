@@ -2,10 +2,11 @@
  * Agent deployment operations (deploy, undeploy, rollback, history, get-deployment)
  */
 
+import { routeHttpToAgent } from '@hare/agent'
+import { agents, deployments } from '@hare/db/schema'
+import type { WorkspaceEnv } from '@hare/types'
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
 import { desc, eq } from 'drizzle-orm'
-import { agents, deployments } from '@hare/db/schema'
-import { routeHttpToAgent } from '@hare/agent'
 import { getCloudflareEnv, getDb } from '../../db'
 import { commonResponses, requireAdminAccess } from '../../helpers'
 import { authMiddleware, workspaceMiddleware } from '../../middleware'
@@ -22,7 +23,6 @@ import {
 	rollbackDeployment,
 } from '../../services/deployment'
 import { findAgentByIdAndWorkspace } from './helpers'
-import type { WorkspaceEnv } from '@hare/types'
 
 // =============================================================================
 // Route Definitions

@@ -1,10 +1,11 @@
 'use client'
 
-import { Link } from '@tanstack/react-router'
+import { config, getModelName } from '@hare/config'
 import { Badge } from '@hare/ui/components/badge'
 import { Button } from '@hare/ui/components/button'
 import { Card, CardContent } from '@hare/ui/components/card'
 import { Skeleton } from '@hare/ui/components/skeleton'
+import { Link } from '@tanstack/react-router'
 import {
 	Activity,
 	ArrowRight,
@@ -17,7 +18,6 @@ import {
 	Wrench,
 } from 'lucide-react'
 import { useWorkspace } from '../../app/providers'
-import { config, getModelName } from '@hare/config'
 import { useAgentsQuery, useToolsQuery, useWorkspaceUsageQuery } from '../../shared/api/hooks'
 import { ActivityFeedWidget } from '../../widgets/activity-feed'
 
@@ -96,7 +96,9 @@ export function DashboardPage() {
 		},
 		{
 			title: content.stats.tokensUsed.title,
-			value: formatNumber((usageData?.usage?.totalTokensIn ?? 0) + (usageData?.usage?.totalTokensOut ?? 0)),
+			value: formatNumber(
+				(usageData?.usage?.totalTokensIn ?? 0) + (usageData?.usage?.totalTokensOut ?? 0),
+			),
 			description: `${formatNumber(usageData?.usage?.totalTokensIn ?? 0)} in / ${formatNumber(usageData?.usage?.totalTokensOut ?? 0)} out`,
 			icon: TrendingUp,
 			color: 'bg-emerald-500',
@@ -323,11 +325,7 @@ export function DashboardPage() {
 			</div>
 
 			{/* Activity Feed */}
-			<ActivityFeedWidget
-				limit={10}
-				height="300px"
-				viewAllPath="/dashboard/settings/audit-logs"
-			/>
+			<ActivityFeedWidget limit={10} height="300px" viewAllPath="/dashboard/settings/audit-logs" />
 		</div>
 	)
 }

@@ -1,7 +1,7 @@
 'use client'
 
-import type { ReactNode } from 'react'
 import { Loader2, Sparkles } from 'lucide-react'
+import type { ReactNode } from 'react'
 import { useWorkspace } from './workspace-provider'
 
 interface WorkspaceGateProps {
@@ -33,9 +33,7 @@ export function WorkspaceGate({ children }: WorkspaceGateProps) {
 					<Sparkles className="h-8 w-8 text-white" />
 				</div>
 				<h2 className="text-xl font-semibold mb-2">Setting up your workspace</h2>
-				<p className="text-sm text-muted-foreground mb-4">
-					This will only take a moment...
-				</p>
+				<p className="text-sm text-muted-foreground mb-4">This will only take a moment...</p>
 				<Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
 			</div>
 		)

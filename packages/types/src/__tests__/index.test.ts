@@ -4,40 +4,37 @@
 
 import { describe, expect, it } from 'vitest'
 import {
-	// Agent schemas
-	ScheduledTaskSchema,
-	HareAgentStateSchema,
-	ChatPayloadSchema,
-	ToolExecutePayloadSchema,
-	SchedulePayloadSchema,
-	ConfigurePayloadSchema,
-	ClientMessageSchema,
-	ServerMessageSchema,
-	McpAgentStateSchema,
-	DEFAULT_HARE_AGENT_STATE,
-	DEFAULT_MCP_AGENT_STATE,
-	// DB schemas
-	ToolCallSchema,
-	ToolResultSchema,
-	TokenUsageSchema,
-	MessageMetadataSchema,
-	// Tool schemas
-	ToolTypeSchema,
-	ToolConfigSchema,
-	// API schemas
-	AuthUserSchema,
-	AuthSessionSchema,
-	WorkspaceRoleSchema,
-	MessageRoleSchema,
 	AgentStatusSchema,
-	AgentConfigSchema,
 	ApiErrorSchema,
 	ApiSuccessSchema,
+	AuthSessionSchema,
+	// API schemas
+	AuthUserSchema,
+	assertMessageRole,
+	assertWorkspaceRole,
+	ChatPayloadSchema,
+	ClientMessageSchema,
+	ConfigurePayloadSchema,
+	DEFAULT_HARE_AGENT_STATE,
+	DEFAULT_MCP_AGENT_STATE,
+	HareAgentStateSchema,
+	isMessageRole,
 	// Guard functions
 	isWorkspaceRole,
-	assertWorkspaceRole,
-	isMessageRole,
-	assertMessageRole,
+	McpAgentStateSchema,
+	MessageMetadataSchema,
+	// Agent schemas
+	ScheduledTaskSchema,
+	SchedulePayloadSchema,
+	ServerMessageSchema,
+	TokenUsageSchema,
+	// DB schemas
+	ToolCallSchema,
+	ToolConfigSchema,
+	ToolExecutePayloadSchema,
+	ToolResultSchema,
+	// Tool schemas
+	ToolTypeSchema,
 } from '../index'
 
 describe('@hare/types exports', () => {

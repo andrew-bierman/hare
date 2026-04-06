@@ -1,15 +1,15 @@
 'use client'
 
-import { Link } from '@tanstack/react-router'
+import { resetPassword } from '@hare/auth/client'
+import { config } from '@hare/config'
 import { Button } from '@hare/ui/components/button'
 import { Card, CardContent } from '@hare/ui/components/card'
 import { Input } from '@hare/ui/components/input'
 import { Label } from '@hare/ui/components/label'
+import { Link } from '@tanstack/react-router'
 import { ArrowRight, CheckCircle, Loader2, Rabbit, XCircle } from 'lucide-react'
 import { type ChangeEvent, type FormEvent, useState } from 'react'
 import { toast } from 'sonner'
-import { config } from '@hare/config'
-import { resetPassword } from '@hare/auth/client'
 
 const { resetPassword: content, validation } = config.content.auth
 
@@ -51,11 +51,7 @@ export function ResetPasswordPage({ token }: ResetPasswordPageProps) {
 							<p className="text-muted-foreground">{content.invalidToken}</p>
 						</div>
 						<Link to={'/forgot-password' as string}>
-							<Button
-								variant="outline"
-								size="lg"
-								className="w-full gap-2"
-							>
+							<Button variant="outline" size="lg" className="w-full gap-2">
 								Request New Reset Link
 								<ArrowRight className="h-4 w-4" />
 							</Button>
@@ -90,9 +86,7 @@ export function ResetPasswordPage({ token }: ResetPasswordPageProps) {
 							</div>
 						</div>
 						<div className="space-y-2">
-							<h1 className="text-2xl font-bold tracking-tight">
-								{content.success.title}
-							</h1>
+							<h1 className="text-2xl font-bold tracking-tight">{content.success.title}</h1>
 							<p className="text-muted-foreground">{content.success.subtitle}</p>
 						</div>
 						<Link to={'/sign-in' as string}>
@@ -133,8 +127,10 @@ export function ResetPasswordPage({ token }: ResetPasswordPageProps) {
 
 			if (result.error) {
 				// Check for invalid/expired token error
-				if (result.error.message?.toLowerCase().includes('invalid') ||
-					result.error.message?.toLowerCase().includes('expired')) {
+				if (
+					result.error.message?.toLowerCase().includes('invalid') ||
+					result.error.message?.toLowerCase().includes('expired')
+				) {
 					toast.error(content.invalidToken)
 				} else {
 					toast.error(result.error.message || 'Failed to reset password')

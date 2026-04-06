@@ -19,11 +19,7 @@ interface DeleteToolDialogProps {
 	onOpenChange: (open: boolean) => void
 }
 
-export function DeleteToolDialog({
-	toolId,
-	toolName,
-	onOpenChange,
-}: DeleteToolDialogProps) {
+export function DeleteToolDialog({ toolId, toolName, onOpenChange }: DeleteToolDialogProps) {
 	const deleteTool = useDeleteToolMutation()
 
 	const handleDelete = async () => {

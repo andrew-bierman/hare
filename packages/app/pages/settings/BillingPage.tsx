@@ -1,6 +1,5 @@
 'use client'
 
-import { useNavigate } from '@tanstack/react-router'
 import { Badge } from '@hare/ui/components/badge'
 import { Button } from '@hare/ui/components/button'
 import {
@@ -14,11 +13,17 @@ import {
 import { Progress } from '@hare/ui/components/progress'
 import { Separator } from '@hare/ui/components/separator'
 import { Skeleton } from '@hare/ui/components/skeleton'
+import { useNavigate } from '@tanstack/react-router'
 import { Check, CreditCard, ExternalLink, Sparkles, Zap } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { useWorkspace } from '../../app/providers'
-import { useBillingStatusQuery, useCreateCheckoutMutation, useCreatePortalMutation, usePlansQuery } from '../../shared/api/hooks'
+import {
+	useBillingStatusQuery,
+	useCreateCheckoutMutation,
+	useCreatePortalMutation,
+	usePlansQuery,
+} from '../../shared/api/hooks'
 
 export interface BillingPageProps {
 	searchParams?: {

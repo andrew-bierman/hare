@@ -44,10 +44,9 @@ async function fetchMessagesPage(options: {
 		params.set('cursor', cursor)
 	}
 
-	const response = await fetch(
-		`/api/conversations/${conversationId}/messages?${params}`,
-		{ credentials: 'include' },
-	)
+	const response = await fetch(`/api/conversations/${conversationId}/messages?${params}`, {
+		credentials: 'include',
+	})
 
 	if (!response.ok) {
 		throw new Error('Failed to fetch messages')

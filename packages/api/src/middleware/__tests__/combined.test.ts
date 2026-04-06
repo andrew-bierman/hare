@@ -1,7 +1,6 @@
-import { describe, expect, it, vi, beforeEach } from 'vitest'
 import { Hono } from 'hono'
 import { every } from 'hono/combine'
-import type { AuthEnv, WorkspaceEnv, OptionalAuthEnv } from '@hare/types'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 // Mock dependencies to avoid complex setup
 vi.mock('@hare/auth/server', () => ({
@@ -205,8 +204,7 @@ describe('combined middleware', () => {
 					viewer: ['read'],
 				}
 
-				const hasRead = (role: keyof typeof permissions) =>
-					permissions[role].includes('read')
+				const hasRead = (role: keyof typeof permissions) => permissions[role].includes('read')
 
 				expect(hasRead('owner')).toBe(true)
 				expect(hasRead('admin')).toBe(true)
@@ -224,8 +222,7 @@ describe('combined middleware', () => {
 					viewer: ['read'],
 				}
 
-				const hasWrite = (role: keyof typeof permissions) =>
-					permissions[role].includes('write')
+				const hasWrite = (role: keyof typeof permissions) => permissions[role].includes('write')
 
 				expect(hasWrite('owner')).toBe(true)
 				expect(hasWrite('admin')).toBe(true)
@@ -243,8 +240,7 @@ describe('combined middleware', () => {
 					viewer: ['read'],
 				}
 
-				const hasAdmin = (role: keyof typeof permissions) =>
-					permissions[role].includes('admin')
+				const hasAdmin = (role: keyof typeof permissions) => permissions[role].includes('admin')
 
 				expect(hasAdmin('owner')).toBe(true)
 				expect(hasAdmin('admin')).toBe(true)
@@ -262,8 +258,7 @@ describe('combined middleware', () => {
 					viewer: ['read'],
 				}
 
-				const hasOwner = (role: keyof typeof permissions) =>
-					permissions[role].includes('owner')
+				const hasOwner = (role: keyof typeof permissions) => permissions[role].includes('owner')
 
 				expect(hasOwner('owner')).toBe(true)
 				expect(hasOwner('admin')).toBe(false)

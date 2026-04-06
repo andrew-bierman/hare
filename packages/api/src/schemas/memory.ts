@@ -4,6 +4,7 @@
  * Zod schemas for agent vector memory request/response validation.
  */
 
+import { MEMORY_LIMITS } from '@hare/config'
 import { z } from '@hono/zod-openapi'
 
 // Memory type enum
@@ -41,10 +42,17 @@ export const CreateMemorySchema = z
 		content: z
 			.string()
 			.min(1, 'Content is required')
-			.max(10000, 'Content must be at most 10000 characters')
+			.max(
+				MEMORY_LIMITS.CONTENT_MAX_CHARS,
+				`Content must be at most ${MEMORY_LIMITS.CONTENT_MAX_CHARS} characters`,
+			)
 			.describe('Memory content to store'),
 		type: MemoryTypeSchema.optional().default('custom').describe('Type of memory'),
-		source: z.string().max(500).optional().describe('Source of this memory (e.g., conversation ID)'),
+		source: z
+			.string()
+			.max(MEMORY_LIMITS.SOURCE_MAX_CHARS)
+			.optional()
+			.describe('Source of this memory (e.g., conversation ID)'),
 		tags: z
 			.array(z.string().min(1).max(50))
 			.max(20, 'Maximum 20 tags allowed')
@@ -59,7 +67,10 @@ export const UpdateMemorySchema = z
 		content: z
 			.string()
 			.min(1, 'Content is required')
-			.max(10000, 'Content must be at most 10000 characters')
+			.max(
+				MEMORY_LIMITS.CONTENT_MAX_CHARS,
+				`Content must be at most ${MEMORY_LIMITS.CONTENT_MAX_CHARS} characters`,
+			)
 			.describe('Updated memory content'),
 		type: MemoryTypeSchema.optional().describe('Updated memory type'),
 		tags: z

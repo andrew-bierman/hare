@@ -1,7 +1,7 @@
 'use client'
 
-import { useQuery } from '@tanstack/react-query'
 import type { OAuthProviders } from '@hare/types'
+import { useQuery } from '@tanstack/react-query'
 import { authKeys } from './query-keys'
 
 // Re-export type for convenience

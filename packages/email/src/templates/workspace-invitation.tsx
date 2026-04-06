@@ -49,21 +49,16 @@ export function WorkspaceInvitationEmail({
 					<Heading style={heading}>You're Invited!</Heading>
 					<Text style={paragraph}>
 						<strong>{inviterName}</strong> ({inviterEmail}) has invited you to join the{' '}
-						<strong>"{workspaceName}"</strong> workspace on {appName} as a{' '}
-						<strong>{role}</strong>.
+						<strong>"{workspaceName}"</strong> workspace on {appName} as a <strong>{role}</strong>.
 					</Text>
 					<Section style={buttonContainer}>
 						<Button style={button} href={inviteUrl}>
 							Accept Invitation
 						</Button>
 					</Section>
-					<Text style={secondaryText}>
-						This invitation expires on {formattedExpiry}.
-					</Text>
+					<Text style={secondaryText}>This invitation expires on {formattedExpiry}.</Text>
 					<Hr style={hr} />
-					<Text style={footer}>
-						&mdash; The {appName} Team
-					</Text>
+					<Text style={footer}>&mdash; The {appName} Team</Text>
 					<Text style={linkText}>
 						Or copy and paste this URL into your browser:{' '}
 						<Link href={inviteUrl} style={link}>

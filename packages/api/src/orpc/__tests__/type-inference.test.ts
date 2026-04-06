@@ -6,8 +6,8 @@
  *
  * If any of these fail to compile, types are broken.
  */
-import { describe, it, expect } from 'vitest'
-import { orpc, type AppRouterClient } from '../client'
+import { describe, expect, it } from 'vitest'
+import { type AppRouterClient, orpc } from '../client'
 
 // Type utility to check if a type is NOT 'any'
 // Returns true if T is a specific type, false if T is 'any'

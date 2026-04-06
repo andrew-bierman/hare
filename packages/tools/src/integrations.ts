@@ -567,7 +567,10 @@ All service credentials are managed in your Zapier account, not here.`,
 			}
 
 			const controller = new AbortController()
-			const timeoutId = setTimeout(() => controller.abort(), waitForResponse ? 30000 : 10000)
+			const timeoutId = setTimeout(
+				() => controller.abort(),
+				waitForResponse ? Timeouts.ZAPIER_WAIT : Timeouts.ZAPIER_DEFAULT,
+			)
 
 			const response = await fetch(webhookUrl, {
 				method: 'POST',
@@ -622,7 +625,7 @@ export const webhookTool = createTool({
 				headerName: z.string().optional().default('X-API-Key'),
 			})
 			.optional(),
-		timeout: z.number().optional().default(30000),
+		timeout: z.number().optional().default(Timeouts.HTTP_DEFAULT),
 	}),
 	outputSchema: WebhookOutputSchema,
 	execute: async (params, _context) => {

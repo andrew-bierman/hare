@@ -5,10 +5,10 @@
  * Access restricted to workspace admins and owners.
  */
 
-import { z } from 'zod'
-import { and, count, desc, eq, gte, lte } from 'drizzle-orm'
-import { auditLogs } from '@hare/db/schema'
 import { AUDIT_ACTIONS } from '@hare/config'
+import { auditLogs } from '@hare/db/schema'
+import { and, count, desc, eq, gte, lte } from 'drizzle-orm'
+import { z } from 'zod'
 import { requireAdmin } from '../base'
 
 // =============================================================================
@@ -89,10 +89,7 @@ export const list = requireAdmin
 		const whereClause = and(...conditions)
 
 		// Get total count for pagination
-		const [countResult] = await db
-			.select({ total: count() })
-			.from(auditLogs)
-			.where(whereClause)
+		const [countResult] = await db.select({ total: count() }).from(auditLogs).where(whereClause)
 
 		const total = countResult?.total ?? 0
 

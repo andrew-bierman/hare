@@ -1,37 +1,35 @@
 'use client'
 
-import { useNavigate } from '@tanstack/react-router'
-import { Button } from '@hare/ui/components/button'
 import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from '@hare/ui/components/card'
+	getResponseStyleById,
+	getResponseStyleFromConfig,
+	getTemplateById,
+	type ResponseStyle,
+} from '@hare/config'
+import type { AgentConfig } from '@hare/types'
+import { Button } from '@hare/ui/components/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@hare/ui/components/card'
 import { Checkbox } from '@hare/ui/components/checkbox'
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@hare/ui/components/collapsible'
+import {
+	Collapsible,
+	CollapsibleContent,
+	CollapsibleTrigger,
+} from '@hare/ui/components/collapsible'
 import { Input } from '@hare/ui/components/input'
 import { Label } from '@hare/ui/components/label'
 import { Switch } from '@hare/ui/components/switch'
 import { Textarea } from '@hare/ui/components/textarea'
-import { type ChangeEvent, useState, useEffect } from 'react'
-import { toast } from 'sonner'
+import { cn } from '@hare/ui/lib/utils'
+import { useNavigate } from '@tanstack/react-router'
 import { ChevronDown } from 'lucide-react'
-import type { AgentConfig } from '@hare/types'
+import { type ChangeEvent, useEffect, useState } from 'react'
+import { toast } from 'sonner'
 import { useCreateAgentMutation, useToolsQuery } from '../../../shared/api/hooks'
-import { AgentInstructionsEditor } from '../../../widgets/agent-builder'
-import { ResponseStyleSelector } from '../../../widgets/response-style-selector'
 import { AdvancedSettings } from '../../../widgets/advanced-settings'
+import { AgentInstructionsEditor } from '../../../widgets/agent-builder'
 import { ModelSelector } from '../../../widgets/model-selector'
 import { PromptGenerator } from '../../../widgets/prompt-generator'
-import {
-	getTemplateById,
-	getResponseStyleById,
-	getResponseStyleFromConfig,
-	type ResponseStyle,
-} from '@hare/config'
-import { cn } from '@hare/ui/lib/utils'
+import { ResponseStyleSelector } from '../../../widgets/response-style-selector'
 
 interface CreateAgentFormProps {
 	workspaceId: string | undefined
@@ -205,10 +203,7 @@ export function CreateAgentForm({ templateId }: CreateAgentFormProps) {
 						<div className="space-y-2">
 							<div className="flex items-center justify-between">
 								<Label htmlFor="system-prompt">System Prompt</Label>
-								<PromptGenerator
-									onGenerate={setInstructions}
-									disabled={createAgent.isPending}
-								/>
+								<PromptGenerator onGenerate={setInstructions} disabled={createAgent.isPending} />
 							</div>
 							<AgentInstructionsEditor
 								value={instructions}
@@ -219,8 +214,8 @@ export function CreateAgentForm({ templateId }: CreateAgentFormProps) {
 								maxHeight="400px"
 							/>
 							<p className="text-xs text-muted-foreground">
-								Define how your agent should behave. Use Markdown formatting and template
-								variables like {'{'}
+								Define how your agent should behave. Use Markdown formatting and template variables
+								like {'{'}
 								{'{'} user_name {'}'}
 								{'}'}. This prompt will be sent with every conversation.
 							</p>
@@ -245,7 +240,9 @@ export function CreateAgentForm({ templateId }: CreateAgentFormProps) {
 											Tools & Capabilities
 											{(systemToolsEnabled || selectedToolIds.length > 0) && (
 												<span className="text-xs font-normal text-muted-foreground">
-													({systemToolsEnabled ? '50+ system' : ''}{systemToolsEnabled && selectedToolIds.length > 0 ? ' + ' : ''}{selectedToolIds.length > 0 ? `${selectedToolIds.length} custom` : ''})
+													({systemToolsEnabled ? '50+ system' : ''}
+													{systemToolsEnabled && selectedToolIds.length > 0 ? ' + ' : ''}
+													{selectedToolIds.length > 0 ? `${selectedToolIds.length} custom` : ''})
 												</span>
 											)}
 										</CardTitle>
@@ -254,7 +251,7 @@ export function CreateAgentForm({ templateId }: CreateAgentFormProps) {
 									<ChevronDown
 										className={cn(
 											'h-5 w-5 text-muted-foreground transition-transform',
-											toolsOpen && 'rotate-180'
+											toolsOpen && 'rotate-180',
 										)}
 									/>
 								</div>

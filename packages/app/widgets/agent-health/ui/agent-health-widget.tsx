@@ -43,7 +43,13 @@ function ProgressRing(props: { value: number; size?: number; strokeWidth?: numbe
 
 	return (
 		<div className="relative" style={{ width: size, height: size }}>
-			<svg className="transform -rotate-90" width={size} height={size}>
+			<svg
+				className="transform -rotate-90"
+				width={size}
+				height={size}
+				aria-label={`Health: ${value}%`}
+				role="img"
+			>
 				<circle
 					className="stroke-muted"
 					strokeWidth={strokeWidth}
@@ -101,7 +107,11 @@ function HealthWidgetSkeleton() {
 export function AgentHealthWidget(props: AgentHealthWidgetProps) {
 	const { agentId, basePath = '/dashboard' } = props
 
-	const { data: health, isLoading, error } = useAgentHealthQuery(agentId, { refetchInterval: 30000 })
+	const {
+		data: health,
+		isLoading,
+		error,
+	} = useAgentHealthQuery(agentId, { refetchInterval: 30000 })
 
 	if (isLoading) {
 		return <HealthWidgetSkeleton />

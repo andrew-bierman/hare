@@ -5,10 +5,10 @@
  * create and configure other agents through natural conversation.
  */
 
-import { z } from 'zod'
 import { config, getModelById } from '@hare/config'
-import { createTool, failure, success, type AnyTool, type ToolContext } from './types'
+import { z } from 'zod'
 import { getAgentControlTools } from './agent-control'
+import { type AnyTool, createTool, failure, success, type ToolContext } from './types'
 
 /**
  * System tool IDs for validation (subset of commonly used tools).
@@ -17,27 +17,73 @@ import { getAgentControlTools } from './agent-control'
  */
 const KNOWN_SYSTEM_TOOL_IDS = new Set([
 	// Cloudflare native
-	'kv_get', 'kv_put', 'kv_delete', 'kv_list',
-	'r2_get', 'r2_put', 'r2_delete', 'r2_list', 'r2_head',
-	'sql_query', 'sql_execute', 'sql_batch',
-	'http_request', 'http_get', 'http_post',
-	'ai_search', 'ai_search_answer',
+	'kv_get',
+	'kv_put',
+	'kv_delete',
+	'kv_list',
+	'r2_get',
+	'r2_put',
+	'r2_delete',
+	'r2_list',
+	'r2_head',
+	'sql_query',
+	'sql_execute',
+	'sql_batch',
+	'http_request',
+	'http_get',
+	'http_post',
+	'ai_search',
+	'ai_search_answer',
 	// Utility
-	'datetime', 'json', 'text', 'math', 'uuid', 'hash', 'base64', 'url', 'delay',
+	'datetime',
+	'json',
+	'text',
+	'math',
+	'uuid',
+	'hash',
+	'base64',
+	'url',
+	'delay',
 	// Integrations
-	'zapier', 'webhook',
+	'zapier',
+	'webhook',
 	// AI
-	'sentiment', 'summarize', 'translate', 'image_generate', 'classify', 'ner', 'embedding', 'question_answer',
+	'sentiment',
+	'summarize',
+	'translate',
+	'image_generate',
+	'classify',
+	'ner',
+	'embedding',
+	'question_answer',
 	// Data
-	'rss', 'scrape', 'regex', 'crypto', 'json_schema', 'csv', 'template',
+	'rss',
+	'scrape',
+	'regex',
+	'crypto',
+	'json_schema',
+	'csv',
+	'template',
 	// Sandbox
-	'code_execute', 'code_validate', 'sandbox_file',
+	'code_execute',
+	'code_validate',
+	'sandbox_file',
 	// Validation
-	'validate_email', 'validate_phone', 'validate_url', 'validate_credit_card', 'validate_ip', 'validate_json',
+	'validate_email',
+	'validate_phone',
+	'validate_url',
+	'validate_credit_card',
+	'validate_ip',
+	'validate_json',
 	// Transform
-	'markdown', 'diff', 'qrcode', 'compression', 'color',
+	'markdown',
+	'diff',
+	'qrcode',
+	'compression',
+	'color',
 	// Memory
-	'recall_memory', 'store_memory',
+	'recall_memory',
+	'store_memory',
 ])
 
 // =============================================================================
@@ -132,10 +178,7 @@ export const agentListModelsTool = createTool({
 			.enum(['anthropic', 'openai', 'workers-ai'])
 			.optional()
 			.describe('Filter by provider (optional)'),
-		supportsTools: z
-			.boolean()
-			.optional()
-			.describe('Only show models that support tool calling'),
+		supportsTools: z.boolean().optional().describe('Only show models that support tool calling'),
 	}),
 	outputSchema: ListModelsOutputSchema,
 	execute: async (params, _context: ToolContext) => {
@@ -200,9 +243,7 @@ export const agentListTemplatesTool = createTool({
 				suggestedToolTypes: [...t.suggestedToolTypes],
 				// Provide a preview of instructions (first 200 chars)
 				instructionsPreview:
-					t.instructions.length > 200
-						? t.instructions.slice(0, 200) + '...'
-						: t.instructions,
+					t.instructions.length > 200 ? t.instructions.slice(0, 200) + '...' : t.instructions,
 			}))
 
 			return success({
@@ -225,11 +266,7 @@ export const agentValidateConfigTool = createTool({
 	inputSchema: z.object({
 		name: z.string().min(1).max(100).describe('Agent name (1-100 characters)'),
 		description: z.string().max(500).optional().describe('Agent description (max 500 chars)'),
-		instructions: z
-			.string()
-			.min(1)
-			.max(10000)
-			.describe('System instructions (1-10000 characters)'),
+		instructions: z.string().min(1).max(10000).describe('System instructions (1-10000 characters)'),
 		model: z.string().describe('Model ID to use'),
 		config: z
 			.object({
@@ -251,7 +288,9 @@ export const agentValidateConfigTool = createTool({
 			// Validate model exists
 			const model = getModelById(params.model)
 			if (!model) {
-				errors.push(`Unknown model: ${params.model}. Use agent_list_models to see available models.`)
+				errors.push(
+					`Unknown model: ${params.model}. Use agent_list_models to see available models.`,
+				)
 			}
 
 			// Validate name
@@ -262,7 +301,7 @@ export const agentValidateConfigTool = createTool({
 			// Validate instructions
 			if (params.instructions.trim().length < 10) {
 				warnings.push(
-					'Instructions are very short. Consider adding more detail about the agent\'s role and behavior.',
+					"Instructions are very short. Consider adding more detail about the agent's role and behavior.",
 				)
 			}
 
@@ -282,9 +321,7 @@ export const agentValidateConfigTool = createTool({
 			if (params.toolIds) {
 				const unknownTools = params.toolIds.filter((id) => !KNOWN_SYSTEM_TOOL_IDS.has(id))
 				if (unknownTools.length > 0) {
-					warnings.push(
-						`Unknown tool IDs (may be custom tools): ${unknownTools.join(', ')}`,
-					)
+					warnings.push(`Unknown tool IDs (may be custom tools): ${unknownTools.join(', ')}`)
 				}
 			}
 
@@ -400,8 +437,7 @@ const agent = await createAgent({
 })
 
 console.log('Created agent:', agent.id)`
-					instructions =
-						'Install @hare/sdk, then run this code with your API key configured.'
+					instructions = 'Install @hare/sdk, then run this code with your API key configured.'
 					break
 
 				case 'curl':
@@ -440,7 +476,11 @@ console.log('Created agent:', agent.id)`
 const TOOL_SUGGESTIONS: Record<string, { tools: string[]; category: string; reason: string }[]> = {
 	// Customer service keywords
 	'customer support': [
-		{ tools: ['http_request', 'http_get'], category: 'http', reason: 'Fetch customer data from APIs' },
+		{
+			tools: ['http_request', 'http_get'],
+			category: 'http',
+			reason: 'Fetch customer data from APIs',
+		},
 		{ tools: ['sql_query'], category: 'database', reason: 'Look up orders, tickets, user info' },
 		{ tools: ['kv_get', 'kv_put'], category: 'storage', reason: 'Store session data, preferences' },
 	],
@@ -451,11 +491,15 @@ const TOOL_SUGGESTIONS: Record<string, { tools: string[]; category: string; reas
 	],
 	// Knowledge/docs keywords
 	'knowledge base': [
-		{ tools: ['ai_search', 'ai_search_answer'], category: 'search', reason: 'Search documentation' },
+		{
+			tools: ['ai_search', 'ai_search_answer'],
+			category: 'search',
+			reason: 'Search documentation',
+		},
 		{ tools: ['r2_get'], category: 'storage', reason: 'Retrieve document content' },
 		{ tools: ['summarize'], category: 'ai', reason: 'Summarize long documents' },
 	],
-	'documentation': [
+	documentation: [
 		{ tools: ['ai_search', 'ai_search_answer'], category: 'search', reason: 'Semantic doc search' },
 		{ tools: ['markdown'], category: 'transform', reason: 'Format responses as markdown' },
 	],
@@ -466,18 +510,22 @@ const TOOL_SUGGESTIONS: Record<string, { tools: string[]; category: string; reas
 		{ tools: ['json'], category: 'utility', reason: 'Transform data structures' },
 		{ tools: ['math'], category: 'utility', reason: 'Perform calculations' },
 	],
-	'analytics': [
+	analytics: [
 		{ tools: ['sql_query'], category: 'database', reason: 'Query metrics database' },
 		{ tools: ['http_request'], category: 'http', reason: 'Fetch from analytics APIs' },
 		{ tools: ['template'], category: 'data', reason: 'Generate reports' },
 	],
 	// Automation keywords
-	'automation': [
-		{ tools: ['zapier', 'webhook'], category: 'integrations', reason: 'Connect to external services' },
+	automation: [
+		{
+			tools: ['zapier', 'webhook'],
+			category: 'integrations',
+			reason: 'Connect to external services',
+		},
 		{ tools: ['http_request'], category: 'http', reason: 'Call APIs' },
 		{ tools: ['code_execute'], category: 'sandbox', reason: 'Run custom logic' },
 	],
-	'workflow': [
+	workflow: [
 		{ tools: ['zapier'], category: 'integrations', reason: 'Trigger workflow automations' },
 		{ tools: ['webhook'], category: 'integrations', reason: 'Send webhook notifications' },
 		{ tools: ['delay'], category: 'utility', reason: 'Add delays between steps' },
@@ -489,31 +537,35 @@ const TOOL_SUGGESTIONS: Record<string, { tools: string[]; category: string; reas
 		{ tools: ['markdown'], category: 'transform', reason: 'Format content' },
 		{ tools: ['image_generate'], category: 'ai', reason: 'Generate images' },
 	],
-	'writing': [
+	writing: [
 		{ tools: ['summarize'], category: 'ai', reason: 'Create summaries' },
 		{ tools: ['text'], category: 'utility', reason: 'Text manipulation' },
 		{ tools: ['template'], category: 'data', reason: 'Use templates' },
 	],
 	// Sales keywords
-	'sales': [
+	sales: [
 		{ tools: ['http_request'], category: 'http', reason: 'CRM integration' },
 		{ tools: ['sql_query'], category: 'database', reason: 'Query customer/product data' },
 		{ tools: ['validate_email'], category: 'validation', reason: 'Validate lead emails' },
 	],
 	// Research keywords
-	'research': [
+	research: [
 		{ tools: ['scrape'], category: 'data', reason: 'Extract web content' },
 		{ tools: ['rss'], category: 'data', reason: 'Monitor news feeds' },
 		{ tools: ['summarize'], category: 'ai', reason: 'Summarize findings' },
 		{ tools: ['ai_search'], category: 'search', reason: 'Search knowledge base' },
 	],
 	// Code/dev keywords
-	'code': [
-		{ tools: ['code_execute', 'code_validate'], category: 'sandbox', reason: 'Execute and validate code' },
+	code: [
+		{
+			tools: ['code_execute', 'code_validate'],
+			category: 'sandbox',
+			reason: 'Execute and validate code',
+		},
 		{ tools: ['diff'], category: 'transform', reason: 'Compare code versions' },
 		{ tools: ['regex'], category: 'data', reason: 'Pattern matching' },
 	],
-	'developer': [
+	developer: [
 		{ tools: ['code_execute'], category: 'sandbox', reason: 'Run code snippets' },
 		{ tools: ['http_request'], category: 'http', reason: 'Test APIs' },
 		{ tools: ['json'], category: 'utility', reason: 'Parse/format JSON' },

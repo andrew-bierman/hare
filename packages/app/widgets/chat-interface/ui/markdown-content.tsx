@@ -1,7 +1,7 @@
 'use client'
 
-import { Streamdown } from 'streamdown'
 import { cn } from '@hare/ui/lib/utils'
+import { Streamdown } from 'streamdown'
 
 export interface MarkdownContentProps {
 	/** The markdown content to render */

@@ -135,7 +135,10 @@ function LoadingSkeleton() {
 	)
 }
 
-export function ToolDetailPage({ toolId, toolsListPath = '/dashboard/tools' }: ToolDetailPageProps) {
+export function ToolDetailPage({
+	toolId,
+	toolsListPath = '/dashboard/tools',
+}: ToolDetailPageProps) {
 	const navigate = useNavigate()
 
 	const { data: tool, isLoading, error } = useToolQuery(toolId)
@@ -525,7 +528,9 @@ export function ToolDetailPage({ toolId, toolsListPath = '/dashboard/tools' }: T
 								<p className="text-xs text-muted-foreground">{field.description}</p>
 							)}
 							{renderFieldInput(field.name, field.type, {
-								enum: field.enumValues ? field.enumValues.split(',').map((v) => v.trim()) : undefined,
+								enum: field.enumValues
+									? field.enumValues.split(',').map((v) => v.trim())
+									: undefined,
 								default: field.defaultValue || undefined,
 							})}
 						</div>
@@ -597,9 +602,7 @@ export function ToolDetailPage({ toolId, toolsListPath = '/dashboard/tools' }: T
 				return (
 					<Textarea
 						id={`test-${fieldName}`}
-						placeholder={
-							fieldType === 'array' ? '["item1", "item2"]' : '{"key": "value"}'
-						}
+						placeholder={fieldType === 'array' ? '["item1", "item2"]' : '{"key": "value"}'}
 						className="font-mono text-sm h-24"
 						value={testInput[fieldName] || ''}
 						onChange={(e: ChangeEvent<HTMLTextAreaElement>) =>

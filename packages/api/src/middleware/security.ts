@@ -1,7 +1,7 @@
+import { SECURITY_TIMING, serverEnv } from '@hare/config'
 import type { MiddlewareHandler } from 'hono'
 import { cors } from 'hono/cors'
 import { secureHeaders } from 'hono/secure-headers'
-import { serverEnv } from '@hare/config'
 
 /**
  * Security headers middleware
@@ -31,7 +31,7 @@ export const securityHeadersMiddleware: MiddlewareHandler = secureHeaders({
 		upgradeInsecureRequests: [],
 	},
 	// Strict Transport Security with preload
-	strictTransportSecurity: 'max-age=31536000; includeSubDomains; preload',
+	strictTransportSecurity: `max-age=${SECURITY_TIMING.HSTS_MAX_AGE_SECONDS}; includeSubDomains; preload`,
 	// X-Content-Type-Options
 	xContentTypeOptions: 'nosniff',
 	// X-Frame-Options
@@ -72,5 +72,5 @@ export const corsMiddleware = cors({
 	allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
 	allowHeaders: ['Content-Type', 'Authorization', 'X-Workspace-ID', 'X-CSRF-Token', 'X-API-Key'],
 	exposeHeaders: ['X-RateLimit-Limit', 'X-RateLimit-Remaining', 'X-RateLimit-Reset'],
-	maxAge: 86400, // 24 hours
+	maxAge: SECURITY_TIMING.CORS_PREFLIGHT_CACHE_SECONDS,
 })

@@ -4,19 +4,6 @@
  * Reusable data table built on TanStack Table with sorting, filtering, and pagination.
  */
 
-import {
-	type ColumnDef,
-	type ColumnFiltersState,
-	flexRender,
-	getCoreRowModel,
-	getFilteredRowModel,
-	getPaginationRowModel,
-	getSortedRowModel,
-	type RowSelectionState,
-	type SortingState,
-	useReactTable,
-	type VisibilityState,
-} from '@tanstack/react-table'
 import { Button } from '@hare/ui/components/button'
 import { Checkbox } from '@hare/ui/components/checkbox'
 import {
@@ -42,6 +29,19 @@ import {
 	TableRow,
 } from '@hare/ui/components/table'
 import { cn } from '@hare/ui/lib/utils'
+import {
+	type ColumnDef,
+	type ColumnFiltersState,
+	flexRender,
+	getCoreRowModel,
+	getFilteredRowModel,
+	getPaginationRowModel,
+	getSortedRowModel,
+	type RowSelectionState,
+	type SortingState,
+	useReactTable,
+	type VisibilityState,
+} from '@tanstack/react-table'
 import {
 	ArrowDown,
 	ArrowUp,

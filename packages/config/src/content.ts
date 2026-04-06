@@ -3,8 +3,6 @@
  * All static text content for the application
  */
 
-import { APP_CONFIG } from './app'
-
 // =============================================================================
 // Landing Page Content
 // =============================================================================
@@ -52,20 +50,17 @@ export const LANDING_PAGE = {
 		},
 		{
 			title: 'Smart Retrieval',
-			description:
-				'Vectorize memory with BGE reranking for high-quality RAG and agent context.',
+			description: 'Vectorize memory with BGE reranking for high-quality RAG and agent context.',
 			icon: 'Search',
 		},
 		{
 			title: 'MCP Server',
-			description:
-				'Connect Claude, Cursor, or any MCP client to your agents and tools.',
+			description: 'Connect Claude, Cursor, or any MCP client to your agents and tools.',
 			icon: 'MessageSquare',
 		},
 		{
 			title: 'Enterprise Security',
-			description:
-				'SSRF protection, workspace isolation, API key auth, and audit logging.',
+			description: 'SSRF protection, workspace isolation, API key auth, and audit logging.',
 			icon: 'Shield',
 		},
 	],

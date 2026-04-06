@@ -3,6 +3,7 @@
  * Provides protection against common request-based attacks
  */
 
+import { REQUEST_SIZE_LIMITS } from '@hare/config'
 import type { HonoEnv } from '@hare/types'
 import type { Context, MiddlewareHandler } from 'hono'
 
@@ -10,10 +11,10 @@ import type { Context, MiddlewareHandler } from 'hono'
  * Default size limits for different content types
  */
 const SIZE_LIMITS = {
-	json: 1 * 1024 * 1024, // 1MB for JSON
-	text: 512 * 1024, // 512KB for text
-	form: 10 * 1024 * 1024, // 10MB for form data (file uploads)
-	default: 1 * 1024 * 1024, // 1MB default
+	json: REQUEST_SIZE_LIMITS.JSON_BYTES,
+	text: REQUEST_SIZE_LIMITS.TEXT_BYTES,
+	form: REQUEST_SIZE_LIMITS.FORM_BYTES,
+	default: REQUEST_SIZE_LIMITS.DEFAULT_BYTES,
 }
 
 /**

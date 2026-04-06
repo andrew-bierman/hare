@@ -19,13 +19,13 @@ import type {
 } from '@hare/types'
 import { createId } from '@paralleldrive/cuid2'
 import { useMemo } from 'react'
+import type { AgentRow, ScheduleRow, ToolRow, WorkspaceRow } from './collections'
 import {
 	useAgentCollection,
+	useScheduleCollection,
 	useToolCollection,
 	useWorkspaceCollection,
-	useScheduleCollection,
 } from './provider'
-import type { AgentRow, ToolRow, WorkspaceRow, ScheduleRow } from './collections'
 
 // =============================================================================
 // Agent Mutations
@@ -193,7 +193,11 @@ export function useWorkspaceMutations() {
 				const now = new Date().toISOString()
 				// Generate slug from name if not provided
 				const slug =
-					data.slug || data.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
+					data.slug ||
+					data.name
+						.toLowerCase()
+						.replace(/\s+/g, '-')
+						.replace(/[^a-z0-9-]/g, '')
 				const workspace = {
 					id,
 					name: data.name,

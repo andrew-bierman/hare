@@ -5,21 +5,22 @@
  * from database-stored configurations, including loading attached tools.
  */
 
-import { eq } from 'drizzle-orm'
-import { z } from 'zod'
-import { type Database, agentTools, tools as toolsTable } from '@hare/db'
-import type { CloudflareEnv } from '@hare/types'
+import { agentTools, type Database, tools as toolsTable } from '@hare/db'
 import {
 	type AnyTool,
 	createRegistry,
 	createTool,
 	failure,
 	getSystemTools,
-	httpRequestTool,
 	HttpResponseOutputSchema,
+	httpRequestTool,
+	Timeouts,
 	type ToolConfig,
 	type ToolContext,
 } from '@hare/tools'
+import type { CloudflareEnv } from '@hare/types'
+import { eq } from 'drizzle-orm'
+import { z } from 'zod'
 import { type AgentTool, createHareEdgeAgent, type HareEdgeAgent } from './edge-agent'
 
 /**
@@ -152,7 +153,7 @@ function createHTTPToolFromConfig(config: ToolConfig, _context: ToolContext): An
 				method: params.method || toolConfig?.method || 'GET',
 				headers: { ...toolConfig?.headers, ...params.headers },
 				body: params.body,
-				timeout: params.timeout || 30000,
+				timeout: params.timeout || Timeouts.HTTP_DEFAULT,
 			}
 			return httpRequestTool.execute(mergedParams, ctx)
 		},
@@ -222,7 +223,9 @@ function buildInstructions(config: AgentConfig, tools: AgentTool[]): string {
 /**
  * Create an Edge-compatible Agent from a database configuration.
  */
-export async function createAgentFromConfig(input: CreateAgentFromConfigInput): Promise<HareEdgeAgent> {
+export async function createAgentFromConfig(
+	input: CreateAgentFromConfigInput,
+): Promise<HareEdgeAgent> {
 	const { agentConfig, db, env, includeSystemTools = true, userId } = input
 
 	// Create tool context

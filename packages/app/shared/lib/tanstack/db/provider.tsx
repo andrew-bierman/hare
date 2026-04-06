@@ -10,13 +10,13 @@
  */
 
 import { useQueryClient } from '@tanstack/react-query'
-import { createContext, useContext, useMemo, useRef, type ReactNode } from 'react'
+import { createContext, type ReactNode, useContext, useMemo, useRef } from 'react'
 import {
+	type AgentCollection,
 	createAgentCollection,
 	createScheduleCollection,
 	createToolCollection,
 	createWorkspaceCollection,
-	type AgentCollection,
 	type ScheduleCollection,
 	type ToolCollection,
 	type WorkspaceCollection,
@@ -113,7 +113,7 @@ export function TanStackDBProvider({ children }: TanStackDBProviderProps) {
 			getToolCollection,
 			getScheduleCollection,
 		}),
-		[workspaces, getAgentCollection, getToolCollection, getScheduleCollection]
+		[workspaces, getAgentCollection, getToolCollection, getScheduleCollection],
 	)
 
 	return <TanStackDBContext.Provider value={value}>{children}</TanStackDBContext.Provider>
@@ -169,6 +169,7 @@ export function useScheduleCollection(options: {
 	const { getScheduleCollection } = useTanStackDB()
 	return useMemo(
 		() => getScheduleCollection(options),
-		[getScheduleCollection, options.agentId, options.workspaceId]
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+		[getScheduleCollection, options],
 	)
 }

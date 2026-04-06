@@ -2,14 +2,14 @@
  * Tests for factory.ts - Agent factory functions
  */
 
-import { describe, expect, it, vi, beforeEach } from 'vitest'
+import type { CloudflareEnv } from '@hare/types'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import {
+	type AgentConfig,
 	createAgentFromConfig,
 	createSimpleAgent,
 	loadAgentTools,
-	type AgentConfig,
 } from '../factory'
-import type { CloudflareEnv } from '@hare/types'
 
 // Mock dependencies
 vi.mock('../edge-agent', () => ({
@@ -65,6 +65,7 @@ function createMockDb() {
 			orderBy: vi.fn().mockReturnThis(),
 			limit: vi.fn().mockReturnThis(),
 			// Make it thenable (Promise-like) so await works
+			// biome-ignore lint/suspicious/noThenProperty: intentional thenable mock for await
 			then: vi.fn().mockImplementation((resolve) => resolve(finalValue)),
 		}
 		return chain
@@ -153,18 +154,12 @@ describe('factory', () => {
 			// Mock attached tools
 			const mockSelect = mockDb.select()
 			mockSelect.from.mockReturnThis()
-			mockSelect.where.mockResolvedValue([
-				{ toolId: 'tool_1' },
-				{ toolId: 'tool_2' },
-			])
+			mockSelect.where.mockResolvedValue([{ toolId: 'tool_1' }, { toolId: 'tool_2' }])
 
 			// Mock tool configs
 			mockDb.select.mockReturnValueOnce({
 				from: vi.fn().mockReturnValue({
-					where: vi.fn().mockResolvedValue([
-						{ toolId: 'tool_1' },
-						{ toolId: 'tool_2' },
-					]),
+					where: vi.fn().mockResolvedValue([{ toolId: 'tool_1' }, { toolId: 'tool_2' }]),
 				}),
 			})
 			mockDb.select.mockReturnValueOnce({

@@ -1,5 +1,6 @@
 import { z } from 'zod'
-import { createTool, failure, success, type HareEnv, type ToolContext } from './types'
+import { ContentLengths } from './constants'
+import { createTool, failure, type HareEnv, success, type ToolContext } from './types'
 
 /**
  * Helper to check if AI binding is available.
@@ -139,14 +140,16 @@ export const sentimentTool = createTool({
 	description:
 		'Analyze the sentiment of text. Returns positive, negative, or neutral classification with confidence scores.',
 	inputSchema: z.object({
-		text: z.string().min(1).max(5000).describe('Text to analyze for sentiment'),
+		text: z.string().min(1).max(ContentLengths.AI_SHORT).describe('Text to analyze for sentiment'),
 		detailed: z.boolean().optional().default(false).describe('Return detailed emotion breakdown'),
 	}),
 	outputSchema: SentimentOutputSchema,
 	execute: async (params, context) => {
 		try {
 			if (!requireAI(context)) {
-				return failure('AI binding is not available. Please configure the AI binding in your Worker.')
+				return failure(
+					'AI binding is not available. Please configure the AI binding in your Worker.',
+				)
 			}
 			const { text, detailed } = params
 
@@ -198,7 +201,7 @@ export const summarizeTool = createTool({
 	description:
 		'Generate a concise summary of longer text content. Useful for distilling articles, documents, or conversations.',
 	inputSchema: z.object({
-		text: z.string().min(50).max(50000).describe('Text content to summarize'),
+		text: z.string().min(50).max(ContentLengths.AI_LONG).describe('Text content to summarize'),
 		maxLength: z.number().optional().default(200).describe('Maximum summary length in words'),
 		style: z
 			.enum(['brief', 'detailed', 'bullets'])
@@ -210,7 +213,9 @@ export const summarizeTool = createTool({
 	execute: async (params, context) => {
 		try {
 			if (!requireAI(context)) {
-				return failure('AI binding is not available. Please configure the AI binding in your Worker.')
+				return failure(
+					'AI binding is not available. Please configure the AI binding in your Worker.',
+				)
 			}
 			const { text, maxLength, style } = params
 
@@ -260,7 +265,7 @@ export const translateTool = createTool({
 	id: 'translate',
 	description: 'Translate text from one language to another. Supports many common languages.',
 	inputSchema: z.object({
-		text: z.string().min(1).max(10000).describe('Text to translate'),
+		text: z.string().min(1).max(ContentLengths.AI_MEDIUM).describe('Text to translate'),
 		targetLanguage: z
 			.string()
 			.describe(
@@ -275,7 +280,9 @@ export const translateTool = createTool({
 	execute: async (params, context) => {
 		try {
 			if (!requireAI(context)) {
-				return failure('AI binding is not available. Please configure the AI binding in your Worker.')
+				return failure(
+					'AI binding is not available. Please configure the AI binding in your Worker.',
+				)
 			}
 			const { text, targetLanguage, sourceLanguage } = params
 
@@ -327,7 +334,9 @@ export const imageGenerateTool = createTool({
 	execute: async (params, context) => {
 		try {
 			if (!requireAI(context)) {
-				return failure('AI binding is not available. Please configure the AI binding in your Worker.')
+				return failure(
+					'AI binding is not available. Please configure the AI binding in your Worker.',
+				)
 			}
 			const { prompt, negativePrompt, width, height, steps, guidance } = params
 
@@ -397,7 +406,7 @@ export const classifyTool = createTool({
 	description:
 		'Classify text into custom categories. Useful for routing, tagging, or categorizing content.',
 	inputSchema: z.object({
-		text: z.string().min(1).max(5000).describe('Text to classify'),
+		text: z.string().min(1).max(ContentLengths.AI_SHORT).describe('Text to classify'),
 		categories: z.array(z.string()).min(2).max(20).describe('List of possible categories'),
 		multiLabel: z
 			.boolean()
@@ -409,7 +418,9 @@ export const classifyTool = createTool({
 	execute: async (params, context) => {
 		try {
 			if (!requireAI(context)) {
-				return failure('AI binding is not available. Please configure the AI binding in your Worker.')
+				return failure(
+					'AI binding is not available. Please configure the AI binding in your Worker.',
+				)
 			}
 			const { text, categories, multiLabel } = params
 
@@ -472,7 +483,7 @@ export const nerTool = createTool({
 	description:
 		'Extract named entities from text such as people, organizations, locations, dates, and more.',
 	inputSchema: z.object({
-		text: z.string().min(1).max(10000).describe('Text to analyze for entities'),
+		text: z.string().min(1).max(ContentLengths.AI_MEDIUM).describe('Text to analyze for entities'),
 		entityTypes: z
 			.array(EntityTypeSchema)
 			.optional()
@@ -576,7 +587,9 @@ export const embeddingTool = createTool({
 	execute: async (params, context) => {
 		try {
 			if (!requireAI(context)) {
-				return failure('AI binding is not available. Please configure the AI binding in your Worker.')
+				return failure(
+					'AI binding is not available. Please configure the AI binding in your Worker.',
+				)
 			}
 			const { text, model } = params
 
@@ -635,7 +648,9 @@ export const qaTool = createTool({
 	execute: async (params, context) => {
 		try {
 			if (!requireAI(context)) {
-				return failure('AI binding is not available. Please configure the AI binding in your Worker.')
+				return failure(
+					'AI binding is not available. Please configure the AI binding in your Worker.',
+				)
 			}
 			const { question, context: textContext, options } = params
 			const { maxLength = 200, includeQuote = false } = options || {}
@@ -643,7 +658,7 @@ export const qaTool = createTool({
 			const prompt = includeQuote
 				? `Based on the following context, answer the question and provide a relevant quote.
 
-Context: "${textContext.slice(0, 15000)}"
+Context: "${textContext.slice(0, ContentLengths.RAG_CONTEXT)}"
 
 Question: ${question}
 
@@ -652,7 +667,7 @@ Answer: [your answer here, max ${maxLength} words]
 Quote: [relevant quote from the context]`
 				: `Based on the following context, answer the question concisely (max ${maxLength} words).
 
-Context: "${textContext.slice(0, 15000)}"
+Context: "${textContext.slice(0, ContentLengths.RAG_CONTEXT)}"
 
 Question: ${question}
 

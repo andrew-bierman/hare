@@ -1,5 +1,7 @@
 'use client'
 
+import { config, type ResponseStyle } from '@hare/config'
+import { Label } from '@hare/ui/components/label'
 import {
 	Select,
 	SelectContent,
@@ -7,8 +9,6 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from '@hare/ui/components/select'
-import { Label } from '@hare/ui/components/label'
-import { config, type ResponseStyle } from '@hare/config'
 
 export interface ResponseStyleSelectorProps {
 	value: ResponseStyle
@@ -27,9 +27,7 @@ export function ResponseStyleSelector({
 
 	return (
 		<div className="space-y-2">
-			{showLabel && (
-				<Label htmlFor="response-style">Response Style</Label>
-			)}
+			{showLabel && <Label htmlFor="response-style">Response Style</Label>}
 			<Select value={value} onValueChange={onValueChange} disabled={disabled}>
 				<SelectTrigger id="response-style" className="w-full">
 					<SelectValue placeholder="Select a response style">
@@ -48,9 +46,7 @@ export function ResponseStyleSelector({
 						<SelectItem key={preset.id} value={preset.id}>
 							<div className="flex flex-col gap-0.5">
 								<span className="font-medium">{preset.name}</span>
-								<span className="text-muted-foreground text-xs">
-									{preset.description}
-								</span>
+								<span className="text-muted-foreground text-xs">{preset.description}</span>
 							</div>
 						</SelectItem>
 					))}

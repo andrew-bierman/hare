@@ -1,7 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useAtom } from 'jotai'
+import { type AgentTemplate, config } from '@hare/config'
 import { Button } from '@hare/ui/components/button'
 import {
 	Dialog,
@@ -11,9 +10,10 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from '@hare/ui/components/dialog'
-import { config, type AgentTemplate } from '@hare/config'
-import { Bot, ChevronRight, Rocket, Sparkles, Wand2 } from 'lucide-react'
 import { cn } from '@hare/ui/lib/utils'
+import { useAtom } from 'jotai'
+import { Bot, ChevronRight, Rocket, Sparkles, Wand2 } from 'lucide-react'
+import { useEffect, useState } from 'react'
 import { onboardingDismissedAtom } from '../../../shared/lib/atoms'
 
 export interface OnboardingWizardProps {
@@ -143,7 +143,9 @@ export function OnboardingWizard({
 								</div>
 								<div>
 									<p className="text-sm font-medium">Choose a template</p>
-									<p className="text-xs text-muted-foreground">Pre-built agents for common use cases</p>
+									<p className="text-xs text-muted-foreground">
+										Pre-built agents for common use cases
+									</p>
 								</div>
 							</div>
 							<div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
@@ -152,7 +154,9 @@ export function OnboardingWizard({
 								</div>
 								<div>
 									<p className="text-sm font-medium">Customize your agent</p>
-									<p className="text-xs text-muted-foreground">Tweak name, behavior, and capabilities</p>
+									<p className="text-xs text-muted-foreground">
+										Tweak name, behavior, and capabilities
+									</p>
 								</div>
 							</div>
 							<div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">

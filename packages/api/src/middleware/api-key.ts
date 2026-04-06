@@ -1,9 +1,9 @@
+import { config } from '@hare/config'
+import { apiKeys, workspaces } from '@hare/db'
+import type { ApiKeyEnv, ApiKeyInfo } from '@hare/types'
 import { eq } from 'drizzle-orm'
 import type { MiddlewareHandler } from 'hono'
-import { apiKeys, workspaces } from '@hare/db'
-import { config } from '@hare/config'
 import { getDb } from '../db'
-import type { ApiKeyEnv, ApiKeyInfo } from '@hare/types'
 
 // =============================================================================
 // Types

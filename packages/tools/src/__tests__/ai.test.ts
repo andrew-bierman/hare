@@ -1,14 +1,14 @@
-import { describe, expect, it, vi, beforeEach } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import {
+	classifyTool,
+	embeddingTool,
+	getAITools,
+	imageGenerateTool,
+	nerTool,
+	qaTool,
 	sentimentTool,
 	summarizeTool,
 	translateTool,
-	imageGenerateTool,
-	classifyTool,
-	nerTool,
-	embeddingTool,
-	qaTool,
-	getAITools,
 } from '../ai'
 import type { ToolContext } from '../types'
 
@@ -21,9 +21,7 @@ const createMockAI = () => ({
 })
 
 const createMockContext = (hasAI = true): ToolContext => ({
-	env: hasAI
-		? { AI: createMockAI() as unknown as Ai }
-		: ({} as ToolContext['env']),
+	env: hasAI ? { AI: createMockAI() as unknown as Ai } : ({} as ToolContext['env']),
 	workspaceId: 'test-workspace',
 	userId: 'test-user',
 })
@@ -144,7 +142,11 @@ describe('AI Tools', () => {
 				})
 
 				const result = await summarizeTool.execute(
-					{ text: 'This is a very long text that needs summarization. '.repeat(10), maxLength: 200, style: 'brief' },
+					{
+						text: 'This is a very long text that needs summarization. '.repeat(10),
+						maxLength: 200,
+						style: 'brief',
+					},
 					context,
 				)
 

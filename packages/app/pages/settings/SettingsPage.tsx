@@ -1,13 +1,8 @@
 'use client'
 
+import { changePassword, updateUser } from '@hare/auth/client'
 import { Button } from '@hare/ui/components/button'
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from '@hare/ui/components/card'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@hare/ui/components/card'
 import {
 	Dialog,
 	DialogContent,
@@ -25,13 +20,9 @@ import { Switch } from '@hare/ui/components/switch'
 import { Bell, Key, Loader2, LogOut, Shield, User } from 'lucide-react'
 import { type ChangeEvent, useEffect, useState } from 'react'
 import { toast } from 'sonner'
-import { updateUser, changePassword } from '@hare/auth/client'
-import { useAuth, useAuthActions } from '../../features/auth'
 import { useWorkspace } from '../../app/providers'
-import {
-	useUserPreferencesQuery,
-	useUpdateUserPreferencesMutation,
-} from '../../shared/api/hooks'
+import { useAuth, useAuthActions } from '../../features/auth'
+import { useUpdateUserPreferencesMutation, useUserPreferencesQuery } from '../../shared/api/hooks'
 
 export function SettingsPage() {
 	const { data: session, isPending: sessionLoading } = useAuth()
@@ -73,10 +64,8 @@ export function SettingsPage() {
 		try {
 			await updateUser({ name: name.trim() })
 			toast.success('Profile updated successfully')
-		} catch (error) {
-			toast.error(
-				error instanceof Error ? error.message : 'Failed to update profile',
-			)
+		} catch (_error) {
+			toast.error(error instanceof Error ? error.message : 'Failed to update profile')
 		} finally {
 			setIsUpdatingProfile(false)
 		}
@@ -110,10 +99,8 @@ export function SettingsPage() {
 			setCurrentPassword('')
 			setNewPassword('')
 			setConfirmPassword('')
-		} catch (error) {
-			toast.error(
-				error instanceof Error ? error.message : 'Failed to change password',
-			)
+		} catch (_error) {
+			toast.error(error instanceof Error ? error.message : 'Failed to change password')
 		} finally {
 			setIsChangingPassword(false)
 		}
@@ -122,10 +109,8 @@ export function SettingsPage() {
 	const handleToggleEmailNotifications = async (checked: boolean) => {
 		try {
 			await updatePreferencesMutation.mutateAsync({ emailNotifications: checked })
-			toast.success(
-				checked ? 'Email notifications enabled' : 'Email notifications disabled',
-			)
-		} catch (error) {
+			toast.success(checked ? 'Email notifications enabled' : 'Email notifications disabled')
+		} catch (_error) {
 			toast.error('Failed to update notification preference')
 		}
 	}
@@ -134,7 +119,7 @@ export function SettingsPage() {
 		try {
 			await updatePreferencesMutation.mutateAsync({ usageAlerts: checked })
 			toast.success(checked ? 'Usage alerts enabled' : 'Usage alerts disabled')
-		} catch (error) {
+		} catch (_error) {
 			toast.error('Failed to update usage alerts preference')
 		}
 	}
@@ -205,10 +190,7 @@ export function SettingsPage() {
 								Email cannot be changed. Contact support if you need to update it.
 							</p>
 						</div>
-						<Button
-							onClick={handleSaveProfile}
-							disabled={!hasProfileChanges || isUpdatingProfile}
-						>
+						<Button onClick={handleSaveProfile} disabled={!hasProfileChanges || isUpdatingProfile}>
 							{isUpdatingProfile ? (
 								<>
 									<Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -361,10 +343,7 @@ export function SettingsPage() {
 										>
 											Cancel
 										</Button>
-										<Button
-											onClick={handleChangePassword}
-											disabled={isChangingPassword}
-										>
+										<Button onClick={handleChangePassword} disabled={isChangingPassword}>
 											{isChangingPassword ? (
 												<>
 													<Loader2 className="mr-2 h-4 w-4 animate-spin" />

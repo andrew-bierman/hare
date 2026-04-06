@@ -4,15 +4,9 @@
  * TanStack Form-based agent creation/editing form with Zod validation.
  */
 
-import { useForm } from '@tanstack/react-form'
+import { type AIModel, config } from '@hare/config'
 import { Button } from '@hare/ui/components/button'
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from '@hare/ui/components/card'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@hare/ui/components/card'
 import { Input } from '@hare/ui/components/input'
 import { Label } from '@hare/ui/components/label'
 import {
@@ -23,9 +17,9 @@ import {
 	SelectValue,
 } from '@hare/ui/components/select'
 import { Textarea } from '@hare/ui/components/textarea'
+import { useForm } from '@tanstack/react-form'
 import { Loader2 } from 'lucide-react'
 import { z } from 'zod'
-import { config, type AIModel } from '@hare/config'
 
 /**
  * Form validation schema

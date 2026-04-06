@@ -86,9 +86,7 @@ export const browseUrlTool = createTool({
 				})
 
 				const truncated = rawContent.length > MAX_CONTENT_LENGTH
-				const content = truncated
-					? rawContent.slice(0, MAX_CONTENT_LENGTH)
-					: rawContent
+				const content = truncated ? rawContent.slice(0, MAX_CONTENT_LENGTH) : rawContent
 
 				return success({
 					url: finalUrl,
@@ -120,16 +118,8 @@ export const screenshotTool = createTool({
 		'Take a screenshot of a web page and store it in R2 storage. Returns the storage path for the screenshot.',
 	inputSchema: z.object({
 		url: z.string().url().describe('The URL to screenshot'),
-		width: z
-			.number()
-			.optional()
-			.default(1280)
-			.describe('Viewport width in pixels (default: 1280)'),
-		height: z
-			.number()
-			.optional()
-			.default(720)
-			.describe('Viewport height in pixels (default: 720)'),
+		width: z.number().optional().default(1280).describe('Viewport width in pixels (default: 1280)'),
+		height: z.number().optional().default(720).describe('Viewport height in pixels (default: 720)'),
 		fullPage: z
 			.boolean()
 			.optional()

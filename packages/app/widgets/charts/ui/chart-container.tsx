@@ -1,12 +1,6 @@
 'use client'
 
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from '@hare/ui/components/card'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@hare/ui/components/card'
 import { Skeleton } from '@hare/ui/components/skeleton'
 import type { ReactNode } from 'react'
 

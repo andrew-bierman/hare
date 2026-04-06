@@ -1,8 +1,9 @@
-import { betterAuth } from 'better-auth'
-import { drizzleAdapter } from 'better-auth/adapters/drizzle'
+import { COOKIE_CONFIG } from '@hare/config'
 import { createDb } from '@hare/db'
 import * as schema from '@hare/db/schema'
 import { createEmailService, type EmailEnv } from '@hare/email'
+import { betterAuth } from 'better-auth'
+import { drizzleAdapter } from 'better-auth/adapters/drizzle'
 
 /**
  * Server environment configuration required for auth
@@ -63,7 +64,10 @@ export function createAuth({ d1, env }: CreateAuthOptions) {
 				})
 
 				if (!result.success) {
-					console.error(`[Auth] Failed to send password reset email to ${user.email}:`, result.error)
+					console.error(
+						`[Auth] Failed to send password reset email to ${user.email}:`,
+						result.error,
+					)
 				} else {
 					console.log(`[Auth] Password reset email sent to ${user.email} (${result.messageId})`)
 				}
@@ -84,11 +88,11 @@ export function createAuth({ d1, env }: CreateAuthOptions) {
 			}),
 		},
 		session: {
-			expiresIn: 60 * 60 * 24 * 7, // 7 days
-			updateAge: 60 * 60 * 24, // 1 day
+			expiresIn: COOKIE_CONFIG.SESSION_EXPIRY_SECONDS,
+			updateAge: COOKIE_CONFIG.SESSION_UPDATE_AGE_SECONDS,
 			cookieCache: {
 				enabled: true,
-				maxAge: 60 * 5, // 5 minutes
+				maxAge: COOKIE_CONFIG.CACHE_MAX_AGE_SECONDS,
 			},
 		},
 		trustedOrigins: [

@@ -4,9 +4,10 @@
  * These helpers use Zod to validate and type-narrow tool results,
  * avoiding the need for type casts while maintaining type safety.
  */
-import { z } from 'zod'
-import type { ToolResult, ToolContext } from '../types'
+
 import type { Mock } from 'vitest'
+import { z } from 'zod'
+import type { ToolContext, ToolResult } from '../types'
 
 /**
  * Create a typed result validator for tool outputs.
@@ -101,9 +102,7 @@ export const ResultSchemas = {
 	regex: z.object({
 		matches: z.union([z.boolean(), z.array(z.unknown())]).optional(),
 		result: z.string().optional(),
-		extracted: z
-			.array(z.record(z.string(), z.string()))
-			.optional(),
+		extracted: z.array(z.record(z.string(), z.string())).optional(),
 	}),
 
 	random: z.object({
@@ -167,8 +166,18 @@ export const ResultSchemas = {
 		html: z.string().optional(),
 		text: z.string().optional(),
 		headings: z.array(z.object({ level: z.number(), text: z.string() })).optional(),
-		links: z.array(z.object({ href: z.string().optional(), text: z.string().optional(), isImage: z.boolean().optional() })).optional(),
-		codeBlocks: z.array(z.object({ language: z.string().optional(), code: z.string().optional() })).optional(),
+		links: z
+			.array(
+				z.object({
+					href: z.string().optional(),
+					text: z.string().optional(),
+					isImage: z.boolean().optional(),
+				}),
+			)
+			.optional(),
+		codeBlocks: z
+			.array(z.object({ language: z.string().optional(), code: z.string().optional() }))
+			.optional(),
 	}),
 
 	// Compression tool outputs
@@ -204,11 +213,13 @@ export const ResultSchemas = {
 
 	// Diff tool outputs
 	diff: z.object({
-		stats: z.object({
-			additions: z.number().optional(),
-			deletions: z.number().optional(),
-			totalChanges: z.number().optional(),
-		}).optional(),
+		stats: z
+			.object({
+				additions: z.number().optional(),
+				deletions: z.number().optional(),
+				totalChanges: z.number().optional(),
+			})
+			.optional(),
 		changes: z.array(z.unknown()).optional(),
 		unifiedDiff: z.string().optional(),
 	}),

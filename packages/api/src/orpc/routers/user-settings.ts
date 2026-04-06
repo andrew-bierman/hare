@@ -4,9 +4,9 @@
  * Handles user preferences with full type safety.
  */
 
-import { z } from 'zod'
-import { eq } from 'drizzle-orm'
 import { userPreferences } from '@hare/db/schema'
+import { eq } from 'drizzle-orm'
+import { z } from 'zod'
 import { authedProcedure, serverError } from '../base'
 
 // =============================================================================
@@ -31,7 +31,9 @@ const UpdateUserPreferencesInputSchema = z.object({
 // Helpers
 // =============================================================================
 
-function serializePreferences(prefs: typeof userPreferences.$inferSelect): z.infer<typeof UserPreferencesSchema> {
+function serializePreferences(
+	prefs: typeof userPreferences.$inferSelect,
+): z.infer<typeof UserPreferencesSchema> {
 	return {
 		id: prefs.id,
 		userId: prefs.userId,

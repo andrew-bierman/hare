@@ -1,10 +1,6 @@
-import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
-import {
-	loadAgentTools,
-	createToolFromConfig,
-	type ToolDatabase,
-} from '../factory'
-import type { ToolContext, ToolConfig, AnyTool, Tool } from '../types'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { createToolFromConfig, loadAgentTools, type ToolDatabase } from '../factory'
+import type { Tool, ToolConfig, ToolContext } from '../types'
 import { createFetchMock } from './test-utils'
 
 const createMockContext = (): ToolContext => ({
@@ -389,9 +385,7 @@ describe('Tool Factory', () => {
 				],
 			])
 
-			const agentToolMap: Map<string, string[]> = new Map([
-				['agent-1', ['custom-tool-1']],
-			])
+			const agentToolMap: Map<string, string[]> = new Map([['agent-1', ['custom-tool-1']]])
 
 			const customDb: ToolDatabase = {
 				getAgentToolIds: async (agentId) => {

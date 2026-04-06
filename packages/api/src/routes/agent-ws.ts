@@ -5,11 +5,6 @@
  * Provides real-time bidirectional communication with agents.
  */
 
-import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
-import type { Context } from 'hono'
-import { and, eq } from 'drizzle-orm'
-import { streamText, convertToModelMessages, type UIMessage } from 'ai'
-import { agents, workspaceMembers } from '@hare/db/schema'
 import {
 	type AgentConfig,
 	createAgentFromConfig,
@@ -17,10 +12,15 @@ import {
 	routeHttpToAgent,
 	routeWebSocketToAgent,
 } from '@hare/agent'
+import { agents, workspaceMembers } from '@hare/db/schema'
+import type { OptionalAuthEnv } from '@hare/types'
+import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
+import { convertToModelMessages, streamText, type UIMessage } from 'ai'
+import { and, eq } from 'drizzle-orm'
+import type { Context } from 'hono'
 import { type Database, getCloudflareEnv, getDb } from '../db'
 import { optionalAuthMiddleware } from '../middleware'
 import { ErrorSchema, IdParamSchema } from '../schemas'
-import type { OptionalAuthEnv } from '@hare/types'
 
 /**
  * Check if a user has access to a workspace.
@@ -240,173 +240,179 @@ const baseApp = new OpenAPIHono<OptionalAuthEnv>()
 baseApp.use('*', optionalAuthMiddleware)
 
 // WebSocket upgrade handler
-const app = baseApp.openapi(agentWebSocketRoute, async (c) => {
-	const { id: agentId } = c.req.valid('param')
-	const db = getDb(c)
-	const env = getCloudflareEnv(c)
-	const user = c.get('user')
+const app = baseApp
+	.openapi(agentWebSocketRoute, async (c) => {
+		const { id: agentId } = c.req.valid('param')
+		const db = getDb(c)
+		const env = getCloudflareEnv(c)
+		const user = c.get('user')
 
-	// Check if it's a WebSocket request
-	if (!isWebSocketRequest(c.req.raw)) {
-		return c.json({ error: 'WebSocket upgrade required' }, 400)
-	}
-
-	// Verify agent exists and is deployed
-	const [agent] = await db.select().from(agents).where(eq(agents.id, agentId))
-
-	if (!agent) {
-		return c.json({ error: 'Agent not found' }, 404)
-	}
-
-	if (agent.status !== 'deployed') {
-		return c.json({ error: 'Agent not deployed' }, 400)
-	}
-
-	// Authorization: verify user has access to the agent's workspace
-	if (user?.id) {
-		const hasAccess = await hasWorkspaceAccess(db, user.id, agent.workspaceId)
-		if (!hasAccess) {
-			return c.json({ error: 'Unauthorized: no access to this workspace' }, 403)
+		// Check if it's a WebSocket request
+		if (!isWebSocketRequest(c.req.raw)) {
+			return c.json({ error: 'WebSocket upgrade required' }, 400)
 		}
-	}
 
-	// Add user context to headers
-	const headers = new Headers(c.req.raw.headers)
-	headers.set('x-user-id', user?.id || 'anonymous')
-	headers.set('x-workspace-id', agent.workspaceId)
+		// Verify agent exists and is deployed
+		const [agent] = await db.select().from(agents).where(eq(agents.id, agentId))
 
-	const request = new Request(c.req.raw.url, {
-		method: c.req.raw.method,
-		headers,
+		if (!agent) {
+			return c.json({ error: 'Agent not found' }, 404)
+		}
+
+		if (agent.status !== 'deployed') {
+			return c.json({ error: 'Agent not deployed' }, 400)
+		}
+
+		// Authorization: verify user has access to the agent's workspace
+		if (user?.id) {
+			const hasAccess = await hasWorkspaceAccess(db, user.id, agent.workspaceId)
+			if (!hasAccess) {
+				return c.json({ error: 'Unauthorized: no access to this workspace' }, 403)
+			}
+		}
+
+		// Add user context to headers
+		const headers = new Headers(c.req.raw.headers)
+		headers.set('x-user-id', user?.id || 'anonymous')
+		headers.set('x-workspace-id', agent.workspaceId)
+
+		const request = new Request(c.req.raw.url, {
+			method: c.req.raw.method,
+			headers,
+		})
+
+		// Route to the HareAgent Durable Object
+		return routeWebSocketToAgent({ request, env, agentId })
 	})
+	// Get agent state handler
+	.openapi(agentStateRoute, async (c) => {
+		const { id: agentId } = c.req.valid('param')
+		const db = getDb(c)
+		const env = getCloudflareEnv(c)
+		const user = c.get('user')
 
-	// Route to the HareAgent Durable Object
-	return routeWebSocketToAgent({ request, env, agentId })
-})
-// Get agent state handler
-.openapi(agentStateRoute, async (c) => {
-	const { id: agentId } = c.req.valid('param')
-	const db = getDb(c)
-	const env = getCloudflareEnv(c)
-	const user = c.get('user')
+		// Verify agent exists
+		const [agent] = await db.select().from(agents).where(eq(agents.id, agentId))
 
-	// Verify agent exists
-	const [agent] = await db.select().from(agents).where(eq(agents.id, agentId))
-
-	if (!agent) {
-		return c.json({ error: 'Agent not found' }, 404)
-	}
-
-	// Authorization: verify user has access to the agent's workspace
-	if (user?.id) {
-		const hasAccess = await hasWorkspaceAccess(db, user.id, agent.workspaceId)
-		if (!hasAccess) {
-			return c.json({ error: 'Unauthorized: no access to this workspace' }, 403)
+		if (!agent) {
+			return c.json({ error: 'Agent not found' }, 404)
 		}
-	}
 
-	// Get state from Durable Object
-	const response = await routeHttpToAgent({ request: c.req.raw, env, agentId, path: '/state' })
-	const state = (await response.json()) as {
-		agentId: string
-		workspaceId: string
-		name: string
-		instructions: string
-		model: string
-		messages: { role: 'user' | 'assistant' | 'system'; content: string }[]
-		isProcessing: boolean
-		lastActivity: number
-		connectedUsers: string[]
-		status: 'idle' | 'processing' | 'error'
-	}
-
-	return c.json(state, 200)
-})
-// Configure agent handler
-.openapi(configureAgentRoute, async (c) => {
-	const { id: agentId } = c.req.valid('param')
-	const config = c.req.valid('json')
-	const db = getDb(c)
-	const env = getCloudflareEnv(c)
-	const user = c.get('user')
-
-	// Verify agent exists
-	const [agent] = await db.select().from(agents).where(eq(agents.id, agentId))
-
-	if (!agent) {
-		return c.json({ error: 'Agent not found' }, 404)
-	}
-
-	// Authorization: verify user has write access to configure agents
-	if (user?.id) {
-		const hasAccess = await hasWorkspaceWriteAccess(db, user.id, agent.workspaceId)
-		if (!hasAccess) {
-			return c.json({ error: 'Unauthorized: no write access to this workspace' }, 403)
+		// Authorization: verify user has access to the agent's workspace
+		if (user?.id) {
+			const hasAccess = await hasWorkspaceAccess(db, user.id, agent.workspaceId)
+			if (!hasAccess) {
+				return c.json({ error: 'Unauthorized: no access to this workspace' }, 403)
+			}
 		}
-	} else {
-		return c.json({ error: 'Unauthorized: authentication required' }, 401)
-	}
 
-	// Configure the Durable Object
-	const configRequest = new Request(new URL('/configure', c.req.url).toString(), {
-		method: 'POST',
-		headers: { 'Content-Type': 'application/json' },
-		body: JSON.stringify({
+		// Get state from Durable Object
+		const response = await routeHttpToAgent({ request: c.req.raw, env, agentId, path: '/state' })
+		const state = (await response.json()) as {
+			agentId: string
+			workspaceId: string
+			name: string
+			instructions: string
+			model: string
+			messages: { role: 'user' | 'assistant' | 'system'; content: string }[]
+			isProcessing: boolean
+			lastActivity: number
+			connectedUsers: string[]
+			status: 'idle' | 'processing' | 'error'
+		}
+
+		return c.json(state, 200)
+	})
+	// Configure agent handler
+	.openapi(configureAgentRoute, async (c) => {
+		const { id: agentId } = c.req.valid('param')
+		const config = c.req.valid('json')
+		const db = getDb(c)
+		const env = getCloudflareEnv(c)
+		const user = c.get('user')
+
+		// Verify agent exists
+		const [agent] = await db.select().from(agents).where(eq(agents.id, agentId))
+
+		if (!agent) {
+			return c.json({ error: 'Agent not found' }, 404)
+		}
+
+		// Authorization: verify user has write access to configure agents
+		if (user?.id) {
+			const hasAccess = await hasWorkspaceWriteAccess(db, user.id, agent.workspaceId)
+			if (!hasAccess) {
+				return c.json({ error: 'Unauthorized: no write access to this workspace' }, 403)
+			}
+		} else {
+			return c.json({ error: 'Unauthorized: authentication required' }, 401)
+		}
+
+		// Configure the Durable Object
+		const configRequest = new Request(new URL('/configure', c.req.url).toString(), {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({
+				agentId,
+				workspaceId: agent.workspaceId,
+				name: config.name || agent.name,
+				instructions: config.instructions || agent.instructions,
+				model: config.model || agent.model,
+			}),
+		})
+
+		const response = await routeHttpToAgent({
+			request: configRequest,
+			env,
 			agentId,
-			workspaceId: agent.workspaceId,
-			name: config.name || agent.name,
-			instructions: config.instructions || agent.instructions,
-			model: config.model || agent.model,
-		}),
+			path: '/configure',
+		})
+		const state = await response.json()
+
+		return c.json({ success: true, state }, 200)
 	})
+	// Get agent schedules handler
+	.openapi(agentSchedulesRoute, async (c) => {
+		const { id: agentId } = c.req.valid('param')
+		const db = getDb(c)
+		const env = getCloudflareEnv(c)
+		const user = c.get('user')
 
-	const response = await routeHttpToAgent({
-		request: configRequest,
-		env,
-		agentId,
-		path: '/configure',
-	})
-	const state = await response.json()
+		// Verify agent exists
+		const [agent] = await db.select().from(agents).where(eq(agents.id, agentId))
 
-	return c.json({ success: true, state }, 200)
-})
-// Get agent schedules handler
-.openapi(agentSchedulesRoute, async (c) => {
-	const { id: agentId } = c.req.valid('param')
-	const db = getDb(c)
-	const env = getCloudflareEnv(c)
-	const user = c.get('user')
-
-	// Verify agent exists
-	const [agent] = await db.select().from(agents).where(eq(agents.id, agentId))
-
-	if (!agent) {
-		return c.json({ error: 'Agent not found' }, 404)
-	}
-
-	// Authorization: verify user has access to the agent's workspace
-	if (user?.id) {
-		const hasAccess = await hasWorkspaceAccess(db, user.id, agent.workspaceId)
-		if (!hasAccess) {
-			return c.json({ error: 'Unauthorized: no access to this workspace' }, 403)
+		if (!agent) {
+			return c.json({ error: 'Agent not found' }, 404)
 		}
-	}
 
-	// Get schedules from Durable Object
-	const response = await routeHttpToAgent({ request: c.req.raw, env, agentId, path: '/schedules' })
-	const result = (await response.json()) as {
-		schedules: Array<{
-			id: string
-			type: 'one-time' | 'recurring'
-			executeAt?: number
-			cron?: string
-			action: string
-			payload?: Record<string, unknown>
-		}>
-	}
+		// Authorization: verify user has access to the agent's workspace
+		if (user?.id) {
+			const hasAccess = await hasWorkspaceAccess(db, user.id, agent.workspaceId)
+			if (!hasAccess) {
+				return c.json({ error: 'Unauthorized: no access to this workspace' }, 403)
+			}
+		}
 
-	return c.json(result, 200)
-})
+		// Get schedules from Durable Object
+		const response = await routeHttpToAgent({
+			request: c.req.raw,
+			env,
+			agentId,
+			path: '/schedules',
+		})
+		const result = (await response.json()) as {
+			schedules: Array<{
+				id: string
+				type: 'one-time' | 'recurring'
+				executeAt?: number
+				cron?: string
+				action: string
+				payload?: Record<string, unknown>
+			}>
+		}
+
+		return c.json(result, 200)
+	})
 
 // Shared chat handler for AI SDK streaming chat endpoint
 // Handles the AI SDK DefaultChatTransport protocol (messages array in, data stream out)
@@ -478,10 +484,7 @@ async function handleChat(c: Context<OptionalAuthEnv>) {
 		})
 	} catch (error) {
 		console.error('[chat] Error:', error)
-		return c.json(
-			{ error: error instanceof Error ? error.message : 'Internal server error' },
-			500,
-		)
+		return c.json({ error: error instanceof Error ? error.message : 'Internal server error' }, 500)
 	}
 }
 

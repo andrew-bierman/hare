@@ -99,6 +99,10 @@ export const ContentLengths = {
 	AI_SHORT: 5_000,
 	/** Max text length for translation and NER */
 	AI_MEDIUM: 10_000,
+	/** Max text length for summarization */
+	AI_LONG: 50_000,
+	/** Max context length for RAG/question-answer operations */
+	RAG_CONTEXT: 15_000,
 	/** Max content length for memory storage */
 	MEMORY: 5_000,
 	/** Max content length for web scraping */

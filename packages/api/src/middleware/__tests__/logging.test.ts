@@ -1,13 +1,7 @@
-import { describe, expect, it, vi, beforeEach } from 'vitest'
-import { Hono } from 'hono'
 import type { CloudflareEnv, HonoEnv } from '@hare/types'
-import {
-	loggingMiddleware,
-	getLogs,
-	getLogStats,
-	type RequestLog,
-	type LogQueryParams,
-} from '../logging'
+import { Hono } from 'hono'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { getLogStats, getLogs, loggingMiddleware, type RequestLog } from '../logging'
 
 // Mock KV namespace
 function createMockKV() {

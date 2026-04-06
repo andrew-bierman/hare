@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { Timeouts } from './constants'
 import { delegateTo } from './delegate'
 import { isRedirectSafe, isUrlSafe, MAX_REDIRECT_HOPS } from './security/ssrf'
 import { createTool, failure, success, type ToolContext } from './types'
@@ -35,7 +36,11 @@ export const httpRequestTool = createTool({
 			.describe('HTTP method'),
 		headers: z.record(z.string(), z.string()).optional().describe('Additional headers to include'),
 		body: z.string().optional().describe('Request body (for POST, PUT, PATCH)'),
-		timeout: z.number().optional().default(30000).describe('Request timeout in milliseconds'),
+		timeout: z
+			.number()
+			.optional()
+			.default(Timeouts.HTTP_DEFAULT)
+			.describe('Request timeout in milliseconds'),
 	}),
 	outputSchema: HttpResponseOutputSchema,
 	execute: async (params, _context) => {
@@ -142,7 +147,7 @@ export const httpGetTool = createTool({
 	execute: async (params, context) => {
 		return delegateTo({
 			tool: httpRequestTool,
-			params: { ...params, method: 'GET', timeout: 30000 },
+			params: { ...params, method: 'GET', timeout: Timeouts.HTTP_DEFAULT },
 			context,
 		})
 	},
@@ -169,7 +174,7 @@ export const httpPostTool = createTool({
 				method: 'POST',
 				body,
 				headers: params.headers,
-				timeout: 30000,
+				timeout: Timeouts.HTTP_DEFAULT,
 			},
 			context,
 		})

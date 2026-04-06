@@ -6,7 +6,7 @@
  * we mock the SDK dependencies and test the business logic.
  */
 
-import { describe, expect, it, vi, beforeEach } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { z } from 'zod'
 
 // Mock the agents SDK

@@ -4,8 +4,8 @@
  * Efficiently renders large conversation message lists using TanStack Virtual.
  */
 
-import { useVirtualizer } from '@tanstack/react-virtual'
 import { cn } from '@hare/ui/lib/utils'
+import { useVirtualizer } from '@tanstack/react-virtual'
 import { Bot, Loader2, User } from 'lucide-react'
 import { memo, useCallback, useEffect, useRef } from 'react'
 import { MarkdownContent } from './markdown-content'

@@ -1,6 +1,6 @@
-import { describe, expect, it, vi, beforeEach } from 'vitest'
+import type { AuthEnv, CloudflareEnv, OptionalAuthEnv } from '@hare/types'
 import { Hono } from 'hono'
-import type { AuthEnv, OptionalAuthEnv, CloudflareEnv } from '@hare/types'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 // Mock the auth module
 vi.mock('@hare/auth/server', () => ({
@@ -112,8 +112,8 @@ describe('auth middleware', () => {
 
 			const { authMiddleware } = await import('../auth')
 
-			let contextUser: unknown = null
-			let contextSession: unknown = null
+			let _contextUser: unknown = null
+			let _contextSession: unknown = null
 
 			const app = new Hono<AuthEnv>()
 			app.use('*', async (c, next) => {
@@ -126,8 +126,8 @@ describe('auth middleware', () => {
 			})
 			app.use('*', authMiddleware)
 			app.get('/protected', (c) => {
-				contextUser = c.get('user')
-				contextSession = c.get('session')
+				_contextUser = c.get('user')
+				_contextSession = c.get('session')
 				return c.text('OK')
 			})
 
@@ -201,7 +201,7 @@ describe('auth middleware', () => {
 
 			const { optionalAuthMiddleware } = await import('../auth')
 
-			let contextUser: unknown = null
+			let _contextUser: unknown = null
 
 			const app = new Hono<OptionalAuthEnv>()
 			app.use('*', async (c, next) => {
@@ -214,7 +214,7 @@ describe('auth middleware', () => {
 			})
 			app.use('*', optionalAuthMiddleware)
 			app.get('/public', (c) => {
-				contextUser = c.get('user')
+				_contextUser = c.get('user')
 				return c.text('OK')
 			})
 
@@ -233,7 +233,7 @@ describe('auth middleware', () => {
 
 			const { optionalAuthMiddleware } = await import('../auth')
 
-			let contextUser: unknown = 'not-set'
+			let _contextUser: unknown = 'not-set'
 
 			const app = new Hono<OptionalAuthEnv>()
 			app.use('*', async (c, next) => {
@@ -246,7 +246,7 @@ describe('auth middleware', () => {
 			})
 			app.use('*', optionalAuthMiddleware)
 			app.get('/public', (c) => {
-				contextUser = c.get('user')
+				_contextUser = c.get('user')
 				return c.text('OK')
 			})
 

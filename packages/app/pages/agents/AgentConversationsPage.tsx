@@ -2,13 +2,7 @@
 
 import { Badge } from '@hare/ui/components/badge'
 import { Button } from '@hare/ui/components/button'
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from '@hare/ui/components/card'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@hare/ui/components/card'
 import { Input } from '@hare/ui/components/input'
 import { Label } from '@hare/ui/components/label'
 import { ScrollArea } from '@hare/ui/components/scroll-area'
@@ -17,6 +11,7 @@ import { Skeleton } from '@hare/ui/components/skeleton'
 import { Link, useNavigate } from '@tanstack/react-router'
 import {
 	ArrowLeft,
+	Bot,
 	Calendar,
 	ChevronLeft,
 	ChevronRight,
@@ -25,14 +20,13 @@ import {
 	MessageSquare,
 	Search,
 	User,
-	Bot,
 	X,
 } from 'lucide-react'
 import { type ChangeEvent, type FormEvent, useCallback, useState } from 'react'
 import {
+	type ConversationSearchResult,
 	useAgentQuery,
 	useConversationSearchQuery,
-	type ConversationSearchResult,
 } from '../../shared/api'
 
 export interface AgentConversationsPageProps {
@@ -74,7 +68,7 @@ function EmptyState({ hasSearch }: { hasSearch: boolean }) {
 			</h3>
 			<p className="text-muted-foreground text-sm max-w-md">
 				{hasSearch
-					? 'Try adjusting your search query or date filters to find what you\'re looking for.'
+					? "Try adjusting your search query or date filters to find what you're looking for."
 					: 'Enter a search term to find messages across all conversations with this agent.'}
 			</p>
 		</div>
@@ -98,24 +92,15 @@ function SearchResultCard({ result, onClick }: SearchResultCardProps) {
 	}
 
 	return (
-		<Card
-			className="cursor-pointer transition-colors hover:bg-muted/50"
-			onClick={onClick}
-		>
+		<Card className="cursor-pointer transition-colors hover:bg-muted/50" onClick={onClick}>
 			<CardContent className="p-4">
 				<div className="flex items-start gap-3">
 					<div
 						className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${
-							result.role === 'user'
-								? 'bg-primary text-primary-foreground'
-								: 'bg-muted'
+							result.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted'
 						}`}
 					>
-						{result.role === 'user' ? (
-							<User className="h-4 w-4" />
-						) : (
-							<Bot className="h-4 w-4" />
-						)}
+						{result.role === 'user' ? <User className="h-4 w-4" /> : <Bot className="h-4 w-4" />}
 					</div>
 					<div className="flex-1 min-w-0 space-y-1">
 						<div className="flex items-center justify-between gap-2">
@@ -319,8 +304,7 @@ export function AgentConversationsPage({ agentId }: AgentConversationsPageProps)
 					</div>
 					{hasSearch && (
 						<CardDescription>
-							Showing results for "{searchQuery}"
-							{hasFilters && ' with date filters applied'}
+							Showing results for "{searchQuery}"{hasFilters && ' with date filters applied'}
 						</CardDescription>
 					)}
 				</CardHeader>

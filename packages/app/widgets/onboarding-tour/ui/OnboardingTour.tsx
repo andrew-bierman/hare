@@ -1,11 +1,11 @@
 'use client'
 
-import { useState, useEffect, useCallback, useRef } from 'react'
-import { createPortal } from 'react-dom'
 import { Button } from '@hare/ui/components/button'
 import { Progress } from '@hare/ui/components/progress'
 import { cn } from '@hare/ui/lib/utils'
-import { X, ChevronLeft, ChevronRight, SkipForward } from 'lucide-react'
+import { ChevronLeft, ChevronRight, SkipForward, X } from 'lucide-react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 
 /**
  * Position of the tour tooltip relative to the target element
@@ -239,7 +239,7 @@ export function OnboardingTour({
 		}
 
 		setIsVisible(true)
-	}, [currentStep, isActive, isLastStep, onNext])
+	}, [currentStep, isActive, onSkip])
 
 	// Initial positioning and resize handling
 	useEffect(() => {
@@ -272,7 +272,7 @@ export function OnboardingTour({
 			}, 100)
 			return () => clearTimeout(timer)
 		}
-	}, [currentStepIndex, isActive, updatePositions])
+	}, [isActive, updatePositions])
 
 	// Re-calculate when tooltip ref becomes available
 	useEffect(() => {
@@ -312,6 +312,8 @@ export function OnboardingTour({
 			{/* Overlay with cutout for highlighted element */}
 			<div className="fixed inset-0 z-[9998]">
 				{/* Semi-transparent backdrop — click to dismiss */}
+				{/* biome-ignore lint/a11y/noStaticElementInteractions: backdrop div with click handler for dismissal */}
+				{/* biome-ignore lint/a11y/useKeyWithClickEvents: backdrop click handled by keyboard via button alternative */}
 				<div className="absolute inset-0 bg-black/50 cursor-pointer" onClick={handleSkip} />
 
 				{/* Cutout for highlighted element */}

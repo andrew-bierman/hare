@@ -2,11 +2,8 @@
  * Tests for @hare/email - Service and template export verification
  */
 
-import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
-import {
-	createEmailService,
-	EmailService,
-} from '../index'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { createEmailService, EmailService } from '../index'
 
 // Suppress console.warn from EmailService constructor (no RESEND_API_KEY in tests)
 let warnSpy: ReturnType<typeof vi.spyOn>

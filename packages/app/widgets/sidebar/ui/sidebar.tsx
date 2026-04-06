@@ -1,9 +1,18 @@
 'use client'
 
+import { config } from '@hare/config'
 import { Badge } from '@hare/ui/components/badge'
 import { cn } from '@hare/ui/lib/utils'
-import { Activity, BarChart3, Bot, ExternalLink, Home, Rabbit, Settings, Wrench } from 'lucide-react'
-import { config } from '@hare/config'
+import {
+	Activity,
+	BarChart3,
+	Bot,
+	ExternalLink,
+	Home,
+	Rabbit,
+	Settings,
+	Wrench,
+} from 'lucide-react'
 
 const ICONS = { Home, Bot, Wrench, Activity, Settings, BarChart3 } as const
 

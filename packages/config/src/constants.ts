@@ -187,6 +187,10 @@ export const HTTP_STATUS = {
 export const COOKIE_CONFIG = {
 	/** Session cookie expiry in seconds (7 days) */
 	SESSION_EXPIRY_SECONDS: 60 * 60 * 24 * 7,
+	/** Session update age in seconds (1 day) */
+	SESSION_UPDATE_AGE_SECONDS: 60 * 60 * 24,
+	/** Cookie cache max-age in seconds (5 minutes) */
+	CACHE_MAX_AGE_SECONDS: 60 * 5,
 	/** Workspace cookie expiry in seconds (30 days) */
 	WORKSPACE_EXPIRY_SECONDS: 60 * 60 * 24 * 30,
 	/** Default cookie path */
@@ -255,6 +259,75 @@ export const API_KEY_CONFIG = {
 	PREFIX_DISPLAY_LENGTH: 12,
 	/** Random bytes for API key generation */
 	RANDOM_BYTES: 32,
+} as const
+
+// =============================================================================
+// Security Timing
+// =============================================================================
+
+export const SECURITY_TIMING = {
+	/** HSTS max-age in seconds (1 year) */
+	HSTS_MAX_AGE_SECONDS: 31_536_000,
+	/** CORS preflight cache duration in seconds (24 hours) */
+	CORS_PREFLIGHT_CACHE_SECONDS: 86_400,
+} as const
+
+// =============================================================================
+// Request Size Limits
+// =============================================================================
+
+export const REQUEST_SIZE_LIMITS = {
+	/** Maximum JSON payload size in bytes (1MB) */
+	JSON_BYTES: 1 * 1024 * 1024,
+	/** Maximum text payload size in bytes (512KB) */
+	TEXT_BYTES: 512 * 1024,
+	/** Maximum form/file upload size in bytes (10MB) */
+	FORM_BYTES: 10 * 1024 * 1024,
+	/** Default maximum payload size in bytes (1MB) */
+	DEFAULT_BYTES: 1 * 1024 * 1024,
+} as const
+
+// =============================================================================
+// LLM Limits
+// =============================================================================
+
+export const LLM_LIMITS = {
+	/** Maximum tokens for LLM requests */
+	MAX_TOKENS: 100_000,
+} as const
+
+// =============================================================================
+// Memory Limits
+// =============================================================================
+
+export const MEMORY_LIMITS = {
+	/** Maximum memory content length in characters */
+	CONTENT_MAX_CHARS: 10_000,
+	/** Maximum memory source identifier length in characters */
+	SOURCE_MAX_CHARS: 500,
+} as const
+
+// =============================================================================
+// Billing Limits
+// =============================================================================
+
+export const BILLING_LIMITS = {
+	free: {
+		maxAgents: 3,
+		maxMessagesPerMonth: 1_000,
+	},
+	pro: {
+		maxAgents: 20,
+		maxMessagesPerMonth: 50_000,
+	},
+	team: {
+		maxAgents: -1, // Unlimited
+		maxMessagesPerMonth: 500_000,
+	},
+	enterprise: {
+		maxAgents: -1, // Unlimited
+		maxMessagesPerMonth: -1, // Unlimited
+	},
 } as const
 
 // =============================================================================

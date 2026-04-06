@@ -1,7 +1,7 @@
-import { type z, toJSONSchema } from 'zod/v4'
-import type { InferSelectModel } from 'drizzle-orm'
 import type { tools } from '@hare/db'
 import type { AnyTool } from '@hare/tools'
+import type { InferSelectModel } from 'drizzle-orm'
+import { toJSONSchema, type z } from 'zod/v4'
 import type { ToolSchema, ToolTypeSchema } from '../schemas'
 
 type ToolRow = InferSelectModel<typeof tools>
@@ -170,7 +170,10 @@ function zodSchemaToInputSchema(zodSchema: unknown, toolId?: string): NonNullabl
 		return {}
 	} catch (error) {
 		// Log schema conversion failures to help debug tool definition issues
-		console.error(`[tool-serializer] Failed to convert schema for tool "${toolId || 'unknown'}":`, error)
+		console.error(
+			`[tool-serializer] Failed to convert schema for tool "${toolId || 'unknown'}":`,
+			error,
+		)
 		return {}
 	}
 }
