@@ -30,7 +30,8 @@
     {
       "binding": "DB",
       "database_name": "hare-db",
-      "database_id": "e2e-local-id"
+      "database_id": "e2e-local-id",
+      "migrations_dir": "./migrations"
     }
   ],
 
