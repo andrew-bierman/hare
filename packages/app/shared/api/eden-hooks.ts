@@ -843,16 +843,17 @@ export function useAgentHealthQuery(
 export function useFeedbackStatsMutation() {
 	return useMutation({
 		mutationFn: (input: { id: string; startDate?: string; endDate?: string }) =>
-			orpc.feedback.getStats(input),
+			unwrap(client.api.feedback.stats({ id: input.id }).get({ query: input as any })),
 	})
 }
 
 export function useCreateFeedbackMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: (input: Parameters<typeof orpc.feedback.create>[0]) => orpc.feedback.create(input),
+		mutationFn: (input: Record<string, unknown>) =>
+			unwrap(client.api.feedback.post(input as any)),
 		onSuccess: (_, variables) => {
-			queryClient.invalidateQueries({ queryKey: ['feedback', variables.agentId] })
+			queryClient.invalidateQueries({ queryKey: ['feedback', (variables as any).agentId] })
 		},
 	})
 }
@@ -864,15 +865,15 @@ export function useCreateFeedbackMutation() {
 export function useKnowledgeBasesQuery() {
 	return useQuery({
 		queryKey: ['knowledge-bases'],
-		queryFn: () => orpc.knowledgeBases.list({}),
-		enabled: !!getOrpcWorkspaceId(),
+		queryFn: () => unwrap(client.api['knowledge-base'].get()),
+		enabled: !!getWorkspaceId(),
 	})
 }
 
 export function useKnowledgeBaseQuery(id: string | undefined) {
 	return useQuery({
 		queryKey: ['knowledge-bases', id],
-		queryFn: () => orpc.knowledgeBases.get({ id: id! }),
+		queryFn: () => unwrap(client.api['knowledge-base']({ id: id! }).get()),
 		enabled: !!id,
 	})
 }
@@ -880,8 +881,8 @@ export function useKnowledgeBaseQuery(id: string | undefined) {
 export function useCreateKnowledgeBaseMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: (input: Parameters<typeof orpc.knowledgeBases.create>[0]) =>
-			orpc.knowledgeBases.create(input),
+		mutationFn: (input: Record<string, unknown>) =>
+			unwrap(client.api['knowledge-base'].post(input as any)),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['knowledge-bases'] })
 		},
@@ -891,7 +892,8 @@ export function useCreateKnowledgeBaseMutation() {
 export function useDeleteKnowledgeBaseMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: (input: { id: string }) => orpc.knowledgeBases.delete(input),
+		mutationFn: (input: { id: string }) =>
+			unwrap(client.api['knowledge-base']({ id: input.id }).delete()),
 		onSuccess: (_, variables) => {
 			queryClient.invalidateQueries({ queryKey: ['knowledge-bases'] })
 			queryClient.invalidateQueries({ queryKey: ['knowledge-bases', variables.id] })
@@ -902,7 +904,7 @@ export function useDeleteKnowledgeBaseMutation() {
 export function useKnowledgeBaseDocumentsQuery(kbId: string | undefined) {
 	return useQuery({
 		queryKey: ['knowledge-bases', kbId, 'documents'],
-		queryFn: () => orpc.knowledgeBases.listDocuments({ id: kbId! }),
+		queryFn: () => unwrap(client.api['knowledge-base']({ id: kbId! }).documents.get()),
 		enabled: !!kbId,
 	})
 }
@@ -910,8 +912,10 @@ export function useKnowledgeBaseDocumentsQuery(kbId: string | undefined) {
 export function useAddDocumentUrlMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: (input: Parameters<typeof orpc.knowledgeBases.addUrl>[0]) =>
-			orpc.knowledgeBases.addUrl(input),
+		mutationFn: (input: { id: string } & Record<string, unknown>) => {
+			const { id, ...body } = input
+			return unwrap(client.api['knowledge-base']({ id }).documents.url.post(body as any))
+		},
 		onSuccess: (_, variables) => {
 			queryClient.invalidateQueries({ queryKey: ['knowledge-bases', variables.id, 'documents'] })
 			queryClient.invalidateQueries({ queryKey: ['knowledge-bases', variables.id] })
@@ -926,7 +930,7 @@ export function useAddDocumentUrlMutation() {
 export function useGuardrailsQuery(agentId: string | undefined) {
 	return useQuery({
 		queryKey: ['guardrails', agentId],
-		queryFn: () => orpc.guardrails.list({ agentId: agentId! }),
+		queryFn: () => unwrap(client.api.guardrails.get({ query: { agentId: agentId! } as any })),
 		enabled: !!agentId,
 	})
 }
@@ -934,10 +938,10 @@ export function useGuardrailsQuery(agentId: string | undefined) {
 export function useCreateGuardrailMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: (input: Parameters<typeof orpc.guardrails.create>[0]) =>
-			orpc.guardrails.create(input),
+		mutationFn: (input: Record<string, unknown>) =>
+			unwrap(client.api.guardrails.post(input as any)),
 		onSuccess: (_, variables) => {
-			queryClient.invalidateQueries({ queryKey: ['guardrails', variables.agentId] })
+			queryClient.invalidateQueries({ queryKey: ['guardrails', (variables as any).agentId] })
 		},
 	})
 }
@@ -945,8 +949,10 @@ export function useCreateGuardrailMutation() {
 export function useUpdateGuardrailMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: (input: Parameters<typeof orpc.guardrails.update>[0]) =>
-			orpc.guardrails.update(input),
+		mutationFn: (input: { id: string } & Record<string, unknown>) => {
+			const { id, ...body } = input
+			return unwrap(client.api.guardrails({ id }).patch(body as any))
+		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['guardrails'] })
 		},
@@ -956,7 +962,8 @@ export function useUpdateGuardrailMutation() {
 export function useDeleteGuardrailMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: (input: { id: string }) => orpc.guardrails.delete(input),
+		mutationFn: (input: { id: string }) =>
+			unwrap(client.api.guardrails({ id: input.id }).delete()),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['guardrails'] })
 		},
@@ -972,7 +979,8 @@ export function useGuardrailViolationsQuery(options: {
 	const { agentId, limit, offset, enabled = true } = options
 	return useQuery({
 		queryKey: ['guardrails', 'violations', { agentId, limit, offset }],
-		queryFn: () => orpc.guardrails.getViolations({ agentId, limit, offset }),
+		queryFn: () =>
+			unwrap(client.api.guardrails.violations.get({ query: { agentId, limit, offset } as any })),
 		enabled,
 	})
 }
@@ -984,15 +992,15 @@ export function useGuardrailViolationsQuery(options: {
 export function useWorkflowsQuery() {
 	return useQuery({
 		queryKey: ['workflows'],
-		queryFn: () => orpc.workflows.list({}),
-		enabled: !!getOrpcWorkspaceId(),
+		queryFn: () => unwrap(client.api.workflows.get()),
+		enabled: !!getWorkspaceId(),
 	})
 }
 
 export function useWorkflowQuery(id: string | undefined) {
 	return useQuery({
 		queryKey: ['workflows', id],
-		queryFn: () => orpc.workflows.get({ id: id! }),
+		queryFn: () => unwrap(client.api.workflows({ id: id! }).get()),
 		enabled: !!id,
 	})
 }
@@ -1000,8 +1008,8 @@ export function useWorkflowQuery(id: string | undefined) {
 export function useCreateWorkflowMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: (input: Parameters<typeof orpc.workflows.create>[0]) =>
-			orpc.workflows.create(input),
+		mutationFn: (input: Record<string, unknown>) =>
+			unwrap(client.api.workflows.post(input as any)),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['workflows'] })
 		},
@@ -1011,8 +1019,10 @@ export function useCreateWorkflowMutation() {
 export function useUpdateWorkflowMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: (input: Parameters<typeof orpc.workflows.update>[0]) =>
-			orpc.workflows.update(input),
+		mutationFn: (input: { id: string } & Record<string, unknown>) => {
+			const { id, ...body } = input
+			return unwrap(client.api.workflows({ id }).patch(body as any))
+		},
 		onSuccess: (_, variables) => {
 			queryClient.invalidateQueries({ queryKey: ['workflows'] })
 			queryClient.invalidateQueries({ queryKey: ['workflows', variables.id] })
@@ -1023,7 +1033,8 @@ export function useUpdateWorkflowMutation() {
 export function useDeleteWorkflowMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: (input: { id: string }) => orpc.workflows.delete(input),
+		mutationFn: (input: { id: string }) =>
+			unwrap(client.api.workflows({ id: input.id }).delete()),
 		onSuccess: (_, variables) => {
 			queryClient.invalidateQueries({ queryKey: ['workflows'] })
 			queryClient.invalidateQueries({ queryKey: ['workflows', variables.id] })
@@ -1034,8 +1045,10 @@ export function useDeleteWorkflowMutation() {
 export function useAddWorkflowNodeMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: (input: Parameters<typeof orpc.workflows.addNode>[0]) =>
-			orpc.workflows.addNode(input),
+		mutationFn: (input: { id: string } & Record<string, unknown>) => {
+			const { id, ...body } = input
+			return unwrap(client.api.workflows({ id }).nodes.post(body as any))
+		},
 		onSuccess: (_, variables) => {
 			queryClient.invalidateQueries({ queryKey: ['workflows', variables.id] })
 		},
@@ -1045,8 +1058,8 @@ export function useAddWorkflowNodeMutation() {
 export function useRemoveWorkflowNodeMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: (input: Parameters<typeof orpc.workflows.removeNode>[0]) =>
-			orpc.workflows.removeNode(input),
+		mutationFn: (input: { id: string; nodeId: string }) =>
+			unwrap(client.api.workflows({ id: input.id }).nodes({ nodeId: input.nodeId } as any).delete()),
 		onSuccess: (_, variables) => {
 			queryClient.invalidateQueries({ queryKey: ['workflows', variables.id] })
 		},
@@ -1056,8 +1069,10 @@ export function useRemoveWorkflowNodeMutation() {
 export function useAddWorkflowEdgeMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: (input: Parameters<typeof orpc.workflows.addEdge>[0]) =>
-			orpc.workflows.addEdge(input),
+		mutationFn: (input: { id: string } & Record<string, unknown>) => {
+			const { id, ...body } = input
+			return unwrap(client.api.workflows({ id }).edges.post(body as any))
+		},
 		onSuccess: (_, variables) => {
 			queryClient.invalidateQueries({ queryKey: ['workflows', variables.id] })
 		},
@@ -1067,8 +1082,8 @@ export function useAddWorkflowEdgeMutation() {
 export function useRemoveWorkflowEdgeMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: (input: Parameters<typeof orpc.workflows.removeEdge>[0]) =>
-			orpc.workflows.removeEdge(input),
+		mutationFn: (input: { id: string; edgeId: string }) =>
+			unwrap(client.api.workflows({ id: input.id }).edges({ edgeId: input.edgeId } as any).delete()),
 		onSuccess: (_, variables) => {
 			queryClient.invalidateQueries({ queryKey: ['workflows', variables.id] })
 		},
@@ -1078,8 +1093,10 @@ export function useRemoveWorkflowEdgeMutation() {
 export function useExecuteWorkflowMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: (input: Parameters<typeof orpc.workflows.execute>[0]) =>
-			orpc.workflows.execute(input),
+		mutationFn: (input: { id: string } & Record<string, unknown>) => {
+			const { id, ...body } = input
+			return unwrap(client.api.workflows({ id }).execute.post(body as any))
+		},
 		onSuccess: (_, variables) => {
 			queryClient.invalidateQueries({ queryKey: ['workflows', variables.id, 'executions'] })
 		},
@@ -1089,7 +1106,7 @@ export function useExecuteWorkflowMutation() {
 export function useWorkflowExecutionsQuery(workflowId: string | undefined) {
 	return useQuery({
 		queryKey: ['workflows', workflowId, 'executions'],
-		queryFn: () => orpc.workflows.getExecutions({ id: workflowId! }),
+		queryFn: () => unwrap(client.api.workflows({ id: workflowId! }).executions.get()),
 		enabled: !!workflowId,
 	})
 }
@@ -1097,7 +1114,7 @@ export function useWorkflowExecutionsQuery(workflowId: string | undefined) {
 export function useWorkflowExecutionDetailsQuery(executionId: string | undefined) {
 	return useQuery({
 		queryKey: ['workflow-executions', executionId],
-		queryFn: () => orpc.workflows.getExecutionDetails({ id: executionId! }),
+		queryFn: () => unwrap(client.api.workflows.executions({ id: executionId! }).get()),
 		enabled: !!executionId,
 	})
 }

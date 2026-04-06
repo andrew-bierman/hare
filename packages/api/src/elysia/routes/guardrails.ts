@@ -1,27 +1,28 @@
 /**
- * oRPC Guardrails Router
+ * Guardrail Routes
  *
- * Handles guardrail CRUD and violation tracking for agent safety.
+ * Guardrail CRUD and violation tracking for agent safety.
  */
 
 import { agents, guardrails, guardrailViolations } from '@hare/db/schema'
 import { and, count, desc, eq } from 'drizzle-orm'
+import { Elysia, status } from 'elysia'
 import { z } from 'zod'
 import {
 	CreateGuardrailSchema,
-	GuardrailSchema,
-	GuardrailViolationSchema,
-	IdParamSchema,
-	SuccessSchema,
+	type GuardrailSchema,
+	type GuardrailViolationSchema,
 	UpdateGuardrailSchema,
 } from '../../schemas'
-import { notFound, requireWrite, serverError } from '../base'
+import { writePlugin } from '../context'
 
 // =============================================================================
 // Helpers
 // =============================================================================
 
-function serializeGuardrail(g: typeof guardrails.$inferSelect): z.infer<typeof GuardrailSchema> {
+function serializeGuardrail(
+	g: typeof guardrails.$inferSelect,
+): z.infer<typeof GuardrailSchema> {
 	return {
 		id: g.id,
 		agentId: g.agentId,
@@ -38,184 +39,152 @@ function serializeGuardrail(g: typeof guardrails.$inferSelect): z.infer<typeof G
 }
 
 // =============================================================================
-// Procedures
+// Routes
 // =============================================================================
 
-/**
- * List guardrails for an agent
- */
-export const list = requireWrite
-	.route({ method: 'GET', path: '/guardrails' })
-	.input(z.object({ agentId: z.string() }))
-	.output(z.object({ guardrails: z.array(GuardrailSchema) }))
-	.handler(async ({ input, context }) => {
-		const { db, workspaceId } = context
+export const guardrailRoutes = new Elysia({ prefix: '/guardrails', name: 'guardrail-routes' })
+	.use(writePlugin)
 
-		const results = await db
-			.select()
-			.from(guardrails)
-			.where(and(eq(guardrails.agentId, input.agentId), eq(guardrails.workspaceId, workspaceId)))
-			.orderBy(desc(guardrails.createdAt))
+	// List guardrails for an agent
+	.get(
+		'/',
+		async ({ db, workspaceId, query }) => {
+			const agentId = query?.agentId
+			if (!agentId) return status(400, { error: 'agentId query parameter is required' })
 
-		return { guardrails: results.map(serializeGuardrail) }
-	})
+			const results = await db
+				.select()
+				.from(guardrails)
+				.where(and(eq(guardrails.agentId, agentId), eq(guardrails.workspaceId, workspaceId)))
+				.orderBy(desc(guardrails.createdAt))
 
-/**
- * Create a guardrail
- */
-export const create = requireWrite
-	.route({ method: 'POST', path: '/guardrails', successStatus: 201 })
-	.input(CreateGuardrailSchema)
-	.output(GuardrailSchema)
-	.handler(async ({ input, context }) => {
-		const { db, workspaceId } = context
-
-		// Verify agent belongs to workspace
-		const [agent] = await db
-			.select()
-			.from(agents)
-			.where(and(eq(agents.id, input.agentId), eq(agents.workspaceId, workspaceId)))
-		if (!agent) notFound('Agent not found')
-
-		const [guardrail] = await db
-			.insert(guardrails)
-			.values({
-				agentId: input.agentId,
-				workspaceId,
-				name: input.name,
-				description: input.description,
-				type: input.type,
-				action: input.action ?? 'block',
-				enabled: input.enabled ?? true,
-				config: input.config,
-				message: input.message,
-			})
-			.returning()
-
-		if (!guardrail) serverError('Failed to create guardrail')
-
-		return serializeGuardrail(guardrail)
-	})
-
-/**
- * Update a guardrail
- */
-export const update = requireWrite
-	.route({ method: 'PATCH', path: '/guardrails/{id}' })
-	.input(IdParamSchema.merge(UpdateGuardrailSchema))
-	.output(GuardrailSchema)
-	.handler(async ({ input, context }) => {
-		const { id, ...data } = input
-		const { db, workspaceId } = context
-
-		const updateData: Partial<typeof guardrails.$inferInsert> = {
-			updatedAt: new Date(),
-			...(data.name !== undefined && { name: data.name }),
-			...(data.description !== undefined && { description: data.description }),
-			...(data.action !== undefined && { action: data.action }),
-			...(data.enabled !== undefined && { enabled: data.enabled }),
-			...(data.config !== undefined && { config: data.config }),
-			...(data.message !== undefined && { message: data.message }),
-		}
-
-		const [guardrail] = await db
-			.update(guardrails)
-			.set(updateData)
-			.where(and(eq(guardrails.id, id), eq(guardrails.workspaceId, workspaceId)))
-			.returning()
-
-		if (!guardrail) notFound('Guardrail not found')
-
-		return serializeGuardrail(guardrail)
-	})
-
-/**
- * Delete a guardrail
- */
-export const remove = requireWrite
-	.route({ method: 'DELETE', path: '/guardrails/{id}' })
-	.input(IdParamSchema)
-	.output(SuccessSchema)
-	.handler(async ({ input, context }) => {
-		const { db, workspaceId } = context
-
-		const result = await db
-			.delete(guardrails)
-			.where(and(eq(guardrails.id, input.id), eq(guardrails.workspaceId, workspaceId)))
-			.returning()
-
-		if (result.length === 0) notFound('Guardrail not found')
-
-		return { success: true }
-	})
-
-/**
- * Get guardrail violations for an agent
- */
-export const getViolations = requireWrite
-	.route({ method: 'GET', path: '/guardrails/violations' })
-	.input(
-		z.object({
-			agentId: z.string(),
-			limit: z.coerce.number().int().min(1).max(100).optional().default(50),
-			offset: z.coerce.number().int().min(0).optional().default(0),
-		}),
+			return { guardrails: results.map(serializeGuardrail) }
+		},
+		{ writeAccess: true },
 	)
-	.output(
-		z.object({
-			violations: z.array(GuardrailViolationSchema),
-			total: z.number().int(),
-		}),
+
+	// Create a guardrail
+	.post(
+		'/',
+		async ({ db, workspaceId, body }) => {
+			// Verify agent belongs to workspace
+			const [agent] = await db
+				.select()
+				.from(agents)
+				.where(and(eq(agents.id, body.agentId), eq(agents.workspaceId, workspaceId)))
+			if (!agent) return status(404, { error: 'Agent not found' })
+
+			const [guardrail] = await db
+				.insert(guardrails)
+				.values({
+					agentId: body.agentId,
+					workspaceId,
+					name: body.name,
+					description: body.description,
+					type: body.type,
+					action: body.action ?? 'block',
+					enabled: body.enabled ?? true,
+					config: body.config,
+					message: body.message,
+				})
+				.returning()
+
+			if (!guardrail) throw new Error('Failed to create guardrail')
+
+			return serializeGuardrail(guardrail)
+		},
+		{ writeAccess: true, body: CreateGuardrailSchema },
 	)
-	.handler(async ({ input, context }) => {
-		const { db, workspaceId } = context
 
-		const [countResult] = await db
-			.select({ total: count() })
-			.from(guardrailViolations)
-			.where(
-				and(
-					eq(guardrailViolations.agentId, input.agentId),
-					eq(guardrailViolations.workspaceId, workspaceId),
-				),
-			)
+	// Update a guardrail
+	.patch(
+		'/:id',
+		async ({ db, workspaceId, params, body }) => {
+			const updateData: Partial<typeof guardrails.$inferInsert> = {
+				updatedAt: new Date(),
+				...(body.name !== undefined && { name: body.name }),
+				...(body.description !== undefined && { description: body.description }),
+				...(body.action !== undefined && { action: body.action }),
+				...(body.enabled !== undefined && { enabled: body.enabled }),
+				...(body.config !== undefined && { config: body.config }),
+				...(body.message !== undefined && { message: body.message }),
+			}
 
-		const results = await db
-			.select()
-			.from(guardrailViolations)
-			.where(
-				and(
-					eq(guardrailViolations.agentId, input.agentId),
-					eq(guardrailViolations.workspaceId, workspaceId),
-				),
-			)
-			.orderBy(desc(guardrailViolations.createdAt))
-			.limit(input.limit)
-			.offset(input.offset)
+			const [guardrail] = await db
+				.update(guardrails)
+				.set(updateData)
+				.where(and(eq(guardrails.id, params.id), eq(guardrails.workspaceId, workspaceId)))
+				.returning()
 
-		return {
-			violations: results.map((v) => ({
-				id: v.id,
-				guardrailId: v.guardrailId,
-				agentId: v.agentId,
-				direction: v.direction as 'input' | 'output',
-				actionTaken: v.actionTaken as z.infer<typeof GuardrailViolationSchema>['actionTaken'],
-				triggerContent: v.triggerContent,
-				details: v.details as z.infer<typeof GuardrailViolationSchema>['details'],
-				createdAt: v.createdAt.toISOString(),
-			})),
-			total: countResult?.total ?? 0,
-		}
-	})
+			if (!guardrail) return status(404, { error: 'Guardrail not found' })
 
-// =============================================================================
-// Router Export
-// =============================================================================
+			return serializeGuardrail(guardrail)
+		},
+		{ writeAccess: true, body: UpdateGuardrailSchema },
+	)
 
-export const guardrailsRouter = {
-	list,
-	create,
-	update,
-	delete: remove,
-	getViolations,
-}
+	// Delete a guardrail
+	.delete(
+		'/:id',
+		async ({ db, workspaceId, params }) => {
+			const result = await db
+				.delete(guardrails)
+				.where(and(eq(guardrails.id, params.id), eq(guardrails.workspaceId, workspaceId)))
+				.returning()
+
+			if (result.length === 0) return status(404, { error: 'Guardrail not found' })
+
+			return { success: true }
+		},
+		{ writeAccess: true },
+	)
+
+	// Get guardrail violations for an agent
+	.get(
+		'/violations',
+		async ({ db, workspaceId, query }) => {
+			const agentId = query?.agentId
+			if (!agentId) return status(400, { error: 'agentId query parameter is required' })
+
+			const limit = Number(query?.limit) || 50
+			const offset = Number(query?.offset) || 0
+
+			const [countResult] = await db
+				.select({ total: count() })
+				.from(guardrailViolations)
+				.where(
+					and(
+						eq(guardrailViolations.agentId, agentId),
+						eq(guardrailViolations.workspaceId, workspaceId),
+					),
+				)
+
+			const results = await db
+				.select()
+				.from(guardrailViolations)
+				.where(
+					and(
+						eq(guardrailViolations.agentId, agentId),
+						eq(guardrailViolations.workspaceId, workspaceId),
+					),
+				)
+				.orderBy(desc(guardrailViolations.createdAt))
+				.limit(limit)
+				.offset(offset)
+
+			return {
+				violations: results.map((v) => ({
+					id: v.id,
+					guardrailId: v.guardrailId,
+					agentId: v.agentId,
+					direction: v.direction as 'input' | 'output',
+					actionTaken: v.actionTaken as z.infer<typeof GuardrailViolationSchema>['actionTaken'],
+					triggerContent: v.triggerContent,
+					details: v.details as z.infer<typeof GuardrailViolationSchema>['details'],
+					createdAt: v.createdAt.toISOString(),
+				})),
+				total: countResult?.total ?? 0,
+			}
+		},
+		{ writeAccess: true },
+	)

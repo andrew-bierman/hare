@@ -1,20 +1,19 @@
 /**
- * oRPC Knowledge Base Router
+ * Knowledge Base Routes
  *
- * Handles knowledge base CRUD, document management, and RAG search.
+ * Knowledge base CRUD, document management, and agent linking.
  */
 
-import { agentKnowledgeBases, documents, knowledgeBases } from '@hare/db/schema'
+import { agentKnowledgeBases, agents, documents, knowledgeBases } from '@hare/db/schema'
 import { and, count, desc, eq, sql } from 'drizzle-orm'
+import { Elysia, status } from 'elysia'
 import { z } from 'zod'
 import {
 	CreateKnowledgeBaseSchema,
-	DocumentSchema,
-	IdParamSchema,
-	KnowledgeBaseSchema,
-	SuccessSchema,
+	type DocumentSchema,
+	type KnowledgeBaseSchema,
 } from '../../schemas'
-import { notFound, requireWrite, serverError } from '../base'
+import { writePlugin } from '../context'
 
 // =============================================================================
 // Helpers
@@ -37,7 +36,9 @@ function serializeKnowledgeBase(
 	}
 }
 
-function serializeDocument(doc: typeof documents.$inferSelect): z.infer<typeof DocumentSchema> {
+function serializeDocument(
+	doc: typeof documents.$inferSelect,
+): z.infer<typeof DocumentSchema> {
 	return {
 		id: doc.id,
 		knowledgeBaseId: doc.knowledgeBaseId,
@@ -55,326 +56,284 @@ function serializeDocument(doc: typeof documents.$inferSelect): z.infer<typeof D
 }
 
 // =============================================================================
-// Procedures
+// Routes
 // =============================================================================
 
-/**
- * List all knowledge bases in workspace
- */
-export const list = requireWrite
-	.route({ method: 'GET', path: '/knowledge-bases' })
-	.output(z.object({ knowledgeBases: z.array(KnowledgeBaseSchema) }))
-	.handler(async ({ context }) => {
-		const { db, workspaceId } = context
+export const knowledgeBaseRoutes = new Elysia({
+	prefix: '/knowledge-base',
+	name: 'knowledge-base-routes',
+})
+	.use(writePlugin)
 
-		const results = await db
-			.select()
-			.from(knowledgeBases)
-			.where(eq(knowledgeBases.workspaceId, workspaceId))
-			.orderBy(desc(knowledgeBases.createdAt))
+	// List all knowledge bases in workspace
+	.get(
+		'/',
+		async ({ db, workspaceId }) => {
+			const results = await db
+				.select()
+				.from(knowledgeBases)
+				.where(eq(knowledgeBases.workspaceId, workspaceId))
+				.orderBy(desc(knowledgeBases.createdAt))
 
-		// Batch get doc counts
-		const kbIds = results.map((kb) => kb.id)
-		const docCounts =
-			kbIds.length > 0
-				? await db
-						.select({
-							knowledgeBaseId: documents.knowledgeBaseId,
-							count: count(),
-							chunks: sql<number>`COALESCE(SUM(${documents.chunkCount}), 0)`,
-						})
-						.from(documents)
-						.where(
-							sql`${documents.knowledgeBaseId} IN (${sql.join(
-								kbIds.map((id) => sql`${id}`),
-								sql`, `,
-							)})`,
-						)
-						.groupBy(documents.knowledgeBaseId)
-				: []
+			// Batch get doc counts
+			const kbIds = results.map((kb) => kb.id)
+			const docCounts =
+				kbIds.length > 0
+					? await db
+							.select({
+								knowledgeBaseId: documents.knowledgeBaseId,
+								count: count(),
+								chunks: sql<number>`COALESCE(SUM(${documents.chunkCount}), 0)`,
+							})
+							.from(documents)
+							.where(
+								sql`${documents.knowledgeBaseId} IN (${sql.join(
+									kbIds.map((id) => sql`${id}`),
+									sql`, `,
+								)})`,
+							)
+							.groupBy(documents.knowledgeBaseId)
+					: []
 
-		const countMap = new Map(docCounts.map((d) => [d.knowledgeBaseId, d]))
+			const countMap = new Map(docCounts.map((d) => [d.knowledgeBaseId, d]))
 
-		return {
-			knowledgeBases: results.map((kb) => {
-				const counts = countMap.get(kb.id)
-				return serializeKnowledgeBase(kb, counts?.count ?? 0, counts?.chunks ?? 0)
+			return {
+				knowledgeBases: results.map((kb) => {
+					const counts = countMap.get(kb.id)
+					return serializeKnowledgeBase(kb, counts?.count ?? 0, counts?.chunks ?? 0)
+				}),
+			}
+		},
+		{ writeAccess: true },
+	)
+
+	// Create a knowledge base
+	.post(
+		'/',
+		async ({ db, workspaceId, user, body }) => {
+			const [kb] = await db
+				.insert(knowledgeBases)
+				.values({
+					workspaceId,
+					name: body.name,
+					description: body.description,
+					createdBy: user.id,
+				})
+				.returning()
+
+			if (!kb) throw new Error('Failed to create knowledge base')
+
+			return serializeKnowledgeBase(kb)
+		},
+		{ writeAccess: true, body: CreateKnowledgeBaseSchema },
+	)
+
+	// Get a knowledge base by ID
+	.get(
+		'/:id',
+		async ({ db, workspaceId, params }) => {
+			const [kb] = await db
+				.select()
+				.from(knowledgeBases)
+				.where(
+					and(eq(knowledgeBases.id, params.id), eq(knowledgeBases.workspaceId, workspaceId)),
+				)
+
+			if (!kb) return status(404, { error: 'Knowledge base not found' })
+
+			const [docStats] = await db
+				.select({
+					count: count(),
+					chunks: sql<number>`COALESCE(SUM(${documents.chunkCount}), 0)`,
+				})
+				.from(documents)
+				.where(eq(documents.knowledgeBaseId, kb.id))
+
+			return serializeKnowledgeBase(kb, docStats?.count ?? 0, docStats?.chunks ?? 0)
+		},
+		{ writeAccess: true },
+	)
+
+	// Delete a knowledge base
+	.delete(
+		'/:id',
+		async ({ db, workspaceId, params }) => {
+			const result = await db
+				.delete(knowledgeBases)
+				.where(
+					and(eq(knowledgeBases.id, params.id), eq(knowledgeBases.workspaceId, workspaceId)),
+				)
+				.returning()
+
+			if (result.length === 0) return status(404, { error: 'Knowledge base not found' })
+
+			return { success: true }
+		},
+		{ writeAccess: true },
+	)
+
+	// List documents in a knowledge base
+	.get(
+		'/:id/documents',
+		async ({ db, workspaceId, params }) => {
+			// Verify KB belongs to workspace
+			const [kb] = await db
+				.select()
+				.from(knowledgeBases)
+				.where(
+					and(eq(knowledgeBases.id, params.id), eq(knowledgeBases.workspaceId, workspaceId)),
+				)
+			if (!kb) return status(404, { error: 'Knowledge base not found' })
+
+			const results = await db
+				.select()
+				.from(documents)
+				.where(eq(documents.knowledgeBaseId, params.id))
+				.orderBy(desc(documents.createdAt))
+
+			return { documents: results.map(serializeDocument) }
+		},
+		{ writeAccess: true },
+	)
+
+	// Add a URL document to a knowledge base
+	.post(
+		'/:id/documents/url',
+		async ({ db, workspaceId, user, params, body }) => {
+			// Verify KB belongs to workspace
+			const [kb] = await db
+				.select()
+				.from(knowledgeBases)
+				.where(
+					and(eq(knowledgeBases.id, params.id), eq(knowledgeBases.workspaceId, workspaceId)),
+				)
+			if (!kb) return status(404, { error: 'Knowledge base not found' })
+
+			const [doc] = await db
+				.insert(documents)
+				.values({
+					knowledgeBaseId: params.id,
+					workspaceId,
+					name: body.name || body.url,
+					type: 'url',
+					status: 'pending',
+					sourceUrl: body.url,
+					uploadedBy: user.id,
+				})
+				.returning()
+
+			if (!doc) throw new Error('Failed to add document')
+
+			// TODO: Trigger async processing pipeline
+			// 1. Fetch URL content
+			// 2. Extract text
+			// 3. Chunk text
+			// 4. Generate embeddings via Workers AI
+			// 5. Store in Vectorize
+			// 6. Update document status to 'ready'
+
+			return serializeDocument(doc)
+		},
+		{
+			writeAccess: true,
+			body: z.object({
+				url: z.string().url(),
+				name: z.string().max(255).optional(),
 			}),
-		}
-	})
+		},
+	)
 
-/**
- * Create a knowledge base
- */
-export const create = requireWrite
-	.route({ method: 'POST', path: '/knowledge-bases', successStatus: 201 })
-	.input(CreateKnowledgeBaseSchema)
-	.output(KnowledgeBaseSchema)
-	.handler(async ({ input, context }) => {
-		const { db, workspaceId, user } = context
+	// Delete a document
+	.delete(
+		'/:id/documents/:documentId',
+		async ({ db, workspaceId, params }) => {
+			const result = await db
+				.delete(documents)
+				.where(
+					and(
+						eq(documents.id, params.documentId),
+						eq(documents.knowledgeBaseId, params.id),
+						eq(documents.workspaceId, workspaceId),
+					),
+				)
+				.returning()
 
-		const [kb] = await db
-			.insert(knowledgeBases)
-			.values({
-				workspaceId,
-				name: input.name,
-				description: input.description,
-				createdBy: user.id,
+			if (result.length === 0) return status(404, { error: 'Document not found' })
+
+			// TODO: Remove vectors from Vectorize
+
+			return { success: true }
+		},
+		{ writeAccess: true },
+	)
+
+	// Link a knowledge base to an agent
+	.post(
+		'/:id/agents',
+		async ({ db, workspaceId, params, body }) => {
+			// Verify both KB and agent belong to workspace
+			const [kb] = await db
+				.select()
+				.from(knowledgeBases)
+				.where(
+					and(eq(knowledgeBases.id, params.id), eq(knowledgeBases.workspaceId, workspaceId)),
+				)
+			if (!kb) return status(404, { error: 'Knowledge base not found' })
+
+			const [agent] = await db
+				.select()
+				.from(agents)
+				.where(and(eq(agents.id, body.agentId), eq(agents.workspaceId, workspaceId)))
+			if (!agent) return status(404, { error: 'Agent not found' })
+
+			// Prevent duplicates
+			const [existing] = await db
+				.select()
+				.from(agentKnowledgeBases)
+				.where(
+					and(
+						eq(agentKnowledgeBases.agentId, body.agentId),
+						eq(agentKnowledgeBases.knowledgeBaseId, params.id),
+					),
+				)
+			if (existing) return { success: true }
+
+			await db.insert(agentKnowledgeBases).values({
+				agentId: body.agentId,
+				knowledgeBaseId: params.id,
 			})
-			.returning()
 
-		if (!kb) serverError('Failed to create knowledge base')
-
-		return serializeKnowledgeBase(kb)
-	})
-
-/**
- * Get a knowledge base by ID
- */
-export const get = requireWrite
-	.route({ method: 'GET', path: '/knowledge-bases/{id}' })
-	.input(IdParamSchema)
-	.output(KnowledgeBaseSchema)
-	.handler(async ({ input, context }) => {
-		const { db, workspaceId } = context
-
-		const [kb] = await db
-			.select()
-			.from(knowledgeBases)
-			.where(and(eq(knowledgeBases.id, input.id), eq(knowledgeBases.workspaceId, workspaceId)))
-
-		if (!kb) notFound('Knowledge base not found')
-
-		const [docStats] = await db
-			.select({
-				count: count(),
-				chunks: sql<number>`COALESCE(SUM(${documents.chunkCount}), 0)`,
-			})
-			.from(documents)
-			.where(eq(documents.knowledgeBaseId, kb.id))
-
-		return serializeKnowledgeBase(kb, docStats?.count ?? 0, docStats?.chunks ?? 0)
-	})
-
-/**
- * Delete a knowledge base
- */
-export const remove = requireWrite
-	.route({ method: 'DELETE', path: '/knowledge-bases/{id}' })
-	.input(IdParamSchema)
-	.output(SuccessSchema)
-	.handler(async ({ input, context }) => {
-		const { db, workspaceId } = context
-
-		const result = await db
-			.delete(knowledgeBases)
-			.where(and(eq(knowledgeBases.id, input.id), eq(knowledgeBases.workspaceId, workspaceId)))
-			.returning()
-
-		if (result.length === 0) notFound('Knowledge base not found')
-
-		return { success: true }
-	})
-
-/**
- * List documents in a knowledge base
- */
-export const listDocuments = requireWrite
-	.route({ method: 'GET', path: '/knowledge-bases/{id}/documents' })
-	.input(IdParamSchema)
-	.output(z.object({ documents: z.array(DocumentSchema) }))
-	.handler(async ({ input, context }) => {
-		const { db, workspaceId } = context
-
-		// Verify KB belongs to workspace
-		const [kb] = await db
-			.select()
-			.from(knowledgeBases)
-			.where(and(eq(knowledgeBases.id, input.id), eq(knowledgeBases.workspaceId, workspaceId)))
-		if (!kb) notFound('Knowledge base not found')
-
-		const results = await db
-			.select()
-			.from(documents)
-			.where(eq(documents.knowledgeBaseId, input.id))
-			.orderBy(desc(documents.createdAt))
-
-		return { documents: results.map(serializeDocument) }
-	})
-
-/**
- * Add a URL document to a knowledge base
- */
-export const addUrl = requireWrite
-	.route({ method: 'POST', path: '/knowledge-bases/{id}/documents/url', successStatus: 201 })
-	.input(
-		IdParamSchema.extend({
-			url: z.string().url(),
-			name: z.string().max(255).optional(),
-		}),
+			return { success: true }
+		},
+		{
+			writeAccess: true,
+			body: z.object({ agentId: z.string() }),
+		},
 	)
-	.output(DocumentSchema)
-	.handler(async ({ input, context }) => {
-		const { db, workspaceId, user } = context
 
-		// Verify KB belongs to workspace
-		const [kb] = await db
-			.select()
-			.from(knowledgeBases)
-			.where(and(eq(knowledgeBases.id, input.id), eq(knowledgeBases.workspaceId, workspaceId)))
-		if (!kb) notFound('Knowledge base not found')
+	// Unlink a knowledge base from an agent
+	.delete(
+		'/:id/agents/:agentId',
+		async ({ db, workspaceId, params }) => {
+			// Verify KB belongs to workspace
+			const [kb] = await db
+				.select()
+				.from(knowledgeBases)
+				.where(
+					and(eq(knowledgeBases.id, params.id), eq(knowledgeBases.workspaceId, workspaceId)),
+				)
+			if (!kb) return status(404, { error: 'Knowledge base not found' })
 
-		const [doc] = await db
-			.insert(documents)
-			.values({
-				knowledgeBaseId: input.id,
-				workspaceId,
-				name: input.name || input.url,
-				type: 'url',
-				status: 'pending',
-				sourceUrl: input.url,
-				uploadedBy: user.id,
-			})
-			.returning()
+			await db
+				.delete(agentKnowledgeBases)
+				.where(
+					and(
+						eq(agentKnowledgeBases.knowledgeBaseId, params.id),
+						eq(agentKnowledgeBases.agentId, params.agentId),
+					),
+				)
 
-		if (!doc) serverError('Failed to add document')
-
-		// TODO: Trigger async processing pipeline
-		// 1. Fetch URL content
-		// 2. Extract text
-		// 3. Chunk text
-		// 4. Generate embeddings via Workers AI
-		// 5. Store in Vectorize
-		// 6. Update document status to 'ready'
-
-		return serializeDocument(doc)
-	})
-
-/**
- * Delete a document
- */
-export const removeDocument = requireWrite
-	.route({ method: 'DELETE', path: '/knowledge-bases/{id}/documents/{documentId}' })
-	.input(
-		IdParamSchema.extend({
-			documentId: z.string(),
-		}),
+			return { success: true }
+		},
+		{ writeAccess: true },
 	)
-	.output(SuccessSchema)
-	.handler(async ({ input, context }) => {
-		const { db, workspaceId } = context
-
-		const result = await db
-			.delete(documents)
-			.where(
-				and(
-					eq(documents.id, input.documentId),
-					eq(documents.knowledgeBaseId, input.id),
-					eq(documents.workspaceId, workspaceId),
-				),
-			)
-			.returning()
-
-		if (result.length === 0) notFound('Document not found')
-
-		// TODO: Remove vectors from Vectorize
-
-		return { success: true }
-	})
-
-/**
- * Link a knowledge base to an agent
- */
-export const linkToAgent = requireWrite
-	.route({ method: 'POST', path: '/knowledge-bases/{id}/agents' })
-	.input(
-		IdParamSchema.extend({
-			agentId: z.string(),
-		}),
-	)
-	.output(SuccessSchema)
-	.handler(async ({ input, context }) => {
-		const { db, workspaceId } = context
-
-		// Verify both KB and agent belong to workspace
-		const [kb] = await db
-			.select()
-			.from(knowledgeBases)
-			.where(and(eq(knowledgeBases.id, input.id), eq(knowledgeBases.workspaceId, workspaceId)))
-		if (!kb) notFound('Knowledge base not found')
-
-		const { agents } = await import('@hare/db/schema')
-		const [agent] = await db
-			.select()
-			.from(agents)
-			.where(and(eq(agents.id, input.agentId), eq(agents.workspaceId, workspaceId)))
-		if (!agent) notFound('Agent not found')
-
-		// Prevent duplicates
-		const [existing] = await db
-			.select()
-			.from(agentKnowledgeBases)
-			.where(
-				and(
-					eq(agentKnowledgeBases.agentId, input.agentId),
-					eq(agentKnowledgeBases.knowledgeBaseId, input.id),
-				),
-			)
-		if (existing) return { success: true }
-
-		await db.insert(agentKnowledgeBases).values({
-			agentId: input.agentId,
-			knowledgeBaseId: input.id,
-		})
-
-		return { success: true }
-	})
-
-/**
- * Unlink a knowledge base from an agent
- */
-export const unlinkFromAgent = requireWrite
-	.route({ method: 'DELETE', path: '/knowledge-bases/{id}/agents/{agentId}' })
-	.input(
-		IdParamSchema.extend({
-			agentId: z.string(),
-		}),
-	)
-	.output(SuccessSchema)
-	.handler(async ({ input, context }) => {
-		const { db, workspaceId } = context
-
-		// Verify KB belongs to workspace
-		const [kb] = await db
-			.select()
-			.from(knowledgeBases)
-			.where(and(eq(knowledgeBases.id, input.id), eq(knowledgeBases.workspaceId, workspaceId)))
-		if (!kb) notFound('Knowledge base not found')
-
-		await db
-			.delete(agentKnowledgeBases)
-			.where(
-				and(
-					eq(agentKnowledgeBases.knowledgeBaseId, input.id),
-					eq(agentKnowledgeBases.agentId, input.agentId),
-				),
-			)
-
-		return { success: true }
-	})
-
-// =============================================================================
-// Router Export
-// =============================================================================
-
-export const knowledgeBaseRouter = {
-	list,
-	create,
-	get,
-	delete: remove,
-	listDocuments,
-	addUrl,
-	removeDocument,
-	linkToAgent,
-	unlinkFromAgent,
-}

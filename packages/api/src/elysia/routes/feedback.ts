@@ -1,175 +1,158 @@
 /**
- * oRPC Feedback Router
+ * Feedback Routes
  *
- * Handles message feedback (thumbs up/down) for agent quality tracking.
+ * Message feedback (thumbs up/down) for agent quality tracking.
  */
 
 import { agents, messageFeedback } from '@hare/db/schema'
 import { and, count, eq, gte, lte, sql } from 'drizzle-orm'
+import { Elysia, status } from 'elysia'
 import { z } from 'zod'
 import {
 	CreateFeedbackSchema,
-	FeedbackSchema,
-	FeedbackStatsSchema,
-	IdParamSchema,
-	SuccessSchema,
+	type FeedbackSchema,
+	type FeedbackStatsSchema,
 } from '../../schemas'
-import { badRequest, notFound, publicProcedure, requireWrite } from '../base'
+import { cfContext } from '../context'
+import { writePlugin } from '../context'
 
 // =============================================================================
-// Procedures
+// Helpers
 // =============================================================================
 
-/**
- * Submit feedback on a message (works for both authenticated and embed users)
- */
-export const create = publicProcedure
-	.route({ method: 'POST', path: '/feedback', successStatus: 201 })
-	.input(CreateFeedbackSchema)
-	.output(FeedbackSchema)
-	.handler(async ({ input, context }) => {
-		const { db } = context
+function serializeFeedback(
+	f: typeof messageFeedback.$inferSelect,
+): z.infer<typeof FeedbackSchema> {
+	return {
+		id: f.id,
+		messageId: f.messageId,
+		conversationId: f.conversationId,
+		agentId: f.agentId,
+		rating: f.rating,
+		comment: f.comment,
+		createdAt: f.createdAt.toISOString(),
+	}
+}
 
-		// Resolve workspaceId from agent
-		const [agent] = await db
-			.select({ workspaceId: agents.workspaceId })
-			.from(agents)
-			.where(eq(agents.id, input.agentId))
-			.limit(1)
+// =============================================================================
+// Routes
+// =============================================================================
 
-		if (!agent) badRequest('Agent not found')
+export const feedbackRoutes = new Elysia({ prefix: '/feedback', name: 'feedback-routes' })
+	.use(cfContext)
 
-		// Upsert: check for existing feedback on this message (per-message, not per-user for embed support)
-		const [existing] = await db
-			.select()
-			.from(messageFeedback)
-			.where(eq(messageFeedback.messageId, input.messageId))
-			.limit(1)
+	// Submit feedback (public - works for both authenticated and embed users)
+	.post(
+		'/',
+		async ({ db, body }) => {
+			// Resolve workspaceId from agent
+			const [agent] = await db
+				.select({ workspaceId: agents.workspaceId })
+				.from(agents)
+				.where(eq(agents.id, body.agentId))
+				.limit(1)
 
-		if (existing) {
-			const [updated] = await db
-				.update(messageFeedback)
-				.set({ rating: input.rating, comment: input.comment ?? null })
-				.where(eq(messageFeedback.id, existing.id))
+			if (!agent) return status(400, { error: 'Agent not found' })
+
+			// Upsert: check for existing feedback on this message (per-message, not per-user for embed support)
+			const [existing] = await db
+				.select()
+				.from(messageFeedback)
+				.where(eq(messageFeedback.messageId, body.messageId))
+				.limit(1)
+
+			if (existing) {
+				const [updated] = await db
+					.update(messageFeedback)
+					.set({ rating: body.rating, comment: body.comment ?? null })
+					.where(eq(messageFeedback.id, existing.id))
+					.returning()
+
+				if (!updated) return status(400, { error: 'Failed to update feedback' })
+
+				return serializeFeedback(updated)
+			}
+
+			const [feedback] = await db
+				.insert(messageFeedback)
+				.values({
+					messageId: body.messageId,
+					conversationId: body.conversationId,
+					agentId: body.agentId,
+					workspaceId: agent.workspaceId,
+					rating: body.rating,
+					comment: body.comment,
+				})
 				.returning()
 
-			if (!updated) badRequest('Failed to update feedback')
+			if (!feedback) return status(400, { error: 'Failed to create feedback' })
+
+			return serializeFeedback(feedback)
+		},
+		{ body: CreateFeedbackSchema },
+	)
+
+	// --- Write-access routes ---
+	.use(writePlugin)
+
+	// Get feedback stats for an agent
+	.get(
+		'/stats/:id',
+		async ({ db, workspaceId, params, query }) => {
+			const endDate = query?.endDate ? new Date(query.endDate) : new Date()
+			const startDate = query?.startDate
+				? new Date(query.startDate)
+				: new Date(endDate.getTime() - 30 * 24 * 60 * 60 * 1000)
+
+			const [stats] = await db
+				.select({
+					totalFeedback: count(),
+					positiveCount: sql<number>`SUM(CASE WHEN ${messageFeedback.rating} = 'positive' THEN 1 ELSE 0 END)`,
+					negativeCount: sql<number>`SUM(CASE WHEN ${messageFeedback.rating} = 'negative' THEN 1 ELSE 0 END)`,
+				})
+				.from(messageFeedback)
+				.where(
+					and(
+						eq(messageFeedback.agentId, params.id),
+						eq(messageFeedback.workspaceId, workspaceId),
+						gte(messageFeedback.createdAt, startDate),
+						lte(messageFeedback.createdAt, endDate),
+					),
+				)
+
+			const total = stats?.totalFeedback ?? 0
+			const positive = stats?.positiveCount ?? 0
+			const satisfactionRate = total > 0 ? Math.round((positive / total) * 10000) / 100 : 100
 
 			return {
-				id: updated.id,
-				messageId: updated.messageId,
-				conversationId: updated.conversationId,
-				agentId: updated.agentId,
-				rating: updated.rating,
-				comment: updated.comment,
-				createdAt: updated.createdAt.toISOString(),
+				agentId: params.id,
+				totalFeedback: total,
+				positiveCount: positive,
+				negativeCount: stats?.negativeCount ?? 0,
+				satisfactionRate,
+				period: {
+					startDate: startDate.toISOString(),
+					endDate: endDate.toISOString(),
+				},
 			}
-		}
-
-		const [feedback] = await db
-			.insert(messageFeedback)
-			.values({
-				messageId: input.messageId,
-				conversationId: input.conversationId,
-				agentId: input.agentId,
-				workspaceId: agent.workspaceId,
-				rating: input.rating,
-				comment: input.comment,
-			})
-			.returning()
-
-		if (!feedback) badRequest('Failed to create feedback')
-
-		return {
-			id: feedback.id,
-			messageId: feedback.messageId,
-			conversationId: feedback.conversationId,
-			agentId: feedback.agentId,
-			rating: feedback.rating,
-			comment: feedback.comment,
-			createdAt: feedback.createdAt.toISOString(),
-		}
-	})
-
-/**
- * Get feedback stats for an agent
- */
-export const getStats = requireWrite
-	.route({ method: 'GET', path: '/feedback/stats/{id}' })
-	.input(
-		IdParamSchema.extend({
-			startDate: z.string().datetime().optional(),
-			endDate: z.string().datetime().optional(),
-		}),
+		},
+		{ writeAccess: true },
 	)
-	.output(FeedbackStatsSchema)
-	.handler(async ({ input, context }) => {
-		const { db, workspaceId } = context
 
-		const endDate = input.endDate ? new Date(input.endDate) : new Date()
-		const startDate = input.startDate
-			? new Date(input.startDate)
-			: new Date(endDate.getTime() - 30 * 24 * 60 * 60 * 1000)
+	// Delete feedback (scoped by workspace)
+	.delete(
+		'/:id',
+		async ({ db, workspaceId, params }) => {
+			const result = await db
+				.delete(messageFeedback)
+				.where(
+					and(eq(messageFeedback.id, params.id), eq(messageFeedback.workspaceId, workspaceId)),
+				)
+				.returning()
 
-		const [stats] = await db
-			.select({
-				totalFeedback: count(),
-				positiveCount: sql<number>`SUM(CASE WHEN ${messageFeedback.rating} = 'positive' THEN 1 ELSE 0 END)`,
-				negativeCount: sql<number>`SUM(CASE WHEN ${messageFeedback.rating} = 'negative' THEN 1 ELSE 0 END)`,
-			})
-			.from(messageFeedback)
-			.where(
-				and(
-					eq(messageFeedback.agentId, input.id),
-					eq(messageFeedback.workspaceId, workspaceId),
-					gte(messageFeedback.createdAt, startDate),
-					lte(messageFeedback.createdAt, endDate),
-				),
-			)
+			if (result.length === 0) return status(404, { error: 'Feedback not found' })
 
-		const total = stats?.totalFeedback ?? 0
-		const positive = stats?.positiveCount ?? 0
-		const satisfactionRate = total > 0 ? Math.round((positive / total) * 10000) / 100 : 100
-
-		return {
-			agentId: input.id,
-			totalFeedback: total,
-			positiveCount: positive,
-			negativeCount: stats?.negativeCount ?? 0,
-			satisfactionRate,
-			period: {
-				startDate: startDate.toISOString(),
-				endDate: endDate.toISOString(),
-			},
-		}
-	})
-
-/**
- * Delete feedback (scoped by workspace)
- */
-export const remove = requireWrite
-	.route({ method: 'DELETE', path: '/feedback/{id}' })
-	.input(IdParamSchema)
-	.output(SuccessSchema)
-	.handler(async ({ input, context }) => {
-		const { db, workspaceId } = context
-
-		const result = await db
-			.delete(messageFeedback)
-			.where(and(eq(messageFeedback.id, input.id), eq(messageFeedback.workspaceId, workspaceId)))
-			.returning()
-
-		if (result.length === 0) notFound('Feedback not found')
-
-		return { success: true }
-	})
-
-// =============================================================================
-// Router Export
-// =============================================================================
-
-export const feedbackRouter = {
-	create,
-	getStats,
-	delete: remove,
-}
+			return { success: true }
+		},
+		{ writeAccess: true },
+	)

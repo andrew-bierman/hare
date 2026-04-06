@@ -30,7 +30,10 @@ import { billingWebhookRoutes } from './routes/billing-webhook'
 import { chatRoutes } from './routes/chat'
 import { devRoutes } from './routes/dev'
 import { embedPublicRoutes } from './routes/embed-public'
+import { feedbackRoutes } from './routes/feedback'
+import { guardrailRoutes } from './routes/guardrails'
 import { healthRoutes } from './routes/health'
+import { knowledgeBaseRoutes } from './routes/knowledge-base'
 import { logRoutes } from './routes/logs'
 import { mcpRoutes } from './routes/mcp'
 import { memoryRoutes } from './routes/memory'
@@ -39,6 +42,7 @@ import { toolRoutes } from './routes/tools'
 import { usageRoutes } from './routes/usage'
 import { userSettingsRoutes } from './routes/user-settings'
 import { webhookRoutes } from './routes/webhooks'
+import { workflowRoutes } from './routes/workflows'
 import { workspaceMemberRoutes } from './routes/workspace-members'
 import { workspaceRoutes } from './routes/workspaces'
 
@@ -144,6 +148,10 @@ export const app = new Elysia({ prefix: '/api', name: 'hare-api' })
 	.use(webhookRoutes)
 	.use(auditLogRoutes)
 	.use(activityRoutes)
+	.use(feedbackRoutes)
+	.use(guardrailRoutes)
+	.use(knowledgeBaseRoutes)
+	.use(workflowRoutes)
 
 // Log routes in dev
 if (serverEnv.NODE_ENV === 'development') {
