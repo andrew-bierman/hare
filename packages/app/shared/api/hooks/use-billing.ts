@@ -76,9 +76,9 @@ export function usePaymentHistoryQuery(options?: { limit?: number; startingAfter
 			unwrap(
 				client.api.billing.history.get({
 					query: {
-						limit: options?.limit,
+						limit: options?.limit?.toString(),
 						starting_after: options?.startingAfter,
-					} as any,
+					},
 				}),
 			),
 	})

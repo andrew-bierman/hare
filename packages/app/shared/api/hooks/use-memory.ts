@@ -104,7 +104,11 @@ export function useMemoriesQuery(options: {
 	return useQuery({
 		queryKey: memoryQueryKeys.list(agentId),
 		queryFn: () =>
-			unwrap(client.api.memory({ id: agentId }).get({ query: { limit, offset } as any })),
+			unwrap(
+				client.api.memory({ id: agentId }).get({
+					query: { limit: limit.toString(), offset: offset.toString() },
+				}),
+			),
 		enabled,
 	})
 }
@@ -115,7 +119,14 @@ export function useCreateMemoryMutation(options: { agentId: string }) {
 
 	return useMutation({
 		mutationFn: (data: CreateMemoryInput) =>
-			unwrap(client.api.memory({ id: agentId }).post(data as any)),
+			unwrap(
+				client.api.memory({ id: agentId }).post({
+					content: data.content,
+					type: data.type,
+					source: data.source,
+					tags: data.tags,
+				}),
+			),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: memoryQueryKeys.list(agentId) })
 		},
@@ -127,7 +138,14 @@ export function useSearchMemoriesMutation(options: { agentId: string }) {
 
 	return useMutation({
 		mutationFn: (data: SearchMemoryInput) =>
-			unwrap(client.api.memory({ id: agentId }).search.post(data as any)),
+			unwrap(
+				client.api.memory({ id: agentId }).search.post({
+					query: data.query,
+					topK: data.topK,
+					type: data.type,
+					tags: data.tags,
+				}),
+			),
 	})
 }
 
@@ -138,7 +156,11 @@ export function useUpdateMemoryMutation(options: { agentId: string }) {
 	return useMutation({
 		mutationFn: (input: { memoryId: string; data: UpdateMemoryInput }) =>
 			unwrap(
-				(client.api.memory({ id: agentId }) as any)({ memoryId: input.memoryId }).patch(input.data),
+				client.api.memory({ id: agentId })({ memoryId: input.memoryId }).patch({
+					content: input.data.content,
+					type: input.data.type,
+					tags: input.data.tags,
+				}),
 			),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: memoryQueryKeys.list(agentId) })
@@ -152,7 +174,7 @@ export function useDeleteMemoryMutation(options: { agentId: string }) {
 
 	return useMutation({
 		mutationFn: (memoryId: string) =>
-			unwrap((client.api.memory({ id: agentId }) as any)({ memoryId }).delete()),
+			unwrap(client.api.memory({ id: agentId })({ memoryId }).delete()),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: memoryQueryKeys.list(agentId) })
 		},

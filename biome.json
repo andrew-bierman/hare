@@ -107,15 +107,10 @@
 		{
 			"includes": [
 				"packages/app/**/index.ts",
-				"packages/app/shared/api/eden-hooks.ts",
-				"packages/app/shared/api/hooks/*.ts",
 				"packages/app/shared/lib/tanstack/**/*.ts"
 			],
 			"linter": {
 				"rules": {
-					"suspicious": {
-						"noExplicitAny": "off"
-					},
 					"performance": {
 						"noBarrelFile": "off",
 						"noReExportAll": "off"

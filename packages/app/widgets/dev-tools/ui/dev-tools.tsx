@@ -108,6 +108,7 @@ export function DevTools() {
 				description: randomDesc(),
 				model: '@cf/meta/llama-3.3-70b-instruct-fp8-fast',
 				instructions: defaultInstructions,
+				systemToolsEnabled: true,
 			})
 			toast.success(`Created agent: ${agent.name}`)
 			navigate({ to: '/dashboard/agents/$id', params: { id: agent.id } })
