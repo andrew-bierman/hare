@@ -95,12 +95,11 @@ export default defineConfig({
 		// Cloudflare plugin - use local config only for E2E tests (not deploy)
 		cloudflare({
 			viteEnvironment: { name: 'ssr' },
-			...(process.env.CI === 'true' &&
-				process.env.E2E === 'true' && {
-					configPath: './wrangler.e2e.jsonc',
-					persist: false,
-					remoteBindings: false,
-				}),
+			...(process.env.CI === 'true' && process.env.E2E === 'true' && {
+				configPath: './wrangler.e2e.jsonc',
+				persist: false,
+				remoteBindings: false,
+			}),
 		}),
 		tanstackStart(),
 		react(),

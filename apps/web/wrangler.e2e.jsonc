@@ -2,7 +2,7 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "hare-e2e",
   "main": "./src/server.ts",
-  "compatibility_date": "2026-03-31",
+  "compatibility_date": "2025-12-01",
   "compatibility_flags": ["nodejs_compat"],
 
   // Static assets config - directory is set automatically by @cloudflare/vite-plugin
@@ -30,8 +30,7 @@
     {
       "binding": "DB",
       "database_name": "hare-db",
-      "database_id": "e2e-local-id",
-      "migrations_dir": "./migrations"
+      "database_id": "e2e-local-id"
     }
   ],
 
