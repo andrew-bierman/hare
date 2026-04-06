@@ -400,20 +400,18 @@ import { app } from '@hare/api'
 export default app
 ```
 
-### 🎯 Hono RPC Client
+### 🎯 oRPC Type-Safe Client
 
-Type-safe API calls from React components (no manual fetch calls needed!):
+Type-safe API calls from React components using oRPC:
 
 ```typescript
-// apps/web/src/lib/client.ts
-import { hc } from 'hono/client'
-import type { AppType } from '@hare/api'
+// packages/api/src/orpc/client.ts
+import { createORPCClient } from '@orpc/client'
+import type { AppRouter } from './routers'
 
-export const client = hc<AppType>('/api')
+export const orpc = createORPCClient<AppRouter>(/* ... */)
 
-// Usage in components - fully typed! ✨
-const agents = await client.agents.$get()
-const agent = await client.agents[':id'].$get({ param: { id: 'xxx' } })
+// Usage via React Query hooks in packages/app/shared/api/orpc-hooks.ts
 ```
 
 ### 🔄 Data Flow
@@ -425,7 +423,7 @@ User Request (Browser)
 ⚛️ React Page (TanStack Router)
     │
     ▼
-🔌 Hono RPC Client (Type-safe)
+🔌 oRPC Client (Type-safe)
     │
     ▼
 🛣️ Hono API Route
@@ -526,7 +524,7 @@ User Request (Browser)
 
 ## API Reference
 
-All routes are defined in `apps/web/src/lib/api/` and mounted at `/api`.
+All routes are defined in `packages/api/src/` and mounted at `/api`.
 
 ### Auth Routes
 
@@ -936,10 +934,10 @@ bun run clean:cache      # Remove build caches (.turbo)
 
 ### Adding a New API Route
 
-1. Create route file in `apps/web/src/lib/api/routes/`:
+1. Create route file in `packages/api/src/routes/` (for Hono routes) or `packages/api/src/orpc/routers/` (for oRPC routes):
 
 ```typescript
-// apps/web/src/lib/api/routes/example.ts
+// packages/api/src/routes/example.ts
 import { Hono } from 'hono'
 import { zValidator } from '@hono/zod-validator'
 import { z } from 'zod'
@@ -959,18 +957,13 @@ export default app
 2. Mount in main app:
 
 ```typescript
-// apps/web/src/lib/api/index.ts
+// packages/api/src/index.ts
 import example from './routes/example'
 
 app.route('/example', example)
 ```
 
-3. Use with RPC client:
-
-```typescript
-const items = await client.example.$get()
-const newItem = await client.example.$post({ json: { name: 'Test' } })
-```
+3. Use with oRPC client hooks in `packages/app/shared/api/orpc-hooks.ts`
 
 ### Adding a shadcn Component
 
@@ -981,10 +974,10 @@ bunx shadcn@latest add button card dialog
 
 ### Adding a Database Table
 
-1. Add schema in `apps/web/db/schema/`:
+1. Add schema in `packages/db/src/schema/`:
 
 ```typescript
-// apps/web/db/schema/example.ts
+// packages/db/src/schema/example.ts
 import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core'
 
 export const examples = sqliteTable('examples', {
@@ -997,7 +990,7 @@ export const examples = sqliteTable('examples', {
 2. Export from schema index:
 
 ```typescript
-// apps/web/db/schema/index.ts
+// packages/db/src/schema/index.ts
 export * from './example'
 ```
 
@@ -1056,7 +1049,7 @@ Hare uses **Vitest** for unit tests and **Playwright** for end-to-end tests.
 Example unit test:
 
 ```typescript
-// apps/web/src/lib/api/__tests__/types.test.ts
+// packages/api/src/__tests__/types.test.ts
 import { describe, expect, it } from 'vitest'
 import { isWorkspaceRole } from '../types'
 
@@ -1087,10 +1080,10 @@ test('homepage loads', async ({ page }) => {
 ### 🧪 Test Structure
 
 Unit tests are located in `__tests__` directories alongside source files:
-- API tests: `apps/web/src/lib/api/__tests__/`
-- Middleware tests: `apps/web/src/lib/api/middleware/__tests__/`
-- Provider tests: `apps/web/src/lib/agents/providers/__tests__/`
-- Tool tests: `apps/web/src/lib/agents/tools/__tests__/`
+- API tests: `packages/api/src/__tests__/`
+- Middleware tests: `packages/api/src/middleware/__tests__/`
+- Agent tests: `packages/agent/src/__tests__/`
+- Tool tests: `packages/tools/src/__tests__/`
 - UI tests: `packages/ui/src/lib/__tests__/`
 
 E2E tests are in `apps/web/e2e/`.

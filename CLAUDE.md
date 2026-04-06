@@ -49,23 +49,43 @@ bun run db:studio        # Open Drizzle Studio
 
 ```
 packages/
+├── agent/src/              # Stateful agent runtime (Durable Objects)
+│   ├── hare-agent.ts       # Main HareAgent (Cloudflare Workers only)
+│   ├── mcp-agent.ts        # MCP server agent (Cloudflare Workers only)
+│   ├── edge-agent.ts       # Universal edge agent (any environment)
+│   ├── factory.ts          # Agent factory helpers
+│   ├── providers/          # AI providers (workers-ai.ts)
+│   └── tools/              # Agent control tools
 ├── api/src/routes/         # Hono API routes
 │   ├── agents/             # Agent routes (split by feature)
 │   │   ├── crud.ts         # CRUD operations
 │   │   ├── deployment.ts   # Deploy/undeploy/rollback
 │   │   ├── validation.ts   # Config validation
 │   │   └── helpers.ts      # Shared helpers
-│   ├── chat.ts             # Chat/conversation routes
-│   └── ...                 # Other route modules
+│   ├── agent-ws.ts         # WebSocket agent routes
+│   ├── auth.ts             # Authentication routes
+│   ├── billing.ts          # Billing routes
+│   ├── dev.ts              # Development/debug routes
+│   └── mcp.ts              # MCP routing
 ├── config/src/             # Centralized configuration
 │   ├── config.ts           # Unified config object
 │   ├── models.ts           # AI model definitions
 │   ├── templates.ts        # Agent templates
 │   ├── enums.ts            # Status/role enums
-│   └── content.ts          # UI content strings
+│   ├── content.ts          # UI content strings
+│   ├── constants.ts        # Global constants
+│   ├── env.ts              # Environment configuration
+│   ├── navigation.ts       # Navigation config
+│   ├── tools.ts            # Tool configuration
+│   └── zod.ts              # Shared Zod schemas
 ├── db/src/schema/          # Drizzle table definitions
-├── tools/src/              # Agent tool implementations
+├── tools/src/              # Agent tool implementations (59 tools)
 └── app/                    # React components & widgets
+    ├── entities/           # Entity components (agent, tool, etc.)
+    ├── features/           # Feature modules (auth, create-agent, etc.)
+    ├── pages/              # Page-level components
+    ├── widgets/            # Reusable UI widgets
+    └── shared/             # Shared utilities & API hooks
 ```
 
 ## Code Style (Biome)
@@ -82,7 +102,7 @@ Run `bun run check:fix` before committing.
 
 ### API Routes (Hono)
 ```ts
-// apps/web/src/lib/api/routes/example.ts
+// packages/api/src/routes/example.ts
 import { Hono } from 'hono'
 import { z } from 'zod'
 
@@ -97,7 +117,7 @@ export const exampleRoutes = new Hono()
 
 ### Database (Drizzle)
 ```ts
-// Schema in apps/web/src/db/schema/
+// packages/db/src/schema/example.ts
 import { sqliteTable, text } from 'drizzle-orm/sqlite-core'
 
 export const items = sqliteTable('items', {
@@ -121,10 +141,10 @@ export function Example() {
 ### AI/Streaming
 ```ts
 import { streamText } from 'ai'
-import { createWorkersAI } from '@/lib/agents/providers/workers-ai'
+import { createWorkersAIModel } from '@hare/agent'
 
 const result = await streamText({
-  model: createWorkersAI('@cf/meta/llama-3.3-70b-instruct-fp8-fast', env.AI),
+  model: createWorkersAIModel({ modelName: 'llama-3.3-70b', ai: env.AI }),
   messages,
   tools: agentTools,
 })
@@ -320,12 +340,12 @@ All temporary work, drafts, logs, and session artifacts should be organized in t
 
 ## Adding New Tools
 
-Tools are in `apps/web/src/lib/agents/tools/`. Use `createTool` for type safety:
+Tools are in `packages/tools/src/`. Use `createTool` for type safety:
 
 ```ts
-// apps/web/src/lib/agents/tools/my-tool.ts
+// packages/tools/src/my-tool.ts
 import { z } from 'zod'
-import { createTool, success, failure, type ToolContext } from './types'
+import { createTool, success, failure, type ToolContext } from '@hare/tools'
 
 export const myTool = createTool({
   id: 'my_tool',
@@ -351,7 +371,7 @@ export function getMyTools(context: ToolContext) {
 }
 ```
 
-Then register in `apps/web/src/lib/agents/tools/index.ts`:
+Then register in `packages/tools/src/index.ts`:
 1. Add export for your tool
 2. Add to `getSystemTools()` function
 3. Add tool ID to `SYSTEM_TOOL_IDS` array
@@ -362,7 +382,7 @@ Then register in `apps/web/src/lib/agents/tools/index.ts`:
 
 ## MCP (Model Context Protocol)
 
-The MCP agent (`apps/web/src/lib/agents/mcp-agent.ts`) exposes tools to external AI clients:
+The MCP agent (`packages/agent/src/mcp-agent.ts`) exposes tools to external AI clients:
 
 - Extends `McpAgent` from Cloudflare Agents SDK
 - Auto-registers all system tools via `getSystemTools()`
