@@ -4,4 +4,7 @@
  * A widget for managing scheduled tasks.
  */
 
-export { ScheduledTasksSection, type ScheduledTasksSectionProps } from './ui/scheduled-tasks-section'
+export {
+	ScheduledTasksSection,
+	type ScheduledTasksSectionProps,
+} from './ui/scheduled-tasks-section'

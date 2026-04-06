@@ -6,12 +6,12 @@ import { describe, expect, it, vi } from 'vitest'
 import {
 	createAgentHeaders,
 	getAgentIdFromRequest,
+	type HareAgentEnv,
 	isWebSocketRequest,
 	routeHttpToAgent,
 	routeToHareAgent,
 	routeToMcpAgent,
 	routeWebSocketToAgent,
-	type HareAgentEnv,
 } from '../router'
 
 /**

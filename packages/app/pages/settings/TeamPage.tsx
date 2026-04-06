@@ -1,15 +1,10 @@
 'use client'
 
+import type { MemberRole, WorkspaceInvitation, WorkspaceMember, WorkspaceRole } from '@hare/types'
 import { Avatar, AvatarFallback, AvatarImage } from '@hare/ui/components/avatar'
 import { Badge } from '@hare/ui/components/badge'
 import { Button } from '@hare/ui/components/button'
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from '@hare/ui/components/card'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@hare/ui/components/card'
 import {
 	Dialog,
 	DialogContent,
@@ -30,6 +25,7 @@ import {
 } from '@hare/ui/components/select'
 import { Separator } from '@hare/ui/components/separator'
 import { Skeleton } from '@hare/ui/components/skeleton'
+import { useNavigate } from '@tanstack/react-router'
 import {
 	AlertTriangle,
 	Clock,
@@ -42,10 +38,9 @@ import {
 	Users,
 } from 'lucide-react'
 import { useState } from 'react'
-import { useNavigate } from '@tanstack/react-router'
 import { toast } from 'sonner'
-import { useAuth } from '../../features/auth'
 import { useWorkspace } from '../../app/providers'
+import { useAuth } from '../../features/auth'
 import {
 	useDeleteWorkspaceMutation,
 	useRemoveMemberMutation,
@@ -55,12 +50,6 @@ import {
 	useWorkspaceInvitationsQuery,
 	useWorkspaceMembersQuery,
 } from '../../shared/api/hooks'
-import type {
-	MemberRole,
-	WorkspaceInvitation,
-	WorkspaceMember,
-	WorkspaceRole,
-} from '@hare/types'
 
 function getInitials(name: string): string {
 	return name
@@ -649,8 +638,7 @@ export function TeamPage() {
 												variant="destructive"
 												onClick={handleDeleteWorkspace}
 												disabled={
-													deleteConfirmation !== activeWorkspace?.name ||
-													deleteWorkspace.isPending
+													deleteConfirmation !== activeWorkspace?.name || deleteWorkspace.isPending
 												}
 											>
 												{deleteWorkspace.isPending ? 'Deleting...' : 'Delete Workspace'}

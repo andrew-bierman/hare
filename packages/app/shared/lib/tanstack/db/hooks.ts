@@ -11,13 +11,13 @@
  */
 
 import type { AgentStatus } from '@hare/types'
-import { useLiveQuery, eq } from '@tanstack/react-db'
+import { eq, useLiveQuery } from '@tanstack/react-db'
 import { useMemo } from 'react'
 import {
 	useAgentCollection,
+	useScheduleCollection,
 	useToolCollection,
 	useWorkspaceCollection,
-	useScheduleCollection,
 } from './provider'
 
 // =============================================================================
@@ -44,8 +44,7 @@ export function useLiveAgent(options: { id: string; workspaceId: string } | unde
 	const collection = useAgentCollection(options?.workspaceId ?? '')
 
 	return useLiveQuery(
-		(q) =>
-			q.from({ agent: collection }).where((row) => eq(row.agent.id, options?.id ?? '')),
+		(q) => q.from({ agent: collection }).where((row) => eq(row.agent.id, options?.id ?? '')),
 		[options?.id, options?.workspaceId],
 	)
 }
@@ -235,8 +234,7 @@ export function useLiveSchedules(options: { agentId: string; workspaceId: string
 	})
 
 	return useLiveQuery(
-		(q) =>
-			q.from({ schedule: collection }).orderBy((row) => row.schedule.createdAt, 'desc'),
+		(q) => q.from({ schedule: collection }).orderBy((row) => row.schedule.createdAt, 'desc'),
 		[options?.agentId, options?.workspaceId],
 	)
 }

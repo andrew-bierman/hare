@@ -1,4 +1,13 @@
 // Re-export types from the central types module
+
+export {
+	blockDangerousHeaders,
+	type RequestSizeLimitOptions,
+	requestSizeLimit,
+	requestValidation,
+	requireContentType,
+	validateJsonBody,
+} from '@hare/security'
 export type {
 	ApiKeyEnv,
 	ApiKeyInfo,
@@ -21,7 +30,6 @@ export {
 	hasScope,
 } from './api-key'
 export { authMiddleware, optionalAuthMiddleware } from './auth'
-export { mcpAuthMiddleware, type McpAuthEnv } from './mcp-auth'
 export { aiChatFeatureMiddleware } from './beta-access'
 export {
 	getLogStats,
@@ -31,6 +39,7 @@ export {
 	loggingMiddleware,
 	type RequestLog,
 } from './logging'
+export { type McpAuthEnv, mcpAuthMiddleware } from './mcp-auth'
 export {
 	apiRateLimiter,
 	chatRateLimiter,
@@ -38,15 +47,6 @@ export {
 	strictRateLimiter,
 } from './rate-limit'
 export { corsMiddleware, securityHeadersMiddleware } from './security'
-export {
-	blockDangerousHeaders,
-	csrfProtection,
-	requestSizeLimit,
-	requestValidation,
-	requireContentType,
-	validateJsonBody,
-	type RequestSizeLimitOptions,
-} from '@hare/security'
 export {
 	hasPermission,
 	requirePermission,

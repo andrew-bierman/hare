@@ -1,9 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import {
-	calculatePasswordEntropy,
-	generateSecurePassword,
-	validatePassword,
-} from '../password'
+import { calculatePasswordEntropy, generateSecurePassword, validatePassword } from '../password'
 
 describe('Password Utilities', () => {
 	describe('validatePassword', () => {
@@ -177,17 +173,13 @@ describe('Password Utilities', () => {
 			it('can disable uppercase requirement', () => {
 				const result = validatePassword('lowercase1!', { requireUppercase: false })
 
-				expect(result.errors).not.toContain(
-					'Password must contain at least one uppercase letter',
-				)
+				expect(result.errors).not.toContain('Password must contain at least one uppercase letter')
 			})
 
 			it('can disable lowercase requirement', () => {
 				const result = validatePassword('UPPERCASE1!', { requireLowercase: false })
 
-				expect(result.errors).not.toContain(
-					'Password must contain at least one lowercase letter',
-				)
+				expect(result.errors).not.toContain('Password must contain at least one lowercase letter')
 			})
 
 			it('can disable number requirement', () => {

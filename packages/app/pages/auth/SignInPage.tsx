@@ -1,16 +1,16 @@
 'use client'
 
-import { Link, useNavigate } from '@tanstack/react-router'
+import { config } from '@hare/config'
 import { Button } from '@hare/ui/components/button'
 import { Card, CardContent, CardFooter } from '@hare/ui/components/card'
 import { Input } from '@hare/ui/components/input'
 import { Label } from '@hare/ui/components/label'
+import { Link, useNavigate } from '@tanstack/react-router'
 import { ArrowRight, Github, Loader2, Rabbit } from 'lucide-react'
 import { type ChangeEvent, type FormEvent, useState } from 'react'
 import { toast } from 'sonner'
-import { config } from '@hare/config'
-import { useOAuthProvidersQuery } from '../../shared/api/hooks'
 import { useSignInActions } from '../../features/auth'
+import { useOAuthProvidersQuery } from '../../shared/api/hooks'
 
 const { signIn: content, fields } = config.content.auth
 

@@ -4,10 +4,10 @@
  * Handles querying activity events (agent invocations, tool calls, errors) with filtering and cursor pagination.
  */
 
-import { z } from 'zod'
-import { and, count, desc, eq, lt } from 'drizzle-orm'
-import { activityEvents } from '@hare/db/schema'
 import { ACTIVITY_EVENT_TYPES } from '@hare/config'
+import { activityEvents } from '@hare/db/schema'
+import { and, count, desc, eq, lt } from 'drizzle-orm'
+import { z } from 'zod'
 import { requireViewer } from '../base'
 
 // =============================================================================
@@ -47,8 +47,8 @@ const ActivityResponseSchema = z.object({
  * Returns recent agent invocations, tool calls, and errors
  */
 export const list = requireViewer
-	.route({ method: 'GET', path: '/activity' })
-	.input(ActivityQueryInputSchema)
+	.route({ method: 'POST', path: '/activity' })
+	.input(ActivityQueryInputSchema.optional().default({}))
 	.output(ActivityResponseSchema)
 	.handler(async ({ input, context }) => {
 		const { db, workspaceId } = context

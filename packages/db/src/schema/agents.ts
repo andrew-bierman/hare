@@ -1,6 +1,6 @@
-import { AGENT_STATUSES, AgentStatus, config } from '@hare/config'
-import { createId } from '../id'
+import { AGENT_STATUSES, type AgentStatus, config } from '@hare/config'
 import { index, integer, sqliteTable, text } from 'drizzle-orm/sqlite-core'
+import { createId } from '../id'
 import { users } from './auth'
 import { workspaces } from './workspaces'
 

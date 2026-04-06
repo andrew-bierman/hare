@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { createTool, failure, success, type HareEnv, type ToolContext } from './types'
+import { createTool, failure, type HareEnv, success, type ToolContext } from './types'
 
 /**
  * Helper to check if AI binding is available.
@@ -146,7 +146,9 @@ export const sentimentTool = createTool({
 	execute: async (params, context) => {
 		try {
 			if (!requireAI(context)) {
-				return failure('AI binding is not available. Please configure the AI binding in your Worker.')
+				return failure(
+					'AI binding is not available. Please configure the AI binding in your Worker.',
+				)
 			}
 			const { text, detailed } = params
 
@@ -210,7 +212,9 @@ export const summarizeTool = createTool({
 	execute: async (params, context) => {
 		try {
 			if (!requireAI(context)) {
-				return failure('AI binding is not available. Please configure the AI binding in your Worker.')
+				return failure(
+					'AI binding is not available. Please configure the AI binding in your Worker.',
+				)
 			}
 			const { text, maxLength, style } = params
 
@@ -275,7 +279,9 @@ export const translateTool = createTool({
 	execute: async (params, context) => {
 		try {
 			if (!requireAI(context)) {
-				return failure('AI binding is not available. Please configure the AI binding in your Worker.')
+				return failure(
+					'AI binding is not available. Please configure the AI binding in your Worker.',
+				)
 			}
 			const { text, targetLanguage, sourceLanguage } = params
 
@@ -327,7 +333,9 @@ export const imageGenerateTool = createTool({
 	execute: async (params, context) => {
 		try {
 			if (!requireAI(context)) {
-				return failure('AI binding is not available. Please configure the AI binding in your Worker.')
+				return failure(
+					'AI binding is not available. Please configure the AI binding in your Worker.',
+				)
 			}
 			const { prompt, negativePrompt, width, height, steps, guidance } = params
 
@@ -409,7 +417,9 @@ export const classifyTool = createTool({
 	execute: async (params, context) => {
 		try {
 			if (!requireAI(context)) {
-				return failure('AI binding is not available. Please configure the AI binding in your Worker.')
+				return failure(
+					'AI binding is not available. Please configure the AI binding in your Worker.',
+				)
 			}
 			const { text, categories, multiLabel } = params
 
@@ -576,7 +586,9 @@ export const embeddingTool = createTool({
 	execute: async (params, context) => {
 		try {
 			if (!requireAI(context)) {
-				return failure('AI binding is not available. Please configure the AI binding in your Worker.')
+				return failure(
+					'AI binding is not available. Please configure the AI binding in your Worker.',
+				)
 			}
 			const { text, model } = params
 
@@ -635,7 +647,9 @@ export const qaTool = createTool({
 	execute: async (params, context) => {
 		try {
 			if (!requireAI(context)) {
-				return failure('AI binding is not available. Please configure the AI binding in your Worker.')
+				return failure(
+					'AI binding is not available. Please configure the AI binding in your Worker.',
+				)
 			}
 			const { question, context: textContext, options } = params
 			const { maxLength = 200, includeQuote = false } = options || {}

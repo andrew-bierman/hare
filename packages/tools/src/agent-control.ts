@@ -11,7 +11,14 @@
  */
 
 import { z } from 'zod'
-import { createTool, failure, success, type ToolContext, type ToolResult, type HareEnv } from './types'
+import {
+	createTool,
+	failure,
+	type HareEnv,
+	success,
+	type ToolContext,
+	type ToolResult,
+} from './types'
 
 /**
  * Extended environment for agent control tools.
@@ -35,9 +42,7 @@ export interface AgentControlContext extends ToolContext<AgentControlEnv> {
 /**
  * Check if context has agent control capabilities
  */
-function hasAgentControlCapabilities(
-	context: ToolContext,
-): context is AgentControlContext {
+function hasAgentControlCapabilities(context: ToolContext): context is AgentControlContext {
 	return context.env && 'DB' in context.env && context.env.DB !== undefined
 }
 
@@ -279,7 +284,10 @@ export const listAgentsTool = createTool({
 				bindings = [workspaceId, params.status, params.limit]
 			}
 
-			const result = await db.prepare(query).bind(...bindings).all()
+			const result = await db
+				.prepare(query)
+				.bind(...bindings)
+				.all()
 
 			const agents = (result.results || []).map((row) => ({
 				id: row.id as string,
@@ -693,11 +701,7 @@ export const createAgentTool = createTool({
 		name: z.string().min(1).describe('Name for the new agent'),
 		description: z.string().optional().describe('Description of the agent'),
 		instructions: z.string().optional().describe('System instructions'),
-		model: z
-			.string()
-			.optional()
-			.default('llama-3.3-70b')
-			.describe('AI model to use'),
+		model: z.string().optional().default('llama-3.3-70b').describe('AI model to use'),
 		config: z
 			.object({
 				temperature: z.number().min(0).max(2).optional(),
@@ -1108,7 +1112,10 @@ export const listAgentToolsTool = createTool({
 				bindings = [params.agentId]
 			}
 
-			const toolsResult = await db.prepare(query).bind(...bindings).all()
+			const toolsResult = await db
+				.prepare(query)
+				.bind(...bindings)
+				.all()
 
 			const tools = (toolsResult.results || []).map((row) => ({
 				id: row.id as string,
@@ -1423,7 +1430,10 @@ export const rollbackAgentTool = createTool({
 	description: 'Rollback an agent to a previous configuration by restoring a snapshot',
 	inputSchema: z.object({
 		agentId: z.string().describe('The agent to rollback'),
-		snapshotId: z.string().optional().describe('Specific snapshot ID to rollback to (defaults to most recent)'),
+		snapshotId: z
+			.string()
+			.optional()
+			.describe('Specific snapshot ID to rollback to (defaults to most recent)'),
 	}),
 	outputSchema: RollbackAgentOutputSchema,
 	execute: async (params, context: ToolContext) => {
@@ -1437,7 +1447,9 @@ export const rollbackAgentTool = createTool({
 
 			// Verify agent exists
 			const existing = await db
-				.prepare('SELECT id, config, instructions, model FROM agents WHERE id = ? AND workspaceId = ?')
+				.prepare(
+					'SELECT id, config, instructions, model FROM agents WHERE id = ? AND workspaceId = ?',
+				)
 				.bind(params.agentId, workspaceId)
 				.first()
 
@@ -1450,10 +1462,12 @@ export const rollbackAgentTool = createTool({
 			let snapshotBindings: unknown[]
 
 			if (params.snapshotId) {
-				snapshotQuery = 'SELECT id, config, instructions, model, createdAt FROM agent_snapshots WHERE id = ? AND agentId = ?'
+				snapshotQuery =
+					'SELECT id, config, instructions, model, createdAt FROM agent_snapshots WHERE id = ? AND agentId = ?'
 				snapshotBindings = [params.snapshotId, params.agentId]
 			} else {
-				snapshotQuery = 'SELECT id, config, instructions, model, createdAt FROM agent_snapshots WHERE agentId = ? ORDER BY createdAt DESC LIMIT 1'
+				snapshotQuery =
+					'SELECT id, config, instructions, model, createdAt FROM agent_snapshots WHERE agentId = ? ORDER BY createdAt DESC LIMIT 1'
 				snapshotBindings = [params.agentId]
 			}
 
@@ -1485,8 +1499,17 @@ export const rollbackAgentTool = createTool({
 
 			// Restore the snapshot
 			await db
-				.prepare('UPDATE agents SET config = ?, instructions = ?, model = ?, updatedAt = ? WHERE id = ? AND workspaceId = ?')
-				.bind(snapshot.config, snapshot.instructions, snapshot.model, now, params.agentId, workspaceId)
+				.prepare(
+					'UPDATE agents SET config = ?, instructions = ?, model = ?, updatedAt = ? WHERE id = ? AND workspaceId = ?',
+				)
+				.bind(
+					snapshot.config,
+					snapshot.instructions,
+					snapshot.model,
+					now,
+					params.agentId,
+					workspaceId,
+				)
 				.run()
 
 			return success({
@@ -1550,7 +1573,9 @@ export const listWebhooksTool = createTool({
 			}
 
 			const result = await db
-				.prepare('SELECT id, url, events, status, createdAt FROM webhooks WHERE agentId = ? ORDER BY createdAt DESC')
+				.prepare(
+					'SELECT id, url, events, status, createdAt FROM webhooks WHERE agentId = ? ORDER BY createdAt DESC',
+				)
 				.bind(params.agentId)
 				.all()
 
@@ -1595,7 +1620,10 @@ export const createWebhookTool = createTool({
 			.array(z.string())
 			.min(1)
 			.describe('Event types to subscribe to (e.g., agent.message, agent.deployed)'),
-		secret: z.string().optional().describe('Webhook signing secret (auto-generated if not provided)'),
+		secret: z
+			.string()
+			.optional()
+			.describe('Webhook signing secret (auto-generated if not provided)'),
 	}),
 	outputSchema: CreateWebhookOutputSchema,
 	execute: async (params, context: ToolContext) => {

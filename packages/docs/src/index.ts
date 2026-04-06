@@ -8,22 +8,22 @@
  */
 
 export {
-	// Types
-	type DocProperty,
-	type DocMethod,
-	type DocInterface,
 	type DocClass,
 	type DocFunction,
+	type DocInterface,
+	type DocMethod,
+	// Types
+	type DocProperty,
 	type DocTool,
 	type ExtractedDocs,
-	type PackageConfig,
+	extractDocsFromFile,
 	type GeneratorOptions,
+	generateClassMDX,
 	// Functions
 	generateDocs,
-	extractDocsFromFile,
-	generatePackageMDX,
-	generateClassMDX,
-	generateInterfaceMDX,
 	generateFunctionMDX,
+	generateInterfaceMDX,
+	generatePackageMDX,
 	generateToolMDX,
+	type PackageConfig,
 } from './generator'

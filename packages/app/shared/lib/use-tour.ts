@@ -1,8 +1,8 @@
 'use client'
 
-import { useCallback, useEffect } from 'react'
 import { useAtom } from 'jotai'
-import { tourCompletedAtom, tourActiveAtom, tourCurrentStepAtom } from './atoms'
+import { useCallback, useEffect } from 'react'
+import { tourActiveAtom, tourCompletedAtom, tourCurrentStepAtom } from './atoms'
 
 export interface UseTourReturn {
 	/** Whether the tour has been completed */

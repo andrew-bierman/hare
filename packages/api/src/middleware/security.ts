@@ -1,7 +1,7 @@
+import { serverEnv } from '@hare/config'
 import type { MiddlewareHandler } from 'hono'
 import { cors } from 'hono/cors'
 import { secureHeaders } from 'hono/secure-headers'
-import { serverEnv } from '@hare/config'
 
 /**
  * Security headers middleware

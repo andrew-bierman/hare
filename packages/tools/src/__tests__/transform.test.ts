@@ -1,11 +1,11 @@
-import { describe, expect, it, beforeEach } from 'vitest'
+import { beforeEach, describe, expect, it } from 'vitest'
 import {
-	markdownTool,
-	diffTool,
-	qrcodeTool,
-	compressionTool,
 	colorTool,
+	compressionTool,
+	diffTool,
 	getTransformTools,
+	markdownTool,
+	qrcodeTool,
 } from '../transform'
 import type { ToolContext } from '../types'
 import { expectResultData, ResultSchemas } from './test-utils'
@@ -147,20 +147,14 @@ describe('Transform Tools', () => {
 		describe('execution - extractLinks', () => {
 			it('extracts links', async () => {
 				const markdown = '[Link 1](https://example1.com) text [Link 2](https://example2.com)'
-				const result = await markdownTool.execute(
-					{ operation: 'extractLinks', markdown },
-					context,
-				)
+				const result = await markdownTool.execute({ operation: 'extractLinks', markdown }, context)
 				const data = expectResultData({ result, schema: ResultSchemas.markdown })
 				expect(data.links).toHaveLength(2)
 			})
 
 			it('distinguishes links from images', async () => {
 				const markdown = '[Link](https://example.com) ![Image](https://example.com/img.png)'
-				const result = await markdownTool.execute(
-					{ operation: 'extractLinks', markdown },
-					context,
-				)
+				const result = await markdownTool.execute({ operation: 'extractLinks', markdown }, context)
 				const data = expectResultData({ result, schema: ResultSchemas.markdown })
 				const links = data.links ?? []
 				const regularLinks = links.filter((l: { isImage?: boolean }) => !l.isImage)
@@ -403,7 +397,12 @@ describe('Transform Tools', () => {
 		describe('execution', () => {
 			it('compresses text data', async () => {
 				const result = await compressionTool.execute(
-					{ operation: 'compress', data: 'hello world '.repeat(100), algorithm: 'gzip', encoding: 'text' },
+					{
+						operation: 'compress',
+						data: 'hello world '.repeat(100),
+						algorithm: 'gzip',
+						encoding: 'text',
+					},
 					context,
 				)
 				const data = expectResultData({ result, schema: ResultSchemas.compression })
@@ -417,7 +416,10 @@ describe('Transform Tools', () => {
 					{ operation: 'compress', data: 'hello world', algorithm: 'gzip', encoding: 'text' },
 					context,
 				)
-				const compressedData = expectResultData({ result: compressed, schema: ResultSchemas.compression })
+				const compressedData = expectResultData({
+					result: compressed,
+					schema: ResultSchemas.compression,
+				})
 
 				// Then decompress
 				const decompressed = await compressionTool.execute(
@@ -429,13 +431,21 @@ describe('Transform Tools', () => {
 					},
 					context,
 				)
-				const decompressedData = expectResultData({ result: decompressed, schema: ResultSchemas.compression })
+				const decompressedData = expectResultData({
+					result: decompressed,
+					schema: ResultSchemas.compression,
+				})
 				expect(decompressedData.decompressed).toBe('hello world')
 			})
 
 			it('calculates compression ratio', async () => {
 				const result = await compressionTool.execute(
-					{ operation: 'compress', data: 'aaaaaaaaaa'.repeat(100), algorithm: 'gzip', encoding: 'text' },
+					{
+						operation: 'compress',
+						data: 'aaaaaaaaaa'.repeat(100),
+						algorithm: 'gzip',
+						encoding: 'text',
+					},
 					context,
 				)
 				const data = expectResultData({ result, schema: ResultSchemas.compression })
@@ -620,13 +630,7 @@ describe('Transform Tools', () => {
 			const tools = getTransformTools(context)
 
 			expect(tools).toHaveLength(5)
-			expect(tools.map((t) => t.id)).toEqual([
-				'markdown',
-				'diff',
-				'qrcode',
-				'compression',
-				'color',
-			])
+			expect(tools.map((t) => t.id)).toEqual(['markdown', 'diff', 'qrcode', 'compression', 'color'])
 		})
 	})
 })

@@ -1,11 +1,11 @@
 'use client'
 
-import { useState, useEffect, useCallback, useRef } from 'react'
-import { createPortal } from 'react-dom'
 import { Button } from '@hare/ui/components/button'
 import { Progress } from '@hare/ui/components/progress'
 import { cn } from '@hare/ui/lib/utils'
-import { X, ChevronLeft, ChevronRight, SkipForward } from 'lucide-react'
+import { ChevronLeft, ChevronRight, SkipForward, X } from 'lucide-react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 
 /**
  * Position of the tour tooltip relative to the target element

@@ -198,14 +198,13 @@ class WebSocketConnectionManager {
 
 			try {
 				const message = this.deserializeMessage(event.data)
-				if (message.type === 'pong' as ServerMessage['type']) {
+				if (message.type === ('pong' as ServerMessage['type'])) {
 					this.lastPongTime = Date.now()
 				} else {
 					this.onMessage?.(message)
 				}
 			} catch (err) {
-				const errorMessage =
-					err instanceof Error ? err.message : 'Failed to parse message'
+				const errorMessage = err instanceof Error ? err.message : 'Failed to parse message'
 				this.onError?.(errorMessage)
 			}
 		}
@@ -312,7 +311,7 @@ class WebSocketConnectionManager {
 	 * Calculate reconnect delay with exponential backoff
 	 */
 	calculateReconnectDelay(): number {
-		const delay = this.baseReconnectDelay * Math.pow(2, this.state.reconnectAttempts)
+		const delay = this.baseReconnectDelay * 2 ** this.state.reconnectAttempts
 		return Math.min(delay, this.maxReconnectDelay)
 	}
 
@@ -320,10 +319,7 @@ class WebSocketConnectionManager {
 	 * Schedule reconnection with exponential backoff
 	 */
 	private scheduleReconnect(): void {
-		if (
-			!this.mounted ||
-			this.state.reconnectAttempts >= this.maxReconnectAttempts
-		) {
+		if (!this.mounted || this.state.reconnectAttempts >= this.maxReconnectAttempts) {
 			return
 		}
 
@@ -698,9 +694,7 @@ describe('WebSocket Connection Manager', () => {
 			vi.advanceTimersByTime(30000)
 
 			// Should have sent a ping
-			expect(getMockInstance(0).send).toHaveBeenCalledWith(
-				expect.stringContaining('"type":"ping"'),
-			)
+			expect(getMockInstance(0).send).toHaveBeenCalledWith(expect.stringContaining('"type":"ping"'))
 		})
 
 		it('sends periodic ping messages', () => {
@@ -709,8 +703,8 @@ describe('WebSocket Connection Manager', () => {
 
 			// Verify first ping is sent at first interval
 			vi.advanceTimersByTime(30000)
-			let pingCalls = (getMockInstance(0).send.mock.calls as string[][]).filter(
-				(call) => call[0]?.includes('"type":"ping"'),
+			let pingCalls = (getMockInstance(0).send.mock.calls as string[][]).filter((call) =>
+				call[0]?.includes('"type":"ping"'),
 			)
 			expect(pingCalls.length).toBe(1)
 
@@ -723,8 +717,8 @@ describe('WebSocket Connection Manager', () => {
 
 			// Verify second ping is sent
 			vi.advanceTimersByTime(30000)
-			pingCalls = (getMockInstance(0).send.mock.calls as string[][]).filter(
-				(call) => call[0]?.includes('"type":"ping"'),
+			pingCalls = (getMockInstance(0).send.mock.calls as string[][]).filter((call) =>
+				call[0]?.includes('"type":"ping"'),
 			)
 			expect(pingCalls.length).toBe(2)
 
@@ -737,8 +731,8 @@ describe('WebSocket Connection Manager', () => {
 
 			// Verify third ping is sent
 			vi.advanceTimersByTime(30000)
-			pingCalls = (getMockInstance(0).send.mock.calls as string[][]).filter(
-				(call) => call[0]?.includes('"type":"ping"'),
+			pingCalls = (getMockInstance(0).send.mock.calls as string[][]).filter((call) =>
+				call[0]?.includes('"type":"ping"'),
 			)
 			expect(pingCalls.length).toBeGreaterThanOrEqual(3)
 		})
@@ -787,9 +781,7 @@ describe('WebSocket Connection Manager', () => {
 			// Advance time - should not send more pings
 			vi.advanceTimersByTime(60000)
 
-			expect(getMockInstance(0).send.mock.calls.length).toBe(
-				sendCallsBeforeDisconnect,
-			)
+			expect(getMockInstance(0).send.mock.calls.length).toBe(sendCallsBeforeDisconnect)
 		})
 	})
 
@@ -961,9 +953,9 @@ describe('WebSocket Connection Manager', () => {
 		})
 
 		it('throws error for unknown message types', () => {
-			expect(() =>
-				manager.deserializeMessage('{"type": "unknown", "data": {}}'),
-			).toThrow('Invalid message type: unknown')
+			expect(() => manager.deserializeMessage('{"type": "unknown", "data": {}}')).toThrow(
+				'Invalid message type: unknown',
+			)
 		})
 
 		it('calls onError callback for malformed messages', () => {
@@ -989,9 +981,7 @@ describe('WebSocket Connection Manager', () => {
 
 		it('handles array message gracefully', () => {
 			// Arrays are objects in JavaScript but should fail type validation
-			expect(() => manager.deserializeMessage('[]')).toThrow(
-				'Invalid message format: missing type',
-			)
+			expect(() => manager.deserializeMessage('[]')).toThrow('Invalid message format: missing type')
 		})
 	})
 
@@ -1043,9 +1033,7 @@ describe('WebSocket Connection Manager', () => {
 			// Advance time - should not send more pings
 			vi.advanceTimersByTime(60000)
 
-			expect(getMockInstance(0).send.mock.calls.length).toBe(
-				sendCallsAtCleanup,
-			)
+			expect(getMockInstance(0).send.mock.calls.length).toBe(sendCallsAtCleanup)
 		})
 
 		it('prevents new connections after cleanup', () => {

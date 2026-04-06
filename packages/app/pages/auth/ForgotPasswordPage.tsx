@@ -1,15 +1,15 @@
 'use client'
 
-import { Link } from '@tanstack/react-router'
+import { requestPasswordReset } from '@hare/auth/client'
+import { config } from '@hare/config'
 import { Button } from '@hare/ui/components/button'
 import { Card, CardContent } from '@hare/ui/components/card'
 import { Input } from '@hare/ui/components/input'
 import { Label } from '@hare/ui/components/label'
+import { Link } from '@tanstack/react-router'
 import { ArrowLeft, ArrowRight, CheckCircle, Loader2, Mail, Rabbit } from 'lucide-react'
 import { type ChangeEvent, type FormEvent, useState } from 'react'
 import { toast } from 'sonner'
-import { config } from '@hare/config'
-import { requestPasswordReset } from '@hare/auth/client'
 
 const { forgotPassword: content, fields } = config.content.auth
 
@@ -80,12 +80,8 @@ export function ForgotPasswordPage() {
 							</div>
 						</div>
 						<div className="space-y-2">
-							<h1 className="text-2xl font-bold tracking-tight">
-								{content.emailSent.title}
-							</h1>
-							<p className="text-muted-foreground">
-								{content.emailSent.subtitle}
-							</p>
+							<h1 className="text-2xl font-bold tracking-tight">{content.emailSent.title}</h1>
+							<p className="text-muted-foreground">{content.emailSent.subtitle}</p>
 							<p className="font-medium text-foreground">{email}</p>
 						</div>
 						<div className="flex items-center justify-center gap-2">

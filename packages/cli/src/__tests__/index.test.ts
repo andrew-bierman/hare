@@ -7,36 +7,36 @@ import { TEMPLATES } from '../templates'
 
 describe('@hare/cli', () => {
 	describe('TEMPLATES', () => {
-	it('generates valid package.json with the project name', () => {
-		const template = TEMPLATES['package.json']
-		if (!template) throw new Error('package.json template not found')
-		const content = template('my-agent')
-		const parsed = JSON.parse(content)
-		expect(parsed.name).toBe('my-agent')
-		expect(parsed.version).toMatch(/^\d+\.\d+\.\d+/)
-		expect(parsed.private).toBe(true)
-		expect(parsed.type).toBe('module')
-		expect(parsed.scripts.dev).toBeTruthy()
-		expect(parsed.scripts.deploy).toBeTruthy()
-		expect(parsed.dependencies).toBeDefined()
-	})
+		it('generates valid package.json with the project name', () => {
+			const template = TEMPLATES['package.json']
+			if (!template) throw new Error('package.json template not found')
+			const content = template('my-agent')
+			const parsed = JSON.parse(content)
+			expect(parsed.name).toBe('my-agent')
+			expect(parsed.version).toMatch(/^\d+\.\d+\.\d+/)
+			expect(parsed.private).toBe(true)
+			expect(parsed.type).toBe('module')
+			expect(parsed.scripts.dev).toBeTruthy()
+			expect(parsed.scripts.deploy).toBeTruthy()
+			expect(parsed.dependencies).toBeDefined()
+		})
 
-	it('generates wrangler.toml with the project name', () => {
-		const template = TEMPLATES['wrangler.toml']
-		if (!template) throw new Error('wrangler.toml template not found')
-		const content = template('test-project')
-		expect(content).toContain('name = "test-project"')
-		expect(content).toContain('main = "src/index.ts"')
-	})
+		it('generates wrangler.toml with the project name', () => {
+			const template = TEMPLATES['wrangler.toml']
+			if (!template) throw new Error('wrangler.toml template not found')
+			const content = template('test-project')
+			expect(content).toContain('name = "test-project"')
+			expect(content).toContain('main = "src/index.ts"')
+		})
 
-	it('generates valid tsconfig.json', () => {
-		const template = TEMPLATES['tsconfig.json']
-		if (!template) throw new Error('tsconfig.json template not found')
-		const content = template('any-name')
-		const parsed = JSON.parse(content)
-		expect(parsed.compilerOptions).toBeDefined()
-		expect(parsed.compilerOptions.target).toBeTruthy()
-	})
+		it('generates valid tsconfig.json', () => {
+			const template = TEMPLATES['tsconfig.json']
+			if (!template) throw new Error('tsconfig.json template not found')
+			const content = template('any-name')
+			const parsed = JSON.parse(content)
+			expect(parsed.compilerOptions).toBeDefined()
+			expect(parsed.compilerOptions.target).toBeTruthy()
+		})
 
 		it('includes all expected template files', () => {
 			const templateKeys = Object.keys(TEMPLATES)

@@ -1,14 +1,14 @@
 import {
 	config,
 	EXECUTION_STATUSES,
-	ExecutionStatus,
+	type ExecutionStatus,
 	SCHEDULE_STATUSES,
 	SCHEDULE_TYPES,
-	ScheduleStatus,
-	ScheduleType,
+	type ScheduleStatus,
+	type ScheduleType,
 } from '@hare/config'
-import { createId } from '../id'
 import { index, integer, sqliteTable, text } from 'drizzle-orm/sqlite-core'
+import { createId } from '../id'
 import { agents } from './agents'
 import { users } from './auth'
 

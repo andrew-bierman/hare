@@ -1,6 +1,6 @@
-import { ACTIVITY_EVENT_TYPES, ActivityEventType } from '@hare/config'
-import { createId } from '../id'
+import { ACTIVITY_EVENT_TYPES, type ActivityEventType } from '@hare/config'
 import { index, integer, sqliteTable, text } from 'drizzle-orm/sqlite-core'
+import { createId } from '../id'
 import { agents } from './agents'
 import { workspaces } from './workspaces'
 
@@ -29,5 +29,5 @@ export const activityEvents = sqliteTable(
 		index('activity_events_agent_id_idx').on(table.agentId),
 		index('activity_events_created_at_idx').on(table.createdAt),
 		index('activity_events_workspace_created_idx').on(table.workspaceId, table.createdAt),
-	]
+	],
 )

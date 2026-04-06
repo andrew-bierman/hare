@@ -3,10 +3,10 @@
  * Implements double-submit cookie pattern for CSRF prevention
  */
 
+import { serverEnv } from '@hare/config'
 import type { HonoEnv } from '@hare/types'
 import type { Context } from 'hono'
 import { getCookie, setCookie } from 'hono/cookie'
-import { serverEnv } from '@hare/config'
 import { timingSafeEqual } from './encryption'
 
 const isDev = serverEnv.NODE_ENV === 'development'

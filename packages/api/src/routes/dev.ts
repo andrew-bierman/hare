@@ -1,9 +1,9 @@
-import { OpenAPIHono } from '@hono/zod-openapi'
-import { agents } from '@hare/db'
 import { serverEnv } from '@hare/config'
+import { agents } from '@hare/db'
+import type { WorkspaceEnv } from '@hare/types'
+import { OpenAPIHono } from '@hono/zod-openapi'
 import { getDb } from '../db'
 import { authMiddleware, workspaceMiddleware } from '../middleware'
-import type { WorkspaceEnv } from '@hare/types'
 
 const app = new OpenAPIHono<WorkspaceEnv>()
 

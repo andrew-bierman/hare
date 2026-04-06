@@ -5,36 +5,33 @@
  * All pages use TanStack Router directly (Link, useNavigate, etc.)
  */
 
-// Dashboard
-export { DashboardPage, UsagePage, AnalyticsPage } from './dashboard'
-
 // Agents
 export {
-	AgentsListPage,
-	AgentCreatePage,
-	AgentTemplatesPage,
-	AgentPlaygroundPage,
-	type AgentPlaygroundPageProps,
-	AgentWebhooksPage,
-	type AgentWebhooksPageProps,
-	AgentDetailPage,
-	type AgentDetailPageProps,
 	AgentConversationsPage,
 	type AgentConversationsPageProps,
+	AgentCreatePage,
+	AgentDetailPage,
+	type AgentDetailPageProps,
+	AgentPlaygroundPage,
+	type AgentPlaygroundPageProps,
+	AgentsListPage,
+	AgentTemplatesPage,
+	AgentWebhooksPage,
+	type AgentWebhooksPageProps,
 } from './agents'
-
-// Tools
-export { ToolsListPage, ToolCreatePage, ToolDetailPage, type ToolDetailPageProps } from './tools'
+// Auth
+export * from './auth'
+// Dashboard
+export { AnalyticsPage, DashboardPage, UsagePage } from './dashboard'
 
 // Settings
 export {
-	SettingsPage,
 	ApiKeysPage,
 	AuditLogsPage,
 	BillingPage,
 	type BillingPageProps,
+	SettingsPage,
 	TeamPage,
 } from './settings'
-
-// Auth
-export * from './auth'
+// Tools
+export { ToolCreatePage, ToolDetailPage, type ToolDetailPageProps, ToolsListPage } from './tools'

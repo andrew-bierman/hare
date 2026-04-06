@@ -1,5 +1,6 @@
 'use client'
 
+import type { ToolType } from '@hare/types'
 import type { LucideIcon } from 'lucide-react'
 import {
 	Brain,
@@ -12,8 +13,8 @@ import {
 	FileCode,
 	FileText,
 	Globe,
-	Hash,
 	HardDrive,
+	Hash,
 	Image,
 	Key,
 	Languages,
@@ -35,7 +36,6 @@ import {
 	Wrench,
 	Zap,
 } from 'lucide-react'
-import type { ToolType } from '@hare/types'
 import type { ToolCategory } from './types'
 
 /**

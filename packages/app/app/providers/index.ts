@@ -4,16 +4,15 @@
  * Context providers for the application.
  */
 
-export { Providers } from './providers'
-export { queryClient, QueryProvider } from './query-provider'
-export { useWorkspace, WorkspaceProvider } from './workspace-provider'
-export { WorkspaceGate } from './workspace-gate'
-
 // Re-export auth context from features for convenience
 export {
+	type AuthActions,
+	type AuthContextValue,
 	AuthProvider,
 	useAuth,
 	useAuthActions,
-	type AuthActions,
-	type AuthContextValue,
 } from '../../features/auth'
+export { Providers } from './providers'
+export { QueryProvider, queryClient } from './query-provider'
+export { WorkspaceGate } from './workspace-gate'
+export { useWorkspace, WorkspaceProvider } from './workspace-provider'

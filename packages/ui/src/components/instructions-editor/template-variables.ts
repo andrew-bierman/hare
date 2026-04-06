@@ -1,10 +1,10 @@
 'use client'
 
 import {
-	ViewPlugin,
 	Decoration,
 	type DecorationSet,
 	EditorView,
+	ViewPlugin,
 	type ViewUpdate,
 } from '@codemirror/view'
 
@@ -63,11 +63,11 @@ export const templateVariableHighlight = ViewPlugin.fromClass(
 			const decorations = matches.map(({ from, to }) =>
 				Decoration.mark({
 					class: 'cm-template-variable',
-				}).range(from, to)
+				}).range(from, to),
 			)
 
 			return Decoration.set(decorations)
 		}
 	},
-	{ decorations: (v) => v.decorations }
+	{ decorations: (v) => v.decorations },
 )

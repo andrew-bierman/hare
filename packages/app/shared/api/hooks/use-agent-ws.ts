@@ -7,8 +7,8 @@
  * Provides real-time bidirectional communication with state sync.
  */
 
-import { useCallback, useEffect, useRef, useState } from 'react'
 import type { ClientMessage, HareAgentState, ServerMessage } from '@hare/types'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 export type { ClientMessage, HareAgentState, ServerMessage }
 

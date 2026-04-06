@@ -5,11 +5,10 @@
  * oRPC hooks are the single source of truth for type-safe API hooks.
  */
 
-// Query keys
-export * from './query-keys'
-
 // oRPC Hooks - single source of truth for type-safe API hooks
 export * from '../orpc-hooks'
+// Query keys
+export * from './query-keys'
 
 // =============================================================================
 // Non-oRPC Hooks
@@ -42,14 +41,6 @@ export {
 	usePaymentHistoryQuery,
 	usePlansQuery,
 } from './use-billing'
-
-// Chat hooks
-export {
-	useChat,
-	useConversationsQuery,
-	useConversationSearchQuery,
-	useMessagesQuery,
-} from './use-chat'
 export type {
 	ChatStreamEventData,
 	ChatUsage,
@@ -59,25 +50,31 @@ export type {
 	Message,
 	ToolCallData,
 } from './use-chat'
-
+// Chat hooks
+export {
+	useChat,
+	useConversationSearchQuery,
+	useConversationsQuery,
+	useMessagesQuery,
+} from './use-chat'
+export type {
+	ConversationPage,
+	UseInfiniteMessagesOptions,
+} from './use-infinite-conversations'
 // Infinite conversations hooks
 export {
 	useAddMessageToCache,
 	useInfiniteMessages,
 	usePrefetchNextMessages,
 } from './use-infinite-conversations'
-export type {
-	ConversationPage,
-	UseInfiniteMessagesOptions,
-} from './use-infinite-conversations'
 
 // Memory hooks
 export {
-	memoryQueryKeys,
 	type CreateMemoryInput,
 	type Memory,
 	type MemoryListResponse,
 	type MemoryType,
+	memoryQueryKeys,
 	type SearchMemoryInput,
 	type SearchResult,
 	type UpdateMemoryInput,

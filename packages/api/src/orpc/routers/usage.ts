@@ -4,15 +4,15 @@
  * Handles usage statistics with full type safety.
  */
 
-import { and, eq, gte, lte, sql } from 'drizzle-orm'
 import { agents, usage } from '@hare/db/schema'
-import { requireWrite, notFound } from '../base'
+import { and, eq, gte, lte, sql } from 'drizzle-orm'
 import {
 	AgentUsageResponseSchema,
 	IdParamSchema,
 	UsageQuerySchema,
 	UsageResponseSchema,
 } from '../../schemas'
+import { notFound, requireWrite } from '../base'
 
 // =============================================================================
 // Procedures

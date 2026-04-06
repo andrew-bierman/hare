@@ -1,8 +1,8 @@
-import { useWorkspace } from '../../app/providers'
-import { useAgentsQuery, useWorkspaceUsageQuery } from '../../shared/api'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@hare/ui/components/card'
 import { Skeleton } from '@hare/ui/components/skeleton'
 import { Activity, Bot, Calendar, TrendingUp } from 'lucide-react'
+import { useWorkspace } from '../../app/providers'
+import { useAgentsQuery, useWorkspaceUsageQuery } from '../../shared/api'
 
 function StatCardSkeleton() {
 	return (
@@ -24,7 +24,8 @@ export function UsagePage() {
 	const { data: usageData, isLoading: usageLoading } = useWorkspaceUsageQuery()
 	const { data: agentsData, isLoading: agentsLoading } = useAgentsQuery()
 
-	const isLoading = workspaceLoading || (usageLoading && !usageData) || (agentsLoading && !agentsData)
+	const isLoading =
+		workspaceLoading || (usageLoading && !usageData) || (agentsLoading && !agentsData)
 
 	const agents = agentsData?.agents ?? []
 	const deployedAgents = agents.filter((a) => a.status === 'deployed')

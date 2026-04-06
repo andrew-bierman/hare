@@ -6,14 +6,8 @@
  */
 
 import { z } from 'zod'
-import { httpRequestTool, HttpResponseOutputSchema } from './http'
-import {
-	type AnyTool,
-	createTool,
-	failure,
-	type ToolConfig,
-	type ToolContext,
-} from './types'
+import { HttpResponseOutputSchema, httpRequestTool } from './http'
+import { type AnyTool, createTool, failure, type ToolConfig, type ToolContext } from './types'
 
 /**
  * Generic output schema for custom tools that return unknown data.
@@ -122,9 +116,7 @@ function createHTTPToolFromConfig({
 }): AnyTool | null {
 	const parseResult = HttpToolDbConfigSchema.safeParse(config.config)
 	if (!parseResult.success) {
-		console.warn(
-			`Invalid HTTP tool config for ${config.id}: ${parseResult.error.message}`,
-		)
+		console.warn(`Invalid HTTP tool config for ${config.id}: ${parseResult.error.message}`)
 		return null
 	}
 	const toolConfig = parseResult.data

@@ -7,12 +7,12 @@
  * @see https://tanstack.com/db/latest/docs/collections/query-collection
  */
 
+import { orpc } from '@hare/api'
 // Types are inferred from API responses for proper compatibility
 import type { Schedule } from '@hare/types'
-import type { QueryClient } from '@tanstack/react-query'
 import { createCollection } from '@tanstack/db'
 import { queryCollectionOptions } from '@tanstack/query-db-collection'
-import { orpc } from '@hare/api'
+import type { QueryClient } from '@tanstack/react-query'
 import { agentKeys, scheduleKeys, toolKeys, workspaceKeys } from '../../../api/hooks/query-keys'
 
 // =============================================================================
@@ -57,10 +57,7 @@ export type ScheduleCollection = ReturnType<typeof createScheduleCollection>
  * Create an agent collection scoped to a workspace.
  * Uses TanStack Query for data fetching and handles optimistic mutations.
  */
-export function createAgentCollection(options: {
-	workspaceId: string
-	queryClient: QueryClient
-}) {
+export function createAgentCollection(options: { workspaceId: string; queryClient: QueryClient }) {
 	const { workspaceId, queryClient } = options
 
 	const config = queryCollectionOptions({
@@ -144,10 +141,7 @@ export function createAgentCollection(options: {
 /**
  * Create a tool collection scoped to a workspace.
  */
-export function createToolCollection(options: {
-	workspaceId: string
-	queryClient: QueryClient
-}) {
+export function createToolCollection(options: { workspaceId: string; queryClient: QueryClient }) {
 	const { workspaceId, queryClient } = options
 
 	const config = queryCollectionOptions({
@@ -217,9 +211,7 @@ export function createToolCollection(options: {
 /**
  * Create a workspace collection for the current user.
  */
-export function createWorkspaceCollection(options: {
-	queryClient: QueryClient
-}) {
+export function createWorkspaceCollection(options: { queryClient: QueryClient }) {
 	const { queryClient } = options
 
 	const config = queryCollectionOptions({
@@ -304,8 +296,15 @@ export function createScheduleCollection(options: {
 			const mutations = transaction.mutations
 			for (const mutation of mutations) {
 				if (mutation.type === 'insert' && mutation.modified) {
-					const { agentId: aId, _workspaceId: _, type, executeAt, cron, action, payload } =
-						mutation.modified
+					const {
+						agentId: aId,
+						_workspaceId: _,
+						type,
+						executeAt,
+						cron,
+						action,
+						payload,
+					} = mutation.modified
 					await orpc.schedules.create({
 						agentId: aId,
 						type,

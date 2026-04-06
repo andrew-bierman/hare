@@ -1,9 +1,9 @@
 // Auth tables
 
+export * from './activity-events'
+export * from './agent-versions'
 // Agent tables
 export * from './agents'
-export * from './agent-versions'
-export * from './activity-events'
 export * from './audit-logs'
 export * from './auth'
 
@@ -23,9 +23,9 @@ export * from './tools'
 export * from './usage'
 // User preferences tables
 export * from './user-preferences'
+export * from './webhook-deliveries'
 // Webhook tables
 export * from './webhooks'
-export * from './webhook-deliveries'
 // Workspace tables
 export * from './workspaces'
 

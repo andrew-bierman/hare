@@ -1,15 +1,15 @@
 import {
 	config,
 	INVITATION_STATUSES,
-	InvitationStatus,
+	type InvitationStatus,
 	MEMBER_ROLES,
-	MemberRole,
-	PlanId,
+	type MemberRole,
+	type PlanId,
 	WORKSPACE_ROLES,
-	WorkspaceRole,
+	type WorkspaceRole,
 } from '@hare/config'
-import { createId } from '../id'
 import { index, integer, sqliteTable, text, unique } from 'drizzle-orm/sqlite-core'
+import { createId } from '../id'
 import { users } from './auth'
 
 export const workspaces = sqliteTable(

@@ -2,10 +2,11 @@
  * Agent validation operations (validate, preview)
  */
 
-import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
-import { eq } from 'drizzle-orm'
 import { config, getModelById } from '@hare/config'
 import { tools as toolsTable } from '@hare/db/schema'
+import type { WorkspaceEnv } from '@hare/types'
+import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
+import { eq } from 'drizzle-orm'
 import { getDb } from '../../db'
 import { commonResponses } from '../../helpers'
 import { authMiddleware, workspaceMiddleware } from '../../middleware'
@@ -21,7 +22,6 @@ import {
 import type { AllowedModelId } from '../../schemas/agents'
 import { validateAgentInstructions } from '../../utils/sanitize'
 import { findAgentByIdAndWorkspace, getAgentToolIds } from './helpers'
-import type { WorkspaceEnv } from '@hare/types'
 
 // =============================================================================
 // Validation Schemas

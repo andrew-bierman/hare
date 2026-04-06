@@ -1,15 +1,16 @@
+import { requestValidation } from '@hare/security'
 import { every } from 'hono/combine'
-import { csrfProtection, requestValidation } from '@hare/security'
 import { authMiddleware, optionalAuthMiddleware } from './auth'
 import { apiRateLimiter, chatRateLimiter, strictRateLimiter } from './rate-limit'
 import { requirePermission, workspaceMiddleware } from './workspace'
 
 /**
  * Security middleware instances
- * - CSRF protection: validates double-submit cookie token for state-changing requests
  * - Request validation: enforces size limits and blocks dangerous headers
+ *
+ * Note: CSRF protection removed — Better Auth handles its own CSRF,
+ * and session cookies use SameSite=Lax which prevents cross-origin requests.
  */
-const csrf = csrfProtection()
 const reqValidation = requestValidation()
 
 /**
@@ -34,41 +35,32 @@ export const readRoute = every(authMiddleware, workspaceMiddleware, requirePermi
 
 /**
  * Write-enabled protected route (member+ access)
- * Use for: create, update operations
- * Includes CSRF protection and request validation for state-changing requests
  */
 export const writeRoute = every(
 	reqValidation,
 	authMiddleware,
 	workspaceMiddleware,
 	requirePermission('write'),
-	csrf,
 )
 
 /**
  * Admin-only protected route (admin+ access)
- * Use for: delete, deploy operations
- * Includes CSRF protection and request validation for state-changing requests
  */
 export const adminRoute = every(
 	reqValidation,
 	authMiddleware,
 	workspaceMiddleware,
 	requirePermission('admin'),
-	csrf,
 )
 
 /**
  * Owner-only protected route
- * Use for: workspace deletion, ownership transfer
- * Includes CSRF protection and request validation for state-changing requests
  */
 export const ownerRoute = every(
 	reqValidation,
 	authMiddleware,
 	workspaceMiddleware,
 	requirePermission('owner'),
-	csrf,
 )
 
 /**
@@ -78,7 +70,6 @@ export const rateLimitedRoute = every(apiRateLimiter, authMiddleware, workspaceM
 
 /**
  * Strict rate-limited admin route (for sensitive operations like deploy)
- * Includes CSRF protection and request validation for state-changing requests
  */
 export const strictAdminRoute = every(
 	reqValidation,
@@ -86,7 +77,6 @@ export const strictAdminRoute = every(
 	authMiddleware,
 	workspaceMiddleware,
 	requirePermission('admin'),
-	csrf,
 )
 
 /**

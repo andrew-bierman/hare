@@ -1,5 +1,5 @@
-import { describe, expect, it, vi, beforeEach } from 'vitest'
-import { aiSearchTool, aiSearchAnswerTool, getSearchTools } from '../search'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { aiSearchAnswerTool, aiSearchTool, getSearchTools } from '../search'
 import type { ToolContext } from '../types'
 
 // Mock AutoRAG interface
@@ -143,7 +143,12 @@ describe('Search Tools', () => {
 		describe('execution', () => {
 			it('performs semantic search', async () => {
 				const result = await aiSearchTool.execute(
-					{ query: 'deployment instructions', maxResults: 10, rewriteQuery: true, scoreThreshold: 0.5 },
+					{
+						query: 'deployment instructions',
+						maxResults: 10,
+						rewriteQuery: true,
+						scoreThreshold: 0.5,
+					},
 					context,
 				)
 
@@ -307,10 +312,7 @@ describe('Search Tools', () => {
 			})
 
 			it('filters by workspace', async () => {
-				await aiSearchAnswerTool.execute(
-					{ query: 'test', maxResults: 10 },
-					context,
-				)
+				await aiSearchAnswerTool.execute({ query: 'test', maxResults: 10 }, context)
 
 				expect(mockAI._mockAutoRAG.aiSearch).toHaveBeenCalledWith(
 					expect.objectContaining({

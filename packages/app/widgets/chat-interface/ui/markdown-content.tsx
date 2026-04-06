@@ -1,7 +1,11 @@
 'use client'
 
-import { Streamdown } from 'streamdown'
 import { cn } from '@hare/ui/lib/utils'
+import { code } from '@streamdown/code'
+import { math } from '@streamdown/math'
+import { mermaid } from '@streamdown/mermaid'
+import { Streamdown } from 'streamdown'
+import 'katex/dist/katex.min.css'
 
 export interface MarkdownContentProps {
 	/** The markdown content to render */
@@ -13,7 +17,7 @@ export interface MarkdownContentProps {
 }
 
 /**
- * Markdown content renderer using Streamdown.
+ * Markdown content renderer using Streamdown v2 with plugins.
  * Optimized for AI streaming responses.
  */
 export function MarkdownContent({ content, isStreaming, className }: MarkdownContentProps) {
@@ -31,11 +35,18 @@ export function MarkdownContent({ content, isStreaming, className }: MarkdownCon
 				'prose-headings:my-2 prose-headings:font-semibold',
 				'prose-a:text-primary prose-a:no-underline hover:prose-a:underline',
 				'prose-blockquote:my-2 prose-blockquote:border-l-primary',
-				isStreaming && 'streamdown-streaming',
 				className,
 			)}
 		>
-			<Streamdown>{content}</Streamdown>
+			<Streamdown
+				plugins={{ code, mermaid, math }}
+				isAnimating={isStreaming}
+				caret="block"
+				controls={{ table: true, code: true }}
+				linkSafety={{ enabled: true }}
+			>
+				{content}
+			</Streamdown>
 		</div>
 	)
 }

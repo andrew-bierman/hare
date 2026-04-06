@@ -1,10 +1,10 @@
-import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
 	codeExecuteTool,
 	codeValidateTool,
-	sandboxFileTool,
-	getSandboxTools,
 	executeSandboxed,
+	getSandboxTools,
+	sandboxFileTool,
 } from '../sandbox'
 import type { ToolContext } from '../types'
 import { expectResultData, ResultSchemas } from './test-utils'
@@ -445,11 +445,7 @@ describe('Sandbox Tools', () => {
 			const tools = getSandboxTools(context)
 
 			expect(tools).toHaveLength(3)
-			expect(tools.map((t) => t.id)).toEqual([
-				'code_execute',
-				'code_validate',
-				'sandbox_file',
-			])
+			expect(tools.map((t) => t.id)).toEqual(['code_execute', 'code_validate', 'sandbox_file'])
 		})
 	})
 })

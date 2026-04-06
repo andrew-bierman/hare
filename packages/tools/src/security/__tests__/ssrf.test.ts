@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import {
-	parseIPv4,
+	isBlockedHost,
 	isPrivateIPv4,
 	isPrivateIPv6,
-	isBlockedHost,
-	isUrlSafe,
 	isRedirectSafe,
+	isUrlSafe,
 	MAX_REDIRECT_HOPS,
+	parseIPv4,
 } from '../ssrf'
 
 describe('SSRF Consolidated Module', () => {

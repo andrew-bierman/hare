@@ -1,9 +1,5 @@
 'use client'
 
-import { useWorkspace } from '../../app/providers'
-import { exportToCSV, exportToJSON } from '../../shared'
-import { useAgentsQuery, useAnalyticsQuery } from '../../shared/api'
-import { ChartContainer } from '../../widgets'
 import { Button } from '@hare/ui/components/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@hare/ui/components/card'
 import {
@@ -46,6 +42,10 @@ import {
 	XAxis,
 	YAxis,
 } from 'recharts'
+import { useWorkspace } from '../../app/providers'
+import { exportToCSV, exportToJSON } from '../../shared'
+import { useAgentsQuery, useAnalyticsQuery } from '../../shared/api'
+import { ChartContainer } from '../../widgets'
 
 const DATE_RANGES = [
 	{ value: '7d', label: 'Last 7 days' },

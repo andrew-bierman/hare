@@ -1,4 +1,6 @@
-import { describe, expect, it, vi, beforeEach } from 'vitest'
+import type { HonoEnv } from '@hare/types'
+import type { Context } from 'hono'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import {
 	blockDangerousHeaders,
 	requestSizeLimit,
@@ -6,17 +8,17 @@ import {
 	requireContentType,
 	validateJsonBody,
 } from '../request-validation'
-import type { Context } from 'hono'
-import type { HonoEnv } from '@hare/types'
 
 // Helper to create mock context
-function createMockContext(overrides: {
-	method?: string
-	headers?: Record<string, string>
-	path?: string
-	jsonBody?: unknown
-	jsonError?: boolean
-} = {}): Context<HonoEnv> {
+function createMockContext(
+	overrides: {
+		method?: string
+		headers?: Record<string, string>
+		path?: string
+		jsonBody?: unknown
+		jsonError?: boolean
+	} = {},
+): Context<HonoEnv> {
 	const {
 		method = 'GET',
 		headers = {},

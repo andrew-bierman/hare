@@ -1,12 +1,12 @@
 'use client'
 
-import { useMemo, useCallback, useState, useEffect, useRef } from 'react'
 import type ReactCodeMirror from '@uiw/react-codemirror'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { cn } from '../../lib/utils'
+import { StatsFooter } from './stats-footer'
+import { applyMarkdownFormat, Toolbar, type ToolbarAction } from './toolbar'
 import type { InstructionsEditorProps } from './types'
 import { useTokenCount } from './use-token-count'
-import { StatsFooter } from './stats-footer'
-import { Toolbar, applyMarkdownFormat, type ToolbarAction } from './toolbar'
 
 // Dynamic import for CodeMirror to handle SSR
 // Module-level state for dynamically loaded CodeMirror modules
@@ -157,7 +157,7 @@ export function InstructionsEditor({
 			}
 			onChange(val)
 		},
-		[onChange, maxLength]
+		[onChange, maxLength],
 	)
 
 	// Handle toolbar actions for textarea fallback
@@ -182,7 +182,7 @@ export function InstructionsEditor({
 				textarea.setSelectionRange(result.selectionStart, result.selectionEnd)
 			})
 		},
-		[value, onChange]
+		[value, onChange],
 	)
 
 	// Get CodeMirror theme based on dark mode
@@ -200,7 +200,7 @@ export function InstructionsEditor({
 					'border rounded-md overflow-hidden bg-background',
 					'focus-within:ring-2 focus-within:ring-ring',
 					disabled && 'opacity-50 cursor-not-allowed',
-					className
+					className,
 				)}
 			>
 				{showToolbar && <Toolbar onAction={handleToolbarAction} disabled={disabled} />}
@@ -224,7 +224,7 @@ export function InstructionsEditor({
 				'border rounded-md overflow-hidden bg-background',
 				'focus-within:ring-2 focus-within:ring-ring',
 				disabled && 'opacity-50 cursor-not-allowed',
-				className
+				className,
 			)}
 		>
 			{showToolbar && <Toolbar onAction={handleToolbarAction} disabled={disabled} />}

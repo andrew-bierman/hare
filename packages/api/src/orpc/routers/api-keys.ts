@@ -4,21 +4,21 @@
  * Handles API key management with full type safety.
  */
 
-import { z } from 'zod'
-import { and, eq } from 'drizzle-orm'
-import { apiKeys } from '@hare/db/schema'
 import { config } from '@hare/config'
+import { apiKeys } from '@hare/db/schema'
+import { and, eq } from 'drizzle-orm'
+import { z } from 'zod'
 import { generateApiKey } from '../../middleware/api-key'
-import { requireWrite, requireAdmin, notFound, serverError, type WorkspaceContext } from '../base'
-import { logAudit } from '../audit'
 import {
 	ApiKeySchema,
 	ApiKeyWithSecretSchema,
 	CreateApiKeySchema,
-	UpdateApiKeySchema,
-	SuccessSchema,
 	IdParamSchema,
+	SuccessSchema,
+	UpdateApiKeySchema,
 } from '../../schemas'
+import { logAudit } from '../audit'
+import { notFound, requireAdmin, requireWrite, serverError, type WorkspaceContext } from '../base'
 
 // =============================================================================
 // Helpers

@@ -7,13 +7,13 @@
  * @see packages/api/src/orpc/routers/billing.ts for authenticated billing routes
  */
 
+import { workspaces } from '@hare/db/schema'
+import type { CloudflareEnv, HonoEnv } from '@hare/types'
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
 import { eq } from 'drizzle-orm'
 import Stripe from 'stripe'
-import { workspaces } from '@hare/db/schema'
 import { getDb } from '../db'
 import { ErrorSchema } from '../schemas'
-import type { CloudflareEnv, HonoEnv } from '@hare/types'
 
 // =============================================================================
 // Types
@@ -22,7 +22,9 @@ import type { CloudflareEnv, HonoEnv } from '@hare/types'
 type PlanId = 'free' | 'pro' | 'team' | 'enterprise'
 
 function isValidPlanId(value: string | null | undefined): value is PlanId {
-	return value !== null && value !== undefined && ['free', 'pro', 'team', 'enterprise'].includes(value)
+	return (
+		value !== null && value !== undefined && ['free', 'pro', 'team', 'enterprise'].includes(value)
+	)
 }
 
 // =============================================================================

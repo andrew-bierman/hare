@@ -1,6 +1,6 @@
-import { describe, expect, it, vi, beforeEach } from 'vitest'
-import { Hono } from 'hono'
 import type { CloudflareEnv } from '@hare/types'
+import { Hono } from 'hono'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { McpAuthEnv } from '../mcp-auth'
 
 // Mock the auth module
@@ -145,18 +145,22 @@ describe('MCP Auth Middleware', () => {
 
 		mockDbInstance.selectResults = [
 			// First select: apiKeys lookup
-			[{
-				id: 'key_1',
-				hashedKey: 'hashed',
-				workspaceId: 'ws_1',
-				name: 'Test API Key',
-				expiresAt: null,
-			}],
+			[
+				{
+					id: 'key_1',
+					hashedKey: 'hashed',
+					workspaceId: 'ws_1',
+					name: 'Test API Key',
+					expiresAt: null,
+				},
+			],
 			// Second select: workspace lookup
-			[{
-				id: 'ws_1',
-				ownerId: 'user_owner',
-			}],
+			[
+				{
+					id: 'ws_1',
+					ownerId: 'user_owner',
+				},
+			],
 		]
 
 		const app = createTestApp()
@@ -173,17 +177,21 @@ describe('MCP Auth Middleware', () => {
 		mockGetSession.mockResolvedValue(null)
 
 		mockDbInstance.selectResults = [
-			[{
-				id: 'key_1',
-				hashedKey: 'hashed',
-				workspaceId: 'ws_1',
-				name: 'Bearer Key',
-				expiresAt: null,
-			}],
-			[{
-				id: 'ws_1',
-				ownerId: 'user_owner',
-			}],
+			[
+				{
+					id: 'key_1',
+					hashedKey: 'hashed',
+					workspaceId: 'ws_1',
+					name: 'Bearer Key',
+					expiresAt: null,
+				},
+			],
+			[
+				{
+					id: 'ws_1',
+					ownerId: 'user_owner',
+				},
+			],
 		]
 
 		const app = createTestApp()
@@ -216,13 +224,15 @@ describe('MCP Auth Middleware', () => {
 		mockGetSession.mockResolvedValue(null)
 
 		mockDbInstance.selectResults = [
-			[{
-				id: 'key_1',
-				hashedKey: 'hashed',
-				workspaceId: 'ws_1',
-				name: 'Expired Key',
-				expiresAt: new Date('2020-01-01'),
-			}],
+			[
+				{
+					id: 'key_1',
+					hashedKey: 'hashed',
+					workspaceId: 'ws_1',
+					name: 'Expired Key',
+					expiresAt: new Date('2020-01-01'),
+				},
+			],
 		]
 
 		const app = createTestApp()
@@ -241,17 +251,21 @@ describe('MCP Auth Middleware', () => {
 		mockGetSession.mockRejectedValue(new Error('Session check failed'))
 
 		mockDbInstance.selectResults = [
-			[{
-				id: 'key_1',
-				hashedKey: 'hashed',
-				workspaceId: 'ws_1',
-				name: 'Fallback Key',
-				expiresAt: null,
-			}],
-			[{
-				id: 'ws_1',
-				ownerId: 'user_owner',
-			}],
+			[
+				{
+					id: 'key_1',
+					hashedKey: 'hashed',
+					workspaceId: 'ws_1',
+					name: 'Fallback Key',
+					expiresAt: null,
+				},
+			],
+			[
+				{
+					id: 'ws_1',
+					ownerId: 'user_owner',
+				},
+			],
 		]
 
 		const app = createTestApp()
@@ -268,13 +282,15 @@ describe('MCP Auth Middleware', () => {
 		mockGetSession.mockResolvedValue(null)
 
 		mockDbInstance.selectResults = [
-			[{
-				id: 'key_1',
-				hashedKey: 'hashed',
-				workspaceId: 'ws_orphan',
-				name: 'Orphan Key',
-				expiresAt: null,
-			}],
+			[
+				{
+					id: 'key_1',
+					hashedKey: 'hashed',
+					workspaceId: 'ws_orphan',
+					name: 'Orphan Key',
+					expiresAt: null,
+				},
+			],
 			[], // workspace not found
 		]
 

@@ -4,17 +4,17 @@
 
 import { describe, expect, it } from 'vitest'
 import {
-	generateInterfaceMDX,
-	generateClassMDX,
-	generateFunctionMDX,
-	generateToolMDX,
-	generatePackageMDX,
-	extractDocsFromFile,
-	type DocInterface,
 	type DocClass,
 	type DocFunction,
+	type DocInterface,
 	type DocTool,
 	type ExtractedDocs,
+	extractDocsFromFile,
+	generateClassMDX,
+	generateFunctionMDX,
+	generateInterfaceMDX,
+	generatePackageMDX,
+	generateToolMDX,
 } from '../generator'
 
 describe('@hare/docs exports', () => {
@@ -51,7 +51,12 @@ describe('generateInterfaceMDX', () => {
 			properties: [
 				{ name: 'name', type: 'string', description: 'Agent name', optional: false },
 				{ name: 'model', type: 'string', description: 'Model ID', optional: false },
-				{ name: 'temperature', type: 'number', description: 'Sampling temperature', optional: true },
+				{
+					name: 'temperature',
+					type: 'number',
+					description: 'Sampling temperature',
+					optional: true,
+				},
 			],
 		}
 
@@ -92,9 +97,7 @@ describe('generateInterfaceMDX', () => {
 		const iface: DocInterface = {
 			name: 'UnionType',
 			description: '',
-			properties: [
-				{ name: 'value', type: 'string | number', description: '', optional: false },
-			],
+			properties: [{ name: 'value', type: 'string | number', description: '', optional: false }],
 		}
 
 		const mdx = generateInterfaceMDX(iface)
@@ -120,9 +123,7 @@ describe('generateClassMDX', () => {
 				{
 					name: 'chat',
 					description: 'Send a message',
-					params: [
-						{ name: 'message', type: 'string', description: 'The message' },
-					],
+					params: [{ name: 'message', type: 'string', description: 'The message' }],
 					returnType: 'Promise<string>',
 				},
 			],
@@ -158,9 +159,7 @@ describe('generateFunctionMDX', () => {
 		const fn: DocFunction = {
 			name: 'createAgent',
 			description: 'Creates a new agent',
-			params: [
-				{ name: 'config', type: 'AgentConfig', description: 'Agent configuration' },
-			],
+			params: [{ name: 'config', type: 'AgentConfig', description: 'Agent configuration' }],
 			returnType: 'Agent',
 		}
 
@@ -220,18 +219,10 @@ describe('generateToolMDX', () => {
 describe('generatePackageMDX', () => {
 	it('generates complete MDX with frontmatter', () => {
 		const docs: ExtractedDocs = {
-			interfaces: [
-				{ name: 'Config', description: 'Config type', properties: [] },
-			],
-			classes: [
-				{ name: 'Agent', description: 'Agent class', properties: [], methods: [] },
-			],
-			functions: [
-				{ name: 'createAgent', description: 'Factory', params: [], returnType: 'Agent' },
-			],
-			tools: [
-				{ id: 'test_tool', description: 'A test tool', inputSchema: [] },
-			],
+			interfaces: [{ name: 'Config', description: 'Config type', properties: [] }],
+			classes: [{ name: 'Agent', description: 'Agent class', properties: [], methods: [] }],
+			functions: [{ name: 'createAgent', description: 'Factory', params: [], returnType: 'Agent' }],
+			tools: [{ id: 'test_tool', description: 'A test tool', inputSchema: [] }],
 		}
 
 		const mdx = generatePackageMDX({
@@ -253,9 +244,7 @@ describe('generatePackageMDX', () => {
 		const docs: ExtractedDocs = {
 			interfaces: [],
 			classes: [],
-			functions: [
-				{ name: 'helper', description: '', params: [], returnType: 'void' },
-			],
+			functions: [{ name: 'helper', description: '', params: [], returnType: 'void' }],
 			tools: [],
 		}
 

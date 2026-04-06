@@ -1,6 +1,6 @@
 'use client'
 
-import { Bold, Italic, Code, List, Heading1, Heading2, Link, Quote } from 'lucide-react'
+import { Bold, Code, Heading1, Heading2, Italic, Link, List, Quote } from 'lucide-react'
 import { cn } from '../../lib/utils'
 
 interface ToolbarProps {
@@ -44,7 +44,7 @@ export function Toolbar({ onAction, disabled, className }: ToolbarProps) {
 			className={cn(
 				'flex items-center gap-0.5 px-2 py-1.5 border-b bg-muted/30',
 				disabled && 'opacity-50 pointer-events-none',
-				className
+				className,
 			)}
 		>
 			{TOOLBAR_BUTTONS.map((button) => (
@@ -57,7 +57,7 @@ export function Toolbar({ onAction, disabled, className }: ToolbarProps) {
 					className={cn(
 						'p-1.5 rounded hover:bg-muted transition-colors',
 						'focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1',
-						'disabled:opacity-50 disabled:cursor-not-allowed'
+						'disabled:opacity-50 disabled:cursor-not-allowed',
 					)}
 				>
 					<button.icon className="h-4 w-4 text-muted-foreground" />

@@ -1,5 +1,5 @@
-import { describe, expect, it, vi, beforeEach } from 'vitest'
-import { createAuth, getOAuthProviders, type AuthServerEnv } from '../server'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { type AuthServerEnv, createAuth, getOAuthProviders } from '../server'
 
 // Type for the mocked auth instance that includes config properties
 type MockedAuthInstance = ReturnType<typeof createAuth> & {

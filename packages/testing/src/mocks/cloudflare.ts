@@ -21,7 +21,10 @@ export interface MockKVNamespace {
 	getWithMetadata<M = unknown>(key: string): Promise<{ value: string | null; metadata: M | null }>
 	put(key: string, value: string, options?: { metadata?: unknown }): Promise<void>
 	delete(key: string): Promise<void>
-	list(options?: { prefix?: string; limit?: number }): Promise<{ keys: { name: string; metadata?: unknown }[]; list_complete: boolean }>
+	list(options?: {
+		prefix?: string
+		limit?: number
+	}): Promise<{ keys: { name: string; metadata?: unknown }[]; list_complete: boolean }>
 }
 
 /**
@@ -46,7 +49,9 @@ export function createMockKV(): MockKVNamespace {
 			const entry = store.get(key)
 			return entry?.value ?? null
 		},
-		async getWithMetadata<M = unknown>(key: string): Promise<{ value: string | null; metadata: M | null }> {
+		async getWithMetadata<M = unknown>(
+			key: string,
+		): Promise<{ value: string | null; metadata: M | null }> {
 			const entry = store.get(key)
 			return {
 				value: entry?.value ?? null,
@@ -59,7 +64,10 @@ export function createMockKV(): MockKVNamespace {
 		async delete(key: string): Promise<void> {
 			store.delete(key)
 		},
-		async list(options?: { prefix?: string; limit?: number }): Promise<{ keys: { name: string; metadata?: unknown }[]; list_complete: boolean }> {
+		async list(options?: {
+			prefix?: string
+			limit?: number
+		}): Promise<{ keys: { name: string; metadata?: unknown }[]; list_complete: boolean }> {
 			const keys: { name: string; metadata?: unknown }[] = []
 			const prefix = options?.prefix ?? ''
 			const limit = options?.limit ?? 1000
@@ -81,10 +89,19 @@ export function createMockKV(): MockKVNamespace {
 export interface MockR2Bucket {
 	_store: Map<string, { body: ArrayBuffer; metadata?: Record<string, string> }>
 	_clear(): void
-	get(key: string): Promise<{ text(): Promise<string>; arrayBuffer(): Promise<ArrayBuffer>; json<T>(): Promise<T> } | null>
+	get(
+		key: string,
+	): Promise<{
+		text(): Promise<string>
+		arrayBuffer(): Promise<ArrayBuffer>
+		json<T>(): Promise<T>
+	} | null>
 	put(key: string, value: string | ArrayBuffer): Promise<void>
 	delete(key: string | string[]): Promise<void>
-	list(options?: { prefix?: string; limit?: number }): Promise<{ objects: { key: string; size: number }[] }>
+	list(options?: {
+		prefix?: string
+		limit?: number
+	}): Promise<{ objects: { key: string; size: number }[] }>
 	head(key: string): Promise<{ key: string; size: number } | null>
 }
 
@@ -122,9 +139,8 @@ export function createMockR2(): MockR2Bucket {
 			}
 		},
 		async put(key: string, value: string | ArrayBuffer): Promise<void> {
-			const body = typeof value === 'string'
-				? (new TextEncoder().encode(value).buffer as ArrayBuffer)
-				: value
+			const body =
+				typeof value === 'string' ? (new TextEncoder().encode(value).buffer as ArrayBuffer) : value
 			store.set(key, { body })
 		},
 		async delete(keys: string | string[]): Promise<void> {
@@ -362,11 +378,23 @@ export interface MockVectorizeIndex {
 	_vectors: Map<string, { values: number[]; metadata?: Record<string, unknown> }>
 	_clear(): void
 	describe(): Promise<{ dimensions: number; vectorCount: number }>
-	query(vector: number[], options?: { topK?: number }): Promise<{ count: number; matches: { id: string; score: number; values?: number[]; metadata?: Record<string, unknown> }[] }>
-	insert(vectors: { id: string; values: number[]; metadata?: Record<string, unknown> }[]): Promise<{ mutationId: string }>
-	upsert(vectors: { id: string; values: number[]; metadata?: Record<string, unknown> }[]): Promise<{ mutationId: string }>
+	query(
+		vector: number[],
+		options?: { topK?: number },
+	): Promise<{
+		count: number
+		matches: { id: string; score: number; values?: number[]; metadata?: Record<string, unknown> }[]
+	}>
+	insert(
+		vectors: { id: string; values: number[]; metadata?: Record<string, unknown> }[],
+	): Promise<{ mutationId: string }>
+	upsert(
+		vectors: { id: string; values: number[]; metadata?: Record<string, unknown> }[],
+	): Promise<{ mutationId: string }>
 	deleteByIds(ids: string[]): Promise<{ mutationId: string }>
-	getByIds(ids: string[]): Promise<{ id: string; values: number[]; metadata?: Record<string, unknown> }[]>
+	getByIds(
+		ids: string[],
+	): Promise<{ id: string; values: number[]; metadata?: Record<string, unknown> }[]>
 }
 
 /**
@@ -395,7 +423,12 @@ export function createMockVectorize(): MockVectorizeIndex {
 		},
 		async query(vector: number[], options?: { topK?: number }) {
 			const topK = options?.topK ?? 10
-			const matches: { id: string; score: number; values?: number[]; metadata?: Record<string, unknown> }[] = []
+			const matches: {
+				id: string
+				score: number
+				values?: number[]
+				metadata?: Record<string, unknown>
+			}[] = []
 
 			// Simple mock - return all vectors with random scores
 			for (const [id, entry] of vectors.entries()) {

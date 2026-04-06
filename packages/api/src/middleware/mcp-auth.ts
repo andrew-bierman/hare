@@ -9,12 +9,12 @@
  * MCP clients like Claude Desktop.
  */
 
-import type { MiddlewareHandler } from 'hono'
-import { eq } from 'drizzle-orm'
+import { type AuthServerEnv, createAuth } from '@hare/auth/server'
 import { apiKeys, workspaces } from '@hare/db'
-import { createAuth, type AuthServerEnv } from '@hare/auth/server'
-import { getD1, getDb } from '../db'
 import type { AuthEnv, CloudflareEnv } from '@hare/types'
+import { eq } from 'drizzle-orm'
+import type { MiddlewareHandler } from 'hono'
+import { getD1, getDb } from '../db'
 
 /**
  * MCP auth environment - same shape as AuthEnv since we always resolve to a user.
@@ -122,10 +122,7 @@ export const mcpAuthMiddleware: MiddlewareHandler<McpAuthEnv> = async (c, next) 
 			const db = getDb(c)
 			const hashedKey = await hashApiKey(rawKey)
 
-			const [keyRecord] = await db
-				.select()
-				.from(apiKeys)
-				.where(eq(apiKeys.hashedKey, hashedKey))
+			const [keyRecord] = await db.select().from(apiKeys).where(eq(apiKeys.hashedKey, hashedKey))
 
 			if (keyRecord) {
 				if (keyRecord.expiresAt && keyRecord.expiresAt < new Date()) {
