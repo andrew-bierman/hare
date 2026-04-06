@@ -137,6 +137,10 @@ const MIGRATION_STATEMENTS = [
 
 	// Workflow step executions table
 	`CREATE TABLE IF NOT EXISTS "workflow_step_executions" ("id" text PRIMARY KEY NOT NULL, "executionId" text NOT NULL REFERENCES "workflow_executions"("id") ON DELETE CASCADE, "nodeId" text NOT NULL REFERENCES "workflow_nodes"("id") ON DELETE CASCADE, "agentId" text REFERENCES "agents"("id") ON DELETE SET NULL, "status" text DEFAULT 'pending' NOT NULL, "input" text, "output" text, "startedAt" integer, "completedAt" integer, "durationMs" integer, "error" text)`,
+
+	// Conversation outcomes table
+	`CREATE TABLE IF NOT EXISTS "conversation_outcomes" ("id" text PRIMARY KEY NOT NULL, "conversationId" text NOT NULL REFERENCES "conversations"("id") ON DELETE CASCADE, "agentId" text NOT NULL REFERENCES "agents"("id") ON DELETE CASCADE, "workspaceId" text NOT NULL REFERENCES "workspaces"("id") ON DELETE CASCADE, "outcome" text NOT NULL, "messageCount" integer DEFAULT 0 NOT NULL, "durationSeconds" integer, "avgResponseTimeMs" integer, "toolCallCount" integer DEFAULT 0 NOT NULL, "tags" text, "notes" text, "createdAt" integer NOT NULL, "updatedAt" integer NOT NULL)`,
+	`CREATE UNIQUE INDEX IF NOT EXISTS "conv_outcomes_conversation_unique" ON "conversation_outcomes" ("conversationId")`,
 ]
 
 /**

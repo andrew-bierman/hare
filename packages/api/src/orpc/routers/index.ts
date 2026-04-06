@@ -10,6 +10,7 @@ import { analyticsRouter } from './analytics'
 import { apiKeysRouter } from './api-keys'
 import { auditLogsRouter } from './audit-logs'
 import { billingRouter } from './billing'
+import { businessAnalyticsRouter } from './business-analytics'
 import { chatRouter } from './chat'
 import { embedRouter } from './embed'
 import { feedbackRouter } from './feedback'
@@ -50,6 +51,7 @@ export {
 	feedbackRouter,
 	guardrailsRouter,
 	knowledgeBaseRouter,
+	businessAnalyticsRouter,
 	workflowsRouter,
 }
 
@@ -76,6 +78,7 @@ export const appRouter = {
 	feedback: feedbackRouter,
 	guardrails: guardrailsRouter,
 	knowledgeBases: knowledgeBaseRouter,
+	businessAnalytics: businessAnalyticsRouter,
 	workflows: workflowsRouter,
 }
 

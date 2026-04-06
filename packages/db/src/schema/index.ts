@@ -8,6 +8,7 @@ export * from './audit-logs'
 export * from './auth'
 
 // Conversation tables
+export * from './conversation-outcomes'
 export * from './conversations'
 
 // Deployment tables
