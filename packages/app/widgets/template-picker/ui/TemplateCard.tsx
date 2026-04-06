@@ -1,18 +1,18 @@
 'use client'
 
-import { Card, CardContent } from '@hare/ui/components/card'
+import type { AgentTemplate } from '@hare/config'
 import { Badge } from '@hare/ui/components/badge'
+import { Card, CardContent } from '@hare/ui/components/card'
 import { cn } from '@hare/ui/lib/utils'
 import {
-	Headphones,
 	BookOpen,
-	TrendingUp,
-	Sparkles,
-	Wand2,
-	Plus,
+	Headphones,
 	type LucideIcon,
+	Plus,
+	Sparkles,
+	TrendingUp,
+	Wand2,
 } from 'lucide-react'
-import type { AgentTemplate } from '@hare/config'
 
 const ICON_MAP: Record<string, LucideIcon> = {
 	Headphones,
@@ -35,7 +35,7 @@ export function TemplateCard({ template, onClick }: TemplateCardProps) {
 		<Card
 			className={cn(
 				'group cursor-pointer transition-all hover:shadow-md hover:border-primary/50',
-				'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
+				'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
 			)}
 			onClick={onClick}
 			tabIndex={0}
@@ -55,7 +55,7 @@ export function TemplateCard({ template, onClick }: TemplateCardProps) {
 						className={cn(
 							'flex h-12 w-12 shrink-0 items-center justify-center rounded-lg',
 							template.color,
-							'text-white shadow-sm'
+							'text-white shadow-sm',
 						)}
 					>
 						<Icon className="h-6 w-6" />
@@ -71,9 +71,7 @@ export function TemplateCard({ template, onClick }: TemplateCardProps) {
 								{template.responseStyle}
 							</Badge>
 						</div>
-						<p className="text-sm text-muted-foreground line-clamp-2">
-							{template.description}
-						</p>
+						<p className="text-sm text-muted-foreground line-clamp-2">{template.description}</p>
 						{template.suggestedToolTypes.length > 0 && (
 							<div className="flex gap-1 pt-1">
 								{template.suggestedToolTypes.slice(0, 3).map((toolType) => (
@@ -100,7 +98,7 @@ export function ScratchCard({ onClick }: ScratchCardProps) {
 			className={cn(
 				'group cursor-pointer transition-all hover:shadow-md hover:border-primary/50',
 				'border-dashed',
-				'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
+				'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
 			)}
 			onClick={onClick}
 			tabIndex={0}

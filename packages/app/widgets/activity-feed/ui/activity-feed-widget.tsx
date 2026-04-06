@@ -1,7 +1,5 @@
 'use client'
 
-import { useState } from 'react'
-import { Link } from '@tanstack/react-router'
 import { Badge } from '@hare/ui/components/badge'
 import { Button } from '@hare/ui/components/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@hare/ui/components/card'
@@ -14,6 +12,7 @@ import {
 	SelectValue,
 } from '@hare/ui/components/select'
 import { Skeleton } from '@hare/ui/components/skeleton'
+import { Link } from '@tanstack/react-router'
 import {
 	AlertCircle,
 	ArrowRight,
@@ -25,6 +24,7 @@ import {
 	Wrench,
 	Zap,
 } from 'lucide-react'
+import { useState } from 'react'
 import { useActivityFeedQuery, useAgentsQuery } from '../../../shared/api'
 
 export interface ActivityFeedWidgetProps {
@@ -132,13 +132,11 @@ function ActivityEventItem(props: {
 
 	return (
 		<div className="rounded-lg border bg-card transition-colors hover:bg-muted/50">
-			<button
-				type="button"
-				onClick={onToggle}
-				className="w-full p-3 text-left"
-			>
+			<button type="button" onClick={onToggle} className="w-full p-3 text-left">
 				<div className="flex items-start gap-3">
-					<div className={`flex h-8 w-8 items-center justify-center rounded-lg bg-muted ${config.color}`}>
+					<div
+						className={`flex h-8 w-8 items-center justify-center rounded-lg bg-muted ${config.color}`}
+					>
 						<IconComponent className="h-4 w-4" />
 					</div>
 					<div className="flex-1 min-w-0">

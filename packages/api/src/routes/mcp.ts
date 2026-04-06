@@ -9,15 +9,15 @@
  * - HTTP endpoints for stateless MCP operations
  */
 
+import { isWebSocketRequest, routeToMcpAgent } from '@hare/agent'
+import { workspaceMembers } from '@hare/db/schema'
+import { agentControlTools, createRegistry, getSystemTools, type ToolContext } from '@hare/tools'
+import type { OptionalAuthEnv } from '@hare/types'
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
 import { and, eq } from 'drizzle-orm'
-import { workspaceMembers } from '@hare/db/schema'
-import { isWebSocketRequest, routeToMcpAgent } from '@hare/agent'
-import { agentControlTools, createRegistry, getSystemTools, type ToolContext } from '@hare/tools'
 import { type Database, getCloudflareEnv, getDb } from '../db'
 import { optionalAuthMiddleware } from '../middleware'
 import { ErrorSchema } from '../schemas'
-import type { OptionalAuthEnv } from '@hare/types'
 
 /**
  * Check if a user has access to a workspace.
@@ -243,43 +243,44 @@ const baseApp = new OpenAPIHono<OptionalAuthEnv>()
 baseApp.use('*', optionalAuthMiddleware)
 
 // MCP WebSocket connection
-const app = baseApp.openapi(mcpConnectRoute, async (c) => {
-	const { workspaceId } = c.req.valid('param')
-	const db = getDb(c)
-	const env = getCloudflareEnv(c)
-	const user = c.get('user')
+const app = baseApp
+	.openapi(mcpConnectRoute, async (c) => {
+		const { workspaceId } = c.req.valid('param')
+		const db = getDb(c)
+		const env = getCloudflareEnv(c)
+		const user = c.get('user')
 
-	// Check if it's a WebSocket request
-	if (!isWebSocketRequest(c.req.raw)) {
-		return c.json({ error: 'WebSocket upgrade required' }, 400)
-	}
+		// Check if it's a WebSocket request
+		if (!isWebSocketRequest(c.req.raw)) {
+			return c.json({ error: 'WebSocket upgrade required' }, 400)
+		}
 
-	// Authorization: require authentication and verify workspace access
-	if (!user?.id) {
-		return c.json({ error: 'Authentication required' }, 401)
-	}
-	const hasAccess = await hasWorkspaceAccess(db, user.id, workspaceId)
-	if (!hasAccess) {
-		return c.json({ error: 'Unauthorized: no access to this workspace' }, 403)
-	}
+		// Authorization: require authentication and verify workspace access
+		if (!user?.id) {
+			return c.json({ error: 'Authentication required' }, 401)
+		}
+		const hasAccess = await hasWorkspaceAccess(db, user.id, workspaceId)
+		if (!hasAccess) {
+			return c.json({ error: 'Unauthorized: no access to this workspace' }, 403)
+		}
 
-	// Route to the MCP Agent Durable Object
-	return routeToMcpAgent({ request: c.req.raw, env, workspaceId })
-})
-// MCP info
-.openapi(mcpInfoRoute, async (c) => {
-	const { workspaceId } = c.req.valid('param')
+		// Route to the MCP Agent Durable Object
+		return routeToMcpAgent({ request: c.req.raw, env, workspaceId })
+	})
+	// MCP info
+	.openapi(mcpInfoRoute, async (c) => {
+		const { workspaceId } = c.req.valid('param')
 
-	return c.json(
-		{
-			name: 'hare-mcp',
-			version: '1.0.0',
-			capabilities: {
-				tools: true,
-				resources: true,
-				prompts: true,
-			},
-			instructions: `
+		return c.json(
+			{
+				name: 'hare-mcp',
+				version: '1.0.0',
+				capabilities: {
+					tools: true,
+					resources: true,
+					prompts: true,
+				},
+				instructions: `
 Connect to Hare MCP server to access AI agent tools.
 
 WebSocket URL: wss://your-domain/api/mcp/${workspaceId}
@@ -302,10 +303,10 @@ Example connection with Claude Desktop:
   }
 }
 			`.trim(),
-		},
-		200,
-	)
-})
+			},
+			200,
+		)
+	})
 
 // Helper to create tool context
 async function createToolContext(
@@ -324,168 +325,169 @@ async function createToolContext(
 }
 
 // MCP tools list (HTTP)
-const app2 = app.openapi(mcpToolsRoute, async (c) => {
-	const { workspaceId } = c.req.valid('param')
-	const db = getDb(c)
-	const user = c.get('user')
+const app2 = app
+	.openapi(mcpToolsRoute, async (c) => {
+		const { workspaceId } = c.req.valid('param')
+		const db = getDb(c)
+		const user = c.get('user')
 
-	// Require authentication
-	if (!user?.id) {
-		return c.json({ error: 'Authentication required' }, 401)
-	}
-	const hasAccess = await hasWorkspaceAccess(db, user.id, workspaceId)
-	if (!hasAccess) {
-		return c.json({ error: 'Unauthorized: no access to this workspace' }, 403)
-	}
-
-	// Return ALL system tools + agent control tools
-	const context = await createToolContext(c, workspaceId)
-	const systemTools = getSystemTools(context)
-	const allTools = [...systemTools, ...agentControlTools]
-
-	const tools = allTools.map((tool) => ({
-		name: tool.id,
-		description: tool.description,
-	}))
-
-	return c.json({ tools }, 200)
-})
-// MCP tool execute (HTTP)
-.openapi(mcpToolExecuteRoute, async (c) => {
-	const { workspaceId, toolId } = c.req.valid('param')
-	const db = getDb(c)
-	const user = c.get('user')
-
-	// Require authentication
-	if (!user?.id) {
-		return c.json({ error: 'Authentication required' }, 401)
-	}
-	const hasAccess = await hasWorkspaceAccess(db, user.id, workspaceId)
-	if (!hasAccess) {
-		return c.json({ error: 'Unauthorized: no access to this workspace' }, 403)
-	}
-
-	// Build registry with ALL tools (system + agent control)
-	const context = await createToolContext(c, workspaceId)
-	const systemTools = getSystemTools(context)
-	const allToolsRegistry = createRegistry([...systemTools, ...agentControlTools])
-
-	if (!allToolsRegistry.has(toolId)) {
-		return c.json({ error: `Tool not found: ${toolId}` }, 404)
-	}
-
-	const params = await c.req.json()
-	const result = await allToolsRegistry.execute({ id: toolId, params, context })
-
-	return c.json({ success: result.success, data: result.data, error: result.error }, 200)
-})
-// MCP JSON-RPC (HTTP)
-.openapi(mcpRpcRoute, async (c) => {
-	const { workspaceId } = c.req.valid('param')
-	const { id, method, params } = c.req.valid('json')
-	const db = getDb(c)
-	const user = c.get('user')
-
-	// Require authentication for non-initialize methods
-	if (method !== 'initialize') {
+		// Require authentication
 		if (!user?.id) {
-			return c.json({
-				jsonrpc: '2.0',
-				id,
-				error: { code: -32600, message: 'Authentication required' },
-			})
+			return c.json({ error: 'Authentication required' }, 401)
 		}
 		const hasAccess = await hasWorkspaceAccess(db, user.id, workspaceId)
 		if (!hasAccess) {
-			return c.json({
-				jsonrpc: '2.0',
-				id,
-				error: { code: -32600, message: 'Unauthorized: no access to this workspace' },
-			})
-		}
-	}
-
-	const context = await createToolContext(c, workspaceId)
-
-	switch (method) {
-		case 'initialize':
-			return c.json({
-				jsonrpc: '2.0',
-				id,
-				result: {
-					protocolVersion: '2024-11-05',
-					capabilities: {
-						tools: { listChanged: true },
-						resources: { subscribe: true, listChanged: true },
-						prompts: { listChanged: true },
-					},
-					serverInfo: {
-						name: 'hare-mcp',
-						version: '1.0.0',
-					},
-				},
-			})
-
-		case 'tools/list': {
-			const systemTools = getSystemTools(context)
-			const allTools = [...systemTools, ...agentControlTools]
-			return c.json({
-				jsonrpc: '2.0',
-				id,
-				result: {
-					tools: allTools.map((tool) => ({
-						name: tool.id,
-						description: tool.description,
-						inputSchema: z.toJSONSchema(tool.inputSchema, { unrepresentable: 'any' }),
-					})),
-				},
-			})
+			return c.json({ error: 'Unauthorized: no access to this workspace' }, 403)
 		}
 
-		case 'tools/call': {
-			const { name, arguments: args } = params as {
-				name: string
-				arguments: Record<string, unknown>
-			}
+		// Return ALL system tools + agent control tools
+		const context = await createToolContext(c, workspaceId)
+		const systemTools = getSystemTools(context)
+		const allTools = [...systemTools, ...agentControlTools]
 
-			// Build registry with ALL tools
-			const callSystemTools = getSystemTools(context)
-			const allToolsRegistry = createRegistry([...callSystemTools, ...agentControlTools])
+		const tools = allTools.map((tool) => ({
+			name: tool.id,
+			description: tool.description,
+		}))
 
-			if (!allToolsRegistry.has(name)) {
+		return c.json({ tools }, 200)
+	})
+	// MCP tool execute (HTTP)
+	.openapi(mcpToolExecuteRoute, async (c) => {
+		const { workspaceId, toolId } = c.req.valid('param')
+		const db = getDb(c)
+		const user = c.get('user')
+
+		// Require authentication
+		if (!user?.id) {
+			return c.json({ error: 'Authentication required' }, 401)
+		}
+		const hasAccess = await hasWorkspaceAccess(db, user.id, workspaceId)
+		if (!hasAccess) {
+			return c.json({ error: 'Unauthorized: no access to this workspace' }, 403)
+		}
+
+		// Build registry with ALL tools (system + agent control)
+		const context = await createToolContext(c, workspaceId)
+		const systemTools = getSystemTools(context)
+		const allToolsRegistry = createRegistry([...systemTools, ...agentControlTools])
+
+		if (!allToolsRegistry.has(toolId)) {
+			return c.json({ error: `Tool not found: ${toolId}` }, 404)
+		}
+
+		const params = await c.req.json()
+		const result = await allToolsRegistry.execute({ id: toolId, params, context })
+
+		return c.json({ success: result.success, data: result.data, error: result.error }, 200)
+	})
+	// MCP JSON-RPC (HTTP)
+	.openapi(mcpRpcRoute, async (c) => {
+		const { workspaceId } = c.req.valid('param')
+		const { id, method, params } = c.req.valid('json')
+		const db = getDb(c)
+		const user = c.get('user')
+
+		// Require authentication for non-initialize methods
+		if (method !== 'initialize') {
+			if (!user?.id) {
 				return c.json({
 					jsonrpc: '2.0',
 					id,
-					error: { code: -32601, message: `Tool not found: ${name}` },
+					error: { code: -32600, message: 'Authentication required' },
+				})
+			}
+			const hasAccess = await hasWorkspaceAccess(db, user.id, workspaceId)
+			if (!hasAccess) {
+				return c.json({
+					jsonrpc: '2.0',
+					id,
+					error: { code: -32600, message: 'Unauthorized: no access to this workspace' },
+				})
+			}
+		}
+
+		const context = await createToolContext(c, workspaceId)
+
+		switch (method) {
+			case 'initialize':
+				return c.json({
+					jsonrpc: '2.0',
+					id,
+					result: {
+						protocolVersion: '2024-11-05',
+						capabilities: {
+							tools: { listChanged: true },
+							resources: { subscribe: true, listChanged: true },
+							prompts: { listChanged: true },
+						},
+						serverInfo: {
+							name: 'hare-mcp',
+							version: '1.0.0',
+						},
+					},
+				})
+
+			case 'tools/list': {
+				const systemTools = getSystemTools(context)
+				const allTools = [...systemTools, ...agentControlTools]
+				return c.json({
+					jsonrpc: '2.0',
+					id,
+					result: {
+						tools: allTools.map((tool) => ({
+							name: tool.id,
+							description: tool.description,
+							inputSchema: z.toJSONSchema(tool.inputSchema, { unrepresentable: 'any' }),
+						})),
+					},
 				})
 			}
 
-			const result = await allToolsRegistry.execute({ id: name, params: args ?? {}, context })
+			case 'tools/call': {
+				const { name, arguments: args } = params as {
+					name: string
+					arguments: Record<string, unknown>
+				}
 
-			return c.json({
-				jsonrpc: '2.0',
-				id,
-				result: {
-					content: [
-						{
-							type: 'text',
-							text: result.success
-								? JSON.stringify(result.data, null, 2)
-								: `Error: ${result.error}`,
-						},
-					],
-					isError: !result.success,
-				},
-			})
+				// Build registry with ALL tools
+				const callSystemTools = getSystemTools(context)
+				const allToolsRegistry = createRegistry([...callSystemTools, ...agentControlTools])
+
+				if (!allToolsRegistry.has(name)) {
+					return c.json({
+						jsonrpc: '2.0',
+						id,
+						error: { code: -32601, message: `Tool not found: ${name}` },
+					})
+				}
+
+				const result = await allToolsRegistry.execute({ id: name, params: args ?? {}, context })
+
+				return c.json({
+					jsonrpc: '2.0',
+					id,
+					result: {
+						content: [
+							{
+								type: 'text',
+								text: result.success
+									? JSON.stringify(result.data, null, 2)
+									: `Error: ${result.error}`,
+							},
+						],
+						isError: !result.success,
+					},
+				})
+			}
+
+			default:
+				return c.json({
+					jsonrpc: '2.0',
+					id,
+					error: { code: -32601, message: `Method not found: ${method}` },
+				})
 		}
-
-		default:
-			return c.json({
-				jsonrpc: '2.0',
-				id,
-				error: { code: -32601, message: `Method not found: ${method}` },
-			})
-	}
-})
+	})
 
 export default app2

@@ -38,7 +38,10 @@ export function WorkspaceSwitcher() {
 		try {
 			const name = newWorkspaceName.trim()
 			// Generate slug from name: lowercase, replace spaces with dashes, remove non-alphanumeric
-			const slug = name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
+			const slug = name
+				.toLowerCase()
+				.replace(/\s+/g, '-')
+				.replace(/[^a-z0-9-]/g, '')
 			const workspace = await createWorkspace.mutateAsync({
 				name,
 				slug,

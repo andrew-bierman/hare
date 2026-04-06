@@ -1,6 +1,6 @@
-import { tool as aiTool } from 'ai'
 import type { ToolSet } from 'ai'
-import { z } from 'zod'
+import { tool as aiTool } from 'ai'
+import type { z } from 'zod'
 import type { HareEnv } from './env'
 
 // Re-export HareEnv for convenience
@@ -10,7 +10,7 @@ export type { HareEnv }
 export type { ToolSet }
 
 // Re-export tool type definitions from @hare/types
-export { ToolTypeSchema, type ToolType, ToolConfigSchema, type ToolConfig } from '@hare/types'
+export { type ToolConfig, ToolConfigSchema, type ToolType, ToolTypeSchema } from '@hare/types'
 
 /**
  * Tool execution context providing access to Cloudflare bindings.
@@ -323,10 +323,7 @@ export function failure(error: string): ToolResult<never> {
 export function toToolSet(tools: AnyTool[], context: ToolContext<HareEnv>): ToolSet {
 	return Object.fromEntries(
 		tools
-			.filter(
-				(t): t is Tool<unknown, unknown> =>
-					'execute' in t && typeof t.execute === 'function',
-			)
+			.filter((t): t is Tool<unknown, unknown> => 'execute' in t && typeof t.execute === 'function')
 			.map((t) => [
 				t.id,
 				aiTool({

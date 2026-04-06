@@ -23,9 +23,9 @@
  * @packageDocumentation
  */
 
-// Re-export everything from main index (universal exports)
-export * from './index'
+export type { HareAgentEnv, McpAgentEnv } from '@hare/agent/workers'
 
 // Workers-only agent classes
 export { HareAgent, HareMcpAgent } from '@hare/agent/workers'
-export type { HareAgentEnv, McpAgentEnv } from '@hare/agent/workers'
+// Re-export everything from main index (universal exports)
+export * from './index'

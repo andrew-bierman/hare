@@ -1,6 +1,6 @@
-import { describe, expect, it, beforeEach } from 'vitest'
 import { Hono } from 'hono'
-import { securityHeadersMiddleware, corsMiddleware } from '../security'
+import { beforeEach, describe, expect, it } from 'vitest'
+import { corsMiddleware, securityHeadersMiddleware } from '../security'
 
 describe('security middleware', () => {
 	describe('securityHeadersMiddleware', () => {
@@ -83,7 +83,7 @@ describe('security middleware', () => {
 			const res = await app.request('/test', {
 				method: 'OPTIONS',
 				headers: {
-					'Origin': 'http://localhost:3000',
+					Origin: 'http://localhost:3000',
 					'Access-Control-Request-Method': 'POST',
 				},
 			})
@@ -93,7 +93,7 @@ describe('security middleware', () => {
 		it('sets Access-Control-Allow-Origin for allowed origins', async () => {
 			const res = await app.request('/test', {
 				headers: {
-					'Origin': 'http://localhost:3000',
+					Origin: 'http://localhost:3000',
 				},
 			})
 			expect(res.headers.get('Access-Control-Allow-Origin')).toBe('http://localhost:3000')
@@ -102,7 +102,7 @@ describe('security middleware', () => {
 		it('sets Access-Control-Allow-Credentials to true', async () => {
 			const res = await app.request('/test', {
 				headers: {
-					'Origin': 'http://localhost:3000',
+					Origin: 'http://localhost:3000',
 				},
 			})
 			expect(res.headers.get('Access-Control-Allow-Credentials')).toBe('true')
@@ -112,7 +112,7 @@ describe('security middleware', () => {
 			const res = await app.request('/test', {
 				method: 'OPTIONS',
 				headers: {
-					'Origin': 'http://localhost:3000',
+					Origin: 'http://localhost:3000',
 					'Access-Control-Request-Method': 'POST',
 				},
 			})
@@ -129,7 +129,7 @@ describe('security middleware', () => {
 			const res = await app.request('/test', {
 				method: 'OPTIONS',
 				headers: {
-					'Origin': 'http://localhost:3000',
+					Origin: 'http://localhost:3000',
 					'Access-Control-Request-Method': 'POST',
 					'Access-Control-Request-Headers': 'Content-Type, Authorization',
 				},
@@ -143,7 +143,7 @@ describe('security middleware', () => {
 			const res = await app.request('/test', {
 				method: 'OPTIONS',
 				headers: {
-					'Origin': 'http://localhost:3000',
+					Origin: 'http://localhost:3000',
 					'Access-Control-Request-Method': 'GET',
 				},
 			})
@@ -157,7 +157,7 @@ describe('security middleware', () => {
 			const res = await app.request('/test', {
 				method: 'OPTIONS',
 				headers: {
-					'Origin': 'http://localhost:3000',
+					Origin: 'http://localhost:3000',
 					'Access-Control-Request-Method': 'POST',
 				},
 			})

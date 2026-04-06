@@ -1,5 +1,5 @@
-import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
-import { httpRequestTool, httpGetTool, httpPostTool, getHTTPTools } from '../http'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { getHTTPTools, httpGetTool, httpPostTool, httpRequestTool } from '../http'
 import type { ToolContext } from '../types'
 import { createFetchMock } from './test-utils'
 
@@ -340,10 +340,7 @@ describe('HTTP Tools', () => {
 					json: async () => ({ result: 'success' }),
 				})
 
-				const result = await httpGetTool.execute(
-					{ url: 'https://example.com/api' },
-					context,
-				)
+				const result = await httpGetTool.execute({ url: 'https://example.com/api' }, context)
 
 				expect(result.success).toBe(true)
 				expect(result.data?.data).toEqual({ result: 'success' })

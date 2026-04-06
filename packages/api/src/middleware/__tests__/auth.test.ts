@@ -1,6 +1,6 @@
-import { describe, expect, it, vi, beforeEach } from 'vitest'
+import type { AuthEnv, CloudflareEnv, OptionalAuthEnv } from '@hare/types'
 import { Hono } from 'hono'
-import type { AuthEnv, OptionalAuthEnv, CloudflareEnv } from '@hare/types'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 // Mock the auth module
 vi.mock('@hare/auth/server', () => ({

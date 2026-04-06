@@ -1,7 +1,7 @@
-import { describe, expect, it, vi, beforeEach } from 'vitest'
+import type { CloudflareEnv, WorkspaceEnv, WorkspaceRole } from '@hare/types'
 import { Hono } from 'hono'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { hasPermission, requirePermission } from '../workspace'
-import type { WorkspaceEnv, CloudflareEnv, WorkspaceRole } from '@hare/types'
 
 // Mock the db module
 vi.mock('../db', () => ({

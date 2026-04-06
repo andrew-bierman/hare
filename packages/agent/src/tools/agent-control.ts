@@ -8,13 +8,13 @@
 // Re-export everything from @hare/tools agent-control
 export {
 	AGENT_CONTROL_TOOL_IDS,
-	agentControlTools,
 	type AgentControlToolId,
+	agentControlTools,
 	configureAgentTool,
 	createAgentTool,
 	deleteAgentTool,
-	executeToolTool,
 	type ExecutableTool,
+	executeToolTool,
 	getAgentControlTools,
 	getAgentMetricsTool,
 	getAgentTool,

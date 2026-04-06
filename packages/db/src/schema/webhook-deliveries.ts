@@ -1,5 +1,5 @@
-import { createId } from '../id'
 import { index, integer, sqliteTable, text } from 'drizzle-orm/sqlite-core'
+import { createId } from '../id'
 import { webhooks } from './webhooks'
 
 /**
@@ -38,5 +38,5 @@ export const webhookDeliveries = sqliteTable(
 	(table) => [
 		index('webhook_deliveries_webhook_id_idx').on(table.webhookId),
 		index('webhook_deliveries_created_at_idx').on(table.createdAt),
-	]
+	],
 )

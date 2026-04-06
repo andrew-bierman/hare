@@ -4,9 +4,10 @@
  * Defines context types, base procedures, and middleware for oRPC routes.
  */
 
-import { os, ORPCError } from '@orpc/server'
+import { WorkspaceRole } from '@hare/config'
 import type { Database } from '@hare/db'
-import type { CloudflareEnv, WorkspaceRole } from '@hare/types'
+import type { CloudflareEnv } from '@hare/types'
+import { ORPCError, os } from '@orpc/server'
 
 // =============================================================================
 // Context Types
@@ -81,7 +82,9 @@ export const workspaceProcedure = os.$context<AuthContext>().use(({ context, nex
 	if (!workspace || !workspaceId || !workspaceRole) {
 		throw new ORPCError('FORBIDDEN', { message: 'Workspace access required' })
 	}
-	return next({ context: { ...context, workspace, workspaceId, workspaceRole } as WorkspaceContext })
+	return next({
+		context: { ...context, workspace, workspaceId, workspaceRole } as WorkspaceContext,
+	})
 })
 
 // =============================================================================
@@ -100,7 +103,7 @@ export const requireViewer = workspaceProcedure.use(({ context, next }) => {
  * Require at least member access (can read and interact)
  */
 export const requireMember = workspaceProcedure.use(({ context, next }) => {
-	if (context.workspaceRole === 'viewer') {
+	if (context.workspaceRole === WorkspaceRole.VIEWER) {
 		throw new ORPCError('FORBIDDEN', { message: 'Member access required' })
 	}
 	return next({ context })
@@ -110,7 +113,7 @@ export const requireMember = workspaceProcedure.use(({ context, next }) => {
  * Require write access (member, admin, or owner)
  */
 export const requireWrite = workspaceProcedure.use(({ context, next }) => {
-	if (context.workspaceRole === 'viewer') {
+	if (context.workspaceRole === WorkspaceRole.VIEWER) {
 		throw new ORPCError('FORBIDDEN', { message: 'Write access required' })
 	}
 	return next({ context })
@@ -120,7 +123,10 @@ export const requireWrite = workspaceProcedure.use(({ context, next }) => {
  * Require admin access (admin or owner)
  */
 export const requireAdmin = workspaceProcedure.use(({ context, next }) => {
-	if (context.workspaceRole !== 'admin' && context.workspaceRole !== 'owner') {
+	if (
+		context.workspaceRole !== WorkspaceRole.ADMIN &&
+		context.workspaceRole !== WorkspaceRole.OWNER
+	) {
 		throw new ORPCError('FORBIDDEN', { message: 'Admin access required' })
 	}
 	return next({ context })
@@ -130,7 +136,7 @@ export const requireAdmin = workspaceProcedure.use(({ context, next }) => {
  * Require owner access
  */
 export const requireOwner = workspaceProcedure.use(({ context, next }) => {
-	if (context.workspaceRole !== 'owner') {
+	if (context.workspaceRole !== WorkspaceRole.OWNER) {
 		throw new ORPCError('FORBIDDEN', { message: 'Owner access required' })
 	}
 	return next({ context })

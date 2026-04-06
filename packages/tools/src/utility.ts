@@ -240,7 +240,11 @@ const HashHmacOutputSchema = z.object({
 })
 
 /** Combined output schema for hash tool */
-const HashToolOutputSchema = z.union([HashOutputSchema, HashVerifyOutputSchema, HashHmacOutputSchema])
+const HashToolOutputSchema = z.union([
+	HashOutputSchema,
+	HashVerifyOutputSchema,
+	HashHmacOutputSchema,
+])
 
 /** Output for base64 'encode' operation */
 const Base64EncodeOutputSchema = z.object({

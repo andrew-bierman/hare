@@ -4,10 +4,10 @@
  * Authentication pages for sign in, sign up, forgot password, reset password, etc.
  */
 
-export { SignInPage } from './SignInPage'
+export {
+	type SignInActions,
+	SignInActionsProvider,
+} from '../../features/auth'
 export { ForgotPasswordPage } from './ForgotPasswordPage'
 export { ResetPasswordPage } from './ResetPasswordPage'
-export {
-	SignInActionsProvider,
-	type SignInActions,
-} from '../../features/auth'
+export { SignInPage } from './SignInPage'

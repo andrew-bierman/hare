@@ -1,5 +1,5 @@
-import { describe, expect, it, vi, beforeEach } from 'vitest'
-import { r2GetTool, r2PutTool, r2DeleteTool, r2ListTool, r2HeadTool, getR2Tools } from '../r2'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { getR2Tools, r2DeleteTool, r2GetTool, r2HeadTool, r2ListTool, r2PutTool } from '../r2'
 import type { ToolContext } from '../types'
 
 // Mock R2 bucket
@@ -33,7 +33,8 @@ const createMockR2 = () => {
 			const httpMeta = options?.httpMetadata
 			const obj = {
 				body,
-				httpMetadata: httpMeta && 'contentType' in httpMeta ? { contentType: httpMeta.contentType } : undefined,
+				httpMetadata:
+					httpMeta && 'contentType' in httpMeta ? { contentType: httpMeta.contentType } : undefined,
 				customMetadata: options?.customMetadata,
 				size: body.length,
 				etag: `"${Math.random().toString(36).slice(2)}"`,
@@ -169,10 +170,7 @@ describe('R2 Tools', () => {
 			})
 
 			it('rejects path traversal attempts', async () => {
-				const result = await r2GetTool.execute(
-					{ key: '../other-workspace/secret.txt' },
-					context,
-				)
+				const result = await r2GetTool.execute({ key: '../other-workspace/secret.txt' }, context)
 
 				expect(result.success).toBe(false)
 				expect(result.error).toContain('path traversal not allowed')
@@ -240,11 +238,7 @@ describe('R2 Tools', () => {
 				expect(result.data?.key).toBe('new-file.txt')
 				expect(result.data?.stored).toBe(true)
 				expect(result.data?.size).toBe(11)
-				expect(mockR2.put).toHaveBeenCalledWith(
-					'ws/test-workspace/new-file.txt',
-					'New content',
-					{},
-				)
+				expect(mockR2.put).toHaveBeenCalledWith('ws/test-workspace/new-file.txt', 'New content', {})
 			})
 
 			it('stores object with content type', async () => {
@@ -358,10 +352,7 @@ describe('R2 Tools', () => {
 			})
 
 			it('rejects path traversal attempts', async () => {
-				const result = await r2DeleteTool.execute(
-					{ key: '../other/file.txt' },
-					context,
-				)
+				const result = await r2DeleteTool.execute({ key: '../other/file.txt' }, context)
 
 				expect(result.success).toBe(false)
 				expect(result.error).toContain('path traversal not allowed')
@@ -601,10 +592,7 @@ describe('R2 Tools', () => {
 			})
 
 			it('rejects path traversal attempts', async () => {
-				const result = await r2HeadTool.execute(
-					{ key: '../other-workspace/secret.txt' },
-					context,
-				)
+				const result = await r2HeadTool.execute({ key: '../other-workspace/secret.txt' }, context)
 
 				expect(result.success).toBe(false)
 				expect(result.error).toContain('path traversal not allowed')

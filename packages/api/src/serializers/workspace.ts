@@ -1,6 +1,6 @@
-import type { InferSelectModel } from 'drizzle-orm'
 import type { workspaces } from '@hare/db'
 import type { WorkspaceRole } from '@hare/types'
+import type { InferSelectModel } from 'drizzle-orm'
 
 type WorkspaceRow = InferSelectModel<typeof workspaces>
 

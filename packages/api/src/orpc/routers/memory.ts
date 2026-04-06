@@ -4,9 +4,8 @@
  * Handles agent vector memory operations with full type safety.
  */
 
-import { and, eq } from 'drizzle-orm'
 import { agents } from '@hare/db/schema'
-import { requireWrite, notFound, serverError, type WorkspaceContext } from '../base'
+import { and, eq } from 'drizzle-orm'
 import {
 	ClearMemoriesResponseSchema,
 	CreateMemorySchema,
@@ -28,6 +27,7 @@ import {
 	storeMemoryWithEmbedding,
 	updateMemory,
 } from '../../services/vector-memory'
+import { notFound, requireWrite, serverError, type WorkspaceContext } from '../base'
 
 // =============================================================================
 // Helpers
@@ -130,7 +130,9 @@ export const create = requireWrite
 			}
 		} catch (error) {
 			console.error('Failed to store memory:', error)
-			serverError(`Failed to store memory: ${error instanceof Error ? error.message : 'Unknown error'}`)
+			serverError(
+				`Failed to store memory: ${error instanceof Error ? error.message : 'Unknown error'}`,
+			)
 		}
 	})
 
@@ -245,7 +247,9 @@ export const update = requireWrite
 			}
 		} catch (error) {
 			console.error('Failed to update memory:', error)
-			serverError(`Failed to update memory: ${error instanceof Error ? error.message : 'Unknown error'}`)
+			serverError(
+				`Failed to update memory: ${error instanceof Error ? error.message : 'Unknown error'}`,
+			)
 		}
 	})
 

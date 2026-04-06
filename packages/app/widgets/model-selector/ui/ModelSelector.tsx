@@ -1,10 +1,10 @@
 'use client'
 
 import {
+	type AIModel,
 	config,
 	getModelsByProvider,
 	getProviderLabel,
-	type AIModel,
 	type ModelProvider,
 } from '@hare/config'
 import { Label } from '@hare/ui/components/label'
@@ -39,13 +39,12 @@ export interface ModelSelectorProps {
 
 function ModelBadge({ tier, type }: { tier: string; type: 'speed' | 'cost' }) {
 	const badgeConfig = type === 'speed' ? config.models.labels.speed : config.models.labels.cost
-	const { label, color } = badgeConfig[tier as keyof typeof badgeConfig] ?? { label: tier, color: '' }
+	const { label, color } = badgeConfig[tier as keyof typeof badgeConfig] ?? {
+		label: tier,
+		color: '',
+	}
 
-	return (
-		<span className={cn('px-1.5 py-0.5 text-[10px] font-medium rounded', color)}>
-			{label}
-		</span>
-	)
+	return <span className={cn('px-1.5 py-0.5 text-[10px] font-medium rounded', color)}>{label}</span>
 }
 
 function ModelOption({ model, showBadges }: { model: AIModel; showBadges: boolean }) {
@@ -139,26 +138,24 @@ export function ModelSelector({
 					</SelectValue>
 				</SelectTrigger>
 				<SelectContent>
-					{grouped ? (
-						Array.from(modelsByProvider.entries()).map(([provider, models]) => (
-							<SelectGroup key={provider}>
-								<SelectLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wide px-2 py-1.5">
-									{getProviderLabel(provider)}
-								</SelectLabel>
-								{models.map((model) => (
-									<SelectItem key={model.id} value={model.id} className="py-2">
-										<ModelOption model={model} showBadges={showBadges} />
-									</SelectItem>
-								))}
-							</SelectGroup>
-						))
-					) : (
-						flatModels.map((model) => (
-							<SelectItem key={model.id} value={model.id} className="py-2">
-								<ModelOption model={model} showBadges={showBadges} />
-							</SelectItem>
-						))
-					)}
+					{grouped
+						? Array.from(modelsByProvider.entries()).map(([provider, models]) => (
+								<SelectGroup key={provider}>
+									<SelectLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wide px-2 py-1.5">
+										{getProviderLabel(provider)}
+									</SelectLabel>
+									{models.map((model) => (
+										<SelectItem key={model.id} value={model.id} className="py-2">
+											<ModelOption model={model} showBadges={showBadges} />
+										</SelectItem>
+									))}
+								</SelectGroup>
+							))
+						: flatModels.map((model) => (
+								<SelectItem key={model.id} value={model.id} className="py-2">
+									<ModelOption model={model} showBadges={showBadges} />
+								</SelectItem>
+							))}
 				</SelectContent>
 			</Select>
 		</div>

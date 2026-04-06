@@ -1,8 +1,8 @@
+import { workspaceMembers, workspaces } from '@hare/db'
+import { isWorkspaceRole, type WorkspaceEnv, type WorkspaceRole } from '@hare/types'
 import { and, eq } from 'drizzle-orm'
 import type { MiddlewareHandler } from 'hono'
-import { workspaceMembers, workspaces } from '@hare/db'
 import { getDb } from '../db'
-import { isWorkspaceRole, type WorkspaceEnv, type WorkspaceRole } from '@hare/types'
 
 /**
  * Workspace middleware that validates workspace access.

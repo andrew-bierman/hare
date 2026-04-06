@@ -101,7 +101,11 @@ function HealthWidgetSkeleton() {
 export function AgentHealthWidget(props: AgentHealthWidgetProps) {
 	const { agentId, basePath = '/dashboard' } = props
 
-	const { data: health, isLoading, error } = useAgentHealthQuery(agentId, { refetchInterval: 30000 })
+	const {
+		data: health,
+		isLoading,
+		error,
+	} = useAgentHealthQuery(agentId, { refetchInterval: 30000 })
 
 	if (isLoading) {
 		return <HealthWidgetSkeleton />

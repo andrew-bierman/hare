@@ -12,11 +12,13 @@
  * because it uses the 'agents' package which depends on 'cloudflare:workers'.
  */
 
-import { Agent, type Connection, type ConnectionContext, type WSMessage } from 'agents'
-import type { ModelMessage, ToolSet } from 'ai'
-import { streamText, stepCountIs } from 'ai'
-import { z } from 'zod'
-import { type HareEnv, type ToolContext, type ToolResult, getSystemTools, ToolRegistry } from '@hare/tools'
+import {
+	getSystemTools,
+	type HareEnv,
+	type ToolContext,
+	ToolRegistry,
+	type ToolResult,
+} from '@hare/tools'
 import {
 	type ChatPayload,
 	type ClientMessage,
@@ -27,11 +29,24 @@ import {
 	type ServerMessage,
 	type ToolExecutePayload,
 } from '@hare/types'
+import { Agent, type Connection, type ConnectionContext, type WSMessage } from 'agents'
+import type { ModelMessage, ToolSet } from 'ai'
+import { stepCountIs, streamText } from 'ai'
+import { z } from 'zod'
 import { createWorkersAIModel } from './providers/workers-ai'
 import { toAISDKTools } from './tool-adapter'
 
 // Re-export types for convenience
 export type { HareAgentState, ClientMessage, ServerMessage }
+
+// =============================================================================
+// Constants
+// =============================================================================
+
+/** Maximum number of recent messages sent as context for inference */
+const AGENT_CONTEXT_MESSAGE_LIMIT = 50
+/** Threshold at which old messages are pruned during maintenance */
+const AGENT_MAX_STORED_MESSAGES = 100
 
 /**
  * Validation schemas for client messages.
@@ -400,15 +415,16 @@ export class HareAgent<TEnv extends HareAgentEnv = HareAgentEnv> extends Agent<
 		}
 
 		// Cap message history to avoid context overflow
-		const recentMessages = messages.slice(-50)
+		const recentMessages = messages.slice(-AGENT_CONTEXT_MESSAGE_LIMIT)
 
 		// Convert Hare tools to AI SDK format for tool calling
 		const context = this.createToolContext()
 		const tools = this.toolRegistry.list()
-		const aiTools: ToolSet = tools.length > 0
-			// biome-ignore lint/suspicious/noExplicitAny: Required for heterogeneous tool cast
-			? toAISDKTools(tools as any, context)
-			: {}
+		const aiTools: ToolSet =
+			tools.length > 0
+				? // biome-ignore lint/suspicious/noExplicitAny: Required for heterogeneous tool cast
+					toAISDKTools(tools as any, context)
+				: {}
 
 		return {
 			model,
@@ -418,14 +434,16 @@ export class HareAgent<TEnv extends HareAgentEnv = HareAgentEnv> extends Agent<
 			onStepFinish: (step: { toolCalls?: unknown[]; usage?: { totalTokens?: number } }) => {
 				// Structured logging for observability
 				if (step.toolCalls && Array.isArray(step.toolCalls) && step.toolCalls.length > 0) {
-					console.log(JSON.stringify({
-						type: 'tool_call',
-						agentId: this.state.agentId,
-						model: this.state.model,
-						toolCount: step.toolCalls.length,
-						tokens: step.usage?.totalTokens,
-						gateway: gatewayId ?? 'direct',
-					}))
+					console.log(
+						JSON.stringify({
+							type: 'tool_call',
+							agentId: this.state.agentId,
+							model: this.state.model,
+							toolCount: step.toolCalls.length,
+							tokens: step.usage?.totalTokens,
+							gateway: gatewayId ?? 'direct',
+						}),
+					)
 				}
 			},
 		}
@@ -791,11 +809,11 @@ export class HareAgent<TEnv extends HareAgentEnv = HareAgentEnv> extends Agent<
 	}
 
 	async runMaintenance(_data: Record<string, unknown>): Promise<void> {
-		// Clean up old messages (keep last 100)
-		if (this.state.messages.length > 100) {
+		// Clean up old messages (keep last AGENT_MAX_STORED_MESSAGES)
+		if (this.state.messages.length > AGENT_MAX_STORED_MESSAGES) {
 			this.setState({
 				...this.state,
-				messages: this.state.messages.slice(-100),
+				messages: this.state.messages.slice(-AGENT_MAX_STORED_MESSAGES),
 				lastActivity: Date.now(),
 			})
 		}

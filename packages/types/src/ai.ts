@@ -7,13 +7,13 @@
  */
 
 export type {
-	// Message types
-	ModelMessage,
-	SystemModelMessage,
-	UserModelMessage,
 	AssistantModelMessage,
-	ToolModelMessage,
 	// Other useful types
 	LanguageModel,
 	LanguageModelUsage,
+	// Message types
+	ModelMessage,
+	SystemModelMessage,
+	ToolModelMessage,
+	UserModelMessage,
 } from 'ai'

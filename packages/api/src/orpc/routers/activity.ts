@@ -4,10 +4,10 @@
  * Handles querying activity events (agent invocations, tool calls, errors) with filtering and cursor pagination.
  */
 
-import { z } from 'zod'
-import { and, count, desc, eq, lt } from 'drizzle-orm'
-import { activityEvents } from '@hare/db/schema'
 import { ACTIVITY_EVENT_TYPES } from '@hare/config'
+import { activityEvents } from '@hare/db/schema'
+import { and, count, desc, eq, lt } from 'drizzle-orm'
+import { z } from 'zod'
 import { requireViewer } from '../base'
 
 // =============================================================================

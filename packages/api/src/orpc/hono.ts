@@ -5,15 +5,15 @@
  * alongside existing Hono routes.
  */
 
-import { Hono } from 'hono'
-import { RPCHandler } from '@orpc/server/fetch'
-import { and, eq } from 'drizzle-orm'
-import { workspaces, workspaceMembers } from '@hare/db/schema'
-import { appRouter } from './routers'
+import { workspaceMembers, workspaces } from '@hare/db/schema'
 import type { OrpcEnv, WorkspaceRole } from '@hare/types'
 import { isWorkspaceRole } from '@hare/types'
+import { RPCHandler } from '@orpc/server/fetch'
+import { and, eq } from 'drizzle-orm'
+import { Hono } from 'hono'
 import { getCloudflareEnv, getDb } from '../db'
 import { optionalAuthMiddleware } from '../middleware/auth'
+import { appRouter } from './routers'
 
 // Create the RPC handler
 const handler = new RPCHandler(appRouter)

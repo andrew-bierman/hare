@@ -1,24 +1,24 @@
 // Server-side exports
-export {
-	createAuth,
-	getOAuthProviders,
-	type Auth,
-	type AuthServerEnv,
-	type CreateAuthOptions,
-} from './server'
 
 // Client-side exports
 export {
-	createHareAuthClient,
 	authClient,
-	signIn,
-	signUp,
-	signOut,
-	useSession,
-	getSession,
-	signInWithGoogle,
-	signInWithGitHub,
-	updateUser,
-	changePassword,
 	type CreateAuthClientOptions,
+	changePassword,
+	createHareAuthClient,
+	getSession,
+	signIn,
+	signInWithGitHub,
+	signInWithGoogle,
+	signOut,
+	signUp,
+	updateUser,
+	useSession,
 } from './client'
+export {
+	type Auth,
+	type AuthServerEnv,
+	type CreateAuthOptions,
+	createAuth,
+	getOAuthProviders,
+} from './server'

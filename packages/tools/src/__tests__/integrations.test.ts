@@ -1,13 +1,13 @@
-import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
-	zapierSaveTool,
-	zapierListTool,
-	zapierTriggerTool,
+	getIntegrationTools,
+	webhookTool,
 	zapierDeleteTool,
+	zapierListTool,
+	zapierSaveTool,
 	zapierTestTool,
 	zapierTool,
-	webhookTool,
-	getIntegrationTools,
+	zapierTriggerTool,
 } from '../integrations'
 import type { ToolContext } from '../types'
 import { createFetchMock } from './test-utils'
@@ -376,7 +376,10 @@ describe('Integration Tools', () => {
 			})
 
 			it('fails when neither name nor URL provided', async () => {
-				const result = await zapierTriggerTool.execute({ data: {}, waitForResponse: false }, context)
+				const result = await zapierTriggerTool.execute(
+					{ data: {}, waitForResponse: false },
+					context,
+				)
 
 				expect(result.success).toBe(false)
 				expect(result.error).toContain('Provide either')

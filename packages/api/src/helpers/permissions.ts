@@ -1,6 +1,5 @@
+import { config, WorkspaceRole } from '@hare/config'
 import type { Context } from 'hono'
-import type { WorkspaceRole } from '@hare/types'
-import { config } from '@hare/config'
 
 // =============================================================================
 // Types
@@ -41,21 +40,21 @@ export class NotFoundError extends Error {
  * Check if the role has write access (not a viewer).
  */
 export function hasWriteAccess(role: WorkspaceRole): boolean {
-	return role !== 'viewer'
+	return role !== WorkspaceRole.VIEWER
 }
 
 /**
  * Check if the role has admin access (owner or admin).
  */
 export function hasAdminAccess(role: WorkspaceRole): boolean {
-	return role === 'owner' || role === 'admin'
+	return role === WorkspaceRole.OWNER || role === WorkspaceRole.ADMIN
 }
 
 /**
  * Check if the role is owner.
  */
 export function isOwner(role: WorkspaceRole): boolean {
-	return role === 'owner'
+	return role === WorkspaceRole.OWNER
 }
 
 /**

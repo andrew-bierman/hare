@@ -2,13 +2,7 @@
 
 import { Badge } from '@hare/ui/components/badge'
 import { Button } from '@hare/ui/components/button'
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from '@hare/ui/components/card'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@hare/ui/components/card'
 import {
 	Dialog,
 	DialogContent,

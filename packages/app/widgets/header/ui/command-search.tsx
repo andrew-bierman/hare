@@ -1,7 +1,5 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
-import Fuse from 'fuse.js'
 import {
 	CommandDialog,
 	CommandEmpty,
@@ -11,20 +9,22 @@ import {
 	CommandList,
 	CommandSeparator,
 } from '@hare/ui/components/command'
+import Fuse from 'fuse.js'
 import {
+	Activity,
+	BarChart3,
 	Bot,
+	CreditCard,
 	FileCode,
+	Key,
 	LayoutDashboard,
 	Plus,
 	Settings,
-	Wrench,
-	BarChart3,
-	Activity,
-	Key,
-	CreditCard,
-	Users,
 	Shield,
+	Users,
+	Wrench,
 } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
 import { useAgentsQuery, useToolsQuery } from '../../../shared/api'
 
 interface CommandSearchProps {
@@ -43,9 +43,27 @@ interface SearchItem {
 
 // Static navigation items
 const PAGES: SearchItem[] = [
-	{ id: 'dashboard', type: 'page', title: 'Dashboard', description: 'Overview', path: '/dashboard' },
-	{ id: 'agents', type: 'page', title: 'Agents', description: 'Manage agents', path: '/dashboard/agents' },
-	{ id: 'tools', type: 'page', title: 'Tools', description: 'Configure tools', path: '/dashboard/tools' },
+	{
+		id: 'dashboard',
+		type: 'page',
+		title: 'Dashboard',
+		description: 'Overview',
+		path: '/dashboard',
+	},
+	{
+		id: 'agents',
+		type: 'page',
+		title: 'Agents',
+		description: 'Manage agents',
+		path: '/dashboard/agents',
+	},
+	{
+		id: 'tools',
+		type: 'page',
+		title: 'Tools',
+		description: 'Configure tools',
+		path: '/dashboard/tools',
+	},
 	{ id: 'analytics', type: 'page', title: 'Analytics', path: '/dashboard/analytics' },
 	{ id: 'usage', type: 'page', title: 'Usage', path: '/dashboard/usage' },
 	{ id: 'settings', type: 'page', title: 'Settings', path: '/dashboard/settings' },
@@ -56,7 +74,13 @@ const PAGES: SearchItem[] = [
 ]
 
 const ACTIONS: SearchItem[] = [
-	{ id: 'new-agent', type: 'action', title: 'Create new agent', description: 'Build an AI agent', path: '/dashboard/agents/new' },
+	{
+		id: 'new-agent',
+		type: 'action',
+		title: 'Create new agent',
+		description: 'Build an AI agent',
+		path: '/dashboard/agents/new',
+	},
 ]
 
 const PAGE_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -94,15 +118,17 @@ export function CommandSearch({ open, onOpenChange, onNavigate }: CommandSearchP
 		})
 
 		// Add custom tools (non-system tools)
-		toolsData?.tools?.filter((t) => !t.isSystem).forEach((tool) => {
-			items.push({
-				id: `tool-${tool.id}`,
-				type: 'tool',
-				title: tool.name,
-				description: tool.description ?? undefined,
-				path: `/dashboard/tools/${tool.id}`,
+		toolsData?.tools
+			?.filter((t) => !t.isSystem)
+			.forEach((tool) => {
+				items.push({
+					id: `tool-${tool.id}`,
+					type: 'tool',
+					title: tool.name,
+					description: tool.description ?? undefined,
+					path: `/dashboard/tools/${tool.id}`,
+				})
 			})
-		})
 
 		return items
 	}, [agentsData, toolsData])
@@ -143,7 +169,8 @@ export function CommandSearch({ open, onOpenChange, onNavigate }: CommandSearchP
 		return <Icon className="mr-2 h-4 w-4 shrink-0" />
 	}
 
-	const hasResults = results.actions.length + results.pages.length + results.agents.length + results.tools.length > 0
+	const hasResults =
+		results.actions.length + results.pages.length + results.agents.length + results.tools.length > 0
 
 	return (
 		<CommandDialog open={open} onOpenChange={onOpenChange}>

@@ -1,4 +1,4 @@
-import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 // Use vi.hoisted to ensure mocks are defined before vi.mock is hoisted
 const { mockSignIn, mockUpdateUser, mockChangePassword, mockAuthClient } = vi.hoisted(() => {
@@ -41,12 +41,12 @@ vi.mock('better-auth/react', () => ({
 
 // Import after mocking
 import {
-	createHareAuthClient,
-	signInWithGoogle,
-	signInWithGitHub,
-	updateUser,
-	changePassword,
 	type CreateAuthClientOptions,
+	changePassword,
+	createHareAuthClient,
+	signInWithGitHub,
+	signInWithGoogle,
+	updateUser,
 } from '../client'
 
 describe('Auth Client', () => {
@@ -97,7 +97,7 @@ describe('Auth Client', () => {
 			expect(mockSignIn.social).toHaveBeenCalledWith(
 				expect.objectContaining({
 					callbackURL: '/dashboard',
-				})
+				}),
 			)
 		})
 
@@ -136,7 +136,7 @@ describe('Auth Client', () => {
 			expect(mockSignIn.social).toHaveBeenCalledWith(
 				expect.objectContaining({
 					callbackURL: '/dashboard',
-				})
+				}),
 			)
 		})
 

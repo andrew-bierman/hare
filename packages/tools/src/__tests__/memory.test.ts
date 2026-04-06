@@ -1,5 +1,5 @@
-import { describe, expect, it, vi, beforeEach } from 'vitest'
-import { recallMemoryTool, storeMemoryTool, getMemoryTools } from '../memory'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { getMemoryTools, recallMemoryTool, storeMemoryTool } from '../memory'
 import type { ToolContext } from '../types'
 import { expectResultData, ResultSchemas } from './test-utils'
 
@@ -160,10 +160,7 @@ describe('Memory Tools', () => {
 			})
 
 			it('returns formatted memories', async () => {
-				const result = await recallMemoryTool.execute(
-					{ query: 'test', topK: 5 },
-					context,
-				)
+				const result = await recallMemoryTool.execute({ query: 'test', topK: 5 }, context)
 
 				const data = expectResultData({ result, schema: ResultSchemas.recallMemory })
 				const memory = data.memories[0]
@@ -174,20 +171,18 @@ describe('Memory Tools', () => {
 			})
 
 			it('generates embedding for query', async () => {
-				await recallMemoryTool.execute(
-					{ query: 'test query', topK: 5 },
-					context,
-				)
+				await recallMemoryTool.execute({ query: 'test query', topK: 5 }, context)
 
-				expect(context.env.AI?.run).toHaveBeenCalledWith(
-					'@cf/baai/bge-base-en-v1.5',
-					{ text: ['test query'] },
-				)
+				expect(context.env.AI?.run).toHaveBeenCalledWith('@cf/baai/bge-base-en-v1.5', {
+					text: ['test query'],
+				})
 			})
 
 			it('handles no results', async () => {
 				const emptyContext = createMockContext()
-				;(emptyContext.env.VECTORIZE as unknown as { query: ReturnType<typeof vi.fn> }).query.mockResolvedValueOnce({ matches: [] })
+				;(
+					emptyContext.env.VECTORIZE as unknown as { query: ReturnType<typeof vi.fn> }
+				).query.mockResolvedValueOnce({ matches: [] })
 
 				const result = await recallMemoryTool.execute(
 					{ query: 'nonexistent topic', topK: 5 },
@@ -202,10 +197,7 @@ describe('Memory Tools', () => {
 			it('fails when AI binding is not available', async () => {
 				const contextWithoutAI = createMockContext(false, true)
 
-				const result = await recallMemoryTool.execute(
-					{ query: 'test', topK: 5 },
-					contextWithoutAI,
-				)
+				const result = await recallMemoryTool.execute({ query: 'test', topK: 5 }, contextWithoutAI)
 
 				expect(result.success).toBe(false)
 				expect(result.error).toContain('AI')
@@ -322,10 +314,9 @@ describe('Memory Tools', () => {
 					context,
 				)
 
-				expect(context.env.AI?.run).toHaveBeenCalledWith(
-					'@cf/baai/bge-base-en-v1.5',
-					{ text: ['Important fact to remember'] },
-				)
+				expect(context.env.AI?.run).toHaveBeenCalledWith('@cf/baai/bge-base-en-v1.5', {
+					text: ['Important fact to remember'],
+				})
 			})
 
 			it('inserts into Vectorize with metadata', async () => {
@@ -371,10 +362,7 @@ describe('Memory Tools', () => {
 			})
 
 			it('includes timestamp in metadata', async () => {
-				await storeMemoryTool.execute(
-					{ content: 'Test content', type: 'custom' },
-					context,
-				)
+				await storeMemoryTool.execute({ content: 'Test content', type: 'custom' }, context)
 
 				expect(context.env.VECTORIZE?.insert).toHaveBeenCalledWith([
 					expect.objectContaining({

@@ -1,18 +1,5 @@
 'use client'
 
-import { useAgentQuery } from '../../shared/api'
-import {
-	useWebhooksQuery,
-	useCreateWebhookMutation,
-	useUpdateWebhookMutation,
-	useDeleteWebhookMutation,
-	useRegenerateWebhookSecretMutation,
-	useWebhookDeliveriesQuery,
-	useWebhookLogsQuery,
-	useRetryWebhookDeliveryMutation,
-	type Webhook,
-	type WebhookDelivery,
-} from '../../shared/api/hooks'
 import { Badge } from '@hare/ui/components/badge'
 import { Button } from '@hare/ui/components/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@hare/ui/components/card'
@@ -64,6 +51,19 @@ import {
 } from 'lucide-react'
 import { type ChangeEvent, useState } from 'react'
 import { toast } from 'sonner'
+import { useAgentQuery } from '../../shared/api'
+import {
+	useCreateWebhookMutation,
+	useDeleteWebhookMutation,
+	useRegenerateWebhookSecretMutation,
+	useRetryWebhookDeliveryMutation,
+	useUpdateWebhookMutation,
+	useWebhookDeliveriesQuery,
+	useWebhookLogsQuery,
+	useWebhooksQuery,
+	type Webhook,
+	type WebhookDelivery,
+} from '../../shared/api/hooks'
 
 export interface AgentWebhooksPageProps {
 	agentId: string
@@ -314,11 +314,7 @@ function DeliveryRow({ delivery, onRetry, isRetrying }: DeliveryRowProps) {
 				<TableCell className="w-8">
 					<CollapsibleTrigger asChild>
 						<Button variant="ghost" size="sm" className="h-6 w-6 p-0">
-							{isOpen ? (
-								<ChevronDown className="h-4 w-4" />
-							) : (
-								<ChevronRight className="h-4 w-4" />
-							)}
+							{isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
 						</Button>
 					</CollapsibleTrigger>
 				</TableCell>
@@ -385,18 +381,14 @@ function DeliveryRow({ delivery, onRetry, isRetrying }: DeliveryRowProps) {
 					<td colSpan={6} className="p-0">
 						<div className="border-t bg-muted/30 p-4 space-y-4">
 							<div>
-								<Label className="text-xs text-muted-foreground mb-2 block">
-									Request Payload
-								</Label>
+								<Label className="text-xs text-muted-foreground mb-2 block">Request Payload</Label>
 								<pre className="bg-background rounded-md p-3 text-xs overflow-auto max-h-48 border">
 									{JSON.stringify(delivery.payload, null, 2)}
 								</pre>
 							</div>
 							{delivery.responseBody && (
 								<div>
-									<Label className="text-xs text-muted-foreground mb-2 block">
-										Response Body
-									</Label>
+									<Label className="text-xs text-muted-foreground mb-2 block">Response Body</Label>
 									<pre className="bg-background rounded-md p-3 text-xs overflow-auto max-h-48 border">
 										{delivery.responseBody}
 									</pre>
@@ -471,12 +463,8 @@ function WebhookLogsDialog({ webhook, agentId, open, onOpenChange }: WebhookLogs
 				</DialogHeader>
 				<Tabs value={activeTab} onValueChange={setActiveTab}>
 					<TabsList>
-						<TabsTrigger value="deliveries">
-							Deliveries ({deliveriesData?.total ?? 0})
-						</TabsTrigger>
-						<TabsTrigger value="logs">
-							Legacy Logs ({logsData?.total ?? 0})
-						</TabsTrigger>
+						<TabsTrigger value="deliveries">Deliveries ({deliveriesData?.total ?? 0})</TabsTrigger>
+						<TabsTrigger value="logs">Legacy Logs ({logsData?.total ?? 0})</TabsTrigger>
 					</TabsList>
 					<TabsContent value="deliveries">
 						<ScrollArea className="h-[500px]">
@@ -946,7 +934,11 @@ export function AgentWebhooksPage({ agentId }: AgentWebhooksPageProps) {
 						>
 							Cancel
 						</Button>
-						<Button variant="destructive" onClick={handleDelete} disabled={deleteMutation.isPending}>
+						<Button
+							variant="destructive"
+							onClick={handleDelete}
+							disabled={deleteMutation.isPending}
+						>
 							{deleteMutation.isPending ? (
 								<>
 									<Loader2 className="mr-2 h-4 w-4 animate-spin" />

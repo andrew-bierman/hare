@@ -11,48 +11,45 @@
 
 // Collections
 export * from './collections'
-
-// Provider and context hooks
-export {
-	TanStackDBProvider,
-	useTanStackDB,
-	useWorkspaceCollection,
-	useAgentCollection,
-	useToolCollection,
-	useScheduleCollection,
-} from './provider'
-
 // Live query hooks
 export {
+	useLiveActiveSchedules,
+	useLiveAgent,
+	useLiveAgentCount,
 	// Agents
 	useLiveAgents,
-	useLiveAgent,
 	useLiveAgentsByStatus,
+	useLiveAgentsWithTool,
+	useLiveCustomTools,
+	useLiveDeployedAgentCount,
 	useLiveDeployedAgents,
 	useLiveDraftAgents,
-	useLiveAgentsWithTool,
-	useLiveAgentCount,
-	useLiveDeployedAgentCount,
-	// Tools
-	useLiveTools,
-	useLiveTool,
-	useLiveToolsByType,
-	useLiveSystemTools,
-	useLiveCustomTools,
-	useLiveToolCount,
-	// Workspaces
-	useLiveWorkspaces,
-	useLiveWorkspace,
+	useLivePendingSchedules,
 	// Schedules
 	useLiveSchedules,
-	useLiveActiveSchedules,
-	useLivePendingSchedules,
+	useLiveSystemTools,
+	useLiveTool,
+	useLiveToolCount,
+	// Tools
+	useLiveTools,
+	useLiveToolsByType,
+	useLiveWorkspace,
+	// Workspaces
+	useLiveWorkspaces,
 } from './hooks'
-
 // Mutation helpers
 export {
 	useAgentMutations,
+	useScheduleMutations,
 	useToolMutations,
 	useWorkspaceMutations,
-	useScheduleMutations,
 } from './mutations'
+// Provider and context hooks
+export {
+	TanStackDBProvider,
+	useAgentCollection,
+	useScheduleCollection,
+	useTanStackDB,
+	useToolCollection,
+	useWorkspaceCollection,
+} from './provider'

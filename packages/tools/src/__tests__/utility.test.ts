@@ -1,17 +1,17 @@
-import { describe, expect, it, beforeEach } from 'vitest'
+import { beforeEach, describe, expect, it } from 'vitest'
+import type { ToolContext, ToolResult } from '../types'
 import {
-	datetimeTool,
-	jsonTool,
-	textTool,
-	mathTool,
-	uuidTool,
-	hashTool,
 	base64Tool,
-	urlTool,
+	datetimeTool,
 	delayTool,
 	getUtilityTools,
+	hashTool,
+	jsonTool,
+	mathTool,
+	textTool,
+	urlTool,
+	uuidTool,
 } from '../utility'
-import type { ToolContext, ToolResult } from '../types'
 import { expectResultData, ResultSchemas } from './test-utils'
 
 // Type helpers for test assertions (for cases not covered by expectResultData)
@@ -81,10 +81,7 @@ describe('Utility Tools', () => {
 
 		describe('execution', () => {
 			it('returns current datetime for now operation', async () => {
-				const result = await datetimeTool.execute(
-					{ operation: 'now', timezone: 'UTC' },
-					context,
-				)
+				const result = await datetimeTool.execute({ operation: 'now', timezone: 'UTC' }, context)
 
 				const data = expectResultData({ result, schema: ResultSchemas.datetime })
 				expect(data.iso).toBeDefined()
@@ -113,7 +110,13 @@ describe('Utility Tools', () => {
 
 			it('adds time to date', async () => {
 				const result = await datetimeTool.execute(
-					{ operation: 'add', date: '2024-01-01T00:00:00Z', amount: 7, unit: 'days', timezone: 'UTC' },
+					{
+						operation: 'add',
+						date: '2024-01-01T00:00:00Z',
+						amount: 7,
+						unit: 'days',
+						timezone: 'UTC',
+					},
 					context,
 				)
 
@@ -218,7 +221,11 @@ describe('Utility Tools', () => {
 
 			it('flattens nested object', async () => {
 				const result = await jsonTool.execute(
-					{ operation: 'flatten', data: { user: { name: 'test', address: { city: 'NYC' } } }, pretty: false },
+					{
+						operation: 'flatten',
+						data: { user: { name: 'test', address: { city: 'NYC' } } },
+						pretty: false,
+					},
 					context,
 				)
 
@@ -304,7 +311,14 @@ describe('Utility Tools', () => {
 
 			it('truncates text', async () => {
 				const result = await textTool.execute(
-					{ operation: 'truncate', text: 'hello world', length: 8, suffix: '...', padChar: ' ', times: 1 },
+					{
+						operation: 'truncate',
+						text: 'hello world',
+						length: 8,
+						suffix: '...',
+						padChar: ' ',
+						times: 1,
+					},
 					context,
 				)
 				const data = expectResultData({ result, schema: ResultSchemas.text })
@@ -348,31 +362,46 @@ describe('Utility Tools', () => {
 
 		describe('execution', () => {
 			it('adds numbers', async () => {
-				const result = await mathTool.execute({ operation: 'add', a: 5, b: 3, decimals: 2 }, context)
+				const result = await mathTool.execute(
+					{ operation: 'add', a: 5, b: 3, decimals: 2 },
+					context,
+				)
 				const data = expectResultData({ result, schema: ResultSchemas.math })
 				expect(data.result).toBe(8)
 			})
 
 			it('subtracts numbers', async () => {
-				const result = await mathTool.execute({ operation: 'subtract', a: 10, b: 3, decimals: 2 }, context)
+				const result = await mathTool.execute(
+					{ operation: 'subtract', a: 10, b: 3, decimals: 2 },
+					context,
+				)
 				const data = expectResultData({ result, schema: ResultSchemas.math })
 				expect(data.result).toBe(7)
 			})
 
 			it('multiplies numbers', async () => {
-				const result = await mathTool.execute({ operation: 'multiply', a: 4, b: 5, decimals: 2 }, context)
+				const result = await mathTool.execute(
+					{ operation: 'multiply', a: 4, b: 5, decimals: 2 },
+					context,
+				)
 				const data = expectResultData({ result, schema: ResultSchemas.math })
 				expect(data.result).toBe(20)
 			})
 
 			it('divides numbers', async () => {
-				const result = await mathTool.execute({ operation: 'divide', a: 20, b: 4, decimals: 2 }, context)
+				const result = await mathTool.execute(
+					{ operation: 'divide', a: 20, b: 4, decimals: 2 },
+					context,
+				)
 				const data = expectResultData({ result, schema: ResultSchemas.math })
 				expect(data.result).toBe(5)
 			})
 
 			it('handles division by zero', async () => {
-				const result = await mathTool.execute({ operation: 'divide', a: 10, b: 0, decimals: 2 }, context)
+				const result = await mathTool.execute(
+					{ operation: 'divide', a: 10, b: 0, decimals: 2 },
+					context,
+				)
 				expect(result.success).toBe(false)
 				expect(result.error).toContain('Division by zero')
 			})
@@ -402,13 +431,19 @@ describe('Utility Tools', () => {
 			})
 
 			it('calculates percentage', async () => {
-				const result = await mathTool.execute({ operation: 'percentage', a: 25, b: 100, decimals: 2 }, context)
+				const result = await mathTool.execute(
+					{ operation: 'percentage', a: 25, b: 100, decimals: 2 },
+					context,
+				)
 				const data = expectResultData({ result, schema: ResultSchemas.math })
 				expect(data.result).toBe(25)
 			})
 
 			it('generates random integer', async () => {
-				const result = await mathTool.execute({ operation: 'randomInt', min: 1, max: 10, decimals: 2 }, context)
+				const result = await mathTool.execute(
+					{ operation: 'randomInt', min: 1, max: 10, decimals: 2 },
+					context,
+				)
 				const data = expectResultData({ result, schema: ResultSchemas.math })
 				expect(data.result).toBeGreaterThanOrEqual(1)
 				expect(data.result).toBeLessThanOrEqual(10)
@@ -458,10 +493,7 @@ describe('Utility Tools', () => {
 			})
 
 			it('generates ULID', async () => {
-				const result = await uuidTool.execute(
-					{ type: 'ulid', count: 1, length: 21 },
-					context,
-				)
+				const result = await uuidTool.execute({ type: 'ulid', count: 1, length: 21 }, context)
 				const data = expectResultData({ result, schema: ResultSchemas.uuid })
 				// ULID generation returns a string ID
 				expect(typeof data.id).toBe('string')
@@ -669,10 +701,7 @@ describe('Utility Tools', () => {
 			})
 
 			it('encodes URL components', async () => {
-				const result = await urlTool.execute(
-					{ operation: 'encode', text: 'hello world' },
-					context,
-				)
+				const result = await urlTool.execute({ operation: 'encode', text: 'hello world' }, context)
 				const data = expectResultData({ result, schema: ResultSchemas.url })
 				expect(data.encoded).toBe('hello%20world')
 			})
@@ -742,10 +771,7 @@ describe('Utility Tools', () => {
 			})
 
 			it('includes reason in result', async () => {
-				const result = await delayTool.execute(
-					{ duration: 50, reason: 'Rate limiting' },
-					context,
-				)
+				const result = await delayTool.execute({ duration: 50, reason: 'Rate limiting' }, context)
 				const data = expectResultData({ result, schema: ResultSchemas.delay })
 				expect(data.reason).toBe('Rate limiting')
 			})

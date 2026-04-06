@@ -67,16 +67,17 @@ const clientEnvSchema = z.object({
 
 function validateClientEnv() {
 	// Handle CJS contexts (e.g., drizzle-kit) where import.meta.env is not available
-	const viteAppUrl = typeof import.meta !== 'undefined' && import.meta.env
-		? import.meta.env.VITE_APP_URL
-		: undefined
+	const viteAppUrl =
+		typeof import.meta !== 'undefined' && import.meta.env ? import.meta.env.VITE_APP_URL : undefined
 
 	const result = clientEnvSchema.safeParse({
 		VITE_APP_URL: viteAppUrl,
 	})
 
 	return {
-		VITE_APP_URL: result.data?.VITE_APP_URL || (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000'),
+		VITE_APP_URL:
+			result.data?.VITE_APP_URL ||
+			(typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000'),
 	}
 }
 

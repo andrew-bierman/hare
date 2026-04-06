@@ -7,15 +7,15 @@
  * - Delivery logging
  */
 
-import { and, eq } from 'drizzle-orm'
 import {
+	type Database,
 	WEBHOOK_EVENT_TYPES,
 	type WebhookEventType,
 	webhookDeliveries,
 	webhooks,
-	type Database,
 } from '@hare/db'
 import { isUrlSafe } from '@hare/tools'
+import { and, eq } from 'drizzle-orm'
 
 // =============================================================================
 // Types
@@ -339,7 +339,8 @@ async function deliverWithRetry(options: {
 
 		// Apply retry delay (except for first attempt)
 		if (attemptCount > 1) {
-			const delayMs = RETRY_DELAYS_MS[attemptCount - 2] ?? RETRY_DELAYS_MS[RETRY_DELAYS_MS.length - 1]
+			const delayMs =
+				RETRY_DELAYS_MS[attemptCount - 2] ?? RETRY_DELAYS_MS[RETRY_DELAYS_MS.length - 1]
 			await new Promise((resolve) => setTimeout(resolve, delayMs))
 		}
 
@@ -356,12 +357,14 @@ async function deliverWithRetry(options: {
 		}
 	}
 
-	return lastResult ?? {
-		webhookId: webhook.id,
-		success: false,
-		error: 'No delivery attempts made',
-		attempts: 0,
-	}
+	return (
+		lastResult ?? {
+			webhookId: webhook.id,
+			success: false,
+			error: 'No delivery attempts made',
+			attempts: 0,
+		}
+	)
 }
 
 // =============================================================================
@@ -488,7 +491,7 @@ export async function getWebhookStats(options: { db: Database; agentId: string }
 	// Get all deliveries for these webhooks
 	const deliveries = await Promise.all(
 		webhookIds.map((id) =>
-			db.select().from(webhookDeliveries).where(eq(webhookDeliveries.webhookId, id))
+			db.select().from(webhookDeliveries).where(eq(webhookDeliveries.webhookId, id)),
 		),
 	)
 
@@ -621,11 +624,18 @@ export async function retryDelivery(options: {
 	const [updatedDelivery] = await db
 		.update(webhookDeliveries)
 		.set({
-			status: result.success ? 'success' : newAttemptCount >= MAX_RETRY_ATTEMPTS ? 'failed' : 'pending',
+			status: result.success
+				? 'success'
+				: newAttemptCount >= MAX_RETRY_ATTEMPTS
+					? 'failed'
+					: 'pending',
 			statusCode: result.statusCode ?? null,
 			responseBody: result.responseBody ?? null,
 			attemptCount: newAttemptCount,
-			nextRetryAt: result.success || newAttemptCount >= MAX_RETRY_ATTEMPTS ? null : calculateNextRetryAt(newAttemptCount),
+			nextRetryAt:
+				result.success || newAttemptCount >= MAX_RETRY_ATTEMPTS
+					? null
+					: calculateNextRetryAt(newAttemptCount),
 		})
 		.where(eq(webhookDeliveries.id, deliveryId))
 		.returning()

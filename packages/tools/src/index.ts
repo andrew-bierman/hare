@@ -21,46 +21,46 @@
  */
 
 // Types from @hare/types (canonical source)
-export { ToolConfigSchema, type ToolConfig, ToolTypeSchema, type ToolType } from '@hare/types'
-
+export { type ToolConfig, ToolConfigSchema, type ToolType, ToolTypeSchema } from '@hare/types'
+// Tool delegation utilities
+export { delegateTo, delegateToWithValidation } from './delegate'
 // Core types and utilities
 export {
+	type AnyTool,
 	createRegistry,
 	createTool,
 	failure,
-	success,
-	toToolSet,
-	ToolRegistry,
-	type AnyTool,
 	type HareEnv,
+	success,
 	type Tool,
 	type ToolContext,
 	type ToolDefinition,
+	ToolRegistry,
 	type ToolResult,
 	type ToolSet,
+	toToolSet,
 } from './types'
-
-// Tool delegation utilities
-export { delegateTo, delegateToWithValidation } from './delegate'
 
 // ==========================================
 // CLOUDFLARE NATIVE TOOLS
 // ==========================================
 
+// HTTP tools
+export {
+	getHTTPTools,
+	HttpResponseOutputSchema,
+	httpGetTool,
+	httpPostTool,
+	httpRequestTool,
+} from './http'
 // KV tools
 export { getKVTools, kvDeleteTool, kvGetTool, kvListTool, kvPutTool } from './kv'
-
 // R2 tools
 export { getR2Tools, r2DeleteTool, r2GetTool, r2HeadTool, r2ListTool, r2PutTool } from './r2'
-
-// SQL tools
-export { getSQLTools, sqlBatchTool, sqlExecuteTool, sqlQueryTool } from './sql'
-
-// HTTP tools
-export { getHTTPTools, httpGetTool, httpPostTool, httpRequestTool, HttpResponseOutputSchema } from './http'
-
 // Search tools (AutoRAG/AI Search)
 export { aiSearchAnswerTool, aiSearchTool, getSearchTools } from './search'
+// SQL tools
+export { getSQLTools, sqlBatchTool, sqlExecuteTool, sqlQueryTool } from './sql'
 
 // ==========================================
 // UTILITY TOOLS
@@ -105,16 +105,6 @@ export {
 // SECURITY (SSRF Protection)
 // ==========================================
 
-export {
-	isBlockedHost,
-	isPrivateIPv4,
-	isPrivateIPv6,
-	isRedirectSafe,
-	isUrlSafe,
-	MAX_REDIRECT_HOPS,
-	parseIPv4,
-} from './security/ssrf'
-
 // Constants
 export {
 	AutoRAGConfig,
@@ -131,6 +121,15 @@ export {
 	ValidationLimits,
 	ZapierConfig,
 } from './constants'
+export {
+	isBlockedHost,
+	isPrivateIPv4,
+	isPrivateIPv6,
+	isRedirectSafe,
+	isUrlSafe,
+	MAX_REDIRECT_HOPS,
+	parseIPv4,
+} from './security/ssrf'
 
 // ==========================================
 // AI TOOLS (Workers AI)
@@ -214,15 +213,15 @@ export { getMemoryTools, recallMemoryTool, storeMemoryTool } from './memory'
 
 export {
 	AGENT_CONTROL_TOOL_IDS,
-	agentControlTools,
 	type AgentControlToolId,
-	type ExecutableTool,
+	agentControlTools,
 	configureAgentTool,
 	createAgentTool,
 	createWebhookTool,
 	deleteAgentTool,
 	deleteWebhookTool,
 	deployAgentTool,
+	type ExecutableTool,
 	executeToolTool,
 	getAgentControlTools,
 	getAgentMetricsTool,
@@ -242,8 +241,8 @@ export {
 
 export {
 	AGENT_BUILDER_TOOL_IDS,
-	agentBuilderTools,
 	type AgentBuilderToolId,
+	agentBuilderTools,
 	agentExportConfigTool,
 	agentListModelsTool,
 	agentListTemplatesTool,
@@ -258,8 +257,8 @@ export {
 
 export {
 	createToolFromConfig,
-	loadAgentTools,
 	type LoadAgentToolsInput,
+	loadAgentTools,
 	type ToolDatabase,
 } from './factory'
 

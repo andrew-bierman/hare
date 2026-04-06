@@ -5,10 +5,10 @@
  * The host app (e.g., web-app) must provide concrete implementations via `configureApi()`.
  */
 
-import type { Context } from 'hono'
 import type { D1Database } from '@cloudflare/workers-types'
-import type { DrizzleD1Database } from 'drizzle-orm/d1'
 import type { CloudflareEnv } from '@hare/types'
+import type { DrizzleD1Database } from 'drizzle-orm/d1'
+import type { Context } from 'hono'
 
 // =============================================================================
 // Database Types
@@ -191,7 +191,10 @@ export interface ApiDependencies {
 	toAgentMessages: (messages: unknown[]) => unknown[]
 
 	// Utils
-	generateUniqueSlug: (name: string, existingCheck: (slug: string) => Promise<boolean>) => Promise<string>
+	generateUniqueSlug: (
+		name: string,
+		existingCheck: (slug: string) => Promise<boolean>,
+	) => Promise<string>
 }
 
 // =============================================================================
@@ -214,9 +217,7 @@ export function configureApi(deps: ApiDependencies): void {
  */
 export function getDependencies(): ApiDependencies {
 	if (!_dependencies) {
-		throw new Error(
-			'API dependencies not configured. Call configureApi() before using the API.',
-		)
+		throw new Error('API dependencies not configured. Call configureApi() before using the API.')
 	}
 	return _dependencies
 }

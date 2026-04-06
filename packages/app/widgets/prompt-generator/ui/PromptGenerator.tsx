@@ -1,9 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
 import { Button } from '@hare/ui/components/button'
-import { Textarea } from '@hare/ui/components/textarea'
-import { Label } from '@hare/ui/components/label'
 import {
 	Dialog,
 	DialogContent,
@@ -13,8 +10,11 @@ import {
 	DialogTitle,
 	DialogTrigger,
 } from '@hare/ui/components/dialog'
-import { Loader2, Sparkles, Wand2 } from 'lucide-react'
+import { Label } from '@hare/ui/components/label'
+import { Textarea } from '@hare/ui/components/textarea'
 import { cn } from '@hare/ui/lib/utils'
+import { Loader2, Sparkles, Wand2 } from 'lucide-react'
+import { useCallback, useState } from 'react'
 
 export interface PromptGeneratorProps {
 	/** Called when a prompt is generated */
@@ -134,7 +134,7 @@ function generateStructuredPrompt(description: string): string {
 
 	// Constraints
 	const constraints: string[] = [
-		'- Always be truthful. If you don\'t know something, say so.',
+		"- Always be truthful. If you don't know something, say so.",
 		'- Never share false or misleading information.',
 	]
 

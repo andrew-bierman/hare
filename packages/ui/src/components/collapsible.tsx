@@ -1,8 +1,8 @@
 'use client'
 
+import { cn } from '@hare/ui/lib/utils'
 import * as CollapsiblePrimitive from '@radix-ui/react-collapsible'
 import type * as React from 'react'
-import { cn } from '@hare/ui/lib/utils'
 
 const Collapsible = CollapsiblePrimitive.Root
 const CollapsibleTrigger = CollapsiblePrimitive.Trigger
@@ -16,7 +16,7 @@ function CollapsibleContent({
 		<CollapsiblePrimitive.Content
 			className={cn(
 				'overflow-hidden transition-all data-[state=closed]:animate-collapsible-up data-[state=open]:animate-collapsible-down',
-				className
+				className,
 			)}
 			{...props}
 		>

@@ -5,9 +5,9 @@
  * from TypeScript source files and generates MDX documentation.
  */
 
-import * as ts from 'typescript'
 import * as fs from 'node:fs'
 import * as path from 'node:path'
+import * as ts from 'typescript'
 
 // ============================================================================
 // Types

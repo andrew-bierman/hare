@@ -1,9 +1,9 @@
 'use client'
 
-import { useSearch } from '@tanstack/react-router'
-import { CreateAgentForm } from '../../features/create-agent'
-import { useWorkspace } from '../../app/providers'
 import { getTemplateById } from '@hare/config'
+import { useSearch } from '@tanstack/react-router'
+import { useWorkspace } from '../../app/providers'
+import { CreateAgentForm } from '../../features/create-agent'
 
 export function AgentCreatePage() {
 	const { activeWorkspace } = useWorkspace()
@@ -19,9 +19,7 @@ export function AgentCreatePage() {
 						{template ? `Create ${template.name} Agent` : 'Create New Agent'}
 					</h2>
 					<p className="text-muted-foreground mt-2">
-						{template
-							? template.description
-							: 'Set up a new AI agent for your workspace'}
+						{template ? template.description : 'Set up a new AI agent for your workspace'}
 					</p>
 				</div>
 			</div>

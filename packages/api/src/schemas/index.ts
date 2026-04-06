@@ -39,6 +39,14 @@ export {
 	CreateApiKeySchema,
 	UpdateApiKeySchema,
 } from './api-keys'
+// Auth schemas
+export {
+	AuthResponseSchema,
+	SessionSchema,
+	SignInSchema,
+	SignUpSchema,
+	UserSchema,
+} from './auth'
 // Billing schemas
 export {
 	BillingStatusSchema,
@@ -57,14 +65,6 @@ export {
 	PortalResponseSchema,
 	SubscriptionStatusSchema,
 } from './billing'
-// Auth schemas
-export {
-	AuthResponseSchema,
-	SessionSchema,
-	SignInSchema,
-	SignUpSchema,
-	UserSchema,
-} from './auth'
 // Chat schemas
 export {
 	ChatRequestSchema,
@@ -89,6 +89,20 @@ export {
 	MetadataSchema,
 	SuccessSchema,
 } from './common'
+// Memory schemas
+export {
+	ClearMemoriesResponseSchema,
+	CreateMemorySchema,
+	MemoryIdParamSchema,
+	MemoryListQuerySchema,
+	MemoryListResponseSchema,
+	MemoryMetadataSchema,
+	MemorySchema,
+	MemoryTypeSchema,
+	SearchMemorySchema,
+	SearchResultSchema,
+	UpdateMemorySchema,
+} from './memory'
 // Schedule schemas
 export {
 	CreateScheduleSchema,
@@ -110,6 +124,7 @@ export {
 	ToolTypeSchema,
 	UpdateToolSchema,
 } from './tools'
+export type { HealthStatus } from './usage'
 // Usage schemas
 export {
 	AgentHealthMetricsSchema,
@@ -122,7 +137,6 @@ export {
 	UsageResponseSchema,
 	UsageStatsSchema,
 } from './usage'
-export type { HealthStatus } from './usage'
 // Workspace schemas
 export {
 	CreateWorkspaceSchema,
@@ -137,17 +151,3 @@ export {
 	WorkspaceRoleSchema,
 	WorkspaceSchema,
 } from './workspaces'
-// Memory schemas
-export {
-	ClearMemoriesResponseSchema,
-	CreateMemorySchema,
-	MemoryIdParamSchema,
-	MemoryListQuerySchema,
-	MemoryListResponseSchema,
-	MemoryMetadataSchema,
-	MemorySchema,
-	MemoryTypeSchema,
-	SearchMemorySchema,
-	SearchResultSchema,
-	UpdateMemorySchema,
-} from './memory'

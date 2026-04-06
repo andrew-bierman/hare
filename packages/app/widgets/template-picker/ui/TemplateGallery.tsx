@@ -1,18 +1,15 @@
 'use client'
 
 import { config } from '@hare/config'
-import { TemplateCard, ScratchCard } from './TemplateCard'
 import { Separator } from '@hare/ui/components/separator'
+import { ScratchCard, TemplateCard } from './TemplateCard'
 
 export interface TemplateGalleryProps {
 	onSelectTemplate: (templateId: string) => void
 	onStartFromScratch: () => void
 }
 
-export function TemplateGallery({
-	onSelectTemplate,
-	onStartFromScratch,
-}: TemplateGalleryProps) {
+export function TemplateGallery({ onSelectTemplate, onStartFromScratch }: TemplateGalleryProps) {
 	return (
 		<div className="space-y-8">
 			{/* Template Cards */}

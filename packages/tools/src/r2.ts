@@ -91,7 +91,13 @@ function scopedPath({ workspaceId, key }: { workspaceId: string; key: string }):
 /**
  * Strip workspace prefix from path for display.
  */
-function unscopedPath({ workspaceId, fullPath }: { workspaceId: string; fullPath: string }): string {
+function unscopedPath({
+	workspaceId,
+	fullPath,
+}: {
+	workspaceId: string
+	fullPath: string
+}): string {
 	const prefix = `ws/${workspaceId}/`
 	return fullPath.startsWith(prefix) ? fullPath.slice(prefix.length) : fullPath
 }

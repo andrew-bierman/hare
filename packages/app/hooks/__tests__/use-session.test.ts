@@ -5,7 +5,7 @@
  * Since we're running in a Cloudflare Workers test environment without DOM,
  * we test the hook's contract through mocking rather than renderHook.
  */
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 // =============================================================================
 // Mock Data Types

@@ -1,23 +1,23 @@
-import { describe, expect, it, vi, beforeEach } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import {
-	listAgentsTool,
-	getAgentTool,
-	sendMessageTool,
+	AGENT_CONTROL_TOOL_IDS,
 	configureAgentTool,
 	createAgentTool,
-	deleteAgentTool,
-	deployAgentTool,
-	undeployAgentTool,
-	rollbackAgentTool,
-	listWebhooksTool,
 	createWebhookTool,
+	deleteAgentTool,
 	deleteWebhookTool,
-	scheduleTaskTool,
+	deployAgentTool,
 	executeToolTool,
-	listAgentToolsTool,
-	getAgentMetricsTool,
 	getAgentControlTools,
-	AGENT_CONTROL_TOOL_IDS,
+	getAgentMetricsTool,
+	getAgentTool,
+	listAgentsTool,
+	listAgentToolsTool,
+	listWebhooksTool,
+	rollbackAgentTool,
+	scheduleTaskTool,
+	sendMessageTool,
+	undeployAgentTool,
 } from '../agent-control'
 import type { ToolContext } from '../types'
 
@@ -39,9 +39,7 @@ const createMockDB = () => {
 }
 
 const createMockContext = (hasDB = true): ToolContext => ({
-	env: hasDB
-		? { DB: createMockDB() as unknown as D1Database }
-		: ({} as ToolContext['env']),
+	env: hasDB ? { DB: createMockDB() as unknown as D1Database } : ({} as ToolContext['env']),
 	workspaceId: 'test-workspace',
 	userId: 'test-user',
 })
@@ -107,10 +105,7 @@ describe('Agent Control Tools', () => {
 					],
 				})
 
-				const result = await listAgentsTool.execute(
-					{ status: 'all', limit: 50 },
-					context,
-				)
+				const result = await listAgentsTool.execute({ status: 'all', limit: 50 }, context)
 
 				expect(result.success).toBe(true)
 				expect(result.data?.agents).toHaveLength(1)
@@ -119,10 +114,7 @@ describe('Agent Control Tools', () => {
 			it('fails when DB is not available', async () => {
 				const contextWithoutDB = createMockContext(false)
 
-				const result = await listAgentsTool.execute(
-					{ status: 'all', limit: 50 },
-					contextWithoutDB,
-				)
+				const result = await listAgentsTool.execute({ status: 'all', limit: 50 }, contextWithoutDB)
 
 				expect(result.success).toBe(false)
 				expect(result.error).toContain('Database not available')
@@ -428,10 +420,7 @@ describe('Agent Control Tools', () => {
 					status: 'draft',
 				})
 
-				const result = await deployAgentTool.execute(
-					{ agentId: 'agent-123' },
-					context,
-				)
+				const result = await deployAgentTool.execute({ agentId: 'agent-123' }, context)
 
 				expect(result.success).toBe(true)
 				expect(result.data?.status).toBe('deployed')
@@ -444,10 +433,7 @@ describe('Agent Control Tools', () => {
 					status: 'deployed',
 				})
 
-				const result = await deployAgentTool.execute(
-					{ agentId: 'agent-123' },
-					context,
-				)
+				const result = await deployAgentTool.execute({ agentId: 'agent-123' }, context)
 
 				expect(result.success).toBe(false)
 				expect(result.error).toContain('already deployed')
@@ -456,10 +442,7 @@ describe('Agent Control Tools', () => {
 			it('fails when agent not found', async () => {
 				mockDB._statement.first.mockResolvedValueOnce(null)
 
-				const result = await deployAgentTool.execute(
-					{ agentId: 'nonexistent' },
-					context,
-				)
+				const result = await deployAgentTool.execute({ agentId: 'nonexistent' }, context)
 
 				expect(result.success).toBe(false)
 				expect(result.error).toContain('not found')
@@ -468,10 +451,7 @@ describe('Agent Control Tools', () => {
 			it('fails when DB is not available', async () => {
 				const contextWithoutDB = createMockContext(false)
 
-				const result = await deployAgentTool.execute(
-					{ agentId: 'agent-123' },
-					contextWithoutDB,
-				)
+				const result = await deployAgentTool.execute({ agentId: 'agent-123' }, contextWithoutDB)
 
 				expect(result.success).toBe(false)
 				expect(result.error).toContain('Database not available')
@@ -500,10 +480,7 @@ describe('Agent Control Tools', () => {
 					status: 'deployed',
 				})
 
-				const result = await undeployAgentTool.execute(
-					{ agentId: 'agent-123' },
-					context,
-				)
+				const result = await undeployAgentTool.execute({ agentId: 'agent-123' }, context)
 
 				expect(result.success).toBe(true)
 				expect(result.data?.status).toBe('draft')
@@ -516,10 +493,7 @@ describe('Agent Control Tools', () => {
 					status: 'draft',
 				})
 
-				const result = await undeployAgentTool.execute(
-					{ agentId: 'agent-123' },
-					context,
-				)
+				const result = await undeployAgentTool.execute({ agentId: 'agent-123' }, context)
 
 				expect(result.success).toBe(false)
 				expect(result.error).toContain('not deployed')
@@ -528,10 +502,7 @@ describe('Agent Control Tools', () => {
 			it('fails when agent not found', async () => {
 				mockDB._statement.first.mockResolvedValueOnce(null)
 
-				const result = await undeployAgentTool.execute(
-					{ agentId: 'nonexistent' },
-					context,
-				)
+				const result = await undeployAgentTool.execute({ agentId: 'nonexistent' }, context)
 
 				expect(result.success).toBe(false)
 				expect(result.error).toContain('not found')
@@ -580,10 +551,7 @@ describe('Agent Control Tools', () => {
 						createdAt: Date.now() - 86400000,
 					})
 
-				const result = await rollbackAgentTool.execute(
-					{ agentId: 'agent-123' },
-					context,
-				)
+				const result = await rollbackAgentTool.execute({ agentId: 'agent-123' }, context)
 
 				expect(result.success).toBe(true)
 				expect(result.data?.rolledBackTo).toBe('snap_old')
@@ -599,10 +567,7 @@ describe('Agent Control Tools', () => {
 					})
 					.mockResolvedValueOnce(null)
 
-				const result = await rollbackAgentTool.execute(
-					{ agentId: 'agent-123' },
-					context,
-				)
+				const result = await rollbackAgentTool.execute({ agentId: 'agent-123' }, context)
 
 				expect(result.success).toBe(false)
 				expect(result.error).toContain('No snapshot found')
@@ -611,10 +576,7 @@ describe('Agent Control Tools', () => {
 			it('fails when agent not found', async () => {
 				mockDB._statement.first.mockResolvedValueOnce(null)
 
-				const result = await rollbackAgentTool.execute(
-					{ agentId: 'nonexistent' },
-					context,
-				)
+				const result = await rollbackAgentTool.execute({ agentId: 'nonexistent' }, context)
 
 				expect(result.success).toBe(false)
 				expect(result.error).toContain('not found')
@@ -653,10 +615,7 @@ describe('Agent Control Tools', () => {
 					],
 				})
 
-				const result = await listWebhooksTool.execute(
-					{ agentId: 'agent-123' },
-					context,
-				)
+				const result = await listWebhooksTool.execute({ agentId: 'agent-123' }, context)
 
 				expect(result.success).toBe(true)
 				expect(result.data?.webhooks).toHaveLength(1)
@@ -666,10 +625,7 @@ describe('Agent Control Tools', () => {
 			it('fails when agent not found', async () => {
 				mockDB._statement.first.mockResolvedValueOnce(null)
 
-				const result = await listWebhooksTool.execute(
-					{ agentId: 'nonexistent' },
-					context,
-				)
+				const result = await listWebhooksTool.execute({ agentId: 'nonexistent' }, context)
 
 				expect(result.success).toBe(false)
 				expect(result.error).toContain('not found')

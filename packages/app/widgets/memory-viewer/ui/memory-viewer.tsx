@@ -2,13 +2,7 @@
 
 import { Badge } from '@hare/ui/components/badge'
 import { Button } from '@hare/ui/components/button'
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from '@hare/ui/components/card'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@hare/ui/components/card'
 import {
 	Dialog,
 	DialogContent,
@@ -18,8 +12,8 @@ import {
 	DialogTitle,
 } from '@hare/ui/components/dialog'
 import { Input } from '@hare/ui/components/input'
-import { SearchInput } from '@hare/ui/components/search-input'
 import { Label } from '@hare/ui/components/label'
+import { SearchInput } from '@hare/ui/components/search-input'
 import {
 	Select,
 	SelectContent,

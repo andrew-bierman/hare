@@ -1,9 +1,9 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { config } from '@hare/config'
 import { Button } from '@hare/ui/components/button'
 import { Menu, Rabbit, SearchIcon } from 'lucide-react'
-import { config } from '@hare/config'
+import { useEffect, useState } from 'react'
 import { CommandSearch } from './command-search'
 
 export interface HeaderProps {
@@ -40,7 +40,12 @@ export function Header({ Link, UserNav, onMobileMenuToggle, onNavigate }: Header
 					{/* Mobile: hamburger + logo */}
 					<div className="flex items-center gap-3 md:hidden">
 						{onMobileMenuToggle && (
-							<Button variant="ghost" size="icon" className="h-10 w-10" onClick={onMobileMenuToggle}>
+							<Button
+								variant="ghost"
+								size="icon"
+								className="h-10 w-10"
+								onClick={onMobileMenuToggle}
+							>
 								<Menu className="h-5 w-5" />
 							</Button>
 						)}

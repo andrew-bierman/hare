@@ -1,6 +1,6 @@
-import { TOOL_TYPES, ToolType } from '@hare/config'
-import { createId } from '../id'
+import { TOOL_TYPES, type ToolType } from '@hare/config'
 import { index, integer, sqliteTable, text, unique } from 'drizzle-orm/sqlite-core'
+import { createId } from '../id'
 import { agents } from './agents'
 import { users } from './auth'
 import { workspaces } from './workspaces'

@@ -5,18 +5,18 @@
  * Supports SSE streaming for chat responses.
  */
 
-import { z } from 'zod'
-import { eventIterator } from '@orpc/server'
-import { eq } from 'drizzle-orm'
-import { agents, usage } from '@hare/db/schema'
 import {
 	type AgentConfig,
 	createAgentFromConfig,
 	createMemoryStore,
 	toAgentMessages,
 } from '@hare/agent'
+import { agents, usage } from '@hare/db/schema'
+import { eventIterator } from '@orpc/server'
 import type { ModelMessage } from 'ai'
-import { publicProcedure, notFound, badRequest } from '../base'
+import { eq } from 'drizzle-orm'
+import { z } from 'zod'
+import { badRequest, notFound, publicProcedure } from '../base'
 
 // =============================================================================
 // Schemas

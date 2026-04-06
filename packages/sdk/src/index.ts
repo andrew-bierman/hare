@@ -32,116 +32,131 @@
 // AGENT EXPORTS (Universal)
 // ============================================
 
-// Core agent classes
-export { HareEdgeAgent, createHareEdgeAgent, EdgeAgent, createEdgeAgent } from '@hare/agent'
-export type { AgentTool, AgentOptions, AgentStreamResponse } from '@hare/agent'
-
 // Agent state types
 export type {
-	HareAgentState,
-	McpAgentState,
-	ClientMessage,
-	ServerMessage,
-	ChatPayload,
-	ToolExecutePayload,
-	SchedulePayload,
-	ScheduledTask,
-} from '@hare/agent'
-
-export { DEFAULT_HARE_AGENT_STATE, DEFAULT_MCP_AGENT_STATE } from '@hare/agent'
-
-// Router utilities
-export {
-	routeToHareAgent,
-	routeToMcpAgent,
-	routeWebSocketToAgent,
-	routeHttpToAgent,
-	isWebSocketRequest,
-	getAgentIdFromRequest,
-	createAgentHeaders,
-} from '@hare/agent'
-export type {
-	HareAgentEnv,
+	AgentConfig,
+	AgentOptions,
 	AgentRouteConfig,
+	AgentStreamResponse,
+	AgentTool,
+	ChatPayload,
+	ClientMessage,
+	ConversationMessage,
+	CreateAgentFromConfigInput,
+	CreateSimpleAgentInput,
+	CreateWorkersAIModelInput,
+	EmbeddingModelId,
+	GenerateEmbeddingInput,
+	GenerateEmbeddingsInput,
+	GetMessagesInput,
+	GetOrCreateConversationInput,
+	HareAgentEnv,
+	HareAgentState,
+	LoadAgentToolsInput,
+	McpAgentState,
+	MemoryStore,
+	MessageRole,
+	RouteHttpToAgentInput,
 	RouteToHareAgentInput,
 	RouteToMcpAgentInput,
 	RouteWebSocketToAgentInput,
-	RouteHttpToAgentInput,
+	SaveMessageInput,
+	ScheduledTask,
+	SchedulePayload,
+	SearchMessagesInput,
+	ServerMessage,
+	ToolExecutePayload,
+	WorkersAIModelId,
 } from '@hare/agent'
-
+// Core agent classes
+// Router utilities
 // Workers AI Provider
+// Memory store
+// Agent factory
 export {
+	createAgentFromConfig,
+	createAgentHeaders,
+	createEdgeAgent,
+	createHareEdgeAgent,
+	createMemoryStore,
+	createSimpleAgent,
 	createWorkersAIModel,
-	getWorkersAIModelId,
-	getAvailableModels,
+	D1MemoryStore,
+	DEFAULT_HARE_AGENT_STATE,
+	DEFAULT_MCP_AGENT_STATE,
+	EdgeAgent,
+	EMBEDDING_MODELS,
 	generateEmbedding,
 	generateEmbeddings,
+	getAgentIdFromRequest,
+	getAvailableModels,
+	getWorkersAIModelId,
+	HareEdgeAgent,
+	isWebSocketRequest,
+	loadAgentTools,
+	routeHttpToAgent,
+	routeToHareAgent,
+	routeToMcpAgent,
+	routeWebSocketToAgent,
+	toAgentMessages,
 	WORKERS_AI_MODELS,
-	EMBEDDING_MODELS,
-} from '@hare/agent'
-export type {
-	WorkersAIModelId,
-	EmbeddingModelId,
-	CreateWorkersAIModelInput,
-	GenerateEmbeddingInput,
-	GenerateEmbeddingsInput,
-} from '@hare/agent'
-
-// Memory store
-export { createMemoryStore, toAgentMessages, D1MemoryStore } from '@hare/agent'
-export type {
-	MessageRole,
-	ConversationMessage,
-	SaveMessageInput,
-	GetMessagesInput,
-	GetOrCreateConversationInput,
-	SearchMessagesInput,
-	MemoryStore,
-} from '@hare/agent'
-
-// Agent factory
-export { createAgentFromConfig, createSimpleAgent, loadAgentTools } from '@hare/agent'
-export type {
-	AgentConfig,
-	CreateAgentFromConfigInput,
-	CreateSimpleAgentInput,
-	LoadAgentToolsInput,
 } from '@hare/agent'
 
 // ============================================
 // TOOL EXPORTS (Most common)
 // ============================================
 
+export type {
+	AnyTool,
+	HareEnv,
+	SystemToolId,
+	Tool,
+	ToolCategory,
+	ToolContext,
+	ToolDefinition,
+	ToolResult,
+} from '@hare/tools'
 // Core tool utilities
-export { createTool, success, failure, ToolRegistry, createRegistry } from '@hare/tools'
-export type { Tool, AnyTool, ToolContext, ToolResult, ToolDefinition, HareEnv } from '@hare/tools'
-
 // Tool aggregation
+// Tool delegation
 export {
+	createRegistry,
+	createTool,
+	delegateTo,
+	delegateToWithValidation,
+	failure,
 	getSystemTools,
-	getToolsByCategory,
 	getSystemToolsMap,
+	getToolsByCategory,
 	isSystemTool,
 	SYSTEM_TOOL_IDS,
+	success,
 	TOOL_COUNTS,
+	ToolRegistry,
 } from '@hare/tools'
-export type { ToolCategory, SystemToolId } from '@hare/tools'
-
-// Tool delegation
-export { delegateTo, delegateToWithValidation } from '@hare/tools'
 
 // ============================================
 // TYPE EXPORTS (Most common)
 // ============================================
 
+export type {
+	Agent,
+	AgentConfig as AgentConfigType,
+	AgentStatus,
+	ApiError,
+	ApiSuccess,
+	ToolConfig,
+	ToolType,
+} from '@hare/types'
 // Tool configuration types
-export { ToolConfigSchema, ToolTypeSchema } from '@hare/types'
-export type { ToolConfig, ToolType } from '@hare/types'
-
 // Agent configuration types
-export { AgentStatusSchema, AgentConfigSchema, AgentSchema } from '@hare/types'
-export type { AgentStatus, AgentConfig as AgentConfigType, Agent } from '@hare/types'
-
 // API types
-export { ApiErrorSchema, ApiSuccessSchema } from '@hare/types'
-export type { ApiError, ApiSuccess } from '@hare/types'
+export {
+	AgentConfigSchema,
+	AgentSchema,
+	AgentStatusSchema,
+	ApiErrorSchema,
+	ApiSuccessSchema,
+	ToolConfigSchema,
+	ToolTypeSchema,
+} from '@hare/types'

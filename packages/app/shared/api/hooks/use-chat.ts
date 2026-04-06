@@ -1,10 +1,10 @@
 'use client'
 
 import { useChat as useAIChat } from '@ai-sdk/react'
-import { useQuery } from '@tanstack/react-query'
-import { useMemo, useRef, useState } from 'react'
-import { DefaultChatTransport } from 'ai'
 import { orpc } from '@hare/api'
+import { useQuery } from '@tanstack/react-query'
+import { DefaultChatTransport } from 'ai'
+import { useMemo, useRef, useState } from 'react'
 
 // =============================================================================
 // Types (inferred from oRPC)

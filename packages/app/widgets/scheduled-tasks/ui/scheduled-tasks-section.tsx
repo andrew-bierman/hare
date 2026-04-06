@@ -1,14 +1,9 @@
 'use client'
 
+import type { Schedule, ScheduleExecution } from '@hare/types'
 import { Badge } from '@hare/ui/components/badge'
 import { Button } from '@hare/ui/components/button'
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from '@hare/ui/components/card'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@hare/ui/components/card'
 import {
 	Dialog,
 	DialogContent,
@@ -41,7 +36,6 @@ import {
 } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
-import type { Schedule, ScheduleExecution } from '@hare/types'
 import {
 	useAgentExecutionsQuery,
 	useCreateScheduleMutation,

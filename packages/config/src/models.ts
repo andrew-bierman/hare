@@ -9,7 +9,15 @@
 export type ModelProvider = 'anthropic' | 'openai' | 'workers-ai'
 export type SpeedTier = 'fast' | 'medium' | 'slow'
 export type CostTier = 'free' | 'low' | 'medium' | 'high'
-export type ModelCategory = 'chat' | 'code' | 'reasoning' | 'vision' | 'speech-to-text' | 'text-to-speech' | 'embeddings' | 'reranking'
+export type ModelCategory =
+	| 'chat'
+	| 'code'
+	| 'reasoning'
+	| 'vision'
+	| 'speech-to-text'
+	| 'text-to-speech'
+	| 'embeddings'
+	| 'reranking'
 
 export interface AIModel {
 	id: string
@@ -38,22 +46,40 @@ export interface AIModel {
 }
 
 export const PROVIDER_LABELS: Record<ModelProvider, string> = {
-	'anthropic': 'Anthropic',
-	'openai': 'OpenAI',
+	anthropic: 'Anthropic',
+	openai: 'OpenAI',
 	'workers-ai': 'Cloudflare Workers AI',
 }
 
 export const SPEED_TIER_LABELS: Record<SpeedTier, { label: string; color: string }> = {
-	fast: { label: 'Fast', color: 'text-green-600 bg-green-100 dark:text-green-400 dark:bg-green-900/30' },
-	medium: { label: 'Medium', color: 'text-amber-600 bg-amber-100 dark:text-amber-400 dark:bg-amber-900/30' },
+	fast: {
+		label: 'Fast',
+		color: 'text-green-600 bg-green-100 dark:text-green-400 dark:bg-green-900/30',
+	},
+	medium: {
+		label: 'Medium',
+		color: 'text-amber-600 bg-amber-100 dark:text-amber-400 dark:bg-amber-900/30',
+	},
 	slow: { label: 'Slow', color: 'text-red-600 bg-red-100 dark:text-red-400 dark:bg-red-900/30' },
 }
 
 export const COST_TIER_LABELS: Record<CostTier, { label: string; color: string }> = {
-	free: { label: 'Free', color: 'text-emerald-600 bg-emerald-100 dark:text-emerald-400 dark:bg-emerald-900/30' },
-	low: { label: 'Low Cost', color: 'text-blue-600 bg-blue-100 dark:text-blue-400 dark:bg-blue-900/30' },
-	medium: { label: 'Medium Cost', color: 'text-amber-600 bg-amber-100 dark:text-amber-400 dark:bg-amber-900/30' },
-	high: { label: 'Premium', color: 'text-violet-600 bg-violet-100 dark:text-violet-400 dark:bg-violet-900/30' },
+	free: {
+		label: 'Free',
+		color: 'text-emerald-600 bg-emerald-100 dark:text-emerald-400 dark:bg-emerald-900/30',
+	},
+	low: {
+		label: 'Low Cost',
+		color: 'text-blue-600 bg-blue-100 dark:text-blue-400 dark:bg-blue-900/30',
+	},
+	medium: {
+		label: 'Medium Cost',
+		color: 'text-amber-600 bg-amber-100 dark:text-amber-400 dark:bg-amber-900/30',
+	},
+	high: {
+		label: 'Premium',
+		color: 'text-violet-600 bg-violet-100 dark:text-violet-400 dark:bg-violet-900/30',
+	},
 }
 
 export const AI_MODELS: AIModel[] = [
@@ -306,4 +332,3 @@ export function getModelsByProvider(): Map<ModelProvider, AIModel[]> {
 export function getProviderLabel(provider: ModelProvider): string {
 	return PROVIDER_LABELS[provider]
 }
-

@@ -1,5 +1,5 @@
-import { describe, expect, it, vi, beforeEach } from 'vitest'
-import { sqlQueryTool, sqlExecuteTool, sqlBatchTool, getSQLTools } from '../sql'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { getSQLTools, sqlBatchTool, sqlExecuteTool, sqlQueryTool } from '../sql'
 import type { ToolContext } from '../types'
 
 // Mock D1 database
@@ -18,9 +18,7 @@ const createMockDB = () => {
 
 	return {
 		prepare: vi.fn().mockReturnValue(mockStatement),
-		batch: vi.fn().mockResolvedValue([
-			{ success: true, meta: { changes: 1 } },
-		]),
+		batch: vi.fn().mockResolvedValue([{ success: true, meta: { changes: 1 } }]),
 		_statement: mockStatement,
 	}
 }
@@ -168,10 +166,7 @@ describe('SQL Tools', () => {
 			})
 
 			it('rejects queries without workspace filter', async () => {
-				const result = await sqlQueryTool.execute(
-					{ query: 'SELECT * FROM agent_data' },
-					context,
-				)
+				const result = await sqlQueryTool.execute({ query: 'SELECT * FROM agent_data' }, context)
 
 				expect(result.success).toBe(false)
 				expect(result.error).toContain('Queries must include a workspaceId filter')
@@ -409,9 +404,7 @@ describe('SQL Tools', () => {
 
 			it('validates statements without params', () => {
 				const result = sqlBatchTool.inputSchema.safeParse({
-					statements: [
-						{ sql: "SELECT * FROM agent_data WHERE workspaceId = 'test'" },
-					],
+					statements: [{ sql: "SELECT * FROM agent_data WHERE workspaceId = 'test'" }],
 				})
 				expect(result.success).toBe(true)
 			})
@@ -427,9 +420,7 @@ describe('SQL Tools', () => {
 			it('rejects batch with blocked table access', async () => {
 				const result = await sqlBatchTool.execute(
 					{
-						statements: [
-							{ sql: 'INSERT INTO users (workspaceId) VALUES (?)', params: ['ws'] },
-						],
+						statements: [{ sql: 'INSERT INTO users (workspaceId) VALUES (?)', params: ['ws'] }],
 					},
 					context,
 				)
@@ -441,9 +432,7 @@ describe('SQL Tools', () => {
 			it('rejects batch with missing workspace filter', async () => {
 				const result = await sqlBatchTool.execute(
 					{
-						statements: [
-							{ sql: 'INSERT INTO agent_data (name) VALUES (?)', params: ['test'] },
-						],
+						statements: [{ sql: 'INSERT INTO agent_data (name) VALUES (?)', params: ['test'] }],
 					},
 					context,
 				)

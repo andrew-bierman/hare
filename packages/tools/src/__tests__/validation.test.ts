@@ -1,14 +1,14 @@
-import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import type { ToolContext } from '../types'
 import {
-	validateEmailTool,
-	validatePhoneTool,
-	validateUrlTool,
+	getValidationTools,
 	validateCreditCardTool,
+	validateEmailTool,
 	validateIpTool,
 	validateJsonTool,
-	getValidationTools,
+	validatePhoneTool,
+	validateUrlTool,
 } from '../validation'
-import type { ToolContext } from '../types'
 
 const originalFetch = globalThis.fetch
 
@@ -321,7 +321,12 @@ describe('Validation Tools', () => {
 		describe('execution - valid URLs', () => {
 			it('validates https URL', async () => {
 				const result = await validateUrlTool.execute(
-					{ url: 'https://example.com', allowedProtocols: ['http', 'https'], checkReachable: false, timeout: 5000 },
+					{
+						url: 'https://example.com',
+						allowedProtocols: ['http', 'https'],
+						checkReachable: false,
+						timeout: 5000,
+					},
 					context,
 				)
 
@@ -333,7 +338,12 @@ describe('Validation Tools', () => {
 
 			it('validates URL with path', async () => {
 				const result = await validateUrlTool.execute(
-					{ url: 'https://example.com/path/to/resource', allowedProtocols: ['http', 'https'], checkReachable: false, timeout: 5000 },
+					{
+						url: 'https://example.com/path/to/resource',
+						allowedProtocols: ['http', 'https'],
+						checkReachable: false,
+						timeout: 5000,
+					},
 					context,
 				)
 
@@ -344,7 +354,12 @@ describe('Validation Tools', () => {
 
 			it('validates URL with query string', async () => {
 				const result = await validateUrlTool.execute(
-					{ url: 'https://example.com?foo=bar&baz=qux', allowedProtocols: ['http', 'https'], checkReachable: false, timeout: 5000 },
+					{
+						url: 'https://example.com?foo=bar&baz=qux',
+						allowedProtocols: ['http', 'https'],
+						checkReachable: false,
+						timeout: 5000,
+					},
 					context,
 				)
 
@@ -357,7 +372,12 @@ describe('Validation Tools', () => {
 		describe('execution - invalid URLs', () => {
 			it('rejects invalid URL format', async () => {
 				const result = await validateUrlTool.execute(
-					{ url: 'not-a-url', allowedProtocols: ['http', 'https'], checkReachable: false, timeout: 5000 },
+					{
+						url: 'not-a-url',
+						allowedProtocols: ['http', 'https'],
+						checkReachable: false,
+						timeout: 5000,
+					},
 					context,
 				)
 
@@ -368,13 +388,18 @@ describe('Validation Tools', () => {
 
 			it('rejects disallowed protocol', async () => {
 				const result = await validateUrlTool.execute(
-					{ url: 'ftp://example.com', allowedProtocols: ['http', 'https'], checkReachable: false, timeout: 5000 },
+					{
+						url: 'ftp://example.com',
+						allowedProtocols: ['http', 'https'],
+						checkReachable: false,
+						timeout: 5000,
+					},
 					context,
 				)
 
 				expect(result.success).toBe(true)
 				expect(result.data?.valid).toBe(false)
-				expect(result.data?.errors[0]).toContain('Protocol \'ftp\' not allowed')
+				expect(result.data?.errors[0]).toContain("Protocol 'ftp' not allowed")
 			})
 		})
 
@@ -387,7 +412,12 @@ describe('Validation Tools', () => {
 				globalThis.fetch = mockFetch as unknown as typeof fetch
 
 				const result = await validateUrlTool.execute(
-					{ url: 'https://example.com', allowedProtocols: ['https'], checkReachable: true, timeout: 5000 },
+					{
+						url: 'https://example.com',
+						allowedProtocols: ['https'],
+						checkReachable: true,
+						timeout: 5000,
+					},
 					context,
 				)
 
@@ -405,7 +435,12 @@ describe('Validation Tools', () => {
 				globalThis.fetch = mockFetch as unknown as typeof fetch
 
 				const result = await validateUrlTool.execute(
-					{ url: 'https://unreachable.example', allowedProtocols: ['https'], checkReachable: true, timeout: 5000 },
+					{
+						url: 'https://unreachable.example',
+						allowedProtocols: ['https'],
+						checkReachable: true,
+						timeout: 5000,
+					},
 					context,
 				)
 
@@ -617,10 +652,7 @@ describe('Validation Tools', () => {
 
 		describe('execution - IPv4', () => {
 			it('validates public IPv4', async () => {
-				const result = await validateIpTool.execute(
-					{ ip: '8.8.8.8', checkType: true },
-					context,
-				)
+				const result = await validateIpTool.execute({ ip: '8.8.8.8', checkType: true }, context)
 
 				expect(result.success).toBe(true)
 				expect(result.data?.valid).toBe(true)
@@ -629,10 +661,7 @@ describe('Validation Tools', () => {
 			})
 
 			it('identifies private IPv4 (10.x.x.x)', async () => {
-				const result = await validateIpTool.execute(
-					{ ip: '10.0.0.1', checkType: true },
-					context,
-				)
+				const result = await validateIpTool.execute({ ip: '10.0.0.1', checkType: true }, context)
 
 				expect(result.success).toBe(true)
 				expect(result.data?.valid).toBe(true)
@@ -641,10 +670,7 @@ describe('Validation Tools', () => {
 			})
 
 			it('identifies private IPv4 (192.168.x.x)', async () => {
-				const result = await validateIpTool.execute(
-					{ ip: '192.168.1.1', checkType: true },
-					context,
-				)
+				const result = await validateIpTool.execute({ ip: '192.168.1.1', checkType: true }, context)
 
 				expect(result.success).toBe(true)
 				expect(result.data?.isPrivate).toBe(true)
@@ -652,10 +678,7 @@ describe('Validation Tools', () => {
 			})
 
 			it('identifies loopback IPv4', async () => {
-				const result = await validateIpTool.execute(
-					{ ip: '127.0.0.1', checkType: true },
-					context,
-				)
+				const result = await validateIpTool.execute({ ip: '127.0.0.1', checkType: true }, context)
 
 				expect(result.success).toBe(true)
 				expect(result.data?.valid).toBe(true)
@@ -664,10 +687,7 @@ describe('Validation Tools', () => {
 			})
 
 			it('identifies link-local IPv4', async () => {
-				const result = await validateIpTool.execute(
-					{ ip: '169.254.1.1', checkType: true },
-					context,
-				)
+				const result = await validateIpTool.execute({ ip: '169.254.1.1', checkType: true }, context)
 
 				expect(result.success).toBe(true)
 				expect(result.data?.type).toBe('link-local')
@@ -677,10 +697,7 @@ describe('Validation Tools', () => {
 
 		describe('execution - IPv6', () => {
 			it('validates IPv6 loopback', async () => {
-				const result = await validateIpTool.execute(
-					{ ip: '::1', checkType: true },
-					context,
-				)
+				const result = await validateIpTool.execute({ ip: '::1', checkType: true }, context)
 
 				expect(result.success).toBe(true)
 				expect(result.data?.valid).toBe(true)
@@ -713,10 +730,7 @@ describe('Validation Tools', () => {
 			})
 
 			it('rejects non-IP strings', async () => {
-				const result = await validateIpTool.execute(
-					{ ip: 'not-an-ip', checkType: true },
-					context,
-				)
+				const result = await validateIpTool.execute({ ip: 'not-an-ip', checkType: true }, context)
 
 				expect(result.success).toBe(true)
 				expect(result.data?.valid).toBe(false)
@@ -761,10 +775,7 @@ describe('Validation Tools', () => {
 			})
 
 			it('validates array JSON', async () => {
-				const result = await validateJsonTool.execute(
-					{ json: '[1, 2, 3]', strict: false },
-					context,
-				)
+				const result = await validateJsonTool.execute({ json: '[1, 2, 3]', strict: false }, context)
 
 				expect(result.success).toBe(true)
 				expect(result.data?.valid).toBe(true)
@@ -772,10 +783,7 @@ describe('Validation Tools', () => {
 			})
 
 			it('validates string JSON', async () => {
-				const result = await validateJsonTool.execute(
-					{ json: '"hello"', strict: false },
-					context,
-				)
+				const result = await validateJsonTool.execute({ json: '"hello"', strict: false }, context)
 
 				expect(result.success).toBe(true)
 				expect(result.data?.valid).toBe(true)
@@ -783,10 +791,7 @@ describe('Validation Tools', () => {
 			})
 
 			it('validates number JSON', async () => {
-				const result = await validateJsonTool.execute(
-					{ json: '42', strict: false },
-					context,
-				)
+				const result = await validateJsonTool.execute({ json: '42', strict: false }, context)
 
 				expect(result.success).toBe(true)
 				expect(result.data?.valid).toBe(true)
@@ -794,10 +799,7 @@ describe('Validation Tools', () => {
 			})
 
 			it('validates boolean JSON', async () => {
-				const result = await validateJsonTool.execute(
-					{ json: 'true', strict: false },
-					context,
-				)
+				const result = await validateJsonTool.execute({ json: 'true', strict: false }, context)
 
 				expect(result.success).toBe(true)
 				expect(result.data?.valid).toBe(true)
@@ -805,10 +807,7 @@ describe('Validation Tools', () => {
 			})
 
 			it('validates null JSON', async () => {
-				const result = await validateJsonTool.execute(
-					{ json: 'null', strict: false },
-					context,
-				)
+				const result = await validateJsonTool.execute({ json: 'null', strict: false }, context)
 
 				expect(result.success).toBe(true)
 				expect(result.data?.valid).toBe(true)

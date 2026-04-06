@@ -4,8 +4,6 @@
  * Manages webhook subscriptions for agents.
  */
 
-import { z } from 'zod'
-import { and, count, desc, eq } from 'drizzle-orm'
 import {
 	agents,
 	WEBHOOK_DELIVERY_STATUSES,
@@ -15,8 +13,15 @@ import {
 	webhookLogs,
 	webhooks,
 } from '@hare/db'
-import { requireWrite, requireAdmin, notFound, serverError, badRequest } from '../base'
-import { generateWebhookSecret, isWebhookUrlSafe, reactivateWebhook, retryDelivery } from '../../services/webhooks'
+import { and, count, desc, eq } from 'drizzle-orm'
+import { z } from 'zod'
+import {
+	generateWebhookSecret,
+	isWebhookUrlSafe,
+	reactivateWebhook,
+	retryDelivery,
+} from '../../services/webhooks'
+import { badRequest, notFound, requireAdmin, requireWrite, serverError } from '../base'
 
 // =============================================================================
 // Schemas

@@ -2,9 +2,10 @@
  * Agent CRUD operations (list, get, create, update, delete)
  */
 
+import { agents, agentTools } from '@hare/db/schema'
+import type { WorkspaceEnv } from '@hare/types'
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
 import { and, eq, inArray } from 'drizzle-orm'
-import { agents, agentTools } from '@hare/db/schema'
 import { getDb } from '../../db'
 import { commonResponses, requireAdminAccess, requireWriteAccess } from '../../helpers'
 import { authMiddleware, workspaceMiddleware } from '../../middleware'
@@ -18,7 +19,6 @@ import {
 } from '../../schemas'
 import { serializeAgent } from '../../serializers'
 import { findAgentByIdAndWorkspace, getAgentToolIds } from './helpers'
-import type { WorkspaceEnv } from '@hare/types'
 
 // =============================================================================
 // Route Definitions

@@ -44,7 +44,11 @@ export const CreateMemorySchema = z
 			.max(10000, 'Content must be at most 10000 characters')
 			.describe('Memory content to store'),
 		type: MemoryTypeSchema.optional().default('custom').describe('Type of memory'),
-		source: z.string().max(500).optional().describe('Source of this memory (e.g., conversation ID)'),
+		source: z
+			.string()
+			.max(500)
+			.optional()
+			.describe('Source of this memory (e.g., conversation ID)'),
 		tags: z
 			.array(z.string().min(1).max(50))
 			.max(20, 'Maximum 20 tags allowed')

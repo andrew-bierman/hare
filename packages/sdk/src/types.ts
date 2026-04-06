@@ -16,30 +16,28 @@
  * @packageDocumentation
  */
 
-// Re-export everything from @hare/types
-export * from '@hare/types'
-
 // Also export agent-specific types
 export type {
+	ChatPayload,
+	ClientMessage,
 	HareAgentState,
 	McpAgentState,
-	ClientMessage,
-	ServerMessage,
-	ChatPayload,
-	ToolExecutePayload,
-	SchedulePayload,
 	ScheduledTask,
+	SchedulePayload,
+	ServerMessage,
+	ToolExecutePayload,
 } from '@hare/agent'
-
 // Tool types from @hare/tools
 export type {
-	Tool,
 	AnyTool,
-	ToolContext,
-	ToolResult,
-	ToolDefinition,
-	HareEnv,
-	ToolCategory,
-	SystemToolId,
 	ExecutableTool,
+	HareEnv,
+	SystemToolId,
+	Tool,
+	ToolCategory,
+	ToolContext,
+	ToolDefinition,
+	ToolResult,
 } from '@hare/tools'
+// Re-export everything from @hare/types
+export * from '@hare/types'

@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest'
-import { nameToSlug, generateUniqueSlug } from '../slug'
+import { describe, expect, it } from 'vitest'
+import { generateUniqueSlug, nameToSlug } from '../slug'
 
 describe('nameToSlug', () => {
 	it('converts name to lowercase', () => {
@@ -12,7 +12,7 @@ describe('nameToSlug', () => {
 
 	it('removes special characters', () => {
 		expect(nameToSlug('Test 123!')).toBe('test-123')
-		expect(nameToSlug("Hello@World#2024")).toBe('helloworld2024')
+		expect(nameToSlug('Hello@World#2024')).toBe('helloworld2024')
 	})
 
 	it('handles multiple consecutive spaces', () => {

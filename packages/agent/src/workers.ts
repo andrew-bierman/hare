@@ -20,9 +20,8 @@
  * ```
  */
 
-// Re-export everything from main index
-export * from './index'
-
 // Workers-only exports
 export { HareAgent, type HareAgentEnv } from './hare-agent'
+// Re-export everything from main index
+export * from './index'
 export { HareMcpAgent, type McpAgentEnv } from './mcp-agent'
