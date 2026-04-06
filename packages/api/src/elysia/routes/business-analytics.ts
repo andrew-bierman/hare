@@ -307,14 +307,12 @@ export const businessAnalyticsRoutes = new Elysia({
 					taggedTotal > 0 ? Math.round((avgMessages / taggedTotal) * 10) / 10 : 0,
 				avgConversationDurationSeconds:
 					taggedTotal > 0 ? Math.round(avgDuration / taggedTotal) : null,
-				avgResponseTimeMs:
-					taggedTotal > 0 ? Math.round(avgResponseTime / taggedTotal) : null,
+				avgResponseTimeMs: taggedTotal > 0 ? Math.round(avgResponseTime / taggedTotal) : null,
 				satisfactionRate,
 				outcomeBreakdown: outcomeStats.map((s) => ({
 					outcome: s.outcome,
 					count: s.count,
-					percentage:
-						taggedTotal > 0 ? Math.round((s.count / taggedTotal) * 10000) / 100 : 0,
+					percentage: taggedTotal > 0 ? Math.round((s.count / taggedTotal) * 10000) / 100 : 0,
 				})),
 				dailyTrends: dailyResults.map((d) => ({
 					date: d.date,
@@ -322,9 +320,7 @@ export const businessAnalyticsRoutes = new Elysia({
 					resolved: d.resolved ?? 0,
 					escalated: d.escalated ?? 0,
 					abandoned: d.abandoned ?? 0,
-					avgResponseTimeMs: d.avgResponseTime
-						? Math.round(Number(d.avgResponseTime))
-						: null,
+					avgResponseTimeMs: d.avgResponseTime ? Math.round(Number(d.avgResponseTime)) : null,
 				})),
 				period: {
 					startDate: startDate.toISOString(),
@@ -408,22 +404,16 @@ export const businessAnalyticsRoutes = new Elysia({
 					agentName: agent.name,
 					totalConversations: total,
 					resolutionRate:
-						total > 0
-							? Math.round(((stats?.resolved ?? 0) / total) * 10000) / 100
-							: 0,
+						total > 0 ? Math.round(((stats?.resolved ?? 0) / total) * 10000) / 100 : 0,
 					escalationRate:
-						total > 0
-							? Math.round(((stats?.escalated ?? 0) / total) * 10000) / 100
-							: 0,
+						total > 0 ? Math.round(((stats?.escalated ?? 0) / total) * 10000) / 100 : 0,
 					avgMessagesPerConversation: Number(stats?.avgMessages) || 0,
 					avgResponseTimeMs: stats?.avgResponseTime
 						? Math.round(Number(stats.avgResponseTime))
 						: null,
 					satisfactionRate:
 						feedback && feedback.total > 0
-							? Math.round(
-									((feedback.positive ?? 0) / feedback.total) * 10000,
-								) / 100
+							? Math.round(((feedback.positive ?? 0) / feedback.total) * 10000) / 100
 							: null,
 				}
 			})

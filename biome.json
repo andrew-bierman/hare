@@ -103,6 +103,42 @@
 					}
 				}
 			}
+		},
+		{
+			"includes": [
+				"packages/app/**/index.ts",
+				"packages/app/shared/api/eden-hooks.ts",
+				"packages/app/shared/api/hooks/*.ts",
+				"packages/app/shared/lib/tanstack/**/*.ts"
+			],
+			"linter": {
+				"rules": {
+					"suspicious": {
+						"noExplicitAny": "off"
+					},
+					"performance": {
+						"noBarrelFile": "off",
+						"noReExportAll": "off"
+					}
+				}
+			}
+		},
+		{
+			"includes": [
+				"packages/api/src/elysia/index.ts",
+				"packages/api/src/schemas/index.ts",
+				"packages/api/src/services/index.ts",
+				"packages/api/src/elysia/routes/embed.ts",
+				"packages/db/src/schema/index.ts"
+			],
+			"linter": {
+				"rules": {
+					"performance": {
+						"noBarrelFile": "off",
+						"noReExportAll": "off"
+					}
+				}
+			}
 		}
 	]
 }

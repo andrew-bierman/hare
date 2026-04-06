@@ -464,8 +464,8 @@ async function executeInWorker<T>(code: string, config: SandboxConfig): Promise<
 		const argValues = Object.values(safeContext)
 
 		const AsyncFunction = Object.getPrototypeOf(async () => {
-				// empty
-			}).constructor
+			// empty
+		}).constructor
 		const fn = new AsyncFunction(...argNames, wrappedCode)
 
 		const controller = new AbortController()

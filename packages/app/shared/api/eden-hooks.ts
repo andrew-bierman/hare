@@ -1014,8 +1014,7 @@ export function useBusinessMetricsQuery(options?: {
 }) {
 	return useQuery({
 		queryKey: ['business-analytics', 'metrics', options],
-		queryFn: () =>
-			unwrap(client.api['business-analytics'].metrics.get({ query: options as any })),
+		queryFn: () => unwrap(client.api['business-analytics'].metrics.get({ query: options as any })),
 		enabled: !!getWorkspaceId(),
 	})
 }

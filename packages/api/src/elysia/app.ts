@@ -15,6 +15,7 @@ import { cors } from '@elysiajs/cors'
 import { openapi } from '@elysiajs/openapi'
 import { serverEnv } from '@hare/config'
 import { Elysia } from 'elysia'
+import { securityHeaders } from '../middleware/security'
 import { CloudflareEnvError } from './context'
 // RPC route imports (type-safe, used by Eden Treaty)
 import { activityRoutes } from './routes/activity'
@@ -110,6 +111,9 @@ export const app = new Elysia({ prefix: '/api', name: 'hare-api' })
 			maxAge: 86400,
 		}),
 	)
+
+	// Security headers
+	.use(securityHeaders)
 
 	// Global error handler
 	.onError(({ error }) => {

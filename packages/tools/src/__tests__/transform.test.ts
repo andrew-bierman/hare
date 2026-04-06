@@ -429,7 +429,7 @@ describe('Transform Tools', () => {
 					{
 						operation: 'decompress',
 						// biome-ignore lint/style/noNonNullAssertion: compressed always present after compress
-					data: compressedData.compressed!,
+						data: compressedData.compressed!,
 						algorithm: 'gzip',
 						encoding: 'text',
 					},

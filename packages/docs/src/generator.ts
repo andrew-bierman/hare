@@ -571,7 +571,7 @@ export async function generateDocs(options: GeneratorOptions): Promise<void> {
 		for (const file of files) {
 			const filePath = path.join(pkgPath, file)
 			// biome-ignore lint/suspicious/noConsole: CLI output
-		if (verbose) console.log(`  Extracting from ${file}...`)
+			if (verbose) console.log(`  Extracting from ${file}...`)
 
 			const docs = extractDocsFromFile(filePath)
 			allDocs.interfaces.push(...docs.interfaces)

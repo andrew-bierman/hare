@@ -87,16 +87,18 @@ export function useConversationSearchQuery(params: ConversationSearchParams | un
 		queryFn: () =>
 			unwrap(
 				// biome-ignore lint/style/noNonNullAssertion: guarded by enabled check below
-				client.api.chat.agents({ id: agentId! }).conversations.search.get({
-					query: {
-						// biome-ignore lint/style/noNonNullAssertion: guarded by enabled check below
-						query: query!,
-						dateFrom,
-						dateTo,
-						limit,
-						offset,
-					} as any,
-				}),
+				client.api.chat
+					.agents({ id: agentId! })
+					.conversations.search.get({
+						query: {
+							// biome-ignore lint/style/noNonNullAssertion: guarded by enabled check below
+							query: query!,
+							dateFrom,
+							dateTo,
+							limit,
+							offset,
+						} as any,
+					}),
 			),
 		enabled: !!agentId && !!query && query.trim().length > 0,
 	})
