@@ -70,7 +70,7 @@ describe('oRPC Type Inference (Consumer Level - @hare/api)', () => {
 	describe('Agents CRUD Operations', () => {
 		it('should have typed list procedure', () => {
 			type ListProcedure = typeof orpc.agents.list
-			type ListIsFunction = ListProcedure extends (...args: any[]) => any ? true : false
+			type ListIsFunction = ListProcedure extends (...args: unknown[]) => unknown ? true : false
 			type _assert = AssertTrue<ListIsFunction>
 
 			expect(typeof orpc.agents.list).toBe('function')
@@ -78,7 +78,7 @@ describe('oRPC Type Inference (Consumer Level - @hare/api)', () => {
 
 		it('should have typed get procedure', () => {
 			type GetProcedure = typeof orpc.agents.get
-			type GetIsFunction = GetProcedure extends (...args: any[]) => any ? true : false
+			type GetIsFunction = GetProcedure extends (...args: unknown[]) => unknown ? true : false
 			type _assert = AssertTrue<GetIsFunction>
 
 			expect(typeof orpc.agents.get).toBe('function')
@@ -86,7 +86,7 @@ describe('oRPC Type Inference (Consumer Level - @hare/api)', () => {
 
 		it('should have typed create procedure', () => {
 			type CreateProcedure = typeof orpc.agents.create
-			type CreateIsFunction = CreateProcedure extends (...args: any[]) => any ? true : false
+			type CreateIsFunction = CreateProcedure extends (...args: unknown[]) => unknown ? true : false
 			type _assert = AssertTrue<CreateIsFunction>
 
 			expect(typeof orpc.agents.create).toBe('function')
@@ -94,7 +94,7 @@ describe('oRPC Type Inference (Consumer Level - @hare/api)', () => {
 
 		it('should have typed update procedure', () => {
 			type UpdateProcedure = typeof orpc.agents.update
-			type UpdateIsFunction = UpdateProcedure extends (...args: any[]) => any ? true : false
+			type UpdateIsFunction = UpdateProcedure extends (...args: unknown[]) => unknown ? true : false
 			type _assert = AssertTrue<UpdateIsFunction>
 
 			expect(typeof orpc.agents.update).toBe('function')
@@ -102,7 +102,7 @@ describe('oRPC Type Inference (Consumer Level - @hare/api)', () => {
 
 		it('should have typed delete procedure', () => {
 			type DeleteProcedure = typeof orpc.agents.delete
-			type DeleteIsFunction = DeleteProcedure extends (...args: any[]) => any ? true : false
+			type DeleteIsFunction = DeleteProcedure extends (...args: unknown[]) => unknown ? true : false
 			type _assert = AssertTrue<DeleteIsFunction>
 
 			expect(typeof orpc.agents.delete).toBe('function')
@@ -112,7 +112,7 @@ describe('oRPC Type Inference (Consumer Level - @hare/api)', () => {
 	describe('Return Type Inference', () => {
 		it('should infer agents list return type', () => {
 			type ListReturn = Awaited<ReturnType<typeof orpc.agents.list>>
-			type HasAgentsArray = ListReturn extends { agents: any[] } ? true : false
+			type HasAgentsArray = ListReturn extends { agents: unknown[] } ? true : false
 			type _assert = AssertTrue<HasAgentsArray>
 
 			expect(true).toBe(true)
@@ -141,7 +141,7 @@ describe('oRPC Type Inference (Consumer Level - @hare/api)', () => {
 	describe('Input Type Inference', () => {
 		it('should infer create input type', () => {
 			type CreateProcedure = typeof orpc.agents.create
-			type CreateInput = CreateProcedure extends (input: infer I) => any ? I : never
+			type CreateInput = CreateProcedure extends (input: infer I) => unknown ? I : never
 
 			// Create input should require name, model, instructions
 			type HasNameInput = CreateInput extends { name: string } ? true : false

@@ -10,20 +10,15 @@ import { useTokenCount } from './use-token-count'
 
 // Dynamic import for CodeMirror to handle SSR
 // Module-level state for dynamically loaded CodeMirror modules
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let CodeMirror: typeof ReactCodeMirror | null = null
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-let markdown: any = null
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-let markdownLanguage: any = null
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-let languages: any = null
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-let EditorView: any = null
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-let templateVariableHighlight: any = null
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-let templateVariableTheme: any = null
+// biome-ignore lint/suspicious/noExplicitAny: dynamically imported CodeMirror modules lack static types at declaration
+type CMModule = any // eslint-disable-line @typescript-eslint/no-explicit-any
+let markdown: CMModule = null
+let markdownLanguage: CMModule = null
+let languages: CMModule = null
+let EditorView: CMModule = null
+let templateVariableHighlight: CMModule = null
+let templateVariableTheme: CMModule = null
 
 export function InstructionsEditor({
 	value,
