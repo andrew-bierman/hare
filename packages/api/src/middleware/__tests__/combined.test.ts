@@ -1,3 +1,4 @@
+import type { AuthEnv, OptionalAuthEnv, WorkspaceEnv } from '@hare/types'
 import { Hono } from 'hono'
 import { every } from 'hono/combine'
 import { beforeEach, describe, expect, it, vi } from 'vitest'

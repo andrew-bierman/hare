@@ -20,10 +20,12 @@
 			"style": {
 				"noNonNullAssertion": "off",
 				"useImportType": "error",
-				"useTemplate": "warn"
+				"useTemplate": "warn",
+				"useConst": "error",
+				"noParameterAssign": "error"
 			},
 			"suspicious": {
-				"noExplicitAny": "warn",
+				"noExplicitAny": "error",
 				"noArrayIndexKey": "warn",
 				"noAssignInExpressions": "warn",
 				"noConsole": "warn"

@@ -84,7 +84,7 @@ export interface GeneratorOptions {
 // ============================================================================
 
 function getJSDocComment(node: ts.Node): string {
-	const jsDocComments = (node as any).jsDoc as ts.JSDoc[] | undefined
+	const jsDocComments = (node as unknown as { jsDoc?: ts.JSDoc[] }).jsDoc
 
 	if (jsDocComments && jsDocComments.length > 0) {
 		const jsDoc = jsDocComments[0]
@@ -94,7 +94,9 @@ function getJSDocComment(node: ts.Node): string {
 				return comment
 			}
 			if (Array.isArray(comment)) {
-				return comment.map((c: any) => (typeof c === 'string' ? c : c.text)).join('')
+				return comment
+					.map((c: string | { text: string }) => (typeof c === 'string' ? c : c.text))
+					.join('')
 			}
 		}
 	}
@@ -103,7 +105,7 @@ function getJSDocComment(node: ts.Node): string {
 }
 
 function getJSDocExample(node: ts.Node): string | undefined {
-	const jsDocComments = (node as any).jsDoc as ts.JSDoc[] | undefined
+	const jsDocComments = (node as unknown as { jsDoc?: ts.JSDoc[] }).jsDoc
 	if (!jsDocComments) return undefined
 
 	for (const jsDoc of jsDocComments) {
@@ -116,7 +118,7 @@ function getJSDocExample(node: ts.Node): string | undefined {
 				}
 				if (Array.isArray(comment)) {
 					return comment
-						.map((c: any) => (typeof c === 'string' ? c : c.text))
+						.map((c: string | { text: string }) => (typeof c === 'string' ? c : c.text))
 						.join('')
 						.trim()
 				}

@@ -81,6 +81,8 @@ vi.mock('@hare/types', () => ({
 	},
 }))
 
+import type { HareAgentEnv } from '../hare-agent'
+import type { McpAgentEnv } from '../mcp-agent'
 // Import after mocks
 import * as workersExports from '../workers'
 
@@ -170,13 +172,19 @@ const createMockEnv = () => ({
 
 describe('HareAgent class from workers entry', () => {
 	it('HareAgent can be instantiated', () => {
-		const agent = new workersExports.HareAgent(createMockState() as any, createMockEnv() as any)
+		const agent = new workersExports.HareAgent(
+			createMockState() as unknown as ConstructorParameters<typeof workersExports.HareAgent>[0],
+			createMockEnv() as unknown as HareAgentEnv,
+		)
 		expect(agent).toBeDefined()
 		expect(agent.initialState).toBeDefined()
 	})
 
 	it('HareAgent has expected initial state', () => {
-		const agent = new workersExports.HareAgent(createMockState() as any, createMockEnv() as any)
+		const agent = new workersExports.HareAgent(
+			createMockState() as unknown as ConstructorParameters<typeof workersExports.HareAgent>[0],
+			createMockEnv() as unknown as HareAgentEnv,
+		)
 		expect(agent.initialState.name).toBe('Hare Agent')
 		expect(agent.initialState.status).toBe('idle')
 	})
@@ -184,18 +192,27 @@ describe('HareAgent class from workers entry', () => {
 
 describe('HareMcpAgent class from workers entry', () => {
 	it('HareMcpAgent can be instantiated', () => {
-		const agent = new workersExports.HareMcpAgent(createMockState() as any, createMockEnv() as any)
+		const agent = new workersExports.HareMcpAgent(
+			createMockState() as unknown as ConstructorParameters<typeof workersExports.HareMcpAgent>[0],
+			createMockEnv() as unknown as McpAgentEnv,
+		)
 		expect(agent).toBeDefined()
 		expect(agent.initialState).toBeDefined()
 	})
 
 	it('HareMcpAgent has expected initial state', () => {
-		const agent = new workersExports.HareMcpAgent(createMockState() as any, createMockEnv() as any)
+		const agent = new workersExports.HareMcpAgent(
+			createMockState() as unknown as ConstructorParameters<typeof workersExports.HareMcpAgent>[0],
+			createMockEnv() as unknown as McpAgentEnv,
+		)
 		expect(agent.initialState.connectedClients).toBe(0)
 	})
 
 	it('HareMcpAgent has MCP server', () => {
-		const agent = new workersExports.HareMcpAgent(createMockState() as any, createMockEnv() as any)
+		const agent = new workersExports.HareMcpAgent(
+			createMockState() as unknown as ConstructorParameters<typeof workersExports.HareMcpAgent>[0],
+			createMockEnv() as unknown as McpAgentEnv,
+		)
 		expect(agent.server).toBeDefined()
 	})
 })

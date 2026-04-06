@@ -64,7 +64,7 @@ export function SettingsPage() {
 		try {
 			await updateUser({ name: name.trim() })
 			toast.success('Profile updated successfully')
-		} catch (_error) {
+		} catch (error) {
 			toast.error(error instanceof Error ? error.message : 'Failed to update profile')
 		} finally {
 			setIsUpdatingProfile(false)
@@ -99,7 +99,7 @@ export function SettingsPage() {
 			setCurrentPassword('')
 			setNewPassword('')
 			setConfirmPassword('')
-		} catch (_error) {
+		} catch (error) {
 			toast.error(error instanceof Error ? error.message : 'Failed to change password')
 		} finally {
 			setIsChangingPassword(false)
@@ -110,7 +110,7 @@ export function SettingsPage() {
 		try {
 			await updatePreferencesMutation.mutateAsync({ emailNotifications: checked })
 			toast.success(checked ? 'Email notifications enabled' : 'Email notifications disabled')
-		} catch (_error) {
+		} catch (error) {
 			toast.error('Failed to update notification preference')
 		}
 	}

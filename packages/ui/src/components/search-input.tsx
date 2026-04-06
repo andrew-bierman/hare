@@ -1,7 +1,6 @@
-import type * as React from 'react'
-import { SearchIcon } from 'lucide-react'
-
 import { cn } from '@hare/ui/lib/utils'
+import { SearchIcon } from 'lucide-react'
+import type * as React from 'react'
 import { Input } from './input'
 
 interface SearchInputProps extends Omit<React.ComponentProps<'input'>, 'type'> {

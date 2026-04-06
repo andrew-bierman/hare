@@ -72,10 +72,10 @@ describe('oRPC Type Inference (API Package Level)', () => {
 
 		it('should infer list return type with proper structure', () => {
 			type ListProcedure = AppRouterClient['agents']['list']
-			type ListReturn = ListProcedure extends (...args: any[]) => Promise<infer R> ? R : never
+			type ListReturn = ListProcedure extends (...args: unknown[]) => Promise<infer R> ? R : never
 
 			// Verify it has 'agents' property
-			type HasAgentsProperty = ListReturn extends { agents: any } ? true : false
+			type HasAgentsProperty = ListReturn extends { agents: unknown } ? true : false
 			const hasAgentsProperty: HasAgentsProperty = true
 
 			expect(hasAgentsProperty).toBe(true)
@@ -83,7 +83,7 @@ describe('oRPC Type Inference (API Package Level)', () => {
 
 		it('should infer agent properties correctly', () => {
 			type ListProcedure = AppRouterClient['agents']['list']
-			type ListReturn = ListProcedure extends (...args: any[]) => Promise<infer R> ? R : never
+			type ListReturn = ListProcedure extends (...args: unknown[]) => Promise<infer R> ? R : never
 			type AgentsArray = ListReturn extends { agents: infer A } ? A : never
 			type SingleAgent = AgentsArray extends (infer E)[] ? E : never
 

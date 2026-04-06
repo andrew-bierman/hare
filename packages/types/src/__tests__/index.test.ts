@@ -4,6 +4,7 @@
 
 import { describe, expect, it } from 'vitest'
 import {
+	AgentConfigSchema,
 	AgentStatusSchema,
 	ApiErrorSchema,
 	ApiSuccessSchema,
@@ -23,6 +24,7 @@ import {
 	isWorkspaceRole,
 	McpAgentStateSchema,
 	MessageMetadataSchema,
+	MessageRoleSchema,
 	// Agent schemas
 	ScheduledTaskSchema,
 	SchedulePayloadSchema,
@@ -35,6 +37,7 @@ import {
 	ToolResultSchema,
 	// Tool schemas
 	ToolTypeSchema,
+	WorkspaceRoleSchema,
 } from '../index'
 
 describe('@hare/types exports', () => {

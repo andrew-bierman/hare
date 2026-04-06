@@ -7,8 +7,8 @@ import {
 	OctagonXIcon,
 	TriangleAlertIcon,
 } from 'lucide-react'
-import { Toaster as Sonner, type ToasterProps } from 'sonner'
 import type * as React from 'react'
+import { Toaster as Sonner, type ToasterProps } from 'sonner'
 
 interface ToasterComponentProps extends ToasterProps {
 	theme?: 'light' | 'dark' | 'system'

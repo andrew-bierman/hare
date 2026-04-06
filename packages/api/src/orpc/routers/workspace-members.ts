@@ -4,7 +4,13 @@
  * Handles workspace member and invitation management with full type safety.
  */
 
-import { config, INVITATION_STATUSES, MEMBER_ROLES, WORKSPACE_ROLES } from '@hare/config'
+import {
+	config,
+	INVITATION_STATUSES,
+	MEMBER_ROLES,
+	WORKSPACE_ROLES,
+	WorkspaceRole,
+} from '@hare/config'
 import { users, workspaceInvitations, workspaceMembers, workspaces } from '@hare/db/schema'
 import { and, eq } from 'drizzle-orm'
 import { z } from 'zod'
@@ -87,7 +93,7 @@ async function getUserWorkspaceRole(
 	const [workspace] = await db.select().from(workspaces).where(eq(workspaces.id, workspaceId))
 
 	if (!workspace) return null
-	if (workspace.ownerId === userId) return 'owner'
+	if (workspace.ownerId === userId) return WorkspaceRole.OWNER
 
 	const [membership] = await db
 		.select()
@@ -99,7 +105,7 @@ async function getUserWorkspaceRole(
 }
 
 function hasAdminAccess(role: z.infer<typeof WorkspaceRoleSchema>): boolean {
-	return role === 'owner' || role === 'admin'
+	return role === WorkspaceRole.OWNER || role === WorkspaceRole.ADMIN
 }
 
 // =============================================================================
@@ -151,7 +157,7 @@ export const listMembers = requireWrite
 				name: owner.name,
 				email: owner.email,
 				image: owner.image,
-				role: 'owner',
+				role: WorkspaceRole.OWNER,
 				joinedAt: workspace.createdAt.toISOString(),
 			})
 		}

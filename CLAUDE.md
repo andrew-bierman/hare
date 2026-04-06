@@ -141,16 +141,122 @@ Access via `env` in API routes:
 
 ## Testing
 
-```ts
-// __tests__/example.test.ts
-import { describe, it, expect } from 'vitest'
+Hare uses **Vitest** for unit/integration tests and **Playwright** for E2E tests.
 
-describe('example', () => {
-  it('works', () => {
-    expect(1 + 1).toBe(2)
+### Test Structure
+
+```
+hare/
+├── packages/
+│   ├── agent/src/__tests__/          # Agent package unit tests
+│   ├── api/src/
+│   │   ├── __tests__/                # API package unit tests
+│   │   ├── middleware/__tests__/     # Middleware tests
+│   │   └── routes/__tests__/         # Route handler tests
+│   └── testing/src/                  # Shared test utilities
+│       ├── factories/                # Test data factories
+│       ├── mocks/                    # Mock implementations
+│       └── seeds/                    # Database seeding utilities
+└── apps/web/e2e/                     # E2E tests (*.e2e.ts)
+```
+
+### Naming Conventions
+
+| Test Type | File Pattern | Location |
+|-----------|--------------|----------|
+| Unit tests | `*.test.ts` | `__tests__/` alongside source |
+| Integration tests | `*.integration.test.ts` | `__tests__/` alongside source |
+| E2E tests | `*.e2e.ts` | `apps/web/e2e/` |
+
+### Unit Test Example
+
+```ts
+// packages/api/src/__tests__/example.test.ts
+import { describe, it, expect, beforeEach } from 'vitest'
+
+describe('ExampleService', () => {
+  it('should do something specific', () => {
+    expect(someFunction('test')).toBe('expected')
   })
 })
 ```
+
+### Integration Test Example
+
+```ts
+import { describe, it, expect, beforeEach } from 'vitest'
+import { env } from 'cloudflare:test'
+import { seedAgent, cleanupSeededData } from '@hare/testing'
+
+describe('Agents Route', () => {
+  beforeEach(async () => {
+    await cleanupSeededData(env.DB)
+  })
+
+  it('should create an agent', async () => {
+    const { workspace } = await seedAgent(env.DB)
+    // ... test route handler
+  })
+})
+```
+
+### E2E Test Example
+
+```ts
+// apps/web/e2e/example.e2e.ts
+import { test, expect } from './fixtures'
+
+test.describe('Feature Name', () => {
+  test('should complete user flow', async ({ authenticatedPage }) => {
+    await authenticatedPage.goto('/dashboard/agents')
+    await authenticatedPage.getByRole('button', { name: 'Create Agent' }).click()
+    await expect(authenticatedPage).toHaveURL(/\/dashboard\/agents\//)
+  })
+})
+```
+
+### Factories & Seeds (`@hare/testing`)
+
+```ts
+import {
+  createTestUser, createTestWorkspace, createTestAgent,
+  seedAgent, seedAgentWithTools, seedCompleteEnvironment,
+  cleanupSeededData, resetAllFactoryCounters,
+  createMockEnv,
+} from '@hare/testing'
+
+// Factories
+const user = createTestUser({ name: 'Custom Name' })
+const agent = createTestAgent({ workspaceId: workspace.id, createdBy: user.id })
+
+// Seeds (hit real D1)
+const { user, workspace, agent } = await seedAgent(env.DB)
+const { agent, tools } = await seedAgentWithTools(env.DB, { toolCount: 3 })
+
+// Cleanup
+await cleanupSeededData(env.DB)
+resetAllFactoryCounters() // call in beforeEach
+```
+
+### E2E Fixtures
+
+```ts
+import { test, expect, generateTestUser } from './fixtures'
+
+// authenticatedPage - already signed in
+test('auth test', async ({ authenticatedPage }) => { ... })
+
+// page + testUser - sign up yourself
+test('signup test', async ({ page, testUser }) => { ... })
+```
+
+### Best Practices
+
+1. **Isolate tests** - call `resetAllFactoryCounters()` and `cleanupSeededData()` in `beforeEach`
+2. **Co-locate tests** - place `__tests__/` dirs alongside the source being tested
+3. **Use descriptive names** - start with "should" and describe the expected behavior
+4. **Mock at boundaries** - mock external services, not internal implementation
+5. **Always await** - use `await` for all async operations in tests
 
 ## Git Commits
 

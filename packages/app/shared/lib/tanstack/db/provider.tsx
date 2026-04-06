@@ -169,7 +169,7 @@ export function useScheduleCollection(options: {
 	const { getScheduleCollection } = useTanStackDB()
 	return useMemo(
 		() => getScheduleCollection(options),
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-		[getScheduleCollection, options],
+		// biome-ignore lint/correctness/useExhaustiveDependencies: specific primitive deps preferred over object reference
+		[getScheduleCollection, options.agentId, options.workspaceId],
 	)
 }
