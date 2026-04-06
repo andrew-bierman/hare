@@ -471,9 +471,9 @@ describe('HareAgent', () => {
 			const connection2 = createMockConnection()
 
 			;(agent as unknown as { connectionUserMap: Map<Connection, string> }).connectionUserMap =
-				new Map([
-					[connection1, 'user_1'],
-					[connection2, 'user_2'],
+				new Map<Connection, string>([
+					[connection1 as unknown as Connection, 'user_1'],
+					[connection2 as unknown as Connection, 'user_2'],
 				])
 
 			agent.onStateUpdate(agent.initialState)

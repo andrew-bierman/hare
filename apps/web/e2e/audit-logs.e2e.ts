@@ -29,7 +29,7 @@ test.describe('Audit Logs Page', () => {
 		await page.goto('/dashboard/settings/audit-logs')
 		await page.waitForSelector('main', { state: 'visible' })
 
-		await expect(page.getByRole('heading', { name: 'Audit Logs' })).toBeVisible({
+		await expect(page.getByRole('heading', { name: 'Audit Logs' }).first()).toBeVisible({
 			timeout: 10000,
 		})
 	})
@@ -96,7 +96,7 @@ test.describe('Audit Logs - Responsive', () => {
 			await page.waitForSelector('main', { state: 'visible' })
 
 			// Heading should still be visible
-			await expect(page.getByRole('heading', { name: 'Audit Logs' })).toBeVisible({
+			await expect(page.getByRole('heading', { name: 'Audit Logs' }).first()).toBeVisible({
 				timeout: 10000,
 			})
 

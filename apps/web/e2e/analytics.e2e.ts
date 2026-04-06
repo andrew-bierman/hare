@@ -13,7 +13,9 @@ test.describe('Analytics Page - Dashboard Load', () => {
 		await authenticatedPage.goto('/dashboard/analytics')
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		await expect(authenticatedPage).toHaveURL(/\/dashboard\/analytics/)
-		await expect(authenticatedPage.getByRole('heading', { name: 'Analytics' })).toBeVisible()
+		await expect(
+			authenticatedPage.getByRole('heading', { name: 'Analytics' }).first(),
+		).toBeVisible()
 	})
 
 	test('analytics page layout loads correctly', async ({ authenticatedPage }) => {
@@ -21,7 +23,9 @@ test.describe('Analytics Page - Dashboard Load', () => {
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Verify the main heading
-		await expect(authenticatedPage.getByRole('heading', { name: 'Analytics' })).toBeVisible()
+		await expect(
+			authenticatedPage.getByRole('heading', { name: 'Analytics' }).first(),
+		).toBeVisible()
 
 		// Verify page contains card elements
 		const cards = authenticatedPage.locator('[data-slot="card"]')
@@ -392,7 +396,9 @@ test.describe('Analytics Data Refresh', () => {
 
 		// Verify the page reloaded correctly with analytics content
 		await expect(authenticatedPage.getByText('Total Requests')).toBeVisible({ timeout: 15000 })
-		await expect(authenticatedPage.getByRole('heading', { name: 'Analytics' })).toBeVisible()
+		await expect(
+			authenticatedPage.getByRole('heading', { name: 'Analytics' }).first(),
+		).toBeVisible()
 	})
 })
 
@@ -458,7 +464,9 @@ test.describe('Analytics Page Responsive Layout', () => {
 		// Page should still load without 404
 		await expect(authenticatedPage.locator('body')).not.toContainText('404')
 		// Heading should be visible
-		await expect(authenticatedPage.getByRole('heading', { name: 'Analytics' })).toBeVisible()
+		await expect(
+			authenticatedPage.getByRole('heading', { name: 'Analytics' }).first(),
+		).toBeVisible()
 	})
 
 	test('analytics page is responsive on tablet', async ({ authenticatedPage }) => {
@@ -467,7 +475,9 @@ test.describe('Analytics Page Responsive Layout', () => {
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		await expect(authenticatedPage.locator('body')).not.toContainText('404')
-		await expect(authenticatedPage.getByRole('heading', { name: 'Analytics' })).toBeVisible()
+		await expect(
+			authenticatedPage.getByRole('heading', { name: 'Analytics' }).first(),
+		).toBeVisible()
 	})
 
 	test('stat cards stack correctly on mobile', async ({ authenticatedPage }) => {
@@ -492,7 +502,9 @@ test.describe('Analytics Page Navigation', () => {
 		await authenticatedPage.getByRole('link', { name: 'Analytics' }).click()
 		await authenticatedPage.waitForURL(/\/dashboard\/analytics/)
 
-		await expect(authenticatedPage.getByRole('heading', { name: 'Analytics' })).toBeVisible()
+		await expect(
+			authenticatedPage.getByRole('heading', { name: 'Analytics' }).first(),
+		).toBeVisible()
 	})
 
 	test('can navigate back to dashboard from analytics', async ({ authenticatedPage }) => {
@@ -502,7 +514,9 @@ test.describe('Analytics Page Navigation', () => {
 		await authenticatedPage.getByRole('link', { name: 'Dashboard' }).click()
 		await authenticatedPage.waitForURL(/\/dashboard$/)
 
-		await expect(authenticatedPage.getByRole('heading', { name: 'Dashboard' })).toBeVisible()
+		await expect(
+			authenticatedPage.getByRole('heading', { name: 'Dashboard' }).first(),
+		).toBeVisible()
 	})
 
 	test('can navigate to usage from analytics', async ({ authenticatedPage }) => {
@@ -512,7 +526,7 @@ test.describe('Analytics Page Navigation', () => {
 		await authenticatedPage.getByRole('link', { name: 'Usage' }).click()
 		await authenticatedPage.waitForURL(/\/dashboard\/usage/)
 
-		await expect(authenticatedPage.getByRole('heading', { name: 'Usage' })).toBeVisible()
+		await expect(authenticatedPage.getByRole('heading', { name: 'Usage' }).first()).toBeVisible()
 	})
 })
 
@@ -601,7 +615,9 @@ test.describe('Analytics Full Layout', () => {
 		await authenticatedPage.waitForTimeout(2000)
 
 		// Header with title and export button
-		await expect(authenticatedPage.getByRole('heading', { name: 'Analytics' })).toBeVisible()
+		await expect(
+			authenticatedPage.getByRole('heading', { name: 'Analytics' }).first(),
+		).toBeVisible()
 		await expect(authenticatedPage.getByRole('button', { name: /export/i })).toBeVisible()
 
 		// Filter controls

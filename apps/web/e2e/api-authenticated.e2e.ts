@@ -7,11 +7,19 @@ import { test } from './fixtures'
  */
 
 async function getCsrfToken(page: Page): Promise<string> {
+	// Seed CSRF cookie if not present
 	const cookies = await page.context().cookies()
-	const csrfCookie =
+	let csrfCookie =
 		cookies.find((c) => c.name === 'csrf') ?? cookies.find((c) => c.name === '__Host-csrf')
-	if (!csrfCookie) throw new Error('CSRF cookie not found')
-	return csrfCookie.value
+	if (!csrfCookie) {
+		// Make a GET request to an API endpoint to trigger CSRF cookie creation
+		await page.request.get('/api/rpc/health/live')
+		const updatedCookies = await page.context().cookies()
+		csrfCookie =
+			updatedCookies.find((c) => c.name === 'csrf') ??
+			updatedCookies.find((c) => c.name === '__Host-csrf')
+	}
+	return csrfCookie?.value ?? ''
 }
 
 async function orpc(
@@ -21,12 +29,13 @@ async function orpc(
 	extraHeaders: Record<string, string> = {},
 ) {
 	const csrfToken = await getCsrfToken(page)
+	const headers: Record<string, string> = {
+		'Content-Type': 'application/json',
+		...extraHeaders,
+	}
+	if (csrfToken) headers['X-CSRF-Token'] = csrfToken
 	const response = await page.request.post(`/api/rpc/${procedure}`, {
-		headers: {
-			'Content-Type': 'application/json',
-			'X-CSRF-Token': csrfToken,
-			...extraHeaders,
-		},
+		headers,
 		data: { json: input },
 	})
 	return response
@@ -40,6 +49,13 @@ async function parseOrpc(response: Awaited<ReturnType<typeof orpc>>) {
 
 async function getWorkspaceId(page: Page): Promise<string> {
 	await page.waitForSelector('main', { state: 'visible' })
+	// Wait for workspace to be created by WorkspaceProvider
+	await page
+		.locator('button')
+		.filter({ hasText: /workspace/i })
+		.first()
+		.waitFor({ state: 'visible', timeout: 10000 })
+		.catch(() => {})
 	const response = await orpc(page, 'workspaces/list')
 	expect(response.status()).toBe(200)
 	const data = await parseOrpc(response)
@@ -89,6 +105,14 @@ baseTest.describe('API Authentication Requirements', () => {
 test.describe('Workspaces API - Authenticated', () => {
 	test('can list workspaces', async ({ authenticatedPage }) => {
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
+		// Wait for workspace to be created by the WorkspaceProvider (sidebar shows workspace name)
+		await authenticatedPage
+			.locator('button')
+			.filter({ hasText: /workspace/i })
+			.first()
+			.waitFor({ state: 'visible', timeout: 10000 })
+			.catch(() => {})
+
 		const response = await orpc(authenticatedPage, 'workspaces/list')
 		expect(response.status()).toBe(200)
 
@@ -100,11 +124,25 @@ test.describe('Workspaces API - Authenticated', () => {
 
 	test('workspace has required fields', async ({ authenticatedPage }) => {
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
-		const response = await orpc(authenticatedPage, 'workspaces/list')
-		expect(response.status()).toBe(200)
+		// Wait for workspace to be created by WorkspaceProvider
+		await authenticatedPage
+			.locator('button')
+			.filter({ hasText: /workspace/i })
+			.first()
+			.waitFor({ state: 'visible', timeout: 10000 })
+			.catch(() => {})
 
-		const data = await parseOrpc(response)
-		const workspaces = data.workspaces ?? data
+		// Retry listing workspaces up to 5 times with 1s delay (workspace creation can be async)
+		let workspaces: Array<{ id: string; name: string }> = []
+		for (let attempt = 0; attempt < 5; attempt++) {
+			const response = await orpc(authenticatedPage, 'workspaces/list')
+			expect(response.status()).toBe(200)
+			const data = await parseOrpc(response)
+			workspaces = data.workspaces ?? data
+			if (Array.isArray(workspaces) && workspaces.length > 0) break
+			await authenticatedPage.waitForTimeout(1000)
+		}
+
 		expect(workspaces.length).toBeGreaterThan(0)
 		expect(workspaces[0]).toHaveProperty('id')
 		expect(workspaces[0]).toHaveProperty('name')
@@ -151,13 +189,19 @@ test.describe('Agents API - Authenticated', () => {
 			expect(agent).toHaveProperty('id')
 		} else {
 			// Known issue: oRPC output validation may fail (500) even though agent was created
-			// Verify agent was created by listing
-			const listResp = await orpc(authenticatedPage, 'agents/list', {}, wsHeader)
-			expect(listResp.status()).toBe(200)
-			const data = await parseOrpc(listResp)
-			const agents = data.agents ?? data
-			expect(Array.isArray(agents)).toBe(true)
-			const found = agents.some((a: { name: string }) => a.name === agentName)
+			// Verify agent was created by listing (retry up to 5 times since creation may be async)
+			let found = false
+			for (let attempt = 0; attempt < 5; attempt++) {
+				const listResp = await orpc(authenticatedPage, 'agents/list', {}, wsHeader)
+				expect(listResp.status()).toBe(200)
+				const data = await parseOrpc(listResp)
+				const agents = data.agents ?? data
+				if (Array.isArray(agents)) {
+					found = agents.some((a: { name: string }) => a.name === agentName)
+					if (found) break
+				}
+				await authenticatedPage.waitForTimeout(1000)
+			}
 			expect(found).toBe(true)
 		}
 	})

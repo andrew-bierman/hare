@@ -315,11 +315,15 @@ export function OnboardingTour({
 		<>
 			{/* Overlay with cutout for highlighted element */}
 			<div className="fixed inset-0 z-[9998]">
-				{/* Semi-transparent backdrop — click to dismiss */}
+				{/* Semi-transparent backdrop — click/key to dismiss */}
 				<button
 					type="button"
 					className="absolute inset-0 bg-black/50 cursor-pointer border-none p-0 w-full h-full"
 					onClick={handleSkip}
+					onKeyDown={(e) => {
+						if (e.key === 'Escape') handleSkip()
+					}}
+					aria-label="Close tour"
 				/>
 
 				{/* Cutout for highlighted element */}

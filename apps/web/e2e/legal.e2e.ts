@@ -22,7 +22,9 @@ baseTest.describe('Documentation Page', () => {
 		await page.goto('/docs')
 		await page.waitForLoadState('domcontentloaded')
 
-		const heading = page.getByRole('heading', { name: /build ai agents|hare|getting started/i })
+		const heading = page
+			.getByRole('heading', { name: /build ai agents|hare|getting started/i })
+			.first()
 		await expect(heading.first()).toBeVisible({ timeout: 10000 })
 	})
 
@@ -73,7 +75,7 @@ baseTest.describe('Privacy Policy Page', () => {
 		await page.goto('/privacy')
 		await page.waitForLoadState('domcontentloaded')
 
-		const heading = page.getByRole('heading', { name: /privacy/i })
+		const heading = page.getByRole('heading', { name: /privacy/i }).first()
 		await expect(heading.first()).toBeVisible({ timeout: 10000 })
 	})
 
@@ -111,7 +113,7 @@ baseTest.describe('Terms of Service Page', () => {
 		await page.goto('/terms')
 		await page.waitForLoadState('domcontentloaded')
 
-		const heading = page.getByRole('heading', { name: /terms|service|condition/i })
+		const heading = page.getByRole('heading', { name: /terms|service|condition/i }).first()
 		await expect(heading.first()).toBeVisible({ timeout: 10000 })
 	})
 

@@ -8,7 +8,7 @@ baseTest.describe('Agent Creation Form - Unauthenticated', () => {
 
 		// Protected route should redirect to sign-in
 		await expect(page).toHaveURL(/\/sign-in/)
-		await expect(page.getByRole('heading', { name: 'Welcome back' })).toBeVisible()
+		await expect(page.getByRole('heading', { name: 'Welcome back' }).first()).toBeVisible()
 	})
 })
 
@@ -52,7 +52,7 @@ baseTest.describe('Settings Form - Unauthenticated', () => {
 
 		// Protected route should redirect to sign-in
 		await expect(page).toHaveURL(/\/sign-in/)
-		await expect(page.getByRole('heading', { name: 'Welcome back' })).toBeVisible()
+		await expect(page.getByRole('heading', { name: 'Welcome back' }).first()).toBeVisible()
 	})
 })
 

@@ -38,7 +38,7 @@ test.describe('Landing Page - Hero Section', () => {
 	})
 
 	test('displays hero title', async ({ page }: { page: Page }) => {
-		await expect(page.getByRole('heading', { name: /Build & Deploy/i })).toBeVisible()
+		await expect(page.getByRole('heading', { name: /Build & Deploy/i }).first()).toBeVisible()
 		await expect(page.getByText('AI Agents').first()).toBeVisible()
 	})
 
@@ -86,7 +86,7 @@ test.describe('Landing Page - Features Section', () => {
 	})
 
 	test('displays features section heading', async ({ page }: { page: Page }) => {
-		await expect(page.getByRole('heading', { name: 'Everything you need' })).toBeVisible()
+		await expect(page.getByRole('heading', { name: 'Everything you need' }).first()).toBeVisible()
 	})
 
 	test('displays all feature cards', async ({ page }: { page: Page }) => {
@@ -116,7 +116,7 @@ test.describe('Landing Page - How it Works Section', () => {
 	})
 
 	test('displays how it works heading', async ({ page }: { page: Page }) => {
-		await expect(page.getByRole('heading', { name: '3 simple steps' })).toBeVisible()
+		await expect(page.getByRole('heading', { name: '3 simple steps' }).first()).toBeVisible()
 	})
 
 	test('displays all steps', async ({ page }: { page: Page }) => {
@@ -190,7 +190,7 @@ test.describe('Landing Page - Responsive Design', () => {
 		await page.goto('/')
 
 		// Hero should be visible
-		await expect(page.getByRole('heading', { name: /Build & Deploy/i })).toBeVisible()
+		await expect(page.getByRole('heading', { name: /Build & Deploy/i }).first()).toBeVisible()
 
 		// CTAs should stack on mobile
 		await expect(page.getByRole('link', { name: 'Start Building Free' })).toBeVisible()
@@ -203,8 +203,8 @@ test.describe('Landing Page - Responsive Design', () => {
 		await page.setViewportSize({ width: 768, height: 1024 })
 		await page.goto('/')
 
-		await expect(page.getByRole('heading', { name: /Build & Deploy/i })).toBeVisible()
-		await expect(page.getByRole('heading', { name: 'Everything you need' })).toBeVisible()
+		await expect(page.getByRole('heading', { name: /Build & Deploy/i }).first()).toBeVisible()
+		await expect(page.getByRole('heading', { name: 'Everything you need' }).first()).toBeVisible()
 	})
 
 	test('displays correctly on desktop', async ({ page }: { page: Page }) => {

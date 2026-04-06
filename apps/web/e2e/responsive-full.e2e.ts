@@ -25,13 +25,15 @@ baseTest.describe('Responsive - Landing Page', () => {
 			})
 
 			baseTest(`hero section is visible on ${device}`, async ({ page }) => {
-				await expect(page.getByRole('heading', { name: /Build & Deploy/i })).toBeVisible()
+				await expect(page.getByRole('heading', { name: /Build & Deploy/i }).first()).toBeVisible()
 				await expect(page.getByRole('link', { name: 'Start Building Free' })).toBeVisible()
 			})
 
 			baseTest(`features section is visible on ${device}`, async ({ page }) => {
 				await page.getByText('Everything you need').scrollIntoViewIfNeeded()
-				await expect(page.getByRole('heading', { name: 'Everything you need' })).toBeVisible()
+				await expect(
+					page.getByRole('heading', { name: 'Everything you need' }).first(),
+				).toBeVisible()
 			})
 
 			if (device === 'mobile') {

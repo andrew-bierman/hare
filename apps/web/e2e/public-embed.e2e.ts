@@ -73,14 +73,16 @@ test.describe('Public Embed - Valid Agent', () => {
 	test('embed has chat interface', async ({ authenticatedPage }) => {
 		const agentId = await createAgent(authenticatedPage)
 		await authenticatedPage.goto(`/embed/${agentId}`)
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForLoadState('domcontentloaded')
 
-		// Look for chat textarea (the embed page uses a textarea for message input)
+		// Wait for the embed page to finish loading (loading spinner disappears, form renders)
+		// The embed page fetches agent info then renders the chat UI
 		const messageInput = authenticatedPage.locator('textarea[placeholder="Type a message..."]')
 		const genericInput = authenticatedPage.locator('textarea, input[type="text"]')
 
+		// Wait up to 15s for either the specific textarea or any text input to appear
 		const hasChat =
-			(await messageInput.isVisible({ timeout: 10000 }).catch(() => false)) ||
+			(await messageInput.isVisible({ timeout: 15000 }).catch(() => false)) ||
 			(await genericInput
 				.first()
 				.isVisible({ timeout: 5000 })

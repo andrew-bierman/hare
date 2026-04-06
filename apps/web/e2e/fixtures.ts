@@ -62,16 +62,19 @@ export const test = base.extend<{
 					throw new Error(`Sign-up API returned ${signUpResponse.status()}: ${errorText}`)
 				}
 
-				// Mark onboarding tour as completed in localStorage BEFORE navigating
-				// This prevents the tour overlay from appearing and blocking interactions
-				await page.goto('/dashboard')
+				// Disable onboarding tour via localStorage before navigating to dashboard
+				await page.goto('/')
 				await page.evaluate(() => {
 					localStorage.setItem('hare-tour-completed', 'true')
 					localStorage.setItem('hare-onboarding-dismissed', 'true')
 				})
-				// Reload to pick up the localStorage change
-				await page.reload()
+				// Seed CSRF cookie via browser fetch
+				await page.evaluate(async () => {
+					await fetch('/api/rpc/health/live', { credentials: 'same-origin' })
+				})
 
+				// Navigate to dashboard — the app auto-creates a workspace for new users
+				await page.goto('/dashboard')
 				await page.waitForSelector('main', { state: 'visible', timeout: 15000 })
 
 				// Success - break out of retry loop

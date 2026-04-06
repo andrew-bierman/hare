@@ -1018,9 +1018,9 @@ export const colorTool = createTool({
 			case 'contrast': {
 				// Calculate relative luminance
 				const luminance = (r: number, g: number, b: number): number => {
-					const values = [r, g, b].map((c) => {
-						const cn = c / 255
-						return cn <= 0.03928 ? cn / 12.92 : ((cn + 0.055) / 1.055) ** 2.4
+					const values = [r, g, b].map((v) => {
+						const c = v / 255
+						return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4
 					})
 					const rs = values[0] ?? 0
 					const gs = values[1] ?? 0

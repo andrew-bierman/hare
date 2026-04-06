@@ -600,7 +600,7 @@ Create a new AI agent in the workspace
 | `name` | `string` | Name for the new agent |
 | `description` (optional) | `string` | Description of the agent |
 | `instructions` (optional) | `string` | System instructions |
-| `model` (optional) | `unknown` | AI model to use |
+| `model` (optional) | `string` | AI model to use |
 | `config` (optional) | `number` | Model configuration |
 
 ### agent_delete
@@ -691,7 +691,7 @@ Rollback an agent to a previous configuration by restoring a snapshot
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `agentId` | `string` | The agent to rollback |
-| `snapshotId` (optional) | `string` | Specific snapshot ID to rollback to (defaults to most recent) |
+| `snapshotId` (optional) | `unknown` | Specific snapshot ID to rollback to (defaults to most recent) |
 
 ### agent_webhook_list
 
@@ -714,7 +714,7 @@ Create a new webhook to receive events for a specific agent
 | `agentId` | `string` | The agent to attach the webhook to |
 | `url` | `string` | The URL to send webhook events to |
 | `events` | `string` | Event types to subscribe to (e.g., agent.message, agent.deployed) |
-| `secret` (optional) | `string` | Webhook signing secret (auto-generated if not provided) |
+| `secret` (optional) | `unknown` | Webhook signing secret (auto-generated if not provided) |
 
 ### agent_webhook_delete
 
@@ -814,7 +814,7 @@ List all available AI models with their capabilities, costs, speed tiers, and co
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `provider` (optional) | `unknown` | Filter by provider (optional) |
-| `supportsTools` (optional) | `unknown` | Only show models that support tool calling |
+| `supportsTools` (optional) | `boolean` | Only show models that support tool calling |
 
 ### agent_list_templates
 
@@ -830,7 +830,7 @@ Validate an agent configuration before creation. Returns errors, warnings, and a
 |-----------|------|-------------|
 | `name` | `string` | Agent name (1-100 characters) |
 | `description` (optional) | `string` | Agent description (max 500 chars) |
-| `instructions` | `unknown` | System instructions (1-10000 characters) |
+| `instructions` | `string` | System instructions (1-10000 characters) |
 | `model` | `string` | Model ID to use |
 | `config` (optional) | `number` | Model configuration parameters |
 | `toolIds` (optional) | `array` | Tool IDs to attach (max 20) |
@@ -1385,8 +1385,8 @@ Take a screenshot of a web page and store it in R2 storage. Returns the storage 
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `url` | `string` | The URL to screenshot |
-| `width` (optional) | `unknown` | Viewport width in pixels (default: 1280) |
-| `height` (optional) | `unknown` | Viewport height in pixels (default: 720) |
+| `width` (optional) | `number` | Viewport width in pixels (default: 1280) |
+| `height` (optional) | `number` | Viewport height in pixels (default: 720) |
 | `fullPage` (optional) | `unknown` | Capture the full scrollable page (default: false) |
 
 ### r2_get

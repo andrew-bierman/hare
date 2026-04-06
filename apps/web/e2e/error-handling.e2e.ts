@@ -30,7 +30,9 @@ baseTest.describe('Error Handling - 404 Not Found', () => {
 		await page.waitForLoadState('networkidle')
 
 		// Should show the not found page
-		await expect(page.getByRole('heading', { name: /not found/i })).toBeVisible({ timeout: 15000 })
+		await expect(page.getByRole('heading', { name: /not found/i }).first()).toBeVisible({
+			timeout: 15000,
+		})
 		await expect(
 			page.getByText(/page you're looking for doesn't exist|has been moved/i),
 		).toBeVisible()
@@ -45,7 +47,9 @@ baseTest.describe('Error Handling - 404 Not Found', () => {
 		await page.goto('/invalid/nested/route/path')
 		await page.waitForLoadState('networkidle')
 
-		await expect(page.getByRole('heading', { name: /not found/i })).toBeVisible({ timeout: 15000 })
+		await expect(page.getByRole('heading', { name: /not found/i }).first()).toBeVisible({
+			timeout: 15000,
+		})
 	})
 
 	baseTest('go back button navigates to previous page', async ({ page }: { page: Page }) => {
@@ -91,11 +95,11 @@ test.describe('Error Handling - Dashboard 404', () => {
 
 		// Wait for 404 content to appear
 		// The DashboardNotFound uses CardTitle (a div, not a heading) with text "Page not found"
-		const notFoundText = authenticatedPage.getByText(/page not found/i)
-		const notFoundDescription = authenticatedPage.getByText(
-			/page you're looking for doesn't exist/i,
-		)
-		const goBackButton = authenticatedPage.getByRole('button', { name: /go back/i })
+		const notFoundText = authenticatedPage.getByText(/page not found/i).first()
+		const notFoundDescription = authenticatedPage
+			.getByText(/page you're looking for doesn't exist/i)
+			.first()
+		const goBackButton = authenticatedPage.getByRole('button', { name: /go back/i }).first()
 
 		// Wait for the workspace to load and 404 to render (CardTitle is a div, not a heading)
 		const is404Page = await notFoundText
@@ -157,9 +161,11 @@ test.describe('Error Handling - Error Boundaries', () => {
 		// Verify the error component structure exists in the app
 		// We check this indirectly by verifying the dashboard loads correctly
 		// and the retry mechanism would be available if an error occurred
-		await expect(authenticatedPage.getByRole('heading', { name: 'Dashboard' })).toBeVisible({
-			timeout: 10000,
-		})
+		await expect(authenticatedPage.getByRole('heading', { name: 'Dashboard' }).first()).toBeVisible(
+			{
+				timeout: 10000,
+			},
+		)
 	})
 
 	test('error messages are user-friendly', async ({ authenticatedPage }) => {
@@ -236,7 +242,7 @@ test.describe('Error Handling - API Error Display', () => {
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Page should load and be functional
-		await expect(authenticatedPage.getByRole('heading', { name: /agents/i })).toBeVisible({
+		await expect(authenticatedPage.getByRole('heading', { name: /agents/i }).first()).toBeVisible({
 			timeout: 10000,
 		})
 	})
@@ -247,7 +253,7 @@ test.describe('Error Handling - API Error Display', () => {
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Page should load and be functional
-		await expect(authenticatedPage.getByRole('heading', { name: /tools/i })).toBeVisible({
+		await expect(authenticatedPage.getByRole('heading', { name: /tools/i }).first()).toBeVisible({
 			timeout: 15000,
 		})
 	})
@@ -264,7 +270,7 @@ test.describe('Error Handling - Network Errors', () => {
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Page should be functional
-		await expect(authenticatedPage.getByRole('heading', { name: /agents/i })).toBeVisible({
+		await expect(authenticatedPage.getByRole('heading', { name: /agents/i }).first()).toBeVisible({
 			timeout: 15000,
 		})
 
@@ -273,7 +279,7 @@ test.describe('Error Handling - Network Errors', () => {
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Page should still be functional
-		await expect(authenticatedPage.getByRole('heading', { name: /tools/i })).toBeVisible({
+		await expect(authenticatedPage.getByRole('heading', { name: /tools/i }).first()).toBeVisible({
 			timeout: 15000,
 		})
 	})
@@ -292,9 +298,11 @@ test.describe('Error Handling - Network Errors', () => {
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Verify dashboard loaded
-		await expect(authenticatedPage.getByRole('heading', { name: 'Dashboard' })).toBeVisible({
-			timeout: 10000,
-		})
+		await expect(authenticatedPage.getByRole('heading', { name: 'Dashboard' }).first()).toBeVisible(
+			{
+				timeout: 10000,
+			},
+		)
 
 		// Go offline
 		await authenticatedPage.context().setOffline(true)
@@ -354,21 +362,25 @@ test.describe('Error Handling - Session Management', () => {
 		// Navigate through protected pages
 		await authenticatedPage.goto('/dashboard')
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
-		await expect(authenticatedPage.getByRole('heading', { name: 'Dashboard' })).toBeVisible({
-			timeout: 10000,
-		})
+		await expect(authenticatedPage.getByRole('heading', { name: 'Dashboard' }).first()).toBeVisible(
+			{
+				timeout: 10000,
+			},
+		)
 
 		await authenticatedPage.goto('/dashboard/agents')
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
-		await expect(authenticatedPage.getByRole('heading', { name: /agents/i })).toBeVisible({
+		await expect(authenticatedPage.getByRole('heading', { name: /agents/i }).first()).toBeVisible({
 			timeout: 10000,
 		})
 
 		await authenticatedPage.goto('/dashboard/settings')
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
-		await expect(authenticatedPage.getByRole('heading', { name: /settings/i })).toBeVisible({
-			timeout: 10000,
-		})
+		await expect(authenticatedPage.getByRole('heading', { name: /settings/i }).first()).toBeVisible(
+			{
+				timeout: 10000,
+			},
+		)
 	})
 })
 
@@ -383,7 +395,7 @@ test.describe('Error Handling - Rate Limiting', () => {
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Page should load normally
-		await expect(authenticatedPage.getByRole('heading', { name: /agents/i })).toBeVisible({
+		await expect(authenticatedPage.getByRole('heading', { name: /agents/i }).first()).toBeVisible({
 			timeout: 10000,
 		})
 	})
@@ -569,7 +581,7 @@ test.describe('Error Handling - Empty States', () => {
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Should show agents page with either agents or empty state
-		const pageHeader = authenticatedPage.getByRole('heading', { name: /agents/i })
+		const pageHeader = authenticatedPage.getByRole('heading', { name: /agents/i }).first()
 		await expect(pageHeader).toBeVisible({ timeout: 10000 })
 	})
 
@@ -578,7 +590,7 @@ test.describe('Error Handling - Empty States', () => {
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Should show tools page
-		const pageHeader = authenticatedPage.getByRole('heading', { name: /tools/i })
+		const pageHeader = authenticatedPage.getByRole('heading', { name: /tools/i }).first()
 		await expect(pageHeader).toBeVisible({ timeout: 15000 })
 	})
 
@@ -587,7 +599,7 @@ test.describe('Error Handling - Empty States', () => {
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Wait for page to load
-		await expect(authenticatedPage.getByRole('heading', { name: /agents/i })).toBeVisible({
+		await expect(authenticatedPage.getByRole('heading', { name: /agents/i }).first()).toBeVisible({
 			timeout: 10000,
 		})
 
@@ -637,9 +649,11 @@ test.describe('Error Handling - Concurrent Operations', () => {
 		// This is implicitly tested by loading the dashboard which may fetch
 		// multiple resources at once
 
-		await expect(authenticatedPage.getByRole('heading', { name: 'Dashboard' })).toBeVisible({
-			timeout: 10000,
-		})
+		await expect(authenticatedPage.getByRole('heading', { name: 'Dashboard' }).first()).toBeVisible(
+			{
+				timeout: 10000,
+			},
+		)
 	})
 })
 
