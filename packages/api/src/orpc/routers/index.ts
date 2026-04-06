@@ -23,6 +23,7 @@ import { toolsRouter } from './tools'
 import { usageRouter } from './usage'
 import { userSettingsRouter } from './user-settings'
 import { webhooksRouter } from './webhooks'
+import { workflowsRouter } from './workflows'
 import { workspaceMembersRouter } from './workspace-members'
 import { workspacesRouter } from './workspaces'
 
@@ -49,6 +50,7 @@ export {
 	feedbackRouter,
 	guardrailsRouter,
 	knowledgeBaseRouter,
+	workflowsRouter,
 }
 
 // Combined router for the app
@@ -74,6 +76,7 @@ export const appRouter = {
 	feedback: feedbackRouter,
 	guardrails: guardrailsRouter,
 	knowledgeBases: knowledgeBaseRouter,
+	workflows: workflowsRouter,
 }
 
 export type AppRouter = typeof appRouter
