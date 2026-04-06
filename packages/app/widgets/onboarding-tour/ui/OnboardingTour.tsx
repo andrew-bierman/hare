@@ -318,7 +318,7 @@ export function OnboardingTour({
 				{/* Semi-transparent backdrop — click/key to dismiss */}
 				<button
 					type="button"
-					className="absolute inset-0 bg-black/50 cursor-pointer border-none"
+					className="absolute inset-0 bg-black/50 cursor-pointer border-none p-0 w-full h-full"
 					onClick={handleSkip}
 					onKeyDown={(e) => {
 						if (e.key === 'Escape') handleSkip()

@@ -912,13 +912,13 @@ export const colorTool = createTool({
 			if (sn === 0) {
 				r = g = b = ln
 			} else {
-				const hue2rgb = (p: number, q: number, tv: number) => {
-					let t = tv
-					if (t < 0) t += 1
-					if (t > 1) t -= 1
-					if (t < 1 / 6) return p + (q - p) * 6 * t
-					if (t < 1 / 2) return q
-					if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6
+				const hue2rgb = (p: number, q: number, t: number) => {
+					let tn = t
+					if (tn < 0) tn += 1
+					if (tn > 1) tn -= 1
+					if (tn < 1 / 6) return p + (q - p) * 6 * tn
+					if (tn < 1 / 2) return q
+					if (tn < 2 / 3) return p + (q - p) * (2 / 3 - tn) * 6
 					return p
 				}
 
