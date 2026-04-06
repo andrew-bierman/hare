@@ -432,7 +432,7 @@
       "dependencies": {
         "@hare/config": "workspace:*",
         "@hare/types": "workspace:*",
-        "ai": "^6.0.0",
+        "ai": "^6.0.3",
       },
       "devDependencies": {
         "@cloudflare/puppeteer": "^1.0.6",
