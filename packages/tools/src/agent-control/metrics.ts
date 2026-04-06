@@ -4,6 +4,7 @@
  * Tools for getting agent metrics and analytics.
  */
 
+import { getErrorMessage } from '@hare/checks'
 import { z } from 'zod'
 import { Duration } from '../constants'
 import { createTool, failure, success, type ToolContext } from '../types'
@@ -152,7 +153,7 @@ export const getAgentMetricsTool = createTool({
 				generatedAt: now,
 			})
 		} catch (error) {
-			return failure(error instanceof Error ? error.message : 'Failed to get metrics')
+			return failure(getErrorMessage(error))
 		}
 	},
 })

@@ -1,3 +1,4 @@
+import { getErrorMessage } from '@hare/checks'
 import { z } from 'zod'
 import { createTool, failure, success, type ToolContext } from './types'
 
@@ -116,9 +117,7 @@ export const kvGetTool = createTool({
 
 			return success({ key: params.key, value, found: value !== null })
 		} catch (error) {
-			return failure(
-				`Failed to get key "${params.key}": ${error instanceof Error ? error.message : 'Unknown error'}`,
-			)
+			return failure(`Failed to get key "${params.key}": ${getErrorMessage(error)}`)
 		}
 	},
 })
@@ -158,9 +157,7 @@ export const kvPutTool = createTool({
 			await kv.put(fullKey, params.value, options)
 			return success({ key: params.key, stored: true as const })
 		} catch (error) {
-			return failure(
-				`Failed to put key "${params.key}": ${error instanceof Error ? error.message : 'Unknown error'}`,
-			)
+			return failure(`Failed to put key "${params.key}": ${getErrorMessage(error)}`)
 		}
 	},
 })
@@ -186,9 +183,7 @@ export const kvDeleteTool = createTool({
 			await kv.delete(fullKey)
 			return success({ key: params.key, deleted: true as const })
 		} catch (error) {
-			return failure(
-				`Failed to delete key "${params.key}": ${error instanceof Error ? error.message : 'Unknown error'}`,
-			)
+			return failure(`Failed to delete key "${params.key}": ${getErrorMessage(error)}`)
 		}
 	},
 })
@@ -244,9 +239,7 @@ export const kvListTool = createTool({
 				cursor: parsed.list_complete ? undefined : parsed.cursor,
 			})
 		} catch (error) {
-			return failure(
-				`Failed to list keys: ${error instanceof Error ? error.message : 'Unknown error'}`,
-			)
+			return failure(`Failed to list keys: ${getErrorMessage(error)}`)
 		}
 	},
 })

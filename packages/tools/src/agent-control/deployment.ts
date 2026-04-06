@@ -4,6 +4,7 @@
  * Tools for deploying, undeploying, and rolling back agents.
  */
 
+import { getErrorMessage } from '@hare/checks'
 import { z } from 'zod'
 import { createTool, failure, success, type ToolContext } from '../types'
 import {
@@ -58,7 +59,7 @@ export const deployAgentTool = createTool({
 				deployedAt: now,
 			})
 		} catch (error) {
-			return failure(error instanceof Error ? error.message : 'Failed to deploy agent')
+			return failure(getErrorMessage(error))
 		}
 	},
 })
@@ -108,7 +109,7 @@ export const undeployAgentTool = createTool({
 				undeployedAt: now,
 			})
 		} catch (error) {
-			return failure(error instanceof Error ? error.message : 'Failed to undeploy agent')
+			return failure(getErrorMessage(error))
 		}
 	},
 })
@@ -211,7 +212,7 @@ export const rollbackAgentTool = createTool({
 				rolledBackAt: now,
 			})
 		} catch (error) {
-			return failure(error instanceof Error ? error.message : 'Failed to rollback agent')
+			return failure(getErrorMessage(error))
 		}
 	},
 })

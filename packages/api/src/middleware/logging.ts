@@ -1,3 +1,4 @@
+import { getErrorMessage } from '@hare/checks'
 import { config, logger } from '@hare/config'
 import { createId } from '@hare/db'
 import type { CloudflareEnv, HonoEnv } from '@hare/types'
@@ -142,7 +143,7 @@ export async function loggingMiddleware(
 	try {
 		await next()
 	} catch (err) {
-		error = err instanceof Error ? err.message : 'Unknown error'
+		error = getErrorMessage(err)
 		throw err
 	} finally {
 		const endTime = Date.now()

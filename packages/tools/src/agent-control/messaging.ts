@@ -4,6 +4,7 @@
  * Tools for sending messages to agents.
  */
 
+import { getErrorMessage } from '@hare/checks'
 import { z } from 'zod'
 import { createTool, failure, success, type ToolContext } from '../types'
 import { SendMessageOutputSchema } from './schemas'
@@ -125,7 +126,7 @@ export const sendMessageTool = createTool({
 					: undefined,
 			})
 		} catch (error) {
-			return failure(error instanceof Error ? error.message : 'Failed to send message')
+			return failure(getErrorMessage(error))
 		}
 	},
 })

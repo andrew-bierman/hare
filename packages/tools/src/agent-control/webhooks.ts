@@ -4,6 +4,7 @@
  * Tools for managing agent webhooks.
  */
 
+import { getErrorMessage } from '@hare/checks'
 import { z } from 'zod'
 import { createTool, failure, success, type ToolContext } from '../types'
 import {
@@ -63,7 +64,7 @@ export const listWebhooksTool = createTool({
 				total: webhooks.length,
 			})
 		} catch (error) {
-			return failure(error instanceof Error ? error.message : 'Failed to list webhooks')
+			return failure(getErrorMessage(error))
 		}
 	},
 })
@@ -141,7 +142,7 @@ export const createWebhookTool = createTool({
 				createdAt: now,
 			})
 		} catch (error) {
-			return failure(error instanceof Error ? error.message : 'Failed to create webhook')
+			return failure(getErrorMessage(error))
 		}
 	},
 })
@@ -198,7 +199,7 @@ export const deleteWebhookTool = createTool({
 				deletedAt: Date.now(),
 			})
 		} catch (error) {
-			return failure(error instanceof Error ? error.message : 'Failed to delete webhook')
+			return failure(getErrorMessage(error))
 		}
 	},
 })

@@ -37,7 +37,8 @@ function serializeApiKey(apiKey: typeof apiKeys.$inferSelect): z.infer<typeof Ap
 	}
 }
 
-async function findApiKey(id: string, workspaceId: string, db: WorkspaceContext['db']) {
+async function findApiKey(opts: { id: string; workspaceId: string; db: WorkspaceContext['db'] }) {
+	const { id, workspaceId, db } = opts
 	const [apiKey] = await db
 		.select()
 		.from(apiKeys)
@@ -73,7 +74,7 @@ export const get = requireWrite
 	.handler(async ({ input, context }) => {
 		const { db, workspaceId } = context
 
-		const apiKey = await findApiKey(input.id, workspaceId, db)
+		const apiKey = await findApiKey({ id: input.id, workspaceId, db })
 		if (!apiKey) notFound('API key not found')
 
 		return serializeApiKey(apiKey)
@@ -143,7 +144,7 @@ export const update = requireAdmin
 		const { id, ...data } = input
 		const { db, workspaceId } = context
 
-		const existing = await findApiKey(id, workspaceId, db)
+		const existing = await findApiKey({ id, workspaceId, db })
 		if (!existing) notFound('API key not found')
 
 		const updateData: Partial<typeof apiKeys.$inferInsert> = {

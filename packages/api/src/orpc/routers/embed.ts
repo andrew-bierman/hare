@@ -11,6 +11,7 @@ import {
 	createMemoryStore,
 	toAgentMessages,
 } from '@hare/agent'
+import { getErrorMessage } from '@hare/checks'
 import { AgentStatus, logger } from '@hare/config'
 import { agents, usage } from '@hare/db/schema'
 import { eventIterator } from '@orpc/server'
@@ -264,7 +265,7 @@ const chat = publicProcedure
 			logger.error('Embed chat error:', error)
 			yield {
 				type: 'error' as const,
-				message: error instanceof Error ? error.message : 'Unknown error',
+				message: getErrorMessage(error),
 			}
 		}
 	})

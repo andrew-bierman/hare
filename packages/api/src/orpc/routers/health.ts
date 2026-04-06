@@ -5,6 +5,7 @@
  * Used by container orchestration and monitoring tools.
  */
 
+import { getErrorMessage } from '@hare/checks'
 import { z } from 'zod'
 import { publicProcedure } from '../base'
 
@@ -75,7 +76,7 @@ async function checkDatabase(db: D1Database): Promise<ServiceCheck> {
 			name: 'database',
 			status: 'unhealthy',
 			latencyMs: Date.now() - start,
-			error: error instanceof Error ? error.message : 'Connection failed',
+			error: getErrorMessage(error),
 		}
 	}
 }
@@ -110,7 +111,7 @@ async function checkKV(kv: KVNamespace): Promise<ServiceCheck> {
 			name: 'kv',
 			status: 'unhealthy',
 			latencyMs: Date.now() - start,
-			error: error instanceof Error ? error.message : 'Connection failed',
+			error: getErrorMessage(error),
 		}
 	} finally {
 		kv.delete(testKey).catch(() => {})
@@ -142,7 +143,7 @@ async function checkWorkersAI(ai: Ai): Promise<ServiceCheck> {
 			name: 'workers_ai',
 			status: 'unhealthy',
 			latencyMs: Date.now() - start,
-			error: error instanceof Error ? error.message : 'AI check failed',
+			error: getErrorMessage(error),
 		}
 	}
 }
@@ -166,7 +167,7 @@ async function checkR2(r2: R2Bucket): Promise<ServiceCheck> {
 			name: 'r2',
 			status: 'unhealthy',
 			latencyMs: Date.now() - start,
-			error: error instanceof Error ? error.message : 'R2 check failed',
+			error: getErrorMessage(error),
 		}
 	}
 }

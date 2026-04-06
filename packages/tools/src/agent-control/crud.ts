@@ -4,6 +4,7 @@
  * Tools for listing, getting, creating, deleting, and configuring agents.
  */
 
+import { getErrorMessage } from '@hare/checks'
 import { z } from 'zod'
 import { createTool, failure, success, type ToolContext } from '../types'
 import {
@@ -87,7 +88,7 @@ export const listAgentsTool = createTool({
 				workspaceId,
 			})
 		} catch (error) {
-			return failure(error instanceof Error ? error.message : 'Failed to list agents')
+			return failure(getErrorMessage(error))
 		}
 	},
 })
@@ -213,7 +214,7 @@ export const getAgentTool = createTool({
 
 			return success(agent)
 		} catch (error) {
-			return failure(error instanceof Error ? error.message : 'Failed to get agent')
+			return failure(getErrorMessage(error))
 		}
 	},
 })
@@ -288,7 +289,7 @@ export const createAgentTool = createTool({
 				createdBy: userId,
 			})
 		} catch (error) {
-			return failure(error instanceof Error ? error.message : 'Failed to create agent')
+			return failure(getErrorMessage(error))
 		}
 	},
 })
@@ -354,7 +355,7 @@ export const deleteAgentTool = createTool({
 				deletedAt: Date.now(),
 			})
 		} catch (error) {
-			return failure(error instanceof Error ? error.message : 'Failed to delete agent')
+			return failure(getErrorMessage(error))
 		}
 	},
 })
@@ -485,7 +486,7 @@ export const configureAgentTool = createTool({
 				updatedAt: Date.now(),
 			})
 		} catch (error) {
-			return failure(error instanceof Error ? error.message : 'Failed to configure agent')
+			return failure(getErrorMessage(error))
 		}
 	},
 })

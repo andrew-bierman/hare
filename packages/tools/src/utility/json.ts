@@ -1,3 +1,4 @@
+import { getErrorMessage, isRecord } from '@hare/checks'
 import { z } from 'zod'
 import { createTool, failure, success, type ToolResult } from '../types'
 import { JsonOutputSchema } from './schemas'
@@ -94,7 +95,7 @@ export const jsonTool = createTool({
 				} else {
 					for (const [key, val] of Object.entries(obj)) {
 						const newKey = prefix ? `${prefix}.${key}` : key
-						if (typeof val === 'object' && val !== null) {
+						if (isRecord(val)) {
 							Object.assign(result, flattenObject(val, newKey))
 						} else {
 							result[newKey] = val
@@ -174,7 +175,7 @@ export const jsonTool = createTool({
 					return failure(`Unknown operation: ${operation}`)
 			}
 		} catch (error) {
-			return failure(`JSON error: ${error instanceof Error ? error.message : 'Unknown error'}`)
+			return failure(`JSON error: ${getErrorMessage(error)}`)
 		}
 	},
 })

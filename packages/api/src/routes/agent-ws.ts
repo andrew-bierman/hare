@@ -12,6 +12,7 @@ import {
 	routeHttpToAgent,
 	routeWebSocketToAgent,
 } from '@hare/agent'
+import { getErrorMessage } from '@hare/checks'
 import { AgentStatus, logger } from '@hare/config'
 import { agents, workspaceMembers } from '@hare/db/schema'
 import type { OptionalAuthEnv } from '@hare/types'
@@ -485,7 +486,7 @@ async function handleChat(c: Context<OptionalAuthEnv>) {
 		})
 	} catch (error) {
 		logger.error('[chat] Error:', error)
-		return c.json({ error: error instanceof Error ? error.message : 'Internal server error' }, 500)
+		return c.json({ error: getErrorMessage(error) }, 500)
 	}
 }
 

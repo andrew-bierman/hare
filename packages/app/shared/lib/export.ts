@@ -20,7 +20,8 @@ function sanitizeCSVValue(value: unknown): string {
 	return str
 }
 
-export function exportToCSV(data: Record<string, unknown>[], filename: string) {
+export function exportToCSV(opts: { data: Record<string, unknown>[]; filename: string }) {
+	const { data, filename } = opts
 	const firstRow = data[0]
 	if (!firstRow) return
 
@@ -37,7 +38,8 @@ export function exportToCSV(data: Record<string, unknown>[], filename: string) {
 	link.click()
 }
 
-export function exportToJSON(data: unknown, filename: string) {
+export function exportToJSON(opts: { data: unknown; filename: string }) {
+	const { data, filename } = opts
 	const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
 	const link = document.createElement('a')
 	link.href = URL.createObjectURL(blob)

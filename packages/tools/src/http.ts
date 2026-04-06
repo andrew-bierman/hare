@@ -1,3 +1,4 @@
+import { getErrorMessage, isAbortError } from '@hare/checks'
 import { z } from 'zod'
 import { ContentTypes, Timeouts, UserAgents } from './constants'
 import { delegateTo } from './delegate'
@@ -123,12 +124,10 @@ export const httpRequestTool = createTool({
 				ok: response.ok,
 			})
 		} catch (error) {
-			if (error instanceof Error && error.name === 'AbortError') {
+			if (isAbortError(error)) {
 				return failure(`Request timed out after ${params.timeout}ms`)
 			}
-			return failure(
-				`HTTP request failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
-			)
+			return failure(`HTTP request failed: ${getErrorMessage(error)}`)
 		}
 	},
 })

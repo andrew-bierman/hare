@@ -90,10 +90,16 @@ const RULES: LintRule[] = [
 	},
 	{
 		id: 'no-instanceof',
-		severity: 'warn',
+		severity: 'error',
 		description: 'Use type guard functions from @hare/checks instead of instanceof',
 		pattern: /\binstanceof\s+/,
-		include: ['packages/**/*.ts'],
+		include: [
+			'packages/api/**/*.ts',
+			'packages/agent/**/*.ts',
+			'packages/tools/**/*.ts',
+			'packages/email/**/*.ts',
+			'packages/security/**/*.ts',
+		],
 		exclude: [
 			'**/__tests__/**',
 			'**/*.test.ts',
@@ -103,10 +109,16 @@ const RULES: LintRule[] = [
 	},
 	{
 		id: 'no-typeof',
-		severity: 'warn',
+		severity: 'error',
 		description: 'Use type guard functions from @hare/checks instead of typeof',
 		pattern: /\btypeof\s+\w+\s*===?\s*['"]/,
-		include: ['packages/**/*.ts'],
+		include: [
+			'packages/api/**/*.ts',
+			'packages/agent/**/*.ts',
+			'packages/tools/**/*.ts',
+			'packages/email/**/*.ts',
+			'packages/security/**/*.ts',
+		],
 		exclude: [
 			'**/__tests__/**',
 			'**/*.test.ts',
@@ -116,10 +128,17 @@ const RULES: LintRule[] = [
 	},
 	{
 		id: 'no-multi-param-function',
-		severity: 'warn',
+		severity: 'error',
 		description: 'Functions with >1 parameter should accept a single options object',
 		pattern: /(?:function\s+\w+|(?:const|let)\s+\w+\s*=\s*(?:async\s+)?)\((?:[^)]*,){2,}[^)]*\)/,
-		include: ['packages/**/*.ts'],
+		include: [
+			'packages/api/**/*.ts',
+			'packages/agent/**/*.ts',
+			'packages/tools/**/*.ts',
+			'packages/email/**/*.ts',
+			'packages/security/**/*.ts',
+			'packages/app/**/*.ts',
+		],
 		exclude: [
 			'**/__tests__/**',
 			'**/*.test.ts',

@@ -1,3 +1,4 @@
+import { getErrorMessage } from '@hare/checks'
 import { z } from 'zod'
 import { createTool, failure, success, type ToolContext, type ToolResult } from './types'
 
@@ -775,9 +776,7 @@ export const compressionTool = createTool({
 				})
 			}
 		} catch (error) {
-			return failure(
-				`Compression error: ${error instanceof Error ? error.message : 'Unknown error'}`,
-			)
+			return failure(`Compression error: ${getErrorMessage(error)}`)
 		}
 	},
 })

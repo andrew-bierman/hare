@@ -15,6 +15,7 @@
  * ```
  */
 
+import { isErrorType } from '@hare/checks'
 import { logger, serverEnv } from '@hare/config'
 import { requestValidation } from '@hare/security'
 import type { HonoEnv } from '@hare/types'
@@ -73,7 +74,7 @@ const app = new OpenAPIHono<HonoEnv>().basePath('/api')
 
 // Global error handler
 app.onError((error, c) => {
-	if (error instanceof CloudflareEnvError) {
+	if (isErrorType(error, CloudflareEnvError)) {
 		logger.error('CloudflareEnvError:', error.message)
 		return c.json({ error: 'Service unavailable' }, 503)
 	}

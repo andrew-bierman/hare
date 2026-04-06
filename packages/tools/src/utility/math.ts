@@ -1,3 +1,4 @@
+import { getErrorMessage } from '@hare/checks'
 import { z } from 'zod'
 import { createTool, failure, success, type ToolResult } from '../types'
 import { MathOutputSchema } from './schemas'
@@ -167,7 +168,7 @@ export const mathTool = createTool({
 					return failure(`Unknown operation: ${operation}`)
 			}
 		} catch (error) {
-			return failure(`Math error: ${error instanceof Error ? error.message : 'Unknown error'}`)
+			return failure(`Math error: ${getErrorMessage(error)}`)
 		}
 	},
 })

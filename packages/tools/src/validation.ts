@@ -1,3 +1,4 @@
+import { isAbortError, isErrorType } from '@hare/checks'
 import { z } from 'zod'
 import { Timeouts, ValidationLimits } from './constants'
 import { createTool, success, type ToolContext } from './types'
@@ -366,7 +367,7 @@ export const validateUrlTool = createTool({
 					}
 				} catch (error) {
 					result.reachable = false
-					if (error instanceof Error && error.name === 'AbortError') {
+					if (isAbortError(error)) {
 						result.errors.push(`Reachability check timed out after ${timeout}ms`)
 					} else {
 						result.errors.push('URL is not reachable')
@@ -673,7 +674,7 @@ export const validateJsonTool = createTool({
 				result.type = typeof result.parsed
 			}
 		} catch (error) {
-			if (error instanceof SyntaxError) {
+			if (isErrorType(error, SyntaxError)) {
 				result.errors.push(error.message)
 
 				// Try to extract position from error message

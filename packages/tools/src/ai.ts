@@ -1,3 +1,4 @@
+import { getErrorMessage } from '@hare/checks'
 import { z } from 'zod'
 import { ContentLengths } from './constants'
 import { createTool, failure, type HareEnv, success, type ToolContext } from './types'
@@ -186,9 +187,7 @@ export const sentimentTool = createTool({
 				...(detailed && { allScores: sortedResults }),
 			})
 		} catch (error) {
-			return failure(
-				`Sentiment analysis error: ${error instanceof Error ? error.message : 'Unknown error'}`,
-			)
+			return failure(`Sentiment analysis error: ${getErrorMessage(error)}`)
 		}
 	},
 })
@@ -251,9 +250,7 @@ export const summarizeTool = createTool({
 				style,
 			})
 		} catch (error) {
-			return failure(
-				`Summarization error: ${error instanceof Error ? error.message : 'Unknown error'}`,
-			)
+			return failure(`Summarization error: ${getErrorMessage(error)}`)
 		}
 	},
 })
@@ -308,9 +305,7 @@ export const translateTool = createTool({
 				translatedLength: translatedText.length,
 			})
 		} catch (error) {
-			return failure(
-				`Translation error: ${error instanceof Error ? error.message : 'Unknown error'}`,
-			)
+			return failure(`Translation error: ${getErrorMessage(error)}`)
 		}
 	},
 })
@@ -391,9 +386,7 @@ export const imageGenerateTool = createTool({
 				dataUrl: `data:image/png;base64,${base64Image}`,
 			})
 		} catch (error) {
-			return failure(
-				`Image generation error: ${error instanceof Error ? error.message : 'Unknown error'}`,
-			)
+			return failure(`Image generation error: ${getErrorMessage(error)}`)
 		}
 	},
 })
@@ -468,9 +461,7 @@ Return only the single most appropriate category name.`
 				rawResponse: result,
 			})
 		} catch (error) {
-			return failure(
-				`Classification error: ${error instanceof Error ? error.message : 'Unknown error'}`,
-			)
+			return failure(`Classification error: ${getErrorMessage(error)}`)
 		}
 	},
 })
@@ -563,7 +554,7 @@ Text: "${text.slice(0, 3000)}"`
 				typesFound: Object.keys(entities),
 			})
 		} catch (error) {
-			return failure(`NER error: ${error instanceof Error ? error.message : 'Unknown error'}`)
+			return failure(`NER error: ${getErrorMessage(error)}`)
 		}
 	},
 })
@@ -619,7 +610,7 @@ export const embeddingTool = createTool({
 				model,
 			})
 		} catch (error) {
-			return failure(`Embedding error: ${error instanceof Error ? error.message : 'Unknown error'}`)
+			return failure(`Embedding error: ${getErrorMessage(error)}`)
 		}
 	},
 })
@@ -701,7 +692,7 @@ Answer:`
 				question,
 			})
 		} catch (error) {
-			return failure(`Q&A error: ${error instanceof Error ? error.message : 'Unknown error'}`)
+			return failure(`Q&A error: ${getErrorMessage(error)}`)
 		}
 	},
 })

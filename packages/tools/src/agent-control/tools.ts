@@ -4,6 +4,7 @@
  * Tools for executing and listing agent tools.
  */
 
+import { getErrorMessage } from '@hare/checks'
 import { z } from 'zod'
 import { createTool, failure, success, type ToolContext } from '../types'
 import { ExecuteToolOutputSchema, ListAgentToolsOutputSchema } from './schemas'
@@ -97,7 +98,7 @@ export const executeToolTool = createTool({
 				executedAt: Date.now(),
 			})
 		} catch (error) {
-			return failure(error instanceof Error ? error.message : 'Failed to execute tool')
+			return failure(getErrorMessage(error))
 		}
 	},
 })
@@ -190,7 +191,7 @@ export const listAgentToolsTool = createTool({
 				total: tools.length + systemTools.length,
 			})
 		} catch (error) {
-			return failure(error instanceof Error ? error.message : 'Failed to list tools')
+			return failure(getErrorMessage(error))
 		}
 	},
 })

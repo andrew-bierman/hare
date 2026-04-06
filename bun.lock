@@ -158,6 +158,7 @@
       "name": "@hare/agent",
       "version": "0.1.0",
       "dependencies": {
+        "@hare/checks": "workspace:*",
         "@hare/config": "workspace:*",
         "@hare/db": "workspace:*",
         "@hare/tools": "workspace:*",
@@ -189,6 +190,7 @@
         "@elithrar/workers-hono-rate-limit": "catalog:",
         "@hare/agent": "workspace:*",
         "@hare/auth": "workspace:*",
+        "@hare/checks": "workspace:*",
         "@hare/config": "workspace:*",
         "@hare/db": "workspace:*",
         "@hare/email": "workspace:*",
@@ -365,6 +367,7 @@
       "name": "@hare/email",
       "version": "0.1.0",
       "dependencies": {
+        "@hare/checks": "workspace:*",
         "@react-email/components": "catalog:",
         "react": "catalog:",
         "resend": "catalog:",
@@ -440,6 +443,7 @@
       "name": "@hare/tools",
       "version": "0.1.0",
       "dependencies": {
+        "@hare/checks": "workspace:*",
         "@hare/config": "workspace:*",
         "@hare/types": "workspace:*",
         "ai": "catalog:",

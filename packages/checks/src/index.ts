@@ -115,6 +115,25 @@ export function getErrorMessage(error: unknown): string {
 }
 
 /**
+ * Check if an error is an AbortError (from AbortController timeouts).
+ * Replaces: `error instanceof Error && error.name === 'AbortError'`
+ */
+export function isAbortError(error: unknown): boolean {
+	return isError(error) && error.name === 'AbortError'
+}
+
+/**
+ * Check if an error is an instance of a specific error class.
+ * Replaces: `error instanceof SyntaxError`
+ */
+export function isErrorType<T extends new (...args: never[]) => Error>(
+	error: unknown,
+	ErrorClass: T,
+): error is InstanceType<T> {
+	return error instanceof ErrorClass
+}
+
+/**
  * Safely extract an error message with a fallback prefix.
  * Replaces: `\`Failed: ${error instanceof Error ? error.message : 'Unknown'}\``
  */

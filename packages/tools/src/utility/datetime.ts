@@ -1,3 +1,4 @@
+import { getErrorMessage } from '@hare/checks'
 import { z } from 'zod'
 import { createTool, failure, success, type ToolResult } from '../types'
 import { DatetimeOutputSchema } from './schemas'
@@ -194,7 +195,7 @@ export const datetimeTool = createTool({
 					return failure(`Unknown operation: ${operation}`)
 			}
 		} catch (error) {
-			return failure(`DateTime error: ${error instanceof Error ? error.message : 'Unknown error'}`)
+			return failure(`DateTime error: ${getErrorMessage(error)}`)
 		}
 	},
 })

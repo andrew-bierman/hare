@@ -5,7 +5,7 @@
  * The function is async and non-blocking to avoid slowing down API responses.
  */
 
-import { logger, type AuditAction } from '@hare/config'
+import { type AuditAction, logger } from '@hare/config'
 import { auditLogs } from '@hare/db/schema'
 import type { WorkspaceContext } from './base'
 

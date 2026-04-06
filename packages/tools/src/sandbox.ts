@@ -1,3 +1,4 @@
+import { getErrorMessage } from '@hare/checks'
 import { z } from 'zod'
 import { SandboxLimits, Timeouts } from './constants'
 import {
@@ -342,7 +343,7 @@ export async function executeSandboxed<T = unknown>({
 
 		return result
 	} catch (error) {
-		const errorMsg = error instanceof Error ? error.message : 'Unknown error'
+		const errorMsg = getErrorMessage(error)
 		logSandboxExecution({
 			workspaceId: context.workspaceId,
 			language,
@@ -401,7 +402,7 @@ async function executeWithCloudfareSandbox<T>(
 			success: result.exitCode === 0,
 		} as T)
 	} catch (error) {
-		return failure(`Sandbox error: ${error instanceof Error ? error.message : 'Unknown'}`)
+		return failure(`Sandbox error: ${getErrorMessage(error)}`)
 	}
 }
 
@@ -474,7 +475,7 @@ async function executeInWorker<T>(code: string, config: SandboxConfig): Promise<
 
 		return success({ result, logs } as T)
 	} catch (error) {
-		return failure(`Error: ${error instanceof Error ? error.message : 'Unknown'}`)
+		return failure(`Error: ${getErrorMessage(error)}`)
 	}
 }
 
@@ -576,7 +577,7 @@ Validates against:
 			try {
 				new Function(code) // Syntax check
 			} catch (e) {
-				issues.push(`Syntax error: ${e instanceof Error ? e.message : 'Unknown'}`)
+				issues.push(`Syntax error: ${getErrorMessage(e)}`)
 			}
 		}
 
@@ -668,7 +669,7 @@ Requires SANDBOX binding.`,
 					return failure('Unknown operation')
 			}
 		} catch (error) {
-			return failure(`File error: ${error instanceof Error ? error.message : 'Unknown'}`)
+			return failure(`File error: ${getErrorMessage(error)}`)
 		}
 	},
 })

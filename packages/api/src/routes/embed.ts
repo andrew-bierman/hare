@@ -12,6 +12,7 @@ import {
 	createMemoryStore,
 	toAgentMessages,
 } from '@hare/agent'
+import { getErrorMessage } from '@hare/checks'
 import { AgentStatus, logger } from '@hare/config'
 import { agents, usage } from '@hare/db/schema'
 import type { HonoEnv } from '@hare/types'
@@ -265,7 +266,7 @@ app.post('/agents/:agentId/chat', async (c) => {
 				logger.error('Embed chat error:', error)
 				sendEvent({
 					type: 'error',
-					message: error instanceof Error ? error.message : 'Unknown error',
+					message: getErrorMessage(error),
 				})
 			} finally {
 				controller.close()

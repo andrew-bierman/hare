@@ -1,3 +1,4 @@
+import { getErrorMessage } from '@hare/checks'
 import { config, HTTP_AUTH, logger } from '@hare/config'
 import { apiKeys, workspaces } from '@hare/db'
 import type { ApiKeyEnv, ApiKeyInfo } from '@hare/types'
@@ -101,7 +102,7 @@ export const apiKeyMiddleware: MiddlewareHandler<ApiKeyEnv> = async (c, next) =>
 			logger.error('Failed to update API key lastUsedAt:', {
 				apiKeyId: keyRecord.id,
 				workspaceId: keyRecord.workspaceId,
-				error: error instanceof Error ? error.message : String(error),
+				error: getErrorMessage(error),
 			})
 		})
 

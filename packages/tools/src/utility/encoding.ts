@@ -1,3 +1,4 @@
+import { getErrorMessage } from '@hare/checks'
 import { z } from 'zod'
 import { createTool, failure, success, type ToolResult } from '../types'
 import {
@@ -97,7 +98,7 @@ export const uuidTool = createTool({
 			const ids = Array.from({ length: count }, () => generateId())
 			return success({ ids, count: ids.length })
 		} catch (error) {
-			return failure(`UUID error: ${error instanceof Error ? error.message : 'Unknown error'}`)
+			return failure(`UUID error: ${getErrorMessage(error)}`)
 		}
 	},
 })
@@ -179,7 +180,7 @@ export const hashTool = createTool({
 					return failure(`Unknown operation: ${operation}`)
 			}
 		} catch (error) {
-			return failure(`Hash error: ${error instanceof Error ? error.message : 'Unknown error'}`)
+			return failure(`Hash error: ${getErrorMessage(error)}`)
 		}
 	},
 })
@@ -232,7 +233,7 @@ export const base64Tool = createTool({
 					return failure(`Unknown operation: ${operation}`)
 			}
 		} catch (error) {
-			return failure(`Base64 error: ${error instanceof Error ? error.message : 'Unknown error'}`)
+			return failure(`Base64 error: ${getErrorMessage(error)}`)
 		}
 	},
 })
@@ -356,7 +357,7 @@ export const urlTool = createTool({
 					return failure(`Unknown operation: ${operation}`)
 			}
 		} catch (error) {
-			return failure(`URL error: ${error instanceof Error ? error.message : 'Unknown error'}`)
+			return failure(`URL error: ${getErrorMessage(error)}`)
 		}
 	},
 })

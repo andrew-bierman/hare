@@ -12,6 +12,7 @@
  * because it uses the 'agents' package which depends on 'cloudflare:workers'.
  */
 
+import { getErrorMessage, isString } from '@hare/checks'
 import { logger } from '@hare/config'
 import {
 	getSystemTools,
@@ -269,7 +270,7 @@ export class HareAgent<TEnv extends HareAgentEnv = HareAgentEnv> extends Agent<
 	 */
 	async onMessage(connection: Connection, message: WSMessage): Promise<void> {
 		try {
-			const data = typeof message === 'string' ? JSON.parse(message) : message
+			const data = isString(message) ? JSON.parse(message) : message
 			const clientMessage = data as ClientMessage
 
 			switch (clientMessage.type) {
@@ -328,7 +329,7 @@ export class HareAgent<TEnv extends HareAgentEnv = HareAgentEnv> extends Agent<
 					this.sendError(connection, `Unknown message type: ${clientMessage.type}`)
 			}
 		} catch (error) {
-			this.sendError(connection, error instanceof Error ? error.message : 'Unknown error')
+			this.sendError(connection, getErrorMessage(error))
 		}
 	}
 
@@ -424,7 +425,7 @@ export class HareAgent<TEnv extends HareAgentEnv = HareAgentEnv> extends Agent<
 		const aiTools: ToolSet =
 			tools.length > 0
 				? // biome-ignore lint/suspicious/noExplicitAny: Required for heterogeneous tool cast
-					toAISDKTools(tools as any, context)
+					toAISDKTools({ hareTools: tools as any, context })
 				: {}
 
 		return {
@@ -509,10 +510,10 @@ export class HareAgent<TEnv extends HareAgentEnv = HareAgentEnv> extends Agent<
 				...this.state,
 				isProcessing: false,
 				status: 'error',
-				lastError: error instanceof Error ? error.message : 'Unknown error',
+				lastError: getErrorMessage(error),
 				lastActivity: Date.now(),
 			})
-			this.sendError(connection, error instanceof Error ? error.message : 'Chat failed')
+			this.sendError(connection, getErrorMessage(error))
 		}
 	}
 
@@ -569,7 +570,7 @@ export class HareAgent<TEnv extends HareAgentEnv = HareAgentEnv> extends Agent<
 					} catch (error) {
 						const errorData = JSON.stringify({
 							type: 'error',
-							message: error instanceof Error ? error.message : 'Unknown error',
+							message: getErrorMessage(error),
 						})
 						controller.enqueue(encoder.encode(`data: ${errorData}\n\n`))
 						controller.close()
@@ -589,14 +590,11 @@ export class HareAgent<TEnv extends HareAgentEnv = HareAgentEnv> extends Agent<
 				...this.state,
 				isProcessing: false,
 				status: 'error',
-				lastError: error instanceof Error ? error.message : 'Unknown error',
+				lastError: getErrorMessage(error),
 				lastActivity: Date.now(),
 			})
 
-			return Response.json(
-				{ error: error instanceof Error ? error.message : 'Chat failed' },
-				{ status: 500 },
-			)
+			return Response.json({ error: getErrorMessage(error) }, { status: 500 })
 		}
 	}
 
@@ -646,10 +644,7 @@ export class HareAgent<TEnv extends HareAgentEnv = HareAgentEnv> extends Agent<
 
 			return Response.json({ success: true, scheduled: schedule.id, task })
 		} catch (error) {
-			return Response.json(
-				{ error: error instanceof Error ? error.message : 'Scheduling failed' },
-				{ status: 500 },
-			)
+			return Response.json({ error: getErrorMessage(error) }, { status: 500 })
 		}
 	}
 
@@ -672,7 +667,7 @@ export class HareAgent<TEnv extends HareAgentEnv = HareAgentEnv> extends Agent<
 				{
 					success: false,
 					toolId,
-					error: error instanceof Error ? error.message : 'Tool execution failed',
+					error: getErrorMessage(error),
 				},
 				{ status: 500 },
 			)
@@ -716,7 +711,7 @@ export class HareAgent<TEnv extends HareAgentEnv = HareAgentEnv> extends Agent<
 					toolId,
 					result: {
 						success: false,
-						error: error instanceof Error ? error.message : 'Tool execution failed',
+						error: getErrorMessage(error),
 					} as ToolResult,
 				},
 				timestamp: Date.now(),
@@ -773,7 +768,7 @@ export class HareAgent<TEnv extends HareAgentEnv = HareAgentEnv> extends Agent<
 				timestamp: Date.now(),
 			})
 		} catch (error) {
-			this.sendError(connection, error instanceof Error ? error.message : 'Scheduling failed')
+			this.sendError(connection, getErrorMessage(error))
 		}
 	}
 

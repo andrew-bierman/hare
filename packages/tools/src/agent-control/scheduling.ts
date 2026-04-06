@@ -4,6 +4,7 @@
  * Tools for scheduling tasks for agents.
  */
 
+import { getErrorMessage } from '@hare/checks'
 import { z } from 'zod'
 import { createTool, failure, success, type ToolContext } from '../types'
 import { ScheduleTaskOutputSchema } from './schemas'
@@ -118,7 +119,7 @@ export const scheduleTaskTool = createTool({
 					// DO scheduling is optional - database record is still created
 					console.warn(
 						`[agent_schedule] DO scheduling error for agent ${params.agentId}:`,
-						error instanceof Error ? error.message : error,
+						getErrorMessage(error),
 					)
 				}
 			}
@@ -135,7 +136,7 @@ export const scheduleTaskTool = createTool({
 				createdAt: now,
 			})
 		} catch (error) {
-			return failure(error instanceof Error ? error.message : 'Failed to schedule task')
+			return failure(getErrorMessage(error))
 		}
 	},
 })

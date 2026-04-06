@@ -1,3 +1,4 @@
+import { getErrorMessage, isAbortError } from '@hare/checks'
 import { z } from 'zod'
 import { ContentTypes, StoragePrefixes, Timeouts, UserAgents, ZapierConfig } from './constants'
 import { createTool, failure, success, type ToolContext } from './types'
@@ -193,7 +194,7 @@ Once saved, trigger it anytime with just the name - no URL needed!`,
 					: `Saved new integration "${name}" - trigger it anytime with zapier_trigger`,
 			})
 		} catch (error) {
-			return failure(`Failed to save: ${error instanceof Error ? error.message : 'Unknown error'}`)
+			return failure(`Failed to save: ${getErrorMessage(error)}`)
 		}
 	},
 })
@@ -260,7 +261,7 @@ Shows name, description, and usage stats for each saved integration.`,
 							: `Found ${integrations.length} integration(s)`,
 			})
 		} catch (error) {
-			return failure(`Failed to list: ${error instanceof Error ? error.message : 'Unknown error'}`)
+			return failure(`Failed to list: ${getErrorMessage(error)}`)
 		}
 	},
 })
@@ -400,10 +401,10 @@ If the saved integration has defaultData, it will be merged (your data takes pre
 				response: waitForResponse ? responseData : 'Triggered successfully',
 			})
 		} catch (error) {
-			if (error instanceof Error && error.name === 'AbortError') {
+			if (isAbortError(error)) {
 				return failure('Request timed out')
 			}
-			return failure(`Error: ${error instanceof Error ? error.message : 'Unknown'}`)
+			return failure(`Error: ${getErrorMessage(error)}`)
 		}
 	},
 })
@@ -443,9 +444,7 @@ This only removes the saved reference - the actual Zap in Zapier is not affected
 				message: `Deleted integration "${params.name}"`,
 			})
 		} catch (error) {
-			return failure(
-				`Failed to delete: ${error instanceof Error ? error.message : 'Unknown error'}`,
-			)
+			return failure(`Failed to delete: ${getErrorMessage(error)}`)
 		}
 	},
 })
@@ -516,10 +515,10 @@ The Zap will receive the test data - check Zapier's task history to confirm.`,
 				message: `Test successful! Check Zapier task history to confirm the Zap received it.`,
 			})
 		} catch (error) {
-			if (error instanceof Error && error.name === 'AbortError') {
+			if (isAbortError(error)) {
 				return failure('Test timed out - webhook may be slow or unreachable')
 			}
-			return failure(`Test error: ${error instanceof Error ? error.message : 'Unknown'}`)
+			return failure(`Test error: ${getErrorMessage(error)}`)
 		}
 	},
 })
@@ -598,10 +597,10 @@ All service credentials are managed in your Zapier account, not here.`,
 				response: waitForResponse ? responseData : 'Triggered successfully',
 			})
 		} catch (error) {
-			if (error instanceof Error && error.name === 'AbortError') {
+			if (isAbortError(error)) {
 				return failure('Request timed out')
 			}
-			return failure(`Error: ${error instanceof Error ? error.message : 'Unknown'}`)
+			return failure(`Error: ${getErrorMessage(error)}`)
 		}
 	},
 })
@@ -670,10 +669,10 @@ export const webhookTool = createTool({
 				data: responseData,
 			})
 		} catch (error) {
-			if (error instanceof Error && error.name === 'AbortError') {
+			if (isAbortError(error)) {
 				return failure('Request timed out')
 			}
-			return failure(`Error: ${error instanceof Error ? error.message : 'Unknown'}`)
+			return failure(`Error: ${getErrorMessage(error)}`)
 		}
 	},
 })

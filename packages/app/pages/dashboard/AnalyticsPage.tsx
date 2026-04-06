@@ -197,12 +197,12 @@ export function AnalyticsPage() {
 		if (!analyticsData) return
 
 		if (format === 'csv') {
-			exportToCSV(
-				analyticsData.timeSeries as unknown as Record<string, unknown>[],
-				'analytics-timeseries',
-			)
+			exportToCSV({
+				data: analyticsData.timeSeries as unknown as Record<string, unknown>[],
+				filename: 'analytics-timeseries',
+			})
 		} else {
-			exportToJSON(analyticsData, 'analytics')
+			exportToJSON({ data: analyticsData, filename: 'analytics' })
 		}
 	}
 

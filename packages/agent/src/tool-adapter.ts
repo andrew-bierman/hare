@@ -11,7 +11,11 @@ import { tool as aiTool } from 'ai'
  * This adapter bridges them by closing over the ToolContext.
  */
 // biome-ignore lint/suspicious/noExplicitAny: Required for heterogeneous Hare tool arrays
-export function toAISDKTools(hareTools: Tool<any, any>[], context: ToolContext<HareEnv>): ToolSet {
+export function toAISDKTools(opts: {
+	hareTools: Tool<any, any>[]
+	context: ToolContext<HareEnv>
+}): ToolSet {
+	const { hareTools, context } = opts
 	return Object.fromEntries(
 		hareTools
 			.filter((t) => typeof t.execute === 'function')

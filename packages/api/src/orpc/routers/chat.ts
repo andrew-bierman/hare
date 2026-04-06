@@ -10,6 +10,7 @@ import {
 	createMemoryStore,
 	toAgentMessages,
 } from '@hare/agent'
+import { getErrorMessage } from '@hare/checks'
 import { AgentStatus, logger } from '@hare/config'
 import { agents, conversations, messages, usage } from '@hare/db/schema'
 import { eventIterator } from '@orpc/server'
@@ -261,7 +262,7 @@ export const chatWithAgent = authedProcedure
 			logger.error('Error during chat streaming:', error)
 			yield {
 				type: 'error' as const,
-				message: error instanceof Error ? error.message : 'Unknown error',
+				message: getErrorMessage(error),
 			}
 		}
 	})

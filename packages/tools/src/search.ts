@@ -1,3 +1,4 @@
+import { getErrorMessage } from '@hare/checks'
 import { z } from 'zod'
 import { AutoRAGConfig } from './constants'
 import { createTool, failure, success, type ToolContext } from './types'
@@ -88,9 +89,7 @@ export const aiSearchTool = createTool({
 				count: results.data.length,
 			})
 		} catch (error) {
-			return failure(
-				`AI Search failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
-			)
+			return failure(`AI Search failed: ${getErrorMessage(error)}`)
 		}
 	},
 })
@@ -151,9 +150,7 @@ export const aiSearchAnswerTool = createTool({
 				sourceCount: response.data.length,
 			})
 		} catch (error) {
-			return failure(
-				`AI Search Answer failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
-			)
+			return failure(`AI Search Answer failed: ${getErrorMessage(error)}`)
 		}
 	},
 })
