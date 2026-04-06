@@ -68,8 +68,9 @@ export const list = requireWrite
 
 		const results = await db.select().from(tools).where(eq(tools.workspaceId, workspaceId))
 
-		// Include available system tools from config
-		const epoch = new Date(0).toISOString()
+		// Include available system tools from config.
+		// Each system tool type is unique so `system-${st.type}` IDs never collide.
+		const systemToolTimestamp = new Date(0).toISOString()
 		const systemToolsList = config.tools.system
 			.filter((st) => st.available)
 			.map((st) => ({
@@ -81,8 +82,8 @@ export const list = requireWrite
 				config: {} as Record<string, unknown>,
 				inputSchema: null,
 				isSystem: true as const,
-				createdAt: epoch,
-				updatedAt: epoch,
+				createdAt: systemToolTimestamp,
+				updatedAt: systemToolTimestamp,
 			}))
 
 		return { tools: [...systemToolsList, ...results.map(serializeTool)] }

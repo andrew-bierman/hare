@@ -477,8 +477,12 @@ test.describe('Agent Usage API', () => {
 			const listResp = await orpc(authenticatedPage, 'agents/list', {}, wsHeader)
 			expect(listResp.status()).toBe(200)
 			const data = await parseOrpc(listResp)
-			const agentsList = Array.isArray(data.agents) ? data.agents : Array.isArray(data) ? data : []
-			const found = agentsList.find((a: { name: string }) => a.name === agentName)
+			const agentsList: Array<{ name: string; id: string }> = Array.isArray(data.agents)
+				? data.agents
+				: Array.isArray(data)
+					? data
+					: []
+			const found = agentsList.find((a) => a.name === agentName)
 			expect(found).toBeTruthy()
 			agentId = found.id
 		}
