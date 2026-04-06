@@ -122,7 +122,7 @@ export function useCreateMemoryMutation(options: { agentId: string }) {
 			unwrap(
 				client.api.memory({ id: agentId }).post({
 					content: data.content,
-					type: data.type,
+					type: data.type ?? 'custom',
 					source: data.source,
 					tags: data.tags,
 				}),
@@ -141,7 +141,7 @@ export function useSearchMemoriesMutation(options: { agentId: string }) {
 			unwrap(
 				client.api.memory({ id: agentId }).search.post({
 					query: data.query,
-					topK: data.topK,
+					topK: data.topK ?? 5,
 					type: data.type,
 					tags: data.tags,
 				}),

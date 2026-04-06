@@ -8,6 +8,7 @@
  */
 
 import { client } from '@hare/api/client'
+import type { ToolType } from '@hare/config'
 import type { Schedule } from '@hare/types'
 
 // Helper to unwrap Eden Treaty response
@@ -150,11 +151,11 @@ export function createAgentCollection(options: { workspaceId: string; queryClien
 							description: description ?? undefined,
 							model,
 							instructions: instructions ?? undefined,
-							config: config ?? undefined,
+							config: (config ?? undefined) as Record<string, unknown> | undefined,
 							systemToolsEnabled,
 							toolIds,
 							status,
-						} as any),
+						}),
 					)
 				}
 			}
@@ -205,7 +206,7 @@ export function createToolCollection(options: { workspaceId: string; queryClient
 						client.api.tools.post({
 							name: data.name,
 							description: data.description ?? data.name,
-							type: data.type as any,
+							type: data.type as ToolType,
 							inputSchema: data.inputSchema ?? undefined,
 							config: data.config ?? undefined,
 						}),
@@ -224,10 +225,10 @@ export function createToolCollection(options: { workspaceId: string; queryClient
 						client.api.tools({ id }).patch({
 							name,
 							description: description ?? undefined,
-							type: mutation.modified.type as any,
-							inputSchema: inputSchema ?? undefined,
-							config: config ?? undefined,
-						} as any),
+							type: mutation.modified.type as ToolType,
+							inputSchema: (inputSchema ?? undefined) as Record<string, unknown> | undefined,
+							config: (config ?? undefined) as Record<string, unknown> | undefined,
+						}),
 					)
 				}
 			}
@@ -330,7 +331,7 @@ export function createScheduleCollection(options: {
 		queryClient,
 		queryKey: scheduleKeys.list(agentId, workspaceId),
 		queryFn: async (): Promise<ScheduleRow[]> => {
-			const response = await unwrap(client.api.schedules.get({ query: { agentId } as any }))
+			const response = await unwrap(client.api.schedules.get({ query: { agentId } }))
 			return response.schedules.map((schedule) => ({
 				...schedule,
 				_workspaceId: workspaceId,
