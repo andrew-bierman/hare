@@ -12,6 +12,7 @@
  * because it uses the 'agents' package which depends on 'cloudflare:workers'.
  */
 
+import { createDb, recordUsage } from '@hare/db'
 import {
 	getSystemTools,
 	type HareEnv,
@@ -466,6 +467,7 @@ export class HareAgent<TEnv extends HareAgentEnv = HareAgentEnv> extends Agent<
 			const messages = [...this.state.messages, userMessage]
 
 			// Stream response with tools
+			const startTime = Date.now()
 			const inference = this.prepareInference(messages)
 			const result = await streamText(inference)
 
@@ -492,6 +494,23 @@ export class HareAgent<TEnv extends HareAgentEnv = HareAgentEnv> extends Agent<
 				status: 'idle',
 				lastActivity: Date.now(),
 			})
+
+			// Record usage non-blocking
+			if (this.env.DB) {
+				const db = createDb(this.env.DB)
+				const tokenUsage = await result.usage
+				this.ctx.waitUntil(
+					recordUsage({
+						db,
+						workspaceId: this.state.workspaceId,
+						agentId: this.state.agentId,
+						userId,
+						type: 'websocket',
+						usage: tokenUsage,
+						metadata: { model: this.state.model, duration: Date.now() - startTime },
+					}),
+				)
+			}
 
 			// Send done signal
 			this.sendToConnection(connection, {
@@ -535,6 +554,7 @@ export class HareAgent<TEnv extends HareAgentEnv = HareAgentEnv> extends Agent<
 			const messages = [...this.state.messages, userMessage]
 
 			// Stream response with tools
+			const startTime = Date.now()
 			const inference = this.prepareInference(messages)
 			const result = await streamText(inference)
 
@@ -560,6 +580,23 @@ export class HareAgent<TEnv extends HareAgentEnv = HareAgentEnv> extends Agent<
 							status: 'idle',
 							lastActivity: Date.now(),
 						})
+
+						// Record usage non-blocking
+						if (this.env.DB) {
+							const db = createDb(this.env.DB)
+							const tokenUsage = await result.usage
+							this.ctx.waitUntil(
+								recordUsage({
+									db,
+									workspaceId: this.state.workspaceId,
+									agentId: this.state.agentId,
+									userId,
+									type: 'websocket',
+									usage: tokenUsage,
+									metadata: { model: this.state.model, duration: Date.now() - startTime },
+								}),
+							)
+						}
 
 						// Send done
 						const doneData = JSON.stringify({ type: 'done', userId, metadata })
@@ -662,11 +699,17 @@ export class HareAgent<TEnv extends HareAgentEnv = HareAgentEnv> extends Agent<
 			return Response.json({ error: `Tool not found: ${toolId}` }, { status: 404 })
 		}
 
+		const startTime = Date.now()
 		try {
 			const context = this.createToolContext()
 			const result = await this.toolRegistry.execute({ id: toolId, params, context })
+
+			this.recordToolUsage(toolId, Date.now() - startTime, 200)
+
 			return Response.json({ success: true, toolId, result })
 		} catch (error) {
+			this.recordToolUsage(toolId, Date.now() - startTime, 500)
+
 			return Response.json(
 				{
 					success: false,
@@ -699,9 +742,12 @@ export class HareAgent<TEnv extends HareAgentEnv = HareAgentEnv> extends Agent<
 			timestamp: Date.now(),
 		})
 
+		const startTime = Date.now()
 		try {
 			const context = this.createToolContext()
 			const result = await this.toolRegistry.execute({ id: toolId, params, context })
+
+			this.recordToolUsage(toolId, Date.now() - startTime, 200)
 
 			this.sendToConnection(connection, {
 				type: 'tool_result',
@@ -709,6 +755,8 @@ export class HareAgent<TEnv extends HareAgentEnv = HareAgentEnv> extends Agent<
 				timestamp: Date.now(),
 			})
 		} catch (error) {
+			this.recordToolUsage(toolId, Date.now() - startTime, 500)
+
 			this.sendToConnection(connection, {
 				type: 'tool_result',
 				data: {
@@ -841,6 +889,25 @@ export class HareAgent<TEnv extends HareAgentEnv = HareAgentEnv> extends Agent<
 		}
 
 		return parts.join('\n')
+	}
+
+	/**
+	 * Record tool execution usage non-blocking.
+	 */
+	private recordToolUsage(toolId: string, durationMs: number, statusCode: number): void {
+		if (!this.env.DB) return
+		const db = createDb(this.env.DB)
+		this.ctx.waitUntil(
+			recordUsage({
+				db,
+				workspaceId: this.state.workspaceId,
+				agentId: this.state.agentId,
+				userId: null,
+				type: 'tool_execution',
+				usage: { inputTokens: 0, outputTokens: 0, totalTokens: 0 },
+				metadata: { endpoint: toolId, duration: durationMs, statusCode },
+			}),
+		)
 	}
 
 	/**

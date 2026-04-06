@@ -8,6 +8,7 @@
  * because it uses the 'agents/mcp' package which depends on 'cloudflare:workers'.
  */
 
+import { createDb, recordUsage } from '@hare/db'
 import { getSystemTools, type HareEnv, type ToolContext, ToolRegistry } from '@hare/tools'
 import { DEFAULT_MCP_AGENT_STATE, type McpAgentState } from '@hare/types'
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
@@ -102,12 +103,33 @@ export class HareMcpAgent<TEnv extends McpAgentEnv = McpAgentEnv> extends McpAge
 			const toolId = tool.id
 			this.server.tool(toolId, tool.description, inputSchema, async (params: unknown) => {
 				// Create fresh context with current workspaceId for each tool execution
+				const startTime = Date.now()
 				const executionContext = this.createToolContext()
 				const result = await this.toolRegistry.execute({
 					id: toolId,
 					params,
 					context: executionContext,
 				})
+
+				// Record tool execution usage
+				if (this.env.DB) {
+					const db = createDb(this.env.DB)
+					this.ctx.waitUntil(
+						recordUsage({
+							db,
+							workspaceId: this.state.workspaceId,
+							agentId: this.state.agentId ?? 'mcp',
+							userId: null,
+							type: 'mcp_tool',
+							usage: { inputTokens: 0, outputTokens: 0, totalTokens: 0 },
+							metadata: {
+								endpoint: toolId,
+								duration: Date.now() - startTime,
+								statusCode: result.success ? 200 : 500,
+							},
+						}),
+					)
+				}
 
 				if (result.success) {
 					return {
