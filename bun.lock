@@ -158,6 +158,8 @@
       "name": "@hare/agent",
       "version": "0.1.0",
       "dependencies": {
+        "@hare/checks": "workspace:*",
+        "@hare/config": "workspace:*",
         "@hare/db": "workspace:*",
         "@hare/tools": "workspace:*",
         "@hare/types": "workspace:*",
@@ -188,6 +190,7 @@
         "@elithrar/workers-hono-rate-limit": "catalog:",
         "@hare/agent": "workspace:*",
         "@hare/auth": "workspace:*",
+        "@hare/checks": "workspace:*",
         "@hare/config": "workspace:*",
         "@hare/db": "workspace:*",
         "@hare/email": "workspace:*",
@@ -291,6 +294,14 @@
         "better-auth": "^1.4.0",
       },
     },
+    "packages/checks": {
+      "name": "@hare/checks",
+      "version": "0.1.0",
+      "devDependencies": {
+        "@hare/typescript-config": "workspace:*",
+        "typescript": "catalog:",
+      },
+    },
     "packages/cli": {
       "name": "@hare/cli",
       "version": "0.1.0",
@@ -308,6 +319,7 @@
       "name": "@hare/config",
       "version": "0.1.0",
       "dependencies": {
+        "consola": "^3.4.2",
         "zod": "catalog:",
       },
       "devDependencies": {
@@ -355,6 +367,7 @@
       "name": "@hare/email",
       "version": "0.1.0",
       "dependencies": {
+        "@hare/checks": "workspace:*",
         "@react-email/components": "catalog:",
         "react": "catalog:",
         "resend": "catalog:",
@@ -430,6 +443,7 @@
       "name": "@hare/tools",
       "version": "0.1.0",
       "dependencies": {
+        "@hare/checks": "workspace:*",
         "@hare/config": "workspace:*",
         "@hare/types": "workspace:*",
         "ai": "catalog:",
@@ -874,6 +888,8 @@
     "@hare/app": ["@hare/app@workspace:packages/app"],
 
     "@hare/auth": ["@hare/auth@workspace:packages/auth"],
+
+    "@hare/checks": ["@hare/checks@workspace:packages/checks"],
 
     "@hare/cli": ["@hare/cli@workspace:packages/cli"],
 

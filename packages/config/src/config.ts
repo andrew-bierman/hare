@@ -1250,16 +1250,16 @@ export type ActivityEventType =
 
 // Re-export types used in config
 export type {
-	AIModel,
-	SystemTool,
-	ResponseStylePreset,
 	AgentTemplate,
-	ModelProvider,
-	SpeedTier,
-	CostTier,
-	ResponseStyle,
-	SystemToolType,
 	AgentTemplateId,
+	AIModel,
+	CostTier,
+	ModelProvider,
+	ResponseStyle,
+	ResponseStylePreset,
+	SpeedTier,
+	SystemTool,
+	SystemToolType,
 }
 
 // =============================================================================

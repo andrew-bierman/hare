@@ -1,3 +1,4 @@
+import { getErrorMessage } from '@hare/checks'
 import { z } from 'zod'
 import { createTool, failure, success, type ToolContext } from './types'
 
@@ -161,9 +162,7 @@ export const sqlQueryTool = createTool({
 				meta: result.meta,
 			})
 		} catch (error) {
-			return failure(
-				`SQL query failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
-			)
+			return failure(`SQL query failed: ${getErrorMessage(error)}`)
 		}
 	},
 })
@@ -229,9 +228,7 @@ export const sqlExecuteTool = createTool({
 				meta: result.meta,
 			})
 		} catch (error) {
-			return failure(
-				`SQL execution failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
-			)
+			return failure(`SQL execution failed: ${getErrorMessage(error)}`)
 		}
 	},
 })
@@ -293,9 +290,7 @@ export const sqlBatchTool = createTool({
 				totalStatements: results.length,
 			})
 		} catch (error) {
-			return failure(
-				`SQL batch failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
-			)
+			return failure(`SQL batch failed: ${getErrorMessage(error)}`)
 		}
 	},
 })

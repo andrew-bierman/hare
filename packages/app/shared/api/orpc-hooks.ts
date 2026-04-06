@@ -948,6 +948,131 @@ export function useConversationOutcomesQuery(options: {
 }
 
 // =============================================================================
+// Workflow Hooks
+// =============================================================================
+
+export function useWorkflowsQuery() {
+	return useQuery({
+		queryKey: ['workflows'],
+		queryFn: () => orpc.workflows.list({}),
+		enabled: !!getOrpcWorkspaceId(),
+	})
+}
+
+export function useWorkflowQuery(id: string | undefined) {
+	return useQuery({
+		queryKey: ['workflows', id],
+		queryFn: () => orpc.workflows.get({ id: id! }),
+		enabled: !!id,
+	})
+}
+
+export function useCreateWorkflowMutation() {
+	const queryClient = useQueryClient()
+	return useMutation({
+		mutationFn: (input: Parameters<typeof orpc.workflows.create>[0]) =>
+			orpc.workflows.create(input),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ['workflows'] })
+		},
+	})
+}
+
+export function useUpdateWorkflowMutation() {
+	const queryClient = useQueryClient()
+	return useMutation({
+		mutationFn: (input: Parameters<typeof orpc.workflows.update>[0]) =>
+			orpc.workflows.update(input),
+		onSuccess: (_, variables) => {
+			queryClient.invalidateQueries({ queryKey: ['workflows'] })
+			queryClient.invalidateQueries({ queryKey: ['workflows', variables.id] })
+		},
+	})
+}
+
+export function useDeleteWorkflowMutation() {
+	const queryClient = useQueryClient()
+	return useMutation({
+		mutationFn: (input: { id: string }) => orpc.workflows.delete(input),
+		onSuccess: (_, variables) => {
+			queryClient.invalidateQueries({ queryKey: ['workflows'] })
+			queryClient.invalidateQueries({ queryKey: ['workflows', variables.id] })
+		},
+	})
+}
+
+export function useAddWorkflowNodeMutation() {
+	const queryClient = useQueryClient()
+	return useMutation({
+		mutationFn: (input: Parameters<typeof orpc.workflows.addNode>[0]) =>
+			orpc.workflows.addNode(input),
+		onSuccess: (_, variables) => {
+			queryClient.invalidateQueries({ queryKey: ['workflows', variables.id] })
+		},
+	})
+}
+
+export function useRemoveWorkflowNodeMutation() {
+	const queryClient = useQueryClient()
+	return useMutation({
+		mutationFn: (input: Parameters<typeof orpc.workflows.removeNode>[0]) =>
+			orpc.workflows.removeNode(input),
+		onSuccess: (_, variables) => {
+			queryClient.invalidateQueries({ queryKey: ['workflows', variables.id] })
+		},
+	})
+}
+
+export function useAddWorkflowEdgeMutation() {
+	const queryClient = useQueryClient()
+	return useMutation({
+		mutationFn: (input: Parameters<typeof orpc.workflows.addEdge>[0]) =>
+			orpc.workflows.addEdge(input),
+		onSuccess: (_, variables) => {
+			queryClient.invalidateQueries({ queryKey: ['workflows', variables.id] })
+		},
+	})
+}
+
+export function useRemoveWorkflowEdgeMutation() {
+	const queryClient = useQueryClient()
+	return useMutation({
+		mutationFn: (input: Parameters<typeof orpc.workflows.removeEdge>[0]) =>
+			orpc.workflows.removeEdge(input),
+		onSuccess: (_, variables) => {
+			queryClient.invalidateQueries({ queryKey: ['workflows', variables.id] })
+		},
+	})
+}
+
+export function useExecuteWorkflowMutation() {
+	const queryClient = useQueryClient()
+	return useMutation({
+		mutationFn: (input: Parameters<typeof orpc.workflows.execute>[0]) =>
+			orpc.workflows.execute(input),
+		onSuccess: (_, variables) => {
+			queryClient.invalidateQueries({ queryKey: ['workflows', variables.id, 'executions'] })
+		},
+	})
+}
+
+export function useWorkflowExecutionsQuery(workflowId: string | undefined) {
+	return useQuery({
+		queryKey: ['workflows', workflowId, 'executions'],
+		queryFn: () => orpc.workflows.getExecutions({ id: workflowId! }),
+		enabled: !!workflowId,
+	})
+}
+
+export function useWorkflowExecutionDetailsQuery(executionId: string | undefined) {
+	return useQuery({
+		queryKey: ['workflow-executions', executionId],
+		queryFn: () => orpc.workflows.getExecutionDetails({ id: executionId! }),
+		enabled: !!executionId,
+	})
+}
+
+// =============================================================================
 // Activity Feed Hooks
 // =============================================================================
 

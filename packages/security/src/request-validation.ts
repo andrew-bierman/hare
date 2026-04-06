@@ -3,6 +3,7 @@
  * Provides protection against common request-based attacks
  */
 
+import { logger } from '@hare/config'
 import type { HonoEnv } from '@hare/types'
 import type { Context, MiddlewareHandler } from 'hono'
 
@@ -51,7 +52,7 @@ export function requestSizeLimit(
 		const contentType = c.req.header('content-type') ?? ''
 
 		if (contentLength) {
-			const size = parseInt(contentLength, 10)
+			const size = Number.parseInt(contentLength, 10)
 
 			let maxSize = limits.default
 			if (contentType.includes('application/json')) {
@@ -128,7 +129,7 @@ export function blockDangerousHeaders(): MiddlewareHandler<HonoEnv> {
 		for (const header of DANGEROUS_HEADERS) {
 			if (c.req.header(header)) {
 				// Log the attempt for security monitoring
-				console.warn(`Blocked dangerous header: ${header}`, {
+				logger.warn(`Blocked dangerous header: ${header}`, {
 					ip: c.req.header('cf-connecting-ip') || c.req.header('x-forwarded-for'),
 					path: c.req.path,
 				})

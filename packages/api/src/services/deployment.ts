@@ -8,6 +8,7 @@
  * - Health monitoring integration
  */
 
+import { getErrorMessage } from '@hare/checks'
 import { serverEnv } from '@hare/config'
 import { agents, type Database, deployments } from '@hare/db'
 import { desc, eq } from 'drizzle-orm'
@@ -386,7 +387,7 @@ export async function checkDeploymentHealth(options: {
 		return {
 			healthy: false,
 			latencyMs: Date.now() - start,
-			error: error instanceof Error ? error.message : 'Health check failed',
+			error: getErrorMessage(error),
 		}
 	}
 }

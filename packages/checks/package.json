@@ -1,0 +1,16 @@
+{
+	"name": "@hare/checks",
+	"version": "0.1.0",
+	"type": "module",
+	"exports": {
+		".": "./src/index.ts"
+	},
+	"scripts": {
+		"lint": "biome check .",
+		"typecheck": "tsc --noEmit"
+	},
+	"devDependencies": {
+		"@hare/typescript-config": "workspace:*",
+		"typescript": "catalog:"
+	}
+}

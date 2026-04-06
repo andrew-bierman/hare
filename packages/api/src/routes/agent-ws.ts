@@ -12,6 +12,8 @@ import {
 	routeHttpToAgent,
 	routeWebSocketToAgent,
 } from '@hare/agent'
+import { getErrorMessage } from '@hare/checks'
+import { AgentStatus, logger } from '@hare/config'
 import { agents, workspaceMembers } from '@hare/db/schema'
 import type { OptionalAuthEnv } from '@hare/types'
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
@@ -259,7 +261,7 @@ const app = baseApp
 			return c.json({ error: 'Agent not found' }, 404)
 		}
 
-		if (agent.status !== 'deployed') {
+		if (agent.status !== AgentStatus.DEPLOYED) {
 			return c.json({ error: 'Agent not deployed' }, 400)
 		}
 
@@ -440,7 +442,7 @@ async function handleChat(c: Context<OptionalAuthEnv>) {
 		return c.json({ error: 'Agent not found' }, 404)
 	}
 
-	if (agentConfig.status !== 'deployed') {
+	if (agentConfig.status !== AgentStatus.DEPLOYED) {
 		return c.json({ error: 'Agent not deployed' }, 400)
 	}
 
@@ -483,8 +485,8 @@ async function handleChat(c: Context<OptionalAuthEnv>) {
 			},
 		})
 	} catch (error) {
-		console.error('[chat] Error:', error)
-		return c.json({ error: error instanceof Error ? error.message : 'Internal server error' }, 500)
+		logger.error('[chat] Error:', error)
+		return c.json({ error: getErrorMessage(error) }, 500)
 	}
 }
 

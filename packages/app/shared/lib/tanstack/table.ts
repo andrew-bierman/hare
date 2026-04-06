@@ -28,15 +28,15 @@ import { useMemo, useState } from 'react'
  * Re-export commonly used table utilities
  */
 export {
-	flexRender,
 	type ColumnDef,
-	type SortingState,
 	type ColumnFiltersState,
+	flexRender,
 	type PaginationState,
-	type VisibilityState,
-	type RowSelectionState,
-	type Table,
 	type Row,
+	type RowSelectionState,
+	type SortingState,
+	type Table,
+	type VisibilityState,
 }
 
 /**

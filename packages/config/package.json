@@ -10,6 +10,7 @@
 		"typecheck": "tsc --noEmit"
 	},
 	"dependencies": {
+		"consola": "^3.4.2",
 		"zod": "catalog:"
 	},
 	"devDependencies": {

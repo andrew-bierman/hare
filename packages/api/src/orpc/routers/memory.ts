@@ -4,6 +4,8 @@
  * Handles agent vector memory operations with full type safety.
  */
 
+import { getErrorMessage } from '@hare/checks'
+import { logger } from '@hare/config'
 import { agents } from '@hare/db/schema'
 import { and, eq } from 'drizzle-orm'
 import {
@@ -33,7 +35,8 @@ import { notFound, requireWrite, serverError, type WorkspaceContext } from '../b
 // Helpers
 // =============================================================================
 
-async function findAgent(id: string, workspaceId: string, db: WorkspaceContext['db']) {
+async function findAgent(opts: { id: string; workspaceId: string; db: WorkspaceContext['db'] }) {
+	const { id, workspaceId, db } = opts
 	const [agent] = await db
 		.select()
 		.from(agents)
@@ -56,7 +59,7 @@ export const list = requireWrite
 		const { id, limit, offset } = input
 		const { db, workspaceId, env } = context
 
-		const agent = await findAgent(id, workspaceId, db)
+		const agent = await findAgent({ id, workspaceId, db })
 		if (!agent) notFound('Agent not found')
 
 		const result = await listMemories({
@@ -98,7 +101,7 @@ export const create = requireWrite
 		const { id, content, type, source, tags } = input
 		const { db, workspaceId, env } = context
 
-		const agent = await findAgent(id, workspaceId, db)
+		const agent = await findAgent({ id, workspaceId, db })
 		if (!agent) notFound('Agent not found')
 
 		try {
@@ -129,10 +132,8 @@ export const create = requireWrite
 				},
 			}
 		} catch (error) {
-			console.error('Failed to store memory:', error)
-			serverError(
-				`Failed to store memory: ${error instanceof Error ? error.message : 'Unknown error'}`,
-			)
+			logger.error('Failed to store memory:', error)
+			serverError(`Failed to store memory: ${getErrorMessage(error)}`)
 		}
 	})
 
@@ -147,7 +148,7 @@ export const search = requireWrite
 		const { id, query, topK, type, tags } = input
 		const { db, workspaceId, env } = context
 
-		const agent = await findAgent(id, workspaceId, db)
+		const agent = await findAgent({ id, workspaceId, db })
 		if (!agent) notFound('Agent not found')
 
 		const result = await searchMemory({
@@ -192,7 +193,7 @@ export const remove = requireWrite
 		const { id, memoryId } = input
 		const { db, workspaceId, env } = context
 
-		const agent = await findAgent(id, workspaceId, db)
+		const agent = await findAgent({ id, workspaceId, db })
 		if (!agent) notFound('Agent not found')
 
 		await deleteMemory({
@@ -215,7 +216,7 @@ export const update = requireWrite
 		const { id, memoryId, content, type, tags } = input
 		const { db, workspaceId, env } = context
 
-		const agent = await findAgent(id, workspaceId, db)
+		const agent = await findAgent({ id, workspaceId, db })
 		if (!agent) notFound('Agent not found')
 
 		try {
@@ -246,10 +247,8 @@ export const update = requireWrite
 				},
 			}
 		} catch (error) {
-			console.error('Failed to update memory:', error)
-			serverError(
-				`Failed to update memory: ${error instanceof Error ? error.message : 'Unknown error'}`,
-			)
+			logger.error('Failed to update memory:', error)
+			serverError(`Failed to update memory: ${getErrorMessage(error)}`)
 		}
 	})
 
@@ -264,7 +263,7 @@ export const clear = requireWrite
 		const { id } = input
 		const { db, workspaceId, env } = context
 
-		const agent = await findAgent(id, workspaceId, db)
+		const agent = await findAgent({ id, workspaceId, db })
 		if (!agent) notFound('Agent not found')
 
 		const result = await deleteAgentMemories({

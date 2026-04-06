@@ -24,6 +24,7 @@ import { toolsRouter } from './tools'
 import { usageRouter } from './usage'
 import { userSettingsRouter } from './user-settings'
 import { webhooksRouter } from './webhooks'
+import { workflowsRouter } from './workflows'
 import { workspaceMembersRouter } from './workspace-members'
 import { workspacesRouter } from './workspaces'
 
@@ -31,26 +32,27 @@ import { workspacesRouter } from './workspaces'
 export {
 	activityRouter,
 	agentsRouter,
-	toolsRouter,
-	apiKeysRouter,
-	workspacesRouter,
-	schedulesRouter,
-	workspaceMembersRouter,
-	userSettingsRouter,
-	usageRouter,
 	analyticsRouter,
+	apiKeysRouter,
+	auditLogsRouter,
+	billingRouter,
+	chatRouter,
+	embedRouter,
+	healthRouter,
 	logsRouter,
 	memoryRouter,
-	chatRouter,
-	billingRouter,
-	healthRouter,
+	schedulesRouter,
+	toolsRouter,
+	usageRouter,
+	userSettingsRouter,
 	webhooksRouter,
-	embedRouter,
-	auditLogsRouter,
+	workspaceMembersRouter,
+	workspacesRouter,
 	feedbackRouter,
 	guardrailsRouter,
 	knowledgeBaseRouter,
 	businessAnalyticsRouter,
+	workflowsRouter,
 }
 
 // Combined router for the app
@@ -77,6 +79,7 @@ export const appRouter = {
 	guardrails: guardrailsRouter,
 	knowledgeBases: knowledgeBaseRouter,
 	businessAnalytics: businessAnalyticsRouter,
+	workflows: workflowsRouter,
 }
 
 export type AppRouter = typeof appRouter

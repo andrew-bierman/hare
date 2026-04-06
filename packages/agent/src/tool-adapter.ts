@@ -10,8 +10,12 @@ import { tool as aiTool } from 'ai'
  * Hare tools have a different type hierarchy (AnyTool for metadata, Tool for execution).
  * This adapter bridges them by closing over the ToolContext.
  */
-// biome-ignore lint/suspicious/noExplicitAny: Required for heterogeneous Hare tool arrays
-export function toAISDKTools(hareTools: Tool<any, any>[], context: ToolContext<HareEnv>): ToolSet {
+export function toAISDKTools(opts: {
+	// biome-ignore lint/suspicious/noExplicitAny: Required for heterogeneous Hare tool arrays
+	hareTools: Tool<any, any>[]
+	context: ToolContext<HareEnv>
+}): ToolSet {
+	const { hareTools, context } = opts
 	return Object.fromEntries(
 		hareTools
 			.filter((t) => typeof t.execute === 'function')

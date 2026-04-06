@@ -1,3 +1,4 @@
+import { getErrorMessage } from '@hare/checks'
 import { z } from 'zod'
 import { createTool, failure, success, type ToolContext } from './types'
 
@@ -138,9 +139,7 @@ export const r2GetTool = createTool({
 				metadata: object.customMetadata,
 			})
 		} catch (error) {
-			return failure(
-				`Failed to get object "${params.key}": ${error instanceof Error ? error.message : 'Unknown error'}`,
-			)
+			return failure(`Failed to get object "${params.key}": ${getErrorMessage(error)}`)
 		}
 	},
 })
@@ -183,9 +182,7 @@ export const r2PutTool = createTool({
 				size: result.size,
 			})
 		} catch (error) {
-			return failure(
-				`Failed to put object "${params.key}": ${error instanceof Error ? error.message : 'Unknown error'}`,
-			)
+			return failure(`Failed to put object "${params.key}": ${getErrorMessage(error)}`)
 		}
 	},
 })
@@ -211,9 +208,7 @@ export const r2DeleteTool = createTool({
 			await r2.delete(fullPath)
 			return success({ key: params.key, deleted: true })
 		} catch (error) {
-			return failure(
-				`Failed to delete object "${params.key}": ${error instanceof Error ? error.message : 'Unknown error'}`,
-			)
+			return failure(`Failed to delete object "${params.key}": ${getErrorMessage(error)}`)
 		}
 	},
 })
@@ -275,9 +270,7 @@ export const r2ListTool = createTool({
 				),
 			})
 		} catch (error) {
-			return failure(
-				`Failed to list objects: ${error instanceof Error ? error.message : 'Unknown error'}`,
-			)
+			return failure(`Failed to list objects: ${getErrorMessage(error)}`)
 		}
 	},
 })
@@ -315,9 +308,7 @@ export const r2HeadTool = createTool({
 				metadata: head.customMetadata,
 			})
 		} catch (error) {
-			return failure(
-				`Failed to head object "${params.key}": ${error instanceof Error ? error.message : 'Unknown error'}`,
-			)
+			return failure(`Failed to head object "${params.key}": ${getErrorMessage(error)}`)
 		}
 	},
 })

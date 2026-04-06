@@ -1,4 +1,6 @@
+import { getErrorMessage } from '@hare/checks'
 import { z } from 'zod'
+import { ContentLengths } from './constants'
 import { createTool, failure, type HareEnv, success, type ToolContext } from './types'
 
 /**
@@ -139,7 +141,7 @@ export const sentimentTool = createTool({
 	description:
 		'Analyze the sentiment of text. Returns positive, negative, or neutral classification with confidence scores.',
 	inputSchema: z.object({
-		text: z.string().min(1).max(5000).describe('Text to analyze for sentiment'),
+		text: z.string().min(1).max(ContentLengths.AI_SHORT).describe('Text to analyze for sentiment'),
 		detailed: z.boolean().optional().default(false).describe('Return detailed emotion breakdown'),
 	}),
 	outputSchema: SentimentOutputSchema,
@@ -185,9 +187,7 @@ export const sentimentTool = createTool({
 				...(detailed && { allScores: sortedResults }),
 			})
 		} catch (error) {
-			return failure(
-				`Sentiment analysis error: ${error instanceof Error ? error.message : 'Unknown error'}`,
-			)
+			return failure(`Sentiment analysis error: ${getErrorMessage(error)}`)
 		}
 	},
 })
@@ -250,9 +250,7 @@ export const summarizeTool = createTool({
 				style,
 			})
 		} catch (error) {
-			return failure(
-				`Summarization error: ${error instanceof Error ? error.message : 'Unknown error'}`,
-			)
+			return failure(`Summarization error: ${getErrorMessage(error)}`)
 		}
 	},
 })
@@ -264,7 +262,7 @@ export const translateTool = createTool({
 	id: 'translate',
 	description: 'Translate text from one language to another. Supports many common languages.',
 	inputSchema: z.object({
-		text: z.string().min(1).max(10000).describe('Text to translate'),
+		text: z.string().min(1).max(ContentLengths.AI_MEDIUM).describe('Text to translate'),
 		targetLanguage: z
 			.string()
 			.describe(
@@ -307,9 +305,7 @@ export const translateTool = createTool({
 				translatedLength: translatedText.length,
 			})
 		} catch (error) {
-			return failure(
-				`Translation error: ${error instanceof Error ? error.message : 'Unknown error'}`,
-			)
+			return failure(`Translation error: ${getErrorMessage(error)}`)
 		}
 	},
 })
@@ -390,9 +386,7 @@ export const imageGenerateTool = createTool({
 				dataUrl: `data:image/png;base64,${base64Image}`,
 			})
 		} catch (error) {
-			return failure(
-				`Image generation error: ${error instanceof Error ? error.message : 'Unknown error'}`,
-			)
+			return failure(`Image generation error: ${getErrorMessage(error)}`)
 		}
 	},
 })
@@ -405,7 +399,7 @@ export const classifyTool = createTool({
 	description:
 		'Classify text into custom categories. Useful for routing, tagging, or categorizing content.',
 	inputSchema: z.object({
-		text: z.string().min(1).max(5000).describe('Text to classify'),
+		text: z.string().min(1).max(ContentLengths.AI_SHORT).describe('Text to classify'),
 		categories: z.array(z.string()).min(2).max(20).describe('List of possible categories'),
 		multiLabel: z
 			.boolean()
@@ -467,9 +461,7 @@ Return only the single most appropriate category name.`
 				rawResponse: result,
 			})
 		} catch (error) {
-			return failure(
-				`Classification error: ${error instanceof Error ? error.message : 'Unknown error'}`,
-			)
+			return failure(`Classification error: ${getErrorMessage(error)}`)
 		}
 	},
 })
@@ -482,7 +474,7 @@ export const nerTool = createTool({
 	description:
 		'Extract named entities from text such as people, organizations, locations, dates, and more.',
 	inputSchema: z.object({
-		text: z.string().min(1).max(10000).describe('Text to analyze for entities'),
+		text: z.string().min(1).max(ContentLengths.AI_MEDIUM).describe('Text to analyze for entities'),
 		entityTypes: z
 			.array(EntityTypeSchema)
 			.optional()
@@ -562,7 +554,7 @@ Text: "${text.slice(0, 3000)}"`
 				typesFound: Object.keys(entities),
 			})
 		} catch (error) {
-			return failure(`NER error: ${error instanceof Error ? error.message : 'Unknown error'}`)
+			return failure(`NER error: ${getErrorMessage(error)}`)
 		}
 	},
 })
@@ -618,7 +610,7 @@ export const embeddingTool = createTool({
 				model,
 			})
 		} catch (error) {
-			return failure(`Embedding error: ${error instanceof Error ? error.message : 'Unknown error'}`)
+			return failure(`Embedding error: ${getErrorMessage(error)}`)
 		}
 	},
 })
@@ -700,7 +692,7 @@ Answer:`
 				question,
 			})
 		} catch (error) {
-			return failure(`Q&A error: ${error instanceof Error ? error.message : 'Unknown error'}`)
+			return failure(`Q&A error: ${getErrorMessage(error)}`)
 		}
 	},
 })

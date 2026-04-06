@@ -53,6 +53,7 @@
 		"typecheck": "tsc --noEmit"
 	},
 	"dependencies": {
+		"@hare/checks": "workspace:*",
 		"@elithrar/workers-hono-rate-limit": "catalog:",
 		"@hare/agent": "workspace:*",
 		"@hare/auth": "workspace:*",

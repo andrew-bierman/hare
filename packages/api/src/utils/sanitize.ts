@@ -2,6 +2,7 @@
  * Input sanitization utilities for security
  * Protects against XSS, SQL injection, and other common attacks
  */
+import { isBoolean, isNumber, isRecord, isString } from '@hare/checks'
 
 import { config } from '@hare/config'
 
@@ -229,17 +230,16 @@ export function sanitizeMetadata(metadata: Record<string, unknown>): Record<stri
 		}
 
 		// Recursively sanitize nested objects
-		if (value && typeof value === 'object' && !Array.isArray(value)) {
+		if (isRecord(value)) {
 			sanitized[key] = sanitizeMetadata(value as Record<string, unknown>)
-		} else if (typeof value === 'string') {
+		} else if (isString(value)) {
 			sanitized[key] = sanitizeUserInput(value)
-		} else if (typeof value === 'number' || typeof value === 'boolean' || value === null) {
+		} else if (isNumber(value) || isBoolean(value) || value === null) {
 			sanitized[key] = value
 		} else if (Array.isArray(value)) {
 			sanitized[key] = value.map((item) => {
-				if (typeof item === 'string') return sanitizeUserInput(item)
-				if (typeof item === 'object' && item !== null)
-					return sanitizeMetadata(item as Record<string, unknown>)
+				if (isString(item)) return sanitizeUserInput(item)
+				if (isRecord(item)) return sanitizeMetadata(item as Record<string, unknown>)
 				return item
 			})
 		}

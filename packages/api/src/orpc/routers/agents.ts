@@ -4,7 +4,7 @@
  * Handles all agent-related operations with full type safety.
  */
 
-import { config } from '@hare/config'
+import { AGENT_HEALTH, config, isSystemToolId } from '@hare/config'
 import { agents, agentTools, agentVersions, deployments, usage } from '@hare/db/schema'
 import { and, count, desc, eq, gte, inArray, max, sql } from 'drizzle-orm'
 import { z } from 'zod'
@@ -60,7 +60,7 @@ function serializeAgent(
 		description: agent.description,
 		model: agent.model,
 		instructions: agent.instructions,
-		config: agent.config as z.infer<typeof AgentSchema>['config'],
+		config: agent.config ?? undefined,
 		status: agent.status as z.infer<typeof AgentSchema>['status'],
 		systemToolsEnabled: agent.systemToolsEnabled,
 		conversationStarters: agent.conversationStarters ?? null,
@@ -71,7 +71,8 @@ function serializeAgent(
 	}
 }
 
-async function findAgent(id: string, workspaceId: string, db: WorkspaceContext['db']) {
+async function findAgent(opts: { id: string; workspaceId: string; db: WorkspaceContext['db'] }) {
+	const { id, workspaceId, db } = opts
 	const [agent] = await db
 		.select()
 		.from(agents)
@@ -86,8 +87,8 @@ async function findAgent(id: string, workspaceId: string, db: WorkspaceContext['
  * - unhealthy: <80% success rate
  */
 function deriveHealthStatus(successRate: number): HealthStatus {
-	if (successRate > 95) return 'healthy'
-	if (successRate >= 80) return 'degraded'
+	if (successRate > AGENT_HEALTH.HEALTHY_MIN_SUCCESS_RATE) return 'healthy'
+	if (successRate >= AGENT_HEALTH.DEGRADED_MIN_SUCCESS_RATE) return 'degraded'
 	return 'unhealthy'
 }
 
@@ -103,7 +104,7 @@ async function getAgentHealthMetrics(options: {
 
 	// Calculate time window (last 24 hours)
 	const endDate = new Date()
-	const startDate = new Date(endDate.getTime() - 24 * 60 * 60 * 1000)
+	const startDate = new Date(endDate.getTime() - AGENT_HEALTH.WINDOW_MS)
 
 	// Query usage metrics for the agent in the last 24 hours
 	const [metrics] = await db
@@ -186,7 +187,7 @@ export const get = requireWrite
 	.handler(async ({ input, context }) => {
 		const { db, workspaceId } = context
 
-		const agent = await findAgent(input.id, workspaceId, db)
+		const agent = await findAgent({ id: input.id, workspaceId, db })
 		if (!agent) notFound('Agent not found')
 
 		const toolIds = await getAgentToolIds(agent.id, db)
@@ -223,7 +224,7 @@ export const create = requireWrite
 
 		// Attach tools if provided (filter out system tools)
 		if (input.toolIds && input.toolIds.length > 0) {
-			const customToolIds = input.toolIds.filter((id) => !id.startsWith('system-'))
+			const customToolIds = input.toolIds.filter((id) => !isSystemToolId(id))
 			if (customToolIds.length > 0) {
 				await db.insert(agentTools).values(
 					customToolIds.map((toolId) => ({
@@ -261,7 +262,7 @@ export const update = requireWrite
 		const { id, ...data } = input
 		const { db, workspaceId } = context
 
-		const existing = await findAgent(id, workspaceId, db)
+		const existing = await findAgent({ id, workspaceId, db })
 		if (!existing) notFound('Agent not found')
 
 		const updateData: Partial<typeof agents.$inferInsert> = {
@@ -287,7 +288,7 @@ export const update = requireWrite
 		if (data.toolIds !== undefined) {
 			await db.delete(agentTools).where(eq(agentTools.agentId, id))
 
-			const customToolIds = data.toolIds.filter((toolId) => !toolId.startsWith('system-'))
+			const customToolIds = data.toolIds.filter((toolId) => !isSystemToolId(toolId))
 			if (customToolIds.length > 0) {
 				await db.insert(agentTools).values(
 					customToolIds.map((toolId) => ({
@@ -359,7 +360,7 @@ export const deploy = requireAdmin
 	.handler(async ({ input, context }) => {
 		const { db, workspaceId, user } = context
 
-		const agent = await findAgent(input.id, workspaceId, db)
+		const agent = await findAgent({ id: input.id, workspaceId, db })
 		if (!agent) notFound('Agent not found')
 
 		if (!agent.instructions) {
@@ -456,7 +457,7 @@ export const undeploy = requireAdmin
 	.handler(async ({ input, context }) => {
 		const { db, workspaceId } = context
 
-		const agent = await findAgent(input.id, workspaceId, db)
+		const agent = await findAgent({ id: input.id, workspaceId, db })
 		if (!agent) notFound('Agent not found')
 
 		await db
@@ -482,7 +483,7 @@ export const getDeployment = requireWrite
 	.handler(async ({ input, context }) => {
 		const { db, workspaceId } = context
 
-		const agent = await findAgent(input.id, workspaceId, db)
+		const agent = await findAgent({ id: input.id, workspaceId, db })
 		if (!agent) notFound('Agent not found')
 
 		if (agent.status !== config.enums.agentStatus.DEPLOYED) {
@@ -524,7 +525,7 @@ export const getDeploymentHistory = requireWrite
 	.handler(async ({ input, context }) => {
 		const { db, workspaceId } = context
 
-		const agent = await findAgent(input.id, workspaceId, db)
+		const agent = await findAgent({ id: input.id, workspaceId, db })
 		if (!agent) notFound('Agent not found')
 
 		const history = await db
@@ -564,7 +565,7 @@ export const getVersions = requireWrite
 		const { db, workspaceId } = context
 		const { id, limit, offset } = input
 
-		const agent = await findAgent(id, workspaceId, db)
+		const agent = await findAgent({ id, workspaceId, db })
 		if (!agent) notFound('Agent not found')
 
 		// Get total count
@@ -614,7 +615,7 @@ export const rollback = requireAdmin
 		const { id, version: targetVersion } = input
 
 		// Find the agent
-		const agent = await findAgent(id, workspaceId, db)
+		const agent = await findAgent({ id, workspaceId, db })
 		if (!agent) notFound('Agent not found')
 
 		// Find the target version to restore
@@ -651,7 +652,7 @@ export const rollback = requireAdmin
 		await db.delete(agentTools).where(eq(agentTools.agentId, id))
 		const restoredToolIds = targetVersionRecord.toolIds ?? []
 		if (restoredToolIds.length > 0) {
-			const customToolIds = restoredToolIds.filter((toolId) => !toolId.startsWith('system-'))
+			const customToolIds = restoredToolIds.filter((toolId) => !isSystemToolId(toolId))
 			if (customToolIds.length > 0) {
 				await db.insert(agentTools).values(
 					customToolIds.map((toolId) => ({
@@ -788,7 +789,7 @@ export const getHealth = requireWrite
 	.handler(async ({ input, context }) => {
 		const { db, workspaceId } = context
 
-		const agent = await findAgent(input.id, workspaceId, db)
+		const agent = await findAgent({ id: input.id, workspaceId, db })
 		if (!agent) notFound('Agent not found')
 
 		return getAgentHealthMetrics({
@@ -815,7 +816,7 @@ export const clone = requireWrite
 		const { db, workspaceId, user } = context
 
 		// Find the source agent
-		const sourceAgent = await findAgent(input.id, workspaceId, db)
+		const sourceAgent = await findAgent({ id: input.id, workspaceId, db })
 		if (!sourceAgent) notFound('Agent not found')
 
 		// Get the source agent's tool IDs
@@ -841,7 +842,7 @@ export const clone = requireWrite
 
 		// Copy tool attachments to new agent (filter out system tools)
 		if (sourceToolIds.length > 0) {
-			const customToolIds = sourceToolIds.filter((id) => !id.startsWith('system-'))
+			const customToolIds = sourceToolIds.filter((id) => !isSystemToolId(id))
 			if (customToolIds.length > 0) {
 				await db.insert(agentTools).values(
 					customToolIds.map((toolId) => ({

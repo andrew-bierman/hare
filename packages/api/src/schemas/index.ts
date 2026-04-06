@@ -173,6 +173,24 @@ export {
 	UsageResponseSchema,
 	UsageStatsSchema,
 } from './usage'
+// Workflow schemas
+export {
+	CreateWorkflowEdgeSchema,
+	CreateWorkflowNodeSchema,
+	CreateWorkflowSchema,
+	UpdateWorkflowSchema,
+	WorkflowEdgeConfigSchema,
+	WorkflowEdgeSchema,
+	WorkflowExecutionSchema,
+	WorkflowExecutionStatusSchema,
+	WorkflowNodeConfigSchema,
+	WorkflowNodeSchema,
+	WorkflowNodeTypeSchema,
+	WorkflowSchema,
+	WorkflowStatusSchema,
+	WorkflowStepExecutionSchema,
+	WorkflowStepStatusSchema,
+} from './workflows'
 // Workspace schemas
 export {
 	CreateWorkspaceSchema,

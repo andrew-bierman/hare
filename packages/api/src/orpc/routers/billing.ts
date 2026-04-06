@@ -5,6 +5,7 @@
  * Webhook endpoint remains as a Hono route since it doesn't need auth and has special signature verification.
  */
 
+import { CURRENCY } from '@hare/config'
 import { workspaces } from '@hare/db/schema'
 import type { CloudflareEnv } from '@hare/types'
 import { eq } from 'drizzle-orm'
@@ -334,7 +335,7 @@ export const getPaymentHistory = requireWrite
 
 		const payments = charges.data.map((charge) => ({
 			id: charge.id,
-			amount: charge.amount / 100, // Convert from cents
+			amount: charge.amount / CURRENCY.CENTS_PER_DOLLAR,
 			currency: charge.currency.toUpperCase(),
 			status: charge.status,
 			description: charge.description,

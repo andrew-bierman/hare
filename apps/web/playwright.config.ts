@@ -11,13 +11,15 @@ function getWorktreePort(): number | null {
 	if (existsSync(configPath)) {
 		const content = readFileSync(configPath, 'utf-8')
 		const match = content.match(/^PORT=(\d+)/m)
-		if (match?.[1]) return parseInt(match[1], 10)
+		if (match?.[1]) return Number.parseInt(match[1], 10)
 	}
 	return null
 }
 
 // Port configuration - prioritize: PORT env var > worktree config > default 3000
-const DEFAULT_PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : (getWorktreePort() ?? 3000)
+const DEFAULT_PORT = process.env.PORT
+	? Number.parseInt(process.env.PORT, 10)
+	: (getWorktreePort() ?? 3000)
 
 export default defineConfig({
 	testDir: './e2e',

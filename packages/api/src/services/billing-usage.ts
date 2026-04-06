@@ -7,6 +7,7 @@
  * - Token usage (total tokens consumed)
  */
 
+import { AgentStatus } from '@hare/config'
 import type { Database } from '@hare/db'
 import { agents, usage } from '@hare/db/schema'
 import { and, count, eq, gte, sql } from 'drizzle-orm'
@@ -59,7 +60,7 @@ export async function getActiveAgentCount(options: {
 			and(
 				eq(agents.workspaceId, workspaceId),
 				// Count non-archived agents
-				sql`${agents.status} != 'archived'`,
+				sql`${agents.status} != ${AgentStatus.ARCHIVED}`,
 			),
 		)
 

@@ -3,14 +3,11 @@ import { tool as aiTool } from 'ai'
 import type { z } from 'zod'
 import type { HareEnv } from './env'
 
-// Re-export HareEnv for convenience
-export type { HareEnv }
-
-// Re-export AI SDK ToolSet for consumers
-export type { ToolSet }
-
 // Re-export tool type definitions from @hare/types
 export { type ToolConfig, ToolConfigSchema, type ToolType, ToolTypeSchema } from '@hare/types'
+// Re-export HareEnv for convenience
+// Re-export AI SDK ToolSet for consumers
+export type { HareEnv, ToolSet }
 
 /**
  * Tool execution context providing access to Cloudflare bindings.
