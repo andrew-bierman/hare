@@ -27,6 +27,7 @@ import {
 	MESSAGE_ROLES,
 	NODE_ENVS,
 	PLAN_IDS,
+	type ResponseStyle,
 	SCHEDULE_STATUSES,
 	SCHEDULE_TYPES,
 	serverEnv,
@@ -219,7 +220,7 @@ describe('helper functions', () => {
 		})
 
 		it('returns undefined for an unknown ID', () => {
-			expect(getResponseStyleById('nonexistent' as any)).toBeUndefined()
+			expect(getResponseStyleById('nonexistent' as unknown as ResponseStyle)).toBeUndefined()
 		})
 	})
 

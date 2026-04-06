@@ -6,6 +6,7 @@
  * we mock the SDK dependencies and test the business logic.
  */
 
+import type { Connection, ConnectionContext } from 'agents'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { z } from 'zod'
 
@@ -81,7 +82,7 @@ vi.mock('@hare/types', () => ({
 }))
 
 // Import after mocks are set up
-import { HareAgent } from '../hare-agent'
+import { HareAgent, type HareAgentEnv } from '../hare-agent'
 
 /**
  * Create a mock connection for WebSocket testing.
@@ -145,7 +146,10 @@ describe('HareAgent', () => {
 		vi.clearAllMocks()
 		mockEnv = createMockEnv()
 		mockState = createMockState()
-		agent = new HareAgent(mockState as any, mockEnv as any)
+		agent = new HareAgent(
+			mockState as unknown as ConstructorParameters<typeof HareAgent>[0],
+			mockEnv as unknown as HareAgentEnv,
+		)
 	})
 
 	describe('initialization', () => {
@@ -268,7 +272,10 @@ describe('HareAgent', () => {
 				connectedUsers: [],
 			}
 
-			await agent.onConnect(connection as any, ctx as any)
+			await agent.onConnect(
+				connection as unknown as Connection,
+				ctx as unknown as ConnectionContext,
+			)
 
 			expect(connection.send).toHaveBeenCalled()
 		})
@@ -286,7 +293,10 @@ describe('HareAgent', () => {
 				connectedUsers: [],
 			}
 
-			await agent.onConnect(connection as any, ctx as any)
+			await agent.onConnect(
+				connection as unknown as Connection,
+				ctx as unknown as ConnectionContext,
+			)
 
 			expect(connection.send).toHaveBeenCalled()
 		})
@@ -303,7 +313,7 @@ describe('HareAgent', () => {
 			const connection = createMockConnection()
 			const message = JSON.stringify({ type: 'get_state' })
 
-			await agent.onMessage(connection as any, message)
+			await agent.onMessage(connection as unknown as Connection, message)
 
 			expect(connection.send).toHaveBeenCalled()
 			const sentData = JSON.parse(connection.send.mock.calls[0]?.[0] ?? '{}')
@@ -317,7 +327,7 @@ describe('HareAgent', () => {
 				payload: { name: 'Updated Name' },
 			})
 
-			await agent.onMessage(connection as any, message)
+			await agent.onMessage(connection as unknown as Connection, message)
 
 			// Should not send error
 			const calls = connection.send.mock.calls
@@ -334,7 +344,7 @@ describe('HareAgent', () => {
 				payload: { message: '' }, // Empty message should fail
 			})
 
-			await agent.onMessage(connection as any, message)
+			await agent.onMessage(connection as unknown as Connection, message)
 
 			// Should send error
 			expect(connection.send).toHaveBeenCalled()
@@ -349,7 +359,7 @@ describe('HareAgent', () => {
 				payload: {},
 			})
 
-			await agent.onMessage(connection as any, message)
+			await agent.onMessage(connection as unknown as Connection, message)
 
 			expect(connection.send).toHaveBeenCalled()
 			const sentData = JSON.parse(connection.send.mock.calls[0]?.[0] ?? '{}')
@@ -361,7 +371,7 @@ describe('HareAgent', () => {
 			const connection = createMockConnection()
 			const message = 'not valid json'
 
-			await agent.onMessage(connection as any, message)
+			await agent.onMessage(connection as unknown as Connection, message)
 
 			expect(connection.send).toHaveBeenCalled()
 			const sentData = JSON.parse(connection.send.mock.calls[0]?.[0] ?? '{}')
@@ -382,10 +392,10 @@ describe('HareAgent', () => {
 			// Create a private map to track connections
 			const connectionUserMap = new Map()
 			connectionUserMap.set(connection, 'user_123')
-			;(agent as unknown as { connectionUserMap: Map<any, string> }).connectionUserMap =
+			;(agent as unknown as { connectionUserMap: Map<Connection, string> }).connectionUserMap =
 				connectionUserMap
 
-			await agent.onClose(connection as any)
+			await agent.onClose(connection as unknown as Connection)
 
 			// The user should be processed for removal
 			expect(connectionUserMap.has(connection)).toBe(false)
@@ -417,8 +427,12 @@ describe('HareAgent', () => {
 
 	describe('scheduled tasks', () => {
 		it('executeScheduledTask routes to sendReminder', async () => {
-			const broadcastSpy = vi.spyOn(agent as any, 'broadcastMessage')
-			;(agent as unknown as { connectionUserMap: Map<any, string> }).connectionUserMap = new Map()
+			const broadcastSpy = vi.spyOn(
+				agent as unknown as { broadcastMessage: (...args: unknown[]) => void },
+				'broadcastMessage',
+			)
+			;(agent as unknown as { connectionUserMap: Map<Connection, string> }).connectionUserMap =
+				new Map()
 
 			await agent.executeScheduledTask({
 				action: 'sendReminder',
@@ -456,10 +470,11 @@ describe('HareAgent', () => {
 			const connection1 = createMockConnection()
 			const connection2 = createMockConnection()
 
-			;(agent as unknown as { connectionUserMap: Map<any, string> }).connectionUserMap = new Map([
-				[connection1, 'user_1'],
-				[connection2, 'user_2'],
-			])
+			;(agent as unknown as { connectionUserMap: Map<Connection, string> }).connectionUserMap =
+				new Map([
+					[connection1, 'user_1'],
+					[connection2, 'user_2'],
+				])
 
 			agent.onStateUpdate(agent.initialState)
 
@@ -478,7 +493,10 @@ describe('HareAgent HTTP tool execution', () => {
 		vi.clearAllMocks()
 		mockEnv = createMockEnv()
 		mockState = createMockState()
-		agent = new HareAgent(mockState as any, mockEnv as any)
+		agent = new HareAgent(
+			mockState as unknown as ConstructorParameters<typeof HareAgent>[0],
+			mockEnv as unknown as HareAgentEnv,
+		)
 		;(agent as unknown as { state: typeof agent.initialState }).state = {
 			...agent.initialState,
 		}
