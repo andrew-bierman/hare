@@ -89,6 +89,7 @@ export {
 	WORKSPACE_ROLES,
 	WorkspaceRole,
 } from './config'
+
 // Constants
 export {
 	AGENT_HEALTH,
@@ -119,10 +120,22 @@ export {
 	VALIDATION,
 	WIDGET_MESSAGE_TYPES,
 } from './constants'
+
 // Enums (value + type re-exports for direct access)
 export { AgentStatus, DeploymentStatus } from './enums'
+
 // Environment (separate due to runtime dynamic values)
 export { type ClientEnv, clientEnv, type ServerEnv, serverEnv } from './env'
+
+// Instruction snippets / prompt library
+export {
+	getSnippetById,
+	getSnippetsByCategory,
+	INSTRUCTION_SNIPPETS,
+	type InstructionSnippet,
+	SNIPPET_CATEGORIES,
+	type SnippetCategory,
+} from './snippets'
 
 // Logger
 export { logger } from './logger'
