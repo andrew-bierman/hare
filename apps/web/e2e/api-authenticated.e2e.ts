@@ -2,63 +2,41 @@ import { type APIRequestContext, test as baseTest, expect, type Page } from '@pl
 import { test } from './fixtures'
 
 /**
- * API tests for authenticated oRPC endpoints.
- * oRPC uses POST for all procedures, body format: { json: { ...input } }
+ * API tests for authenticated Elysia endpoints.
+ * Elysia uses standard REST (GET/POST/PATCH/DELETE) with JSON bodies.
  */
 
-async function getCsrfToken(page: Page): Promise<string> {
-	// Seed CSRF cookie if not present
-	const cookies = await page.context().cookies()
-	let csrfCookie =
-		cookies.find((c) => c.name === 'csrf') ?? cookies.find((c) => c.name === '__Host-csrf')
-	if (!csrfCookie) {
-		// Make a GET request to an API endpoint to trigger CSRF cookie creation
-		await page.request.get('/api/rpc/health/live')
-		const updatedCookies = await page.context().cookies()
-		csrfCookie =
-			updatedCookies.find((c) => c.name === 'csrf') ??
-			updatedCookies.find((c) => c.name === '__Host-csrf')
-	}
-	return csrfCookie?.value ?? ''
+async function apiGet(page: Page, path: string, headers: Record<string, string> = {}) {
+	return page.request.get(`/api${path}`, { headers })
 }
 
-async function orpc(
+async function apiPost(
 	page: Page,
-	procedure: string,
-	input: Record<string, unknown> = {},
-	extraHeaders: Record<string, string> = {},
+	path: string,
+	data: Record<string, unknown> = {},
+	headers: Record<string, string> = {},
 ) {
-	const csrfToken = await getCsrfToken(page)
-	const headers: Record<string, string> = {
-		'Content-Type': 'application/json',
-		...extraHeaders,
-	}
-	if (csrfToken) headers['X-CSRF-Token'] = csrfToken
-	const response = await page.request.post(`/api/rpc/${procedure}`, {
-		headers,
-		data: { json: input },
+	return page.request.post(`/api${path}`, {
+		headers: { 'Content-Type': 'application/json', ...headers },
+		data,
 	})
-	return response
 }
 
-/** Parse oRPC response (may be wrapped in { json: ... }) */
-async function parseOrpc(response: Awaited<ReturnType<typeof orpc>>) {
-	const body = await response.json()
-	return body.json ?? body
+async function apiDelete(page: Page, path: string, headers: Record<string, string> = {}) {
+	return page.request.delete(`/api${path}`, { headers })
 }
 
 async function getWorkspaceId(page: Page): Promise<string> {
 	await page.waitForSelector('main', { state: 'visible' })
-	// Wait for workspace to be created by WorkspaceProvider
 	await page
 		.locator('button')
 		.filter({ hasText: /workspace/i })
 		.first()
 		.waitFor({ state: 'visible', timeout: 10000 })
 		.catch(() => {})
-	const response = await orpc(page, 'workspaces/list')
+	const response = await apiGet(page, '/workspaces')
 	expect(response.status()).toBe(200)
-	const data = await parseOrpc(response)
+	const data = await response.json()
 	const workspaces = data.workspaces ?? data
 	expect(Array.isArray(workspaces)).toBe(true)
 	expect(workspaces.length).toBeGreaterThan(0)
@@ -70,10 +48,7 @@ baseTest.describe('API Authentication Requirements', () => {
 	baseTest(
 		'workspaces endpoint requires authentication',
 		async ({ request }: { request: APIRequestContext }) => {
-			const response = await request.post('/api/rpc/workspaces/list', {
-				headers: { 'Content-Type': 'application/json' },
-				data: { json: {} },
-			})
+			const response = await request.get('/api/workspaces')
 			expect([401, 403]).toContain(response.status())
 		},
 	)
@@ -81,10 +56,7 @@ baseTest.describe('API Authentication Requirements', () => {
 	baseTest(
 		'agents endpoint requires authentication',
 		async ({ request }: { request: APIRequestContext }) => {
-			const response = await request.post('/api/rpc/agents/list', {
-				headers: { 'Content-Type': 'application/json' },
-				data: { json: {} },
-			})
+			const response = await request.get('/api/agents')
 			expect([401, 403]).toContain(response.status())
 		},
 	)
@@ -92,10 +64,7 @@ baseTest.describe('API Authentication Requirements', () => {
 	baseTest(
 		'tools endpoint requires authentication',
 		async ({ request }: { request: APIRequestContext }) => {
-			const response = await request.post('/api/rpc/tools/list', {
-				headers: { 'Content-Type': 'application/json' },
-				data: { json: {} },
-			})
+			const response = await request.get('/api/tools')
 			expect([401, 403]).toContain(response.status())
 		},
 	)
@@ -105,7 +74,6 @@ baseTest.describe('API Authentication Requirements', () => {
 test.describe('Workspaces API - Authenticated', () => {
 	test('can list workspaces', async ({ authenticatedPage }) => {
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
-		// Wait for workspace to be created by the WorkspaceProvider (sidebar shows workspace name)
 		await authenticatedPage
 			.locator('button')
 			.filter({ hasText: /workspace/i })
@@ -113,10 +81,10 @@ test.describe('Workspaces API - Authenticated', () => {
 			.waitFor({ state: 'visible', timeout: 10000 })
 			.catch(() => {})
 
-		const response = await orpc(authenticatedPage, 'workspaces/list')
+		const response = await apiGet(authenticatedPage, '/workspaces')
 		expect(response.status()).toBe(200)
 
-		const data = await parseOrpc(response)
+		const data = await response.json()
 		const workspaces = data.workspaces ?? data
 		expect(Array.isArray(workspaces)).toBe(true)
 		expect(workspaces.length).toBeGreaterThanOrEqual(1)
@@ -124,7 +92,6 @@ test.describe('Workspaces API - Authenticated', () => {
 
 	test('workspace has required fields', async ({ authenticatedPage }) => {
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
-		// Wait for workspace to be created by WorkspaceProvider
 		await authenticatedPage
 			.locator('button')
 			.filter({ hasText: /workspace/i })
@@ -132,12 +99,11 @@ test.describe('Workspaces API - Authenticated', () => {
 			.waitFor({ state: 'visible', timeout: 10000 })
 			.catch(() => {})
 
-		// Retry listing workspaces up to 5 times with 1s delay (workspace creation can be async)
 		let workspaces: Array<{ id: string; name: string }> = []
 		for (let attempt = 0; attempt < 5; attempt++) {
-			const response = await orpc(authenticatedPage, 'workspaces/list')
+			const response = await apiGet(authenticatedPage, '/workspaces')
 			expect(response.status()).toBe(200)
-			const data = await parseOrpc(response)
+			const data = await response.json()
 			workspaces = data.workspaces ?? data
 			if (Array.isArray(workspaces) && workspaces.length > 0) break
 			await authenticatedPage.waitForTimeout(1000)
@@ -152,15 +118,12 @@ test.describe('Workspaces API - Authenticated', () => {
 test.describe('Agents API - Authenticated', () => {
 	test('can list agents for workspace', async ({ authenticatedPage }) => {
 		const workspaceId = await getWorkspaceId(authenticatedPage)
-		const response = await orpc(
-			authenticatedPage,
-			'agents/list',
-			{},
-			{ 'X-Workspace-Id': workspaceId },
-		)
+		const response = await apiGet(authenticatedPage, '/agents', {
+			'X-Workspace-Id': workspaceId,
+		})
 		expect(response.status()).toBe(200)
 
-		const data = await parseOrpc(response)
+		const data = await response.json()
 		const agents = data.agents ?? data
 		expect(Array.isArray(agents)).toBe(true)
 	})
@@ -170,31 +133,29 @@ test.describe('Agents API - Authenticated', () => {
 		const wsHeader = { 'X-Workspace-Id': workspaceId }
 		const agentName = `Test Agent ${Date.now()}`
 
-		const createResp = await orpc(
+		const createResp = await apiPost(
 			authenticatedPage,
-			'agents/create',
+			'/agents',
 			{
 				name: agentName,
 				description: 'A test agent created via API',
 				model: '@cf/meta/llama-3.3-70b-instruct-fp8-fast',
 				instructions: 'You are a helpful test assistant.',
+				systemToolsEnabled: true,
 			},
 			wsHeader,
 		)
 
-		// oRPC may return 500 with "Output validation failed" if response schema
-		// doesn't match but agent was still created. Verify via list.
 		if (createResp.ok()) {
-			const agent = await parseOrpc(createResp)
+			const agent = await createResp.json()
 			expect(agent).toHaveProperty('id')
 		} else {
-			// Known issue: oRPC output validation may fail (500) even though agent was created
-			// Verify agent was created by listing (retry up to 5 times since creation may be async)
+			// Verify agent was created by listing
 			let found = false
 			for (let attempt = 0; attempt < 5; attempt++) {
-				const listResp = await orpc(authenticatedPage, 'agents/list', {}, wsHeader)
+				const listResp = await apiGet(authenticatedPage, '/agents', wsHeader)
 				expect(listResp.status()).toBe(200)
-				const data = await parseOrpc(listResp)
+				const data = await listResp.json()
 				const agents = data.agents ?? data
 				if (Array.isArray(agents)) {
 					found = agents.some((a: { name: string }) => a.name === agentName)
@@ -210,15 +171,12 @@ test.describe('Agents API - Authenticated', () => {
 test.describe('Tools API - Authenticated', () => {
 	test('can list tools', async ({ authenticatedPage }) => {
 		const workspaceId = await getWorkspaceId(authenticatedPage)
-		const response = await orpc(
-			authenticatedPage,
-			'tools/list',
-			{},
-			{ 'X-Workspace-Id': workspaceId },
-		)
+		const response = await apiGet(authenticatedPage, '/tools', {
+			'X-Workspace-Id': workspaceId,
+		})
 		expect(response.status()).toBe(200)
 
-		const data = await parseOrpc(response)
+		const data = await response.json()
 		const tools = data.tools ?? data
 		expect(Array.isArray(tools)).toBe(true)
 	})
@@ -227,9 +185,9 @@ test.describe('Tools API - Authenticated', () => {
 		const workspaceId = await getWorkspaceId(authenticatedPage)
 		const wsHeader = { 'X-Workspace-Id': workspaceId }
 
-		const createResp = await orpc(
+		const createResp = await apiPost(
 			authenticatedPage,
-			'tools/create',
+			'/tools',
 			{
 				name: `Custom Tool ${Date.now()}`,
 				description: 'A test custom tool',
@@ -240,15 +198,12 @@ test.describe('Tools API - Authenticated', () => {
 			wsHeader,
 		)
 
-		if (!createResp.ok()) {
-			console.log('Tool create failed:', createResp.status(), await createResp.text())
-		}
 		expect([200, 201]).toContain(createResp.status())
-		const tool = await parseOrpc(createResp)
+		const tool = await createResp.json()
 		expect(tool).toHaveProperty('id')
 
 		// Delete
-		const deleteResp = await orpc(authenticatedPage, 'tools/delete', { id: tool.id }, wsHeader)
+		const deleteResp = await apiDelete(authenticatedPage, `/tools/${tool.id}`, wsHeader)
 		expect(deleteResp.status()).toBe(200)
 	})
 })
@@ -256,15 +211,12 @@ test.describe('Tools API - Authenticated', () => {
 test.describe('Usage API - Authenticated', () => {
 	test('can get workspace usage stats', async ({ authenticatedPage }) => {
 		const workspaceId = await getWorkspaceId(authenticatedPage)
-		const response = await orpc(
-			authenticatedPage,
-			'usage/getWorkspaceUsage',
-			{},
-			{ 'X-Workspace-Id': workspaceId },
-		)
+		const response = await apiGet(authenticatedPage, '/usage', {
+			'X-Workspace-Id': workspaceId,
+		})
 		expect(response.status()).toBe(200)
 
-		const data = await parseOrpc(response)
+		const data = await response.json()
 		expect(data).toHaveProperty('period')
 	})
 })

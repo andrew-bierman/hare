@@ -152,10 +152,11 @@ export const workspaceRoutes = new Elysia({ prefix: '/workspaces', name: 'worksp
 		{ writeAccess: true },
 	)
 
-	// Get workspace by ID
+	// Get workspace by ID (scoped to authorized workspace)
 	.get(
 		'/:id',
-		async ({ db, params }) => {
+		async ({ db, workspaceId, params }) => {
+			if (params.id !== workspaceId) return status(403, { error: 'Access denied' })
 			const [workspace] = await db.select().from(workspaces).where(eq(workspaces.id, params.id))
 			if (!workspace) return status(404, { error: 'Workspace not found' })
 			return serializeWorkspace(workspace)
@@ -163,11 +164,12 @@ export const workspaceRoutes = new Elysia({ prefix: '/workspaces', name: 'worksp
 		{ writeAccess: true },
 	)
 
-	// Update workspace
+	// Update workspace (scoped to authorized workspace)
 	.use(ownerPlugin)
 	.patch(
 		'/:id',
-		async ({ db, params, body }) => {
+		async ({ db, workspaceId, params, body }) => {
+			if (params.id !== workspaceId) return status(403, { error: 'Access denied' })
 			const updateData: Partial<typeof workspaces.$inferInsert> = {
 				updatedAt: new Date(),
 				...(body.name !== undefined && { name: body.name }),
@@ -189,10 +191,11 @@ export const workspaceRoutes = new Elysia({ prefix: '/workspaces', name: 'worksp
 		},
 	)
 
-	// Delete workspace
+	// Delete workspace (scoped to authorized workspace)
 	.delete(
 		'/:id',
-		async ({ db, params }) => {
+		async ({ db, workspaceId, params }) => {
+			if (params.id !== workspaceId) return status(403, { error: 'Access denied' })
 			const result = await db.delete(workspaces).where(eq(workspaces.id, params.id)).returning()
 			if (result.length === 0) return status(404, { error: 'Workspace not found' })
 			return { success: true }
