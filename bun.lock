@@ -292,6 +292,14 @@
         "better-auth": "^1.4.0",
       },
     },
+    "packages/checks": {
+      "name": "@hare/checks",
+      "version": "0.1.0",
+      "devDependencies": {
+        "@hare/typescript-config": "workspace:*",
+        "typescript": "catalog:",
+      },
+    },
     "packages/cli": {
       "name": "@hare/cli",
       "version": "0.1.0",
@@ -876,6 +884,8 @@
     "@hare/app": ["@hare/app@workspace:packages/app"],
 
     "@hare/auth": ["@hare/auth@workspace:packages/auth"],
+
+    "@hare/checks": ["@hare/checks@workspace:packages/checks"],
 
     "@hare/cli": ["@hare/cli@workspace:packages/cli"],
 

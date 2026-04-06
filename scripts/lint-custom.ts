@@ -33,6 +33,8 @@ interface LintRule {
 	include: string[]
 	/** Files to exclude (glob patterns) */
 	exclude?: string[]
+	/** 'error' blocks CI (exit 1), 'warn' is informational (exit 0). Default: 'error' */
+	severity?: 'error' | 'warn'
 	/** Custom validator — return violation message or null to skip */
 	validate?: (match: RegExpMatchArray, line: string, filePath: string) => string | null
 }
@@ -85,6 +87,56 @@ const RULES: LintRule[] = [
 		pattern: /\.(?:cost|amount|price)\s*\/\s*100\b/,
 		include: ['packages/**/*.ts'],
 		exclude: ['**/__tests__/**', '**/*.test.ts', '**/node_modules/**'],
+	},
+	{
+		id: 'no-instanceof',
+		severity: 'warn',
+		description: 'Use type guard functions from @hare/checks instead of instanceof',
+		pattern: /\binstanceof\s+/,
+		include: ['packages/**/*.ts'],
+		exclude: [
+			'**/__tests__/**',
+			'**/*.test.ts',
+			'**/node_modules/**',
+			'**/checks/**',
+		],
+	},
+	{
+		id: 'no-typeof',
+		severity: 'warn',
+		description: 'Use type guard functions from @hare/checks instead of typeof',
+		pattern: /\btypeof\s+\w+\s*===?\s*['"]/,
+		include: ['packages/**/*.ts'],
+		exclude: [
+			'**/__tests__/**',
+			'**/*.test.ts',
+			'**/node_modules/**',
+			'**/checks/**',
+		],
+	},
+	{
+		id: 'no-multi-param-function',
+		severity: 'warn',
+		description: 'Functions with >1 parameter should accept a single options object',
+		pattern: /(?:function\s+\w+|(?:const|let)\s+\w+\s*=\s*(?:async\s+)?)\((?:[^)]*,){2,}[^)]*\)/,
+		include: ['packages/**/*.ts'],
+		exclude: [
+			'**/__tests__/**',
+			'**/*.test.ts',
+			'**/node_modules/**',
+			'**/types.ts',
+			'**/schemas.ts',
+			'**/schema/**',
+		],
+		validate: (match, line) => {
+			// Skip callbacks (arrow functions inside other expressions)
+			if (line.includes('=>') && !line.match(/^(export\s+)?(const|let|function)/)) return null
+			// Skip method definitions in classes
+			if (line.match(/^\s+(async\s+)?\w+\(/)) return null
+			// Skip Zod schema chains
+			if (line.includes('.object(') || line.includes('.array(')) return null
+			return 'Function has >1 parameter — use a single options object: fn({ a, b, c })'
+		},
 	},
 ]
 
@@ -154,7 +206,17 @@ async function main() {
 		}
 	}
 
-	if (allViolations.length === 0) {
+	// Separate errors (blocking) from warnings (informational)
+	const errors = allViolations.filter((v) => {
+		const rule = RULES.find((r) => r.id === v.rule)
+		return (rule?.severity ?? 'error') === 'error'
+	})
+	const warnings = allViolations.filter((v) => {
+		const rule = RULES.find((r) => r.id === v.rule)
+		return rule?.severity === 'warn'
+	})
+
+	if (errors.length === 0 && warnings.length === 0) {
 		console.log('✅ No custom lint violations found')
 		process.exit(0)
 	}
@@ -167,11 +229,17 @@ async function main() {
 		byRule.set(v.rule, existing)
 	}
 
-	console.log(`\n⚠️  Found ${allViolations.length} custom lint violations:\n`)
+	if (errors.length > 0) {
+		console.log(`\n❌ Found ${errors.length} errors:\n`)
+	}
+	if (warnings.length > 0) {
+		console.log(`⚠️  Found ${warnings.length} warnings:\n`)
+	}
 
 	for (const [ruleId, violations] of byRule) {
 		const rule = RULES.find((r) => r.id === ruleId)
-		console.log(`  ${ruleId} (${violations.length}) — ${rule?.description}`)
+		const icon = (rule?.severity ?? 'error') === 'error' ? '❌' : '⚠️'
+		console.log(`  ${icon} ${ruleId} (${violations.length}) — ${rule?.description}`)
 
 		if (isReport) {
 			for (const v of violations) {
@@ -186,7 +254,8 @@ async function main() {
 		console.log('  Run with --report for details\n')
 	}
 
-	process.exit(1)
+	// Only exit 1 for errors, not warnings
+	process.exit(errors.length > 0 ? 1 : 0)
 }
 
 main()
