@@ -7,7 +7,7 @@
  * - Response mapping
  * - Error handling
  */
-
+import { isError, isRecord } from '@hare/checks'
 import { z } from 'zod'
 
 /**
@@ -97,7 +97,7 @@ export function substituteVariables(options: {
 		const keys = path.trim().split('.')
 		let value: unknown = variables
 		for (const key of keys) {
-			if (value && typeof value === 'object' && key in value) {
+			if (isRecord(value) && key in value) {
 				value = (value as Record<string, unknown>)[key]
 			} else {
 				return match // Keep original if path not found
@@ -106,7 +106,7 @@ export function substituteVariables(options: {
 		if (value === null || value === undefined) {
 			return ''
 		}
-		if (typeof value === 'object') {
+		if (isRecord(value)) {
 			return JSON.stringify(value)
 		}
 		return String(value)
@@ -122,7 +122,7 @@ export function getValueByPath(options: { obj: unknown; path: string }): unknown
 	const keys = path.split('.')
 	let value: unknown = obj
 	for (const key of keys) {
-		if (value && typeof value === 'object' && key in value) {
+		if (isRecord(value) && key in value) {
 			value = (value as Record<string, unknown>)[key]
 		} else {
 			return undefined
@@ -261,7 +261,7 @@ function buildRequestBody(options: {
 	if (config.bodyType === 'form') {
 		try {
 			const parsed = JSON.parse(substituted)
-			if (typeof parsed === 'object' && parsed !== null) {
+			if (isRecord(parsed)) {
 				return new URLSearchParams(parsed as Record<string, string>).toString()
 			}
 		} catch {
@@ -367,7 +367,7 @@ export async function executeHttpTool(options: {
 	} catch (error) {
 		let errorMessage = 'Unknown error'
 
-		if (error instanceof Error) {
+		if (isError(error)) {
 			if (error.name === 'AbortError') {
 				errorMessage = `Request timeout after ${config.timeout}ms`
 			} else {

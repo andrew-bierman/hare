@@ -4,6 +4,7 @@
  * Handles all tool-related operations with full type safety.
  */
 
+import { getErrorMessage } from '@hare/checks'
 import { config } from '@hare/config'
 import { tools } from '@hare/db/schema'
 import { and, eq } from 'drizzle-orm'
@@ -45,7 +46,8 @@ function serializeTool(tool: typeof tools.$inferSelect): z.infer<typeof ToolSche
 	}
 }
 
-async function findTool(id: string, workspaceId: string, db: WorkspaceContext['db']) {
+async function findTool(opts: { id: string; workspaceId: string; db: WorkspaceContext['db'] }) {
+	const { id, workspaceId, db } = opts
 	const [tool] = await db
 		.select()
 		.from(tools)
@@ -81,7 +83,7 @@ export const get = requireWrite
 	.handler(async ({ input, context }) => {
 		const { db, workspaceId } = context
 
-		const tool = await findTool(input.id, workspaceId, db)
+		const tool = await findTool({ id: input.id, workspaceId, db })
 		if (!tool) notFound('Tool not found')
 
 		return serializeTool(tool)
@@ -138,7 +140,7 @@ export const update = requireWrite
 		const { id, ...data } = input
 		const { db, workspaceId } = context
 
-		const existing = await findTool(id, workspaceId, db)
+		const existing = await findTool({ id, workspaceId, db })
 		if (!existing) notFound('Tool not found')
 
 		const updateData: Partial<typeof tools.$inferInsert> = {
@@ -300,7 +302,7 @@ export const test = requireWrite
 		} catch (error) {
 			return {
 				success: false,
-				error: error instanceof Error ? error.message : 'Unknown error',
+				error: getErrorMessage(error),
 				duration: Date.now() - startTime,
 			}
 		}
@@ -320,7 +322,7 @@ export const testExisting = requireWrite
 		const { db, workspaceId } = context
 		const startTime = Date.now()
 
-		const tool = await findTool(input.id, workspaceId, db)
+		const tool = await findTool({ id: input.id, workspaceId, db })
 		if (!tool) notFound('Tool not found')
 
 		const testInput = input.testInput ?? {}
@@ -428,13 +430,13 @@ export const testExisting = requireWrite
 					type: tool.type,
 					success: false,
 					isTest: true,
-					error: error instanceof Error ? error.message : 'Unknown error',
+					error: getErrorMessage(error),
 				},
 			})
 
 			return {
 				success: false,
-				error: error instanceof Error ? error.message : 'Unknown error',
+				error: getErrorMessage(error),
 				duration: Date.now() - startTime,
 			}
 		}

@@ -1,4 +1,6 @@
+import { getErrorMessage, isAbortError } from '@hare/checks'
 import { z } from 'zod'
+import { ContentTypes, Timeouts, UserAgents } from './constants'
 import { delegateTo } from './delegate'
 import { isRedirectSafe, isUrlSafe, MAX_REDIRECT_HOPS } from './security/ssrf'
 import { createTool, failure, success, type ToolContext } from './types'
@@ -35,7 +37,11 @@ export const httpRequestTool = createTool({
 			.describe('HTTP method'),
 		headers: z.record(z.string(), z.string()).optional().describe('Additional headers to include'),
 		body: z.string().optional().describe('Request body (for POST, PUT, PATCH)'),
-		timeout: z.number().optional().default(30000).describe('Request timeout in milliseconds'),
+		timeout: z
+			.number()
+			.optional()
+			.default(Timeouts.HTTP_DEFAULT)
+			.describe('Request timeout in milliseconds'),
 	}),
 	outputSchema: HttpResponseOutputSchema,
 	execute: async (params, _context) => {
@@ -52,7 +58,7 @@ export const httpRequestTool = createTool({
 			const requestInit: RequestInit = {
 				method: params.method,
 				headers: {
-					'User-Agent': 'Hare-Agent/1.0',
+					'User-Agent': UserAgents.DEFAULT,
 					...params.headers,
 				},
 				signal: controller.signal,
@@ -64,7 +70,7 @@ export const httpRequestTool = createTool({
 				requestInit.body = params.body
 				// Auto-set content-type if not provided
 				if (!params.headers?.['Content-Type'] && !params.headers?.['content-type']) {
-					;(requestInit.headers as Record<string, string>)['Content-Type'] = 'application/json'
+					;(requestInit.headers as Record<string, string>)['Content-Type'] = ContentTypes.JSON
 				}
 			}
 
@@ -104,7 +110,7 @@ export const httpRequestTool = createTool({
 			const contentType = response.headers.get('content-type') || ''
 			let data: unknown
 
-			if (contentType.includes('application/json')) {
+			if (contentType.includes(ContentTypes.JSON)) {
 				data = await response.json()
 			} else {
 				data = await response.text()
@@ -118,12 +124,10 @@ export const httpRequestTool = createTool({
 				ok: response.ok,
 			})
 		} catch (error) {
-			if (error instanceof Error && error.name === 'AbortError') {
+			if (isAbortError(error)) {
 				return failure(`Request timed out after ${params.timeout}ms`)
 			}
-			return failure(
-				`HTTP request failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
-			)
+			return failure(`HTTP request failed: ${getErrorMessage(error)}`)
 		}
 	},
 })
@@ -142,7 +146,7 @@ export const httpGetTool = createTool({
 	execute: async (params, context) => {
 		return delegateTo({
 			tool: httpRequestTool,
-			params: { ...params, method: 'GET', timeout: 30000 },
+			params: { ...params, method: 'GET', timeout: Timeouts.HTTP_DEFAULT },
 			context,
 		})
 	},
@@ -169,7 +173,7 @@ export const httpPostTool = createTool({
 				method: 'POST',
 				body,
 				headers: params.headers,
-				timeout: 30000,
+				timeout: Timeouts.HTTP_DEFAULT,
 			},
 			context,
 		})

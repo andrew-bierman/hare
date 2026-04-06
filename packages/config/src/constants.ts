@@ -258,6 +258,76 @@ export const API_KEY_CONFIG = {
 } as const
 
 // =============================================================================
+// Tool Configuration
+// =============================================================================
+
+/** Prefix for system-provided tool IDs (vs. user-created custom tools) */
+export const SYSTEM_TOOL_ID_PREFIX = 'system-'
+
+/**
+ * Check if a tool ID belongs to a system (built-in) tool.
+ */
+export function isSystemToolId(toolId: string): boolean {
+	return toolId.startsWith(SYSTEM_TOOL_ID_PREFIX)
+}
+
+// =============================================================================
+// Currency
+// =============================================================================
+
+export const CURRENCY = {
+	/** Divisor to convert integer cents to decimal dollars */
+	CENTS_PER_DOLLAR: 100,
+} as const
+
+// =============================================================================
+// Chat Configuration
+// =============================================================================
+
+export const CHAT_CONFIG = {
+	/** Default limit for loading conversation history */
+	HISTORY_LIMIT: 20,
+	/** Search highlight context window (chars on each side of match) */
+	HIGHLIGHT_CONTEXT_CHARS: 100,
+} as const
+
+// =============================================================================
+// Agent Health
+// =============================================================================
+
+export const AGENT_HEALTH = {
+	/** Minimum success rate percentage to be considered healthy */
+	HEALTHY_MIN_SUCCESS_RATE: 95,
+	/** Minimum success rate percentage before marked degraded */
+	DEGRADED_MIN_SUCCESS_RATE: 80,
+	/** Health metrics window in milliseconds (24 hours) */
+	WINDOW_MS: 24 * 60 * 60 * 1000,
+} as const
+
+// =============================================================================
+// CORS / Security
+// =============================================================================
+
+export const CORS_CONFIG = {
+	/** Preflight cache duration in seconds (24 hours) */
+	MAX_AGE_SECONDS: 86400,
+} as const
+
+export const SECURITY_HEADERS = {
+	/** HSTS max-age in seconds (1 year) */
+	HSTS_MAX_AGE_SECONDS: 60 * 60 * 24 * 365,
+} as const
+
+// =============================================================================
+// HTTP Auth
+// =============================================================================
+
+export const HTTP_AUTH = {
+	/** Bearer token prefix */
+	BEARER_PREFIX: 'Bearer ',
+} as const
+
+// =============================================================================
 // Type Exports
 // =============================================================================
 

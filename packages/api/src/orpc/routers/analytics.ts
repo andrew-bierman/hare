@@ -4,7 +4,7 @@
  * Handles comprehensive analytics with full type safety.
  */
 
-import { getModelName } from '@hare/config'
+import { CURRENCY, getModelName } from '@hare/config'
 import { agents, usage } from '@hare/db/schema'
 import { and, eq, gte, lte, sql } from 'drizzle-orm'
 import { z } from 'zod'
@@ -182,7 +182,7 @@ export const get = requireWrite
 				totalInputTokens: summary?.totalInputTokens || 0,
 				totalOutputTokens: summary?.totalOutputTokens || 0,
 				totalTokens: summary?.totalTokens || 0,
-				totalCost: (summary?.totalCost || 0) / 100,
+				totalCost: (summary?.totalCost || 0) / CURRENCY.CENTS_PER_DOLLAR,
 				avgLatencyMs: Math.round(summary?.avgLatencyMs || 0),
 			},
 			timeSeries: timeSeries.map((d) => ({
@@ -191,7 +191,7 @@ export const get = requireWrite
 				outputTokens: d.outputTokens,
 				totalTokens: d.totalTokens,
 				requests: d.requests,
-				cost: d.cost / 100,
+				cost: d.cost / CURRENCY.CENTS_PER_DOLLAR,
 				avgLatency: Math.round(d.avgLatency),
 			})),
 			byAgent: byAgent.map((a) => ({
@@ -201,7 +201,7 @@ export const get = requireWrite
 				inputTokens: a.inputTokens,
 				outputTokens: a.outputTokens,
 				totalTokens: a.totalTokens,
-				cost: a.cost / 100,
+				cost: a.cost / CURRENCY.CENTS_PER_DOLLAR,
 			})),
 			byModel: byModel.map((m) => ({
 				model: m.model || 'unknown',
@@ -210,7 +210,7 @@ export const get = requireWrite
 				inputTokens: m.inputTokens,
 				outputTokens: m.outputTokens,
 				totalTokens: m.totalTokens,
-				cost: m.cost / 100,
+				cost: m.cost / CURRENCY.CENTS_PER_DOLLAR,
 			})),
 			period: {
 				startDate: startDate || defaultStartDate,

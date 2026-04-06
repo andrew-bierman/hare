@@ -9,9 +9,28 @@
 // Timeouts (in milliseconds)
 // ==========================================
 
+// ==========================================
+// Time Durations (in milliseconds)
+// ==========================================
+
+export const Duration = {
+	/** One hour in milliseconds */
+	HOUR: 60 * 60 * 1000,
+	/** One day in milliseconds */
+	DAY: 24 * 60 * 60 * 1000,
+	/** One week in milliseconds */
+	WEEK: 7 * 24 * 60 * 60 * 1000,
+	/** 30 days in milliseconds */
+	MONTH: 30 * 24 * 60 * 60 * 1000,
+} as const
+
+// ==========================================
+// Timeouts (in milliseconds)
+// ==========================================
+
 export const Timeouts = {
 	/** One hour in milliseconds */
-	ONE_HOUR: 60 * 60 * 1000,
+	ONE_HOUR: Duration.HOUR,
 	/** Default HTTP request timeout */
 	HTTP_DEFAULT: 30_000,
 	/** Sandbox execution timeout */

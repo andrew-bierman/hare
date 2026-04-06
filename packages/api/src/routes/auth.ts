@@ -1,4 +1,5 @@
 import { type AuthServerEnv, createAuth, getOAuthProviders } from '@hare/auth/server'
+import { isErrorType } from '@hare/checks'
 import type { CloudflareEnv, HonoEnv } from '@hare/types'
 import { Hono } from 'hono'
 import { CloudflareEnvError, getD1 } from '../db'
@@ -49,7 +50,7 @@ const app = new Hono<HonoEnv>()
 		try {
 			d1 = getD1(c)
 		} catch (e) {
-			if (e instanceof CloudflareEnvError) {
+			if (isErrorType(e, CloudflareEnvError)) {
 				// For session endpoints, return null session instead of error
 				// This allows client to handle "not logged in" gracefully
 				const path = c.req.path

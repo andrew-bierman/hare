@@ -32,6 +32,8 @@
 		"typecheck": "tsc --noEmit"
 	},
 	"dependencies": {
+		"@hare/checks": "workspace:*",
+		"@hare/config": "workspace:*",
 		"@hare/db": "workspace:*",
 		"@hare/tools": "workspace:*",
 		"@hare/types": "workspace:*",

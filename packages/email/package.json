@@ -32,6 +32,7 @@
 		"typecheck": "tsc --noEmit"
 	},
 	"dependencies": {
+		"@hare/checks": "workspace:*",
 		"@react-email/components": "catalog:",
 		"react": "catalog:",
 		"resend": "catalog:"

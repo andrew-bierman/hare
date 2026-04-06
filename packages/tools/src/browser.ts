@@ -1,3 +1,4 @@
+import { getErrorMessage } from '@hare/checks'
 import { z } from 'zod'
 import { isUrlSafe } from './security/ssrf'
 import { createTool, failure, success, type ToolContext } from './types'
@@ -99,9 +100,7 @@ export const browseUrlTool = createTool({
 				await browser.disconnect()
 			}
 		} catch (error) {
-			return failure(
-				`Failed to browse "${params.url}": ${error instanceof Error ? error.message : 'Unknown error'}`,
-			)
+			return failure(`Failed to browse "${params.url}": ${getErrorMessage(error)}`)
 		}
 	},
 })
@@ -187,9 +186,7 @@ export const screenshotTool = createTool({
 				await browser.disconnect()
 			}
 		} catch (error) {
-			return failure(
-				`Failed to screenshot "${params.url}": ${error instanceof Error ? error.message : 'Unknown error'}`,
-			)
+			return failure(`Failed to screenshot "${params.url}": ${getErrorMessage(error)}`)
 		}
 	},
 })

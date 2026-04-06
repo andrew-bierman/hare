@@ -82,6 +82,12 @@ const AVAILABLE_CHECKS: CheckConfig[] = [
     description: "Run Biome linting and formatting with auto-fix",
   },
   {
+    id: "lint-custom",
+    name: "Custom Lint",
+    command: "bun run lint:custom",
+    description: "Check for magic values, raw strings, and code patterns",
+  },
+  {
     id: "typecheck",
     name: "TypeScript",
     command: "bun run typecheck",
@@ -107,6 +113,7 @@ const DEFAULT_CHECK_IDS = [
   "sort-pkg",
   "sync-tauri",
   "lint",
+  "lint-custom",
   "typecheck",
   "build",
 ];

@@ -22,7 +22,6 @@ export {
 	ACTIVITY_EVENT_TYPES,
 	type ActivityEventType,
 	AGENT_STATUSES,
-	type AgentStatus,
 	type AgentsConfig,
 	type AgentTemplate,
 	type AgentTemplateId,
@@ -38,7 +37,6 @@ export {
 	// Types
 	type config as ConfigType,
 	DEPLOYMENT_STATUSES,
-	type DeploymentStatus,
 	type EnumsConfig,
 	EXECUTION_STATUSES,
 	EXPORT_FORMATS,
@@ -91,8 +89,45 @@ export {
 	WORKSPACE_ROLES,
 	WorkspaceRole,
 } from './config'
+
+// Constants
+export {
+	AGENT_HEALTH,
+	API_KEY_CONFIG,
+	CHAT_CONFIG,
+	CHAT_STREAM_TYPES,
+	type ChatStreamType,
+	COOKIE_CONFIG,
+	COOKIE_NAMES,
+	CORS_CONFIG,
+	type CookieName,
+	CURRENCY,
+	DISPLAY_TRUNCATION,
+	EMBED_COLOR_PRESETS,
+	EMBED_COLORS,
+	EMBED_POSITIONS,
+	type EmbedColorPreset,
+	type EmbedPosition,
+	ENCRYPTION_CONFIG,
+	HTTP_AUTH,
+	HTTP_STATUS,
+	isSystemToolId,
+	LOGGING_CONFIG,
+	ROUTER_TIMING,
+	SECURITY_HEADERS,
+	SYSTEM_TOOL_ID_PREFIX,
+	UI_TIMING,
+	VALIDATION,
+	WIDGET_MESSAGE_TYPES,
+} from './constants'
+
+// Enums (value + type re-exports for direct access)
+export { AgentStatus, DeploymentStatus } from './enums'
+
 // Environment (separate due to runtime dynamic values)
 export { type ClientEnv, clientEnv, type ServerEnv, serverEnv } from './env'
+// Logger
+export { logger } from './logger'
 // Instruction snippets / prompt library
 export {
 	getSnippetById,

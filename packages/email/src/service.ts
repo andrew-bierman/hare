@@ -8,6 +8,7 @@
  * @see https://react.email
  */
 
+import { getErrorMessage } from '@hare/checks'
 import { Resend } from 'resend'
 import { PasswordResetEmail } from './templates/password-reset'
 import { WorkspaceInvitationEmail } from './templates/workspace-invitation'
@@ -89,7 +90,7 @@ export class EmailService {
 		} catch (error) {
 			return {
 				success: false,
-				error: error instanceof Error ? error.message : 'Unknown error',
+				error: getErrorMessage(error),
 			}
 		}
 	}
@@ -143,7 +144,7 @@ export class EmailService {
 		} catch (error) {
 			return {
 				success: false,
-				error: error instanceof Error ? error.message : 'Unknown error',
+				error: getErrorMessage(error),
 			}
 		}
 	}

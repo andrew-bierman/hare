@@ -162,4 +162,4 @@ export function usePrefetchNextMessages() {
 	}
 }
 
-export type { Message, ConversationPage, UseInfiniteMessagesOptions }
+export type { ConversationPage, Message, UseInfiniteMessagesOptions }

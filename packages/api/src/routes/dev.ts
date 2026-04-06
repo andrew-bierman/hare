@@ -1,4 +1,4 @@
-import { serverEnv } from '@hare/config'
+import { logger, serverEnv } from '@hare/config'
 import { agents } from '@hare/db'
 import type { WorkspaceEnv } from '@hare/types'
 import { OpenAPIHono } from '@hono/zod-openapi'
@@ -104,7 +104,7 @@ app.post('/seed', authMiddleware, workspaceMiddleware, async (c) => {
 			},
 		})
 	} catch (error) {
-		console.error('Seed error:', error)
+		logger.error('Seed error:', error)
 		return c.json({ error: 'Failed to seed data' }, 500)
 	}
 })

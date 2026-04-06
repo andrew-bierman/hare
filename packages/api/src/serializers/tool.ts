@@ -1,3 +1,5 @@
+import { isRecord } from '@hare/checks'
+import { logger } from '@hare/config'
 import type { tools } from '@hare/db'
 import type { AnyTool } from '@hare/tools'
 import type { InferSelectModel } from 'drizzle-orm'
@@ -143,15 +145,10 @@ function zodSchemaToInputSchema(zodSchema: unknown, toolId?: string): NonNullabl
 		// Use Zod v4's built-in JSON Schema conversion
 		const jsonSchema = toJSONSchema(zodSchema as z.ZodType)
 		// Extract properties from the JSON Schema
-		if (
-			typeof jsonSchema === 'object' &&
-			jsonSchema !== null &&
-			'properties' in jsonSchema &&
-			typeof jsonSchema.properties === 'object'
-		) {
+		if (isRecord(jsonSchema) && 'properties' in jsonSchema && isRecord(jsonSchema.properties)) {
 			const result: Record<string, unknown> = {}
 			for (const [key, value] of Object.entries(jsonSchema.properties || {})) {
-				if (typeof value === 'object' && value !== null) {
+				if (isRecord(value)) {
 					const prop = value as Record<string, unknown>
 					result[key] = {
 						type: (prop.type as string) || 'string',
@@ -170,7 +167,7 @@ function zodSchemaToInputSchema(zodSchema: unknown, toolId?: string): NonNullabl
 		return {}
 	} catch (error) {
 		// Log schema conversion failures to help debug tool definition issues
-		console.error(
+		logger.error(
 			`[tool-serializer] Failed to convert schema for tool "${toolId || 'unknown'}":`,
 			error,
 		)

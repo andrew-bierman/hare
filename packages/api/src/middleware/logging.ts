@@ -1,4 +1,5 @@
-import { config } from '@hare/config'
+import { getErrorMessage } from '@hare/checks'
+import { config, logger } from '@hare/config'
 import { createId } from '@hare/db'
 import type { CloudflareEnv, HonoEnv } from '@hare/types'
 import type { Context, Next } from 'hono'
@@ -94,7 +95,7 @@ function getAgentId(c: Context<HonoEnv>): string | null {
  */
 async function storeLog(env: CloudflareEnv, log: RequestLog): Promise<void> {
 	if (!env.KV) {
-		console.warn('KV binding not available, skipping log storage')
+		logger.warn('KV binding not available, skipping log storage')
 		return
 	}
 
@@ -115,7 +116,7 @@ async function storeLog(env: CloudflareEnv, log: RequestLog): Promise<void> {
 
 		await env.KV.put(listKey, JSON.stringify(logIds), { expirationTtl: config.logging.ttlSeconds })
 	} catch (error) {
-		console.error('Failed to store request log:', error)
+		logger.error('Failed to store request log:', error)
 	}
 }
 
@@ -142,7 +143,7 @@ export async function loggingMiddleware(
 	try {
 		await next()
 	} catch (err) {
-		error = err instanceof Error ? err.message : 'Unknown error'
+		error = getErrorMessage(err)
 		throw err
 	} finally {
 		const endTime = Date.now()
@@ -261,7 +262,7 @@ export async function getLogs(
 
 		return { logs: paginatedLogs, total: allLogs.length }
 	} catch (error) {
-		console.error('Failed to retrieve logs:', error)
+		logger.error('Failed to retrieve logs:', error)
 		return { logs: [], total: 0 }
 	}
 }

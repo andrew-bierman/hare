@@ -15,13 +15,14 @@
  * ```
  */
 
-import { serverEnv } from '@hare/config'
+import { isErrorType } from '@hare/checks'
+import { logger, serverEnv } from '@hare/config'
 import { requestValidation } from '@hare/security'
 import type { HonoEnv } from '@hare/types'
 import { OpenAPIHono } from '@hono/zod-openapi'
 import { apiReference } from '@scalar/hono-api-reference'
 import { getRouterName, showRoutes } from 'hono/dev'
-import { logger } from 'hono/logger'
+import { logger as honoLogger } from 'hono/logger'
 import { requestId } from 'hono/request-id'
 import { secureHeaders } from 'hono/secure-headers'
 import { timing } from 'hono/timing'
@@ -73,18 +74,18 @@ const app = new OpenAPIHono<HonoEnv>().basePath('/api')
 
 // Global error handler
 app.onError((error, c) => {
-	if (error instanceof CloudflareEnvError) {
-		console.error('CloudflareEnvError:', error.message)
+	if (isErrorType(error, CloudflareEnvError)) {
+		logger.error('CloudflareEnvError:', error.message)
 		return c.json({ error: 'Service unavailable' }, 503)
 	}
 
-	console.error('Unhandled error:', error)
+	logger.error('Unhandled error:', error)
 	return c.json({ error: 'Internal server error' }, 500)
 })
 
 // Middleware
 app.use('*', requestId()) // Adds X-Request-Id header for tracing
-app.use('*', logger()) // Request logging (uses requestId)
+app.use('*', honoLogger()) // Request logging (uses requestId)
 app.use('*', timing()) // Adds Server-Timing headers for performance monitoring
 app.use('*', secureHeaders()) // Security headers (X-Content-Type-Options, X-Frame-Options, etc.)
 app.use('*', corsMiddleware)
@@ -157,9 +158,9 @@ app.get(
 
 // Development: Show registered routes on startup (after all routes are defined)
 if (serverEnv.NODE_ENV === 'development') {
-	console.log(`\n🚀 Hare API using ${getRouterName(app)} router`)
+	logger.info(`\n🚀 Hare API using ${getRouterName(app)} router`)
 	showRoutes(app, { verbose: true, colorize: true })
-	console.log('')
+	logger.info('')
 }
 
 // =============================================================================

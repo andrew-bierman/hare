@@ -1,3 +1,4 @@
+import { logger } from '@hare/config'
 import { workspaceMembers, workspaces } from '@hare/db'
 import { isWorkspaceRole, type WorkspaceEnv, type WorkspaceRole } from '@hare/types'
 import { and, eq } from 'drizzle-orm'
@@ -58,7 +59,7 @@ export const workspaceMiddleware: MiddlewareHandler<WorkspaceEnv> = async (c, ne
 
 	// Validate role from database
 	if (!isWorkspaceRole(membership.role)) {
-		console.error(`Invalid workspace role in database: ${membership.role}`)
+		logger.error(`Invalid workspace role in database: ${membership.role}`)
 		return c.json({ error: 'Invalid workspace configuration' }, 500)
 	}
 

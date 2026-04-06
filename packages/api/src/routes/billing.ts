@@ -7,6 +7,7 @@
  * @see packages/api/src/orpc/routers/billing.ts for authenticated billing routes
  */
 
+import { logger } from '@hare/config'
 import { workspaces } from '@hare/db/schema'
 import type { CloudflareEnv, HonoEnv } from '@hare/types'
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
@@ -77,7 +78,7 @@ app.openapi(webhookRoute, async (c) => {
 	const webhookSecret = env.STRIPE_WEBHOOK_SECRET
 
 	if (!webhookSecret) {
-		console.error('STRIPE_WEBHOOK_SECRET is not configured')
+		logger.error('STRIPE_WEBHOOK_SECRET is not configured')
 		return c.json({ error: 'Webhook not configured' }, 400)
 	}
 
@@ -94,7 +95,7 @@ app.openapi(webhookRoute, async (c) => {
 		const body = await c.req.text()
 		event = stripe.webhooks.constructEvent(body, signature, webhookSecret)
 	} catch (err) {
-		console.error('Webhook signature verification failed:', err)
+		logger.error('Webhook signature verification failed:', err)
 		return c.json({ error: 'Invalid signature' }, 400)
 	}
 
@@ -163,12 +164,12 @@ app.openapi(webhookRoute, async (c) => {
 
 		case 'invoice.payment_failed': {
 			const invoice = event.data.object as Stripe.Invoice
-			console.warn('Payment failed for invoice:', invoice.id)
+			logger.warn('Payment failed for invoice:', invoice.id)
 			break
 		}
 
 		default:
-			console.log(`Unhandled event type: ${event.type}`)
+			logger.info(`Unhandled event type: ${event.type}`)
 	}
 
 	return c.json({ received: true }, 200)

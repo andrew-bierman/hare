@@ -10,10 +10,12 @@ import {
 	createMemoryStore,
 	toAgentMessages,
 } from '@hare/agent'
+import { getErrorMessage } from '@hare/checks'
+import { AgentStatus, logger } from '@hare/config'
 import { agents, conversations, messages, usage } from '@hare/db/schema'
 import { eventIterator } from '@orpc/server'
 import { type ModelMessage, streamText } from 'ai'
-import { and, count, desc, eq, gte, like, lte } from 'drizzle-orm'
+import { and, count, desc, eq, gte, inArray, like, lte } from 'drizzle-orm'
 import { z } from 'zod'
 import {
 	ChatRequestSchema,
@@ -24,6 +26,7 @@ import {
 	IdParamSchema,
 	MessageSchema,
 } from '../../schemas'
+import { estimateTokens } from '../../utils/tokens'
 import { authedProcedure, notFound } from '../base'
 
 // =============================================================================
@@ -159,7 +162,7 @@ export const chatWithAgent = authedProcedure
 			return
 		}
 
-		if (agentConfig.status !== 'deployed') {
+		if (agentConfig.status !== AgentStatus.DEPLOYED) {
 			yield { type: 'error' as const, message: 'Agent not deployed' }
 			return
 		}
@@ -235,9 +238,9 @@ export const chatWithAgent = authedProcedure
 			const latencyMs = Date.now() - startTime
 			const tokensIn = agentMessages.reduce((acc, m) => {
 				const content = typeof m.content === 'string' ? m.content : JSON.stringify(m.content)
-				return acc + Math.ceil(content.length / 4)
+				return acc + estimateTokens(content)
 			}, 0)
-			const tokensOut = Math.ceil(fullResponse.length / 4)
+			const tokensOut = estimateTokens(fullResponse)
 
 			await db.insert(usage).values({
 				workspaceId: agentConfig.workspaceId,
@@ -256,10 +259,10 @@ export const chatWithAgent = authedProcedure
 			// Signal completion with session ID
 			yield { type: 'done' as const, sessionId: conversationId }
 		} catch (error) {
-			console.error('Error during chat streaming:', error)
+			logger.error('Error during chat streaming:', error)
 			yield {
 				type: 'error' as const,
-				message: error instanceof Error ? error.message : 'Unknown error',
+				message: getErrorMessage(error),
 			}
 		}
 	})
@@ -277,26 +280,32 @@ export const listConversations = authedProcedure
 
 		const results = await db.select().from(conversations).where(eq(conversations.agentId, agentId))
 
-		// Get message counts for each conversation
-		const conversationsData = await Promise.all(
-			results.map(async (conv) => {
-				const messageCount = await db
-					.select()
-					.from(messages)
-					.where(eq(messages.conversationId, conv.id))
-					.then((rows) => rows.length)
+		// Batch query to get all message counts in a single query
+		const messageCounts = await db
+			.select({
+				conversationId: messages.conversationId,
+				count: count(),
+			})
+			.from(messages)
+			.where(
+				inArray(
+					messages.conversationId,
+					results.map((c) => c.id),
+				),
+			)
+			.groupBy(messages.conversationId)
 
-				return {
-					id: conv.id,
-					agentId: conv.agentId,
-					userId: conv.userId,
-					title: conv.title || 'Untitled Conversation',
-					messageCount,
-					createdAt: conv.createdAt.toISOString(),
-					updatedAt: conv.updatedAt.toISOString(),
-				}
-			}),
-		)
+		const countMap = new Map(messageCounts.map((mc) => [mc.conversationId, mc.count]))
+
+		const conversationsData = results.map((conv) => ({
+			id: conv.id,
+			agentId: conv.agentId,
+			userId: conv.userId,
+			title: conv.title || 'Untitled Conversation',
+			messageCount: countMap.get(conv.id) ?? 0,
+			createdAt: conv.createdAt.toISOString(),
+			updatedAt: conv.updatedAt.toISOString(),
+		}))
 
 		return { conversations: conversationsData }
 	})
@@ -495,8 +504,14 @@ function highlightMatch(options: {
 		snippet = `${snippet}...`
 	}
 
-	// Highlight all matches in the snippet
-	return snippet.replace(regex, '<mark>$1</mark>')
+	// HTML-escape the snippet to prevent XSS, then highlight matches
+	const escaped = snippet
+		.replace(/&/g, '&amp;')
+		.replace(/</g, '&lt;')
+		.replace(/>/g, '&gt;')
+		.replace(/"/g, '&quot;')
+		.replace(/'/g, '&#x27;')
+	return escaped.replace(regex, '<mark>$1</mark>')
 }
 
 // =============================================================================

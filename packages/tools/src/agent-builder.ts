@@ -5,6 +5,7 @@
  * create and configure other agents through natural conversation.
  */
 
+import { getErrorMessage } from '@hare/checks'
 import { config, getModelById } from '@hare/config'
 import { z } from 'zod'
 import { getAgentControlTools } from './agent-control'
@@ -216,7 +217,7 @@ export const agentListModelsTool = createTool({
 				providers,
 			})
 		} catch (error) {
-			return failure(error instanceof Error ? error.message : 'Failed to list models')
+			return failure(getErrorMessage(error))
 		}
 	},
 })
@@ -251,7 +252,7 @@ export const agentListTemplatesTool = createTool({
 				total: templates.length,
 			})
 		} catch (error) {
-			return failure(error instanceof Error ? error.message : 'Failed to list templates')
+			return failure(getErrorMessage(error))
 		}
 	},
 })
@@ -364,7 +365,7 @@ export const agentValidateConfigTool = createTool({
 				},
 			})
 		} catch (error) {
-			return failure(error instanceof Error ? error.message : 'Failed to validate config')
+			return failure(getErrorMessage(error))
 		}
 	},
 })
@@ -465,7 +466,7 @@ console.log('Created agent:', agent.id)`
 				instructions,
 			})
 		} catch (error) {
-			return failure(error instanceof Error ? error.message : 'Failed to export config')
+			return failure(getErrorMessage(error))
 		}
 	},
 })
@@ -672,7 +673,7 @@ export const agentSuggestToolsTool = createTool({
 				reasoning,
 			})
 		} catch (error) {
-			return failure(error instanceof Error ? error.message : 'Failed to suggest tools')
+			return failure(getErrorMessage(error))
 		}
 	},
 })

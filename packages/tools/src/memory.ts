@@ -7,6 +7,7 @@
  * Note: These tools require both AI and VECTORIZE bindings to be configured.
  */
 
+import { getErrorMessage } from '@hare/checks'
 import { z } from 'zod'
 import {
 	createTool,
@@ -198,9 +199,7 @@ export const recallMemoryTool = createTool({
 				memories: formattedMemories,
 			})
 		} catch (error) {
-			return failure(
-				`Failed to recall memory: ${error instanceof Error ? error.message : 'Unknown error'}`,
-			)
+			return failure(`Failed to recall memory: ${getErrorMessage(error)}`)
 		}
 	},
 })
@@ -272,9 +271,7 @@ export const storeMemoryTool = createTool({
 				message: 'Memory stored successfully. It will be available for future recall.',
 			})
 		} catch (error) {
-			return failure(
-				`Failed to store memory: ${error instanceof Error ? error.message : 'Unknown error'}`,
-			)
+			return failure(`Failed to store memory: ${getErrorMessage(error)}`)
 		}
 	},
 })

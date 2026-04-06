@@ -476,7 +476,8 @@ describe('Request Validation', () => {
 		})
 
 		it('logs blocked header attempts', async () => {
-			const warnSpy = vi.spyOn(console, 'warn')
+			const { logger } = await import('@hare/config')
+			const warnSpy = vi.spyOn(logger, 'warn').mockImplementation(() => {})
 			const context = createMockContext({
 				headers: {
 					'x-forwarded-host': 'evil.com',
@@ -499,7 +500,8 @@ describe('Request Validation', () => {
 		})
 
 		it('uses x-forwarded-for as fallback for IP', async () => {
-			const warnSpy = vi.spyOn(console, 'warn')
+			const { logger } = await import('@hare/config')
+			const warnSpy = vi.spyOn(logger, 'warn').mockImplementation(() => {})
 			const context = createMockContext({
 				headers: {
 					'x-forwarded-host': 'evil.com',

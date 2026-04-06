@@ -4,6 +4,7 @@
  * Handles querying activity events (agent invocations, tool calls, errors) with filtering and cursor pagination.
  */
 
+import { isError } from '@hare/checks'
 import { ACTIVITY_EVENT_TYPES } from '@hare/config'
 import { activityEvents } from '@hare/db/schema'
 import { and, count, desc, eq, lt } from 'drizzle-orm'
@@ -120,7 +121,7 @@ export const list = requireViewer
 			}
 		} catch (error) {
 			// Table may not exist in production if migration hasn't been applied
-			if (error instanceof Error && error.message.includes('no such table')) {
+			if (isError(error) && error.message.includes('no such table')) {
 				return { events: [], nextCursor: null, total: 0 }
 			}
 			throw error

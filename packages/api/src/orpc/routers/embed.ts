@@ -11,11 +11,14 @@ import {
 	createMemoryStore,
 	toAgentMessages,
 } from '@hare/agent'
+import { getErrorMessage } from '@hare/checks'
+import { AgentStatus, logger } from '@hare/config'
 import { agents, usage } from '@hare/db/schema'
 import { eventIterator } from '@orpc/server'
 import type { ModelMessage } from 'ai'
 import { eq } from 'drizzle-orm'
 import { z } from 'zod'
+import { estimateTokens } from '../../utils/tokens'
 import { badRequest, notFound, publicProcedure } from '../base'
 
 // =============================================================================
@@ -116,7 +119,7 @@ const getAgent = publicProcedure
 		}
 
 		// Check if agent is deployed
-		if (agent.status !== 'deployed') {
+		if (agent.status !== AgentStatus.DEPLOYED) {
 			badRequest('Agent not available')
 		}
 
@@ -155,7 +158,7 @@ const chat = publicProcedure
 			return
 		}
 
-		if (agent.status !== 'deployed') {
+		if (agent.status !== AgentStatus.DEPLOYED) {
 			yield { type: 'error' as const, message: 'Agent not deployed' }
 			return
 		}
@@ -239,9 +242,9 @@ const chat = publicProcedure
 			const latencyMs = Date.now() - startTime
 			const tokensIn = agentMessages.reduce((acc, m) => {
 				const content = typeof m.content === 'string' ? m.content : JSON.stringify(m.content)
-				return acc + Math.ceil(content.length / 4)
+				return acc + estimateTokens(content)
 			}, 0)
-			const tokensOut = Math.ceil(fullResponse.length / 4)
+			const tokensOut = estimateTokens(fullResponse)
 
 			await db.insert(usage).values({
 				workspaceId: agent.workspaceId,
@@ -259,10 +262,10 @@ const chat = publicProcedure
 
 			yield { type: 'done' as const, sessionId: conversationId }
 		} catch (error) {
-			console.error('Embed chat error:', error)
+			logger.error('Embed chat error:', error)
 			yield {
 				type: 'error' as const,
-				message: error instanceof Error ? error.message : 'Unknown error',
+				message: getErrorMessage(error),
 			}
 		}
 	})

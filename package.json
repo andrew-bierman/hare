@@ -36,6 +36,8 @@
 		"format": "biome format --write .",
 		"postinstall": "bun run scripts/env.ts",
 		"lint": "turbo lint",
+		"lint:custom": "bun run scripts/lint-custom.ts",
+		"lint:custom:report": "bun run scripts/lint-custom.ts --report",
 		"lint:fix": "biome lint --write .",
 		"preview": "bun run --cwd apps/web preview",
 		"setup:worktree": "bun run scripts/setup-worktree.ts",
