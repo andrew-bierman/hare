@@ -85,57 +85,33 @@ Scheduled task handlers.
 
 #### `runMaintenance(_data: Record<string, unknown>): Promise<void>`
 
-## HareMcpAgent
+## D1MemoryStore
 
-HareMcpAgent - Exposes Hare tools via Model Context Protocol.
-
-MCP allows external AI clients (Claude, Cursor, etc.) to use
-Hare's tools in a standardized way.
-
-### Example
-
-```ts
-```ts
-import { HareMcpAgent } from '@hare/agent/workers'
-
-export { HareMcpAgent }
-
-export default {
-  async fetch(request: Request, env: Env) {
-    const id = env.MCP_AGENT.idFromName('default')
-    return env.MCP_AGENT.get(id).fetch(request)
-  }
-}
-```
-```
-
-### Properties
-
-| Property | Type | Description |
-|----------|------|-------------|
-| `server` | `unknown` | Server configuration required by McpAgent |
-| `toolRegistry` | `ToolRegistry` | Available tools |
-| `initialState` | `McpAgentState` | Initial state. |
+D1 memory store implementation.
+Uses Drizzle ORM for type-safe database operations.
 
 ### Methods
 
-#### `onStart(): Promise<void>`
+#### `getOrCreateConversation(input: GetOrCreateConversationInput): Promise<string>`
 
-Called when the agent starts - load tools.
+Get or create a conversation for an agent and user.
+For anonymous sessions (null userId), always creates a new conversation.
 
-#### `init(): Promise<void>`
+#### `saveMessage(input: SaveMessageInput): Promise<string>`
 
-Initialize MCP tools - called by the MCP server.
-This is where we register tools and resources with the MCP protocol.
+Save a message to the conversation.
 
-#### `onStateUpdate(_state: McpAgentState): void`
+#### `getMessages(input: GetMessagesInput): Promise<ConversationMessage[]>`
 
-Called when state is updated.
-Override this method to add custom state change handling.
+Get messages for a conversation.
 
-#### `configure(options: { workspaceId?: string; systemToolsEnabled?: boolean }): Promise<void>`
+#### `searchMessages(input: SearchMessagesInput): Promise<ConversationMessage[]>`
 
-Configure the MCP agent.
+Search messages using text search.
+
+#### `deleteConversation(conversationId: string): Promise<void>`
+
+Delete a conversation and all its messages.
 
 ## HareEdgeAgent
 
@@ -188,44 +164,59 @@ Generate a non-streaming response.
 Stream with raw AI SDK result for use with toDataStreamResponse().
 Returns the streamText result directly for maximum flexibility.
 
-## D1MemoryStore
+## HareMcpAgent
 
-D1 memory store implementation.
-Uses Drizzle ORM for type-safe database operations.
+HareMcpAgent - Exposes Hare tools via Model Context Protocol.
 
-### Methods
+MCP allows external AI clients (Claude, Cursor, etc.) to use
+Hare's tools in a standardized way.
 
-#### `getOrCreateConversation(input: GetOrCreateConversationInput): Promise<string>`
+### Example
 
-Get or create a conversation for an agent and user.
-For anonymous sessions (null userId), always creates a new conversation.
+```ts
+```ts
+import { HareMcpAgent } from '@hare/agent/workers'
 
-#### `saveMessage(input: SaveMessageInput): Promise<string>`
+export { HareMcpAgent }
 
-Save a message to the conversation.
+export default {
+  async fetch(request: Request, env: Env) {
+    const id = env.MCP_AGENT.idFromName('default')
+    return env.MCP_AGENT.get(id).fetch(request)
+  }
+}
+```
+```
 
-#### `getMessages(input: GetMessagesInput): Promise<ConversationMessage[]>`
-
-Get messages for a conversation.
-
-#### `searchMessages(input: SearchMessagesInput): Promise<ConversationMessage[]>`
-
-Search messages using text search.
-
-#### `deleteConversation(conversationId: string): Promise<void>`
-
-Delete a conversation and all its messages.
-
-## Types
-
-### HareAgentEnv
-
-Environment interface for HareAgent.
-SDK users should extend this with their own bindings.
+### Properties
 
 | Property | Type | Description |
 |----------|------|-------------|
-| `AI` | `Ai` | - |
+| `server` | `unknown` | Server configuration required by McpAgent |
+| `toolRegistry` | `ToolRegistry` | Available tools |
+| `initialState` | `McpAgentState` | Initial state. |
+
+### Methods
+
+#### `onStart(): Promise<void>`
+
+Called when the agent starts - load tools.
+
+#### `init(): Promise<void>`
+
+Initialize MCP tools - called by the MCP server.
+This is where we register tools and resources with the MCP protocol.
+
+#### `onStateUpdate(_state: McpAgentState): void`
+
+Called when state is updated.
+Override this method to add custom state change handling.
+
+#### `configure(options: { workspaceId?: string; systemToolsEnabled?: boolean }): Promise<void>`
+
+Configure the MCP agent.
+
+## Types
 
 ### HareAgentEnv
 
@@ -287,15 +278,6 @@ Input for routing to the MCP agent.
 | `env` | `HareAgentEnv` | - |
 | `workspaceId` | `string` | - |
 
-### McpAgentEnv
-
-Environment interface for HareMcpAgent.
-Extends HareEnv but requires AI binding.
-
-| Property | Type | Description |
-|----------|------|-------------|
-| `AI` | `Ai` | - |
-
 ### AgentConfig
 
 Agent configuration from database.
@@ -350,6 +332,105 @@ Input for creating a simple agent.
 | `model` | `string` | Model to use |
 | `env` | `CloudflareEnv` | Cloudflare environment |
 | `tools` (optional) | `AgentTool[]` | Optional tools |
+
+### HareAgentEnv
+
+Environment interface for HareAgent.
+SDK users should extend this with their own bindings.
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `AI` | `Ai` | - |
+| `AI_GATEWAY_ID` (optional) | `string` | - |
+
+### ConversationMessage
+
+Conversation message structure.
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `id` | `string` | - |
+| `conversationId` | `string` | - |
+| `role` | `MessageRole` | - |
+| `content` | `string` | - |
+| `createdAt` | `Date` | - |
+| `metadata` (optional) | `MessageMetadata` | - |
+
+### SaveMessageInput
+
+Input for saving a message.
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `conversationId` | `string` | - |
+| `role` | `MessageRole` | - |
+| `content` | `string` | - |
+| `metadata` (optional) | `MessageMetadata` | - |
+
+### GetMessagesInput
+
+Input for getting messages.
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `conversationId` | `string` | - |
+| `limit` (optional) | `number` | - |
+
+### GetOrCreateConversationInput
+
+Input for getting or creating a conversation.
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `agentId` | `string` | - |
+| `userId` | `string \| null` | - |
+| `title` (optional) | `string` | - |
+
+### SearchMessagesInput
+
+Input for searching messages.
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `conversationId` | `string` | - |
+| `query` | `string` | - |
+| `limit` (optional) | `number` | - |
+
+### MemoryStore
+
+Memory store interface for conversation history.
+
+### AgentTool
+
+Tool definition for the agent.
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `id` | `string` | - |
+| `description` | `string` | - |
+| `inputSchema` | `Record<string, unknown>` | - |
+| `execute` | `(params: Record<string, unknown>) => Promise<unknown>` | - |
+
+### AgentOptions
+
+Agent configuration.
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `name` | `string` | - |
+| `instructions` | `string` | - |
+| `model` | `string` | - |
+| `ai` | `Ai` | - |
+| `tools` (optional) | `AgentTool[]` | - |
+
+### AgentStreamResponse
+
+Streaming response from the agent.
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `textStream` | `AsyncIterable<string>` | - |
+| `text` | `Promise<string>` | - |
 
 ### HareAgentState
 
@@ -443,94 +524,14 @@ MCP Agent state.
 | `connectedClients` | `number` | - |
 | `lastActivity` | `number` | - |
 
-### AgentTool
+### McpAgentEnv
 
-Tool definition for the agent.
-
-| Property | Type | Description |
-|----------|------|-------------|
-| `id` | `string` | - |
-| `description` | `string` | - |
-| `inputSchema` | `Record<string, unknown>` | - |
-| `execute` | `(params: Record<string, unknown>) => Promise<unknown>` | - |
-
-### AgentOptions
-
-Agent configuration.
+Environment interface for HareMcpAgent.
+Extends HareEnv but requires AI binding.
 
 | Property | Type | Description |
 |----------|------|-------------|
-| `name` | `string` | - |
-| `instructions` | `string` | - |
-| `model` | `string` | - |
-| `ai` | `Ai` | - |
-| `tools` (optional) | `AgentTool[]` | - |
-
-### AgentStreamResponse
-
-Streaming response from the agent.
-
-| Property | Type | Description |
-|----------|------|-------------|
-| `textStream` | `AsyncIterable<string>` | - |
-| `text` | `Promise<string>` | - |
-
-### ConversationMessage
-
-Conversation message structure.
-
-| Property | Type | Description |
-|----------|------|-------------|
-| `id` | `string` | - |
-| `conversationId` | `string` | - |
-| `role` | `MessageRole` | - |
-| `content` | `string` | - |
-| `createdAt` | `Date` | - |
-| `metadata` (optional) | `MessageMetadata` | - |
-
-### SaveMessageInput
-
-Input for saving a message.
-
-| Property | Type | Description |
-|----------|------|-------------|
-| `conversationId` | `string` | - |
-| `role` | `MessageRole` | - |
-| `content` | `string` | - |
-| `metadata` (optional) | `MessageMetadata` | - |
-
-### GetMessagesInput
-
-Input for getting messages.
-
-| Property | Type | Description |
-|----------|------|-------------|
-| `conversationId` | `string` | - |
-| `limit` (optional) | `number` | - |
-
-### GetOrCreateConversationInput
-
-Input for getting or creating a conversation.
-
-| Property | Type | Description |
-|----------|------|-------------|
-| `agentId` | `string` | - |
-| `userId` | `string \| null` | - |
-| `title` (optional) | `string` | - |
-
-### SearchMessagesInput
-
-Input for searching messages.
-
-| Property | Type | Description |
-|----------|------|-------------|
-| `conversationId` | `string` | - |
-| `query` | `string` | - |
-| `limit` (optional) | `number` | - |
-
-### MemoryStore
-
-Memory store interface for conversation history.
+| `AI` | `Ai` | - |
 
 ## Functions
 
@@ -574,10 +575,6 @@ Create an Edge-compatible Agent from a database configuration.
 
 Create a simple agent without database tools.
 
-### `createHareEdgeAgent(options: AgentOptions): HareEdgeAgent`
-
-Create a new Edge-compatible agent.
-
 ### `createMemoryStore(db: Database, workspaceId: string): MemoryStore`
 
 Create a memory store instance.
@@ -585,4 +582,17 @@ Create a memory store instance.
 ### `toAgentMessages(messages: ConversationMessage[]): ModelMessage[]`
 
 Convert conversation messages to the format expected by AI SDK agents.
+
+### `toAISDKTools(hareTools: Tool<any, any>[], context: ToolContext<HareEnv>): ToolSet`
+
+Convert Hare tools (Tool<TInput, TOutput>) to the Vercel AI SDK tool format
+expected by streamText/generateText.
+
+AI SDK v6 tools are a Record<string, Tool> with `inputSchema` and `execute`.
+Hare tools have a different type hierarchy (AnyTool for metadata, Tool for execution).
+This adapter bridges them by closing over the ToolContext.
+
+### `createHareEdgeAgent(options: AgentOptions): HareEdgeAgent`
+
+Create a new Edge-compatible agent.
 
