@@ -76,7 +76,7 @@ function LoadingSkeleton() {
 	)
 }
 
-function EmptyState() {
+function EmptyState({ onSendMessage }: { onSendMessage: (message: string) => void }) {
 	return (
 		<div className="flex flex-col items-center justify-center h-full p-8 text-center">
 			<div className="flex h-16 w-16 items-center justify-center rounded-xl bg-primary/10 mb-4">
@@ -93,6 +93,7 @@ function EmptyState() {
 						key={prompt}
 						variant="secondary"
 						className="cursor-pointer hover:bg-secondary/80 transition-colors px-3 py-1.5"
+						onClick={() => onSendMessage(prompt)}
 					>
 						{prompt}
 					</Badge>
@@ -334,7 +335,7 @@ export function AgentPlaygroundPage({ agentId }: AgentPlaygroundPageProps) {
 				{/* Messages */}
 				<ScrollArea className="flex-1" ref={scrollRef}>
 					{messages.length === 0 ? (
-						<EmptyState />
+						<EmptyState onSendMessage={sendMessage} />
 					) : (
 						<div className="p-4 space-y-4">
 							{messages
