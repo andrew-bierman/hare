@@ -29,6 +29,8 @@ export interface TestAgent {
 	status: AgentStatus
 	systemToolsEnabled: boolean
 	config: AgentConfig | null
+	conversationStarters: string[] | null
+	guardrailsEnabled: boolean
 	createdBy: string
 	createdAt: Date
 	updatedAt: Date
@@ -97,6 +99,8 @@ export function createTestAgent(
 		status: overrides.status ?? 'draft',
 		systemToolsEnabled: overrides.systemToolsEnabled ?? true,
 		config: overrides.config ?? null,
+		conversationStarters: overrides.conversationStarters ?? null,
+		guardrailsEnabled: overrides.guardrailsEnabled ?? false,
 		createdBy: overrides.createdBy,
 		createdAt: overrides.createdAt ?? now,
 		updatedAt: overrides.updatedAt ?? now,
