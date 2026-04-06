@@ -236,6 +236,8 @@ function EmbedChatPage() {
 				case WIDGET_MESSAGE_TYPES.TOGGLE:
 					// Widget was opened/closed
 					break
+				default:
+					break
 			}
 		}
 

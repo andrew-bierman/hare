@@ -188,6 +188,8 @@ export function validateInput(options: { input: Record<string, unknown>; schema:
 						errors.push(`Field ${field} must be an object`)
 					}
 					break
+				default:
+					break
 			}
 
 			// Enum validation
@@ -238,6 +240,8 @@ function buildRequestHeaders(options: {
 				break
 			case 'text':
 				headers['Content-Type'] = 'text/plain'
+				break
+			default:
 				break
 		}
 	}

@@ -98,6 +98,7 @@ export const devRoutes = new Elysia({ prefix: '/dev', name: 'dev-routes' }).use(
 				created: { agents: createdAgents.flat().length },
 			}
 		} catch (err) {
+			// biome-ignore lint/suspicious/noConsole: error reporting
 			console.error('Seed error:', err)
 			return status(500, { error: 'Failed to seed data' })
 		}

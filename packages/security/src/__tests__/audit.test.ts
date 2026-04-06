@@ -47,6 +47,7 @@ describe('Audit Logging', () => {
 
 			expect(loggerSpy.info).toHaveBeenCalledTimes(1)
 
+			// biome-ignore lint/style/noNonNullAssertion: checked by toHaveBeenCalledTimes above
 			const loggedJson = JSON.parse(loggerSpy.info.mock.calls[0]![0] as string)
 			expect(loggedJson).toMatchObject({
 				type: 'auth.login',
@@ -75,6 +76,7 @@ describe('Audit Logging', () => {
 
 			expect(loggerSpy.info).toHaveBeenCalledTimes(1)
 
+			// biome-ignore lint/style/noNonNullAssertion: checked by assertion above
 			const loggedJson = JSON.parse(loggerSpy.info.mock.calls[0]![0] as string)
 			expect(loggedJson).toMatchObject({
 				type: 'auth.login_failed',
@@ -94,6 +96,7 @@ describe('Audit Logging', () => {
 			})
 
 			expect(loggerSpy.info).toHaveBeenCalledTimes(1)
+			// biome-ignore lint/style/noNonNullAssertion: checked by assertion above
 			const loggedJson = JSON.parse(loggerSpy.info.mock.calls[0]![0] as string)
 			expect(loggedJson.type).toBe('auth.logout')
 			expect(loggedJson.userId).toBe('user_456')
@@ -108,6 +111,7 @@ describe('Audit Logging', () => {
 			})
 
 			expect(loggerSpy.info).toHaveBeenCalledTimes(1)
+			// biome-ignore lint/style/noNonNullAssertion: checked by assertion above
 			const loggedJson = JSON.parse(loggerSpy.info.mock.calls[0]![0] as string)
 			expect(loggedJson.type).toBe('auth.password_reset')
 		})
@@ -120,6 +124,7 @@ describe('Audit Logging', () => {
 			})
 
 			expect(loggerSpy.info).toHaveBeenCalledTimes(1)
+			// biome-ignore lint/style/noNonNullAssertion: checked by assertion above
 			const loggedJson = JSON.parse(loggerSpy.info.mock.calls[0]![0] as string)
 			expect(loggedJson.type).toBe('auth.password_changed')
 		})
@@ -132,6 +137,7 @@ describe('Audit Logging', () => {
 			})
 
 			expect(loggerSpy.info).toHaveBeenCalledTimes(1)
+			// biome-ignore lint/style/noNonNullAssertion: checked by assertion above
 			const loggedJson = JSON.parse(loggerSpy.info.mock.calls[0]![0] as string)
 			expect(loggedJson.type).toBe('auth.session_expired')
 		})
@@ -144,6 +150,7 @@ describe('Audit Logging', () => {
 			})
 
 			expect(loggerSpy.info).toHaveBeenCalledTimes(1)
+			// biome-ignore lint/style/noNonNullAssertion: checked by assertion above
 			const loggedJson = JSON.parse(loggerSpy.info.mock.calls[0]![0] as string)
 			expect(loggedJson.type).toBe('auth.session_revoked')
 		})
@@ -155,6 +162,7 @@ describe('Audit Logging', () => {
 				success: true,
 			})
 
+			// biome-ignore lint/style/noNonNullAssertion: checked by assertion above
 			const loggedJson = JSON.parse(loggerSpy.info.mock.calls[0]![0] as string)
 			expect(loggedJson.timestamp).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/)
 		})
@@ -166,6 +174,7 @@ describe('Audit Logging', () => {
 			})
 
 			expect(loggerSpy.info).toHaveBeenCalledTimes(1)
+			// biome-ignore lint/style/noNonNullAssertion: checked by assertion above
 			const loggedJson = JSON.parse(loggerSpy.info.mock.calls[0]![0] as string)
 			expect(loggedJson.type).toBe('auth.login')
 			expect(loggedJson.success).toBe(true)
@@ -184,6 +193,7 @@ describe('Audit Logging', () => {
 
 			expect(loggerSpy.warn).toHaveBeenCalledTimes(1)
 
+			// biome-ignore lint/style/noNonNullAssertion: checked by assertion above
 			const loggedJson = JSON.parse(loggerSpy.warn.mock.calls[0]![0] as string)
 			expect(loggedJson.type).toBe('security.rate_limit_exceeded')
 			expect(loggedJson.details.endpoint).toBe('/api/chat')
@@ -196,6 +206,7 @@ describe('Audit Logging', () => {
 				details: { reason: 'multiple failed logins' },
 			})
 
+			// biome-ignore lint/style/noNonNullAssertion: checked by assertion above
 			const loggedJson = JSON.parse(loggerSpy.warn.mock.calls[0]![0] as string)
 			expect(loggedJson.type).toBe('security.suspicious_activity')
 			expect(loggedJson.details.reason).toBe('multiple failed logins')
@@ -222,6 +233,7 @@ describe('Audit Logging', () => {
 			})
 
 			expect(loggerSpy.info).toHaveBeenCalledTimes(1)
+			// biome-ignore lint/style/noNonNullAssertion: checked by assertion above
 			const loggedJson = JSON.parse(loggerSpy.info.mock.calls[0]![0] as string)
 			expect(loggedJson).toMatchObject({
 				type: 'api_key.created',
@@ -238,6 +250,7 @@ describe('Audit Logging', () => {
 				workspaceId: 'ws_456',
 			})
 
+			// biome-ignore lint/style/noNonNullAssertion: checked by assertion above
 			const loggedJson = JSON.parse(loggerSpy.info.mock.calls[0]![0] as string)
 			expect(loggedJson.type).toBe('api_key.revoked')
 		})
@@ -250,6 +263,7 @@ describe('Audit Logging', () => {
 				ipAddress: '10.0.0.1',
 			})
 
+			// biome-ignore lint/style/noNonNullAssertion: checked by assertion above
 			const loggedJson = JSON.parse(loggerSpy.info.mock.calls[0]![0] as string)
 			expect(loggedJson.type).toBe('api_key.used')
 		})
@@ -266,6 +280,7 @@ describe('Audit Logging', () => {
 			})
 
 			expect(loggerSpy.info).toHaveBeenCalledTimes(1)
+			// biome-ignore lint/style/noNonNullAssertion: checked by assertion above
 			const loggedJson = JSON.parse(loggerSpy.info.mock.calls[0]![0] as string)
 			expect(loggedJson.type).toBe('data.read')
 			expect(loggedJson.workspaceId).toBe('ws_456')
@@ -280,6 +295,7 @@ describe('Audit Logging', () => {
 				details: { count: 5 },
 			})
 
+			// biome-ignore lint/style/noNonNullAssertion: checked by assertion above
 			const loggedJson = JSON.parse(loggerSpy.info.mock.calls[0]![0] as string)
 			expect(loggedJson.type).toBe('data.delete')
 		})
@@ -295,6 +311,7 @@ describe('Audit Logging', () => {
 				success: true,
 			})
 
+			// biome-ignore lint/style/noNonNullAssertion: checked by assertion above
 			const loggedJson = JSON.parse(loggerSpy.info.mock.calls[0]![0] as string)
 			expect(loggedJson.requestId).toBe('req_test_123')
 		})

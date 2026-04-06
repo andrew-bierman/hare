@@ -351,6 +351,7 @@ export function extractDocsFromFile(filePath: string): ExtractedDocs {
 				node.name.text.startsWith('Hare') ||
 				node.name.text.startsWith('Agent')
 			) {
+				// biome-ignore lint/style/noNonNullAssertion: early return above when !sourceFile
 				const iface = extractInterface(node, sourceFile!)
 				if (iface) docs.interfaces.push(iface)
 			}
@@ -358,6 +359,7 @@ export function extractDocsFromFile(filePath: string): ExtractedDocs {
 
 		if (ts.isClassDeclaration(node)) {
 			if (node.modifiers?.some((m) => m.kind === ts.SyntaxKind.ExportKeyword)) {
+				// biome-ignore lint/style/noNonNullAssertion: early return above when !sourceFile
 				const cls = extractClass(node, sourceFile!)
 				if (cls) docs.classes.push(cls)
 			}
@@ -365,6 +367,7 @@ export function extractDocsFromFile(filePath: string): ExtractedDocs {
 
 		if (ts.isFunctionDeclaration(node)) {
 			if (node.modifiers?.some((m) => m.kind === ts.SyntaxKind.ExportKeyword)) {
+				// biome-ignore lint/style/noNonNullAssertion: early return above when !sourceFile
 				const fn = extractFunction(node, sourceFile!)
 				if (fn) docs.functions.push(fn)
 			}
@@ -372,6 +375,7 @@ export function extractDocsFromFile(filePath: string): ExtractedDocs {
 
 		if (ts.isVariableStatement(node)) {
 			if (node.modifiers?.some((m) => m.kind === ts.SyntaxKind.ExportKeyword)) {
+				// biome-ignore lint/style/noNonNullAssertion: early return above when !sourceFile
 				const tool = extractToolFromVariable(node, sourceFile!)
 				if (tool) docs.tools.push(tool)
 			}
@@ -542,11 +546,13 @@ export async function generateDocs(options: GeneratorOptions): Promise<void> {
 	const { packages, baseDir, verbose } = options
 
 	for (const pkg of packages) {
+		// biome-ignore lint/suspicious/noConsole: CLI output
 		if (verbose) console.log(`\nProcessing ${pkg.name}...`)
 
 		const pkgPath = path.resolve(baseDir, pkg.path)
 
 		if (!fs.existsSync(pkgPath)) {
+			// biome-ignore lint/suspicious/noConsole: CLI output
 			console.warn(`  Warning: Path not found: ${pkgPath}`)
 			continue
 		}
@@ -564,7 +570,8 @@ export async function generateDocs(options: GeneratorOptions): Promise<void> {
 
 		for (const file of files) {
 			const filePath = path.join(pkgPath, file)
-			if (verbose) console.log(`  Extracting from ${file}...`)
+			// biome-ignore lint/suspicious/noConsole: CLI output
+		if (verbose) console.log(`  Extracting from ${file}...`)
 
 			const docs = extractDocsFromFile(filePath)
 			allDocs.interfaces.push(...docs.interfaces)
@@ -591,13 +598,19 @@ export async function generateDocs(options: GeneratorOptions): Promise<void> {
 		fs.writeFileSync(outputPath, mdx)
 
 		if (verbose) {
+			// biome-ignore lint/suspicious/noConsole: CLI output
 			console.log(`  Generated ${pkg.outputFile}`)
+			// biome-ignore lint/suspicious/noConsole: CLI output
 			console.log(`    - ${allDocs.classes.length} classes`)
+			// biome-ignore lint/suspicious/noConsole: CLI output
 			console.log(`    - ${allDocs.interfaces.length} interfaces`)
+			// biome-ignore lint/suspicious/noConsole: CLI output
 			console.log(`    - ${allDocs.functions.length} functions`)
+			// biome-ignore lint/suspicious/noConsole: CLI output
 			console.log(`    - ${allDocs.tools.length} tools`)
 		}
 	}
 
+	// biome-ignore lint/suspicious/noConsole: CLI output
 	if (verbose) console.log('\nDone!')
 }

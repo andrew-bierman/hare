@@ -13,7 +13,7 @@ import tanstackHandler from '@tanstack/react-start/server-entry'
 
 // Combined fetch handler
 const handler: ExportedHandler<CloudflareEnv> = {
-	async fetch(request, env, ctx) {
+	async fetch(request, env, _ctx) {
 		const url = new URL(request.url)
 
 		// Route /api/* requests to Elysia

@@ -41,6 +41,7 @@ export interface Message {
 export function useConversationsQuery(agentId: string | undefined) {
 	return useQuery({
 		queryKey: ['conversations', agentId],
+		// biome-ignore lint/style/noNonNullAssertion: guarded by enabled: !!agentId
 		queryFn: () => unwrap(client.api.chat.agents({ id: agentId! }).conversations.get()),
 		enabled: !!agentId,
 	})
@@ -49,6 +50,7 @@ export function useConversationsQuery(agentId: string | undefined) {
 export function useMessagesQuery(conversationId: string | undefined) {
 	return useQuery({
 		queryKey: ['messages', conversationId],
+		// biome-ignore lint/style/noNonNullAssertion: guarded by enabled: !!conversationId
 		queryFn: () => unwrap(client.api.chat.conversations({ id: conversationId! }).messages.get()),
 		enabled: !!conversationId,
 	})
@@ -84,8 +86,10 @@ export function useConversationSearchQuery(params: ConversationSearchParams | un
 		queryKey: ['conversations', 'search', agentId, query, dateFrom, dateTo, limit, offset],
 		queryFn: () =>
 			unwrap(
+				// biome-ignore lint/style/noNonNullAssertion: guarded by enabled check below
 				client.api.chat.agents({ id: agentId! }).conversations.search.get({
 					query: {
+						// biome-ignore lint/style/noNonNullAssertion: guarded by enabled check below
 						query: query!,
 						dateFrom,
 						dateTo,

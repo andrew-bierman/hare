@@ -228,6 +228,7 @@ export const chatRoutes = new Elysia({ prefix: '/chat', name: 'chat-routes' })
 
 						sendEvent({ type: 'done', sessionId: conversationId })
 					} catch (err) {
+						// biome-ignore lint/suspicious/noConsole: error reporting
 						console.error('Error during chat streaming:', err)
 						sendEvent({
 							type: 'error',

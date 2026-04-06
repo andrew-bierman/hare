@@ -914,7 +914,9 @@ describe('WebSocket Connection Manager', () => {
 			const lastMessage = queue[99]
 			expect(firstMessage).toBeDefined()
 			expect(lastMessage).toBeDefined()
+			// biome-ignore lint/style/noNonNullAssertion: checked by toBeDefined above
 			expect(JSON.parse(manager.serializeMessage(firstMessage!)).payload.message).toBe('50')
+			// biome-ignore lint/style/noNonNullAssertion: checked by toBeDefined above
 			expect(JSON.parse(manager.serializeMessage(lastMessage!)).payload.message).toBe('149')
 		})
 

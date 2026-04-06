@@ -41,6 +41,7 @@ export function useAgentsQuery() {
 export function useAgentQuery(id: string | undefined) {
 	return useQuery({
 		queryKey: ['agents', id],
+		// biome-ignore lint/style/noNonNullAssertion: guarded by enabled: !!id
 		queryFn: () => unwrap(client.api.agents({ id: id! }).get()),
 		enabled: !!id,
 	})
@@ -137,6 +138,7 @@ export function useAgentVersionsQuery(
 	return useQuery({
 		queryKey: ['agents', agentId, 'versions', options],
 		queryFn: () =>
+			// biome-ignore lint/style/noNonNullAssertion: guarded by enabled check
 			unwrap(client.api.agents({ id: agentId! }).versions.get({ query: options as any })),
 		enabled: !!agentId,
 	})
@@ -193,6 +195,7 @@ export function useToolsQuery() {
 export function useToolQuery(id: string | undefined) {
 	return useQuery({
 		queryKey: ['tools', id],
+		// biome-ignore lint/style/noNonNullAssertion: guarded by enabled check
 		queryFn: () => unwrap(client.api.tools({ id: id! }).get()),
 		enabled: !!id,
 	})
@@ -256,6 +259,7 @@ export function useTestExistingToolMutation() {
 export function useWebhooksQuery(agentId: string | undefined) {
 	return useQuery({
 		queryKey: ['webhooks', agentId],
+		// biome-ignore lint/style/noNonNullAssertion: guarded by enabled check
 		queryFn: () => unwrap(client.api.webhooks({ agentId: agentId! }).get()),
 		enabled: !!agentId,
 	})
@@ -409,6 +413,7 @@ export function useApiKeysQuery() {
 export function useApiKeyQuery(id: string | undefined) {
 	return useQuery({
 		queryKey: ['api-keys', id],
+		// biome-ignore lint/style/noNonNullAssertion: guarded by enabled check
 		queryFn: () => unwrap(client.api['api-keys']({ id: id! }).get()),
 		enabled: !!id,
 	})
@@ -478,6 +483,7 @@ export function useCurrentWorkspaceQuery() {
 export function useWorkspaceQuery(id: string | undefined) {
 	return useQuery({
 		queryKey: ['workspaces', id],
+		// biome-ignore lint/style/noNonNullAssertion: guarded by enabled check
 		queryFn: () => unwrap(client.api.workspaces({ id: id! }).get()),
 		enabled: !!id,
 	})
@@ -543,6 +549,7 @@ export function useSchedulesQuery(agentId?: string) {
 export function useScheduleQuery(id: string | undefined) {
 	return useQuery({
 		queryKey: ['schedules', id],
+		// biome-ignore lint/style/noNonNullAssertion: guarded by enabled check
 		queryFn: () => unwrap(client.api.schedules({ id: id! }).get()),
 		enabled: !!id,
 	})
@@ -610,6 +617,7 @@ export function useResumeScheduleMutation() {
 export function useScheduleExecutionsQuery(scheduleId: string | undefined) {
 	return useQuery({
 		queryKey: ['schedules', scheduleId, 'executions'],
+		// biome-ignore lint/style/noNonNullAssertion: guarded by enabled check
 		queryFn: () => unwrap(client.api.schedules({ id: scheduleId! }).executions.get()),
 		enabled: !!scheduleId,
 	})
@@ -645,6 +653,7 @@ export function useAgentExecutionsQuery(options: { agentId?: string; limit?: num
 export function useWorkspaceMembersQuery(workspaceId: string | undefined) {
 	return useQuery({
 		queryKey: ['workspaces', workspaceId, 'members'],
+		// biome-ignore lint/style/noNonNullAssertion: guarded by enabled check
 		queryFn: () => unwrap(client.api['workspace-members']({ id: workspaceId! }).members.get()),
 	})
 }
@@ -652,6 +661,7 @@ export function useWorkspaceMembersQuery(workspaceId: string | undefined) {
 export function useWorkspaceInvitationsQuery(workspaceId: string | undefined) {
 	return useQuery({
 		queryKey: ['workspaces', workspaceId, 'invitations'],
+		// biome-ignore lint/style/noNonNullAssertion: guarded by enabled check
 		queryFn: () => unwrap(client.api['workspace-members']({ id: workspaceId! }).invites.get()),
 	})
 }
@@ -759,6 +769,7 @@ export function useWorkspaceUsageQuery(options?: { startDate?: string; endDate?:
 export function useAgentUsageQuery(agentId: string | undefined) {
 	return useQuery({
 		queryKey: ['usage', 'agents', agentId],
+		// biome-ignore lint/style/noNonNullAssertion: guarded by enabled check
 		queryFn: () => unwrap(client.api.usage.agents({ id: agentId! }).get()),
 		enabled: !!agentId,
 	})
@@ -835,6 +846,7 @@ export function useAgentHealthQuery(
 ) {
 	return useQuery({
 		queryKey: ['agents', agentId, 'health'],
+		// biome-ignore lint/style/noNonNullAssertion: guarded by enabled check
 		queryFn: () => unwrap(client.api.agents({ id: agentId! }).health.get()),
 		enabled: !!agentId,
 		refetchInterval: options?.refetchInterval,
@@ -877,6 +889,7 @@ export function useKnowledgeBasesQuery() {
 export function useKnowledgeBaseQuery(id: string | undefined) {
 	return useQuery({
 		queryKey: ['knowledge-bases', id],
+		// biome-ignore lint/style/noNonNullAssertion: guarded by enabled check
 		queryFn: () => unwrap(client.api['knowledge-base']({ id: id! }).get()),
 		enabled: !!id,
 	})
@@ -908,6 +921,7 @@ export function useDeleteKnowledgeBaseMutation() {
 export function useKnowledgeBaseDocumentsQuery(kbId: string | undefined) {
 	return useQuery({
 		queryKey: ['knowledge-bases', kbId, 'documents'],
+		// biome-ignore lint/style/noNonNullAssertion: guarded by enabled check
 		queryFn: () => unwrap(client.api['knowledge-base']({ id: kbId! }).documents.get()),
 		enabled: !!kbId,
 	})
@@ -934,6 +948,7 @@ export function useAddDocumentUrlMutation() {
 export function useGuardrailsQuery(agentId: string | undefined) {
 	return useQuery({
 		queryKey: ['guardrails', agentId],
+		// biome-ignore lint/style/noNonNullAssertion: guarded by enabled check
 		queryFn: () => unwrap(client.api.guardrails.get({ query: { agentId: agentId! } as any })),
 		enabled: !!agentId,
 	})
@@ -989,6 +1004,68 @@ export function useGuardrailViolationsQuery(options: {
 }
 
 // =============================================================================
+// Business Analytics Hooks
+// =============================================================================
+
+export function useBusinessMetricsQuery(options?: {
+	agentId?: string
+	startDate?: string
+	endDate?: string
+}) {
+	return useQuery({
+		queryKey: ['business-analytics', 'metrics', options],
+		queryFn: () =>
+			unwrap(client.api['business-analytics'].metrics.get({ query: options as any })),
+		enabled: !!getWorkspaceId(),
+	})
+}
+
+export function useAgentPerformanceQuery(options?: { startDate?: string; endDate?: string }) {
+	return useQuery({
+		queryKey: ['business-analytics', 'agent-performance', options],
+		queryFn: () =>
+			unwrap(
+				client.api['business-analytics']['agent-performance'].get({
+					query: options as any,
+				}),
+			),
+		enabled: !!getWorkspaceId(),
+	})
+}
+
+export function useSetOutcomeMutation() {
+	const queryClient = useQueryClient()
+	return useMutation({
+		mutationFn: (input: Record<string, unknown>) =>
+			unwrap(client.api['business-analytics'].outcomes.post(input as any)),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ['business-analytics'] })
+		},
+	})
+}
+
+export function useConversationOutcomesQuery(options: {
+	agentId: string
+	limit?: number
+	offset?: number
+}) {
+	return useQuery({
+		queryKey: ['business-analytics', 'outcomes', options],
+		queryFn: () =>
+			unwrap(
+				client.api['business-analytics'].outcomes.get({
+					query: {
+						agentId: options.agentId,
+						limit: options.limit?.toString(),
+						offset: options.offset?.toString(),
+					} as any,
+				}),
+			),
+		enabled: !!options.agentId,
+	})
+}
+
+// =============================================================================
 // Workflow Hooks
 // =============================================================================
 
@@ -1003,6 +1080,7 @@ export function useWorkflowsQuery() {
 export function useWorkflowQuery(id: string | undefined) {
 	return useQuery({
 		queryKey: ['workflows', id],
+		// biome-ignore lint/style/noNonNullAssertion: guarded by enabled check
 		queryFn: () => unwrap(client.api.workflows({ id: id! }).get()),
 		enabled: !!id,
 	})
@@ -1117,6 +1195,7 @@ export function useExecuteWorkflowMutation() {
 export function useWorkflowExecutionsQuery(workflowId: string | undefined) {
 	return useQuery({
 		queryKey: ['workflows', workflowId, 'executions'],
+		// biome-ignore lint/style/noNonNullAssertion: guarded by enabled check
 		queryFn: () => unwrap(client.api.workflows({ id: workflowId! }).executions.get()),
 		enabled: !!workflowId,
 	})
@@ -1125,6 +1204,7 @@ export function useWorkflowExecutionsQuery(workflowId: string | undefined) {
 export function useWorkflowExecutionDetailsQuery(executionId: string | undefined) {
 	return useQuery({
 		queryKey: ['workflow-executions', executionId],
+		// biome-ignore lint/style/noNonNullAssertion: guarded by enabled check
 		queryFn: () => unwrap(client.api.workflows.executions({ id: executionId! }).get()),
 		enabled: !!executionId,
 	})

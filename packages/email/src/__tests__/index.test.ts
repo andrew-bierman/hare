@@ -8,7 +8,9 @@ import { createEmailService, EmailService } from '../index'
 // Suppress console.warn from EmailService constructor (no RESEND_API_KEY in tests)
 let warnSpy: ReturnType<typeof vi.spyOn>
 beforeEach(() => {
-	warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+	warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {
+		// empty
+	})
 })
 afterEach(() => {
 	warnSpy.mockRestore()
@@ -53,7 +55,9 @@ describe('EmailService', () => {
 	describe('sendPasswordReset (dev mode)', () => {
 		it('returns success in dev mode without Resend API key', async () => {
 			const service = createEmailService({})
-			const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+			const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {
+				// empty
+			})
 
 			const result = await service.sendPasswordReset({
 				to: 'user@example.com',
@@ -62,6 +66,7 @@ describe('EmailService', () => {
 
 			expect(result.success).toBe(true)
 			expect(result.messageId).toBeDefined()
+			// biome-ignore lint/style/noNonNullAssertion: checked by toBeDefined above
 			expect(result.messageId!.startsWith('dev-')).toBe(true)
 
 			consoleSpy.mockRestore()
@@ -71,7 +76,9 @@ describe('EmailService', () => {
 	describe('sendWorkspaceInvitation (dev mode)', () => {
 		it('returns success in dev mode without Resend API key', async () => {
 			const service = createEmailService({})
-			const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+			const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {
+				// empty
+			})
 
 			const result = await service.sendWorkspaceInvitation({
 				to: 'invitee@example.com',
@@ -85,6 +92,7 @@ describe('EmailService', () => {
 
 			expect(result.success).toBe(true)
 			expect(result.messageId).toBeDefined()
+			// biome-ignore lint/style/noNonNullAssertion: checked by toBeDefined above
 			expect(result.messageId!.startsWith('dev-')).toBe(true)
 
 			consoleSpy.mockRestore()

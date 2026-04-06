@@ -44,6 +44,7 @@
 		"typecheck": "tsc --noEmit"
 	},
 	"dependencies": {
+		"@hono/zod-openapi": "^1.2.0",
 		"@elysiajs/cors": "^1.4.1",
 		"@elysiajs/eden": "^1.4.9",
 		"@elysiajs/openapi": "^1.4.14",

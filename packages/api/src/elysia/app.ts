@@ -27,6 +27,7 @@ import { auditLogRoutes } from './routes/audit-logs'
 import { authRoutes } from './routes/auth'
 import { billingRoutes } from './routes/billing'
 import { billingWebhookRoutes } from './routes/billing-webhook'
+import { businessAnalyticsRoutes } from './routes/business-analytics'
 import { chatRoutes } from './routes/chat'
 import { devRoutes } from './routes/dev'
 import { embedPublicRoutes } from './routes/embed-public'
@@ -113,10 +114,12 @@ export const app = new Elysia({ prefix: '/api', name: 'hare-api' })
 	// Global error handler
 	.onError(({ error }) => {
 		if (error instanceof CloudflareEnvError) {
+			// biome-ignore lint/suspicious/noConsole: server logging
 			console.error('CloudflareEnvError:', error.message)
 			return Response.json({ error: 'Service unavailable' }, { status: 503 })
 		}
 
+		// biome-ignore lint/suspicious/noConsole: server logging
 		console.error('Unhandled error:', error)
 		return Response.json({ error: 'Internal server error' }, { status: 500 })
 	})
@@ -152,11 +155,15 @@ export const app = new Elysia({ prefix: '/api', name: 'hare-api' })
 	.use(guardrailRoutes)
 	.use(knowledgeBaseRoutes)
 	.use(workflowRoutes)
+	.use(businessAnalyticsRoutes)
 
 // Log routes in dev
 if (serverEnv.NODE_ENV === 'development') {
+	// biome-ignore lint/suspicious/noConsole: server logging
 	console.log('\n🐇 Hare API (Elysia) routes registered')
+	// biome-ignore lint/suspicious/noConsole: server logging
 	console.log('📖 OpenAPI docs: /api/openapi')
+	// biome-ignore lint/suspicious/noConsole: server logging
 	console.log('📋 OpenAPI spec: /api/openapi/json')
 }
 

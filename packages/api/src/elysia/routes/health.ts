@@ -75,7 +75,9 @@ async function checkKV(kv: KVNamespace): Promise<ServiceCheck> {
 			error: error instanceof Error ? error.message : 'Connection failed',
 		}
 	} finally {
-		kv.delete(testKey).catch(() => {})
+		kv.delete(testKey).catch(() => {
+			// empty
+		})
 	}
 }
 

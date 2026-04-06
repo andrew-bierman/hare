@@ -484,6 +484,7 @@ test.describe('Agent Usage API', () => {
 					: []
 			const found = agentsList.find((a) => a.name === agentName)
 			expect(found).toBeTruthy()
+			// biome-ignore lint/style/noNonNullAssertion: checked by toBeTruthy above
 			agentId = found!.id
 		}
 

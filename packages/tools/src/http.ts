@@ -85,6 +85,7 @@ export const httpRequestTool = createTool({
 				response.status < 400 &&
 				response.headers.get('location')
 			) {
+				// biome-ignore lint/style/noNonNullAssertion: checked in while condition above
 				const location = response.headers.get('location')!
 				const redirectCheck = isRedirectSafe({
 					locationHeader: location,

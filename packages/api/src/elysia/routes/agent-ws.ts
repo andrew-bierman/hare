@@ -104,6 +104,7 @@ async function handleChat(options: {
 			headers: { 'X-Session-Id': body.sessionId || crypto.randomUUID() },
 		})
 	} catch (err) {
+		// biome-ignore lint/suspicious/noConsole: error reporting
 		console.error('[chat] Error:', err)
 		return Response.json(
 			{ error: err instanceof Error ? err.message : 'Internal server error' },

@@ -195,8 +195,11 @@ export function useAgentWebSocket(options: UseAgentWebSocketOptions): UseAgentWe
 						setIsProcessing(false)
 						break
 					}
+					default:
+						break
 				}
 			} catch (err) {
+				// biome-ignore lint/suspicious/noConsole: error reporting
 				console.error('Failed to parse WebSocket message:', err)
 			}
 		}

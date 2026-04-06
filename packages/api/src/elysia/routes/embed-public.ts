@@ -175,6 +175,7 @@ export const embedPublicRoutes = new Elysia({ prefix: '/embed', name: 'embed-pub
 
 					sendEvent({ type: 'done', sessionId: conversationId })
 				} catch (err) {
+					// biome-ignore lint/suspicious/noConsole: error reporting
 					console.error('Embed chat error:', err)
 					sendEvent({
 						type: 'error',

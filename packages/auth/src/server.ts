@@ -63,11 +63,13 @@ export function createAuth({ d1, env }: CreateAuthOptions) {
 				})
 
 				if (!result.success) {
+					// biome-ignore lint/suspicious/noConsole: error reporting
 					console.error(
 						`[Auth] Failed to send password reset email to ${user.email}:`,
 						result.error,
 					)
 				} else {
+					// biome-ignore lint/suspicious/noConsole: server logging
 					console.log(`[Auth] Password reset email sent to ${user.email} (${result.messageId})`)
 				}
 			},
@@ -75,13 +77,17 @@ export function createAuth({ d1, env }: CreateAuthOptions) {
 		socialProviders: {
 			...(isGoogleConfigured && {
 				google: {
+					// biome-ignore lint/style/noNonNullAssertion: guarded by isGoogleConfigured check
 					clientId: env.GOOGLE_CLIENT_ID!,
+					// biome-ignore lint/style/noNonNullAssertion: guarded by isGoogleConfigured check
 					clientSecret: env.GOOGLE_CLIENT_SECRET!,
 				},
 			}),
 			...(isGitHubConfigured && {
 				github: {
+					// biome-ignore lint/style/noNonNullAssertion: guarded by isGitHubConfigured check
 					clientId: env.GITHUB_CLIENT_ID!,
+					// biome-ignore lint/style/noNonNullAssertion: guarded by isGitHubConfigured check
 					clientSecret: env.GITHUB_CLIENT_SECRET!,
 				},
 			}),

@@ -20,8 +20,8 @@ export function DashboardPendingComponent() {
 				<Skeleton className="h-4 w-96" />
 			</div>
 			<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-				{Array.from({ length: 6 }).map((_, i) => (
-					<div key={`skeleton-${i}`} className="rounded-lg border p-6 space-y-3">
+				{['a', 'b', 'c', 'd', 'e', 'f'].map((id) => (
+					<div key={id} className="rounded-lg border p-6 space-y-3">
 						<Skeleton className="h-5 w-32" />
 						<Skeleton className="h-4 w-full" />
 						<Skeleton className="h-4 w-3/4" />

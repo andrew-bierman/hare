@@ -233,21 +233,29 @@ export function generateSecurePassword(length = 16): string {
 
 	let password = ''
 	// Ensure at least one of each required type
+	// biome-ignore lint/style/noNonNullAssertion: array indices 0-3 always exist for length >= 4
 	password += uppercase[array[0]! % uppercase.length]
+	// biome-ignore lint/style/noNonNullAssertion: array indices 0-3 always exist for length >= 4
 	password += lowercase[array[1]! % lowercase.length]
+	// biome-ignore lint/style/noNonNullAssertion: array indices 0-3 always exist for length >= 4
 	password += numbers[array[2]! % numbers.length]
+	// biome-ignore lint/style/noNonNullAssertion: array indices 0-3 always exist for length >= 4
 	password += special[array[3]! % special.length]
 
 	// Fill the rest randomly
 	for (let i = 4; i < length; i++) {
+		// biome-ignore lint/style/noNonNullAssertion: i < length === array.length
 		password += all[array[i]! % all.length]
 	}
 
 	// Shuffle the password using Fisher-Yates
 	const chars = password.split('')
 	for (let i = chars.length - 1; i > 0; i--) {
+		// biome-ignore lint/style/noNonNullAssertion: i % array.length is always in bounds
 		const j = array[i % array.length]! % (i + 1)
+		// biome-ignore lint/style/noNonNullAssertion: i is a valid index into chars
 		const temp = chars[i]!
+		// biome-ignore lint/style/noNonNullAssertion: j is computed to be in bounds
 		chars[i] = chars[j]!
 		chars[j] = temp
 	}

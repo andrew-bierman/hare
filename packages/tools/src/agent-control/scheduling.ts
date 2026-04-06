@@ -111,12 +111,14 @@ export const scheduleTaskTool = createTool({
 						}),
 					)
 					if (!doResponse.ok) {
+						// biome-ignore lint/suspicious/noConsole: server logging
 						console.warn(
 							`[agent_schedule] DO scheduling failed for agent ${params.agentId}: ${await doResponse.text()}`,
 						)
 					}
 				} catch (error) {
 					// DO scheduling is optional - database record is still created
+					// biome-ignore lint/suspicious/noConsole: server logging
 					console.warn(
 						`[agent_schedule] DO scheduling error for agent ${params.agentId}:`,
 						getErrorMessage(error),

@@ -47,6 +47,7 @@ export const billingWebhookRoutes = new Elysia({
 			const body = await request.text()
 			event = stripe.webhooks.constructEvent(body, signature, webhookSecret)
 		} catch (err) {
+			// biome-ignore lint/suspicious/noConsole: error reporting
 			console.error('Webhook signature verification failed:', err)
 			return Response.json({ error: 'Invalid signature' }, { status: 400 })
 		}
@@ -113,11 +114,13 @@ export const billingWebhookRoutes = new Elysia({
 
 			case 'invoice.payment_failed': {
 				const invoice = event.data.object as Stripe.Invoice
+				// biome-ignore lint/suspicious/noConsole: server logging
 				console.warn('Payment failed for invoice:', invoice.id)
 				break
 			}
 
 			default:
+				// biome-ignore lint/suspicious/noConsole: server logging
 				console.log(`Unhandled event type: ${event.type}`)
 		}
 

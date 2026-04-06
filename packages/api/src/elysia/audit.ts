@@ -52,6 +52,7 @@ export async function logAudit(input: LogAuditInput): Promise<void> {
 				userAgent,
 			})
 		} catch (error) {
+			// biome-ignore lint/suspicious/noConsole: error reporting
 			console.error('Failed to log audit event:', error)
 		}
 	} else {
@@ -67,6 +68,7 @@ export async function logAudit(input: LogAuditInput): Promise<void> {
 				userAgent,
 			})
 			.catch((error) => {
+				// biome-ignore lint/suspicious/noConsole: error reporting
 				console.error('Failed to log audit event:', error)
 			})
 	}

@@ -71,6 +71,8 @@ function StatusIcon({ status }: { status: ToolCallData['status'] }) {
 			return <CheckCircle2 className="h-4 w-4 text-emerald-500" />
 		case 'error':
 			return <XCircle className="h-4 w-4 text-destructive" />
+		default:
+			break
 	}
 }
 

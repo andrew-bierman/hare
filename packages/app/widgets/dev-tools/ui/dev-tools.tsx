@@ -104,7 +104,7 @@ export function DevTools() {
 		}
 		try {
 			const agent = await createAgent.mutateAsync({
-				name: randomName()!,
+				name: randomName() ?? 'New Agent',
 				description: randomDesc(),
 				model: '@cf/meta/llama-3.3-70b-instruct-fp8-fast',
 				instructions: defaultInstructions,
