@@ -84,7 +84,7 @@ async function getAgentHealthMetrics(options: {
 	const [metrics] = await db
 		.select({
 			totalRequests: sql<number>`COUNT(*)`,
-			errorCount: sql<number>`SUM(CASE WHEN json_extract(${usage.metadata}, '$.statusCode') >= 400 OR json_extract(${usage.metadata}, '$.statusCode') IS NULL THEN 0 ELSE CASE WHEN json_extract(${usage.metadata}, '$.statusCode') < 200 OR json_extract(${usage.metadata}, '$.statusCode') >= 300 THEN 1 ELSE 0 END END)`,
+			errorCount: sql<number>`SUM(CASE WHEN json_extract(${usage.metadata}, '$.statusCode') IS NULL OR json_extract(${usage.metadata}, '$.statusCode') < 200 OR json_extract(${usage.metadata}, '$.statusCode') >= 300 THEN 1 ELSE 0 END)`,
 			averageLatency: sql<number>`COALESCE(AVG(json_extract(${usage.metadata}, '$.duration')), 0)`,
 		})
 		.from(usage)

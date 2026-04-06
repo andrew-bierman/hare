@@ -25,7 +25,7 @@ function getStripe(env: CloudflareEnv): Stripe {
 }
 
 export const billingWebhookRoutes = new Elysia({
-	prefix: '/billing-webhook',
+	prefix: '/billing',
 	name: 'billing-webhook',
 })
 	.use(cfContext)

@@ -6,7 +6,7 @@
 
 import { userPreferences } from '@hare/db/schema'
 import { eq } from 'drizzle-orm'
-import { Elysia } from 'elysia'
+import { Elysia, status } from 'elysia'
 import { z } from 'zod'
 import { authPlugin } from '../context'
 
@@ -61,7 +61,7 @@ export const userSettingsRoutes = new Elysia({ prefix: '/user', name: 'user-sett
 					.returning()
 			}
 
-			if (!prefs) throw new Error('Failed to get or create preferences')
+			if (!prefs) return status(500, { error: 'Failed to get or create preferences' })
 
 			return serializePreferences(prefs)
 		},
@@ -105,7 +105,7 @@ export const userSettingsRoutes = new Elysia({ prefix: '/user', name: 'user-sett
 					.returning()
 			}
 
-			if (!prefs) throw new Error('Failed to update preferences')
+			if (!prefs) return status(500, { error: 'Failed to update preferences' })
 
 			return serializePreferences(prefs)
 		},

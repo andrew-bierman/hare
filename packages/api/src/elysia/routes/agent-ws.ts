@@ -15,7 +15,7 @@ import {
 import { getErrorMessage } from '@hare/checks'
 import { config } from '@hare/config'
 import type { Database } from '@hare/db'
-import { agents, workspaceMembers } from '@hare/db/schema'
+import { agents, workspaceMembers, workspaces } from '@hare/db/schema'
 import type { CloudflareEnv } from '@hare/types'
 import { convertToModelMessages, streamText, type UIMessage } from 'ai'
 import { and, eq } from 'drizzle-orm'
@@ -31,6 +31,13 @@ async function hasWorkspaceAccess(
 	userId: string,
 	workspaceId: string,
 ): Promise<boolean> {
+	const [workspace] = await db
+		.select({ ownerId: workspaces.ownerId })
+		.from(workspaces)
+		.where(eq(workspaces.id, workspaceId))
+	if (!workspace) return false
+	if (workspace.ownerId === userId) return true
+
 	const [membership] = await db
 		.select()
 		.from(workspaceMembers)
@@ -43,6 +50,13 @@ async function hasWorkspaceWriteAccess(
 	userId: string,
 	workspaceId: string,
 ): Promise<boolean> {
+	const [workspace] = await db
+		.select({ ownerId: workspaces.ownerId })
+		.from(workspaces)
+		.where(eq(workspaces.id, workspaceId))
+	if (!workspace) return false
+	if (workspace.ownerId === userId) return true
+
 	const [membership] = await db
 		.select()
 		.from(workspaceMembers)
@@ -175,11 +189,11 @@ export const agentWsRoutes = new Elysia({ prefix: '/agent-ws', name: 'agent-ws-r
 		const hasAccess = await hasWorkspaceWriteAccess(db, user.id, agent.workspaceId)
 		if (!hasAccess) return status(403, { error: 'No write access' })
 
-		const body = (await request.json()) as {
-			name?: string
-			instructions?: string
-			model?: string
-			workspaceId?: string
+		let body: { name?: string; instructions?: string; model?: string; workspaceId?: string }
+		try {
+			body = (await request.json()) as typeof body
+		} catch {
+			return status(400, { error: 'Invalid JSON body' })
 		}
 
 		const configRequest = new Request(new URL('/configure', request.url).toString(), {

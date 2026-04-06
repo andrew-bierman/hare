@@ -93,7 +93,7 @@ export const workspaceRoutes = new Elysia({ prefix: '/workspaces', name: 'worksp
 				role: config.enums.workspaceRole.OWNER,
 			})
 
-			return serializeWorkspace(workspace)
+			return status(201, serializeWorkspace(workspace))
 		},
 		{
 			auth: true,
@@ -126,10 +126,11 @@ export const workspaceRoutes = new Elysia({ prefix: '/workspaces', name: 'worksp
 					.replace(/^-+|-+$/g, '')
 					.slice(0, maxBase) || 'workspace'
 			const slug = `${slugBase}-${slugSuffix}`
+			const workspaceName = user.name ? `${user.name}'s Workspace` : 'My Workspace'
 			const [workspace] = await db
 				.insert(workspaces)
 				.values({
-					name: `${user.name || 'My'}'s Workspace`,
+					name: workspaceName,
 					slug,
 					description: 'Default workspace',
 					ownerId: user.id,
