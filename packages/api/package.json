@@ -1,12 +1,14 @@
 {
 	"name": "@hare/api",
-	"version": "0.2.0",
+	"version": "2.0.0",
 	"description": "Elysia API for Hare AI agents platform",
 	"keywords": [
 		"cloudflare",
 		"workers",
 		"elysia",
 		"eden-treaty",
+		"openapi",
+		"scalar",
 		"api",
 		"ai",
 		"agent"
@@ -26,10 +28,6 @@
 			"types": "./src/schemas/index.ts",
 			"import": "./src/schemas/index.ts"
 		},
-		"./helpers": {
-			"types": "./src/helpers/index.ts",
-			"import": "./src/helpers/index.ts"
-		},
 		"./services": {
 			"types": "./src/services/index.ts",
 			"import": "./src/services/index.ts"
@@ -48,6 +46,7 @@
 	"dependencies": {
 		"@elysiajs/cors": "^1.4.1",
 		"@elysiajs/eden": "^1.4.9",
+		"@elysiajs/openapi": "^1.4.14",
 		"@hare/agent": "workspace:*",
 		"@hare/auth": "workspace:*",
 		"@hare/config": "workspace:*",

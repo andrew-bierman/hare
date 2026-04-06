@@ -5,16 +5,16 @@
  */
 
 import { config, EXECUTION_STATUSES, SCHEDULE_STATUSES, SCHEDULE_TYPES } from '@hare/config'
-import { z } from '@hono/zod-openapi'
+import { z } from 'zod'
 
 // Schedule type enum
-export const ScheduleTypeSchema = z.enum(SCHEDULE_TYPES).openapi('ScheduleType')
+export const ScheduleTypeSchema = z.enum(SCHEDULE_TYPES)
 
 // Schedule status enum
-export const ScheduleStatusSchema = z.enum(SCHEDULE_STATUSES).openapi('ScheduleStatus')
+export const ScheduleStatusSchema = z.enum(SCHEDULE_STATUSES)
 
 // Execution status enum
-export const ExecutionStatusSchema = z.enum(EXECUTION_STATUSES).openapi('ExecutionStatus')
+export const ExecutionStatusSchema = z.enum(EXECUTION_STATUSES)
 
 // Create schedule input
 export const CreateScheduleSchema = z
@@ -39,7 +39,7 @@ export const CreateScheduleSchema = z
 			message: 'one-time schedules require executeAt, recurring schedules require cron',
 		},
 	)
-	.openapi('CreateSchedule')
+	
 
 // Update schedule input
 export const UpdateScheduleSchema = z
@@ -49,7 +49,7 @@ export const UpdateScheduleSchema = z
 		cron: z.string().optional().describe('Update cron expression'),
 		payload: z.record(z.string(), z.unknown()).optional().describe('Update payload'),
 	})
-	.openapi('UpdateSchedule')
+	
 
 // Schedule response
 export const ScheduleSchema = z
@@ -68,7 +68,7 @@ export const ScheduleSchema = z
 		createdAt: z.string().datetime().describe('Creation timestamp'),
 		updatedAt: z.string().datetime().describe('Last update timestamp'),
 	})
-	.openapi('Schedule')
+	
 
 // Execution result
 export const ExecutionResultSchema = z
@@ -78,7 +78,7 @@ export const ExecutionResultSchema = z
 		data: z.unknown().optional(),
 		error: z.string().optional(),
 	})
-	.openapi('ExecutionResult')
+	
 
 // Execution history entry
 export const ScheduleExecutionSchema = z
@@ -93,14 +93,14 @@ export const ScheduleExecutionSchema = z
 		result: ExecutionResultSchema.nullable().describe('Execution result'),
 		error: z.string().nullable().describe('Error message if failed'),
 	})
-	.openapi('ScheduleExecution')
+	
 
 // List schedules response
 export const ScheduleListSchema = z
 	.object({
 		schedules: z.array(ScheduleSchema),
 	})
-	.openapi('ScheduleList')
+	
 
 // Execution history response
 export const ExecutionHistorySchema = z
@@ -108,4 +108,4 @@ export const ExecutionHistorySchema = z
 		executions: z.array(ScheduleExecutionSchema),
 		total: z.number().describe('Total number of executions'),
 	})
-	.openapi('ExecutionHistory')
+	

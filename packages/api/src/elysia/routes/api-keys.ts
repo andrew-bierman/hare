@@ -10,7 +10,7 @@ import type { Database } from '@hare/db'
 import { and, eq } from 'drizzle-orm'
 import { Elysia, status } from 'elysia'
 import { z } from 'zod'
-import { generateApiKey } from '../../middleware/api-key'
+import { generateApiKey } from '../utils/api-key'
 import {
 	ApiKeySchema,
 	ApiKeyWithSecretSchema,

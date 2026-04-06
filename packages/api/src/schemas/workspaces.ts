@@ -1,77 +1,77 @@
 import { INVITATION_STATUSES, MEMBER_ROLES, WORKSPACE_ROLES } from '@hare/config'
-import { z } from '@hono/zod-openapi'
+import { z } from 'zod'
 
 /**
  * Workspace role enum.
  */
-export const WorkspaceRoleSchema = z.enum(WORKSPACE_ROLES).openapi({ example: 'owner' })
+export const WorkspaceRoleSchema = z.enum(WORKSPACE_ROLES)
 
 /**
  * Member role enum (excludes owner - used for invitations and role updates).
  */
-export const MemberRoleSchema = z.enum(MEMBER_ROLES).openapi({ example: 'member' })
+export const MemberRoleSchema = z.enum(MEMBER_ROLES)
 
 /**
  * Invitation status enum.
  */
-export const InvitationStatusSchema = z.enum(INVITATION_STATUSES).openapi({ example: 'pending' })
+export const InvitationStatusSchema = z.enum(INVITATION_STATUSES)
 
 /**
  * Full workspace schema for API responses.
  */
 export const WorkspaceSchema = z
 	.object({
-		id: z.string().openapi({ example: 'ws_xyz789' }),
-		name: z.string().openapi({ example: 'My Workspace' }),
-		description: z.string().nullable().openapi({ example: 'Default workspace' }),
+		id: z.string(),
+		name: z.string(),
+		description: z.string().nullable(),
 		role: WorkspaceRoleSchema,
-		createdAt: z.string().datetime().openapi({ example: '2024-12-01T00:00:00Z' }),
-		updatedAt: z.string().datetime().openapi({ example: '2024-12-01T00:00:00Z' }),
+		createdAt: z.string().datetime(),
+		updatedAt: z.string().datetime(),
 	})
-	.openapi('Workspace')
+	
 
 /**
  * Schema for creating a new workspace.
  */
 export const CreateWorkspaceSchema = z
 	.object({
-		name: z.string().min(1).max(100).openapi({ example: 'My Workspace' }),
-		description: z.string().nullish().openapi({ example: 'A workspace for my agents' }),
+		name: z.string().min(1).max(100),
+		description: z.string().nullish(),
 	})
-	.openapi('CreateWorkspace')
+	
 
 /**
  * Schema for updating a workspace.
  */
 export const UpdateWorkspaceSchema = z
 	.object({
-		name: z.string().min(1).max(100).optional().openapi({ example: 'Updated Workspace' }),
-		description: z.string().nullish().openapi({ example: 'Updated description' }),
+		name: z.string().min(1).max(100).optional(),
+		description: z.string().nullish(),
 	})
-	.openapi('UpdateWorkspace')
+	
 
 /**
  * Workspace member schema for API responses.
  */
 export const WorkspaceMemberSchema = z
 	.object({
-		id: z.string().openapi({ example: 'mem_abc123' }),
-		userId: z.string().openapi({ example: 'usr_xyz789' }),
-		name: z.string().openapi({ example: 'John Doe' }),
-		email: z.string().email().openapi({ example: 'john@example.com' }),
-		image: z.string().nullable().openapi({ example: 'https://example.com/avatar.jpg' }),
+		id: z.string(),
+		userId: z.string(),
+		name: z.string(),
+		email: z.string().email(),
+		image: z.string().nullable(),
 		role: WorkspaceRoleSchema,
-		joinedAt: z.string().datetime().openapi({ example: '2024-12-01T00:00:00Z' }),
+		joinedAt: z.string().datetime(),
 	})
-	.openapi('WorkspaceMember')
+	
 
 /**
  * Workspace invitation schema for API responses.
  */
 export const WorkspaceInvitationSchema = z
 	.object({
-		id: z.string().openapi({ example: 'inv_abc123' }),
-		email: z.string().email().openapi({ example: 'invited@example.com' }),
+		id: z.string(),
+		email: z.string().email(),
 		role: MemberRoleSchema,
 		status: InvitationStatusSchema,
 		invitedBy: z
@@ -80,21 +80,21 @@ export const WorkspaceInvitationSchema = z
 				name: z.string(),
 				email: z.string().email(),
 			})
-			.openapi({ example: { id: 'usr_xyz789', name: 'John Doe', email: 'john@example.com' } }),
-		expiresAt: z.string().datetime().openapi({ example: '2024-12-08T00:00:00Z' }),
-		createdAt: z.string().datetime().openapi({ example: '2024-12-01T00:00:00Z' }),
+			,
+		expiresAt: z.string().datetime(),
+		createdAt: z.string().datetime(),
 	})
-	.openapi('WorkspaceInvitation')
+	
 
 /**
  * Schema for sending an invitation.
  */
 export const SendInvitationSchema = z
 	.object({
-		email: z.string().email().openapi({ example: 'invited@example.com' }),
+		email: z.string().email(),
 		role: MemberRoleSchema.optional().default('member'),
 	})
-	.openapi('SendInvitation')
+	
 
 /**
  * Schema for updating a member's role.
@@ -103,14 +103,14 @@ export const UpdateMemberRoleSchema = z
 	.object({
 		role: MemberRoleSchema,
 	})
-	.openapi('UpdateMemberRole')
+	
 
 /**
  * Workspace ID and User ID params schema.
  */
 export const WorkspaceMemberParamsSchema = z
 	.object({
-		id: z.string().openapi({ example: 'ws_xyz789', description: 'Workspace ID' }),
-		userId: z.string().openapi({ example: 'usr_abc123', description: 'User ID' }),
+		id: z.string(),
+		userId: z.string(),
 	})
-	.openapi('WorkspaceMemberParams')
+	

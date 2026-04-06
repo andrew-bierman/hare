@@ -4,13 +4,13 @@
  * Zod schemas for agent vector memory request/response validation.
  */
 
-import { z } from '@hono/zod-openapi'
+import { z } from 'zod'
 
 // Memory type enum
 export const MemoryTypeSchema = z
 	.enum(['fact', 'context', 'preference', 'conversation', 'custom'])
 	.describe('Type of memory')
-	.openapi('MemoryType')
+	
 
 // Memory metadata schema
 export const MemoryMetadataSchema = z
@@ -23,7 +23,7 @@ export const MemoryMetadataSchema = z
 		updatedAt: z.string().datetime().optional().describe('Last update timestamp'),
 		tags: z.array(z.string().min(1).max(50)).optional().describe('Tags for categorization'),
 	})
-	.openapi('MemoryMetadata')
+	
 
 // Memory entry with content and metadata
 export const MemorySchema = z
@@ -33,7 +33,7 @@ export const MemorySchema = z
 		metadata: MemoryMetadataSchema.describe('Memory metadata'),
 		score: z.number().min(0).max(1).optional().describe('Similarity score (for search results)'),
 	})
-	.openapi('Memory')
+	
 
 // Create memory input
 export const CreateMemorySchema = z
@@ -55,7 +55,7 @@ export const CreateMemorySchema = z
 			.optional()
 			.describe('Tags for categorization'),
 	})
-	.openapi('CreateMemory')
+	
 
 // Update memory input
 export const UpdateMemorySchema = z
@@ -72,7 +72,7 @@ export const UpdateMemorySchema = z
 			.optional()
 			.describe('Updated tags'),
 	})
-	.openapi('UpdateMemory')
+	
 
 // Search memory input
 export const SearchMemorySchema = z
@@ -97,7 +97,7 @@ export const SearchMemorySchema = z
 			.optional()
 			.describe('Filter by tags'),
 	})
-	.openapi('SearchMemory')
+	
 
 // Memory list response
 export const MemoryListResponseSchema = z
@@ -107,7 +107,7 @@ export const MemoryListResponseSchema = z
 		limit: z.number().int().min(1).max(100).describe('Page size'),
 		offset: z.number().int().min(0).describe('Page offset'),
 	})
-	.openapi('MemoryListResponse')
+	
 
 // Search result response
 export const SearchResultSchema = z
@@ -116,7 +116,7 @@ export const SearchResultSchema = z
 		query: z.string().min(1).describe('Original search query'),
 		topK: z.number().int().min(1).describe('Number of results requested'),
 	})
-	.openapi('SearchResult')
+	
 
 // Clear memories response
 export const ClearMemoriesResponseSchema = z
@@ -124,7 +124,7 @@ export const ClearMemoriesResponseSchema = z
 		success: z.boolean().describe('Whether the operation succeeded'),
 		deleted: z.number().int().min(0).describe('Number of memories deleted'),
 	})
-	.openapi('ClearMemoriesResponse')
+	
 
 // Memory ID param schema
 export const MemoryIdParamSchema = z
@@ -132,7 +132,7 @@ export const MemoryIdParamSchema = z
 		id: z.string().min(1).describe('Agent ID'),
 		memoryId: z.string().min(1).describe('Memory ID'),
 	})
-	.openapi('MemoryIdParam')
+	
 
 // Memory list query schema
 export const MemoryListQuerySchema = z
@@ -147,4 +147,4 @@ export const MemoryListQuerySchema = z
 			.describe('Page size'),
 		offset: z.coerce.number().int().min(0).optional().default(0).describe('Page offset'),
 	})
-	.openapi('MemoryListQuery')
+	

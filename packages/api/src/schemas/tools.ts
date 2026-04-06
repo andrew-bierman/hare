@@ -1,5 +1,5 @@
 import { TOOL_TYPES } from '@hare/config'
-import { z } from '@hono/zod-openapi'
+import { z } from 'zod'
 import { JsonSchemaSchema, JsonValueSchema } from './common'
 
 /**
@@ -10,72 +10,52 @@ export const ToolConfigSchema = z.record(z.string(), JsonValueSchema)
 /**
  * All supported tool types.
  */
-export const ToolTypeSchema = z.enum(TOOL_TYPES).openapi({ example: 'http' })
+export const ToolTypeSchema = z.enum(TOOL_TYPES)
 
 /**
  * Full tool schema for API responses.
  */
 export const ToolSchema = z
 	.object({
-		id: z.string().openapi({ example: 'tool_http' }),
-		workspaceId: z.string().openapi({ example: 'ws_xyz789' }),
-		name: z.string().openapi({ example: 'HTTP Request' }),
-		description: z.string().nullable().openapi({ example: 'Make HTTP requests to external APIs' }),
+		id: z.string(),
+		workspaceId: z.string(),
+		name: z.string(),
+		description: z.string().nullable(),
 		type: ToolTypeSchema,
-		inputSchema: JsonSchemaSchema.nullable().openapi({
-			example: {
-				url: { type: 'string', description: 'The URL to request' },
-				method: { type: 'string', enum: ['GET', 'POST', 'PUT', 'DELETE'] },
-			},
-		}),
-		outputSchema: JsonSchemaSchema.optional().openapi({
-			example: {
-				status: { type: 'number', description: 'HTTP status code' },
-				data: { type: 'unknown', description: 'Response data' },
-			},
-		}),
-		config: ToolConfigSchema.optional().openapi({ example: {} }),
-		code: z.string().optional().openapi({
-			example: 'export default async function(input) { return fetch(input.url) }',
-		}),
-		isSystem: z.boolean().openapi({ example: true }),
-		createdAt: z.string().datetime().openapi({ example: '2024-12-01T00:00:00Z' }),
-		updatedAt: z.string().datetime().openapi({ example: '2024-12-01T00:00:00Z' }),
+		inputSchema: JsonSchemaSchema.nullable(),
+		outputSchema: JsonSchemaSchema.optional(),
+		config: ToolConfigSchema.optional(),
+		code: z.string().optional(),
+		isSystem: z.boolean(),
+		createdAt: z.string().datetime(),
+		updatedAt: z.string().datetime(),
 	})
-	.openapi('Tool')
+	
 
 /**
  * Schema for creating a new tool.
  */
 export const CreateToolSchema = z
 	.object({
-		name: z.string().min(1).max(100).openapi({ example: 'My Custom Tool' }),
-		description: z.string().max(500).optional().openapi({ example: 'A custom tool for my agent' }),
+		name: z.string().min(1).max(100),
+		description: z.string().max(500).optional(),
 		type: ToolTypeSchema,
-		inputSchema: JsonSchemaSchema.optional().openapi({
-			example: { input: { type: 'string' } },
-		}),
-		config: ToolConfigSchema.optional().openapi({ example: {} }),
-		code: z.string().optional().openapi({
-			example: 'export default async function(input) { return input }',
-		}),
+		inputSchema: JsonSchemaSchema.optional(),
+		config: ToolConfigSchema.optional(),
+		code: z.string().optional(),
 	})
-	.openapi('CreateTool')
+	
 
 /**
  * Schema for updating a tool.
  */
 export const UpdateToolSchema = z
 	.object({
-		name: z.string().min(1).max(100).optional().openapi({ example: 'My Custom Tool' }),
-		description: z.string().max(500).optional().openapi({ example: 'A custom tool for my agent' }),
+		name: z.string().min(1).max(100).optional(),
+		description: z.string().max(500).optional(),
 		type: ToolTypeSchema.optional(),
-		inputSchema: JsonSchemaSchema.optional().openapi({
-			example: { input: { type: 'string' } },
-		}),
-		config: ToolConfigSchema.optional().openapi({ example: {} }),
-		code: z.string().optional().openapi({
-			example: 'export default async function(input) { return input }',
-		}),
+		inputSchema: JsonSchemaSchema.optional(),
+		config: ToolConfigSchema.optional(),
+		code: z.string().optional(),
 	})
-	.openapi('UpdateTool')
+	

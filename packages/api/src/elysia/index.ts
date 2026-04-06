@@ -64,28 +64,23 @@ export type {
 	AgentStatus,
 	AgentUsage,
 	ApiError,
-	ApiKeyEnv,
 	ApiKeyInfo,
-	ApiKeyVariables,
 	ApiSuccess,
-	AuthEnv,
 	AuthSession,
 	AuthUser,
-	AuthVariables,
 	ChatMessage,
 	ChatRequest,
 	ChatStreamEvent,
+	CloudflareEnv,
 	CreateAgentInput,
 	CreateScheduleInput,
 	CreateToolInput,
 	CreateWorkspaceInput,
 	ExecutionResult,
 	ExecutionStatus,
-	HonoEnv,
 	InvitationStatus,
 	MemberRole,
 	MessageRole,
-	OptionalAuthEnv,
 	Schedule,
 	ScheduleExecution,
 	ScheduleStatus,
@@ -98,12 +93,10 @@ export type {
 	UpdateScheduleInput,
 	UsageSummary,
 	Workspace,
-	WorkspaceEnv,
 	WorkspaceInfo as WorkspaceInfoType,
 	WorkspaceInvitation,
 	WorkspaceMember,
 	WorkspaceRole,
-	WorkspaceVariables,
 } from '@hare/types'
 
 // Re-export type guards from @hare/types
@@ -112,8 +105,8 @@ export { isMessageRole, isWorkspaceRole } from '@hare/types'
 // Re-export schemas (explicit to avoid conflicts with services)
 export * from '../schemas'
 
-// Re-export helpers
-export { acceptsJson, acceptsSSE } from '../helpers'
+// Note: Hono-specific helpers (accepts, cookie, permissions, responses, testing)
+// were removed during the Elysia migration. Use Elysia's built-in equivalents.
 
 // Re-export services (excluding MemoryMetadataSchema which conflicts with schemas)
 export {

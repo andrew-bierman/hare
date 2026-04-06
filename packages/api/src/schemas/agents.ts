@@ -4,7 +4,7 @@ import {
 	DEPLOYMENT_STATUSES,
 	VALIDATION_ISSUE_SEVERITIES,
 } from '@hare/config'
-import { z } from '@hono/zod-openapi'
+import { z } from 'zod'
 
 // =============================================================================
 // Validation Constants
@@ -67,10 +67,7 @@ export const AgentConfigSchema = z
 			.min(AGENT_VALIDATION.config.temperature.min, 'Temperature must be at least 0')
 			.max(AGENT_VALIDATION.config.temperature.max, 'Temperature must be at most 2')
 			.optional()
-			.openapi({
-				example: 0.7,
-				description: 'Model temperature (0-2). Higher values = more creative.',
-			}),
+			,
 		maxTokens: z
 			.number()
 			.int('Max tokens must be an integer')
@@ -78,59 +75,59 @@ export const AgentConfigSchema = z
 			.min(AGENT_VALIDATION.config.maxTokens.min, 'Max tokens must be at least 1')
 			.max(AGENT_VALIDATION.config.maxTokens.max, 'Max tokens must be at most 128000')
 			.optional()
-			.openapi({ example: 4096, description: 'Maximum output tokens (1-128000).' }),
+			,
 		topP: z
 			.number()
 			.min(AGENT_VALIDATION.config.topP.min, 'Top-P must be at least 0')
 			.max(AGENT_VALIDATION.config.topP.max, 'Top-P must be at most 1')
 			.optional()
-			.openapi({ example: 0.9, description: 'Nucleus sampling threshold (0-1).' }),
+			,
 		topK: z
 			.number()
 			.int('Top-K must be an integer')
 			.min(AGENT_VALIDATION.config.topK.min, 'Top-K must be at least 0')
 			.optional()
-			.openapi({ example: 40, description: 'Top-K sampling (0+).' }),
+			,
 		stopSequences: z
 			.array(z.string().max(100, 'Stop sequence must be at most 100 characters'))
 			.max(10, 'Maximum 10 stop sequences allowed')
 			.optional()
-			.openapi({ example: ['END'], description: 'Sequences that stop generation.' }),
+			,
 	})
-	.openapi('AgentConfig')
+	
 
 /**
  * Agent status enum.
  */
-export const AgentStatusSchema = z.enum(AGENT_STATUSES).openapi({ example: 'draft' })
+export const AgentStatusSchema = z.enum(AGENT_STATUSES)
 
 /**
  * Full agent schema for API responses.
  */
 export const AgentSchema = z
 	.object({
-		id: z.string().openapi({ example: 'agent_abc123' }),
-		workspaceId: z.string().openapi({ example: 'ws_xyz789' }),
-		name: z.string().openapi({ example: 'Customer Support Agent' }),
-		description: z.string().nullable().openapi({ example: 'Handles customer inquiries' }),
-		model: z.string().openapi({ example: 'llama-3.3-70b-instruct' }),
+		id: z.string(),
+		workspaceId: z.string(),
+		name: z.string(),
+		description: z.string().nullable(),
+		model: z.string(),
 		instructions: z
 			.string()
 			.nullable()
-			.openapi({ example: 'You are a helpful customer support agent.' }),
+			,
 		config: AgentConfigSchema.optional(),
 		status: AgentStatusSchema,
 		systemToolsEnabled: z
 			.boolean()
-			.openapi({ example: true, description: 'Whether system tools are enabled for this agent' }),
+			,
 		toolIds: z
 			.array(z.string())
 			.optional()
-			.openapi({ example: ['tool_http', 'tool_sql'] }),
-		createdAt: z.string().datetime().openapi({ example: '2024-12-01T00:00:00Z' }),
-		updatedAt: z.string().datetime().openapi({ example: '2024-12-01T00:00:00Z' }),
+			,
+		createdAt: z.string().datetime(),
+		updatedAt: z.string().datetime(),
 	})
-	.openapi('Agent')
+	
 
 /**
  * Model ID schema with validation against allowed models
@@ -141,7 +138,7 @@ export const ModelIdSchema = z
 	.refine((id) => ALLOWED_MODEL_IDS.includes(id as AllowedModelId), {
 		message: `Invalid model. Must be one of: ${ALLOWED_MODEL_IDS.join(', ')}`,
 	})
-	.openapi({ example: '@cf/meta/llama-3.3-70b-instruct-fp8-fast' })
+	
 
 /**
  * Schema for creating a new agent.
@@ -157,7 +154,7 @@ export const CreateAgentSchema = z
 				`Name must be at most ${AGENT_VALIDATION.name.max} characters`,
 			)
 			.trim()
-			.openapi({ example: 'My Agent', description: 'Agent display name (1-100 chars)' }),
+			,
 		description: z
 			.string()
 			.max(
@@ -165,10 +162,7 @@ export const CreateAgentSchema = z
 				`Description must be at most ${AGENT_VALIDATION.description.max} characters`,
 			)
 			.optional()
-			.openapi({
-				example: 'A helpful assistant',
-				description: 'Agent description (max 500 chars)',
-			}),
+			,
 		model: ModelIdSchema,
 		instructions: z
 			.string()
@@ -177,15 +171,9 @@ export const CreateAgentSchema = z
 				AGENT_VALIDATION.instructions.max,
 				`Instructions must be at most ${AGENT_VALIDATION.instructions.max} characters`,
 			)
-			.openapi({
-				example: 'You are a helpful assistant.',
-				description: 'System prompt/instructions (1-10000 chars)',
-			}),
+			,
 		config: AgentConfigSchema.optional(),
-		systemToolsEnabled: z.boolean().optional().default(true).openapi({
-			example: true,
-			description: 'Enable built-in system tools (storage, HTTP, AI, etc.). Defaults to true.',
-		}),
+		systemToolsEnabled: z.boolean().optional().default(true),
 		toolIds: z
 			.array(z.string())
 			.max(
@@ -193,9 +181,9 @@ export const CreateAgentSchema = z
 				`Maximum ${AGENT_VALIDATION.maxToolsPerAgent} tools allowed`,
 			)
 			.optional()
-			.openapi({ example: ['tool_http'], description: 'Tool IDs to attach (max 20)' }),
+			,
 	})
-	.openapi('CreateAgent')
+	
 
 /**
  * Schema for updating an agent.
@@ -245,16 +233,16 @@ export const UpdateAgentSchema = z
 			.optional(),
 		status: AgentStatusSchema.optional(),
 	})
-	.openapi('UpdateAgent')
+	
 
 /**
  * Schema for deploying an agent.
  */
 export const DeployAgentSchema = z
 	.object({
-		version: z.string().optional().openapi({ example: '1.0.0' }),
+		version: z.string().optional(),
 	})
-	.openapi('DeployAgent')
+	
 
 /**
  * Deployment endpoints schema.
@@ -262,37 +250,25 @@ export const DeployAgentSchema = z
  */
 export const DeploymentEndpointsSchema = z
 	.object({
-		chat: z.string().openapi({
-			example: '/api/agents/agent_abc123/chat',
-			description: 'HTTP endpoint for sending chat messages',
-		}),
-		websocket: z.string().openapi({
-			example: '/api/agents/agent_abc123/ws',
-			description: 'WebSocket endpoint for real-time chat',
-		}),
-		state: z.string().openapi({
-			example: '/api/agents/agent_abc123/state',
-			description: 'Endpoint to retrieve agent state',
-		}),
+		chat: z.string(),
+		websocket: z.string(),
+		state: z.string(),
 	})
-	.openapi('DeploymentEndpoints')
+	
 
 /**
  * Deployment response schema.
  */
 export const DeploymentSchema = z
 	.object({
-		id: z.string().openapi({ example: 'deploy_abc123' }),
-		status: z.enum(DEPLOYMENT_STATUSES).openapi({ example: 'deployed' }),
-		deployedAt: z.string().datetime().openapi({ example: '2024-12-01T00:00:00Z' }),
-		version: z.string().openapi({ example: '1.0.0' }),
-		url: z.string().openapi({
-			example: '/api/agents/agent_abc123',
-			description: 'Base URL for the deployed agent',
-		}),
+		id: z.string(),
+		status: z.enum(DEPLOYMENT_STATUSES),
+		deployedAt: z.string().datetime(),
+		version: z.string(),
+		url: z.string(),
 		endpoints: DeploymentEndpointsSchema,
 	})
-	.openapi('Deployment')
+	
 
 // =============================================================================
 // Preview/Validation Schemas
@@ -307,7 +283,7 @@ export const ValidationIssueSchema = z
 		type: z.enum(VALIDATION_ISSUE_SEVERITIES).describe('Issue severity'),
 		message: z.string().describe('Issue description'),
 	})
-	.openapi('ValidationIssue')
+	
 
 /**
  * Model information for preview
@@ -322,7 +298,7 @@ export const ModelPreviewSchema = z
 		supportsTools: z.boolean().describe('Whether model supports tool calling'),
 		estimatedCostPer1KTokens: z.number().describe('Estimated cost per 1K tokens'),
 	})
-	.openapi('ModelPreview')
+	
 
 /**
  * Effective configuration with defaults applied
@@ -334,7 +310,7 @@ export const ConfigPreviewSchema = z
 		topP: z.number().optional().describe('Effective top-p if set'),
 		topK: z.number().optional().describe('Effective top-k if set'),
 	})
-	.openapi('ConfigPreview')
+	
 
 /**
  * Full preview of agent configuration
@@ -351,7 +327,7 @@ export const AgentPreviewSchema = z
 		estimatedTokens: z.number().describe('Estimated instruction token count'),
 		readyForDeployment: z.boolean().describe('Whether agent can be deployed'),
 	})
-	.openapi('AgentPreview')
+	
 
 /**
  * Response schema for agent preview/validation endpoint
@@ -365,7 +341,7 @@ export const AgentPreviewResponseSchema = z
 			'Preview of the resolved configuration (only if no critical errors)',
 		),
 	})
-	.openapi('AgentPreviewResponse')
+	
 
 /**
  * Input schema for preview endpoint - allows overriding agent fields
@@ -379,7 +355,7 @@ export const AgentPreviewInputSchema = z
 		config: AgentConfigSchema.optional().describe('Override model configuration'),
 		toolIds: z.array(z.string()).optional().describe('Override tool IDs'),
 	})
-	.openapi('AgentPreviewInput')
+	
 
 // =============================================================================
 // Agent Version Schemas
@@ -390,20 +366,20 @@ export const AgentPreviewInputSchema = z
  */
 export const AgentVersionSchema = z
 	.object({
-		id: z.string().openapi({ example: 'ver_abc123' }),
-		agentId: z.string().openapi({ example: 'agent_xyz789' }),
-		version: z.number().int().openapi({ example: 1, description: 'Version number' }),
-		instructions: z.string().nullable().openapi({ example: 'You are a helpful assistant.' }),
-		model: z.string().openapi({ example: '@cf/meta/llama-3.3-70b-instruct-fp8-fast' }),
+		id: z.string(),
+		agentId: z.string(),
+		version: z.number().int(),
+		instructions: z.string().nullable(),
+		model: z.string(),
 		config: AgentConfigSchema.nullable().optional(),
 		toolIds: z
 			.array(z.string())
 			.nullable()
-			.openapi({ example: ['tool_http'] }),
-		createdAt: z.string().datetime().openapi({ example: '2024-12-01T00:00:00Z' }),
-		createdBy: z.string().openapi({ example: 'user_abc123' }),
+			,
+		createdAt: z.string().datetime(),
+		createdBy: z.string(),
 	})
-	.openapi('AgentVersion')
+	
 
 /**
  * Query parameters for listing agent versions.
@@ -417,28 +393,28 @@ export const AgentVersionsQuerySchema = z
 			.max(100)
 			.optional()
 			.default(20)
-			.openapi({ example: 20, description: 'Maximum number of versions to return (1-100)' }),
+			,
 		offset: z.coerce
 			.number()
 			.int()
 			.min(0)
 			.optional()
 			.default(0)
-			.openapi({ example: 0, description: 'Number of versions to skip' }),
+			,
 	})
-	.openapi('AgentVersionsQuery')
+	
 
 /**
  * Response schema for listing agent versions.
  */
 export const AgentVersionsResponseSchema = z
 	.object({
-		versions: z.array(AgentVersionSchema).openapi({ description: 'List of agent versions' }),
-		total: z.number().int().openapi({ example: 5, description: 'Total number of versions' }),
-		limit: z.number().int().openapi({ example: 20, description: 'Limit used in query' }),
-		offset: z.number().int().openapi({ example: 0, description: 'Offset used in query' }),
+		versions: z.array(AgentVersionSchema),
+		total: z.number().int(),
+		limit: z.number().int(),
+		offset: z.number().int(),
 	})
-	.openapi('AgentVersionsResponse')
+	
 
 // =============================================================================
 // Agent Rollback Schemas
@@ -453,30 +429,28 @@ export const RollbackAgentSchema = z
 			.number()
 			.int()
 			.positive('Version must be a positive integer')
-			.openapi({ example: 1, description: 'Version number to rollback to' }),
+			,
 	})
-	.openapi('RollbackAgent')
+	
 
 /**
  * Response schema for agent rollback.
  */
 export const RollbackResponseSchema = z
 	.object({
-		success: z.boolean().openapi({ example: true }),
+		success: z.boolean(),
 		previousVersion: z
 			.number()
 			.int()
-			.openapi({ example: 3, description: 'Version before rollback' }),
+			,
 		restoredVersion: z
 			.number()
 			.int()
-			.openapi({ example: 1, description: 'Version that was restored' }),
-		newVersion: z.number().int().openapi({ example: 4, description: 'New version number created' }),
-		deployment: DeploymentSchema.optional().openapi({
-			description: 'Deployment info if agent was redeployed',
-		}),
+			,
+		newVersion: z.number().int(),
+		deployment: DeploymentSchema.optional(),
 	})
-	.openapi('RollbackResponse')
+	
 
 // =============================================================================
 // Agent Clone Schemas
@@ -489,10 +463,7 @@ export const CloneAgentResponseSchema = z
 	.object({
 		id: z
 			.string()
-			.openapi({ example: 'agent_xyz789', description: 'ID of the newly cloned agent' }),
-		redirectUrl: z.string().openapi({
-			example: '/dashboard/agents/agent_xyz789',
-			description: 'URL to redirect to the new agent',
-		}),
+			,
+		redirectUrl: z.string(),
 	})
-	.openapi('CloneAgentResponse')
+	
