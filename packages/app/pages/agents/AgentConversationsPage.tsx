@@ -116,7 +116,6 @@ function SearchResultCard({ result, onClick }: SearchResultCardProps) {
 						</div>
 						<p
 							className="text-sm text-muted-foreground line-clamp-2"
-							// biome-ignore lint/security/noDangerouslySetInnerHtml: highlighted content from API is trusted
 							dangerouslySetInnerHTML={{ __html: result.highlightedContent }}
 						/>
 					</div>
