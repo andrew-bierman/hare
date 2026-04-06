@@ -119,16 +119,18 @@ HTTP Endpoints:
 
 	// JSON-RPC endpoint
 	.post('/:workspaceId/rpc', async ({ db, cfEnv, user, params, request }) => {
-		const {
-			id,
-			method,
-			params: rpcParams,
-		} = (await request.json()) as {
+		let rpcRequest: {
 			jsonrpc: string
 			id: string | number
 			method: string
 			params?: unknown
 		}
+		try {
+			rpcRequest = (await request.json()) as typeof rpcRequest
+		} catch {
+			return { jsonrpc: '2.0', id: null, error: { code: -32700, message: 'Parse error' } }
+		}
+		const { id, method, params: rpcParams } = rpcRequest
 
 		if (method !== 'initialize') {
 			if (!user?.id) {

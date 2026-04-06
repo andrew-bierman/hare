@@ -126,7 +126,7 @@ export const analyticsRoutes = new Elysia({ prefix: '/analytics', name: 'analyti
 					totalInputTokens: summary?.totalInputTokens || 0,
 					totalOutputTokens: summary?.totalOutputTokens || 0,
 					totalTokens: summary?.totalTokens || 0,
-					totalCost: (summary?.totalCost || 0) / 100,
+					totalCost: (summary?.totalCost || 0) / config.CURRENCY.CENTS_PER_DOLLAR,
 					avgLatencyMs: Math.round(summary?.avgLatencyMs || 0),
 				},
 				timeSeries: timeSeries.map((d) => ({

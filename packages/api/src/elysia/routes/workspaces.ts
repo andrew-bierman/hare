@@ -72,7 +72,7 @@ export const workspaceRoutes = new Elysia({ prefix: '/workspaces', name: 'worksp
 		async ({ db, user, body }) => {
 			const [existing] = await db.select().from(workspaces).where(eq(workspaces.slug, body.slug))
 			if (existing) {
-				throw new Error('Workspace slug is already taken')
+				return status(409, { error: 'Workspace slug is already taken' })
 			}
 
 			const [workspace] = await db
@@ -85,7 +85,7 @@ export const workspaceRoutes = new Elysia({ prefix: '/workspaces', name: 'worksp
 				})
 				.returning()
 
-			if (!workspace) throw new Error('Failed to create workspace')
+			if (!workspace) return status(500, { error: 'Failed to create workspace' })
 
 			await db.insert(workspaceMembers).values({
 				workspaceId: workspace.id,
@@ -116,7 +116,14 @@ export const workspaceRoutes = new Elysia({ prefix: '/workspaces', name: 'worksp
 				return serializeWorkspace(memberships[0].workspace)
 			}
 
-			const slug = `${user.name?.toLowerCase().replace(/\s+/g, '-') || 'user'}-${Date.now()}`
+			// Normalize slug using same rules as CreateWorkspaceSchema: lowercase, letters/digits/hyphens only
+			const slugBase =
+				(user.name || 'user')
+					.toLowerCase()
+					.replace(/[^a-z0-9]+/g, '-')
+					.replace(/^-+|-+$/g, '')
+					.slice(0, 40) || 'workspace'
+			const slug = `${slugBase}-${Date.now()}`
 			const [workspace] = await db
 				.insert(workspaces)
 				.values({
@@ -127,7 +134,7 @@ export const workspaceRoutes = new Elysia({ prefix: '/workspaces', name: 'worksp
 				})
 				.returning()
 
-			if (!workspace) throw new Error('Failed to create workspace')
+			if (!workspace) return status(500, { error: 'Failed to create workspace' })
 
 			await db.insert(workspaceMembers).values({
 				workspaceId: workspace.id,

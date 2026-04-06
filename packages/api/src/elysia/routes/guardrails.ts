@@ -144,8 +144,12 @@ export const guardrailRoutes = new Elysia({ prefix: '/guardrails', name: 'guardr
 			const agentId = query?.agentId
 			if (!agentId) return status(400, { error: 'agentId query parameter is required' })
 
-			const limit = Number(query?.limit) || 50
-			const offset = Number(query?.offset) || 0
+			const parsedLimit = Number(query?.limit)
+			const parsedOffset = Number(query?.offset)
+			const limit = Number.isFinite(parsedLimit)
+				? Math.min(100, Math.max(1, Math.trunc(parsedLimit)))
+				: 50
+			const offset = Number.isFinite(parsedOffset) ? Math.max(0, Math.trunc(parsedOffset)) : 0
 
 			const [countResult] = await db
 				.select({ total: count() })
