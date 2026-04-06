@@ -53,6 +53,7 @@ export function FeedbackButtons({
 								'h-6 w-6 text-muted-foreground hover:text-green-600',
 								selected === 'positive' && 'text-green-600 bg-green-50 dark:bg-green-950',
 							)}
+							aria-label="Good response"
 							onClick={() => handleFeedback('positive')}
 						>
 							<ThumbsUp className="h-3.5 w-3.5" />
@@ -71,6 +72,7 @@ export function FeedbackButtons({
 								'h-6 w-6 text-muted-foreground hover:text-red-600',
 								selected === 'negative' && 'text-red-600 bg-red-50 dark:bg-red-950',
 							)}
+							aria-label="Poor response"
 							onClick={() => handleFeedback('negative')}
 						>
 							<ThumbsDown className="h-3.5 w-3.5" />

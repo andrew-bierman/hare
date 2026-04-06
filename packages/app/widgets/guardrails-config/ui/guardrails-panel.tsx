@@ -302,6 +302,7 @@ export function GuardrailsPanel({
 												variant="ghost"
 												size="icon"
 												className="h-7 w-7 text-muted-foreground hover:text-destructive"
+												aria-label={`Delete guardrail ${g.name}`}
 												onClick={() => onDeleteGuardrail(g.id)}
 											>
 												<Trash2 className="h-3.5 w-3.5" />

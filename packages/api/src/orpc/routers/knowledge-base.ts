@@ -4,7 +4,7 @@
  * Handles knowledge base CRUD, document management, and RAG search.
  */
 
-import { agentKnowledgeBases, documentChunks, documents, knowledgeBases } from '@hare/db/schema'
+import { agentKnowledgeBases, documents, knowledgeBases } from '@hare/db/schema'
 import { and, count, desc, eq, sql } from 'drizzle-orm'
 import { z } from 'zod'
 import {
@@ -184,7 +184,14 @@ export const listDocuments = requireWrite
 	.input(IdParamSchema)
 	.output(z.object({ documents: z.array(DocumentSchema) }))
 	.handler(async ({ input, context }) => {
-		const { db } = context
+		const { db, workspaceId } = context
+
+		// Verify KB belongs to workspace
+		const [kb] = await db
+			.select()
+			.from(knowledgeBases)
+			.where(and(eq(knowledgeBases.id, input.id), eq(knowledgeBases.workspaceId, workspaceId)))
+		if (!kb) notFound('Knowledge base not found')
 
 		const results = await db
 			.select()
@@ -209,6 +216,13 @@ export const addUrl = requireWrite
 	.output(DocumentSchema)
 	.handler(async ({ input, context }) => {
 		const { db, workspaceId, user } = context
+
+		// Verify KB belongs to workspace
+		const [kb] = await db
+			.select()
+			.from(knowledgeBases)
+			.where(and(eq(knowledgeBases.id, input.id), eq(knowledgeBases.workspaceId, workspaceId)))
+		if (!kb) notFound('Knowledge base not found')
 
 		const [doc] = await db
 			.insert(documents)
@@ -248,12 +262,18 @@ export const removeDocument = requireWrite
 	)
 	.output(SuccessSchema)
 	.handler(async ({ input, context }) => {
-		const { db } = context
+		const { db, workspaceId } = context
 
-		// Delete chunks first (cascade should handle this, but explicit for safety)
-		await db.delete(documentChunks).where(eq(documentChunks.documentId, input.documentId))
-
-		const result = await db.delete(documents).where(eq(documents.id, input.documentId)).returning()
+		const result = await db
+			.delete(documents)
+			.where(
+				and(
+					eq(documents.id, input.documentId),
+					eq(documents.knowledgeBaseId, input.id),
+					eq(documents.workspaceId, workspaceId),
+				),
+			)
+			.returning()
 
 		if (result.length === 0) notFound('Document not found')
 
@@ -274,7 +294,33 @@ export const linkToAgent = requireWrite
 	)
 	.output(SuccessSchema)
 	.handler(async ({ input, context }) => {
-		const { db } = context
+		const { db, workspaceId } = context
+
+		// Verify both KB and agent belong to workspace
+		const [kb] = await db
+			.select()
+			.from(knowledgeBases)
+			.where(and(eq(knowledgeBases.id, input.id), eq(knowledgeBases.workspaceId, workspaceId)))
+		if (!kb) notFound('Knowledge base not found')
+
+		const { agents } = await import('@hare/db/schema')
+		const [agent] = await db
+			.select()
+			.from(agents)
+			.where(and(eq(agents.id, input.agentId), eq(agents.workspaceId, workspaceId)))
+		if (!agent) notFound('Agent not found')
+
+		// Prevent duplicates
+		const [existing] = await db
+			.select()
+			.from(agentKnowledgeBases)
+			.where(
+				and(
+					eq(agentKnowledgeBases.agentId, input.agentId),
+					eq(agentKnowledgeBases.knowledgeBaseId, input.id),
+				),
+			)
+		if (existing) return { success: true }
 
 		await db.insert(agentKnowledgeBases).values({
 			agentId: input.agentId,
@@ -296,7 +342,14 @@ export const unlinkFromAgent = requireWrite
 	)
 	.output(SuccessSchema)
 	.handler(async ({ input, context }) => {
-		const { db } = context
+		const { db, workspaceId } = context
+
+		// Verify KB belongs to workspace
+		const [kb] = await db
+			.select()
+			.from(knowledgeBases)
+			.where(and(eq(knowledgeBases.id, input.id), eq(knowledgeBases.workspaceId, workspaceId)))
+		if (!kb) notFound('Knowledge base not found')
 
 		await db
 			.delete(agentKnowledgeBases)

@@ -1,6 +1,6 @@
 'use client'
 
-import { Badge } from '@hare/ui/components/badge'
+import { Button } from '@hare/ui/components/button'
 import { cn } from '@hare/ui/lib/utils'
 import { MessageSquare } from 'lucide-react'
 
@@ -21,14 +21,15 @@ export function ConversationStarters({ starters, onSelect, className }: Conversa
 			</div>
 			<div className="flex flex-wrap justify-center gap-2 max-w-lg px-4">
 				{starters.map((starter) => (
-					<Badge
+					<Button
 						key={starter}
 						variant="outline"
-						className="cursor-pointer px-3 py-2 text-sm hover:bg-primary/10 hover:border-primary/50 transition-colors"
+						size="sm"
+						className="px-3 py-2 text-sm h-auto hover:bg-primary/10 hover:border-primary/50"
 						onClick={() => onSelect(starter)}
 					>
 						{starter}
-					</Badge>
+					</Button>
 				))}
 			</div>
 		</div>

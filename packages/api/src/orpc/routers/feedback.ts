@@ -4,8 +4,8 @@
  * Handles message feedback (thumbs up/down) for agent quality tracking.
  */
 
-import { messageFeedback } from '@hare/db/schema'
-import { and, count, eq, gte, sql } from 'drizzle-orm'
+import { agents, messageFeedback } from '@hare/db/schema'
+import { and, count, eq, gte, lte, sql } from 'drizzle-orm'
 import { z } from 'zod'
 import {
 	CreateFeedbackSchema,
@@ -14,7 +14,7 @@ import {
 	IdParamSchema,
 	SuccessSchema,
 } from '../../schemas'
-import { badRequest, publicProcedure, requireWrite } from '../base'
+import { badRequest, notFound, publicProcedure, requireWrite } from '../base'
 
 // =============================================================================
 // Procedures
@@ -30,7 +30,16 @@ export const create = publicProcedure
 	.handler(async ({ input, context }) => {
 		const { db } = context
 
-		// Check for existing feedback on this message
+		// Resolve workspaceId from agent
+		const [agent] = await db
+			.select({ workspaceId: agents.workspaceId })
+			.from(agents)
+			.where(eq(agents.id, input.agentId))
+			.limit(1)
+
+		if (!agent) badRequest('Agent not found')
+
+		// Upsert: check for existing feedback on this message (per-message, not per-user for embed support)
 		const [existing] = await db
 			.select()
 			.from(messageFeedback)
@@ -38,7 +47,6 @@ export const create = publicProcedure
 			.limit(1)
 
 		if (existing) {
-			// Update existing feedback
 			const [updated] = await db
 				.update(messageFeedback)
 				.set({ rating: input.rating, comment: input.comment ?? null })
@@ -64,7 +72,7 @@ export const create = publicProcedure
 				messageId: input.messageId,
 				conversationId: input.conversationId,
 				agentId: input.agentId,
-				workspaceId: '', // Will be resolved from agent
+				workspaceId: agent.workspaceId,
 				rating: input.rating,
 				comment: input.comment,
 			})
@@ -96,7 +104,7 @@ export const getStats = requireWrite
 	)
 	.output(FeedbackStatsSchema)
 	.handler(async ({ input, context }) => {
-		const { db } = context
+		const { db, workspaceId } = context
 
 		const endDate = input.endDate ? new Date(input.endDate) : new Date()
 		const startDate = input.startDate
@@ -110,7 +118,14 @@ export const getStats = requireWrite
 				negativeCount: sql<number>`SUM(CASE WHEN ${messageFeedback.rating} = 'negative' THEN 1 ELSE 0 END)`,
 			})
 			.from(messageFeedback)
-			.where(and(eq(messageFeedback.agentId, input.id), gte(messageFeedback.createdAt, startDate)))
+			.where(
+				and(
+					eq(messageFeedback.agentId, input.id),
+					eq(messageFeedback.workspaceId, workspaceId),
+					gte(messageFeedback.createdAt, startDate),
+					lte(messageFeedback.createdAt, endDate),
+				),
+			)
 
 		const total = stats?.totalFeedback ?? 0
 		const positive = stats?.positiveCount ?? 0
@@ -130,15 +145,22 @@ export const getStats = requireWrite
 	})
 
 /**
- * Delete feedback
+ * Delete feedback (scoped by workspace)
  */
 export const remove = requireWrite
 	.route({ method: 'DELETE', path: '/feedback/{id}' })
 	.input(IdParamSchema)
 	.output(SuccessSchema)
 	.handler(async ({ input, context }) => {
-		const { db } = context
-		await db.delete(messageFeedback).where(eq(messageFeedback.id, input.id))
+		const { db, workspaceId } = context
+
+		const result = await db
+			.delete(messageFeedback)
+			.where(and(eq(messageFeedback.id, input.id), eq(messageFeedback.workspaceId, workspaceId)))
+			.returning()
+
+		if (result.length === 0) notFound('Feedback not found')
+
 		return { success: true }
 	})
 

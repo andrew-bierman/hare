@@ -330,7 +330,7 @@ export const CreateAgentInputSchema = z.object({
 	instructions: z.string().min(1).max(10000),
 	config: AgentConfigSchema.optional(),
 	systemToolsEnabled: z.boolean().optional(),
-	conversationStarters: z.array(z.string()).optional(),
+	conversationStarters: z.array(z.string().max(200)).max(6).optional(),
 	guardrailsEnabled: z.boolean().optional(),
 	toolIds: z.array(z.string()).optional(),
 })
@@ -347,7 +347,7 @@ export const UpdateAgentInputSchema = z.object({
 	instructions: z.string().optional(),
 	config: AgentConfigSchema.optional(),
 	systemToolsEnabled: z.boolean().optional(),
-	conversationStarters: z.array(z.string()).optional(),
+	conversationStarters: z.array(z.string().max(200)).max(6).optional(),
 	guardrailsEnabled: z.boolean().optional(),
 	toolIds: z.array(z.string()).optional(),
 	status: AgentStatusSchema.optional(),

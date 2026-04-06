@@ -151,6 +151,7 @@ export function KnowledgeBaseManager({
 											variant="ghost"
 											size="icon"
 											className="h-7 w-7 text-muted-foreground hover:text-destructive"
+											aria-label={`Delete knowledge base ${kb.name}`}
 											onClick={(e) => {
 												e.stopPropagation()
 												onDeleteKnowledgeBase(kb.id)

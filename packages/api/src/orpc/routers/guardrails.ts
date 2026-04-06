@@ -4,7 +4,7 @@
  * Handles guardrail CRUD and violation tracking for agent safety.
  */
 
-import { guardrails, guardrailViolations } from '@hare/db/schema'
+import { agents, guardrails, guardrailViolations } from '@hare/db/schema'
 import { and, count, desc, eq } from 'drizzle-orm'
 import { z } from 'zod'
 import {
@@ -70,6 +70,13 @@ export const create = requireWrite
 	.handler(async ({ input, context }) => {
 		const { db, workspaceId } = context
 
+		// Verify agent belongs to workspace
+		const [agent] = await db
+			.select()
+			.from(agents)
+			.where(and(eq(agents.id, input.agentId), eq(agents.workspaceId, workspaceId)))
+		if (!agent) notFound('Agent not found')
+
 		const [guardrail] = await db
 			.insert(guardrails)
 			.values({
@@ -99,7 +106,7 @@ export const update = requireWrite
 	.output(GuardrailSchema)
 	.handler(async ({ input, context }) => {
 		const { id, ...data } = input
-		const { db } = context
+		const { db, workspaceId } = context
 
 		const updateData: Partial<typeof guardrails.$inferInsert> = {
 			updatedAt: new Date(),
@@ -114,7 +121,7 @@ export const update = requireWrite
 		const [guardrail] = await db
 			.update(guardrails)
 			.set(updateData)
-			.where(eq(guardrails.id, id))
+			.where(and(eq(guardrails.id, id), eq(guardrails.workspaceId, workspaceId)))
 			.returning()
 
 		if (!guardrail) notFound('Guardrail not found')
@@ -130,9 +137,12 @@ export const remove = requireWrite
 	.input(IdParamSchema)
 	.output(SuccessSchema)
 	.handler(async ({ input, context }) => {
-		const { db } = context
+		const { db, workspaceId } = context
 
-		const result = await db.delete(guardrails).where(eq(guardrails.id, input.id)).returning()
+		const result = await db
+			.delete(guardrails)
+			.where(and(eq(guardrails.id, input.id), eq(guardrails.workspaceId, workspaceId)))
+			.returning()
 
 		if (result.length === 0) notFound('Guardrail not found')
 
