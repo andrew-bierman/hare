@@ -35,7 +35,7 @@ test.describe('Billing Page', () => {
 		await authenticatedPage.goto('/dashboard/settings/billing')
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
-		const billingHeading = authenticatedPage.getByRole('heading', { name: /billing/i })
+		const billingHeading = authenticatedPage.getByRole('heading', { name: /billing/i }).first()
 		await expect(billingHeading.first()).toBeVisible({ timeout: 10000 })
 	})
 
@@ -63,7 +63,7 @@ test.describe('Plan Display', () => {
 
 		// Should show plan options - look for plan card content
 		// The billing page renders plan cards with plan names as CardTitle elements
-		const billingHeading = authenticatedPage.getByRole('heading', { name: /billing/i })
+		const billingHeading = authenticatedPage.getByRole('heading', { name: /billing/i }).first()
 		await expect(billingHeading.first()).toBeVisible({ timeout: 10000 })
 
 		// Look for plan-related content: plan names, prices, or action buttons

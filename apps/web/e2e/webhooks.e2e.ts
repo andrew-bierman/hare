@@ -64,7 +64,7 @@ test.describe('Webhooks Page - Load and Display', () => {
 
 		// Page heading should be visible
 		await expect(
-			authenticatedPage.getByRole('heading', { name: 'Webhooks', exact: true }),
+			authenticatedPage.getByRole('heading', { name: 'Webhooks', exact: true }).first(),
 		).toBeVisible()
 
 		// Description should be visible
@@ -122,7 +122,9 @@ test.describe('Webhooks Page - Add Webhook Dialog', () => {
 		await expect(authenticatedPage.getByRole('dialog')).toBeVisible()
 
 		// Dialog title should be visible
-		await expect(authenticatedPage.getByRole('heading', { name: 'Create Webhook' })).toBeVisible()
+		await expect(
+			authenticatedPage.getByRole('heading', { name: 'Create Webhook' }).first(),
+		).toBeVisible()
 
 		// Dialog description should be visible
 		await expect(
@@ -150,7 +152,9 @@ test.describe('Webhooks Page - Add Webhook Dialog', () => {
 
 		// Dialog should appear
 		await expect(authenticatedPage.getByRole('dialog')).toBeVisible()
-		await expect(authenticatedPage.getByRole('heading', { name: 'Create Webhook' })).toBeVisible()
+		await expect(
+			authenticatedPage.getByRole('heading', { name: 'Create Webhook' }).first(),
+		).toBeVisible()
 	})
 
 	test('cancel button closes dialog without creating webhook', async ({ authenticatedPage }) => {

@@ -75,7 +75,7 @@ baseTest.describe('Usage Page - Unauthenticated', () => {
 
 		// Protected route should redirect to sign-in
 		await expect(page).toHaveURL(/\/sign-in/)
-		await expect(page.getByRole('heading', { name: 'Welcome back' })).toBeVisible()
+		await expect(page.getByRole('heading', { name: 'Welcome back' }).first()).toBeVisible()
 	})
 })
 
@@ -87,7 +87,7 @@ test.describe('Usage Page Access - Sidebar Navigation', () => {
 		await authenticatedPage.getByRole('link', { name: 'Usage' }).click()
 		await authenticatedPage.waitForURL(/\/dashboard\/usage/, { timeout: 10000 })
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
-		await expect(authenticatedPage.getByRole('heading', { name: 'Usage' })).toBeVisible({
+		await expect(authenticatedPage.getByRole('heading', { name: 'Usage' }).first()).toBeVisible({
 			timeout: 10000,
 		})
 	})
@@ -106,7 +106,7 @@ test.describe('Usage Page - Authenticated', () => {
 		await authenticatedPage.goto('/dashboard/usage')
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		await expect(authenticatedPage).toHaveURL(/\/dashboard\/usage/)
-		await expect(authenticatedPage.getByRole('heading', { name: 'Usage' })).toBeVisible({
+		await expect(authenticatedPage.getByRole('heading', { name: 'Usage' }).first()).toBeVisible({
 			timeout: 10000,
 		})
 	})
@@ -116,7 +116,7 @@ test.describe('Usage Page - Authenticated', () => {
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Verify the main heading
-		await expect(authenticatedPage.getByRole('heading', { name: 'Usage' })).toBeVisible({
+		await expect(authenticatedPage.getByRole('heading', { name: 'Usage' }).first()).toBeVisible({
 			timeout: 10000,
 		})
 
@@ -510,7 +510,7 @@ test.describe('Usage Page Loading States', () => {
 		// The skeleton component uses data-slot="skeleton" attribute
 		const skeletons = authenticatedPage.locator('[data-slot="skeleton"]')
 		const statCardText = authenticatedPage.getByText('Total API Calls')
-		const heading = authenticatedPage.getByRole('heading', { name: 'Usage' })
+		const heading = authenticatedPage.getByRole('heading', { name: 'Usage' }).first()
 
 		// Either skeletons are visible (still loading) or content has loaded
 		const hasSkeletons = await skeletons
@@ -546,7 +546,7 @@ test.describe('Usage Page Responsive Layout', () => {
 		// Page should still load without 404
 		await expect(authenticatedPage.locator('body')).not.toContainText('404')
 		// Heading should be visible
-		await expect(authenticatedPage.getByRole('heading', { name: 'Usage' })).toBeVisible({
+		await expect(authenticatedPage.getByRole('heading', { name: 'Usage' }).first()).toBeVisible({
 			timeout: 10000,
 		})
 	})
@@ -557,7 +557,7 @@ test.describe('Usage Page Responsive Layout', () => {
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		await expect(authenticatedPage.locator('body')).not.toContainText('404')
-		await expect(authenticatedPage.getByRole('heading', { name: 'Usage' })).toBeVisible({
+		await expect(authenticatedPage.getByRole('heading', { name: 'Usage' }).first()).toBeVisible({
 			timeout: 10000,
 		})
 	})
@@ -584,7 +584,7 @@ test.describe('Usage Page Navigation', () => {
 		await authenticatedPage.getByRole('link', { name: 'Usage' }).click()
 		await authenticatedPage.waitForURL(/\/dashboard\/usage/)
 
-		await expect(authenticatedPage.getByRole('heading', { name: 'Usage' })).toBeVisible({
+		await expect(authenticatedPage.getByRole('heading', { name: 'Usage' }).first()).toBeVisible({
 			timeout: 10000,
 		})
 	})
@@ -596,9 +596,11 @@ test.describe('Usage Page Navigation', () => {
 		await authenticatedPage.getByRole('link', { name: 'Dashboard' }).click()
 		await authenticatedPage.waitForURL(/\/dashboard$/)
 
-		await expect(authenticatedPage.getByRole('heading', { name: 'Dashboard' })).toBeVisible({
-			timeout: 10000,
-		})
+		await expect(authenticatedPage.getByRole('heading', { name: 'Dashboard' }).first()).toBeVisible(
+			{
+				timeout: 10000,
+			},
+		)
 	})
 
 	test('can navigate to agents from usage', async ({ authenticatedPage }) => {
@@ -609,7 +611,7 @@ test.describe('Usage Page Navigation', () => {
 		await authenticatedPage.waitForURL(/\/dashboard\/agents/)
 
 		await expect(
-			authenticatedPage.getByRole('heading', { name: 'Agents', exact: true }),
+			authenticatedPage.getByRole('heading', { name: 'Agents', exact: true }).first(),
 		).toBeVisible({ timeout: 10000 })
 	})
 })
@@ -625,7 +627,7 @@ test.describe('Usage Data Formatting', () => {
 		// The page should be loaded with formatted numbers
 		// Numbers >= 1000 should show as K, >= 1000000 as M
 		// This verifies the formatNumber function is working
-		await expect(authenticatedPage.getByRole('heading', { name: 'Usage' })).toBeVisible()
+		await expect(authenticatedPage.getByRole('heading', { name: 'Usage' }).first()).toBeVisible()
 	})
 })
 
@@ -728,7 +730,7 @@ test.describe('Usage Reflects Recent Activity', () => {
 		await authenticatedPage.waitForTimeout(2000)
 
 		// Verify the page displays usage data - the heading and stat cards should be visible
-		await expect(authenticatedPage.getByRole('heading', { name: 'Usage' })).toBeVisible({
+		await expect(authenticatedPage.getByRole('heading', { name: 'Usage' }).first()).toBeVisible({
 			timeout: 10000,
 		})
 		// Verify at least the stat cards loaded
@@ -786,7 +788,7 @@ test.describe('Usage Page Full Layout', () => {
 		await authenticatedPage.waitForTimeout(2000)
 
 		// Verify all main sections are present
-		await expect(authenticatedPage.getByRole('heading', { name: 'Usage' })).toBeVisible()
+		await expect(authenticatedPage.getByRole('heading', { name: 'Usage' }).first()).toBeVisible()
 		await expect(authenticatedPage.getByText('Token Breakdown')).toBeVisible()
 		await expect(authenticatedPage.getByText('Deployed Agents')).toBeVisible()
 		await expect(authenticatedPage.getByText('About Usage Tracking')).toBeVisible()

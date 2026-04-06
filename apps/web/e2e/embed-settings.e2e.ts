@@ -11,7 +11,9 @@ async function createAgentAndGoToEmbed(page: import('@playwright/test').Page): P
 	await page.goto('/dashboard/agents/new')
 	await page.waitForSelector('main', { state: 'visible' })
 
-	await expect(page.getByRole('heading', { name: /create/i })).toBeVisible({ timeout: 10000 })
+	await expect(page.getByRole('heading', { name: /create/i }).first()).toBeVisible({
+		timeout: 10000,
+	})
 
 	const nameInput = page.getByLabel(/name/i).first()
 	await nameInput.click()
@@ -37,7 +39,7 @@ async function createAgentAndGoToEmbed(page: import('@playwright/test').Page): P
 	await page.waitForSelector('main', { state: 'visible' })
 
 	// Wait for embed page to load - either the heading appears or we need to wait longer
-	await expect(page.getByRole('heading', { name: /embed widget/i })).toBeVisible({
+	await expect(page.getByRole('heading', { name: /embed widget/i }).first()).toBeVisible({
 		timeout: 20000,
 	})
 
@@ -73,7 +75,7 @@ test.describe('Embed Settings Page', () => {
 		await expect(authenticatedPage.locator('main').first()).toBeVisible({ timeout: 10000 })
 
 		// Shows "Embed Widget" heading
-		const embedHeading = authenticatedPage.getByRole('heading', { name: /embed widget/i })
+		const embedHeading = authenticatedPage.getByRole('heading', { name: /embed widget/i }).first()
 		await expect(embedHeading).toBeVisible({ timeout: 10000 })
 
 		// Has Save Changes button
@@ -209,7 +211,7 @@ test.describe('Embed Navigation', () => {
 	test('can navigate to embed from agent detail', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/agents/new')
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
-		await expect(authenticatedPage.getByRole('heading', { name: /create/i })).toBeVisible({
+		await expect(authenticatedPage.getByRole('heading', { name: /create/i }).first()).toBeVisible({
 			timeout: 10000,
 		})
 

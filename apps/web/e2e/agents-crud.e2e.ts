@@ -6,7 +6,7 @@ test.describe('Agents CRUD - Real Functionality', () => {
 		await page.waitForSelector('main', { state: 'visible' })
 
 		// Page title
-		await expect(page.getByRole('heading', { name: 'Agents' })).toBeVisible()
+		await expect(page.getByRole('heading', { name: 'Agents' }).first()).toBeVisible()
 
 		// Search input
 		await expect(page.getByPlaceholder(/search agents/i)).toBeVisible()

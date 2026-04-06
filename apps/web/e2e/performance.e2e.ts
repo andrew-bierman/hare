@@ -142,7 +142,9 @@ test.describe('Performance - Dashboard Page Load', () => {
 		baselineMetrics.dashboardLoad = loadTime
 
 		// Verify page loaded correctly
-		await expect(authenticatedPage.getByRole('heading', { name: 'Dashboard' })).toBeVisible()
+		await expect(
+			authenticatedPage.getByRole('heading', { name: 'Dashboard' }).first(),
+		).toBeVisible()
 
 		// Check against threshold with tolerance
 		const maxAllowedTime = THRESHOLDS.dashboardLoad * THRESHOLDS.toleranceMultiplier
@@ -184,7 +186,7 @@ test.describe('Performance - Agents List Load', () => {
 
 		// Verify page loaded correctly
 		await expect(
-			authenticatedPage.getByRole('heading', { name: 'Agents', exact: true }),
+			authenticatedPage.getByRole('heading', { name: 'Agents', exact: true }).first(),
 		).toBeVisible()
 
 		// Check against threshold with tolerance
@@ -212,7 +214,7 @@ test.describe('Performance - Agents List Load', () => {
 
 		// Verify page loaded correctly
 		await expect(
-			authenticatedPage.getByRole('heading', { name: 'Agents', exact: true }),
+			authenticatedPage.getByRole('heading', { name: 'Agents', exact: true }).first(),
 		).toBeVisible()
 
 		// Verify agents are displayed
@@ -253,7 +255,7 @@ test.describe('Performance - Agent Detail Page Load', () => {
 		baselineMetrics.agentDetailLoad = loadTime
 
 		// Verify page loaded correctly
-		await expect(authenticatedPage.getByRole('heading', { name: agentName })).toBeVisible()
+		await expect(authenticatedPage.getByRole('heading', { name: agentName }).first()).toBeVisible()
 
 		// Check against threshold with tolerance
 		const maxAllowedTime = THRESHOLDS.agentDetailLoad * THRESHOLDS.toleranceMultiplier

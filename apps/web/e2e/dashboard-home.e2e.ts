@@ -27,7 +27,9 @@ test.describe('Dashboard Home - Stats Cards', () => {
 		await authenticatedPage.waitForTimeout(2000)
 
 		// Dashboard heading should be visible
-		await expect(authenticatedPage.getByRole('heading', { name: 'Dashboard' })).toBeVisible()
+		await expect(
+			authenticatedPage.getByRole('heading', { name: 'Dashboard' }).first(),
+		).toBeVisible()
 
 		// All four stats cards should be visible
 		await expect(authenticatedPage.getByText('Total Agents')).toBeVisible()
@@ -119,7 +121,9 @@ test.describe('Dashboard Home - Quick Actions', () => {
 
 		// Should navigate to agents/new
 		await expect(authenticatedPage).toHaveURL('/dashboard/agents/new')
-		await expect(authenticatedPage.getByRole('heading', { name: 'Create New Agent' })).toBeVisible()
+		await expect(
+			authenticatedPage.getByRole('heading', { name: 'Create New Agent' }).first(),
+		).toBeVisible()
 	})
 
 	test('Manage Tools quick action navigates to tools page', async ({ authenticatedPage }) => {
@@ -133,7 +137,7 @@ test.describe('Dashboard Home - Quick Actions', () => {
 		// Should navigate to tools page
 		await expect(authenticatedPage).toHaveURL('/dashboard/tools')
 		await expect(
-			authenticatedPage.getByRole('heading', { name: 'Tools', exact: true }),
+			authenticatedPage.getByRole('heading', { name: 'Tools', exact: true }).first(),
 		).toBeVisible()
 	})
 
@@ -147,7 +151,7 @@ test.describe('Dashboard Home - Quick Actions', () => {
 
 		// Should navigate to usage page
 		await expect(authenticatedPage).toHaveURL('/dashboard/usage')
-		await expect(authenticatedPage.getByRole('heading', { name: 'Usage' })).toBeVisible()
+		await expect(authenticatedPage.getByRole('heading', { name: 'Usage' }).first()).toBeVisible()
 	})
 })
 
@@ -160,7 +164,9 @@ test.describe('Dashboard Home - Recent Agents', () => {
 		await authenticatedPage.goto('/dashboard')
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
-		await expect(authenticatedPage.getByRole('heading', { name: 'Recent Agents' })).toBeVisible()
+		await expect(
+			authenticatedPage.getByRole('heading', { name: 'Recent Agents' }).first(),
+		).toBeVisible()
 		await expect(authenticatedPage.getByText('Ordered by last update')).toBeVisible()
 	})
 
@@ -324,7 +330,9 @@ test.describe('Dashboard Home - Recent Agents', () => {
 
 		// Should navigate to agents/new
 		await expect(authenticatedPage).toHaveURL('/dashboard/agents/new')
-		await expect(authenticatedPage.getByRole('heading', { name: 'Create New Agent' })).toBeVisible()
+		await expect(
+			authenticatedPage.getByRole('heading', { name: 'Create New Agent' }).first(),
+		).toBeVisible()
 	})
 
 	test('View all link navigates to agents list when agents exist', async ({
@@ -556,7 +564,9 @@ test.describe('Dashboard Home - Header', () => {
 
 		// Should navigate to agents/new
 		await expect(authenticatedPage).toHaveURL('/dashboard/agents/new')
-		await expect(authenticatedPage.getByRole('heading', { name: 'Create New Agent' })).toBeVisible()
+		await expect(
+			authenticatedPage.getByRole('heading', { name: 'Create New Agent' }).first(),
+		).toBeVisible()
 	})
 })
 
@@ -580,9 +590,11 @@ test.describe('Dashboard Home - Responsive Design', () => {
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Heading should be visible
-		await expect(authenticatedPage.getByRole('heading', { name: 'Dashboard' })).toBeVisible({
-			timeout: 10000,
-		})
+		await expect(authenticatedPage.getByRole('heading', { name: 'Dashboard' }).first()).toBeVisible(
+			{
+				timeout: 10000,
+			},
+		)
 
 		// Quick actions section should be visible - look for the Create Agent text
 		await expect(authenticatedPage.getByText('Create Agent')).toBeVisible({ timeout: 10000 })

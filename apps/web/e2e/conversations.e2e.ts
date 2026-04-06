@@ -64,7 +64,7 @@ test.describe('Agent Conversations Page', () => {
 		await page.waitForSelector('main', { state: 'visible' })
 
 		// Should show the Search Conversations heading
-		await expect(page.getByRole('heading', { name: 'Search Conversations' })).toBeVisible({
+		await expect(page.getByRole('heading', { name: 'Search Conversations' }).first()).toBeVisible({
 			timeout: 10000,
 		})
 	})
@@ -200,9 +200,11 @@ test.describe('Agent Conversations - Responsive', () => {
 			await page.waitForSelector('main', { state: 'visible' })
 
 			// Heading should be visible
-			await expect(page.getByRole('heading', { name: 'Search Conversations' })).toBeVisible({
-				timeout: 10000,
-			})
+			await expect(page.getByRole('heading', { name: 'Search Conversations' }).first()).toBeVisible(
+				{
+					timeout: 10000,
+				},
+			)
 
 			// Search input should be visible
 			await expect(page.getByPlaceholder('Search messages...')).toBeVisible({ timeout: 5000 })

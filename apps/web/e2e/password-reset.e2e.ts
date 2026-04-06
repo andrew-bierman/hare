@@ -22,7 +22,7 @@ baseTest.describe('Forgot Password Page', () => {
 		await page.goto('/forgot-password')
 		await page.waitForLoadState('domcontentloaded')
 
-		const heading = page.getByRole('heading', { name: /forgot|reset|password/i })
+		const heading = page.getByRole('heading', { name: /forgot|reset|password/i }).first()
 		await expect(heading.first()).toBeVisible({ timeout: 10000 })
 	})
 
@@ -139,7 +139,7 @@ baseTest.describe('Reset Password Page', () => {
 		await page.waitForLoadState('domcontentloaded')
 
 		// Either shows reset form or error about missing/invalid token
-		const heading = page.getByRole('heading', { name: /reset|password|invalid|expired/i })
+		const heading = page.getByRole('heading', { name: /reset|password|invalid|expired/i }).first()
 		const errorText = page.getByText(/invalid|expired|token|link/i)
 
 		const hasContent =

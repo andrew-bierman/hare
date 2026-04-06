@@ -32,7 +32,7 @@ test.describe('Sidebar Navigation - Authenticated', () => {
 		await authenticatedPage.waitForURL(/\/dashboard\/agents/)
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		await expect(
-			authenticatedPage.getByRole('heading', { name: 'Agents', exact: true }),
+			authenticatedPage.getByRole('heading', { name: 'Agents', exact: true }).first(),
 		).toBeVisible({ timeout: 10000 })
 	})
 
@@ -43,7 +43,7 @@ test.describe('Sidebar Navigation - Authenticated', () => {
 		await authenticatedPage.getByRole('link', { name: 'Tools' }).click()
 		await authenticatedPage.waitForURL(/\/dashboard\/tools/, { timeout: 10000 })
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
-		await expect(authenticatedPage.getByRole('heading', { name: 'Tools' })).toBeVisible({
+		await expect(authenticatedPage.getByRole('heading', { name: 'Tools' }).first()).toBeVisible({
 			timeout: 10000,
 		})
 	})
@@ -55,9 +55,11 @@ test.describe('Sidebar Navigation - Authenticated', () => {
 		await authenticatedPage.getByRole('link', { name: 'Analytics' }).click()
 		await authenticatedPage.waitForURL(/\/dashboard\/analytics/)
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
-		await expect(authenticatedPage.getByRole('heading', { name: 'Analytics' })).toBeVisible({
-			timeout: 10000,
-		})
+		await expect(authenticatedPage.getByRole('heading', { name: 'Analytics' }).first()).toBeVisible(
+			{
+				timeout: 10000,
+			},
+		)
 	})
 
 	test('navigates to usage page from sidebar', async ({ authenticatedPage }) => {
@@ -67,7 +69,7 @@ test.describe('Sidebar Navigation - Authenticated', () => {
 		await authenticatedPage.getByRole('link', { name: 'Usage' }).click()
 		await authenticatedPage.waitForURL(/\/dashboard\/usage/, { timeout: 10000 })
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
-		await expect(authenticatedPage.getByRole('heading', { name: 'Usage' })).toBeVisible({
+		await expect(authenticatedPage.getByRole('heading', { name: 'Usage' }).first()).toBeVisible({
 			timeout: 10000,
 		})
 	})
@@ -79,7 +81,7 @@ test.describe('Sidebar Navigation - Authenticated', () => {
 		await authenticatedPage.getByRole('link', { name: 'Settings' }).click()
 		await authenticatedPage.waitForURL(/\/dashboard\/settings/)
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
-		await expect(authenticatedPage.getByRole('heading', { name: 'Settings' })).toBeVisible({
+		await expect(authenticatedPage.getByRole('heading', { name: 'Settings' }).first()).toBeVisible({
 			timeout: 10000,
 		})
 	})
@@ -91,32 +93,36 @@ test.describe('Sidebar Navigation - Authenticated', () => {
 		await authenticatedPage.getByRole('link', { name: 'Dashboard' }).click()
 		await authenticatedPage.waitForURL(/\/dashboard\/?$/)
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
-		await expect(authenticatedPage.getByRole('heading', { name: 'Dashboard' })).toBeVisible({
-			timeout: 10000,
-		})
+		await expect(authenticatedPage.getByRole('heading', { name: 'Dashboard' }).first()).toBeVisible(
+			{
+				timeout: 10000,
+			},
+		)
 	})
 
 	test('can navigate through all dashboard sections', async ({ authenticatedPage }) => {
 		// Start at dashboard
 		await authenticatedPage.goto('/dashboard')
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
-		await expect(authenticatedPage.getByRole('heading', { name: 'Dashboard' })).toBeVisible({
-			timeout: 10000,
-		})
+		await expect(authenticatedPage.getByRole('heading', { name: 'Dashboard' }).first()).toBeVisible(
+			{
+				timeout: 10000,
+			},
+		)
 
 		// Navigate to agents
 		await authenticatedPage.getByRole('link', { name: 'Agents' }).click()
 		await authenticatedPage.waitForURL(/\/dashboard\/agents/)
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		await expect(
-			authenticatedPage.getByRole('heading', { name: 'Agents', exact: true }),
+			authenticatedPage.getByRole('heading', { name: 'Agents', exact: true }).first(),
 		).toBeVisible({ timeout: 10000 })
 
 		// Navigate to tools
 		await authenticatedPage.getByRole('link', { name: 'Tools' }).click()
 		await authenticatedPage.waitForURL(/\/dashboard\/tools/)
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
-		await expect(authenticatedPage.getByRole('heading', { name: 'Tools' })).toBeVisible({
+		await expect(authenticatedPage.getByRole('heading', { name: 'Tools' }).first()).toBeVisible({
 			timeout: 10000,
 		})
 
@@ -124,7 +130,7 @@ test.describe('Sidebar Navigation - Authenticated', () => {
 		await authenticatedPage.getByRole('link', { name: 'Settings' }).click()
 		await authenticatedPage.waitForURL(/\/dashboard\/settings/)
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
-		await expect(authenticatedPage.getByRole('heading', { name: 'Settings' })).toBeVisible({
+		await expect(authenticatedPage.getByRole('heading', { name: 'Settings' }).first()).toBeVisible({
 			timeout: 10000,
 		})
 	})
@@ -158,15 +164,17 @@ test.describe('Browser History Navigation', () => {
 		await authenticatedPage.goBack()
 		await authenticatedPage.waitForURL(/\/dashboard\/agents/)
 		await expect(
-			authenticatedPage.getByRole('heading', { name: 'Agents', exact: true }),
+			authenticatedPage.getByRole('heading', { name: 'Agents', exact: true }).first(),
 		).toBeVisible({ timeout: 10000 })
 
 		// Go back again
 		await authenticatedPage.goBack()
 		await authenticatedPage.waitForURL(/\/dashboard\/?$/)
-		await expect(authenticatedPage.getByRole('heading', { name: 'Dashboard' })).toBeVisible({
-			timeout: 10000,
-		})
+		await expect(authenticatedPage.getByRole('heading', { name: 'Dashboard' }).first()).toBeVisible(
+			{
+				timeout: 10000,
+			},
+		)
 	})
 
 	test('browser forward button navigates forward in history', async ({ authenticatedPage }) => {
@@ -185,7 +193,7 @@ test.describe('Browser History Navigation', () => {
 		await authenticatedPage.goForward()
 		await authenticatedPage.waitForURL(/\/dashboard\/agents/)
 		await expect(
-			authenticatedPage.getByRole('heading', { name: 'Agents', exact: true }),
+			authenticatedPage.getByRole('heading', { name: 'Agents', exact: true }).first(),
 		).toBeVisible({ timeout: 10000 })
 	})
 
@@ -274,7 +282,7 @@ test.describe('Deep Linking - Agent Detail Page', () => {
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Should show agent detail page with correct agent
-		await expect(authenticatedPage.getByRole('heading', { name: agentName })).toBeVisible()
+		await expect(authenticatedPage.getByRole('heading', { name: agentName }).first()).toBeVisible()
 		expect(authenticatedPage.url()).toContain(agentId)
 	})
 
@@ -300,7 +308,7 @@ test.describe('Deep Linking - Settings Sections', () => {
 		await authenticatedPage.goto('/dashboard/settings')
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
-		await expect(authenticatedPage.getByRole('heading', { name: 'Settings' })).toBeVisible()
+		await expect(authenticatedPage.getByRole('heading', { name: 'Settings' }).first()).toBeVisible()
 		expect(authenticatedPage.url()).toContain('/dashboard/settings')
 	})
 
@@ -373,7 +381,7 @@ test.describe('404 Handling - Invalid Agent IDs', () => {
 
 		// Should show agents list page
 		await expect(
-			authenticatedPage.getByRole('heading', { name: 'Agents', exact: true }),
+			authenticatedPage.getByRole('heading', { name: 'Agents', exact: true }).first(),
 		).toBeVisible()
 	})
 })
@@ -421,9 +429,11 @@ test.describe('Redirect After Sign-In - Return to Original', () => {
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		expect(authenticatedPage.url()).toContain('/dashboard')
-		await expect(authenticatedPage.getByRole('heading', { name: 'Dashboard' })).toBeVisible({
-			timeout: 10000,
-		})
+		await expect(authenticatedPage.getByRole('heading', { name: 'Dashboard' }).first()).toBeVisible(
+			{
+				timeout: 10000,
+			},
+		)
 	})
 })
 
@@ -587,9 +597,11 @@ test.describe('Mobile Navigation', () => {
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// On mobile, sidebar should be hidden or collapsed
-		await expect(authenticatedPage.getByRole('heading', { name: 'Dashboard' })).toBeVisible({
-			timeout: 10000,
-		})
+		await expect(authenticatedPage.getByRole('heading', { name: 'Dashboard' }).first()).toBeVisible(
+			{
+				timeout: 10000,
+			},
+		)
 	})
 
 	test('can toggle mobile menu', async ({ authenticatedPage }) => {
@@ -614,9 +626,11 @@ test.describe('Mobile Navigation', () => {
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Dashboard should still be accessible on mobile
-		await expect(authenticatedPage.getByRole('heading', { name: 'Dashboard' })).toBeVisible({
-			timeout: 10000,
-		})
+		await expect(authenticatedPage.getByRole('heading', { name: 'Dashboard' }).first()).toBeVisible(
+			{
+				timeout: 10000,
+			},
+		)
 	})
 })
 
@@ -693,7 +707,7 @@ test.describe('Breadcrumb Navigation', () => {
 		await authenticatedPage.waitForURL(/\/dashboard\/agents\/?$/)
 
 		await expect(
-			authenticatedPage.getByRole('heading', { name: 'Agents', exact: true }),
+			authenticatedPage.getByRole('heading', { name: 'Agents', exact: true }).first(),
 		).toBeVisible()
 	})
 })
@@ -723,7 +737,7 @@ test.describe('Navigation State Preservation', () => {
 
 		// Page should load without errors
 		await expect(
-			authenticatedPage.getByRole('heading', { name: 'Agents', exact: true }),
+			authenticatedPage.getByRole('heading', { name: 'Agents', exact: true }).first(),
 		).toBeVisible()
 	})
 })
@@ -791,7 +805,7 @@ test.describe('Navigation Edge Cases', () => {
 
 		// Should still be on agents page
 		await expect(
-			authenticatedPage.getByRole('heading', { name: 'Agents', exact: true }),
+			authenticatedPage.getByRole('heading', { name: 'Agents', exact: true }).first(),
 		).toBeVisible({ timeout: 10000 })
 
 		// Navigation should still work
@@ -805,7 +819,7 @@ test.describe('Navigation Edge Cases', () => {
 
 		// Should handle trailing slash gracefully
 		await expect(
-			authenticatedPage.getByRole('heading', { name: 'Agents', exact: true }),
+			authenticatedPage.getByRole('heading', { name: 'Agents', exact: true }).first(),
 		).toBeVisible()
 	})
 
@@ -815,7 +829,7 @@ test.describe('Navigation Edge Cases', () => {
 
 		// Should still show agents page
 		await expect(
-			authenticatedPage.getByRole('heading', { name: 'Agents', exact: true }),
+			authenticatedPage.getByRole('heading', { name: 'Agents', exact: true }).first(),
 		).toBeVisible()
 	})
 })

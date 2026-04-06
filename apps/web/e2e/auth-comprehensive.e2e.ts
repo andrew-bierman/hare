@@ -270,13 +270,13 @@ test.describe('Session Persistence', () => {
 		await authenticatedPage.goto('/dashboard/agents')
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		await expect(
-			authenticatedPage.getByRole('heading', { name: 'Agents', exact: true }),
+			authenticatedPage.getByRole('heading', { name: 'Agents', exact: true }).first(),
 		).toBeVisible()
 
 		await authenticatedPage.goto('/dashboard/tools')
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		await expect(
-			authenticatedPage.getByRole('heading', { name: 'Tools', exact: true }),
+			authenticatedPage.getByRole('heading', { name: 'Tools', exact: true }).first(),
 		).toBeVisible()
 
 		await authenticatedPage.goto('/dashboard')
