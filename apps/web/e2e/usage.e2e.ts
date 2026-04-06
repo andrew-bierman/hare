@@ -52,6 +52,13 @@ async function parseOrpc(response: Awaited<ReturnType<typeof orpc>>) {
  */
 async function getWorkspaceId(page: Page): Promise<string> {
 	await page.waitForSelector('main', { state: 'visible' })
+	// Wait for workspace to be created by WorkspaceProvider
+	await page
+		.locator('button')
+		.filter({ hasText: /workspace/i })
+		.first()
+		.waitFor({ state: 'visible', timeout: 10000 })
+		.catch(() => {})
 	const response = await orpc(page, 'workspaces/list')
 	expect(response.status()).toBe(200)
 	const data = await parseOrpc(response)
