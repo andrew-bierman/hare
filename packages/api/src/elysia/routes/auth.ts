@@ -6,6 +6,7 @@
  */
 
 import { type AuthServerEnv, createAuth, getOAuthProviders } from '@hare/auth/server'
+import { isErrorType } from '@hare/checks'
 import type { CloudflareEnv } from '@hare/types'
 import { Elysia } from 'elysia'
 import { CloudflareEnvError, cfContext, getD1 } from '../context'
@@ -55,7 +56,7 @@ export const authRoutes = new Elysia({ prefix: '/auth', name: 'auth-routes' })
 		try {
 			d1 = getD1(cfEnv)
 		} catch (e) {
-			if (e instanceof CloudflareEnvError) {
+			if (isErrorType(e, CloudflareEnvError)) {
 				const path = new URL(request.url).pathname
 				if (path.includes('/session') || path.includes('/get-session')) {
 					return Response.json({ session: null, user: null })

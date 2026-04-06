@@ -14,6 +14,7 @@
 import { cors } from '@elysiajs/cors'
 import { openapi } from '@elysiajs/openapi'
 import { serverEnv } from '@hare/config'
+import { isErrorType } from '@hare/checks'
 import { Elysia } from 'elysia'
 import { securityHeaders } from '../middleware/security'
 import { CloudflareEnvError } from './context'
@@ -117,7 +118,7 @@ export const app = new Elysia({ prefix: '/api', name: 'hare-api' })
 
 	// Global error handler
 	.onError(({ error }) => {
-		if (error instanceof CloudflareEnvError) {
+		if (isErrorType(error, CloudflareEnvError)) {
 			// biome-ignore lint/suspicious/noConsole: server logging
 			console.error('CloudflareEnvError:', error.message)
 			return Response.json({ error: 'Service unavailable' }, { status: 503 })

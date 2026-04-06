@@ -5,6 +5,7 @@
  * Webhook endpoint is in billing-webhook.ts (separate, no auth, raw body).
  */
 
+import { config } from '@hare/config'
 import { workspaces } from '@hare/db/schema'
 import type { CloudflareEnv } from '@hare/types'
 import { eq } from 'drizzle-orm'
@@ -260,7 +261,7 @@ export const billingRoutes = new Elysia({ prefix: '/billing', name: 'billing-rou
 
 			const payments = charges.data.map((charge) => ({
 				id: charge.id,
-				amount: charge.amount / 100,
+				amount: charge.amount / config.CURRENCY.CENTS_PER_DOLLAR,
 				currency: charge.currency.toUpperCase(),
 				status: charge.status,
 				description: charge.description,

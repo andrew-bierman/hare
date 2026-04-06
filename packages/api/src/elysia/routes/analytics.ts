@@ -4,7 +4,7 @@
  * Comprehensive analytics with time series, agent breakdown, and model breakdown.
  */
 
-import { getModelName } from '@hare/config'
+import { config, getModelName } from '@hare/config'
 import { agents, usage } from '@hare/db/schema'
 import { and, eq, gte, lte, sql } from 'drizzle-orm'
 import { Elysia } from 'elysia'
@@ -135,7 +135,7 @@ export const analyticsRoutes = new Elysia({ prefix: '/analytics', name: 'analyti
 					outputTokens: d.outputTokens,
 					totalTokens: d.totalTokens,
 					requests: d.requests,
-					cost: d.cost / 100,
+					cost: d.cost / config.CURRENCY.CENTS_PER_DOLLAR,
 					avgLatency: Math.round(d.avgLatency),
 				})),
 				byAgent: byAgent.map((a) => ({
@@ -145,7 +145,7 @@ export const analyticsRoutes = new Elysia({ prefix: '/analytics', name: 'analyti
 					inputTokens: a.inputTokens,
 					outputTokens: a.outputTokens,
 					totalTokens: a.totalTokens,
-					cost: a.cost / 100,
+					cost: a.cost / config.CURRENCY.CENTS_PER_DOLLAR,
 				})),
 				byModel: byModel.map((m) => ({
 					model: m.model || 'unknown',
@@ -154,7 +154,7 @@ export const analyticsRoutes = new Elysia({ prefix: '/analytics', name: 'analyti
 					inputTokens: m.inputTokens,
 					outputTokens: m.outputTokens,
 					totalTokens: m.totalTokens,
-					cost: m.cost / 100,
+					cost: m.cost / config.CURRENCY.CENTS_PER_DOLLAR,
 				})),
 				period: {
 					startDate: startDate || defaultStartDate,

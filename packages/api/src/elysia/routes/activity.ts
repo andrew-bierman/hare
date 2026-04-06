@@ -4,6 +4,7 @@
  * Activity events (agent invocations, tool calls, errors) with cursor pagination.
  */
 
+import { isError } from '@hare/checks'
 import { ACTIVITY_EVENT_TYPES } from '@hare/config'
 import { activityEvents } from '@hare/db/schema'
 import { and, count, desc, eq, lt } from 'drizzle-orm'
@@ -98,7 +99,7 @@ export const activityRoutes = new Elysia({ prefix: '/activity', name: 'activity-
 				}
 			} catch (err) {
 				// Table may not exist if migration hasn't been applied
-				if (err instanceof Error && err.message.includes('no such table')) {
+				if (isError(err) && err.message.includes('no such table')) {
 					return { events: [], nextCursor: null, total: 0 }
 				}
 				throw err

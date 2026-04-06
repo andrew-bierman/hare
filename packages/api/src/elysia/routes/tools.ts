@@ -4,6 +4,7 @@
  * CRUD operations, testing, and validation for custom tools.
  */
 
+import { getErrorMessage } from '@hare/checks'
 import { config } from '@hare/config'
 import type { Database } from '@hare/db'
 import { tools } from '@hare/db/schema'
@@ -45,7 +46,8 @@ function serializeTool(tool: typeof tools.$inferSelect): z.infer<typeof ToolSche
 	}
 }
 
-async function findTool(id: string, workspaceId: string, db: Database) {
+async function findTool(options: { id: string; workspaceId: string; db: Database }) {
+	const { id, workspaceId, db } = options
 	const [tool] = await db
 		.select()
 		.from(tools)
@@ -104,7 +106,7 @@ export const toolRoutes = new Elysia({ prefix: '/tools', name: 'tool-routes' })
 	.get(
 		'/:id',
 		async ({ db, workspaceId, params }) => {
-			const tool = await findTool(params.id, workspaceId, db)
+			const tool = await findTool({ id: params.id, workspaceId, db })
 			if (!tool) return status(404, { error: 'Tool not found' })
 			return serializeTool(tool)
 		},
@@ -149,7 +151,7 @@ export const toolRoutes = new Elysia({ prefix: '/tools', name: 'tool-routes' })
 		'/:id',
 		async (ctx) => {
 			const { db, workspaceId, params, body } = ctx
-			const existing = await findTool(params.id, workspaceId, db)
+			const existing = await findTool({ id: params.id, workspaceId, db })
 			if (!existing) return status(404, { error: 'Tool not found' })
 
 			const updateData: Partial<typeof tools.$inferInsert> = {
@@ -254,7 +256,7 @@ export const toolRoutes = new Elysia({ prefix: '/tools', name: 'tool-routes' })
 			} catch (err) {
 				return {
 					success: false,
-					error: err instanceof Error ? err.message : 'Unknown error',
+					error: getErrorMessage(err),
 					duration: Date.now() - startTime,
 				}
 			}
@@ -269,7 +271,7 @@ export const toolRoutes = new Elysia({ prefix: '/tools', name: 'tool-routes' })
 			const { db, workspaceId, params, body } = ctx
 			const startTime = Date.now()
 
-			const tool = await findTool(params.id, workspaceId, db)
+			const tool = await findTool({ id: params.id, workspaceId, db })
 			if (!tool) return status(404, { error: 'Tool not found' })
 
 			const testInput = body.testInput ?? {}
@@ -368,13 +370,13 @@ export const toolRoutes = new Elysia({ prefix: '/tools', name: 'tool-routes' })
 						type: tool.type,
 						success: false,
 						isTest: true,
-						error: err instanceof Error ? err.message : 'Unknown error',
+						error: getErrorMessage(err),
 					},
 				})
 
 				return {
 					success: false,
-					error: err instanceof Error ? err.message : 'Unknown error',
+					error: getErrorMessage(err),
 					duration: Date.now() - startTime,
 				}
 			}

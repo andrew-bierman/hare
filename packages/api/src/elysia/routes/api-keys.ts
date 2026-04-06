@@ -10,7 +10,7 @@ import { apiKeys } from '@hare/db/schema'
 import { and, eq } from 'drizzle-orm'
 import { Elysia, status } from 'elysia'
 import type { z } from 'zod'
-import { ApiKeySchema, CreateApiKeySchema, UpdateApiKeySchema } from '../../schemas'
+import { type ApiKeySchema, CreateApiKeySchema, UpdateApiKeySchema } from '../../schemas'
 import { logAudit } from '../audit'
 import { type AuthUserContext, adminPlugin, writePlugin } from '../context'
 import { generateApiKey } from '../utils/api-key'
@@ -32,7 +32,8 @@ function serializeApiKey(apiKey: typeof apiKeys.$inferSelect): z.infer<typeof Ap
 	}
 }
 
-async function findApiKey(id: string, workspaceId: string, db: Database) {
+async function findApiKey(options: { id: string; workspaceId: string; db: Database }) {
+	const { id, workspaceId, db } = options
 	const [apiKey] = await db
 		.select()
 		.from(apiKeys)
@@ -76,7 +77,7 @@ export const apiKeyRoutes = new Elysia({ prefix: '/api-keys', name: 'api-key-rou
 	.get(
 		'/:id',
 		async ({ db, workspaceId, params }) => {
-			const apiKey = await findApiKey(params.id, workspaceId, db)
+			const apiKey = await findApiKey({ id: params.id, workspaceId, db })
 			if (!apiKey) return status(404, { error: 'API key not found' })
 			return serializeApiKey(apiKey)
 		},
@@ -134,7 +135,7 @@ export const apiKeyRoutes = new Elysia({ prefix: '/api-keys', name: 'api-key-rou
 	.patch(
 		'/:id',
 		async ({ db, workspaceId, params, body }) => {
-			const existing = await findApiKey(params.id, workspaceId, db)
+			const existing = await findApiKey({ id: params.id, workspaceId, db })
 			if (!existing) return status(404, { error: 'API key not found' })
 
 			const updateData: Partial<typeof apiKeys.$inferInsert> = {

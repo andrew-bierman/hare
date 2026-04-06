@@ -4,7 +4,7 @@
  * CRUD, deployment, versioning, and health for agents.
  */
 
-import { config } from '@hare/config'
+import { config, isSystemToolId } from '@hare/config'
 import type { Database } from '@hare/db'
 import { agents, agentTools, agentVersions, deployments, usage } from '@hare/db/schema'
 import { and, count, desc, eq, gte, inArray, max, sql } from 'drizzle-orm'
@@ -57,7 +57,8 @@ function serializeAgent(
 	}
 }
 
-async function findAgent(id: string, workspaceId: string, db: Database) {
+async function findAgent(options: { id: string; workspaceId: string; db: Database }) {
+	const { id, workspaceId, db } = options
 	const [agent] = await db
 		.select()
 		.from(agents)
@@ -164,7 +165,7 @@ export const agentRoutes = new Elysia({ prefix: '/agents', name: 'agent-routes' 
 	.get(
 		'/:id',
 		async ({ db, workspaceId, params }) => {
-			const agent = await findAgent(params.id, workspaceId, db)
+			const agent = await findAgent({ id: params.id, workspaceId, db })
 			if (!agent) return status(404, { error: 'Agent not found' })
 			const toolIds = await getAgentToolIds(agent.id, db)
 			return serializeAgent(agent, toolIds)
@@ -194,7 +195,7 @@ export const agentRoutes = new Elysia({ prefix: '/agents', name: 'agent-routes' 
 			if (!agent) throw new Error('Failed to create agent')
 
 			if (body.toolIds && body.toolIds.length > 0) {
-				const customToolIds = body.toolIds.filter((id: string) => !id.startsWith('system-'))
+				const customToolIds = body.toolIds.filter((id: string) => !isSystemToolId(id))
 				if (customToolIds.length > 0) {
 					await db
 						.insert(agentTools)
@@ -220,7 +221,7 @@ export const agentRoutes = new Elysia({ prefix: '/agents', name: 'agent-routes' 
 		'/:id',
 		async (ctx) => {
 			const { db, workspaceId, params, body } = ctx
-			const existing = await findAgent(params.id, workspaceId, db)
+			const existing = await findAgent({ id: params.id, workspaceId, db })
 			if (!existing) return status(404, { error: 'Agent not found' })
 
 			const updateData: Partial<typeof agents.$inferInsert> = {
@@ -245,7 +246,7 @@ export const agentRoutes = new Elysia({ prefix: '/agents', name: 'agent-routes' 
 
 			if (body.toolIds !== undefined) {
 				await db.delete(agentTools).where(eq(agentTools.agentId, params.id))
-				const customToolIds = body.toolIds.filter((toolId: string) => !toolId.startsWith('system-'))
+				const customToolIds = body.toolIds.filter((toolId: string) => !isSystemToolId(toolId))
 				if (customToolIds.length > 0) {
 					await db
 						.insert(agentTools)
@@ -307,7 +308,7 @@ export const agentRoutes = new Elysia({ prefix: '/agents', name: 'agent-routes' 
 	.get(
 		'/:id/health',
 		async ({ db, workspaceId, params }) => {
-			const agent = await findAgent(params.id, workspaceId, db)
+			const agent = await findAgent({ id: params.id, workspaceId, db })
 			if (!agent) return status(404, { error: 'Agent not found' })
 			return getAgentHealthMetrics({ agentId: agent.id, agentName: agent.name, db })
 		},
@@ -318,7 +319,7 @@ export const agentRoutes = new Elysia({ prefix: '/agents', name: 'agent-routes' 
 	.get(
 		'/:id/deployment',
 		async ({ db, workspaceId, params }) => {
-			const agent = await findAgent(params.id, workspaceId, db)
+			const agent = await findAgent({ id: params.id, workspaceId, db })
 			if (!agent) return status(404, { error: 'Agent not found' })
 			if (agent.status !== config.enums.agentStatus.DEPLOYED) {
 				return status(400, { error: 'Agent is not deployed' })
@@ -354,7 +355,7 @@ export const agentRoutes = new Elysia({ prefix: '/agents', name: 'agent-routes' 
 	.get(
 		'/:id/deployments',
 		async ({ db, workspaceId, params, query }) => {
-			const agent = await findAgent(params.id, workspaceId, db)
+			const agent = await findAgent({ id: params.id, workspaceId, db })
 			if (!agent) return status(404, { error: 'Agent not found' })
 
 			const limit = Number(query?.limit) || 10
@@ -390,7 +391,7 @@ export const agentRoutes = new Elysia({ prefix: '/agents', name: 'agent-routes' 
 	.get(
 		'/:id/versions',
 		async ({ db, workspaceId, params, query }) => {
-			const agent = await findAgent(params.id, workspaceId, db)
+			const agent = await findAgent({ id: params.id, workspaceId, db })
 			if (!agent) return status(404, { error: 'Agent not found' })
 
 			const limit = Number(query?.limit) || 20
@@ -436,7 +437,7 @@ export const agentRoutes = new Elysia({ prefix: '/agents', name: 'agent-routes' 
 		'/:id/clone',
 		async (ctx) => {
 			const { db, workspaceId, user, params } = ctx
-			const sourceAgent = await findAgent(params.id, workspaceId, db)
+			const sourceAgent = await findAgent({ id: params.id, workspaceId, db })
 			if (!sourceAgent) return status(404, { error: 'Agent not found' })
 
 			const sourceToolIds = await getAgentToolIds(params.id, db)
@@ -459,7 +460,7 @@ export const agentRoutes = new Elysia({ prefix: '/agents', name: 'agent-routes' 
 			if (!clonedAgent) throw new Error('Failed to clone agent')
 
 			if (sourceToolIds.length > 0) {
-				const customToolIds = sourceToolIds.filter((id) => !id.startsWith('system-'))
+				const customToolIds = sourceToolIds.filter((id) => !isSystemToolId(id))
 				if (customToolIds.length > 0) {
 					await db
 						.insert(agentTools)
@@ -519,7 +520,7 @@ export const agentRoutes = new Elysia({ prefix: '/agents', name: 'agent-routes' 
 		'/:id/deploy',
 		async (ctx) => {
 			const { db, workspaceId, user, params, body } = ctx
-			const agent = await findAgent(params.id, workspaceId, db)
+			const agent = await findAgent({ id: params.id, workspaceId, db })
 			if (!agent) return status(404, { error: 'Agent not found' })
 			if (!agent.instructions)
 				return status(400, { error: 'Agent must have instructions before deployment' })
@@ -602,7 +603,7 @@ export const agentRoutes = new Elysia({ prefix: '/agents', name: 'agent-routes' 
 	.post(
 		'/:id/undeploy',
 		async ({ db, workspaceId, params }) => {
-			const agent = await findAgent(params.id, workspaceId, db)
+			const agent = await findAgent({ id: params.id, workspaceId, db })
 			if (!agent) return status(404, { error: 'Agent not found' })
 
 			await db
@@ -625,7 +626,7 @@ export const agentRoutes = new Elysia({ prefix: '/agents', name: 'agent-routes' 
 		'/:id/rollback',
 		async (ctx) => {
 			const { db, workspaceId, user, params, body } = ctx
-			const agent = await findAgent(params.id, workspaceId, db)
+			const agent = await findAgent({ id: params.id, workspaceId, db })
 			if (!agent) return status(404, { error: 'Agent not found' })
 
 			const [targetVersionRecord] = await db
@@ -656,7 +657,7 @@ export const agentRoutes = new Elysia({ prefix: '/agents', name: 'agent-routes' 
 			await db.delete(agentTools).where(eq(agentTools.agentId, params.id))
 			const restoredToolIds = targetVersionRecord.toolIds ?? []
 			if (restoredToolIds.length > 0) {
-				const customToolIds = restoredToolIds.filter((toolId) => !toolId.startsWith('system-'))
+				const customToolIds = restoredToolIds.filter((toolId) => !isSystemToolId(toolId))
 				if (customToolIds.length > 0) {
 					await db
 						.insert(agentTools)

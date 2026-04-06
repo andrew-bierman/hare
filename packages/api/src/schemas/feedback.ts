@@ -35,11 +35,7 @@ export const FeedbackStatsSchema = z.object({
 	totalFeedback: z.number().int(),
 	positiveCount: z.number().int(),
 	negativeCount: z.number().int(),
-	satisfactionRate: z
-		.number()
-		.min(0)
-		.max(100)
-		.describe('Percentage of positive feedback (0-100)'),
+	satisfactionRate: z.number().min(0).max(100).describe('Percentage of positive feedback (0-100)'),
 	period: z.object({
 		startDate: z.string().datetime(),
 		endDate: z.string().datetime(),

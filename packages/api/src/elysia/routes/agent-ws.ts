@@ -12,6 +12,8 @@ import {
 	routeHttpToAgent,
 	routeWebSocketToAgent,
 } from '@hare/agent'
+import { getErrorMessage } from '@hare/checks'
+import { config } from '@hare/config'
 import type { Database } from '@hare/db'
 import { agents, workspaceMembers } from '@hare/db/schema'
 import type { CloudflareEnv } from '@hare/types'
@@ -72,7 +74,7 @@ async function handleChat(options: {
 	const [agentConfig] = await db.select().from(agents).where(eq(agents.id, agentId))
 
 	if (!agentConfig) return Response.json({ error: 'Agent not found' }, { status: 404 })
-	if (agentConfig.status !== 'deployed')
+	if (agentConfig.status !== config.enums.agentStatus.DEPLOYED)
 		return Response.json({ error: 'Agent not deployed' }, { status: 400 })
 
 	if (user?.id) {
@@ -107,7 +109,7 @@ async function handleChat(options: {
 		// biome-ignore lint/suspicious/noConsole: error reporting
 		console.error('[chat] Error:', err)
 		return Response.json(
-			{ error: err instanceof Error ? err.message : 'Internal server error' },
+			{ error: getErrorMessage(err) || 'Internal server error' },
 			{ status: 500 },
 		)
 	}
@@ -128,7 +130,7 @@ export const agentWsRoutes = new Elysia({ prefix: '/agent-ws', name: 'agent-ws-r
 
 		const [agent] = await db.select().from(agents).where(eq(agents.id, params.id))
 		if (!agent) return status(404, { error: 'Agent not found' })
-		if (agent.status !== 'deployed') return status(400, { error: 'Agent not deployed' })
+		if (agent.status !== config.enums.agentStatus.DEPLOYED) return status(400, { error: 'Agent not deployed' })
 
 		if (user?.id) {
 			const hasAccess = await hasWorkspaceAccess(db, user.id, agent.workspaceId)

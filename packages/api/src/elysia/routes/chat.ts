@@ -10,6 +10,8 @@ import {
 	createMemoryStore,
 	toAgentMessages,
 } from '@hare/agent'
+import { getErrorMessage } from '@hare/checks'
+import { config } from '@hare/config'
 import { agents, conversations, messages, usage } from '@hare/db/schema'
 import { type ModelMessage, streamText } from 'ai'
 import { and, count, desc, eq, gte, like, lte } from 'drizzle-orm'
@@ -146,7 +148,7 @@ export const chatRoutes = new Elysia({ prefix: '/chat', name: 'chat-routes' })
 
 			const [agentConfig] = await db.select().from(agents).where(eq(agents.id, agentId))
 			if (!agentConfig) return status(404, { error: 'Agent not found' })
-			if (agentConfig.status !== 'deployed') return status(400, { error: 'Agent not deployed' })
+			if (agentConfig.status !== config.enums.agentStatus.DEPLOYED) return status(400, { error: 'Agent not deployed' })
 
 			// Build SSE stream
 			const encoder = new TextEncoder()
@@ -230,7 +232,7 @@ export const chatRoutes = new Elysia({ prefix: '/chat', name: 'chat-routes' })
 						console.error('Error during chat streaming:', err)
 						sendEvent({
 							type: 'error',
-							message: err instanceof Error ? err.message : 'Unknown error',
+							message: getErrorMessage(err),
 						})
 					} finally {
 						controller.close()
