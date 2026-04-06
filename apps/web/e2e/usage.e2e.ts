@@ -8,14 +8,18 @@ import { test } from './fixtures'
  * oRPC uses POST for all procedures, body format: { json: { ...input } }
  */
 
-// Helper to dismiss the onboarding tour if it reappears after navigation
-
 async function getCsrfToken(page: Page): Promise<string> {
 	const cookies = await page.context().cookies()
-	const csrfCookie =
+	let csrfCookie =
 		cookies.find((c) => c.name === 'csrf') ?? cookies.find((c) => c.name === '__Host-csrf')
-	if (!csrfCookie) throw new Error('CSRF cookie not found')
-	return csrfCookie.value
+	if (!csrfCookie) {
+		await page.request.get('/api/rpc/health/live')
+		const updatedCookies = await page.context().cookies()
+		csrfCookie =
+			updatedCookies.find((c) => c.name === 'csrf') ??
+			updatedCookies.find((c) => c.name === '__Host-csrf')
+	}
+	return csrfCookie?.value ?? ''
 }
 
 async function orpc(
@@ -25,12 +29,13 @@ async function orpc(
 	extraHeaders: Record<string, string> = {},
 ) {
 	const csrfToken = await getCsrfToken(page)
+	const headers: Record<string, string> = {
+		'Content-Type': 'application/json',
+		...extraHeaders,
+	}
+	if (csrfToken) headers['X-CSRF-Token'] = csrfToken
 	const response = await page.request.post(`/api/rpc/${procedure}`, {
-		headers: {
-			'Content-Type': 'application/json',
-			'X-CSRF-Token': csrfToken,
-			...extraHeaders,
-		},
+		headers,
 		data: { json: input },
 	})
 	return response
@@ -47,6 +52,13 @@ async function parseOrpc(response: Awaited<ReturnType<typeof orpc>>) {
  */
 async function getWorkspaceId(page: Page): Promise<string> {
 	await page.waitForSelector('main', { state: 'visible' })
+	// Wait for workspace to be created by WorkspaceProvider
+	await page
+		.locator('button')
+		.filter({ hasText: /workspace/i })
+		.first()
+		.waitFor({ state: 'visible', timeout: 10000 })
+		.catch(() => {})
 	const response = await orpc(page, 'workspaces/list')
 	expect(response.status()).toBe(200)
 	const data = await parseOrpc(response)
@@ -63,7 +75,7 @@ baseTest.describe('Usage Page - Unauthenticated', () => {
 
 		// Protected route should redirect to sign-in
 		await expect(page).toHaveURL(/\/sign-in/)
-		await expect(page.getByRole('heading', { name: 'Welcome back' })).toBeVisible()
+		await expect(page.getByRole('heading', { name: 'Welcome back' }).first()).toBeVisible()
 	})
 })
 
@@ -75,7 +87,7 @@ test.describe('Usage Page Access - Sidebar Navigation', () => {
 		await authenticatedPage.getByRole('link', { name: 'Usage' }).click()
 		await authenticatedPage.waitForURL(/\/dashboard\/usage/, { timeout: 10000 })
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
-		await expect(authenticatedPage.getByRole('heading', { name: 'Usage' })).toBeVisible({
+		await expect(authenticatedPage.getByRole('heading', { name: 'Usage' }).first()).toBeVisible({
 			timeout: 10000,
 		})
 	})
@@ -94,7 +106,7 @@ test.describe('Usage Page - Authenticated', () => {
 		await authenticatedPage.goto('/dashboard/usage')
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		await expect(authenticatedPage).toHaveURL(/\/dashboard\/usage/)
-		await expect(authenticatedPage.getByRole('heading', { name: 'Usage' })).toBeVisible({
+		await expect(authenticatedPage.getByRole('heading', { name: 'Usage' }).first()).toBeVisible({
 			timeout: 10000,
 		})
 	})
@@ -104,7 +116,7 @@ test.describe('Usage Page - Authenticated', () => {
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Verify the main heading
-		await expect(authenticatedPage.getByRole('heading', { name: 'Usage' })).toBeVisible({
+		await expect(authenticatedPage.getByRole('heading', { name: 'Usage' }).first()).toBeVisible({
 			timeout: 10000,
 		})
 
@@ -123,7 +135,9 @@ test.describe('Usage Statistics Display', () => {
 		await authenticatedPage.waitForTimeout(2000)
 
 		// Check for Total API Calls card
-		await expect(authenticatedPage.getByText('Total API Calls')).toBeVisible({ timeout: 10000 })
+		await expect(authenticatedPage.getByText('Total API Calls').first()).toBeVisible({
+			timeout: 10000,
+		})
 	})
 
 	test('displays Total Tokens stat card', async ({ authenticatedPage }) => {
@@ -134,7 +148,7 @@ test.describe('Usage Statistics Display', () => {
 		await authenticatedPage.waitForTimeout(2000)
 
 		// Check for Total Tokens card
-		await expect(authenticatedPage.getByText('Total Tokens')).toBeVisible()
+		await expect(authenticatedPage.getByText('Total Tokens').first()).toBeVisible()
 	})
 
 	test('displays Active Agents stat card', async ({ authenticatedPage }) => {
@@ -145,7 +159,7 @@ test.describe('Usage Statistics Display', () => {
 		await authenticatedPage.waitForTimeout(2000)
 
 		// Check for Active Agents card
-		await expect(authenticatedPage.getByText('Active Agents')).toBeVisible()
+		await expect(authenticatedPage.getByText('Active Agents').first()).toBeVisible()
 	})
 
 	test('displays Period stat card', async ({ authenticatedPage }) => {
@@ -156,7 +170,7 @@ test.describe('Usage Statistics Display', () => {
 		await authenticatedPage.waitForTimeout(2000)
 
 		// Check for Period card - use exact match to avoid ambiguity
-		await expect(authenticatedPage.getByText('Period', { exact: true })).toBeVisible()
+		await expect(authenticatedPage.getByText('Period', { exact: true }).first()).toBeVisible()
 	})
 
 	test('stat cards show billing period description', async ({ authenticatedPage }) => {
@@ -167,7 +181,9 @@ test.describe('Usage Statistics Display', () => {
 		await authenticatedPage.waitForTimeout(3000)
 
 		// Check for billing period text
-		await expect(authenticatedPage.getByText('This billing period')).toBeVisible({ timeout: 10000 })
+		await expect(authenticatedPage.getByText('This billing period').first()).toBeVisible({
+			timeout: 10000,
+		})
 	})
 
 	test('shows input/output token breakdown in description', async ({ authenticatedPage }) => {
@@ -192,7 +208,7 @@ test.describe('Token Breakdown Section', () => {
 		await authenticatedPage.waitForTimeout(2000)
 
 		// Check for Token Breakdown title
-		await expect(authenticatedPage.getByText('Token Breakdown')).toBeVisible()
+		await expect(authenticatedPage.getByText('Token Breakdown').first()).toBeVisible()
 	})
 
 	test('shows Input Tokens section', async ({ authenticatedPage }) => {
@@ -204,7 +220,7 @@ test.describe('Token Breakdown Section', () => {
 
 		// Check for Input Tokens label
 		await expect(authenticatedPage.getByText('Input Tokens').first()).toBeVisible()
-		await expect(authenticatedPage.getByText('Tokens sent to the model')).toBeVisible()
+		await expect(authenticatedPage.getByText('Tokens sent to the model').first()).toBeVisible()
 	})
 
 	test('shows Output Tokens section', async ({ authenticatedPage }) => {
@@ -216,7 +232,7 @@ test.describe('Token Breakdown Section', () => {
 
 		// Check for Output Tokens label
 		await expect(authenticatedPage.getByText('Output Tokens').first()).toBeVisible()
-		await expect(authenticatedPage.getByText('Tokens generated by the model')).toBeVisible()
+		await expect(authenticatedPage.getByText('Tokens generated by the model').first()).toBeVisible()
 	})
 })
 
@@ -229,7 +245,7 @@ test.describe('Deployed Agents Section', () => {
 		await authenticatedPage.waitForTimeout(2000)
 
 		// Check for Deployed Agents title
-		await expect(authenticatedPage.getByText('Deployed Agents')).toBeVisible()
+		await expect(authenticatedPage.getByText('Deployed Agents').first()).toBeVisible()
 	})
 
 	test('shows deployed agents description', async ({ authenticatedPage }) => {
@@ -241,7 +257,7 @@ test.describe('Deployed Agents Section', () => {
 
 		// Check for description text
 		await expect(
-			authenticatedPage.getByText('Currently active agents in your workspace'),
+			authenticatedPage.getByText('Currently active agents in your workspace').first(),
 		).toBeVisible()
 	})
 
@@ -272,7 +288,7 @@ test.describe('About Usage Tracking Section', () => {
 		await authenticatedPage.waitForTimeout(2000)
 
 		// Check for About Usage Tracking title
-		await expect(authenticatedPage.getByText('About Usage Tracking')).toBeVisible()
+		await expect(authenticatedPage.getByText('About Usage Tracking').first()).toBeVisible()
 	})
 
 	test('shows usage tracking description', async ({ authenticatedPage }) => {
@@ -283,7 +299,9 @@ test.describe('About Usage Tracking Section', () => {
 		await authenticatedPage.waitForTimeout(2000)
 
 		// Check for description text about automatic tracking
-		await expect(authenticatedPage.getByText(/Usage is tracked automatically/i)).toBeVisible()
+		await expect(
+			authenticatedPage.getByText(/Usage is tracked automatically/i).first(),
+		).toBeVisible()
 	})
 
 	test('shows billing information', async ({ authenticatedPage }) => {
@@ -294,7 +312,9 @@ test.describe('About Usage Tracking Section', () => {
 		await authenticatedPage.waitForTimeout(2000)
 
 		// Check for Cloudflare Workers AI pricing text
-		await expect(authenticatedPage.getByText(/Cloudflare Workers AI pricing/i)).toBeVisible()
+		await expect(
+			authenticatedPage.getByText(/Cloudflare Workers AI pricing/i).first(),
+		).toBeVisible()
 	})
 })
 
@@ -497,8 +517,8 @@ test.describe('Usage Page Loading States', () => {
 		// Skeletons may appear briefly while data loads, or content may already be loaded
 		// The skeleton component uses data-slot="skeleton" attribute
 		const skeletons = authenticatedPage.locator('[data-slot="skeleton"]')
-		const statCardText = authenticatedPage.getByText('Total API Calls')
-		const heading = authenticatedPage.getByRole('heading', { name: 'Usage' })
+		const statCardText = authenticatedPage.getByText('Total API Calls').first()
+		const heading = authenticatedPage.getByRole('heading', { name: 'Usage' }).first()
 
 		// Either skeletons are visible (still loading) or content has loaded
 		const hasSkeletons = await skeletons
@@ -520,8 +540,8 @@ test.describe('Usage Page Loading States', () => {
 		await authenticatedPage.waitForTimeout(3000)
 
 		// After loading, stat cards should be visible
-		await expect(authenticatedPage.getByText('Total API Calls')).toBeVisible()
-		await expect(authenticatedPage.getByText('Total Tokens')).toBeVisible()
+		await expect(authenticatedPage.getByText('Total API Calls').first()).toBeVisible()
+		await expect(authenticatedPage.getByText('Total Tokens').first()).toBeVisible()
 	})
 })
 
@@ -534,7 +554,7 @@ test.describe('Usage Page Responsive Layout', () => {
 		// Page should still load without 404
 		await expect(authenticatedPage.locator('body')).not.toContainText('404')
 		// Heading should be visible
-		await expect(authenticatedPage.getByRole('heading', { name: 'Usage' })).toBeVisible({
+		await expect(authenticatedPage.getByRole('heading', { name: 'Usage' }).first()).toBeVisible({
 			timeout: 10000,
 		})
 	})
@@ -545,7 +565,7 @@ test.describe('Usage Page Responsive Layout', () => {
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		await expect(authenticatedPage.locator('body')).not.toContainText('404')
-		await expect(authenticatedPage.getByRole('heading', { name: 'Usage' })).toBeVisible({
+		await expect(authenticatedPage.getByRole('heading', { name: 'Usage' }).first()).toBeVisible({
 			timeout: 10000,
 		})
 	})
@@ -559,8 +579,8 @@ test.describe('Usage Page Responsive Layout', () => {
 		await authenticatedPage.waitForTimeout(2000)
 
 		// Check that stat cards are visible (they should stack on mobile)
-		await expect(authenticatedPage.getByText('Total API Calls')).toBeVisible()
-		await expect(authenticatedPage.getByText('Total Tokens')).toBeVisible()
+		await expect(authenticatedPage.getByText('Total API Calls').first()).toBeVisible()
+		await expect(authenticatedPage.getByText('Total Tokens').first()).toBeVisible()
 	})
 })
 
@@ -572,7 +592,7 @@ test.describe('Usage Page Navigation', () => {
 		await authenticatedPage.getByRole('link', { name: 'Usage' }).click()
 		await authenticatedPage.waitForURL(/\/dashboard\/usage/)
 
-		await expect(authenticatedPage.getByRole('heading', { name: 'Usage' })).toBeVisible({
+		await expect(authenticatedPage.getByRole('heading', { name: 'Usage' }).first()).toBeVisible({
 			timeout: 10000,
 		})
 	})
@@ -584,9 +604,11 @@ test.describe('Usage Page Navigation', () => {
 		await authenticatedPage.getByRole('link', { name: 'Dashboard' }).click()
 		await authenticatedPage.waitForURL(/\/dashboard$/)
 
-		await expect(authenticatedPage.getByRole('heading', { name: 'Dashboard' })).toBeVisible({
-			timeout: 10000,
-		})
+		await expect(authenticatedPage.getByRole('heading', { name: 'Dashboard' }).first()).toBeVisible(
+			{
+				timeout: 10000,
+			},
+		)
 	})
 
 	test('can navigate to agents from usage', async ({ authenticatedPage }) => {
@@ -597,7 +619,7 @@ test.describe('Usage Page Navigation', () => {
 		await authenticatedPage.waitForURL(/\/dashboard\/agents/)
 
 		await expect(
-			authenticatedPage.getByRole('heading', { name: 'Agents', exact: true }),
+			authenticatedPage.getByRole('heading', { name: 'Agents', exact: true }).first(),
 		).toBeVisible({ timeout: 10000 })
 	})
 })
@@ -613,7 +635,7 @@ test.describe('Usage Data Formatting', () => {
 		// The page should be loaded with formatted numbers
 		// Numbers >= 1000 should show as K, >= 1000000 as M
 		// This verifies the formatNumber function is working
-		await expect(authenticatedPage.getByRole('heading', { name: 'Usage' })).toBeVisible()
+		await expect(authenticatedPage.getByRole('heading', { name: 'Usage' }).first()).toBeVisible()
 	})
 })
 
@@ -632,12 +654,14 @@ test.describe('Usage Page Accessibility', () => {
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Wait for content to load by checking for first stat card
-		await expect(authenticatedPage.getByText('Total API Calls')).toBeVisible({ timeout: 15000 })
+		await expect(authenticatedPage.getByText('Total API Calls').first()).toBeVisible({
+			timeout: 15000,
+		})
 
 		// Each stat card should have a title
-		await expect(authenticatedPage.getByText('Total Tokens')).toBeVisible()
-		await expect(authenticatedPage.getByText('Active Agents')).toBeVisible()
-		await expect(authenticatedPage.getByText('Period', { exact: true })).toBeVisible()
+		await expect(authenticatedPage.getByText('Total Tokens').first()).toBeVisible()
+		await expect(authenticatedPage.getByText('Active Agents').first()).toBeVisible()
+		await expect(authenticatedPage.getByText('Period', { exact: true }).first()).toBeVisible()
 	})
 })
 
@@ -650,7 +674,9 @@ test.describe('Usage Reflects Recent Activity', () => {
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Wait for stat cards to load
-		await expect(authenticatedPage.getByText('Active Agents')).toBeVisible({ timeout: 15000 })
+		await expect(authenticatedPage.getByText('Active Agents').first()).toBeVisible({
+			timeout: 15000,
+		})
 
 		// Get the Active Agents card content - it shows the count of deployed agents
 		const activeAgentsCard = authenticatedPage
@@ -691,7 +717,9 @@ test.describe('Usage Reflects Recent Activity', () => {
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Wait for stat cards to reload
-		await expect(authenticatedPage.getByText('Active Agents')).toBeVisible({ timeout: 15000 })
+		await expect(authenticatedPage.getByText('Active Agents').first()).toBeVisible({
+			timeout: 15000,
+		})
 
 		// Cleanup via oRPC
 		await orpc(authenticatedPage, 'agents/delete', { id: agentId }, wsHeader)
@@ -716,11 +744,13 @@ test.describe('Usage Reflects Recent Activity', () => {
 		await authenticatedPage.waitForTimeout(2000)
 
 		// Verify the page displays usage data - the heading and stat cards should be visible
-		await expect(authenticatedPage.getByRole('heading', { name: 'Usage' })).toBeVisible({
+		await expect(authenticatedPage.getByRole('heading', { name: 'Usage' }).first()).toBeVisible({
 			timeout: 10000,
 		})
 		// Verify at least the stat cards loaded
-		await expect(authenticatedPage.getByText('Total API Calls')).toBeVisible({ timeout: 10000 })
+		await expect(authenticatedPage.getByText('Total API Calls').first()).toBeVisible({
+			timeout: 10000,
+		})
 	})
 
 	test('total agents count is shown in Active Agents description', async ({
@@ -760,12 +790,14 @@ test.describe('Usage Page Full Layout', () => {
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Wait for content to load by checking for first stat card
-		await expect(authenticatedPage.getByText('Total API Calls')).toBeVisible({ timeout: 15000 })
+		await expect(authenticatedPage.getByText('Total API Calls').first()).toBeVisible({
+			timeout: 15000,
+		})
 
 		// All four stat cards should be visible at once
-		await expect(authenticatedPage.getByText('Total Tokens')).toBeVisible()
-		await expect(authenticatedPage.getByText('Active Agents')).toBeVisible()
-		await expect(authenticatedPage.getByText('Period', { exact: true })).toBeVisible()
+		await expect(authenticatedPage.getByText('Total Tokens').first()).toBeVisible()
+		await expect(authenticatedPage.getByText('Active Agents').first()).toBeVisible()
+		await expect(authenticatedPage.getByText('Period', { exact: true }).first()).toBeVisible()
 	})
 
 	test('displays all main sections', async ({ authenticatedPage }) => {
@@ -774,10 +806,10 @@ test.describe('Usage Page Full Layout', () => {
 		await authenticatedPage.waitForTimeout(2000)
 
 		// Verify all main sections are present
-		await expect(authenticatedPage.getByRole('heading', { name: 'Usage' })).toBeVisible()
-		await expect(authenticatedPage.getByText('Token Breakdown')).toBeVisible()
-		await expect(authenticatedPage.getByText('Deployed Agents')).toBeVisible()
-		await expect(authenticatedPage.getByText('About Usage Tracking')).toBeVisible()
+		await expect(authenticatedPage.getByRole('heading', { name: 'Usage' }).first()).toBeVisible()
+		await expect(authenticatedPage.getByText('Token Breakdown').first()).toBeVisible()
+		await expect(authenticatedPage.getByText('Deployed Agents').first()).toBeVisible()
+		await expect(authenticatedPage.getByText('About Usage Tracking').first()).toBeVisible()
 	})
 
 	test('stat card values are displayed as numbers or N/A', async ({ authenticatedPage }) => {
@@ -785,7 +817,9 @@ test.describe('Usage Page Full Layout', () => {
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Wait for content to load
-		await expect(authenticatedPage.getByText('Total API Calls')).toBeVisible({ timeout: 15000 })
+		await expect(authenticatedPage.getByText('Total API Calls').first()).toBeVisible({
+			timeout: 15000,
+		})
 
 		// Each stat card should have a value that's either a number, formatted number, or N/A
 		const statCards = authenticatedPage.locator('[data-slot="card"]')

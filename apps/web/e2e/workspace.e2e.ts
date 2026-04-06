@@ -301,7 +301,7 @@ test.describe('Team Page - Owner Access', () => {
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Team page should load
-		await expect(authenticatedPage.getByRole('heading', { name: 'Team' })).toBeVisible()
+		await expect(authenticatedPage.getByRole('heading', { name: 'Team' }).first()).toBeVisible()
 
 		// Should show workspace name in description
 		const description = authenticatedPage.getByText(/manage team members and permissions for/i)
@@ -315,6 +315,7 @@ test.describe('Team Page - Owner Access', () => {
 		// Wait for the team heading to confirm page loaded (not skeleton)
 		await authenticatedPage
 			.getByRole('heading', { name: /team/i })
+			.first()
 			.first()
 			.waitFor({ state: 'visible', timeout: 15000 })
 
@@ -359,7 +360,7 @@ test.describe('Team Page - Owner Access', () => {
 			await expect(deleteButton).toBeVisible()
 		} else {
 			// User might not have owner role - verify they at least see the team page
-			await expect(authenticatedPage.getByRole('heading', { name: 'Team' })).toBeVisible()
+			await expect(authenticatedPage.getByRole('heading', { name: 'Team' }).first()).toBeVisible()
 		}
 	})
 
@@ -396,7 +397,7 @@ test.describe('Team Page - Invitations', () => {
 			await expect(inviteButton).toBeVisible()
 		} else {
 			// User might not have admin/owner role yet - verify they at least see the team page
-			await expect(authenticatedPage.getByRole('heading', { name: 'Team' })).toBeVisible()
+			await expect(authenticatedPage.getByRole('heading', { name: 'Team' }).first()).toBeVisible()
 		}
 	})
 
@@ -433,7 +434,7 @@ test.describe('Team Page - Invitations', () => {
 			await dialog.getByRole('button', { name: /cancel/i }).click()
 		} else {
 			// User might not have admin/owner role - verify they at least see the team page
-			await expect(authenticatedPage.getByRole('heading', { name: 'Team' })).toBeVisible()
+			await expect(authenticatedPage.getByRole('heading', { name: 'Team' }).first()).toBeVisible()
 		}
 	})
 
@@ -479,7 +480,7 @@ test.describe('Team Page - Invitations', () => {
 			}
 		} else {
 			// User might not have admin/owner role - verify they at least see the team page
-			await expect(authenticatedPage.getByRole('heading', { name: 'Team' })).toBeVisible()
+			await expect(authenticatedPage.getByRole('heading', { name: 'Team' }).first()).toBeVisible()
 		}
 	})
 
@@ -504,7 +505,7 @@ test.describe('Team Page - Invitations', () => {
 			await expect(pendingInvitations).toBeVisible()
 		} else {
 			// User might not have admin/owner role - verify they at least see the team page
-			await expect(authenticatedPage.getByRole('heading', { name: 'Team' })).toBeVisible()
+			await expect(authenticatedPage.getByRole('heading', { name: 'Team' }).first()).toBeVisible()
 		}
 	})
 })
@@ -717,7 +718,7 @@ test.describe('Workspace Deletion', () => {
 			await expect(dialog).not.toBeVisible()
 		} else {
 			// User might not have owner role - verify they at least see the team page
-			await expect(authenticatedPage.getByRole('heading', { name: 'Team' })).toBeVisible()
+			await expect(authenticatedPage.getByRole('heading', { name: 'Team' }).first()).toBeVisible()
 		}
 	})
 })

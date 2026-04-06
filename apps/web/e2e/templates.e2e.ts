@@ -35,7 +35,9 @@ test.describe('Templates Page', () => {
 		await authenticatedPage.goto('/dashboard/agents/templates')
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
-		const heading = authenticatedPage.getByRole('heading', { name: /choose.*template|template/i })
+		const heading = authenticatedPage
+			.getByRole('heading', { name: /choose.*template|template/i })
+			.first()
 		await expect(heading.first()).toBeVisible({ timeout: 10000 })
 	})
 

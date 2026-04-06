@@ -34,7 +34,7 @@ test.describe('Team Page', () => {
 		await authenticatedPage.goto('/dashboard/settings/team')
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
-		const teamHeading = authenticatedPage.getByRole('heading', { name: /team|member/i })
+		const teamHeading = authenticatedPage.getByRole('heading', { name: /team|member/i }).first()
 		await expect(teamHeading.first()).toBeVisible({ timeout: 10000 })
 	})
 
@@ -60,7 +60,7 @@ test.describe('Member Management', () => {
 		await page.goto('/dashboard/settings/team')
 		await page.waitForSelector('main', { state: 'visible' })
 		// Wait for the heading to confirm page loaded (not skeleton)
-		const heading = page.getByRole('heading', { name: /team/i })
+		const heading = page.getByRole('heading', { name: /team/i }).first()
 		await heading.first().waitFor({ state: 'visible', timeout: 15000 })
 		// Wait for members to finish loading - the Members card should show member count
 		await page

@@ -64,7 +64,7 @@ test.describe('Agent Conversations Page', () => {
 		await page.waitForSelector('main', { state: 'visible' })
 
 		// Should show the Search Conversations heading
-		await expect(page.getByRole('heading', { name: 'Search Conversations' })).toBeVisible({
+		await expect(page.getByRole('heading', { name: 'Search Conversations' }).first()).toBeVisible({
 			timeout: 10000,
 		})
 	})
@@ -80,7 +80,7 @@ test.describe('Agent Conversations Page', () => {
 
 		// Search input and button
 		await expect(page.getByPlaceholder('Search messages...')).toBeVisible()
-		await expect(page.getByRole('button', { name: 'Search' })).toBeVisible()
+		await expect(page.getByRole('button', { name: 'Search' }).first()).toBeVisible()
 	})
 
 	test('shows empty state when no search has been performed', async ({
@@ -93,7 +93,7 @@ test.describe('Agent Conversations Page', () => {
 
 		// Results card should show the initial empty state
 		await expect(page.getByText('Results').first()).toBeVisible({ timeout: 10000 })
-		await expect(page.getByText('Search conversations')).toBeVisible()
+		await expect(page.getByText('Search conversations').first()).toBeVisible()
 		await expect(
 			page.getByText(/Enter a search term to find messages across all conversations/),
 		).toBeVisible()
@@ -112,11 +112,11 @@ test.describe('Agent Conversations Page', () => {
 		await searchInput.click()
 		await searchInput.pressSequentially('zzz-nonexistent-query-xyz', { delay: 10 })
 
-		await page.getByRole('button', { name: 'Search' }).click()
+		await page.getByRole('button', { name: 'Search' }).first().click()
 
 		// Should show no results or the empty search state
-		const noResults = page.getByText('No results found')
-		const searchConversations = page.getByText('Search conversations')
+		const noResults = page.getByText('No results found').first()
+		const searchConversations = page.getByText('Search conversations').first()
 
 		await expect(noResults.or(searchConversations)).toBeVisible({ timeout: 10000 })
 	})
@@ -200,9 +200,11 @@ test.describe('Agent Conversations - Responsive', () => {
 			await page.waitForSelector('main', { state: 'visible' })
 
 			// Heading should be visible
-			await expect(page.getByRole('heading', { name: 'Search Conversations' })).toBeVisible({
-				timeout: 10000,
-			})
+			await expect(page.getByRole('heading', { name: 'Search Conversations' }).first()).toBeVisible(
+				{
+					timeout: 10000,
+				},
+			)
 
 			// Search input should be visible
 			await expect(page.getByPlaceholder('Search messages...')).toBeVisible({ timeout: 5000 })

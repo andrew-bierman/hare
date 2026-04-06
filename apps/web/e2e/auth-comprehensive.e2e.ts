@@ -79,16 +79,39 @@ baseTest.describe('Sign-Up Flow', () => {
 				// First registration
 				await signUpViaUI(page, testUser)
 
+				// Clear cookies/session so we can access sign-up page again
+				await page.context().clearCookies()
+
 				await page.goto('/sign-up')
 				await page.waitForSelector('form', { state: 'visible', timeout: 10000 })
 
-				await page.getByLabel('Full Name').fill(testUser.name)
-				await page.getByLabel('Email').fill(testUser.email)
-				await page.getByLabel('Password', { exact: true }).fill(testUser.password)
-				await page.getByLabel('Confirm Password').fill(testUser.password)
+				// Wait for React hydration
+				await page.waitForTimeout(1000)
+
+				const nameInput = page.locator('#name')
+				await nameInput.waitFor({ state: 'visible', timeout: 10000 })
+				await nameInput.click()
+				await nameInput.pressSequentially(testUser.name, { delay: 30 })
+
+				const emailInput = page.locator('#email')
+				await emailInput.click()
+				await emailInput.pressSequentially(testUser.email, { delay: 20 })
+
+				const passwordInput = page.locator('#password')
+				await passwordInput.click()
+				await passwordInput.pressSequentially(testUser.password, { delay: 20 })
+
+				const confirmInput = page.locator('#confirm-password')
+				await confirmInput.click()
+				await confirmInput.pressSequentially(testUser.password, { delay: 20 })
 
 				await page.getByRole('button', { name: 'Create Account' }).click()
-				await expect(page).toHaveURL(/sign-up/)
+
+				// Should stay on sign-up page (duplicate email rejected) or show error
+				await page.waitForTimeout(3000)
+				const url = page.url()
+				// Either stayed on sign-up (error shown) or possibly still on sign-up
+				expect(url).toMatch(/sign-up/)
 			},
 		)
 	})
@@ -270,13 +293,13 @@ test.describe('Session Persistence', () => {
 		await authenticatedPage.goto('/dashboard/agents')
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		await expect(
-			authenticatedPage.getByRole('heading', { name: 'Agents', exact: true }),
+			authenticatedPage.getByRole('heading', { name: 'Agents', exact: true }).first(),
 		).toBeVisible()
 
 		await authenticatedPage.goto('/dashboard/tools')
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		await expect(
-			authenticatedPage.getByRole('heading', { name: 'Tools', exact: true }),
+			authenticatedPage.getByRole('heading', { name: 'Tools', exact: true }).first(),
 		).toBeVisible()
 
 		await authenticatedPage.goto('/dashboard')

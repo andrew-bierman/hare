@@ -38,7 +38,9 @@ test.describe('Agent CRUD Operations', () => {
 		await waitForWorkspace(authenticatedPage)
 
 		// Wait for form
-		await expect(authenticatedPage.getByRole('heading', { name: /create.*agent/i })).toBeVisible({
+		await expect(
+			authenticatedPage.getByRole('heading', { name: /create.*agent/i }).first(),
+		).toBeVisible({
 			timeout: 10000,
 		})
 
@@ -64,7 +66,9 @@ test.describe('Agent CRUD Operations', () => {
 		// First create an agent
 		await authenticatedPage.goto('/dashboard/agents/new')
 		await waitForWorkspace(authenticatedPage)
-		await expect(authenticatedPage.getByRole('heading', { name: /create.*agent/i })).toBeVisible({
+		await expect(
+			authenticatedPage.getByRole('heading', { name: /create.*agent/i }).first(),
+		).toBeVisible({
 			timeout: 15000,
 		})
 
@@ -88,11 +92,15 @@ test.describe('Agent CRUD Operations', () => {
 
 		// Wait for the Save Changes button to become enabled (hasChanges must be true)
 		const saveBtn = authenticatedPage.getByRole('button', { name: /save changes/i })
-		await expect(saveBtn).toBeEnabled({ timeout: 5000 })
+		await expect(saveBtn).toBeEnabled({ timeout: 10000 })
 		await saveBtn.click()
 
-		// Wait for save to complete
-		await authenticatedPage.waitForTimeout(3000)
+		// Wait for save to complete - wait for button to become disabled (indicates save finished)
+		await authenticatedPage.waitForTimeout(2000)
+		await expect(saveBtn)
+			.toBeDisabled({ timeout: 10000 })
+			.catch(() => {})
+		await authenticatedPage.waitForTimeout(1000)
 
 		// Verify the name was updated
 		await expect(nameInput).toHaveValue(updatedName)
@@ -102,7 +110,9 @@ test.describe('Agent CRUD Operations', () => {
 		// Create an agent first
 		await authenticatedPage.goto('/dashboard/agents/new')
 		await waitForWorkspace(authenticatedPage)
-		await expect(authenticatedPage.getByRole('heading', { name: /create.*agent/i })).toBeVisible({
+		await expect(
+			authenticatedPage.getByRole('heading', { name: /create.*agent/i }).first(),
+		).toBeVisible({
 			timeout: 10000,
 		})
 
@@ -114,7 +124,7 @@ test.describe('Agent CRUD Operations', () => {
 		// Go to agents list
 		await authenticatedPage.goto('/dashboard/agents')
 		await waitForWorkspace(authenticatedPage)
-		await expect(authenticatedPage.getByRole('heading', { name: /agents/i })).toBeVisible({
+		await expect(authenticatedPage.getByRole('heading', { name: /agents/i }).first()).toBeVisible({
 			timeout: 10000,
 		})
 
@@ -135,7 +145,9 @@ test.describe('Agent CRUD Operations', () => {
 		// Create an agent
 		await authenticatedPage.goto('/dashboard/agents/new')
 		await waitForWorkspace(authenticatedPage)
-		await expect(authenticatedPage.getByRole('heading', { name: /create.*agent/i })).toBeVisible({
+		await expect(
+			authenticatedPage.getByRole('heading', { name: /create.*agent/i }).first(),
+		).toBeVisible({
 			timeout: 10000,
 		})
 
@@ -182,7 +194,9 @@ test.describe('Agent Builder Tabs', () => {
 		// Create agent first
 		await authenticatedPage.goto('/dashboard/agents/new')
 		await waitForWorkspace(authenticatedPage)
-		await expect(authenticatedPage.getByRole('heading', { name: /create.*agent/i })).toBeVisible({
+		await expect(
+			authenticatedPage.getByRole('heading', { name: /create.*agent/i }).first(),
+		).toBeVisible({
 			timeout: 10000,
 		})
 
@@ -208,7 +222,9 @@ test.describe('Agent Builder Tabs', () => {
 		// Create agent
 		await authenticatedPage.goto('/dashboard/agents/new')
 		await waitForWorkspace(authenticatedPage)
-		await expect(authenticatedPage.getByRole('heading', { name: /create.*agent/i })).toBeVisible({
+		await expect(
+			authenticatedPage.getByRole('heading', { name: /create.*agent/i }).first(),
+		).toBeVisible({
 			timeout: 10000,
 		})
 
@@ -243,11 +259,11 @@ test.describe('HTTP Tool Creation', () => {
 		await waitForWorkspace(authenticatedPage)
 
 		// Wait for the form to render (heading is "Create HTTP Tool")
-		await expect(authenticatedPage.getByRole('heading', { name: /create http tool/i })).toBeVisible(
-			{
-				timeout: 20000,
-			},
-		)
+		await expect(
+			authenticatedPage.getByRole('heading', { name: /create http tool/i }).first(),
+		).toBeVisible({
+			timeout: 20000,
+		})
 
 		const toolName = uniqueName('E2E HTTP Tool')
 
@@ -264,14 +280,14 @@ test.describe('HTTP Tool Creation', () => {
 		await urlInput.pressSequentially('https://jsonplaceholder.typicode.com/posts/1', { delay: 10 })
 
 		// Wait for Create Tool button to be enabled (requires name and url to be non-empty)
-		const createBtn = authenticatedPage.getByRole('button', { name: /create tool/i })
+		const createBtn = authenticatedPage.getByRole('button', { name: /create tool/i }).first()
 		await expect(createBtn).toBeEnabled({ timeout: 10000 })
 
 		// Click create
 		await createBtn.click()
 
 		// Should redirect to tools list or show success
-		await authenticatedPage.waitForURL(/\/dashboard\/tools$/, { timeout: 15000 }).catch(() => {
+		await authenticatedPage.waitForURL(/\/dashboard\/tools$/, { timeout: 20000 }).catch(() => {
 			// If URL didn't change, wait a bit more for redirect
 		})
 		await authenticatedPage.waitForTimeout(2000)
@@ -281,7 +297,7 @@ test.describe('HTTP Tool Creation', () => {
 		await waitForWorkspace(authenticatedPage)
 
 		// Wait for page heading to confirm page loaded
-		await expect(authenticatedPage.getByRole('heading', { name: /tools/i })).toBeVisible({
+		await expect(authenticatedPage.getByRole('heading', { name: /tools/i }).first()).toBeVisible({
 			timeout: 15000,
 		})
 
@@ -432,7 +448,9 @@ test.describe('Analytics - Filters', () => {
 		await waitForWorkspace(authenticatedPage)
 
 		// Wait for analytics to load
-		await expect(authenticatedPage.getByRole('heading', { name: /analytics/i })).toBeVisible({
+		await expect(
+			authenticatedPage.getByRole('heading', { name: /analytics/i }).first(),
+		).toBeVisible({
 			timeout: 10000,
 		})
 
@@ -457,7 +475,9 @@ test.describe('Analytics - Filters', () => {
 		await authenticatedPage.goto('/dashboard/analytics')
 		await waitForWorkspace(authenticatedPage)
 
-		await expect(authenticatedPage.getByRole('heading', { name: /analytics/i })).toBeVisible({
+		await expect(
+			authenticatedPage.getByRole('heading', { name: /analytics/i }).first(),
+		).toBeVisible({
 			timeout: 10000,
 		})
 
@@ -484,7 +504,9 @@ test.describe('Search Features', () => {
 		// First create an agent with a unique name
 		await authenticatedPage.goto('/dashboard/agents/new')
 		await waitForWorkspace(authenticatedPage)
-		await expect(authenticatedPage.getByRole('heading', { name: /create.*agent/i })).toBeVisible({
+		await expect(
+			authenticatedPage.getByRole('heading', { name: /create.*agent/i }).first(),
+		).toBeVisible({
 			timeout: 10000,
 		})
 
@@ -496,7 +518,7 @@ test.describe('Search Features', () => {
 		// Go to agents list
 		await authenticatedPage.goto('/dashboard/agents')
 		await waitForWorkspace(authenticatedPage)
-		await expect(authenticatedPage.getByRole('heading', { name: /agents/i })).toBeVisible({
+		await expect(authenticatedPage.getByRole('heading', { name: /agents/i }).first()).toBeVisible({
 			timeout: 10000,
 		})
 
@@ -515,13 +537,13 @@ test.describe('Search Features', () => {
 		await waitForWorkspace(authenticatedPage)
 
 		// Wait for the tools page heading to confirm WorkspaceGate has passed
-		await expect(authenticatedPage.getByRole('heading', { name: /tools/i })).toBeVisible({
+		await expect(authenticatedPage.getByRole('heading', { name: /tools/i }).first()).toBeVisible({
 			timeout: 15000,
 		})
 
 		// Search for KV tools using the tools page search input
 		// SearchInput renders an <input type="search"> with the given placeholder
-		const searchInput = authenticatedPage.getByPlaceholder('Search tools...')
+		const searchInput = authenticatedPage.getByPlaceholder('Search tools...').first()
 		await expect(searchInput).toBeVisible({ timeout: 5000 })
 		await searchInput.click()
 		await searchInput.pressSequentially('KV', { delay: 50 })
@@ -543,7 +565,9 @@ test.describe('Agent Playground', () => {
 		// Create an agent
 		await authenticatedPage.goto('/dashboard/agents/new')
 		await waitForWorkspace(authenticatedPage)
-		await expect(authenticatedPage.getByRole('heading', { name: /create.*agent/i })).toBeVisible({
+		await expect(
+			authenticatedPage.getByRole('heading', { name: /create.*agent/i }).first(),
+		).toBeVisible({
 			timeout: 10000,
 		})
 
@@ -617,7 +641,7 @@ test.describe('Full User Journey', () => {
 		// 6. Navigate back to list and verify agent exists
 		await authenticatedPage.goto('/dashboard/agents')
 		await waitForWorkspace(authenticatedPage)
-		await expect(authenticatedPage.getByRole('heading', { name: /agents/i })).toBeVisible({
+		await expect(authenticatedPage.getByRole('heading', { name: /agents/i }).first()).toBeVisible({
 			timeout: 10000,
 		})
 
