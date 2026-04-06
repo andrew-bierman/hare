@@ -19,7 +19,7 @@ export const securityHeaders = new Elysia({ name: 'security-headers' }).onAfterH
 		...(isDev ? ["'unsafe-eval'"] : []),
 	].join(' ')
 
-	const csp = [
+	const cspDirectives = [
 		`default-src 'self'`,
 		`script-src ${scriptSrc}`,
 		`style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net`,
@@ -31,8 +31,10 @@ export const securityHeaders = new Elysia({ name: 'security-headers' }).onAfterH
 		`base-uri 'self'`,
 		`form-action 'self'`,
 		`frame-ancestors 'none'`,
-		'upgrade-insecure-requests',
-	].join('; ')
+		// Only upgrade insecure requests in production to avoid breaking local HTTP dev
+		...(!isDev ? ['upgrade-insecure-requests'] : []),
+	]
+	const csp = cspDirectives.join('; ')
 
 	set.headers['Content-Security-Policy'] = csp
 	// Strict-Transport-Security with preload

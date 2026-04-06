@@ -6,7 +6,7 @@
 
 import { isWebSocketRequest, routeToMcpAgent } from '@hare/agent'
 import type { Database } from '@hare/db'
-import { workspaceMembers } from '@hare/db/schema'
+import { workspaceMembers, workspaces } from '@hare/db/schema'
 import { agentControlTools, createRegistry, getSystemTools, type ToolContext } from '@hare/tools'
 import type { CloudflareEnv } from '@hare/types'
 import { and, eq } from 'drizzle-orm'
@@ -19,6 +19,14 @@ async function hasWorkspaceAccess(
 	userId: string,
 	workspaceId: string,
 ): Promise<boolean> {
+	// Check owner first (covers cases where no membership row exists for the owner)
+	const [workspace] = await db
+		.select({ ownerId: workspaces.ownerId })
+		.from(workspaces)
+		.where(eq(workspaces.id, workspaceId))
+	if (!workspace) return false
+	if (workspace.ownerId === userId) return true
+
 	const [membership] = await db
 		.select()
 		.from(workspaceMembers)

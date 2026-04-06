@@ -71,8 +71,11 @@ export function hasScope(options: { apiKey: ApiKeyInfo; scope: string }): boolea
  */
 export function extractApiKey(headers: Headers): string | null {
 	const authHeader = headers.get('Authorization')
-	if (authHeader?.startsWith('Bearer ')) {
-		return authHeader.slice(7)
+	if (authHeader) {
+		const bearerMatch = /^Bearer\s+(.+)$/i.exec(authHeader.trim())
+		if (bearerMatch?.[1]) {
+			return bearerMatch[1]
+		}
 	}
 	return headers.get('X-API-Key') ?? null
 }
