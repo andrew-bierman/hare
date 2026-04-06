@@ -39,6 +39,15 @@ import { toAISDKTools } from './tool-adapter'
 // Re-export types for convenience
 export type { HareAgentState, ClientMessage, ServerMessage }
 
+// =============================================================================
+// Constants
+// =============================================================================
+
+/** Maximum number of recent messages sent as context for inference */
+const AGENT_CONTEXT_MESSAGE_LIMIT = 50
+/** Threshold at which old messages are pruned during maintenance */
+const AGENT_MAX_STORED_MESSAGES = 100
+
 /**
  * Validation schemas for client messages.
  */
@@ -406,7 +415,7 @@ export class HareAgent<TEnv extends HareAgentEnv = HareAgentEnv> extends Agent<
 		}
 
 		// Cap message history to avoid context overflow
-		const recentMessages = messages.slice(-50)
+		const recentMessages = messages.slice(-AGENT_CONTEXT_MESSAGE_LIMIT)
 
 		// Convert Hare tools to AI SDK format for tool calling
 		const context = this.createToolContext()
@@ -800,11 +809,11 @@ export class HareAgent<TEnv extends HareAgentEnv = HareAgentEnv> extends Agent<
 	}
 
 	async runMaintenance(_data: Record<string, unknown>): Promise<void> {
-		// Clean up old messages (keep last 100)
-		if (this.state.messages.length > 100) {
+		// Clean up old messages (keep last AGENT_MAX_STORED_MESSAGES)
+		if (this.state.messages.length > AGENT_MAX_STORED_MESSAGES) {
 			this.setState({
 				...this.state,
-				messages: this.state.messages.slice(-100),
+				messages: this.state.messages.slice(-AGENT_MAX_STORED_MESSAGES),
 				lastActivity: Date.now(),
 			})
 		}
