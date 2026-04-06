@@ -60,7 +60,9 @@ export const billingWebhookRoutes = new Elysia({
 
 				if (workspaceId && isValidPlanId(rawPlanId) && session.subscription) {
 					// Retrieve subscription to get accurate current_period_end
-					const subscription = await stripe.subscriptions.retrieve(session.subscription as string)
+					const subscription = (await stripe.subscriptions.retrieve(
+						session.subscription as string,
+					)) as unknown as Stripe.Subscription & { current_period_end: number }
 					await db
 						.update(workspaces)
 						.set({

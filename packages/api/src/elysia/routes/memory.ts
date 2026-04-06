@@ -117,9 +117,7 @@ export const memoryRoutes = new Elysia({ prefix: '/memory', name: 'memory-routes
 			} catch (err) {
 				// biome-ignore lint/suspicious/noConsole: error reporting
 				console.error('Failed to store memory:', err)
-				throw new Error(
-					`Failed to store memory: ${getErrorMessage(err)}`,
-				)
+				throw new Error(`Failed to store memory: ${getErrorMessage(err)}`)
 			}
 		},
 		{ writeAccess: true, body: CreateMemorySchema },
@@ -202,9 +200,7 @@ export const memoryRoutes = new Elysia({ prefix: '/memory', name: 'memory-routes
 			} catch (err) {
 				// biome-ignore lint/suspicious/noConsole: error reporting
 				console.error('Failed to update memory:', err)
-				throw new Error(
-					`Failed to update memory: ${getErrorMessage(err)}`,
-				)
+				throw new Error(`Failed to update memory: ${getErrorMessage(err)}`)
 			}
 		},
 		{ writeAccess: true, body: UpdateMemorySchema },

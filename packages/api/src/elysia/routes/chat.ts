@@ -148,7 +148,8 @@ export const chatRoutes = new Elysia({ prefix: '/chat', name: 'chat-routes' })
 
 			const [agentConfig] = await db.select().from(agents).where(eq(agents.id, agentId))
 			if (!agentConfig) return status(404, { error: 'Agent not found' })
-			if (agentConfig.status !== config.enums.agentStatus.DEPLOYED) return status(400, { error: 'Agent not deployed' })
+			if (agentConfig.status !== config.enums.agentStatus.DEPLOYED)
+				return status(400, { error: 'Agent not deployed' })
 
 			// Build SSE stream
 			const encoder = new TextEncoder()

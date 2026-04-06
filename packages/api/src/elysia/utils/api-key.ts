@@ -30,12 +30,13 @@ export async function generateApiKey(): Promise<{
 	const randomBytes = new Uint8Array(config.security.apiKey.randomBytes)
 	crypto.getRandomValues(randomBytes)
 
+	// Use Buffer when available (Node/Bun), fall back to btoa for browser environments
+	const base64 =
+		typeof Buffer !== 'undefined'
+			? Buffer.from(randomBytes).toString('base64')
+			: btoa(String.fromCharCode(...randomBytes))
 	const key =
-		config.security.apiKey.prefix +
-		btoa(String.fromCharCode(...randomBytes))
-			.replace(/\+/g, '-')
-			.replace(/\//g, '_')
-			.replace(/=/g, '')
+		config.security.apiKey.prefix + base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '')
 
 	const hashedKey = await hashApiKey(key)
 	const prefix = key.substring(0, config.security.apiKey.prefixDisplayLength)

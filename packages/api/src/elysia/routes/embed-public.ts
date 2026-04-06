@@ -41,7 +41,8 @@ function isDomainAllowed(options: {
 			return originHost === domain
 		})
 	} catch {
-		return true
+		// Fail closed when an allowlist is configured — malformed origin should not bypass restrictions
+		return !allowedDomains || allowedDomains.length === 0
 	}
 }
 

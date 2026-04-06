@@ -4,7 +4,7 @@
  * Workspace and agent usage statistics.
  */
 
-import { config } from '@hare/config'
+import { CURRENCY } from '@hare/config'
 import { agents, usage } from '@hare/db/schema'
 import { and, eq, gte, lte, sql } from 'drizzle-orm'
 import { Elysia, status } from 'elysia'
@@ -77,21 +77,21 @@ export const usageRoutes = new Elysia({ prefix: '/usage', name: 'usage-routes' }
 					totalMessages: totals?.totalMessages || 0,
 					totalTokensIn: totals?.totalTokensIn || 0,
 					totalTokensOut: totals?.totalTokensOut || 0,
-					totalCost: (totals?.totalCost || 0) / config.CURRENCY.CENTS_PER_DOLLAR,
+					totalCost: (totals?.totalCost || 0) / CURRENCY.CENTS_PER_DOLLAR,
 					byAgent: byAgentRaw.map((a) => ({
 						agentId: a.agentId || 'unknown',
 						agentName: a.agentName || 'Unknown Agent',
 						messages: a.messages,
 						tokensIn: a.tokensIn,
 						tokensOut: a.tokensOut,
-						cost: a.cost / config.CURRENCY.CENTS_PER_DOLLAR,
+						cost: a.cost / CURRENCY.CENTS_PER_DOLLAR,
 					})),
 					byDay: byDay.map((d) => ({
 						date: d.date,
 						messages: d.messages,
 						tokensIn: d.tokensIn,
 						tokensOut: d.tokensOut,
-						cost: d.cost / config.CURRENCY.CENTS_PER_DOLLAR,
+						cost: d.cost / CURRENCY.CENTS_PER_DOLLAR,
 					})),
 				},
 				period: {
@@ -160,21 +160,21 @@ export const usageRoutes = new Elysia({ prefix: '/usage', name: 'usage-routes' }
 					totalMessages: totals?.totalMessages || 0,
 					totalTokensIn: totals?.totalTokensIn || 0,
 					totalTokensOut: totals?.totalTokensOut || 0,
-					totalCost: (totals?.totalCost || 0) / config.CURRENCY.CENTS_PER_DOLLAR,
+					totalCost: (totals?.totalCost || 0) / CURRENCY.CENTS_PER_DOLLAR,
 					averageLatencyMs: totals?.averageLatency || 0,
 					byModel: byModel.map((m) => ({
 						model: m.model || 'unknown',
 						messages: m.messages,
 						tokensIn: m.tokensIn,
 						tokensOut: m.tokensOut,
-						cost: m.cost / config.CURRENCY.CENTS_PER_DOLLAR,
+						cost: m.cost / CURRENCY.CENTS_PER_DOLLAR,
 					})),
 					byDay: byDay.map((d) => ({
 						date: d.date,
 						messages: d.messages,
 						tokensIn: d.tokensIn,
 						tokensOut: d.tokensOut,
-						cost: d.cost / config.CURRENCY.CENTS_PER_DOLLAR,
+						cost: d.cost / CURRENCY.CENTS_PER_DOLLAR,
 					})),
 				},
 			}

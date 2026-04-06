@@ -13,8 +13,8 @@
 
 import { cors } from '@elysiajs/cors'
 import { openapi } from '@elysiajs/openapi'
-import { serverEnv } from '@hare/config'
 import { isErrorType } from '@hare/checks'
+import { serverEnv } from '@hare/config'
 import { Elysia } from 'elysia'
 import { securityHeaders } from '../middleware/security'
 import { CloudflareEnvError } from './context'
@@ -104,7 +104,7 @@ export const app = new Elysia({ prefix: '/api', name: 'hare-api' })
 			allowedHeaders: [
 				'Content-Type',
 				'Authorization',
-				'X-Workspace-ID',
+				'X-Workspace-Id',
 				'X-CSRF-Token',
 				'X-API-Key',
 			],

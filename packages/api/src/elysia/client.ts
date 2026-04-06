@@ -17,7 +17,7 @@
  * ```
  */
 
-import { treaty } from '@elysiajs/eden'
+import { type Treaty, treaty } from '@elysiajs/eden'
 import type { App } from './app'
 
 // =============================================================================
@@ -52,7 +52,7 @@ function getBaseURL(): string {
  * - Session cookies (credentials: include)
  * - X-Workspace-Id header when workspace is set
  */
-export const client = treaty<App>(getBaseURL(), {
+export const client: Treaty.Create<App> = treaty<App>(getBaseURL(), {
 	fetch: { credentials: 'include' },
 	headers(_path, _options) {
 		const headers: Record<string, string> = {}
@@ -67,7 +67,7 @@ export const client = treaty<App>(getBaseURL(), {
  * Create a custom API client with a specific base URL.
  * Useful for SSR or testing.
  */
-export function createApiClient(baseUrl: string) {
+export function createApiClient(baseUrl: string): Treaty.Create<App> {
 	return treaty<App>(baseUrl, {
 		fetch: { credentials: 'include' },
 		headers(_path, _options) {

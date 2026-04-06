@@ -116,14 +116,16 @@ export const workspaceRoutes = new Elysia({ prefix: '/workspaces', name: 'worksp
 				return serializeWorkspace(memberships[0].workspace)
 			}
 
-			// Normalize slug using same rules as CreateWorkspaceSchema: lowercase, letters/digits/hyphens only
+			// Normalize slug to same rules as CreateWorkspaceSchema, guaranteed ≤ 50 chars
+			const slugSuffix = Date.now().toString(36) // ~8 chars
+			const maxBase = 50 - slugSuffix.length - 1 // reserve suffix + hyphen
 			const slugBase =
 				(user.name || 'user')
 					.toLowerCase()
 					.replace(/[^a-z0-9]+/g, '-')
 					.replace(/^-+|-+$/g, '')
-					.slice(0, 40) || 'workspace'
-			const slug = `${slugBase}-${Date.now()}`
+					.slice(0, maxBase) || 'workspace'
+			const slug = `${slugBase}-${slugSuffix}`
 			const [workspace] = await db
 				.insert(workspaces)
 				.values({

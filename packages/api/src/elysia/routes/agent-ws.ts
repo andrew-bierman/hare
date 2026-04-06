@@ -130,7 +130,8 @@ export const agentWsRoutes = new Elysia({ prefix: '/agent-ws', name: 'agent-ws-r
 
 		const [agent] = await db.select().from(agents).where(eq(agents.id, params.id))
 		if (!agent) return status(404, { error: 'Agent not found' })
-		if (agent.status !== config.enums.agentStatus.DEPLOYED) return status(400, { error: 'Agent not deployed' })
+		if (agent.status !== config.enums.agentStatus.DEPLOYED)
+			return status(400, { error: 'Agent not deployed' })
 
 		if (user?.id) {
 			const hasAccess = await hasWorkspaceAccess(db, user.id, agent.workspaceId)

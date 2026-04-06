@@ -93,7 +93,11 @@ function serializeWebhookDelivery(delivery: typeof webhookDeliveries.$inferSelec
 	}
 }
 
-async function verifyAgentInWorkspace(options: { agentId: string; workspaceId: string; db: Database }) {
+async function verifyAgentInWorkspace(options: {
+	agentId: string
+	workspaceId: string
+	db: Database
+}) {
 	const { agentId, workspaceId, db } = options
 	const [agent] = await db
 		.select()

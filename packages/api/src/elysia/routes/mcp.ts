@@ -177,10 +177,15 @@ HTTP Endpoints:
 			}
 
 			case 'tools/call': {
-				const { name, arguments: args } = rpcParams as {
-					name: string
-					arguments: Record<string, unknown>
+				const toolCallSchema = z.object({
+					name: z.string(),
+					arguments: z.record(z.string(), z.unknown()).optional(),
+				})
+				const parsed = toolCallSchema.safeParse(rpcParams)
+				if (!parsed.success) {
+					return { jsonrpc: '2.0', id, error: { code: -32602, message: 'Invalid params' } }
 				}
+				const { name, arguments: args } = parsed.data
 
 				const callSystemTools = getSystemTools(context)
 				const allToolsRegistry = createRegistry([...callSystemTools, ...agentControlTools])
