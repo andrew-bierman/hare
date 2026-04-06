@@ -64,10 +64,7 @@ export function createTestUser(overrides: TestUserOverrides = {}): TestUser {
  * const verifiedUsers = createTestUsers(3, { emailVerified: true })
  * ```
  */
-export function createTestUsers(
-	count: number,
-	overrides: TestUserOverrides = {},
-): TestUser[] {
+export function createTestUsers(count: number, overrides: TestUserOverrides = {}): TestUser[] {
 	return Array.from({ length: count }, () => createTestUser(overrides))
 }
 

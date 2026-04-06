@@ -1,8 +1,8 @@
-import { betterAuth } from 'better-auth'
-import { drizzleAdapter } from 'better-auth/adapters/drizzle'
 import { createDb } from '@hare/db'
 import * as schema from '@hare/db/schema'
 import { createEmailService, type EmailEnv } from '@hare/email'
+import { betterAuth } from 'better-auth'
+import { drizzleAdapter } from 'better-auth/adapters/drizzle'
 
 /**
  * Server environment configuration required for auth
@@ -63,7 +63,10 @@ export function createAuth({ d1, env }: CreateAuthOptions) {
 				})
 
 				if (!result.success) {
-					console.error(`[Auth] Failed to send password reset email to ${user.email}:`, result.error)
+					console.error(
+						`[Auth] Failed to send password reset email to ${user.email}:`,
+						result.error,
+					)
 				} else {
 					console.log(`[Auth] Password reset email sent to ${user.email} (${result.messageId})`)
 				}

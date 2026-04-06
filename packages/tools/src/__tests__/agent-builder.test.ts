@@ -1,13 +1,13 @@
-import { describe, expect, it, vi, beforeEach } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import {
+	AGENT_BUILDER_TOOL_IDS,
+	agentBuilderTools,
+	agentExportConfigTool,
 	agentListModelsTool,
 	agentListTemplatesTool,
-	agentValidateConfigTool,
-	agentExportConfigTool,
 	agentSuggestToolsTool,
-	agentBuilderTools,
+	agentValidateConfigTool,
 	getAgentBuilderTools,
-	AGENT_BUILDER_TOOL_IDS,
 } from '../agent-builder'
 import type { ToolContext } from '../types'
 
@@ -363,9 +363,7 @@ describe('Agent Builder Tools', () => {
 				)
 
 				expect(result.success).toBe(true)
-				expect(result.data?.warnings.some((w) => w.includes('custom_unknown_tool'))).toBe(
-					true,
-				)
+				expect(result.data?.warnings.some((w) => w.includes('custom_unknown_tool'))).toBe(true)
 			})
 
 			it('returns warning for high temperature', async () => {
@@ -380,9 +378,7 @@ describe('Agent Builder Tools', () => {
 				)
 
 				expect(result.success).toBe(true)
-				expect(result.data?.warnings.some((w) => w.includes('High temperature'))).toBe(
-					true,
-				)
+				expect(result.data?.warnings.some((w) => w.includes('High temperature'))).toBe(true)
 			})
 
 			it('returns error when maxTokens exceeds model limit', async () => {
@@ -595,10 +591,7 @@ describe('Agent Builder Tools', () => {
 
 		describe('execution', () => {
 			it('suggests tools for customer support use case', async () => {
-				const result = await agentSuggestToolsTool.execute(
-					{ useCase: 'customer support' },
-					context,
-				)
+				const result = await agentSuggestToolsTool.execute({ useCase: 'customer support' }, context)
 
 				expect(result.success).toBe(true)
 				expect(result.data?.suggestedTools.length).toBeGreaterThan(0)
@@ -606,10 +599,7 @@ describe('Agent Builder Tools', () => {
 			})
 
 			it('suggests tools for data analysis use case', async () => {
-				const result = await agentSuggestToolsTool.execute(
-					{ useCase: 'data analysis' },
-					context,
-				)
+				const result = await agentSuggestToolsTool.execute({ useCase: 'data analysis' }, context)
 
 				expect(result.success).toBe(true)
 				expect(result.data?.suggestedTools.some((t) => t.id === 'sql_query')).toBe(true)
@@ -659,10 +649,7 @@ describe('Agent Builder Tools', () => {
 			})
 
 			it('includes reasoning in response', async () => {
-				const result = await agentSuggestToolsTool.execute(
-					{ useCase: 'customer support' },
-					context,
-				)
+				const result = await agentSuggestToolsTool.execute({ useCase: 'customer support' }, context)
 
 				expect(result.success).toBe(true)
 				expect(result.data?.reasoning).toBeTruthy()
@@ -670,10 +657,7 @@ describe('Agent Builder Tools', () => {
 			})
 
 			it('includes tool details in suggestions', async () => {
-				const result = await agentSuggestToolsTool.execute(
-					{ useCase: 'research' },
-					context,
-				)
+				const result = await agentSuggestToolsTool.execute({ useCase: 'research' }, context)
 
 				expect(result.success).toBe(true)
 				const tool = result.data?.suggestedTools[0]

@@ -2,11 +2,11 @@
  * Agent routes - combines CRUD, deployment, and validation routes
  */
 
+import type { WorkspaceEnv } from '@hare/types'
 import { OpenAPIHono } from '@hono/zod-openapi'
 import { crudApp } from './crud'
 import { deploymentApp } from './deployment'
 import { validationApp } from './validation'
-import type { WorkspaceEnv } from '@hare/types'
 
 // Create the combined app
 const app = new OpenAPIHono<WorkspaceEnv>()

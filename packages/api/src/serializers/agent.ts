@@ -1,5 +1,5 @@
-import type { InferSelectModel } from 'drizzle-orm'
 import type { agents } from '@hare/db'
+import type { InferSelectModel } from 'drizzle-orm'
 
 type AgentRow = InferSelectModel<typeof agents>
 

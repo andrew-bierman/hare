@@ -7,9 +7,9 @@
  * - Token usage (total tokens consumed)
  */
 
-import { and, count, eq, gte, sql } from 'drizzle-orm'
-import { agents, usage } from '@hare/db/schema'
 import type { Database } from '@hare/db'
+import { agents, usage } from '@hare/db/schema'
+import { and, count, eq, gte, sql } from 'drizzle-orm'
 
 // =============================================================================
 // Types

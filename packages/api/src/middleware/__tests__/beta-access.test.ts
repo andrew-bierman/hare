@@ -1,6 +1,6 @@
-import { describe, expect, it, vi, beforeEach } from 'vitest'
-import { Hono } from 'hono'
 import type { AuthEnv } from '@hare/types'
+import { Hono } from 'hono'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 // We need to mock the config before importing the middleware
 vi.mock('@hare/config', async () => {

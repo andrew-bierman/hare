@@ -8,11 +8,11 @@
  * because it uses the 'agents/mcp' package which depends on 'cloudflare:workers'.
  */
 
+import { getSystemTools, type HareEnv, type ToolContext, ToolRegistry } from '@hare/tools'
+import { DEFAULT_MCP_AGENT_STATE, type McpAgentState } from '@hare/types'
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { McpAgent } from 'agents/mcp'
 import { toJSONSchema } from 'zod/v4'
-import { type HareEnv, type ToolContext, getSystemTools, ToolRegistry } from '@hare/tools'
-import { DEFAULT_MCP_AGENT_STATE, type McpAgentState } from '@hare/types'
 
 // Re-export types for convenience
 export type { McpAgentState }
@@ -103,7 +103,11 @@ export class HareMcpAgent<TEnv extends McpAgentEnv = McpAgentEnv> extends McpAge
 			this.server.tool(toolId, tool.description, inputSchema, async (params: unknown) => {
 				// Create fresh context with current workspaceId for each tool execution
 				const executionContext = this.createToolContext()
-				const result = await this.toolRegistry.execute({ id: toolId, params, context: executionContext })
+				const result = await this.toolRegistry.execute({
+					id: toolId,
+					params,
+					context: executionContext,
+				})
 
 				if (result.success) {
 					return {

@@ -170,12 +170,7 @@ export const SubscriptionStatusSchema = z
  */
 export const BillingUsageSchema = z
 	.object({
-		agentsUsed: z
-			.number()
-			.int()
-			.min(0)
-			.describe('Number of active agents')
-			.openapi({ example: 5 }),
+		agentsUsed: z.number().int().min(0).describe('Number of active agents').openapi({ example: 5 }),
 		agentsLimit: z
 			.number()
 			.int()
@@ -301,8 +296,8 @@ export const PaymentHistoryResponseSchema = z
  */
 export const PaymentHistoryQuerySchema = z
 	.object({
-		limit: z
-			.coerce.number()
+		limit: z.coerce
+			.number()
 			.int()
 			.min(1)
 			.max(100)

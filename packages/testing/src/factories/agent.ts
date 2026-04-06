@@ -2,8 +2,8 @@
  * Agent factory for creating test agent data.
  */
 
-import { createId } from '@hare/db'
 import type { AgentStatus } from '@hare/config'
+import { createId } from '@hare/db'
 
 /**
  * Agent config type matching the database schema.

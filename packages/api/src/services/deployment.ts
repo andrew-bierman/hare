@@ -8,9 +8,9 @@
  * - Health monitoring integration
  */
 
-import { desc, eq } from 'drizzle-orm'
-import { agents, deployments, type Database } from '@hare/db'
 import { serverEnv } from '@hare/config'
+import { agents, type Database, deployments } from '@hare/db'
+import { desc, eq } from 'drizzle-orm'
 
 // =============================================================================
 // Constants

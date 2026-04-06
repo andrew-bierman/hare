@@ -4,13 +4,20 @@
  * Handles workspace member and invitation management with full type safety.
  */
 
-import { z } from 'zod'
-import { and, eq } from 'drizzle-orm'
+import { config, INVITATION_STATUSES, MEMBER_ROLES, WORKSPACE_ROLES } from '@hare/config'
 import { users, workspaceInvitations, workspaceMembers, workspaces } from '@hare/db/schema'
-import { config, WORKSPACE_ROLES, MEMBER_ROLES, INVITATION_STATUSES } from '@hare/config'
-import { requireWrite, requireAdmin, notFound, badRequest, serverError, type WorkspaceContext } from '../base'
+import { and, eq } from 'drizzle-orm'
+import { z } from 'zod'
+import { IdParamSchema, SuccessSchema } from '../../schemas'
 import { logAudit } from '../audit'
-import { SuccessSchema, IdParamSchema } from '../../schemas'
+import {
+	badRequest,
+	notFound,
+	requireAdmin,
+	requireWrite,
+	serverError,
+	type WorkspaceContext,
+} from '../base'
 
 // =============================================================================
 // Type-Safe Schemas
@@ -194,7 +201,10 @@ export const sendInvitation = requireAdmin
 				.select()
 				.from(workspaceMembers)
 				.where(
-					and(eq(workspaceMembers.workspaceId, workspaceId), eq(workspaceMembers.userId, existingUser.id)),
+					and(
+						eq(workspaceMembers.workspaceId, workspaceId),
+						eq(workspaceMembers.userId, existingUser.id),
+					),
 				)
 
 			if (existingMember) {
@@ -287,7 +297,10 @@ export const listInvitations = requireAdmin
 			.from(workspaceInvitations)
 			.innerJoin(users, eq(workspaceInvitations.invitedBy, users.id))
 			.where(
-				and(eq(workspaceInvitations.workspaceId, input.id), eq(workspaceInvitations.status, 'pending')),
+				and(
+					eq(workspaceInvitations.workspaceId, input.id),
+					eq(workspaceInvitations.status, 'pending'),
+				),
 			)
 
 		return {
@@ -371,7 +384,9 @@ export const removeMember = requireWrite
 			})
 			.from(workspaceMembers)
 			.innerJoin(users, eq(workspaceMembers.userId, users.id))
-			.where(and(eq(workspaceMembers.workspaceId, input.id), eq(workspaceMembers.userId, input.userId)))
+			.where(
+				and(eq(workspaceMembers.workspaceId, input.id), eq(workspaceMembers.userId, input.userId)),
+			)
 
 		if (!member) notFound('Member not found')
 
@@ -422,7 +437,9 @@ export const updateMemberRole = requireAdmin
 			})
 			.from(workspaceMembers)
 			.innerJoin(users, eq(workspaceMembers.userId, users.id))
-			.where(and(eq(workspaceMembers.workspaceId, workspaceId), eq(workspaceMembers.userId, userId)))
+			.where(
+				and(eq(workspaceMembers.workspaceId, workspaceId), eq(workspaceMembers.userId, userId)),
+			)
 
 		if (!member) notFound('Member not found')
 

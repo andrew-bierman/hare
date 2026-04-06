@@ -6,56 +6,55 @@
 
 // Base exports
 export {
-	publicProcedure,
-	authedProcedure,
-	workspaceProcedure,
-	requireViewer,
-	requireMember,
-	requireWrite,
-	requireAdmin,
-	requireOwner,
-	notFound,
-	badRequest,
-	serverError,
-	type BaseContext,
 	type AuthContext,
+	authedProcedure,
+	type BaseContext,
+	badRequest,
+	notFound,
+	publicProcedure,
+	requireAdmin,
+	requireMember,
+	requireOwner,
+	requireViewer,
+	requireWrite,
+	serverError,
 	type WorkspaceContext,
+	workspaceProcedure,
 } from './base'
 
 // Note: Schemas are exported from ../schemas, not re-exported here to avoid conflicts
 
-// Router exports
-export { appRouter, type AppRouter } from './routers'
-export {
-	agentsRouter,
-	toolsRouter,
-	apiKeysRouter,
-	workspacesRouter,
-	schedulesRouter,
-	auditLogsRouter,
-} from './routers'
-
+// Audit logging utility
+export { type LogAuditInput, logAudit } from './audit'
 // Client exports - the main way to use oRPC from the frontend
 export {
-	orpc,
-	setOrpcWorkspaceId,
-	getOrpcWorkspaceId,
-	type AppRouterClient,
 	type AgentsClient,
-	type ToolsClient,
-	type ApiKeysClient,
-	type WorkspacesClient,
-	type SchedulesClient,
-	type UsageClient,
 	type AnalyticsClient,
+	type ApiKeysClient,
+	type AppRouterClient,
+	type AuditLogsClient,
+	type BillingClient,
+	type ChatClient,
+	getOrpcWorkspaceId,
 	type LogsClient,
 	type MemoryClient,
-	type ChatClient,
-	type BillingClient,
+	orpc,
+	type SchedulesClient,
+	setOrpcWorkspaceId,
+	type ToolsClient,
+	type UsageClient,
 	type UserSettingsClient,
 	type WorkspaceMembersClient,
-	type AuditLogsClient,
+	type WorkspacesClient,
 } from './client'
-
-// Audit logging utility
-export { logAudit, type LogAuditInput } from './audit'
+// Router exports
+export {
+	type AppRouter,
+	agentsRouter,
+	apiKeysRouter,
+	appRouter,
+	auditLogsRouter,
+	schedulesRouter,
+	toolsRouter,
+	workspacesRouter,
+} from './routers'

@@ -15,6 +15,9 @@
  * ```
  */
 
+import { serverEnv } from '@hare/config'
+import { requestValidation } from '@hare/security'
+import type { HonoEnv } from '@hare/types'
 import { OpenAPIHono } from '@hono/zod-openapi'
 import { apiReference } from '@scalar/hono-api-reference'
 import { getRouterName, showRoutes } from 'hono/dev'
@@ -22,8 +25,6 @@ import { logger } from 'hono/logger'
 import { requestId } from 'hono/request-id'
 import { secureHeaders } from 'hono/secure-headers'
 import { timing } from 'hono/timing'
-import { serverEnv } from '@hare/config'
-import { requestValidation } from '@hare/security'
 import { CloudflareEnvError } from './db'
 import {
 	corsMiddleware,
@@ -37,7 +38,6 @@ import auth from './routes/auth'
 import billingWebhook from './routes/billing'
 import dev from './routes/dev'
 import mcp from './routes/mcp'
-import type { HonoEnv } from '@hare/types'
 
 // =============================================================================
 // ROUTE TYPE EXPORTS (for Hono RPC clients)
@@ -121,9 +121,18 @@ app.doc('/openapi.json', {
 		},
 	],
 	tags: [
-		{ name: 'Authentication', description: 'User authentication and session management (Better Auth)' },
-		{ name: 'Agent WebSocket', description: 'Real-time WebSocket connections to Cloudflare Agents (Durable Objects)' },
-		{ name: 'MCP', description: 'Model Context Protocol for external AI clients (Durable Objects)' },
+		{
+			name: 'Authentication',
+			description: 'User authentication and session management (Better Auth)',
+		},
+		{
+			name: 'Agent WebSocket',
+			description: 'Real-time WebSocket connections to Cloudflare Agents (Durable Objects)',
+		},
+		{
+			name: 'MCP',
+			description: 'Model Context Protocol for external AI clients (Durable Objects)',
+		},
 		{ name: 'Billing Webhook', description: 'Stripe webhook handler' },
 		// All other routes (Agents, Tools, Workspaces, API Keys, Schedules, Usage, Analytics, Logs,
 		// User Settings, Memory, Chat, Health, Embed, Webhooks, Billing) are on oRPC at /api/rpc/*
@@ -161,6 +170,15 @@ export { app }
 // Type for RPC client
 export type AppType = typeof routes
 
+// Re-export email service and templates from @hare/email
+export {
+	createEmailService,
+	type EmailEnv,
+	type EmailResult,
+	EmailService,
+	PasswordResetEmail,
+	WorkspaceInvitationEmail,
+} from '@hare/email'
 // Re-export types from @hare/types (canonical source)
 export type {
 	Agent,
@@ -204,21 +222,17 @@ export type {
 	Workspace,
 	WorkspaceEnv,
 	WorkspaceInfo,
-	WorkspaceMember,
 	WorkspaceInvitation,
+	WorkspaceMember,
 	WorkspaceRole,
 	WorkspaceVariables,
 } from '@hare/types'
-
 // Re-export type guards from @hare/types
 export { isMessageRole, isWorkspaceRole } from '@hare/types'
-
-// Re-export schemas
-export * from './schemas'
-
-// Re-export oRPC
-export * from './orpc'
-
+// Re-export db utilities
+export { CloudflareEnvError, getCloudflareEnv, getD1, getDb } from './db'
+// Re-export helpers
+export { acceptsJson, acceptsSSE } from './helpers'
 // Re-export middleware
 export {
 	apiKeyMiddleware,
@@ -231,6 +245,7 @@ export {
 	hasScope,
 	loggingMiddleware,
 	optionalAuthMiddleware,
+	type RequestSizeLimitOptions,
 	requestSizeLimit,
 	requestValidation,
 	requireContentType,
@@ -238,21 +253,8 @@ export {
 	securityHeadersMiddleware,
 	validateJsonBody,
 	workspaceMiddleware,
-	type RequestSizeLimitOptions,
 } from './middleware'
-
-// Re-export helpers
-export { acceptsJson, acceptsSSE } from './helpers'
-
-// Re-export db utilities
-export { CloudflareEnvError, getCloudflareEnv, getD1, getDb } from './db'
-
-// Re-export email service and templates from @hare/email
-export {
-	createEmailService,
-	EmailService,
-	PasswordResetEmail,
-	WorkspaceInvitationEmail,
-	type EmailEnv,
-	type EmailResult,
-} from '@hare/email'
+// Re-export oRPC
+export * from './orpc'
+// Re-export schemas
+export * from './schemas'

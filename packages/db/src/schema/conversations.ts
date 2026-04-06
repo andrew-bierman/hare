@@ -1,10 +1,10 @@
-import { MESSAGE_ROLES, MessageRole } from '@hare/config'
-import { createId } from '../id'
+import { MESSAGE_ROLES, type MessageRole } from '@hare/config'
+import type { MessageMetadata } from '@hare/types'
 import { index, integer, sqliteTable, text } from 'drizzle-orm/sqlite-core'
+import { createId } from '../id'
 import { agents } from './agents'
 import { users } from './auth'
 import { workspaces } from './workspaces'
-import type { MessageMetadata } from '@hare/types'
 
 export const conversations = sqliteTable(
 	'conversations',

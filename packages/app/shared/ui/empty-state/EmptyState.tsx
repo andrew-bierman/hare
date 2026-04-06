@@ -1,10 +1,10 @@
 'use client'
 
+import { Button } from '@hare/ui/components/button'
+import { Card, CardContent } from '@hare/ui/components/card'
+import { cn } from '@hare/ui/lib/utils'
 import type { LucideIcon } from 'lucide-react'
 import type { ReactNode } from 'react'
-import { Card, CardContent } from '@hare/ui/components/card'
-import { Button } from '@hare/ui/components/button'
-import { cn } from '@hare/ui/lib/utils'
 
 export interface EmptyStateAction {
 	label: string
@@ -113,7 +113,10 @@ export function EmptyState({
 		if (actionConfig.href) {
 			return (
 				<a href={actionConfig.href} className={isPrimary ? 'w-full sm:w-auto' : ''}>
-					<Button variant={buttonVariant} className={cn('gap-2 h-11', isPrimary && 'w-full sm:w-auto')}>
+					<Button
+						variant={buttonVariant}
+						className={cn('gap-2 h-11', isPrimary && 'w-full sm:w-auto')}
+					>
 						{ActionIcon && <ActionIcon className="h-4 w-4" />}
 						{actionConfig.label}
 					</Button>
@@ -135,7 +138,9 @@ export function EmptyState({
 
 	return (
 		<Card className={cn(borderClass, className)}>
-			<CardContent className={cn('flex flex-col items-center justify-center text-center', config.container)}>
+			<CardContent
+				className={cn('flex flex-col items-center justify-center text-center', config.container)}
+			>
 				<div
 					className={cn(
 						'flex items-center justify-center rounded-xl',
@@ -150,12 +155,14 @@ export function EmptyState({
 				<h3 className={cn(config.title, 'mb-2')}>{title}</h3>
 
 				{description && (
-					<p className={cn(config.description, 'text-muted-foreground max-w-xs mb-6')}>{description}</p>
+					<p className={cn(config.description, 'text-muted-foreground max-w-xs mb-6')}>
+						{description}
+					</p>
 				)}
 
 				{children ? (
 					children
-				) : (action || secondaryAction) ? (
+				) : action || secondaryAction ? (
 					<div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
 						{action && renderAction(action, true)}
 						{secondaryAction && renderAction(secondaryAction, false)}

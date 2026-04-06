@@ -38,7 +38,15 @@ export const authClient = createHareAuthClient({
 })
 
 // Re-export commonly used auth methods from default client
-export const { signIn, signUp, signOut, useSession, getSession, requestPasswordReset, resetPassword } = authClient
+export const {
+	signIn,
+	signUp,
+	signOut,
+	useSession,
+	getSession,
+	requestPasswordReset,
+	resetPassword,
+} = authClient
 
 /**
  * Update user profile (name, image)

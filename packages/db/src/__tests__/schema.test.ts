@@ -16,14 +16,15 @@
  */
 
 import { env } from 'cloudflare:test'
-import { eq, sum, count } from 'drizzle-orm'
+import type { MessageMetadata } from '@hare/types'
+import { count, eq, sum } from 'drizzle-orm'
 import { beforeAll, describe, expect, it } from 'vitest'
 import { createDb } from '../client'
 import { createId } from '../id'
 import {
 	agents,
-	agentVersions,
 	agentTools,
+	agentVersions,
 	apiKeys,
 	conversations,
 	messages,
@@ -37,7 +38,6 @@ import {
 	workspaces,
 } from '../schema'
 import { insertAgentSchema, insertUserSchema, insertWorkspaceSchema } from '../schema/zod'
-import type { MessageMetadata } from '@hare/types'
 
 // Augment the cloudflare:test module with the bindings we use
 declare module 'cloudflare:test' {

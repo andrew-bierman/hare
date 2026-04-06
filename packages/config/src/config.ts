@@ -16,7 +16,12 @@ type SpeedTier = 'fast' | 'medium' | 'slow'
 type CostTier = 'free' | 'low' | 'medium' | 'high'
 type ResponseStyle = 'precise' | 'balanced' | 'creative'
 type SystemToolType = 'http' | 'sql' | 'kv' | 'r2' | 'search' | 'browser'
-type AgentTemplateId = 'customer-support' | 'knowledge-base' | 'sales-assistant' | 'general-assistant' | 'agent-builder'
+type AgentTemplateId =
+	| 'customer-support'
+	| 'knowledge-base'
+	| 'sales-assistant'
+	| 'general-assistant'
+	| 'agent-builder'
 
 interface AIModel {
 	id: string
@@ -81,11 +86,7 @@ export const config = {
 		branding: {
 			icon: 'Rabbit',
 			tagline: 'Fast as a hare',
-			mottos: [
-				'Hop into production',
-				'Quick as a bunny',
-				'Built for speed - just like a hare',
-			],
+			mottos: ['Hop into production', 'Quick as a bunny', 'Built for speed - just like a hare'],
 		},
 	},
 
@@ -209,15 +210,36 @@ export const config = {
 				'workers-ai': 'Cloudflare Workers AI',
 			} as Record<ModelProvider, string>,
 			speed: {
-				fast: { label: 'Fast', color: 'text-green-600 bg-green-100 dark:text-green-400 dark:bg-green-900/30' },
-				medium: { label: 'Medium', color: 'text-amber-600 bg-amber-100 dark:text-amber-400 dark:bg-amber-900/30' },
-				slow: { label: 'Slow', color: 'text-red-600 bg-red-100 dark:text-red-400 dark:bg-red-900/30' },
+				fast: {
+					label: 'Fast',
+					color: 'text-green-600 bg-green-100 dark:text-green-400 dark:bg-green-900/30',
+				},
+				medium: {
+					label: 'Medium',
+					color: 'text-amber-600 bg-amber-100 dark:text-amber-400 dark:bg-amber-900/30',
+				},
+				slow: {
+					label: 'Slow',
+					color: 'text-red-600 bg-red-100 dark:text-red-400 dark:bg-red-900/30',
+				},
 			} as Record<SpeedTier, { label: string; color: string }>,
 			cost: {
-				free: { label: 'Free', color: 'text-emerald-600 bg-emerald-100 dark:text-emerald-400 dark:bg-emerald-900/30' },
-				low: { label: 'Low Cost', color: 'text-blue-600 bg-blue-100 dark:text-blue-400 dark:bg-blue-900/30' },
-				medium: { label: 'Medium Cost', color: 'text-amber-600 bg-amber-100 dark:text-amber-400 dark:bg-amber-900/30' },
-				high: { label: 'Premium', color: 'text-violet-600 bg-violet-100 dark:text-violet-400 dark:bg-violet-900/30' },
+				free: {
+					label: 'Free',
+					color: 'text-emerald-600 bg-emerald-100 dark:text-emerald-400 dark:bg-emerald-900/30',
+				},
+				low: {
+					label: 'Low Cost',
+					color: 'text-blue-600 bg-blue-100 dark:text-blue-400 dark:bg-blue-900/30',
+				},
+				medium: {
+					label: 'Medium Cost',
+					color: 'text-amber-600 bg-amber-100 dark:text-amber-400 dark:bg-amber-900/30',
+				},
+				high: {
+					label: 'Premium',
+					color: 'text-violet-600 bg-violet-100 dark:text-violet-400 dark:bg-violet-900/30',
+				},
 			} as Record<CostTier, { label: string; color: string }>,
 		},
 	},
@@ -535,10 +557,28 @@ Be helpful, patient, and educational. Explain your recommendations. Make the pro
 	enums: {
 		// Status enums
 		agentStatus: { DRAFT: 'draft', DEPLOYED: 'deployed', ARCHIVED: 'archived' } as const,
-		deploymentStatus: { DEPLOYED: 'deployed', ACTIVE: 'active', PENDING: 'pending', FAILED: 'failed', INACTIVE: 'inactive', ROLLED_BACK: 'rolled_back' } as const,
-		scheduleStatus: { PENDING: 'pending', ACTIVE: 'active', PAUSED: 'paused', COMPLETED: 'completed', CANCELLED: 'cancelled' } as const,
+		deploymentStatus: {
+			DEPLOYED: 'deployed',
+			ACTIVE: 'active',
+			PENDING: 'pending',
+			FAILED: 'failed',
+			INACTIVE: 'inactive',
+			ROLLED_BACK: 'rolled_back',
+		} as const,
+		scheduleStatus: {
+			PENDING: 'pending',
+			ACTIVE: 'active',
+			PAUSED: 'paused',
+			COMPLETED: 'completed',
+			CANCELLED: 'cancelled',
+		} as const,
 		executionStatus: { RUNNING: 'running', COMPLETED: 'completed', FAILED: 'failed' } as const,
-		invitationStatus: { PENDING: 'pending', ACCEPTED: 'accepted', EXPIRED: 'expired', REVOKED: 'revoked' } as const,
+		invitationStatus: {
+			PENDING: 'pending',
+			ACCEPTED: 'accepted',
+			EXPIRED: 'expired',
+			REVOKED: 'revoked',
+		} as const,
 
 		// Role enums
 		workspaceRole: { OWNER: 'owner', ADMIN: 'admin', MEMBER: 'member', VIEWER: 'viewer' } as const,
@@ -552,7 +592,15 @@ Be helpful, patient, and educational. Explain your recommendations. Make the pro
 		usageGroupBy: { DAY: 'day', WEEK: 'week', MONTH: 'month' } as const,
 
 		// HTTP methods
-		httpMethod: { GET: 'GET', POST: 'POST', PUT: 'PUT', PATCH: 'PATCH', DELETE: 'DELETE', HEAD: 'HEAD', OPTIONS: 'OPTIONS' } as const,
+		httpMethod: {
+			GET: 'GET',
+			POST: 'POST',
+			PUT: 'PUT',
+			PATCH: 'PATCH',
+			DELETE: 'DELETE',
+			HEAD: 'HEAD',
+			OPTIONS: 'OPTIONS',
+		} as const,
 
 		// Environment
 		nodeEnv: { DEVELOPMENT: 'development', PRODUCTION: 'production', TEST: 'test' } as const,
@@ -561,7 +609,12 @@ Be helpful, patient, and educational. Explain your recommendations. Make the pro
 		planId: { FREE: 'free', PRO: 'pro', TEAM: 'team', ENTERPRISE: 'enterprise' } as const,
 
 		// Widget
-		widgetPosition: { BOTTOM_RIGHT: 'bottom-right', BOTTOM_LEFT: 'bottom-left', TOP_RIGHT: 'top-right', TOP_LEFT: 'top-left' } as const,
+		widgetPosition: {
+			BOTTOM_RIGHT: 'bottom-right',
+			BOTTOM_LEFT: 'bottom-left',
+			TOP_RIGHT: 'top-right',
+			TOP_LEFT: 'top-left',
+		} as const,
 
 		// Audit actions
 		auditAction: {
@@ -591,18 +644,72 @@ Be helpful, patient, and educational. Explain your recommendations. Make the pro
 
 		// Tool types
 		toolType: {
-			HTTP: 'http', SQL: 'sql', KV: 'kv', R2: 'r2', SEARCH: 'search',
-			DATETIME: 'datetime', JSON: 'json', TEXT: 'text', MATH: 'math', UUID: 'uuid', HASH: 'hash', BASE64: 'base64', URL: 'url', DELAY: 'delay',
-			ZAPIER: 'zapier', WEBHOOK: 'webhook', SLACK: 'slack', DISCORD: 'discord', EMAIL: 'email', TEAMS: 'teams', TWILIO_SMS: 'twilio_sms', MAKE: 'make', N8N: 'n8n',
-			SENTIMENT: 'sentiment', SUMMARIZE: 'summarize', TRANSLATE: 'translate', IMAGE_GENERATE: 'image_generate', CLASSIFY: 'classify', NER: 'ner', EMBEDDING: 'embedding', QUESTION_ANSWER: 'question_answer',
-			RSS: 'rss', SCRAPE: 'scrape', REGEX: 'regex', CRYPTO: 'crypto', JSON_SCHEMA: 'json_schema', CSV: 'csv', TEMPLATE: 'template',
-			CODE_EXECUTE: 'code_execute', CODE_VALIDATE: 'code_validate', SANDBOX_FILE: 'sandbox_file',
-			VALIDATE_EMAIL: 'validate_email', VALIDATE_PHONE: 'validate_phone', VALIDATE_URL: 'validate_url', VALIDATE_CREDIT_CARD: 'validate_credit_card', VALIDATE_IP: 'validate_ip', VALIDATE_JSON: 'validate_json',
-			MARKDOWN: 'markdown', DIFF: 'diff', QRCODE: 'qrcode', COMPRESSION: 'compression', COLOR: 'color',
+			HTTP: 'http',
+			SQL: 'sql',
+			KV: 'kv',
+			R2: 'r2',
+			SEARCH: 'search',
+			DATETIME: 'datetime',
+			JSON: 'json',
+			TEXT: 'text',
+			MATH: 'math',
+			UUID: 'uuid',
+			HASH: 'hash',
+			BASE64: 'base64',
+			URL: 'url',
+			DELAY: 'delay',
+			ZAPIER: 'zapier',
+			WEBHOOK: 'webhook',
+			SLACK: 'slack',
+			DISCORD: 'discord',
+			EMAIL: 'email',
+			TEAMS: 'teams',
+			TWILIO_SMS: 'twilio_sms',
+			MAKE: 'make',
+			N8N: 'n8n',
+			SENTIMENT: 'sentiment',
+			SUMMARIZE: 'summarize',
+			TRANSLATE: 'translate',
+			IMAGE_GENERATE: 'image_generate',
+			CLASSIFY: 'classify',
+			NER: 'ner',
+			EMBEDDING: 'embedding',
+			QUESTION_ANSWER: 'question_answer',
+			RSS: 'rss',
+			SCRAPE: 'scrape',
+			REGEX: 'regex',
+			CRYPTO: 'crypto',
+			JSON_SCHEMA: 'json_schema',
+			CSV: 'csv',
+			TEMPLATE: 'template',
+			CODE_EXECUTE: 'code_execute',
+			CODE_VALIDATE: 'code_validate',
+			SANDBOX_FILE: 'sandbox_file',
+			VALIDATE_EMAIL: 'validate_email',
+			VALIDATE_PHONE: 'validate_phone',
+			VALIDATE_URL: 'validate_url',
+			VALIDATE_CREDIT_CARD: 'validate_credit_card',
+			VALIDATE_IP: 'validate_ip',
+			VALIDATE_JSON: 'validate_json',
+			MARKDOWN: 'markdown',
+			DIFF: 'diff',
+			QRCODE: 'qrcode',
+			COMPRESSION: 'compression',
+			COLOR: 'color',
 			CUSTOM: 'custom',
 		} as const,
 
-		toolCategory: { CLOUDFLARE: 'cloudflare', UTILITY: 'utility', INTEGRATIONS: 'integrations', AI: 'ai', DATA: 'data', SANDBOX: 'sandbox', VALIDATION: 'validation', TRANSFORM: 'transform', CUSTOM: 'custom' } as const,
+		toolCategory: {
+			CLOUDFLARE: 'cloudflare',
+			UTILITY: 'utility',
+			INTEGRATIONS: 'integrations',
+			AI: 'ai',
+			DATA: 'data',
+			SANDBOX: 'sandbox',
+			VALIDATION: 'validation',
+			TRANSFORM: 'transform',
+			CUSTOM: 'custom',
+		} as const,
 	},
 
 	// =========================================================================
@@ -638,12 +745,27 @@ Be helpful, patient, and educational. Explain your recommendations. Make the pro
 			colors: {
 				defaultPrimary: '#6366f1',
 				dark: {
-					bg: '#1a1a1a', border: '#333', secondaryBg: '#222', inputBg: '#222', inputBorder: '#444',
-					text: '#888', textLight: '#ccc', messageBg: '#333', assistantBg: '#333', footerText: '#666',
+					bg: '#1a1a1a',
+					border: '#333',
+					secondaryBg: '#222',
+					inputBg: '#222',
+					inputBorder: '#444',
+					text: '#888',
+					textLight: '#ccc',
+					messageBg: '#333',
+					assistantBg: '#333',
+					footerText: '#666',
 				},
 				light: {
-					bg: '#ffffff', border: '#e5e5e5', secondaryBg: '#fafafa', inputBg: '#f5f5f5', inputBorder: '#e0e0e0',
-					text: '#666', messageBg: '#f0f0f0', assistantBg: '#e5e5e5', footerText: '#999',
+					bg: '#ffffff',
+					border: '#e5e5e5',
+					secondaryBg: '#fafafa',
+					inputBg: '#f5f5f5',
+					inputBorder: '#e0e0e0',
+					text: '#666',
+					messageBg: '#f0f0f0',
+					assistantBg: '#e5e5e5',
+					footerText: '#999',
 				},
 				error: { bg: '#fee2e2', text: '#dc2626' },
 			},
@@ -655,13 +777,38 @@ Be helpful, patient, and educational. Explain your recommendations. Make the pro
 			],
 		},
 		text: {
-			loading: 'Loading...', saving: 'Saving...', deleting: 'Deleting...', deploying: 'Deploying...',
-			save: 'Save', cancel: 'Cancel', delete: 'Delete', edit: 'Edit', create: 'Create', deploy: 'Deploy',
-			duplicate: 'Duplicate', back: 'Back', next: 'Next', done: 'Done', confirm: 'Confirm', close: 'Close',
-			search: 'Search', filter: 'Filter', sort: 'Sort', refresh: 'Refresh', copy: 'Copy', copied: 'Copied!',
-			viewAll: 'View all', learnMore: 'Learn more', getStarted: 'Get Started',
-			signIn: 'Sign In', signUp: 'Sign Up', signOut: 'Sign Out', profile: 'Profile', settings: 'Settings',
-			tools: 'tools', noDescription: 'No description provided',
+			loading: 'Loading...',
+			saving: 'Saving...',
+			deleting: 'Deleting...',
+			deploying: 'Deploying...',
+			save: 'Save',
+			cancel: 'Cancel',
+			delete: 'Delete',
+			edit: 'Edit',
+			create: 'Create',
+			deploy: 'Deploy',
+			duplicate: 'Duplicate',
+			back: 'Back',
+			next: 'Next',
+			done: 'Done',
+			confirm: 'Confirm',
+			close: 'Close',
+			search: 'Search',
+			filter: 'Filter',
+			sort: 'Sort',
+			refresh: 'Refresh',
+			copy: 'Copy',
+			copied: 'Copied!',
+			viewAll: 'View all',
+			learnMore: 'Learn more',
+			getStarted: 'Get Started',
+			signIn: 'Sign In',
+			signUp: 'Sign Up',
+			signOut: 'Sign Out',
+			profile: 'Profile',
+			settings: 'Settings',
+			tools: 'tools',
+			noDescription: 'No description provided',
 		},
 	},
 
@@ -680,26 +827,53 @@ Be helpful, patient, and educational. Explain your recommendations. Make the pro
 	// =========================================================================
 	http: {
 		status: {
-			OK: 200, CREATED: 201, NO_CONTENT: 204, BAD_REQUEST: 400, UNAUTHORIZED: 401,
-			FORBIDDEN: 403, NOT_FOUND: 404, TOO_MANY_REQUESTS: 429, INTERNAL_SERVER_ERROR: 500,
+			OK: 200,
+			CREATED: 201,
+			NO_CONTENT: 204,
+			BAD_REQUEST: 400,
+			UNAUTHORIZED: 401,
+			FORBIDDEN: 403,
+			NOT_FOUND: 404,
+			TOO_MANY_REQUESTS: 429,
+			INTERNAL_SERVER_ERROR: 500,
 		},
 		chatStream: { TEXT: 'text', DONE: 'done', ERROR: 'error' },
-		widget: { READY: 'hare:widget:ready', CLOSE: 'hare:widget:close', SEND: 'hare:widget:send', TOGGLE: 'hare:widget:toggle' },
+		widget: {
+			READY: 'hare:widget:ready',
+			CLOSE: 'hare:widget:close',
+			SEND: 'hare:widget:send',
+			TOGGLE: 'hare:widget:toggle',
+		},
 	},
 
 	// =========================================================================
 	// Cookies Configuration
 	// =========================================================================
 	cookies: {
-		names: { SESSION: 'hare_session', PREFERENCES: 'hare_prefs', THEME: 'hare_theme', WORKSPACE: 'hare_workspace' },
-		config: { sessionExpirySeconds: 60 * 60 * 24 * 7, workspaceExpirySeconds: 60 * 60 * 24 * 30, defaultPath: '/' },
+		names: {
+			SESSION: 'hare_session',
+			PREFERENCES: 'hare_prefs',
+			THEME: 'hare_theme',
+			WORKSPACE: 'hare_workspace',
+		},
+		config: {
+			sessionExpirySeconds: 60 * 60 * 24 * 7,
+			workspaceExpirySeconds: 60 * 60 * 24 * 30,
+			defaultPath: '/',
+		},
 	},
 
 	// =========================================================================
 	// Security Configuration
 	// =========================================================================
 	security: {
-		encryption: { pbkdf2Iterations: 100000, ivSize: 12, saltSize: 16, aesKeyLength: 256, defaultSecretLength: 32 },
+		encryption: {
+			pbkdf2Iterations: 100000,
+			ivSize: 12,
+			saltSize: 16,
+			aesKeyLength: 256,
+			defaultSecretLength: 32,
+		},
 		apiKey: { prefix: 'hare_', prefixDisplayLength: 12, randomBytes: 32 },
 	},
 
@@ -751,7 +925,8 @@ Be helpful, patient, and educational. Explain your recommendations. Make the pro
 				title: 'Build & Deploy',
 				titleHighlight: 'AI Agents',
 				titleSuffix: 'at the Edge',
-				description: 'The fastest way to create, deploy, and scale AI agents. Open source and self-hostable.',
+				description:
+					'The fastest way to create, deploy, and scale AI agents. Open source and self-hostable.',
 				primaryCta: 'Start Building Free',
 				secondaryCta: 'Live Demo',
 			},
@@ -767,12 +942,37 @@ Be helpful, patient, and educational. Explain your recommendations. Make the pro
 				{ label: '<50ms Latency', icon: 'Zap' },
 			],
 			features: [
-				{ title: 'Agent Configuration', description: 'Set up agent behavior, tools, and capabilities with our streamlined interface.', icon: 'Boxes' },
-				{ title: 'Instant Deployment', description: "Deploy to Cloudflare's global edge network in seconds.", icon: 'Cloud' },
-				{ title: 'Built-in Tools', description: 'SQL, HTTP, KV, R2, and vector search ready to go.', icon: 'Layers' },
-				{ title: 'Developer SDK', description: 'Full TypeScript SDK with type-safe APIs.', icon: 'Code' },
-				{ title: 'Real-time Streaming', description: 'Stream responses with built-in WebSocket support.', icon: 'MessageSquare' },
-				{ title: 'Enterprise Security', description: 'Security-first architecture with end-to-end encryption.', icon: 'Shield' },
+				{
+					title: 'Agent Configuration',
+					description:
+						'Set up agent behavior, tools, and capabilities with our streamlined interface.',
+					icon: 'Boxes',
+				},
+				{
+					title: 'Instant Deployment',
+					description: "Deploy to Cloudflare's global edge network in seconds.",
+					icon: 'Cloud',
+				},
+				{
+					title: 'Built-in Tools',
+					description: 'SQL, HTTP, KV, R2, and vector search ready to go.',
+					icon: 'Layers',
+				},
+				{
+					title: 'Developer SDK',
+					description: 'Full TypeScript SDK with type-safe APIs.',
+					icon: 'Code',
+				},
+				{
+					title: 'Real-time Streaming',
+					description: 'Stream responses with built-in WebSocket support.',
+					icon: 'MessageSquare',
+				},
+				{
+					title: 'Enterprise Security',
+					description: 'Security-first architecture with end-to-end encryption.',
+					icon: 'Shield',
+				},
 			],
 			steps: [
 				{ title: 'Define', description: 'Configure your agent', icon: 'Bot' },
@@ -797,19 +997,29 @@ await agent.deploy()`,
 		},
 		auth: {
 			signIn: {
-				title: 'Welcome back', subtitle: 'Sign in to your account to continue',
-				submitButton: 'Sign In', loadingButton: 'Signing in...',
-				forgotPassword: 'Forgot password?', noAccount: "Don't have an account?", signUpLink: 'Sign up',
+				title: 'Welcome back',
+				subtitle: 'Sign in to your account to continue',
+				submitButton: 'Sign In',
+				loadingButton: 'Signing in...',
+				forgotPassword: 'Forgot password?',
+				noAccount: "Don't have an account?",
+				signUpLink: 'Sign up',
 			},
 			signUp: {
-				title: 'Create an account', subtitle: 'Get started with Hare for free',
-				submitButton: 'Create Account', loadingButton: 'Creating account...',
-				hasAccount: 'Already have an account?', signInLink: 'Sign in',
-				terms: 'By creating an account, you agree to our', termsLink: 'Terms of Service', privacyLink: 'Privacy Policy',
+				title: 'Create an account',
+				subtitle: 'Get started with Hare for free',
+				submitButton: 'Create Account',
+				loadingButton: 'Creating account...',
+				hasAccount: 'Already have an account?',
+				signInLink: 'Sign in',
+				terms: 'By creating an account, you agree to our',
+				termsLink: 'Terms of Service',
+				privacyLink: 'Privacy Policy',
 			},
 			layout: {
 				headline: 'Build & Deploy\nAI Agents at the Edge',
-				description: 'The fastest way to create, deploy, and scale AI agents. Hop into production in seconds with Cloudflare Workers.',
+				description:
+					'The fastest way to create, deploy, and scale AI agents. Hop into production in seconds with Cloudflare Workers.',
 				footer: 'Built for speed - just like a hare',
 			},
 			fields: {
@@ -818,19 +1028,42 @@ await agent.deploy()`,
 				confirmPassword: { label: 'Confirm Password', placeholder: 'Confirm your password' },
 				name: { label: 'Full Name', placeholder: 'John Doe' },
 			},
-			validation: { passwordMinLength: 'Password must be at least 8 characters', passwordsNoMatch: 'Passwords do not match' },
-			success: { signIn: 'Signed in successfully', signUp: 'Account created successfully', signOut: 'Signed out', passwordResetSent: 'Password reset link sent to your email', passwordReset: 'Password reset successfully' },
+			validation: {
+				passwordMinLength: 'Password must be at least 8 characters',
+				passwordsNoMatch: 'Passwords do not match',
+			},
+			success: {
+				signIn: 'Signed in successfully',
+				signUp: 'Account created successfully',
+				signOut: 'Signed out',
+				passwordResetSent: 'Password reset link sent to your email',
+				passwordReset: 'Password reset successfully',
+			},
 			forgotPassword: {
-				title: 'Forgot password?', subtitle: 'Enter your email and we will send you a reset link',
-				submitButton: 'Send Reset Link', loadingButton: 'Sending...', backToSignIn: 'Back to sign in',
-				emailSent: { title: 'Check your email', subtitle: 'We sent a password reset link to', resendPrompt: "Didn't receive the email?", resendLink: 'Click to resend' },
+				title: 'Forgot password?',
+				subtitle: 'Enter your email and we will send you a reset link',
+				submitButton: 'Send Reset Link',
+				loadingButton: 'Sending...',
+				backToSignIn: 'Back to sign in',
+				emailSent: {
+					title: 'Check your email',
+					subtitle: 'We sent a password reset link to',
+					resendPrompt: "Didn't receive the email?",
+					resendLink: 'Click to resend',
+				},
 			},
 			resetPassword: {
-				title: 'Reset password', subtitle: 'Enter your new password below',
-				submitButton: 'Reset Password', loadingButton: 'Resetting...',
+				title: 'Reset password',
+				subtitle: 'Enter your new password below',
+				submitButton: 'Reset Password',
+				loadingButton: 'Resetting...',
 				newPassword: { label: 'New Password', placeholder: 'Enter new password' },
 				confirmNewPassword: { label: 'Confirm New Password', placeholder: 'Confirm new password' },
-				success: { title: 'Password reset!', subtitle: 'Your password has been reset successfully', signInLink: 'Sign in with your new password' },
+				success: {
+					title: 'Password reset!',
+					subtitle: 'Your password has been reset successfully',
+					signInLink: 'Sign in with your new password',
+				},
 				invalidToken: 'Invalid or expired reset link. Please request a new one.',
 			},
 		},
@@ -838,9 +1071,20 @@ await agent.deploy()`,
 			header: { searchPlaceholder: 'Search agents, tools...' },
 			sidebar: { docsLink: 'View Docs' },
 			home: {
-				title: 'Dashboard', subtitle: 'Overview of your agents and usage', newAgentButton: 'New Agent',
-				noAgents: { title: 'No agents yet', description: 'Create your first AI agent to get started.', cta: 'Create Agent' },
-				recentAgents: { title: 'Recent Agents', subtitle: 'Ordered by last update', viewAll: 'View all', createNew: 'Create New Agent' },
+				title: 'Dashboard',
+				subtitle: 'Overview of your agents and usage',
+				newAgentButton: 'New Agent',
+				noAgents: {
+					title: 'No agents yet',
+					description: 'Create your first AI agent to get started.',
+					cta: 'Create Agent',
+				},
+				recentAgents: {
+					title: 'Recent Agents',
+					subtitle: 'Ordered by last update',
+					viewAll: 'View all',
+					createNew: 'Create New Agent',
+				},
 				stats: {
 					totalAgents: { title: 'Total Agents', description: 'deployed' },
 					apiCalls: { title: 'API Calls', description: 'This period' },
@@ -848,12 +1092,32 @@ await agent.deploy()`,
 					activeTools: { title: 'Active Tools', description: 'Available' },
 				},
 				quickActions: [
-					{ title: 'Create Agent', description: 'Build a new AI agent', icon: 'Bot', href: '/dashboard/agents/new' },
-					{ title: 'Manage Tools', description: 'Configure capabilities', icon: 'Wrench', href: '/dashboard/tools' },
-					{ title: 'View Usage', description: 'Monitor performance', icon: 'Activity', href: '/dashboard/usage' },
+					{
+						title: 'Create Agent',
+						description: 'Build a new AI agent',
+						icon: 'Bot',
+						href: '/dashboard/agents/new',
+					},
+					{
+						title: 'Manage Tools',
+						description: 'Configure capabilities',
+						icon: 'Wrench',
+						href: '/dashboard/tools',
+					},
+					{
+						title: 'View Usage',
+						description: 'Monitor performance',
+						icon: 'Activity',
+						href: '/dashboard/usage',
+					},
 				],
 			},
-			agents: { title: 'Agents', subtitle: 'Manage your AI agents', newButton: 'New Agent', status: { deployed: 'Live', draft: 'Draft', archived: 'Archived' } },
+			agents: {
+				title: 'Agents',
+				subtitle: 'Manage your AI agents',
+				newButton: 'New Agent',
+				status: { deployed: 'Live', draft: 'Draft', archived: 'Archived' },
+			},
 			tools: { title: 'Tools', subtitle: 'Configure agent capabilities' },
 			usage: { title: 'Usage', subtitle: 'Monitor your API usage and costs' },
 			settings: { title: 'Settings', subtitle: 'Manage your account and preferences' },
@@ -883,15 +1147,39 @@ await agent.deploy()`,
 			SERVICE_UNAVAILABLE: 'Service temporarily unavailable',
 		},
 		devTools: {
-			title: 'Dev Tools', badge: 'DEV',
+			title: 'Dev Tools',
+			badge: 'DEV',
 			sections: {
-				auth: { title: 'Authentication', signIn: 'Sign In', signUp: 'New User', signOut: 'Sign Out' },
+				auth: {
+					title: 'Authentication',
+					signIn: 'Sign In',
+					signUp: 'New User',
+					signOut: 'Sign Out',
+				},
 				quickCreate: { title: 'Quick Create', agent: 'Agent', workspace: 'Workspace' },
 				cache: { title: 'Cache', refresh: 'Refresh', clear: 'Clear' },
 			},
-			agentNames: ['Hoppy Helper', 'Bunny Bot', 'Carrot Cruncher', 'Warren Wizard', 'Fluffy Assistant', 'Thumper AI', 'Cotton Tail', 'Jack Rabbit', 'Velvet Ears', 'Meadow Mind'],
-			agentDescriptions: ['A speedy assistant that hops to help', 'Burrows deep into problems to find solutions', 'Quick as a hare, smart as a fox', 'Your friendly neighborhood rabbit helper', 'Nibbles through tasks with ease'],
-			defaultInstructions: 'You are a helpful AI assistant with a playful rabbit personality. Be quick, helpful, and add occasional rabbit puns.',
+			agentNames: [
+				'Hoppy Helper',
+				'Bunny Bot',
+				'Carrot Cruncher',
+				'Warren Wizard',
+				'Fluffy Assistant',
+				'Thumper AI',
+				'Cotton Tail',
+				'Jack Rabbit',
+				'Velvet Ears',
+				'Meadow Mind',
+			],
+			agentDescriptions: [
+				'A speedy assistant that hops to help',
+				'Burrows deep into problems to find solutions',
+				'Quick as a hare, smart as a fox',
+				'Your friendly neighborhood rabbit helper',
+				'Nibbles through tasks with ease',
+			],
+			defaultInstructions:
+				'You are a helpful AI assistant with a playful rabbit personality. Be quick, helpful, and add occasional rabbit puns.',
 			testUser: { email: 'test@example.com', password: 'password123' },
 			logApiTiming: true,
 			logStateChanges: true,
@@ -930,27 +1218,48 @@ export type ContentConfig = typeof config.content
 export type NavigationConfig = typeof config.navigation
 
 // Enum value types
-export type AgentStatus = typeof config.enums.agentStatus[keyof typeof config.enums.agentStatus]
-export type DeploymentStatus = typeof config.enums.deploymentStatus[keyof typeof config.enums.deploymentStatus]
-export type ScheduleStatus = typeof config.enums.scheduleStatus[keyof typeof config.enums.scheduleStatus]
-export type ExecutionStatus = typeof config.enums.executionStatus[keyof typeof config.enums.executionStatus]
-export type InvitationStatus = typeof config.enums.invitationStatus[keyof typeof config.enums.invitationStatus]
-export type WorkspaceRole = typeof config.enums.workspaceRole[keyof typeof config.enums.workspaceRole]
-export type MemberRole = typeof config.enums.memberRole[keyof typeof config.enums.memberRole]
-export type MessageRole = typeof config.enums.messageRole[keyof typeof config.enums.messageRole]
-export type ScheduleType = typeof config.enums.scheduleType[keyof typeof config.enums.scheduleType]
-export type ExportFormat = typeof config.enums.exportFormat[keyof typeof config.enums.exportFormat]
-export type ToolType = typeof config.enums.toolType[keyof typeof config.enums.toolType]
-export type ToolCategory = typeof config.enums.toolCategory[keyof typeof config.enums.toolCategory]
-export type HttpMethod = typeof config.enums.httpMethod[keyof typeof config.enums.httpMethod]
-export type NodeEnv = typeof config.enums.nodeEnv[keyof typeof config.enums.nodeEnv]
-export type PlanId = typeof config.enums.planId[keyof typeof config.enums.planId]
-export type WidgetPosition = typeof config.enums.widgetPosition[keyof typeof config.enums.widgetPosition]
-export type AuditAction = typeof config.enums.auditAction[keyof typeof config.enums.auditAction]
-export type ActivityEventType = typeof config.enums.activityEventType[keyof typeof config.enums.activityEventType]
+export type AgentStatus = (typeof config.enums.agentStatus)[keyof typeof config.enums.agentStatus]
+export type DeploymentStatus =
+	(typeof config.enums.deploymentStatus)[keyof typeof config.enums.deploymentStatus]
+export type ScheduleStatus =
+	(typeof config.enums.scheduleStatus)[keyof typeof config.enums.scheduleStatus]
+export type ExecutionStatus =
+	(typeof config.enums.executionStatus)[keyof typeof config.enums.executionStatus]
+export type InvitationStatus =
+	(typeof config.enums.invitationStatus)[keyof typeof config.enums.invitationStatus]
+export type WorkspaceRole =
+	(typeof config.enums.workspaceRole)[keyof typeof config.enums.workspaceRole]
+export type MemberRole = (typeof config.enums.memberRole)[keyof typeof config.enums.memberRole]
+export type MessageRole = (typeof config.enums.messageRole)[keyof typeof config.enums.messageRole]
+export type ScheduleType =
+	(typeof config.enums.scheduleType)[keyof typeof config.enums.scheduleType]
+export type ExportFormat =
+	(typeof config.enums.exportFormat)[keyof typeof config.enums.exportFormat]
+export type ToolType = (typeof config.enums.toolType)[keyof typeof config.enums.toolType]
+export type ToolCategory =
+	(typeof config.enums.toolCategory)[keyof typeof config.enums.toolCategory]
+export type HttpMethod = (typeof config.enums.httpMethod)[keyof typeof config.enums.httpMethod]
+export type NodeEnv = (typeof config.enums.nodeEnv)[keyof typeof config.enums.nodeEnv]
+export type PlanId = (typeof config.enums.planId)[keyof typeof config.enums.planId]
+export type WidgetPosition =
+	(typeof config.enums.widgetPosition)[keyof typeof config.enums.widgetPosition]
+export type AuditAction = (typeof config.enums.auditAction)[keyof typeof config.enums.auditAction]
+export type ActivityEventType =
+	(typeof config.enums.activityEventType)[keyof typeof config.enums.activityEventType]
 
 // Re-export types used in config
-export type { AIModel, SystemTool, ResponseStylePreset, AgentTemplate, ModelProvider, SpeedTier, CostTier, ResponseStyle, SystemToolType, AgentTemplateId }
+export type {
+	AIModel,
+	SystemTool,
+	ResponseStylePreset,
+	AgentTemplate,
+	ModelProvider,
+	SpeedTier,
+	CostTier,
+	ResponseStyle,
+	SystemToolType,
+	AgentTemplateId,
+}
 
 // =============================================================================
 // Helper Functions

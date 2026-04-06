@@ -5,7 +5,7 @@
  * Designed to run on Cloudflare Workers without Node.js dependencies.
  */
 
-import { type ModelMessage, type LanguageModel, streamText } from 'ai'
+import { type LanguageModel, type ModelMessage, streamText } from 'ai'
 import { createWorkersAIModel } from './providers/workers-ai'
 
 /**

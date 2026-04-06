@@ -4,12 +4,19 @@
  * Handles scheduled task management with full type safety.
  */
 
+import { config, EXECUTION_STATUSES, SCHEDULE_STATUSES, SCHEDULE_TYPES } from '@hare/config'
+import { agents, scheduledTasks, scheduleExecutions } from '@hare/db/schema'
+import { and, desc, eq } from 'drizzle-orm'
 import { z } from 'zod'
-import { and, eq, desc } from 'drizzle-orm'
-import { scheduledTasks, scheduleExecutions, agents } from '@hare/db/schema'
-import { config, SCHEDULE_TYPES, SCHEDULE_STATUSES, EXECUTION_STATUSES } from '@hare/config'
-import { requireWrite, requireAdmin, notFound, serverError, badRequest, type WorkspaceContext } from '../base'
-import { SuccessSchema, IdParamSchema } from '../../schemas'
+import { IdParamSchema, SuccessSchema } from '../../schemas'
+import {
+	badRequest,
+	notFound,
+	requireAdmin,
+	requireWrite,
+	serverError,
+	type WorkspaceContext,
+} from '../base'
 
 // =============================================================================
 // Type-Safe Schemas
@@ -75,7 +82,9 @@ const ScheduleExecutionSchema = z.object({
 // Helpers
 // =============================================================================
 
-function serializeSchedule(schedule: typeof scheduledTasks.$inferSelect): z.infer<typeof ScheduleSchema> {
+function serializeSchedule(
+	schedule: typeof scheduledTasks.$inferSelect,
+): z.infer<typeof ScheduleSchema> {
 	return {
 		id: schedule.id,
 		agentId: schedule.agentId,
@@ -93,7 +102,9 @@ function serializeSchedule(schedule: typeof scheduledTasks.$inferSelect): z.infe
 	}
 }
 
-function serializeExecution(execution: typeof scheduleExecutions.$inferSelect): z.infer<typeof ScheduleExecutionSchema> {
+function serializeExecution(
+	execution: typeof scheduleExecutions.$inferSelect,
+): z.infer<typeof ScheduleExecutionSchema> {
 	return {
 		id: execution.id,
 		scheduleId: execution.scheduleId,
@@ -142,12 +153,18 @@ export const list = requireWrite
 			if (!agentIds.includes(input.agentId)) {
 				return { schedules: [] }
 			}
-			results = await db.select().from(scheduledTasks).where(eq(scheduledTasks.agentId, input.agentId))
+			results = await db
+				.select()
+				.from(scheduledTasks)
+				.where(eq(scheduledTasks.agentId, input.agentId))
 		} else {
 			// Get all schedules for workspace agents
 			results = []
 			for (const agentId of agentIds) {
-				const agentSchedules = await db.select().from(scheduledTasks).where(eq(scheduledTasks.agentId, agentId))
+				const agentSchedules = await db
+					.select()
+					.from(scheduledTasks)
+					.where(eq(scheduledTasks.agentId, agentId))
 				results.push(...agentSchedules)
 			}
 		}
@@ -250,7 +267,10 @@ export const remove = requireAdmin
 	.handler(async ({ input, context }) => {
 		const { db } = context
 
-		const result = await db.delete(scheduledTasks).where(eq(scheduledTasks.id, input.id)).returning()
+		const result = await db
+			.delete(scheduledTasks)
+			.where(eq(scheduledTasks.id, input.id))
+			.returning()
 
 		if (result.length === 0) notFound('Schedule not found')
 

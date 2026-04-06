@@ -35,7 +35,7 @@ describe('cn utility', () => {
 			'base-class',
 			'flex items-center',
 			{ 'bg-red-500': true, 'bg-blue-500': false },
-			['px-2', 'py-2']
+			['px-2', 'py-2'],
 		)
 		expect(result).toContain('base-class')
 		expect(result).toContain('flex')

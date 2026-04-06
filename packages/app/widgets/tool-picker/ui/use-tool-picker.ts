@@ -2,8 +2,8 @@
 
 import { useMemo, useState } from 'react'
 import { useToolsQuery } from '../../../shared/api/hooks'
-import type { ToolCategory } from './types'
 import { getToolCategory as getToolCategoryFromType } from './tool-icons'
+import type { ToolCategory } from './types'
 
 // Infer Tool type from API response to ensure type compatibility
 type ApiToolsResponse = ReturnType<typeof useToolsQuery>['data']
@@ -39,10 +39,7 @@ interface UseToolPickerOptions {
 	maxTools?: number
 }
 
-export function useToolPicker({
-	initialSelectedIds,
-	maxTools = 20,
-}: UseToolPickerOptions) {
+export function useToolPicker({ initialSelectedIds, maxTools = 20 }: UseToolPickerOptions) {
 	const { data: toolsData, isLoading } = useToolsQuery()
 	const [selectedToolIds, setSelectedToolIds] = useState<string[]>(initialSelectedIds)
 	const [searchQuery, setSearchQuery] = useState('')

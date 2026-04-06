@@ -2,7 +2,7 @@
  * Tests for providers/workers-ai.ts - Workers AI provider
  */
 
-import { describe, expect, it, vi, beforeEach } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 // Mock the workers-ai-provider
 vi.mock('workers-ai-provider', () => ({
@@ -15,12 +15,12 @@ vi.mock('workers-ai-provider', () => ({
 
 import {
 	createWorkersAIModel,
-	getWorkersAIModelId,
-	getAvailableModels,
+	EMBEDDING_MODELS,
 	generateEmbedding,
 	generateEmbeddings,
+	getAvailableModels,
+	getWorkersAIModelId,
 	WORKERS_AI_MODELS,
-	EMBEDDING_MODELS,
 } from '../providers/workers-ai'
 
 /**

@@ -1,5 +1,5 @@
-import { describe, expect, it, vi, beforeEach } from 'vitest'
-import { kvGetTool, kvPutTool, kvDeleteTool, kvListTool, getKVTools } from '../kv'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { getKVTools, kvDeleteTool, kvGetTool, kvListTool, kvPutTool } from '../kv'
 import type { ToolContext } from '../types'
 
 // Mock KV namespace
@@ -140,7 +140,10 @@ describe('KV Tools', () => {
 			})
 
 			it('rejects path traversal attempts', async () => {
-				const result = await kvGetTool.execute({ key: '../other-workspace/key', type: 'text' }, context)
+				const result = await kvGetTool.execute(
+					{ key: '../other-workspace/key', type: 'text' },
+					context,
+				)
 
 				expect(result.success).toBe(false)
 				expect(result.error).toContain('path traversal not allowed')
@@ -240,10 +243,7 @@ describe('KV Tools', () => {
 				const contextWithoutKV = createMockContext()
 				contextWithoutKV.env.KV = undefined as unknown as KVNamespace
 
-				const result = await kvPutTool.execute(
-					{ key: 'key', value: 'value' },
-					contextWithoutKV,
-				)
+				const result = await kvPutTool.execute({ key: 'key', value: 'value' }, contextWithoutKV)
 
 				expect(result.success).toBe(false)
 				expect(result.error).toBe('KV namespace not available')

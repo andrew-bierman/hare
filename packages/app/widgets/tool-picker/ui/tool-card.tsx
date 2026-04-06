@@ -3,8 +3,8 @@
 import { Badge } from '@hare/ui/components/badge'
 import { Checkbox } from '@hare/ui/components/checkbox'
 import { cn } from '@hare/ui/lib/utils'
-import type { ToolCardProps } from './types'
 import { getToolIcon, getToolTypeLabel } from './tool-icons'
+import type { ToolCardProps } from './types'
 
 export function ToolCard({ tool, isSelected, isDisabled, onToggle }: ToolCardProps) {
 	const Icon = getToolIcon(tool.type)
@@ -23,11 +23,7 @@ export function ToolCard({ tool, isSelected, isDisabled, onToggle }: ToolCardPro
 			disabled={isDisabled && !isSelected}
 		>
 			{/* Checkbox */}
-			<Checkbox
-				checked={isSelected}
-				className="pointer-events-none"
-				aria-hidden
-			/>
+			<Checkbox checked={isSelected} className="pointer-events-none" aria-hidden />
 
 			{/* Icon */}
 			<div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-muted">
@@ -39,7 +35,10 @@ export function ToolCard({ tool, isSelected, isDisabled, onToggle }: ToolCardPro
 				<div className="flex items-center gap-2">
 					<span className="truncate font-medium text-sm">{tool.name}</span>
 					{tool.isSystem && (
-						<Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 text-muted-foreground shrink-0">
+						<Badge
+							variant="outline"
+							className="text-[10px] px-1.5 py-0 h-4 text-muted-foreground shrink-0"
+						>
 							Built-in
 						</Badge>
 					)}

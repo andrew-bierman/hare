@@ -4,8 +4,8 @@ import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { cn } from '@hare/ui/lib/utils'
 import { GripVertical, X } from 'lucide-react'
-import type { SortableToolItemProps } from './types'
 import { getToolIcon } from './tool-icons'
+import type { SortableToolItemProps } from './types'
 
 export function SortableToolItem({ tool, onRemove }: SortableToolItemProps) {
 	const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({

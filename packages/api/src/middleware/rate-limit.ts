@@ -3,8 +3,8 @@ import {
 	type RateLimitKeyFunc,
 	rateLimit,
 } from '@elithrar/workers-hono-rate-limit'
-import type { Context, MiddlewareHandler, Next } from 'hono'
 import type { HonoEnv } from '@hare/types'
+import type { Context, MiddlewareHandler, Next } from 'hono'
 
 /**
  * Get a rate limit key based on user ID (preferred) or IP address (fallback).

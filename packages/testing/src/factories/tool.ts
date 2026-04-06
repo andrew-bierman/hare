@@ -2,8 +2,8 @@
  * Tool factory for creating test tool data.
  */
 
-import { createId } from '@hare/db'
 import type { ToolType } from '@hare/config'
+import { createId } from '@hare/db'
 
 /**
  * Tool input schema type matching the database schema.

@@ -16,11 +16,7 @@ import { ToolSearch } from './tool-search'
 import type { ToolCategory, ToolPickerProps } from './types'
 import { useToolPicker } from './use-tool-picker'
 
-export function ToolPicker({
-	selectedToolIds,
-	onSelectionChange,
-	maxTools = 20,
-}: ToolPickerProps) {
+export function ToolPicker({ selectedToolIds, onSelectionChange, maxTools = 20 }: ToolPickerProps) {
 	const {
 		selectedTools,
 		groupedTools,
@@ -85,12 +81,7 @@ export function ToolPicker({
 						<span className="text-xs font-medium text-muted-foreground">
 							Selected ({internalSelectedIds.length}/{maxTools})
 						</span>
-						<Button
-							variant="ghost"
-							size="sm"
-							className="h-6 px-2 text-xs"
-							onClick={clearSelection}
-						>
+						<Button variant="ghost" size="sm" className="h-6 px-2 text-xs" onClick={clearSelection}>
 							Clear
 						</Button>
 					</div>

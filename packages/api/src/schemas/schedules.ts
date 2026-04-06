@@ -4,8 +4,8 @@
  * Zod schemas for scheduled task request/response validation.
  */
 
-import { z } from '@hono/zod-openapi'
 import { config, EXECUTION_STATUSES, SCHEDULE_STATUSES, SCHEDULE_TYPES } from '@hare/config'
+import { z } from '@hono/zod-openapi'
 
 // Schedule type enum
 export const ScheduleTypeSchema = z.enum(SCHEDULE_TYPES).openapi('ScheduleType')

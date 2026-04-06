@@ -7,8 +7,9 @@
  * This is the critical test - if types work here, they work for all consumers.
  * If any of these fail to compile, the end-to-end type safety is broken.
  */
-import { describe, it, expect } from 'vitest'
-import { orpc, type AppRouterClient } from '@hare/api'
+
+import { type AppRouterClient, orpc } from '@hare/api'
+import { describe, expect, it } from 'vitest'
 
 // Type utility to check if a type is NOT 'any'
 // Returns true if T is a specific type, false if T is 'any'

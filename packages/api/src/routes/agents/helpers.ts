@@ -2,9 +2,9 @@
  * Agent route helper functions
  */
 
-import { eq, and } from 'drizzle-orm'
-import { agents, agentTools } from '@hare/db/schema'
 import type { Database } from '@hare/db'
+import { agents, agentTools } from '@hare/db/schema'
+import { and, eq } from 'drizzle-orm'
 
 /**
  * Input for getting agent tool IDs.

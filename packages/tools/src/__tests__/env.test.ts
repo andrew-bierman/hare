@@ -181,13 +181,7 @@ describe('HareEnv Interface', () => {
 			}
 
 			// All documented properties should exist
-			expect(Object.keys(documentedEnv)).toEqual([
-				'AI',
-				'KV',
-				'R2',
-				'DB',
-				'VECTORIZE',
-			])
+			expect(Object.keys(documentedEnv)).toEqual(['AI', 'KV', 'R2', 'DB', 'VECTORIZE'])
 		})
 
 		it('supports the SDK example pattern', () => {

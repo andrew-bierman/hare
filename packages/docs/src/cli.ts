@@ -1,4 +1,5 @@
 #!/usr/bin/env bun
+
 /**
  * CLI for generating MDX documentation from TypeScript source files.
  *
@@ -12,8 +13,8 @@
  *   --verbose         Print detailed output
  */
 
-import * as path from 'node:path'
 import * as fs from 'node:fs'
+import * as path from 'node:path'
 import { generateDocs, type PackageConfig } from './generator'
 
 // Default configuration for Hare monorepo

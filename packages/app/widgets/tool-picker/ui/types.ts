@@ -1,4 +1,4 @@
-import { useToolsQuery } from '../../../shared/api/hooks'
+import type { useToolsQuery } from '../../../shared/api/hooks'
 
 // Infer Tool type from API response to ensure type compatibility
 // This is internal to avoid conflicts with @hare/types Tool export

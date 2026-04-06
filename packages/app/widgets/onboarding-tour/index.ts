@@ -6,8 +6,8 @@
  */
 
 export {
-	OnboardingTour,
 	DEFAULT_TOUR_STEPS,
+	OnboardingTour,
 	type OnboardingTourProps,
 	type TourStep,
 	type TourStepPosition,

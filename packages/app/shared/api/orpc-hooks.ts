@@ -7,9 +7,9 @@
 
 'use client'
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { orpc, getOrpcWorkspaceId } from '@hare/api'
+import { getOrpcWorkspaceId, orpc } from '@hare/api'
 import type { AuditAction } from '@hare/config'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 // =============================================================================
 // Agent Hooks
@@ -262,8 +262,7 @@ export function useWebhookDeliveriesQuery(options: {
 export function useCreateWebhookMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: (input: Parameters<typeof orpc.webhooks.create>[0]) =>
-			orpc.webhooks.create(input),
+		mutationFn: (input: Parameters<typeof orpc.webhooks.create>[0]) => orpc.webhooks.create(input),
 		onSuccess: (_, variables) => {
 			queryClient.invalidateQueries({ queryKey: ['webhooks', variables.agentId] })
 		},
@@ -273,8 +272,7 @@ export function useCreateWebhookMutation() {
 export function useUpdateWebhookMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: (input: Parameters<typeof orpc.webhooks.update>[0]) =>
-			orpc.webhooks.update(input),
+		mutationFn: (input: Parameters<typeof orpc.webhooks.update>[0]) => orpc.webhooks.update(input),
 		onSuccess: (_, variables) => {
 			queryClient.invalidateQueries({ queryKey: ['webhooks', variables.agentId] })
 		},
@@ -284,8 +282,7 @@ export function useUpdateWebhookMutation() {
 export function useDeleteWebhookMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: (input: Parameters<typeof orpc.webhooks.delete>[0]) =>
-			orpc.webhooks.delete(input),
+		mutationFn: (input: Parameters<typeof orpc.webhooks.delete>[0]) => orpc.webhooks.delete(input),
 		onSuccess: (_, variables) => {
 			queryClient.invalidateQueries({ queryKey: ['webhooks', variables.agentId] })
 		},
@@ -590,11 +587,8 @@ export function useWorkspaceInvitationsQuery(workspaceId: string | undefined) {
 export function useSendInvitationMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: async (data: {
-			id: string
-			email: string
-			role?: 'admin' | 'member' | 'viewer'
-		}) => orpc.workspaceMembers.sendInvitation(data),
+		mutationFn: async (data: { id: string; email: string; role?: 'admin' | 'member' | 'viewer' }) =>
+			orpc.workspaceMembers.sendInvitation(data),
 		onSuccess: (_, variables) => {
 			queryClient.invalidateQueries({ queryKey: ['workspaces', variables.id, 'invitations'] })
 		},
@@ -626,11 +620,8 @@ export function useRemoveMemberMutation() {
 export function useUpdateMemberRoleMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: async (data: {
-			id: string
-			userId: string
-			role: 'admin' | 'member' | 'viewer'
-		}) => orpc.workspaceMembers.updateMemberRole(data),
+		mutationFn: async (data: { id: string; userId: string; role: 'admin' | 'member' | 'viewer' }) =>
+			orpc.workspaceMembers.updateMemberRole(data),
 		onSuccess: (_, variables) => {
 			queryClient.invalidateQueries({ queryKey: ['workspaces', variables.id, 'members'] })
 		},
@@ -756,7 +747,10 @@ export function useAuditLogsQuery(options?: {
 // Agent Health Hooks
 // =============================================================================
 
-export function useAgentHealthQuery(agentId: string | undefined, options?: { refetchInterval?: number }) {
+export function useAgentHealthQuery(
+	agentId: string | undefined,
+	options?: { refetchInterval?: number },
+) {
 	return useQuery({
 		queryKey: ['agents', agentId, 'health'],
 		queryFn: () => orpc.agents.getHealth({ id: agentId! }),

@@ -95,11 +95,7 @@ describe('Webhook SSRF Protection', () => {
 	})
 
 	describe('blocks non-HTTP protocols', () => {
-		const blocked = [
-			'ftp://example.com/hook',
-			'file:///etc/passwd',
-			'gopher://evil.com/hook',
-		]
+		const blocked = ['ftp://example.com/hook', 'file:///etc/passwd', 'gopher://evil.com/hook']
 
 		for (const url of blocked) {
 			it(`blocks ${url}`, () => {

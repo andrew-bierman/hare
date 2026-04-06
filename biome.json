@@ -17,10 +17,12 @@
 				"noUnusedVariables": "error"
 			},
 			"style": {
-				"noNonNullAssertion": "off"
+				"noNonNullAssertion": "off",
+				"useConst": "error",
+				"noParameterAssign": "error"
 			},
 			"suspicious": {
-				"noExplicitAny": "warn",
+				"noExplicitAny": "error",
 				"noArrayIndexKey": "warn",
 				"noAssignInExpressions": "warn"
 			}
@@ -40,6 +42,13 @@
 	},
 	"files": {
 		"ignoreUnknown": true,
-		"includes": ["apps/**/*.ts", "apps/**/*.tsx", "**/*.json", "!**/routeTree.gen.ts"]
+		"includes": [
+			"apps/**/*.ts",
+			"apps/**/*.tsx",
+			"packages/**/*.ts",
+			"packages/**/*.tsx",
+			"**/*.json",
+			"!**/routeTree.gen.ts"
+		]
 	}
 }

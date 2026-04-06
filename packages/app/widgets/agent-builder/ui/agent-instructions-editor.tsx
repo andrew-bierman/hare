@@ -1,10 +1,10 @@
 'use client'
 
+import { config } from '@hare/config'
 import {
 	InstructionsEditor,
 	type InstructionsEditorProps,
 } from '@hare/ui/components/instructions-editor'
-import { config } from '@hare/config'
 
 interface AgentInstructionsEditorProps extends Omit<InstructionsEditorProps, 'maxLength'> {
 	maxLength?: number

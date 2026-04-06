@@ -11,7 +11,7 @@
  */
 
 // Service exports
-export { createEmailService, EmailService, type EmailEnv, type EmailResult } from './service'
+export { createEmailService, type EmailEnv, type EmailResult, EmailService } from './service'
 
 // Template exports
 export { PasswordResetEmail } from './templates/password-reset'

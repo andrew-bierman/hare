@@ -1,6 +1,6 @@
 'use client'
 
-import { Link } from '@tanstack/react-router'
+import type { ToolType } from '@hare/types'
 import { Badge } from '@hare/ui/components/badge'
 import { Button } from '@hare/ui/components/button'
 import { Card, CardContent } from '@hare/ui/components/card'
@@ -19,14 +19,14 @@ import {
 	TableHeader,
 	TableRow,
 } from '@hare/ui/components/table'
+import { Link } from '@tanstack/react-router'
 import { ChevronDown, Globe, Pencil, Plus, Trash2, Wrench } from 'lucide-react'
 import { type ChangeEvent, useState } from 'react'
-import type { ToolType } from '@hare/types'
-import { useToolsQuery } from '../../shared/api/hooks'
-import { CreateToolDialog, DeleteToolDialog } from '../../features/create-tool'
 import { useWorkspace } from '../../app/providers'
-import { TOOL_TYPE_ICONS } from '../../widgets/tool-picker/ui/tool-icons'
+import { CreateToolDialog, DeleteToolDialog } from '../../features/create-tool'
+import { useToolsQuery } from '../../shared/api/hooks'
 import { EmptyState } from '../../shared/ui/empty-state'
+import { TOOL_TYPE_ICONS } from '../../widgets/tool-picker/ui/tool-icons'
 
 function ToolTableSkeleton() {
 	return (
@@ -69,7 +69,9 @@ export interface ToolsListPageProps {
 	toolDetailBasePath?: string
 }
 
-export function ToolsListPage({ toolDetailBasePath = '/dashboard/tools' }: ToolsListPageProps = {}) {
+export function ToolsListPage({
+	toolDetailBasePath = '/dashboard/tools',
+}: ToolsListPageProps = {}) {
 	const { activeWorkspace } = useWorkspace()
 	const { data, isLoading, error } = useToolsQuery()
 
@@ -109,9 +111,7 @@ export function ToolsListPage({ toolDetailBasePath = '/dashboard/tools' }: Tools
 			<div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
 				<div>
 					<h1 className="text-2xl font-bold tracking-tight">Tools</h1>
-					<p className="text-sm text-muted-foreground mt-1">
-						{tools.length} tools available
-					</p>
+					<p className="text-sm text-muted-foreground mt-1">{tools.length} tools available</p>
 				</div>
 				<div className="flex gap-2">
 					<Button variant="outline" size="sm" onClick={() => setIsCreateOpen(true)}>
@@ -251,12 +251,7 @@ export function ToolsListPage({ toolDetailBasePath = '/dashboard/tools' }: Tools
 															</TableCell>
 															<TableCell>
 																<div className="flex items-center gap-1">
-																	<Button
-																		variant="ghost"
-																		size="sm"
-																		className="h-8 w-8 p-0"
-																		asChild
-																	>
+																	<Button variant="ghost" size="sm" className="h-8 w-8 p-0" asChild>
 																		<a href={`${toolDetailBasePath}/${tool.id}`}>
 																			<Pencil className="h-4 w-4" />
 																		</a>

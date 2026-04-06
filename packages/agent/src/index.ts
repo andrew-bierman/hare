@@ -16,75 +16,83 @@
 
 // Types (safe to import anywhere) - re-exported from @hare/types
 export type {
+	ChatPayload,
+	ClientMessage,
 	HareAgentState,
 	McpAgentState,
-	ClientMessage,
-	ServerMessage,
-	ChatPayload,
-	ToolExecutePayload,
-	SchedulePayload,
 	ScheduledTask,
+	SchedulePayload,
+	ServerMessage,
+	ToolExecutePayload,
 } from '@hare/types'
 
 export { DEFAULT_HARE_AGENT_STATE, DEFAULT_MCP_AGENT_STATE } from '@hare/types'
-
+export type { AgentOptions, AgentStreamResponse, AgentTool } from './edge-agent'
 // Edge Agent (universal - no cloudflare:workers dependency)
-export { HareEdgeAgent, createHareEdgeAgent, EdgeAgent, createEdgeAgent } from './edge-agent'
-export type { AgentTool, AgentOptions, AgentStreamResponse } from './edge-agent'
-
-// Router utilities (universal)
-export {
-	routeToHareAgent,
-	routeToMcpAgent,
-	routeWebSocketToAgent,
-	routeHttpToAgent,
-	isWebSocketRequest,
-	getAgentIdFromRequest,
-	createAgentHeaders,
-} from './router'
+export { createEdgeAgent, createHareEdgeAgent, EdgeAgent, HareEdgeAgent } from './edge-agent'
 export type {
-	HareAgentEnv,
-	AgentRouteConfig,
-	RouteToHareAgentInput,
-	RouteToMcpAgentInput,
-	RouteWebSocketToAgentInput,
-	RouteHttpToAgentInput,
-} from './router'
-
-// Workers AI Provider (universal)
+	AgentConfig,
+	CreateAgentFromConfigInput,
+	CreateSimpleAgentInput,
+	LoadAgentToolsInput,
+} from './factory'
+// Agent factory (for creating agents from database configurations)
 export {
-	createWorkersAIModel,
-	getWorkersAIModelId,
-	getAvailableModels,
-	generateEmbedding,
-	generateEmbeddings,
-	WORKERS_AI_MODELS,
-	EMBEDDING_MODELS,
-} from './providers/workers-ai'
+	createAgentFromConfig,
+	createSimpleAgent,
+	loadAgentTools,
+} from './factory'
 export type {
-	WorkersAIModelId,
-	EmbeddingModelId,
-	CreateWorkersAIModelInput,
-	GenerateEmbeddingInput,
-	GenerateEmbeddingsInput,
-} from './providers/workers-ai'
-
+	ConversationMessage,
+	GetMessagesInput,
+	GetOrCreateConversationInput,
+	MemoryStore,
+	MessageRole,
+	SaveMessageInput,
+	SearchMessagesInput,
+} from './memory'
 // Memory store (universal)
 export {
 	createMemoryStore,
-	toAgentMessages,
 	D1MemoryStore,
+	toAgentMessages,
 } from './memory'
 export type {
-	MessageRole,
-	ConversationMessage,
-	SaveMessageInput,
-	GetMessagesInput,
-	GetOrCreateConversationInput,
-	SearchMessagesInput,
-	MemoryStore,
-} from './memory'
-
+	CreateWorkersAIModelInput,
+	EmbeddingModelId,
+	GenerateEmbeddingInput,
+	GenerateEmbeddingsInput,
+	WorkersAIModelId,
+} from './providers/workers-ai'
+// Workers AI Provider (universal)
+export {
+	createWorkersAIModel,
+	EMBEDDING_MODELS,
+	generateEmbedding,
+	generateEmbeddings,
+	getAvailableModels,
+	getWorkersAIModelId,
+	WORKERS_AI_MODELS,
+} from './providers/workers-ai'
+export type {
+	AgentRouteConfig,
+	HareAgentEnv,
+	RouteHttpToAgentInput,
+	RouteToHareAgentInput,
+	RouteToMcpAgentInput,
+	RouteWebSocketToAgentInput,
+} from './router'
+// Router utilities (universal)
+export {
+	createAgentHeaders,
+	getAgentIdFromRequest,
+	isWebSocketRequest,
+	routeHttpToAgent,
+	routeToHareAgent,
+	routeToMcpAgent,
+	routeWebSocketToAgent,
+} from './router'
+export type { AnyTool, ExecutableTool, Tool, ToolContext, ToolResult } from './tools'
 // Agent control tools (for MCP)
 export {
 	agentControlTools,
@@ -100,17 +108,3 @@ export {
 	scheduleTaskTool,
 	sendMessageTool,
 } from './tools'
-export type { AnyTool, ExecutableTool, Tool, ToolContext, ToolResult } from './tools'
-
-// Agent factory (for creating agents from database configurations)
-export {
-	createAgentFromConfig,
-	createSimpleAgent,
-	loadAgentTools,
-} from './factory'
-export type {
-	AgentConfig,
-	CreateAgentFromConfigInput,
-	CreateSimpleAgentInput,
-	LoadAgentToolsInput,
-} from './factory'

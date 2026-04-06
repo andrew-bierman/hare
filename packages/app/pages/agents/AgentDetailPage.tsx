@@ -1,22 +1,5 @@
 'use client'
 
-import { useWorkspace } from '../../app/providers'
-import {
-	useAgentQuery,
-	useAgentUsageQuery,
-	useCloneAgentMutation,
-	useDeleteAgentMutation,
-	useDeployAgentMutation,
-	useToolsQuery,
-	useUpdateAgentMutation,
-} from '../../shared/api'
-
-import { AgentHealthWidget } from '../../widgets/agent-health'
-import { AgentInstructionsEditor } from '../../widgets/agent-builder'
-import { MemoryViewer } from '../../widgets/memory-viewer'
-import { ScheduledTasksSection } from '../../widgets/scheduled-tasks'
-import { ToolPicker } from '../../widgets/tool-picker'
-import { VersionHistory } from '../../widgets/version-history'
 import { config } from '@hare/config'
 import { Badge } from '@hare/ui/components/badge'
 import { Button } from '@hare/ui/components/button'
@@ -43,17 +26,26 @@ import { Switch } from '@hare/ui/components/switch'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@hare/ui/components/tabs'
 import { Textarea } from '@hare/ui/components/textarea'
 import { useNavigate } from '@tanstack/react-router'
-import {
-	AlertTriangle,
-	Copy,
-	MessageSquare,
-	Play,
-	Rocket,
-	Trash2,
-} from 'lucide-react'
+import { AlertTriangle, Copy, MessageSquare, Play, Rocket, Trash2 } from 'lucide-react'
 import { type ChangeEvent, useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
 import { z } from 'zod'
+import { useWorkspace } from '../../app/providers'
+import {
+	useAgentQuery,
+	useAgentUsageQuery,
+	useCloneAgentMutation,
+	useDeleteAgentMutation,
+	useDeployAgentMutation,
+	useToolsQuery,
+	useUpdateAgentMutation,
+} from '../../shared/api'
+import { AgentInstructionsEditor } from '../../widgets/agent-builder'
+import { AgentHealthWidget } from '../../widgets/agent-health'
+import { MemoryViewer } from '../../widgets/memory-viewer'
+import { ScheduledTasksSection } from '../../widgets/scheduled-tasks'
+import { ToolPicker } from '../../widgets/tool-picker'
+import { VersionHistory } from '../../widgets/version-history'
 
 export interface AgentDetailPageProps {
 	agentId: string
@@ -142,10 +134,7 @@ function LoadingSkeleton() {
 	)
 }
 
-export function AgentDetailPage({
-	agentId,
-	basePath = '/dashboard/agents',
-}: AgentDetailPageProps) {
+export function AgentDetailPage({ agentId, basePath = '/dashboard/agents' }: AgentDetailPageProps) {
 	const navigate = useNavigate()
 
 	const { activeWorkspace } = useWorkspace()
@@ -243,8 +232,6 @@ export function AgentDetailPage({
 	const estimatedTokens = useMemo(() => {
 		return estimateTokenCount(instructions)
 	}, [instructions])
-
-
 
 	const handleSave = async () => {
 		try {
@@ -644,9 +631,7 @@ export function AgentDetailPage({
 				</TabsContent>
 
 				<TabsContent value="schedules" className="space-y-4">
-					{activeWorkspace?.id && (
-						<ScheduledTasksSection agentId={agentId} />
-					)}
+					{activeWorkspace?.id && <ScheduledTasksSection agentId={agentId} />}
 				</TabsContent>
 
 				<TabsContent value="versions" className="space-y-4">
@@ -729,9 +714,7 @@ export function AgentDetailPage({
 				<DialogContent>
 					<DialogHeader>
 						<DialogTitle>Clone Agent</DialogTitle>
-						<DialogDescription>
-							Create a copy of "{agent.name}" as a new agent?
-						</DialogDescription>
+						<DialogDescription>Create a copy of "{agent.name}" as a new agent?</DialogDescription>
 					</DialogHeader>
 					<div className="py-4">
 						<p className="text-sm text-muted-foreground">The new agent will be named:</p>

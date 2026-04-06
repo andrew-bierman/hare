@@ -1,6 +1,6 @@
-import type { Context } from 'hono'
 import { createDb, type Database } from '@hare/db'
 import type { CloudflareEnv } from '@hare/types'
+import type { Context } from 'hono'
 
 // Re-export Database type for routes
 export type { Database }

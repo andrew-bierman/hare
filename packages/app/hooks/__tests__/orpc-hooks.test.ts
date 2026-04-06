@@ -5,7 +5,7 @@
  * Since we're running in a Cloudflare Workers test environment without DOM,
  * we test the hook logic through mocking rather than using renderHook.
  */
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 // =============================================================================
 // Mock Data
@@ -243,7 +243,7 @@ describe('oRPC Client - Agents', () => {
 					name: 'New Agent',
 					model: '@cf/meta/llama-3.3-70b-instruct-fp8-fast',
 					instructions: 'Test',
-				})
+				}),
 			).rejects.toThrow('Failed to create agent')
 		})
 	})
@@ -269,9 +269,9 @@ describe('oRPC Client - Agents', () => {
 			const error = new Error('Failed to update agent')
 			mockOrpc.agents.update.mockRejectedValueOnce(error)
 
-			await expect(
-				orpc.agents.update({ id: 'agent-1', name: 'Updated' })
-			).rejects.toThrow('Failed to update agent')
+			await expect(orpc.agents.update({ id: 'agent-1', name: 'Updated' })).rejects.toThrow(
+				'Failed to update agent',
+			)
 		})
 	})
 
@@ -289,9 +289,7 @@ describe('oRPC Client - Agents', () => {
 			const error = new Error('Failed to delete agent')
 			mockOrpc.agents.delete.mockRejectedValueOnce(error)
 
-			await expect(orpc.agents.delete({ id: 'agent-1' })).rejects.toThrow(
-				'Failed to delete agent'
-			)
+			await expect(orpc.agents.delete({ id: 'agent-1' })).rejects.toThrow('Failed to delete agent')
 		})
 	})
 })
@@ -317,10 +315,7 @@ describe('oRPC Client - Tools', () => {
 
 		it('returns system and custom tools', async () => {
 			const mixedTools = {
-				tools: [
-					mockTool,
-					{ ...mockTool, id: 'tool-system', type: 'system' as const },
-				],
+				tools: [mockTool, { ...mockTool, id: 'tool-system', type: 'system' as const }],
 			}
 			mockOrpc.tools.list.mockResolvedValueOnce(mixedTools)
 
@@ -413,9 +408,7 @@ describe('oRPC Client - Workspaces', () => {
 			const error = new Error('Failed to fetch workspaces')
 			mockOrpc.workspaces.list.mockRejectedValueOnce(error)
 
-			await expect(orpc.workspaces.list({})).rejects.toThrow(
-				'Failed to fetch workspaces'
-			)
+			await expect(orpc.workspaces.list({})).rejects.toThrow('Failed to fetch workspaces')
 		})
 	})
 
@@ -519,9 +512,7 @@ describe('oRPC Client - Usage', () => {
 			const error = new Error('Failed to fetch usage')
 			mockOrpc.usage.getWorkspaceUsage.mockRejectedValueOnce(error)
 
-			await expect(orpc.usage.getWorkspaceUsage({})).rejects.toThrow(
-				'Failed to fetch usage'
-			)
+			await expect(orpc.usage.getWorkspaceUsage({})).rejects.toThrow('Failed to fetch usage')
 		})
 	})
 

@@ -17,10 +17,7 @@ interface PasswordResetEmailProps {
 	appName?: string
 }
 
-export function PasswordResetEmail({
-	resetUrl,
-	appName = 'Hare',
-}: PasswordResetEmailProps) {
+export function PasswordResetEmail({ resetUrl, appName = 'Hare' }: PasswordResetEmailProps) {
 	return (
 		<Html>
 			<Head />
@@ -28,24 +25,18 @@ export function PasswordResetEmail({
 			<Body style={main}>
 				<Container style={container}>
 					<Heading style={heading}>Reset Your Password</Heading>
-					<Text style={paragraph}>
-						You requested a password reset for your {appName} account.
-					</Text>
+					<Text style={paragraph}>You requested a password reset for your {appName} account.</Text>
 					<Section style={buttonContainer}>
 						<Button style={button} href={resetUrl}>
 							Reset Password
 						</Button>
 					</Section>
-					<Text style={secondaryText}>
-						This link will expire in 1 hour.
-					</Text>
+					<Text style={secondaryText}>This link will expire in 1 hour.</Text>
 					<Text style={secondaryText}>
 						If you didn't request this, you can safely ignore this email.
 					</Text>
 					<Hr style={hr} />
-					<Text style={footer}>
-						&mdash; The {appName} Team
-					</Text>
+					<Text style={footer}>&mdash; The {appName} Team</Text>
 					<Text style={linkText}>
 						Or copy and paste this URL into your browser:{' '}
 						<Link href={resetUrl} style={link}>

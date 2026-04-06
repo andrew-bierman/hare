@@ -2,8 +2,8 @@
  * Tests for edge-agent.ts - HareEdgeAgent class
  */
 
-import { describe, expect, it, vi, beforeEach } from 'vitest'
-import { HareEdgeAgent, createHareEdgeAgent, type AgentTool } from '../edge-agent'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { type AgentTool, createHareEdgeAgent, HareEdgeAgent } from '../edge-agent'
 
 // Mock the workers-ai provider
 vi.mock('../providers/workers-ai', () => ({

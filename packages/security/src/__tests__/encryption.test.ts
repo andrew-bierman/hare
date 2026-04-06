@@ -1,11 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import {
-	decryptData,
-	encryptData,
-	generateSecret,
-	hashData,
-	timingSafeEqual,
-} from '../encryption'
+import { decryptData, encryptData, generateSecret, hashData, timingSafeEqual } from '../encryption'
 
 describe('Encryption Utilities', () => {
 	describe('encryptData', () => {
@@ -153,9 +147,7 @@ describe('Encryption Utilities', () => {
 			// Truncate to just a few bytes (less than salt + IV)
 			const truncated = encrypted.slice(0, 10)
 
-			await expect(
-				decryptData({ encryptedData: truncated, secret: 'secret' }),
-			).rejects.toThrow()
+			await expect(decryptData({ encryptedData: truncated, secret: 'secret' })).rejects.toThrow()
 		})
 	})
 

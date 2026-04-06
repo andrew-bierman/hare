@@ -1,5 +1,6 @@
 'use client'
 
+import { setOrpcWorkspaceId } from '@hare/api'
 import {
 	createContext,
 	type ReactNode,
@@ -9,10 +10,9 @@ import {
 	useRef,
 	useState,
 } from 'react'
-import type { Workspace, WorkspaceRole } from '../../shared/api'
-import { useWorkspacesQuery, useEnsureDefaultWorkspaceMutation } from '../../shared/api'
 import { useAuth } from '../../features/auth'
-import { setOrpcWorkspaceId } from '@hare/api'
+import type { Workspace, WorkspaceRole } from '../../shared/api'
+import { useEnsureDefaultWorkspaceMutation, useWorkspacesQuery } from '../../shared/api'
 
 interface WorkspaceWithRole extends Workspace {
 	role?: WorkspaceRole

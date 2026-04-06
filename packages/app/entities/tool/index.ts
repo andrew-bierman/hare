@@ -5,4 +5,4 @@
  * API hooks should be imported directly from '@hare/app/shared/api'.
  */
 
-export type { Tool, CreateToolInput, ToolType } from '@hare/types'
+export type { CreateToolInput, Tool, ToolType } from '@hare/types'

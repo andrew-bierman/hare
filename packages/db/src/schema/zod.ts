@@ -185,7 +185,10 @@ const conversationInsertRefinements = {
 	title: z.string().max(200).optional(),
 }
 /** Schema for inserting conversations into the database */
-export const insertConversationSchema = createInsertSchema(conversations, conversationInsertRefinements)
+export const insertConversationSchema = createInsertSchema(
+	conversations,
+	conversationInsertRefinements,
+)
 
 export type SelectConversation = z.infer<typeof selectConversationSchema>
 export type InsertConversation = z.infer<typeof insertConversationSchema>

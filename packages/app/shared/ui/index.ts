@@ -7,12 +7,10 @@
 
 // Re-export all UI components from the shared UI package
 export * from '@hare/ui'
-
-// Tables - Reusable table components built on TanStack Table
-export * from './tables'
+// Empty State - Reusable empty state component
+export * from './empty-state'
 
 // Forms - Reusable form components built on TanStack Form
 export * from './forms'
-
-// Empty State - Reusable empty state component
-export * from './empty-state'
+// Tables - Reusable table components built on TanStack Table
+export * from './tables'

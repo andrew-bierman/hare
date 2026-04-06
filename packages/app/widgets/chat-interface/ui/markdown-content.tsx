@@ -1,9 +1,9 @@
 'use client'
 
+import { cn } from '@hare/ui/lib/utils'
 import { code } from '@streamdown/code'
 import { math } from '@streamdown/math'
 import { mermaid } from '@streamdown/mermaid'
-import { cn } from '@hare/ui/lib/utils'
 import { Streamdown } from 'streamdown'
 import 'katex/dist/katex.min.css'
 

@@ -4,19 +4,19 @@
  * Handles workspace management with full type safety.
  */
 
-import { z } from 'zod'
-import { eq } from 'drizzle-orm'
-import { workspaces, workspaceMembers } from '@hare/db/schema'
 import { config } from '@hare/config'
+import { workspaceMembers, workspaces } from '@hare/db/schema'
+import { eq } from 'drizzle-orm'
+import { z } from 'zod'
+import { IdParamSchema, SuccessSchema } from '../../schemas'
 import {
 	authedProcedure,
-	requireWrite,
-	requireOwner,
-	notFound,
 	badRequest,
+	notFound,
+	requireOwner,
+	requireWrite,
 	serverError,
 } from '../base'
-import { SuccessSchema, IdParamSchema } from '../../schemas'
 
 // Define inline schemas that match actual DB structure
 const WorkspaceSchema = z.object({
@@ -30,7 +30,11 @@ const WorkspaceSchema = z.object({
 
 const CreateWorkspaceInputSchema = z.object({
 	name: z.string().min(1).max(100),
-	slug: z.string().min(1).max(50).regex(/^[a-z0-9-]+$/),
+	slug: z
+		.string()
+		.min(1)
+		.max(50)
+		.regex(/^[a-z0-9-]+$/),
 	description: z.string().max(500).optional(),
 })
 
@@ -90,10 +94,7 @@ export const getCurrent = requireWrite
 	.handler(async ({ context }) => {
 		const { db, workspaceId } = context
 
-		const [workspace] = await db
-			.select()
-			.from(workspaces)
-			.where(eq(workspaces.id, workspaceId))
+		const [workspace] = await db.select().from(workspaces).where(eq(workspaces.id, workspaceId))
 
 		if (!workspace) notFound('Workspace not found')
 
@@ -110,10 +111,7 @@ export const get = requireWrite
 	.handler(async ({ input, context }) => {
 		const { db } = context
 
-		const [workspace] = await db
-			.select()
-			.from(workspaces)
-			.where(eq(workspaces.id, input.id))
+		const [workspace] = await db.select().from(workspaces).where(eq(workspaces.id, input.id))
 
 		if (!workspace) notFound('Workspace not found')
 
@@ -131,10 +129,7 @@ export const create = authedProcedure
 		const { db, user } = context
 
 		// Check if slug is already taken
-		const [existing] = await db
-			.select()
-			.from(workspaces)
-			.where(eq(workspaces.slug, input.slug))
+		const [existing] = await db.select().from(workspaces).where(eq(workspaces.slug, input.slug))
 
 		if (existing) {
 			badRequest('Workspace slug is already taken')
@@ -200,10 +195,7 @@ export const remove = requireOwner
 	.handler(async ({ input, context }) => {
 		const { db } = context
 
-		const result = await db
-			.delete(workspaces)
-			.where(eq(workspaces.id, input.id))
-			.returning()
+		const result = await db.delete(workspaces).where(eq(workspaces.id, input.id)).returning()
 
 		if (result.length === 0) notFound('Workspace not found')
 

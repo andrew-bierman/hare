@@ -5,7 +5,7 @@
  */
 
 // Re-export types from @hare/tools for convenience
-export { type AnyTool, type Tool, type ToolContext, type ToolResult } from '@hare/tools'
+export type { AnyTool, Tool, ToolContext, ToolResult } from '@hare/tools'
 
 // Agent control tools (re-exported from @hare/tools)
 export {
@@ -15,8 +15,8 @@ export {
 	configureAgentTool,
 	createAgentTool,
 	deleteAgentTool,
-	executeToolTool,
 	type ExecutableTool,
+	executeToolTool,
 	getAgentControlTools,
 	getAgentControlToolsForMcp,
 	getAgentMetricsTool,

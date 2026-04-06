@@ -4,18 +4,17 @@
  * Handles chat operations including streaming responses, conversations, and exports.
  */
 
-import { z } from 'zod'
-import { eventIterator } from '@orpc/server'
-import { streamText, type ModelMessage } from 'ai'
-import { and, count, desc, eq, gte, like, lte } from 'drizzle-orm'
-import { agents, conversations, messages, usage } from '@hare/db/schema'
 import {
 	type AgentConfig,
 	createAgentFromConfig,
 	createMemoryStore,
 	toAgentMessages,
 } from '@hare/agent'
-import { authedProcedure, notFound } from '../base'
+import { agents, conversations, messages, usage } from '@hare/db/schema'
+import { eventIterator } from '@orpc/server'
+import { type ModelMessage, streamText } from 'ai'
+import { and, count, desc, eq, gte, like, lte } from 'drizzle-orm'
+import { z } from 'zod'
 import {
 	ChatRequestSchema,
 	ConversationExportSchema,
@@ -25,6 +24,7 @@ import {
 	IdParamSchema,
 	MessageSchema,
 } from '../../schemas'
+import { authedProcedure, notFound } from '../base'
 
 // =============================================================================
 // Export Helpers
@@ -429,7 +429,9 @@ export const exportConversation = authedProcedure
 				role: msg.role as 'user' | 'assistant' | 'system' | 'tool',
 				content: msg.content,
 				createdAt: msg.createdAt.toISOString(),
-				...(includeMetadata && msg.metadata ? { metadata: msg.metadata as Record<string, unknown> } : {}),
+				...(includeMetadata && msg.metadata
+					? { metadata: msg.metadata as Record<string, unknown> }
+					: {}),
 			})),
 			exportedAt,
 		}
@@ -443,7 +445,11 @@ export const exportConversation = authedProcedure
  * Highlight matching text in content using <mark> tags.
  * Returns a snippet around the first match with context.
  */
-function highlightMatch(options: { content: string; query: string; contextChars?: number }): string {
+function highlightMatch(options: {
+	content: string
+	query: string
+	contextChars?: number
+}): string {
 	const { content, query, contextChars = 100 } = options
 
 	// Escape special regex characters in the query
@@ -510,10 +516,7 @@ export const searchConversations = authedProcedure
 		const { db } = context
 
 		// Build filter conditions for messages
-		const conditions = [
-			eq(conversations.agentId, agentId),
-			like(messages.content, `%${query}%`),
-		]
+		const conditions = [eq(conversations.agentId, agentId), like(messages.content, `%${query}%`)]
 
 		if (dateFrom) {
 			const fromDate = new Date(dateFrom)

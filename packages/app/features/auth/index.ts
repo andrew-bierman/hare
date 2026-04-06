@@ -4,23 +4,22 @@
  * Authentication context and actions for sign-in, sign-out, etc.
  */
 
+// Sign-in actions
+export {
+	type SignInActions,
+	SignInActionsProvider,
+	type SignInActionsProviderProps,
+	type SignInResult,
+	useSignInActions,
+} from './actions'
 // Context and hooks
 export {
+	type AuthActions,
+	type AuthContextValue,
 	AuthProvider,
 	useAuth,
 	useAuthActions,
-	type AuthActions,
-	type AuthContextValue,
 } from './context'
-
-// Sign-in actions
-export {
-	SignInActionsProvider,
-	useSignInActions,
-	type SignInActions,
-	type SignInActionsProviderProps,
-	type SignInResult,
-} from './actions'
 
 // UI Components
 export { SignOutButton } from './ui/SignOutButton'

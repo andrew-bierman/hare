@@ -2,8 +2,8 @@
  * Workspace factory for creating test workspace data.
  */
 
+import type { InvitationStatus, MemberRole, PlanId, WorkspaceRole } from '@hare/config'
 import { createId } from '@hare/db'
-import type { PlanId, WorkspaceRole, MemberRole, InvitationStatus } from '@hare/config'
 
 /**
  * Workspace data shape matching the database schema.

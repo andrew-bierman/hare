@@ -1,6 +1,6 @@
-import { tool as aiTool } from 'ai'
+import type { HareEnv, Tool, ToolContext, ToolResult } from '@hare/tools'
 import type { ToolSet } from 'ai'
-import type { Tool, ToolContext, ToolResult, HareEnv } from '@hare/tools'
+import { tool as aiTool } from 'ai'
 
 /**
  * Convert Hare tools (Tool<TInput, TOutput>) to the Vercel AI SDK tool format

@@ -4,27 +4,27 @@
  * Handles all tool-related operations with full type safety.
  */
 
-import { z } from 'zod'
-import { and, eq } from 'drizzle-orm'
-import { tools } from '@hare/db/schema'
 import { config } from '@hare/config'
-import { requireWrite, requireAdmin, notFound, serverError, type WorkspaceContext } from '../base'
-import { logAudit } from '../audit'
+import { tools } from '@hare/db/schema'
+import { and, eq } from 'drizzle-orm'
+import { z } from 'zod'
 import {
-	SuccessSchema,
+	CreateToolSchema,
 	IdParamSchema,
+	SuccessSchema,
+	ToolConfigSchema,
 	ToolSchema,
 	ToolTypeSchema,
-	ToolConfigSchema,
-	CreateToolSchema,
 	UpdateToolSchema,
 } from '../../schemas'
 import {
 	executeHttpTool,
-	isUrlSafe,
 	HttpToolConfigSchema,
 	type InputSchema,
+	isUrlSafe,
 } from '../../services/custom-tool-executor'
+import { logAudit } from '../audit'
+import { notFound, requireAdmin, requireWrite, serverError, type WorkspaceContext } from '../base'
 
 // =============================================================================
 // Helpers
@@ -146,8 +146,12 @@ export const update = requireWrite
 			...(data.name !== undefined && { name: data.name }),
 			...(data.description !== undefined && { description: data.description }),
 			...(data.type !== undefined && { type: data.type }),
-			...(data.config !== undefined && { config: data.config as typeof tools.$inferInsert['config'] }),
-			...(data.inputSchema !== undefined && { inputSchema: data.inputSchema as typeof tools.$inferInsert['inputSchema'] }),
+			...(data.config !== undefined && {
+				config: data.config as (typeof tools.$inferInsert)['config'],
+			}),
+			...(data.inputSchema !== undefined && {
+				inputSchema: data.inputSchema as (typeof tools.$inferInsert)['inputSchema'],
+			}),
 		}
 
 		const [tool] = await db.update(tools).set(updateData).where(eq(tools.id, id)).returning()
@@ -162,7 +166,9 @@ export const update = requireWrite
 			resourceId: id,
 			details: {
 				name: tool.name,
-				updatedFields: Object.keys(data).filter((key) => data[key as keyof typeof data] !== undefined),
+				updatedFields: Object.keys(data).filter(
+					(key) => data[key as keyof typeof data] !== undefined,
+				),
 			},
 		})
 
