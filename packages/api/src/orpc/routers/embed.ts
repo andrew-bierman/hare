@@ -11,7 +11,8 @@ import {
 	createMemoryStore,
 	toAgentMessages,
 } from '@hare/agent'
-import { agents, usage } from '@hare/db/schema'
+import { recordUsage } from '@hare/db'
+import { agents } from '@hare/db/schema'
 import { eventIterator } from '@orpc/server'
 import type { ModelMessage } from 'ai'
 import { eq } from 'drizzle-orm'
@@ -235,27 +236,22 @@ const chat = publicProcedure
 				},
 			})
 
-			// Track usage
+			// Get actual token usage from AI SDK and record non-blocking
 			const latencyMs = Date.now() - startTime
-			const tokensIn = agentMessages.reduce((acc, m) => {
-				const content = typeof m.content === 'string' ? m.content : JSON.stringify(m.content)
-				return acc + Math.ceil(content.length / 4)
-			}, 0)
-			const tokensOut = Math.ceil(fullResponse.length / 4)
+			const tokenUsage = await response.usage
 
-			await db.insert(usage).values({
-				workspaceId: agent.workspaceId,
-				agentId,
-				userId: null,
-				type: 'embed',
-				inputTokens: tokensIn,
-				outputTokens: tokensOut,
-				totalTokens: tokensIn + tokensOut,
-				metadata: {
-					model: agent.model,
-					duration: latencyMs,
-				},
-			})
+			// Register background task BEFORE yielding done
+			context.executionCtx.waitUntil(
+				recordUsage({
+					db,
+					workspaceId: agent.workspaceId,
+					agentId,
+					userId: null,
+					type: 'embed',
+					usage: tokenUsage,
+					metadata: { model: agent.model, duration: latencyMs },
+				}),
+			)
 
 			yield { type: 'done' as const, sessionId: conversationId }
 		} catch (error) {

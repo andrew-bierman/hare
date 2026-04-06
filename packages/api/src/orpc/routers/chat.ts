@@ -10,7 +10,8 @@ import {
 	createMemoryStore,
 	toAgentMessages,
 } from '@hare/agent'
-import { agents, conversations, messages, usage } from '@hare/db/schema'
+import { recordUsage } from '@hare/db'
+import { agents, conversations, messages } from '@hare/db/schema'
 import { eventIterator } from '@orpc/server'
 import { type ModelMessage, streamText } from 'ai'
 import { and, count, desc, eq, gte, like, lte } from 'drizzle-orm'
@@ -231,27 +232,22 @@ export const chatWithAgent = authedProcedure
 				},
 			})
 
-			// Track usage (token counts are rough estimates based on ~4 chars/token)
+			// Get actual token usage from AI SDK and record non-blocking
 			const latencyMs = Date.now() - startTime
-			const tokensIn = agentMessages.reduce((acc, m) => {
-				const content = typeof m.content === 'string' ? m.content : JSON.stringify(m.content)
-				return acc + Math.ceil(content.length / 4)
-			}, 0)
-			const tokensOut = Math.ceil(fullResponse.length / 4)
+			const tokenUsage = await result.usage
 
-			await db.insert(usage).values({
-				workspaceId: agentConfig.workspaceId,
-				agentId,
-				userId: user.id,
-				type: 'chat',
-				inputTokens: tokensIn,
-				outputTokens: tokensOut,
-				totalTokens: tokensIn + tokensOut,
-				metadata: {
-					model: agentConfig.model,
-					duration: latencyMs,
-				},
-			})
+			// Register background task BEFORE yielding done to avoid generator abort race
+			context.executionCtx.waitUntil(
+				recordUsage({
+					db,
+					workspaceId: agentConfig.workspaceId,
+					agentId,
+					userId: user.id,
+					type: 'chat',
+					usage: tokenUsage,
+					metadata: { model: agentConfig.model, duration: latencyMs },
+				}),
+			)
 
 			// Signal completion with session ID
 			yield { type: 'done' as const, sessionId: conversationId }

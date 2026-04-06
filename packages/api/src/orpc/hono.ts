@@ -91,6 +91,7 @@ orpcApp.all('/*', async (c) => {
 		db,
 		env,
 		headers: c.req.raw.headers,
+		executionCtx: c.executionCtx,
 		...(user && {
 			user: {
 				id: user.id,
