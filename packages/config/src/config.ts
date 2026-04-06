@@ -1229,6 +1229,7 @@ export type InvitationStatus =
 	(typeof config.enums.invitationStatus)[keyof typeof config.enums.invitationStatus]
 export type WorkspaceRole =
 	(typeof config.enums.workspaceRole)[keyof typeof config.enums.workspaceRole]
+export const WorkspaceRole = config.enums.workspaceRole
 export type MemberRole = (typeof config.enums.memberRole)[keyof typeof config.enums.memberRole]
 export type MessageRole = (typeof config.enums.messageRole)[keyof typeof config.enums.messageRole]
 export type ScheduleType =

@@ -37,7 +37,7 @@ export function AdvancedSettings({
 	const parseNumber = (value: string, min: number, max: number): number | undefined => {
 		if (value === '') return undefined
 		const num = parseFloat(value)
-		if (isNaN(num)) return undefined
+		if (Number.isNaN(num)) return undefined
 		return Math.min(Math.max(num, min), max)
 	}
 

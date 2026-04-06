@@ -143,7 +143,7 @@ export function InstructionsEditor({
 		}
 
 		return exts
-	}, [isLoaded])
+	}, [])
 
 	const handleChange = useCallback(
 		(val: string) => {

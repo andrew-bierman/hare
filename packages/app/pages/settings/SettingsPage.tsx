@@ -110,7 +110,7 @@ export function SettingsPage() {
 		try {
 			await updatePreferencesMutation.mutateAsync({ emailNotifications: checked })
 			toast.success(checked ? 'Email notifications enabled' : 'Email notifications disabled')
-		} catch (error) {
+		} catch (_error) {
 			toast.error('Failed to update notification preference')
 		}
 	}
@@ -119,7 +119,7 @@ export function SettingsPage() {
 		try {
 			await updatePreferencesMutation.mutateAsync({ usageAlerts: checked })
 			toast.success(checked ? 'Usage alerts enabled' : 'Usage alerts disabled')
-		} catch (error) {
+		} catch (_error) {
 			toast.error('Failed to update usage alerts preference')
 		}
 	}

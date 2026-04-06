@@ -20,7 +20,7 @@ describe('Password Utilities', () => {
 			})
 
 			it('rejects password longer than 128 characters', () => {
-				const longPassword = 'A1!' + 'a'.repeat(126)
+				const longPassword = `A1!${'a'.repeat(126)}`
 				const result = validatePassword(longPassword)
 
 				expect(result.valid).toBe(false)

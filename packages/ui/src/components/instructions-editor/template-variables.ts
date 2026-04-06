@@ -28,7 +28,8 @@ function findTemplateVariables(text: string): Array<{ from: number; to: number; 
 	// Reset regex lastIndex
 	TEMPLATE_REGEX.lastIndex = 0
 
-	while ((match = TEMPLATE_REGEX.exec(text)) !== null) {
+	match = TEMPLATE_REGEX.exec(text)
+	while (match !== null) {
 		const name = match[1]
 		if (name) {
 			matches.push({
@@ -37,6 +38,7 @@ function findTemplateVariables(text: string): Array<{ from: number; to: number; 
 				name,
 			})
 		}
+		match = TEMPLATE_REGEX.exec(text)
 	}
 
 	return matches

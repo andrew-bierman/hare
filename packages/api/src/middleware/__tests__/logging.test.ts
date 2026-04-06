@@ -1,20 +1,14 @@
 import type { CloudflareEnv, HonoEnv } from '@hare/types'
 import { Hono } from 'hono'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import {
-	getLogStats,
-	getLogs,
-	type LogQueryParams,
-	loggingMiddleware,
-	type RequestLog,
-} from '../logging'
+import { getLogStats, getLogs, loggingMiddleware, type RequestLog } from '../logging'
 
 // Mock KV namespace
 function createMockKV() {
 	const store = new Map<string, string>()
 	return {
 		get: vi.fn(async (key: string) => store.get(key) || null),
-		put: vi.fn(async (key: string, value: string, options?: { expirationTtl?: number }) => {
+		put: vi.fn(async (key: string, value: string, _options?: { expirationTtl?: number }) => {
 			store.set(key, value)
 		}),
 		list: vi.fn(async (options?: { prefix?: string; limit?: number }) => {
