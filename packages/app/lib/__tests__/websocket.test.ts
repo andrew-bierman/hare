@@ -93,8 +93,8 @@ function getMockInstance(index: number): MockWebSocket {
 /**
  * Helper to get the last mock instance
  */
-function getLastMockInstance(): MockWebSocket {
-	const instance = getLastMockInstance()
+function _getLastMockInstance(): MockWebSocket {
+	const instance = _getLastMockInstance()
 	if (!instance) {
 		throw new Error('No mock WebSocket instances created')
 	}

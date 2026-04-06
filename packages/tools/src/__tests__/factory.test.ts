@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createToolFromConfig, loadAgentTools, type ToolDatabase } from '../factory'
-import type { AnyTool, Tool, ToolConfig, ToolContext } from '../types'
+import type { Tool, ToolConfig, ToolContext } from '../types'
 import { createFetchMock } from './test-utils'
 
 const createMockContext = (): ToolContext => ({

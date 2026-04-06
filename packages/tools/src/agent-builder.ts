@@ -243,7 +243,7 @@ export const agentListTemplatesTool = createTool({
 				suggestedToolTypes: [...t.suggestedToolTypes],
 				// Provide a preview of instructions (first 200 chars)
 				instructionsPreview:
-					t.instructions.length > 200 ? t.instructions.slice(0, 200) + '...' : t.instructions,
+					t.instructions.length > 200 ? `${t.instructions.slice(0, 200)}...` : t.instructions,
 			}))
 
 			return success({

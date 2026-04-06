@@ -1,4 +1,3 @@
-import type { AuthEnv, OptionalAuthEnv, WorkspaceEnv } from '@hare/types'
 import { Hono } from 'hono'
 import { every } from 'hono/combine'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -113,15 +112,15 @@ describe('combined middleware', () => {
 		it('executes middleware in order', async () => {
 			const order: number[] = []
 
-			const middleware1 = vi.fn(async (c, next) => {
+			const middleware1 = vi.fn(async (_c, next) => {
 				order.push(1)
 				await next()
 			})
-			const middleware2 = vi.fn(async (c, next) => {
+			const middleware2 = vi.fn(async (_c, next) => {
 				order.push(2)
 				await next()
 			})
-			const middleware3 = vi.fn(async (c, next) => {
+			const middleware3 = vi.fn(async (_c, next) => {
 				order.push(3)
 				await next()
 			})
@@ -140,7 +139,7 @@ describe('combined middleware', () => {
 		it('stops chain when middleware returns response', async () => {
 			const order: number[] = []
 
-			const middleware1 = vi.fn(async (c, next) => {
+			const middleware1 = vi.fn(async (_c, next) => {
 				order.push(1)
 				await next()
 			})
@@ -148,7 +147,7 @@ describe('combined middleware', () => {
 				order.push(2)
 				return c.json({ error: 'Stopped' }, 401)
 			})
-			const middleware3 = vi.fn(async (c, next) => {
+			const middleware3 = vi.fn(async (_c, next) => {
 				order.push(3)
 				await next()
 			})
@@ -306,7 +305,7 @@ describe('combined middleware', () => {
 			})
 
 			it('allows unauthenticated requests', () => {
-				const checkOptionalAuth = (user: unknown) => {
+				const checkOptionalAuth = (_user: unknown) => {
 					// Optional auth always returns true (allows through)
 					// but may or may not set user context
 					return true

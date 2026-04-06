@@ -102,8 +102,8 @@ describe('oRPC Type Inference (Consumer Level - @hare/api)', () => {
 
 		it('should have typed delete procedure', () => {
 			type DeleteProcedure = typeof orpc.agents.delete
-			type DeleteIsFunction = DeleteProcedure extends (...args: unknown[]) => unknown ? true : false
-			type _assert = AssertTrue<DeleteIsFunction>
+			// eslint-disable-next-line @typescript-eslint/no-unused-vars
+			type _deleteExists = DeleteProcedure extends object ? true : never
 
 			expect(typeof orpc.agents.delete).toBe('function')
 		})

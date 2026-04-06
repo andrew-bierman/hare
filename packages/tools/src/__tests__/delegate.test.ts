@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { z } from 'zod'
 import { delegateTo, delegateToWithValidation } from '../delegate'
-import { createTool, failure, success, type Tool, type ToolContext } from '../types'
+import { createTool, failure, success, type ToolContext } from '../types'
 
 const createMockContext = (): ToolContext => ({
 	env: {} as ToolContext['env'],

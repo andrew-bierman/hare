@@ -131,7 +131,7 @@ describe('Encryption Utilities', () => {
 		it('fails with corrupted ciphertext', async () => {
 			const encrypted = await encryptData({ data: 'test', secret: 'secret' })
 			// Corrupt the ciphertext by modifying a character
-			const corrupted = encrypted.slice(0, -5) + 'XXXXX'
+			const corrupted = `${encrypted.slice(0, -5)}XXXXX`
 
 			await expect(decryptData({ encryptedData: corrupted, secret: 'secret' })).rejects.toThrow()
 		})
@@ -310,7 +310,7 @@ describe('Encryption Utilities', () => {
 		it('handles very long strings', () => {
 			const longStringA = 'a'.repeat(10000)
 			const longStringB = 'a'.repeat(10000)
-			const longStringC = 'a'.repeat(9999) + 'b'
+			const longStringC = `${'a'.repeat(9999)}b`
 
 			expect(timingSafeEqual({ a: longStringA, b: longStringB })).toBe(true)
 			expect(timingSafeEqual({ a: longStringA, b: longStringC })).toBe(false)

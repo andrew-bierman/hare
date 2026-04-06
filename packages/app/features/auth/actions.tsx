@@ -34,8 +34,8 @@ export interface SignInActions {
 	signIn: {
 		email: (options: { email: string; password: string }) => Promise<SignInResult>
 	}
-	signInWithGoogle: () => Promise<OAuthSignInResult | void>
-	signInWithGitHub: () => Promise<OAuthSignInResult | void>
+	signInWithGoogle: () => Promise<OAuthSignInResult | undefined>
+	signInWithGitHub: () => Promise<OAuthSignInResult | undefined>
 }
 
 const SignInActionsContext = createContext<SignInActions | null>(null)

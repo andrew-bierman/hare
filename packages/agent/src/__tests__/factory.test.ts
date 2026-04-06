@@ -64,7 +64,7 @@ function createMockDb() {
 			where: vi.fn().mockReturnThis(),
 			orderBy: vi.fn().mockReturnThis(),
 			limit: vi.fn().mockReturnThis(),
-			// Make it thenable (Promise-like) so await works
+			// biome-ignore lint/suspicious/noThenProperty: mock needs to be thenable for await
 			then: vi.fn().mockImplementation((resolve) => resolve(finalValue)),
 		}
 		return chain

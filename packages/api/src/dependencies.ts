@@ -8,7 +8,6 @@
 import type { D1Database } from '@cloudflare/workers-types'
 import type { CloudflareEnv } from '@hare/types'
 import type { DrizzleD1Database } from 'drizzle-orm/d1'
-import type { Context } from 'hono'
 
 // =============================================================================
 // Database Types
