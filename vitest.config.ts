@@ -1,7 +1,10 @@
 import path from "node:path";
-import { defineWorkersConfig } from "@cloudflare/vitest-pool-workers/config";
+import {
+  defineWorkersConfig,
+  readD1Migrations,
+} from "@cloudflare/vitest-pool-workers/config";
 
-export default defineWorkersConfig({
+export default defineWorkersConfig(async () => ({
   resolve: {
     alias: {
       // Mock cuid2 to avoid CF Workers global scope random generation error
@@ -42,6 +45,7 @@ export default defineWorkersConfig({
   },
   test: {
     globals: true,
+    setupFiles: ["./test/apply-migrations.ts"],
     env: {
       NODE_ENV: "test",
       VITE_APP_URL: "http://localhost:3000",
@@ -67,6 +71,9 @@ export default defineWorkersConfig({
             BETTER_AUTH_SECRET: "test-secret-must-be-at-least-32-characters-long",
             BETTER_AUTH_URL: "http://localhost:3000",
             VITE_APP_URL: "http://localhost:3000",
+            TEST_MIGRATIONS: await readD1Migrations(
+              path.resolve(__dirname, "./apps/web/migrations"),
+            ),
           },
           d1Databases: ["DB"],
           d1Persist: process.env.VITEST ? '.vitest' : false,
@@ -103,4 +110,4 @@ export default defineWorkersConfig({
       statements: 40,
     },
   },
-});
+}));
