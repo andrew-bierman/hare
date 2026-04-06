@@ -69,41 +69,36 @@ describe('oRPC Type Inference (Consumer Level - @hare/api)', () => {
 
 	describe('Agents CRUD Operations', () => {
 		it('should have typed list procedure', () => {
-			type ListProcedure = typeof orpc.agents.list
-			type ListIsFunction = ListProcedure extends (...args: unknown[]) => unknown ? true : false
-			type _assert = AssertTrue<ListIsFunction>
+			type ListIsNotAny = IsNotAny<typeof orpc.agents.list>
+			type _assert = AssertTrue<ListIsNotAny>
 
 			expect(typeof orpc.agents.list).toBe('function')
 		})
 
 		it('should have typed get procedure', () => {
-			type GetProcedure = typeof orpc.agents.get
-			type GetIsFunction = GetProcedure extends (...args: unknown[]) => unknown ? true : false
-			type _assert = AssertTrue<GetIsFunction>
+			type GetIsNotAny = IsNotAny<typeof orpc.agents.get>
+			type _assert = AssertTrue<GetIsNotAny>
 
 			expect(typeof orpc.agents.get).toBe('function')
 		})
 
 		it('should have typed create procedure', () => {
-			type CreateProcedure = typeof orpc.agents.create
-			type CreateIsFunction = CreateProcedure extends (...args: unknown[]) => unknown ? true : false
-			type _assert = AssertTrue<CreateIsFunction>
+			type CreateIsNotAny = IsNotAny<typeof orpc.agents.create>
+			type _assert = AssertTrue<CreateIsNotAny>
 
 			expect(typeof orpc.agents.create).toBe('function')
 		})
 
 		it('should have typed update procedure', () => {
-			type UpdateProcedure = typeof orpc.agents.update
-			type UpdateIsFunction = UpdateProcedure extends (...args: unknown[]) => unknown ? true : false
-			type _assert = AssertTrue<UpdateIsFunction>
+			type UpdateIsNotAny = IsNotAny<typeof orpc.agents.update>
+			type _assert = AssertTrue<UpdateIsNotAny>
 
 			expect(typeof orpc.agents.update).toBe('function')
 		})
 
 		it('should have typed delete procedure', () => {
-			type DeleteProcedure = typeof orpc.agents.delete
-			// eslint-disable-next-line @typescript-eslint/no-unused-vars
-			type _deleteExists = DeleteProcedure extends object ? true : never
+			type DeleteIsNotAny = IsNotAny<typeof orpc.agents.delete>
+			type _assert = AssertTrue<DeleteIsNotAny>
 
 			expect(typeof orpc.agents.delete).toBe('function')
 		})
