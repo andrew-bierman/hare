@@ -61,6 +61,18 @@ export const WorkflowEdgeSchema = z
 	})
 	.openapi('WorkflowEdge')
 
+<<<<<<< Updated upstream
+=======
+export const CanvasLayoutSchema = z
+	.object({
+		zoom: z.number().optional(),
+		panX: z.number().optional(),
+		panY: z.number().optional(),
+	})
+	.nullable()
+	.optional()
+
+>>>>>>> Stashed changes
 export const WorkflowSchema = z
 	.object({
 		id: z.string(),
@@ -68,6 +80,10 @@ export const WorkflowSchema = z
 		name: z.string(),
 		description: z.string().nullable(),
 		status: WorkflowStatusSchema,
+<<<<<<< Updated upstream
+=======
+		canvasLayout: CanvasLayoutSchema,
+>>>>>>> Stashed changes
 		nodes: z.array(WorkflowNodeSchema).optional(),
 		edges: z.array(WorkflowEdgeSchema).optional(),
 		createdAt: z.string().datetime(),
@@ -87,6 +103,10 @@ export const UpdateWorkflowSchema = z
 		name: z.string().min(1).max(100).trim().optional(),
 		description: z.string().max(500).optional(),
 		status: WorkflowStatusSchema.optional(),
+<<<<<<< Updated upstream
+=======
+		canvasLayout: CanvasLayoutSchema,
+>>>>>>> Stashed changes
 	})
 	.openapi('UpdateWorkflow')
 
