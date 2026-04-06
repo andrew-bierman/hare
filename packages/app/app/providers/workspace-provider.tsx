@@ -78,7 +78,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
 		}
 	}, [workspaces, activeWorkspace])
 
-	// Sync active workspace ID to oRPC client for X-Workspace-Id header
+	// Sync active workspace ID to Eden Treaty client for X-Workspace-Id header
 	// Set synchronously during render so queries have the ID immediately
 	setWorkspaceId(activeWorkspace?.id ?? null)
 

@@ -7,7 +7,7 @@ import { DefaultChatTransport } from 'ai'
 import { useMemo, useRef, useState } from 'react'
 
 // =============================================================================
-// Types (inferred from oRPC)
+// Types
 // =============================================================================
 
 // Helper to unwrap Eden Treaty response
@@ -35,7 +35,7 @@ export interface Message {
 }
 
 // =============================================================================
-// Query Hooks (using oRPC)
+// Query Hooks (using Eden Treaty)
 // =============================================================================
 
 export function useConversationsQuery(agentId: string | undefined) {
