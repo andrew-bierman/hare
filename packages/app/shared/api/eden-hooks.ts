@@ -5,17 +5,17 @@
  * Types are fully inferred from the Elysia server.
  *
  * Eden Treaty path mapping:
- * - GET  /agents       → api.api.agents.get()
- * - POST /agents       → api.api.agents.post(body)
- * - GET  /agents/:id   → api.api.agents({ id }).get()
- * - PATCH /agents/:id  → api.api.agents({ id }).patch(body)
- * - DELETE /agents/:id → api.api.agents({ id }).delete()
- * - POST /agents/:id/deploy → api.api.agents({ id }).deploy.post(body)
+ * - GET  /agents       → client.api.agents.get()
+ * - POST /agents       → client.api.agents.post(body)
+ * - GET  /agents/:id   → client.api.agents({ id }).get()
+ * - PATCH /agents/:id  → client.api.agents({ id }).patch(body)
+ * - DELETE /agents/:id → client.api.agents({ id }).delete()
+ * - POST /agents/:id/deploy → client.api.agents({ id }).deploy.post(body)
  */
 
 'use client'
 
-import { api, getWorkspaceId } from '@hare/api/client'
+import { client, getWorkspaceId } from '@hare/api/client'
 import type { AuditAction } from '@hare/config'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
@@ -33,7 +33,7 @@ async function unwrap<T>(promise: Promise<{ data: T | null; error: unknown }>): 
 export function useAgentsQuery() {
 	return useQuery({
 		queryKey: ['agents'],
-		queryFn: () => unwrap(api.api.agents.get()),
+		queryFn: () => unwrap(client.api.agents.get()),
 		enabled: !!getWorkspaceId(),
 	})
 }
@@ -41,7 +41,7 @@ export function useAgentsQuery() {
 export function useAgentQuery(id: string | undefined) {
 	return useQuery({
 		queryKey: ['agents', id],
-		queryFn: () => unwrap(api.api.agents({ id: id! }).get()),
+		queryFn: () => unwrap(client.api.agents({ id: id! }).get()),
 		enabled: !!id,
 	})
 }
@@ -64,7 +64,7 @@ export function useAgentPreviewQuery(options: {
 	const { enabled, ...previewInput } = options
 	return useQuery({
 		queryKey: ['agents', 'preview', previewInput],
-		queryFn: () => unwrap(api.api.agents.preview.post(previewInput as any)),
+		queryFn: () => unwrap(client.api.agents.preview.post(previewInput as any)),
 		enabled: enabled !== false,
 	})
 }
@@ -80,7 +80,7 @@ export function useCreateAgentMutation() {
 			config?: Record<string, unknown>
 			systemToolsEnabled?: boolean
 			toolIds?: string[]
-		}) => unwrap(api.api.agents.post(input as any)),
+		}) => unwrap(client.api.agents.post(input as any)),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['agents'] })
 			queryClient.invalidateQueries({ queryKey: ['usage'] })
@@ -94,7 +94,7 @@ export function useUpdateAgentMutation() {
 	return useMutation({
 		mutationFn: (input: { id: string } & Record<string, unknown>) => {
 			const { id, ...body } = input
-			return unwrap(api.api.agents({ id }).patch(body as any))
+			return unwrap(client.api.agents({ id }).patch(body as any))
 		},
 		onSuccess: (_, variables) => {
 			queryClient.invalidateQueries({ queryKey: ['agents'] })
@@ -106,7 +106,7 @@ export function useUpdateAgentMutation() {
 export function useDeleteAgentMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: (input: { id: string }) => unwrap(api.api.agents({ id: input.id }).delete()),
+		mutationFn: (input: { id: string }) => unwrap(client.api.agents({ id: input.id }).delete()),
 		onSuccess: (_, variables) => {
 			queryClient.invalidateQueries({ queryKey: ['agents'] })
 			queryClient.invalidateQueries({ queryKey: ['agents', variables.id] })
@@ -117,7 +117,7 @@ export function useDeleteAgentMutation() {
 export function useDeployAgentMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: (input: { id: string }) => unwrap(api.api.agents({ id: input.id }).deploy.post({})),
+		mutationFn: (input: { id: string }) => unwrap(client.api.agents({ id: input.id }).deploy.post({})),
 		onSuccess: async (_, variables) => {
 			await Promise.all([
 				queryClient.invalidateQueries({ queryKey: ['agents'] }),
@@ -135,7 +135,7 @@ export function useAgentVersionsQuery(
 ) {
 	return useQuery({
 		queryKey: ['agents', agentId, 'versions', options],
-		queryFn: () => unwrap(api.api.agents({ id: agentId! }).versions.get({ query: options as any })),
+		queryFn: () => unwrap(client.api.agents({ id: agentId! }).versions.get({ query: options as any })),
 		enabled: !!agentId,
 	})
 }
@@ -144,7 +144,7 @@ export function useRollbackAgentMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
 		mutationFn: (input: { id: string; version: number }) =>
-			unwrap(api.api.agents({ id: input.id }).rollback.post({ version: input.version } as any)),
+			unwrap(client.api.agents({ id: input.id }).rollback.post({ version: input.version } as any)),
 		onSuccess: (_, variables) => {
 			queryClient.invalidateQueries({ queryKey: ['agents'] })
 			queryClient.invalidateQueries({ queryKey: ['agents', variables.id] })
@@ -157,7 +157,7 @@ export function useUndeployAgentMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
 		mutationFn: (input: { id: string }) =>
-			unwrap(api.api.agents({ id: input.id }).undeploy.post({})),
+			unwrap(client.api.agents({ id: input.id }).undeploy.post({})),
 		onSuccess: (_, variables) => {
 			queryClient.invalidateQueries({ queryKey: ['agents'] })
 			queryClient.invalidateQueries({ queryKey: ['agents', variables.id] })
@@ -168,7 +168,7 @@ export function useUndeployAgentMutation() {
 export function useCloneAgentMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: (input: { id: string }) => unwrap(api.api.agents({ id: input.id }).clone.post({})),
+		mutationFn: (input: { id: string }) => unwrap(client.api.agents({ id: input.id }).clone.post({})),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['agents'] })
 		},
@@ -182,7 +182,7 @@ export function useCloneAgentMutation() {
 export function useToolsQuery() {
 	return useQuery({
 		queryKey: ['tools'],
-		queryFn: () => unwrap(api.api.tools.get()),
+		queryFn: () => unwrap(client.api.tools.get()),
 		enabled: !!getWorkspaceId(),
 	})
 }
@@ -190,7 +190,7 @@ export function useToolsQuery() {
 export function useToolQuery(id: string | undefined) {
 	return useQuery({
 		queryKey: ['tools', id],
-		queryFn: () => unwrap(api.api.tools({ id: id! }).get()),
+		queryFn: () => unwrap(client.api.tools({ id: id! }).get()),
 		enabled: !!id,
 	})
 }
@@ -198,7 +198,7 @@ export function useToolQuery(id: string | undefined) {
 export function useCreateToolMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: (input: Record<string, unknown>) => unwrap(api.api.tools.post(input as any)),
+		mutationFn: (input: Record<string, unknown>) => unwrap(client.api.tools.post(input as any)),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['tools'] })
 		},
@@ -210,7 +210,7 @@ export function useUpdateToolMutation() {
 	return useMutation({
 		mutationFn: (input: { id: string } & Record<string, unknown>) => {
 			const { id, ...body } = input
-			return unwrap(api.api.tools({ id }).patch(body as any))
+			return unwrap(client.api.tools({ id }).patch(body as any))
 		},
 		onSuccess: (_, variables) => {
 			queryClient.invalidateQueries({ queryKey: ['tools'] })
@@ -222,7 +222,7 @@ export function useUpdateToolMutation() {
 export function useDeleteToolMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: (input: { id: string }) => unwrap(api.api.tools({ id: input.id }).delete()),
+		mutationFn: (input: { id: string }) => unwrap(client.api.tools({ id: input.id }).delete()),
 		onSuccess: (_, variables) => {
 			queryClient.invalidateQueries({ queryKey: ['tools'] })
 			queryClient.invalidateQueries({ queryKey: ['tools', variables.id] })
@@ -232,7 +232,7 @@ export function useDeleteToolMutation() {
 
 export function useTestToolMutation() {
 	return useMutation({
-		mutationFn: (input: Record<string, unknown>) => unwrap(api.api.tools.test.post(input as any)),
+		mutationFn: (input: Record<string, unknown>) => unwrap(client.api.tools.test.post(input as any)),
 	})
 }
 
@@ -240,7 +240,7 @@ export function useTestExistingToolMutation() {
 	return useMutation({
 		mutationFn: (input: { id: string } & Record<string, unknown>) => {
 			const { id, ...body } = input
-			return unwrap(api.api.tools({ id }).test.post(body as any))
+			return unwrap(client.api.tools({ id }).test.post(body as any))
 		},
 	})
 }
@@ -252,7 +252,7 @@ export function useTestExistingToolMutation() {
 export function useWebhooksQuery(agentId: string | undefined) {
 	return useQuery({
 		queryKey: ['webhooks', agentId],
-		queryFn: () => unwrap(api.api.webhooks({ agentId: agentId! }).get()),
+		queryFn: () => unwrap(client.api.webhooks({ agentId: agentId! }).get()),
 		enabled: !!agentId,
 	})
 }
@@ -262,7 +262,7 @@ export function useCreateWebhookMutation() {
 	return useMutation({
 		mutationFn: (input: { agentId: string } & Record<string, unknown>) => {
 			const { agentId, ...body } = input
-			return unwrap(api.api.webhooks({ agentId }).post(body as any))
+			return unwrap(client.api.webhooks({ agentId }).post(body as any))
 		},
 		onSuccess: (_, variables) => {
 			queryClient.invalidateQueries({ queryKey: ['webhooks', variables.agentId] })
@@ -275,7 +275,7 @@ export function useUpdateWebhookMutation() {
 	return useMutation({
 		mutationFn: (input: { agentId: string; webhookId: string } & Record<string, unknown>) => {
 			const { agentId, webhookId, ...body } = input
-			return unwrap((api.api.webhooks as any)({ agentId })({ webhookId }).patch(body))
+			return unwrap((client.api.webhooks as any)({ agentId })({ webhookId }).patch(body))
 		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['webhooks'] })
@@ -288,7 +288,7 @@ export function useDeleteWebhookMutation() {
 	return useMutation({
 		mutationFn: (input: { agentId: string; webhookId: string }) =>
 			unwrap(
-				(api.api.webhooks as any)({ agentId: input.agentId })({
+				(client.api.webhooks as any)({ agentId: input.agentId })({
 					webhookId: input.webhookId,
 				}).delete(),
 			),
@@ -303,7 +303,7 @@ export function useRegenerateWebhookSecretMutation() {
 	return useMutation({
 		mutationFn: (input: { agentId: string; webhookId: string }) =>
 			unwrap(
-				(api.api.webhooks as any)({ agentId: input.agentId })({
+				(client.api.webhooks as any)({ agentId: input.agentId })({
 					webhookId: input.webhookId,
 				})['regenerate-secret'].post({}),
 			),
@@ -317,7 +317,7 @@ export function useWebhookDeliveriesQuery(options: { webhookId: string; enabled?
 	const { webhookId, enabled = true } = options
 	return useQuery<{ deliveries: WebhookDelivery[]; total: number }>({
 		queryKey: ['webhooks', webhookId, 'deliveries'],
-		queryFn: () => unwrap((api.api.webhooks as any).webhooks({ webhookId }).deliveries.get()),
+		queryFn: () => unwrap((client.api.webhooks as any).webhooks({ webhookId }).deliveries.get()),
 		enabled,
 	})
 }
@@ -330,7 +330,7 @@ export function useWebhookLogsQuery(options: {
 	const { agentId, webhookId, enabled = true } = options
 	return useQuery<{ logs: WebhookLog[]; total: number }>({
 		queryKey: ['webhooks', agentId, webhookId, 'logs'],
-		queryFn: () => unwrap((api.api.webhooks as any)({ agentId })({ webhookId }).logs.get()),
+		queryFn: () => unwrap((client.api.webhooks as any)({ agentId })({ webhookId }).logs.get()),
 		enabled,
 	})
 }
@@ -340,7 +340,7 @@ export function useRetryWebhookDeliveryMutation() {
 	return useMutation({
 		mutationFn: (input: { webhookId: string; deliveryId: string }) =>
 			unwrap(
-				(api.api.webhooks as any)
+				(client.api.webhooks as any)
 					.webhooks({ webhookId: input.webhookId })
 					.deliveries({ deliveryId: input.deliveryId })
 					.retry.post({}),
@@ -398,14 +398,14 @@ export interface WebhookLog {
 export function useApiKeysQuery() {
 	return useQuery({
 		queryKey: ['api-keys'],
-		queryFn: () => unwrap(api.api['api-keys'].get()),
+		queryFn: () => unwrap(client.api['api-keys'].get()),
 	})
 }
 
 export function useApiKeyQuery(id: string | undefined) {
 	return useQuery({
 		queryKey: ['api-keys', id],
-		queryFn: () => unwrap(api.api['api-keys']({ id: id! }).get()),
+		queryFn: () => unwrap(client.api['api-keys']({ id: id! }).get()),
 		enabled: !!id,
 	})
 }
@@ -417,7 +417,7 @@ export function useCreateApiKeyMutation() {
 			name: string
 			permissions?: { scopes?: string[]; agentIds?: string[] } | null
 			expiresAt?: string
-		}) => unwrap(api.api['api-keys'].post(data as any)),
+		}) => unwrap(client.api['api-keys'].post(data as any)),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['api-keys'] })
 		},
@@ -433,7 +433,7 @@ export function useUpdateApiKeyMutation() {
 			permissions?: Record<string, unknown> | null
 		}) => {
 			const { id, ...body } = data
-			return unwrap(api.api['api-keys']({ id }).patch(body as any))
+			return unwrap(client.api['api-keys']({ id }).patch(body as any))
 		},
 		onSuccess: (_, variables) => {
 			queryClient.invalidateQueries({ queryKey: ['api-keys'] })
@@ -445,7 +445,7 @@ export function useUpdateApiKeyMutation() {
 export function useDeleteApiKeyMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: (data: { id: string }) => unwrap(api.api['api-keys']({ id: data.id }).delete()),
+		mutationFn: (data: { id: string }) => unwrap(client.api['api-keys']({ id: data.id }).delete()),
 		onSuccess: (_, variables) => {
 			queryClient.invalidateQueries({ queryKey: ['api-keys'] })
 			queryClient.invalidateQueries({ queryKey: ['api-keys', variables.id] })
@@ -460,21 +460,21 @@ export function useDeleteApiKeyMutation() {
 export function useWorkspacesQuery() {
 	return useQuery({
 		queryKey: ['workspaces'],
-		queryFn: () => unwrap(api.api.workspaces.get()),
+		queryFn: () => unwrap(client.api.workspaces.get()),
 	})
 }
 
 export function useCurrentWorkspaceQuery() {
 	return useQuery({
 		queryKey: ['workspaces', 'current'],
-		queryFn: () => unwrap(api.api.workspaces.current.get()),
+		queryFn: () => unwrap(client.api.workspaces.current.get()),
 	})
 }
 
 export function useWorkspaceQuery(id: string | undefined) {
 	return useQuery({
 		queryKey: ['workspaces', id],
-		queryFn: () => unwrap(api.api.workspaces({ id: id! }).get()),
+		queryFn: () => unwrap(client.api.workspaces({ id: id! }).get()),
 		enabled: !!id,
 	})
 }
@@ -483,7 +483,7 @@ export function useCreateWorkspaceMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
 		mutationFn: (data: { name: string; slug: string; description?: string }) =>
-			unwrap(api.api.workspaces.post(data as any)),
+			unwrap(client.api.workspaces.post(data as any)),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['workspaces'] })
 		},
@@ -495,7 +495,7 @@ export function useUpdateWorkspaceMutation() {
 	return useMutation({
 		mutationFn: (data: { id: string; name?: string; description?: string }) => {
 			const { id, ...body } = data
-			return unwrap(api.api.workspaces({ id }).patch(body as any))
+			return unwrap(client.api.workspaces({ id }).patch(body as any))
 		},
 		onSuccess: (_, variables) => {
 			queryClient.invalidateQueries({ queryKey: ['workspaces'] })
@@ -507,7 +507,7 @@ export function useUpdateWorkspaceMutation() {
 export function useDeleteWorkspaceMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: (data: { id: string }) => unwrap(api.api.workspaces({ id: data.id }).delete()),
+		mutationFn: (data: { id: string }) => unwrap(client.api.workspaces({ id: data.id }).delete()),
 		onSuccess: (_, variables) => {
 			queryClient.invalidateQueries({ queryKey: ['workspaces'] })
 			queryClient.invalidateQueries({ queryKey: ['workspaces', variables.id] })
@@ -518,7 +518,7 @@ export function useDeleteWorkspaceMutation() {
 export function useEnsureDefaultWorkspaceMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: () => unwrap(api.api.workspaces['ensure-default'].post({})),
+		mutationFn: () => unwrap(client.api.workspaces['ensure-default'].post({})),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['workspaces'] })
 		},
@@ -532,14 +532,14 @@ export function useEnsureDefaultWorkspaceMutation() {
 export function useSchedulesQuery(agentId?: string) {
 	return useQuery({
 		queryKey: ['schedules', { agentId }],
-		queryFn: () => unwrap(api.api.schedules.get({ query: { agentId } as any })),
+		queryFn: () => unwrap(client.api.schedules.get({ query: { agentId } as any })),
 	})
 }
 
 export function useScheduleQuery(id: string | undefined) {
 	return useQuery({
 		queryKey: ['schedules', id],
-		queryFn: () => unwrap(api.api.schedules({ id: id! }).get()),
+		queryFn: () => unwrap(client.api.schedules({ id: id! }).get()),
 		enabled: !!id,
 	})
 }
@@ -547,7 +547,7 @@ export function useScheduleQuery(id: string | undefined) {
 export function useCreateScheduleMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: (data: Record<string, unknown>) => unwrap(api.api.schedules.post(data as any)),
+		mutationFn: (data: Record<string, unknown>) => unwrap(client.api.schedules.post(data as any)),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['schedules'] })
 		},
@@ -559,7 +559,7 @@ export function useUpdateScheduleMutation() {
 	return useMutation({
 		mutationFn: (data: { id: string } & Record<string, unknown>) => {
 			const { id, ...body } = data
-			return unwrap(api.api.schedules({ id }).patch(body as any))
+			return unwrap(client.api.schedules({ id }).patch(body as any))
 		},
 		onSuccess: (_, variables) => {
 			queryClient.invalidateQueries({ queryKey: ['schedules'] })
@@ -571,7 +571,7 @@ export function useUpdateScheduleMutation() {
 export function useDeleteScheduleMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: (data: { id: string }) => unwrap(api.api.schedules({ id: data.id }).delete()),
+		mutationFn: (data: { id: string }) => unwrap(client.api.schedules({ id: data.id }).delete()),
 		onSuccess: (_, variables) => {
 			queryClient.invalidateQueries({ queryKey: ['schedules'] })
 			queryClient.invalidateQueries({ queryKey: ['schedules', variables.id] })
@@ -582,7 +582,7 @@ export function useDeleteScheduleMutation() {
 export function usePauseScheduleMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: (data: { id: string }) => unwrap(api.api.schedules({ id: data.id }).pause.post({})),
+		mutationFn: (data: { id: string }) => unwrap(client.api.schedules({ id: data.id }).pause.post({})),
 		onSuccess: (_, variables) => {
 			queryClient.invalidateQueries({ queryKey: ['schedules'] })
 			queryClient.invalidateQueries({ queryKey: ['schedules', variables.id] })
@@ -594,7 +594,7 @@ export function useResumeScheduleMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
 		mutationFn: (data: { id: string }) =>
-			unwrap(api.api.schedules({ id: data.id }).resume.post({})),
+			unwrap(client.api.schedules({ id: data.id }).resume.post({})),
 		onSuccess: (_, variables) => {
 			queryClient.invalidateQueries({ queryKey: ['schedules'] })
 			queryClient.invalidateQueries({ queryKey: ['schedules', variables.id] })
@@ -605,7 +605,7 @@ export function useResumeScheduleMutation() {
 export function useScheduleExecutionsQuery(scheduleId: string | undefined) {
 	return useQuery({
 		queryKey: ['schedules', scheduleId, 'executions'],
-		queryFn: () => unwrap(api.api.schedules({ id: scheduleId! }).executions.get()),
+		queryFn: () => unwrap(client.api.schedules({ id: scheduleId! }).executions.get()),
 		enabled: !!scheduleId,
 	})
 }
@@ -620,7 +620,7 @@ export function useAgentExecutionsQuery(options: { agentId?: string; limit?: num
 			if (!schedulesData?.schedules?.length) return { executions: [] }
 			const allExecutions = await Promise.all(
 				schedulesData.schedules.map((s: { id: string }) =>
-					unwrap(api.api.schedules({ id: s.id }).executions.get()),
+					unwrap(client.api.schedules({ id: s.id }).executions.get()),
 				),
 			)
 			const combined = allExecutions.flatMap((r: any) => r.executions)
@@ -640,14 +640,14 @@ export function useAgentExecutionsQuery(options: { agentId?: string; limit?: num
 export function useWorkspaceMembersQuery(workspaceId: string | undefined) {
 	return useQuery({
 		queryKey: ['workspaces', workspaceId, 'members'],
-		queryFn: () => unwrap(api.api['workspace-members']({ id: workspaceId! }).members.get()),
+		queryFn: () => unwrap(client.api['workspace-members']({ id: workspaceId! }).members.get()),
 	})
 }
 
 export function useWorkspaceInvitationsQuery(workspaceId: string | undefined) {
 	return useQuery({
 		queryKey: ['workspaces', workspaceId, 'invitations'],
-		queryFn: () => unwrap(api.api['workspace-members']({ id: workspaceId! }).invites.get()),
+		queryFn: () => unwrap(client.api['workspace-members']({ id: workspaceId! }).invites.get()),
 	})
 }
 
@@ -656,7 +656,7 @@ export function useSendInvitationMutation() {
 	return useMutation({
 		mutationFn: (data: { id: string; email: string; role?: 'admin' | 'member' | 'viewer' }) => {
 			const { id, ...body } = data
-			return unwrap(api.api['workspace-members']({ id }).invites.post(body as any))
+			return unwrap(client.api['workspace-members']({ id }).invites.post(body as any))
 		},
 		onSuccess: (_, variables) => {
 			queryClient.invalidateQueries({ queryKey: ['workspaces', variables.id, 'invitations'] })
@@ -669,7 +669,7 @@ export function useRevokeInvitationMutation() {
 	return useMutation({
 		mutationFn: (data: { id: string; inviteId: string }) =>
 			unwrap(
-				api.api['workspace-members']({ id: data.id })
+				client.api['workspace-members']({ id: data.id })
 					.invites({ inviteId: data.inviteId } as any)
 					.delete(),
 			),
@@ -684,7 +684,7 @@ export function useRemoveMemberMutation() {
 	return useMutation({
 		mutationFn: (data: { id: string; userId: string }) =>
 			unwrap(
-				api.api['workspace-members']({ id: data.id })
+				client.api['workspace-members']({ id: data.id })
 					.members({ userId: data.userId } as any)
 					.delete(),
 			),
@@ -700,7 +700,7 @@ export function useUpdateMemberRoleMutation() {
 		mutationFn: (data: { id: string; userId: string; role: 'admin' | 'member' | 'viewer' }) => {
 			const { id, userId, ...body } = data
 			return unwrap(
-				api.api['workspace-members']({ id })
+				client.api['workspace-members']({ id })
 					.members({ userId } as any)
 					.patch(body as any),
 			)
@@ -718,7 +718,7 @@ export function useUpdateMemberRoleMutation() {
 export function useUserPreferencesQuery() {
 	return useQuery({
 		queryKey: ['user', 'preferences'],
-		queryFn: () => unwrap(api.api.user.preferences.get()),
+		queryFn: () => unwrap(client.api.user.preferences.get()),
 	})
 }
 
@@ -726,7 +726,7 @@ export function useUpdateUserPreferencesMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
 		mutationFn: (data: { emailNotifications?: boolean; usageAlerts?: boolean }) =>
-			unwrap(api.api.user.preferences.patch(data as any)),
+			unwrap(client.api.user.preferences.patch(data as any)),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['user', 'preferences'] })
 		},
@@ -740,21 +740,21 @@ export function useUpdateUserPreferencesMutation() {
 export function useUsageQuery(workspaceId: string | undefined) {
 	return useQuery({
 		queryKey: ['usage', workspaceId],
-		queryFn: () => unwrap(api.api.usage.get()),
+		queryFn: () => unwrap(client.api.usage.get()),
 	})
 }
 
 export function useWorkspaceUsageQuery(options?: { startDate?: string; endDate?: string }) {
 	return useQuery({
 		queryKey: ['usage', options],
-		queryFn: () => unwrap(api.api.usage.get({ query: options as any })),
+		queryFn: () => unwrap(client.api.usage.get({ query: options as any })),
 	})
 }
 
 export function useAgentUsageQuery(agentId: string | undefined) {
 	return useQuery({
 		queryKey: ['usage', 'agents', agentId],
-		queryFn: () => unwrap(api.api.usage.agents({ id: agentId! }).get()),
+		queryFn: () => unwrap(client.api.usage.agents({ id: agentId! }).get()),
 		enabled: !!agentId,
 	})
 }
@@ -771,7 +771,7 @@ export function useAnalyticsQuery(options?: {
 }) {
 	return useQuery({
 		queryKey: ['analytics', options],
-		queryFn: () => unwrap(api.api.analytics.get({ query: options as any })),
+		queryFn: () => unwrap(client.api.analytics.get({ query: options as any })),
 	})
 }
 
@@ -790,14 +790,14 @@ export function useLogsQuery(options?: {
 }) {
 	return useQuery({
 		queryKey: ['logs', options],
-		queryFn: () => unwrap(api.api.logs.get({ query: options as any })),
+		queryFn: () => unwrap(client.api.logs.get({ query: options as any })),
 	})
 }
 
 export function useLogStatsQuery(options?: Record<string, unknown>) {
 	return useQuery({
 		queryKey: ['logs', 'stats', options],
-		queryFn: () => unwrap(api.api.logs.stats.get({ query: options as any })),
+		queryFn: () => unwrap(client.api.logs.stats.get({ query: options as any })),
 	})
 }
 
@@ -816,7 +816,7 @@ export function useAuditLogsQuery(options?: {
 }) {
 	return useQuery({
 		queryKey: ['audit-logs', options],
-		queryFn: () => unwrap(api.api['audit-logs'].get({ query: options as any })),
+		queryFn: () => unwrap(client.api['audit-logs'].get({ query: options as any })),
 	})
 }
 
@@ -830,7 +830,7 @@ export function useAgentHealthQuery(
 ) {
 	return useQuery({
 		queryKey: ['agents', agentId, 'health'],
-		queryFn: () => unwrap(api.api.agents({ id: agentId! }).health.get()),
+		queryFn: () => unwrap(client.api.agents({ id: agentId! }).health.get()),
 		enabled: !!agentId,
 		refetchInterval: options?.refetchInterval,
 	})
@@ -850,7 +850,7 @@ export function useActivityFeedQuery(options?: {
 	const workspaceId = getWorkspaceId()
 	return useQuery({
 		queryKey: ['activity', queryInput],
-		queryFn: () => unwrap(api.api.activity.post(queryInput as any)),
+		queryFn: () => unwrap(client.api.activity.post(queryInput as any)),
 		enabled: !!workspaceId,
 		refetchInterval,
 	})

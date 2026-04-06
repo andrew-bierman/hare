@@ -1,6 +1,6 @@
 'use client'
 
-import { api } from '@hare/api/client'
+import { client } from '@hare/api/client'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { billingKeys } from './query-keys'
 
@@ -56,7 +56,7 @@ async function unwrap<T>(promise: Promise<{ data: T | null; error: unknown }>): 
 export function usePlansQuery(enabled = true) {
 	return useQuery({
 		queryKey: billingKeys.plans(),
-		queryFn: () => unwrap(api.api.billing.plans.get()),
+		queryFn: () => unwrap(client.api.billing.plans.get()),
 		enabled,
 	})
 }
@@ -64,7 +64,7 @@ export function usePlansQuery(enabled = true) {
 export function useBillingStatusQuery(enabled = true) {
 	return useQuery({
 		queryKey: billingKeys.status('current'),
-		queryFn: () => unwrap(api.api.billing.status.get()),
+		queryFn: () => unwrap(client.api.billing.status.get()),
 		enabled,
 	})
 }
@@ -74,7 +74,7 @@ export function usePaymentHistoryQuery(options?: { limit?: number; startingAfter
 		queryKey: billingKeys.invoices('current'),
 		queryFn: () =>
 			unwrap(
-				api.api.billing.history.get({
+				client.api.billing.history.get({
 					query: {
 						limit: options?.limit,
 						starting_after: options?.startingAfter,
@@ -89,7 +89,7 @@ export function useCreateCheckoutMutation() {
 	return useMutation({
 		mutationFn: (params: CheckoutRequest) =>
 			unwrap(
-				api.api.billing.checkout.post({
+				client.api.billing.checkout.post({
 					planId: params.planId,
 					successUrl: params.successUrl,
 					cancelUrl: params.cancelUrl,
@@ -104,6 +104,6 @@ export function useCreateCheckoutMutation() {
 
 export function useCreatePortalMutation() {
 	return useMutation({
-		mutationFn: () => unwrap(api.api.billing.portal.post({})),
+		mutationFn: () => unwrap(client.api.billing.portal.post({})),
 	})
 }

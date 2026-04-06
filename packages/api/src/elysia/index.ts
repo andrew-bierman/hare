@@ -76,7 +76,7 @@ export { type App, app } from './app'
 export { type LogAuditInput, logAudit } from './audit'
 // Client (Eden Treaty)
 export {
-	api,
+	client,
 	createApiClient,
 	getWorkspaceId,
 	setWorkspaceId,

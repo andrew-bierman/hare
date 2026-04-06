@@ -52,7 +52,7 @@ function getBaseURL(): string {
  * - Session cookies (credentials: include)
  * - X-Workspace-Id header when workspace is set
  */
-export const api = treaty<App>(getBaseURL(), {
+export const client = treaty<App>(getBaseURL(), {
 	fetch: { credentials: 'include' },
 	headers(_path, _options) {
 		const headers: Record<string, string> = {}

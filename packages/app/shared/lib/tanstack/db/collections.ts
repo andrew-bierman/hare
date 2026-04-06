@@ -7,7 +7,7 @@
  * @see https://tanstack.com/db/latest/docs/collections/query-collection
  */
 
-import { api } from '@hare/api/client'
+import { client } from '@hare/api/client'
 import type { Schedule } from '@hare/types'
 
 // Helper to unwrap Eden Treaty response
@@ -101,7 +101,7 @@ export function createAgentCollection(options: { workspaceId: string; queryClien
 		queryClient,
 		queryKey: agentKeys.list(workspaceId),
 		queryFn: async (): Promise<AgentRow[]> => {
-			const response = await unwrap(api.api.agents.get())
+			const response = await unwrap(client.api.agents.get())
 			return response.agents.map((agent) => ({
 				...agent,
 				_workspaceId: workspaceId,
@@ -115,7 +115,7 @@ export function createAgentCollection(options: { workspaceId: string; queryClien
 				if (mutation.type === 'insert' && mutation.modified) {
 					const { _workspaceId: _, ...data } = mutation.modified
 					await unwrap(
-						api.api.agents.post({
+						client.api.agents.post({
 							name: data.name,
 							description: data.description ?? undefined,
 							model: data.model,
@@ -145,7 +145,7 @@ export function createAgentCollection(options: { workspaceId: string; queryClien
 						status,
 					} = mutation.modified
 					await unwrap(
-						api.api.agents({ id }).patch({
+						client.api.agents({ id }).patch({
 							name,
 							description: description ?? undefined,
 							model,
@@ -165,7 +165,7 @@ export function createAgentCollection(options: { workspaceId: string; queryClien
 			for (const mutation of mutations) {
 				if (mutation.type === 'delete' && mutation.original) {
 					const { id } = mutation.original
-					await unwrap(api.api.agents({ id }).delete())
+					await unwrap(client.api.agents({ id }).delete())
 				}
 			}
 		},
@@ -188,7 +188,7 @@ export function createToolCollection(options: { workspaceId: string; queryClient
 		queryClient,
 		queryKey: toolKeys.list(workspaceId),
 		queryFn: async (): Promise<ToolRow[]> => {
-			const response = await unwrap(api.api.tools.get())
+			const response = await unwrap(client.api.tools.get())
 			return response.tools.map((tool) => ({
 				...tool,
 				_workspaceId: workspaceId,
@@ -202,7 +202,7 @@ export function createToolCollection(options: { workspaceId: string; queryClient
 				if (mutation.type === 'insert' && mutation.modified) {
 					const { _workspaceId: _, ...data } = mutation.modified
 					await unwrap(
-						api.api.tools.post({
+						client.api.tools.post({
 							name: data.name,
 							description: data.description ?? data.name,
 							type: data.type as any,
@@ -221,7 +221,7 @@ export function createToolCollection(options: { workspaceId: string; queryClient
 					const { id } = mutation.original
 					const { name, description, inputSchema, config } = mutation.modified
 					await unwrap(
-						api.api.tools({ id }).patch({
+						client.api.tools({ id }).patch({
 							name,
 							description: description ?? undefined,
 							type: mutation.modified.type as any,
@@ -238,7 +238,7 @@ export function createToolCollection(options: { workspaceId: string; queryClient
 			for (const mutation of mutations) {
 				if (mutation.type === 'delete' && mutation.original) {
 					const { id } = mutation.original
-					await unwrap(api.api.tools({ id }).delete())
+					await unwrap(client.api.tools({ id }).delete())
 				}
 			}
 		},
@@ -261,7 +261,7 @@ export function createWorkspaceCollection(options: { queryClient: QueryClient })
 		queryClient,
 		queryKey: workspaceKeys.list(),
 		queryFn: async (): Promise<WorkspaceRow[]> => {
-			const response = await unwrap(api.api.workspaces.get())
+			const response = await unwrap(client.api.workspaces.get())
 			return response.workspaces
 		},
 		getKey: (workspace) => workspace.id,
@@ -272,7 +272,7 @@ export function createWorkspaceCollection(options: { queryClient: QueryClient })
 				if (mutation.type === 'insert' && mutation.modified) {
 					const { name, slug, description } = mutation.modified
 					await unwrap(
-						api.api.workspaces.post({
+						client.api.workspaces.post({
 							name,
 							slug,
 							description: description ?? undefined,
@@ -289,7 +289,7 @@ export function createWorkspaceCollection(options: { queryClient: QueryClient })
 					const { id } = mutation.original
 					const { name, description } = mutation.modified
 					await unwrap(
-						api.api.workspaces({ id }).patch({
+						client.api.workspaces({ id }).patch({
 							name,
 							description: description ?? undefined,
 						}),
@@ -303,7 +303,7 @@ export function createWorkspaceCollection(options: { queryClient: QueryClient })
 			for (const mutation of mutations) {
 				if (mutation.type === 'delete' && mutation.original) {
 					const { id } = mutation.original
-					await unwrap(api.api.workspaces({ id }).delete())
+					await unwrap(client.api.workspaces({ id }).delete())
 				}
 			}
 		},
@@ -330,7 +330,7 @@ export function createScheduleCollection(options: {
 		queryClient,
 		queryKey: scheduleKeys.list(agentId, workspaceId),
 		queryFn: async (): Promise<ScheduleRow[]> => {
-			const response = await unwrap(api.api.schedules.get({ query: { agentId } as any }))
+			const response = await unwrap(client.api.schedules.get({ query: { agentId } as any }))
 			return response.schedules.map((schedule) => ({
 				...schedule,
 				_workspaceId: workspaceId,
@@ -352,7 +352,7 @@ export function createScheduleCollection(options: {
 						payload,
 					} = mutation.modified
 					await unwrap(
-						api.api.schedules.post({
+						client.api.schedules.post({
 							agentId: aId,
 							type,
 							executeAt: executeAt ?? undefined,
@@ -372,7 +372,7 @@ export function createScheduleCollection(options: {
 					const { id } = mutation.original
 					const { status, executeAt, cron, payload } = mutation.modified
 					await unwrap(
-						api.api.schedules({ id }).patch({
+						client.api.schedules({ id }).patch({
 							status,
 							executeAt: executeAt ?? undefined,
 							cron: cron ?? undefined,
@@ -388,7 +388,7 @@ export function createScheduleCollection(options: {
 			for (const mutation of mutations) {
 				if (mutation.type === 'delete' && mutation.original) {
 					const { id } = mutation.original
-					await unwrap(api.api.schedules({ id }).delete())
+					await unwrap(client.api.schedules({ id }).delete())
 				}
 			}
 		},

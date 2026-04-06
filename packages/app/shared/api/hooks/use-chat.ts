@@ -1,7 +1,7 @@
 'use client'
 
 import { useChat as useAIChat } from '@ai-sdk/react'
-import { api } from '@hare/api/client'
+import { client } from '@hare/api/client'
 import { useQuery } from '@tanstack/react-query'
 import { DefaultChatTransport } from 'ai'
 import { useMemo, useRef, useState } from 'react'
@@ -41,7 +41,7 @@ export interface Message {
 export function useConversationsQuery(agentId: string | undefined) {
 	return useQuery({
 		queryKey: ['conversations', agentId],
-		queryFn: () => unwrap(api.api.chat.agents({ id: agentId! }).conversations.get()),
+		queryFn: () => unwrap(client.api.chat.agents({ id: agentId! }).conversations.get()),
 		enabled: !!agentId,
 	})
 }
@@ -49,7 +49,7 @@ export function useConversationsQuery(agentId: string | undefined) {
 export function useMessagesQuery(conversationId: string | undefined) {
 	return useQuery({
 		queryKey: ['messages', conversationId],
-		queryFn: () => unwrap(api.api.chat.conversations({ id: conversationId! }).messages.get()),
+		queryFn: () => unwrap(client.api.chat.conversations({ id: conversationId! }).messages.get()),
 		enabled: !!conversationId,
 	})
 }
@@ -84,7 +84,7 @@ export function useConversationSearchQuery(params: ConversationSearchParams | un
 		queryKey: ['conversations', 'search', agentId, query, dateFrom, dateTo, limit, offset],
 		queryFn: () =>
 			unwrap(
-				api.api.chat.agents({ id: agentId! }).conversations.search.get({
+				client.api.chat.agents({ id: agentId! }).conversations.search.get({
 					query: {
 						query: query!,
 						dateFrom,
