@@ -121,7 +121,6 @@ export function AgentPlaygroundPage({ agentId }: AgentPlaygroundPageProps) {
 	}, [messageCount])
 
 	// Auto-resize textarea when input changes
-	// biome-ignore lint/correctness/useExhaustiveDependencies: intentional - resize textarea on input change
 	useEffect(() => {
 		if (textareaRef.current) {
 			textareaRef.current.style.height = 'auto'
