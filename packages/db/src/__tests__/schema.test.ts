@@ -122,6 +122,21 @@ const MIGRATION_STATEMENTS = [
 
 	// Guardrail violations table
 	`CREATE TABLE IF NOT EXISTS "guardrail_violations" ("id" text PRIMARY KEY NOT NULL, "guardrailId" text NOT NULL REFERENCES "guardrails"("id") ON DELETE CASCADE, "agentId" text NOT NULL REFERENCES "agents"("id") ON DELETE CASCADE, "workspaceId" text NOT NULL REFERENCES "workspaces"("id") ON DELETE CASCADE, "direction" text NOT NULL, "actionTaken" text NOT NULL, "triggerContent" text, "details" text, "createdAt" integer NOT NULL)`,
+
+	// Workflows table
+	`CREATE TABLE IF NOT EXISTS "workflows" ("id" text PRIMARY KEY NOT NULL, "workspaceId" text NOT NULL REFERENCES "workspaces"("id") ON DELETE CASCADE, "name" text NOT NULL, "description" text, "status" text DEFAULT 'draft' NOT NULL, "canvasLayout" text, "createdBy" text NOT NULL REFERENCES "user"("id"), "createdAt" integer NOT NULL, "updatedAt" integer NOT NULL)`,
+
+	// Workflow nodes table
+	`CREATE TABLE IF NOT EXISTS "workflow_nodes" ("id" text PRIMARY KEY NOT NULL, "workflowId" text NOT NULL REFERENCES "workflows"("id") ON DELETE CASCADE, "type" text NOT NULL, "agentId" text REFERENCES "agents"("id") ON DELETE SET NULL, "label" text NOT NULL, "config" text, "positionX" integer DEFAULT 0 NOT NULL, "positionY" integer DEFAULT 0 NOT NULL, "createdAt" integer NOT NULL)`,
+
+	// Workflow edges table
+	`CREATE TABLE IF NOT EXISTS "workflow_edges" ("id" text PRIMARY KEY NOT NULL, "workflowId" text NOT NULL REFERENCES "workflows"("id") ON DELETE CASCADE, "sourceNodeId" text NOT NULL REFERENCES "workflow_nodes"("id") ON DELETE CASCADE, "targetNodeId" text NOT NULL REFERENCES "workflow_nodes"("id") ON DELETE CASCADE, "label" text, "config" text, "createdAt" integer NOT NULL)`,
+
+	// Workflow executions table
+	`CREATE TABLE IF NOT EXISTS "workflow_executions" ("id" text PRIMARY KEY NOT NULL, "workflowId" text NOT NULL REFERENCES "workflows"("id") ON DELETE CASCADE, "workspaceId" text NOT NULL REFERENCES "workspaces"("id") ON DELETE CASCADE, "status" text DEFAULT 'pending' NOT NULL, "input" text, "output" text, "triggeredBy" text REFERENCES "user"("id"), "startedAt" integer NOT NULL, "completedAt" integer, "durationMs" integer, "error" text)`,
+
+	// Workflow step executions table
+	`CREATE TABLE IF NOT EXISTS "workflow_step_executions" ("id" text PRIMARY KEY NOT NULL, "executionId" text NOT NULL REFERENCES "workflow_executions"("id") ON DELETE CASCADE, "nodeId" text NOT NULL REFERENCES "workflow_nodes"("id") ON DELETE CASCADE, "agentId" text REFERENCES "agents"("id") ON DELETE SET NULL, "status" text DEFAULT 'pending' NOT NULL, "input" text, "output" text, "startedAt" integer, "completedAt" integer, "durationMs" integer, "error" text)`,
 ]
 
 /**
