@@ -236,18 +236,21 @@ export const chatWithAgent = authedProcedure
 			const latencyMs = Date.now() - startTime
 			const tokenUsage = await result.usage
 
-			// Register background task BEFORE yielding done to avoid generator abort race
-			context.executionCtx.waitUntil(
-				recordUsage({
-					db,
-					workspaceId: agentConfig.workspaceId,
-					agentId,
-					userId: user.id,
-					type: 'chat',
-					usage: tokenUsage,
-					metadata: { model: agentConfig.model, duration: latencyMs },
-				}),
-			)
+			// Record usage non-blocking via waitUntil, or inline if no execution context (tests)
+			const usagePromise = recordUsage({
+				db,
+				workspaceId: agentConfig.workspaceId,
+				agentId,
+				userId: user.id,
+				type: 'chat',
+				usage: tokenUsage,
+				metadata: { model: agentConfig.model, duration: latencyMs },
+			})
+			if (context.executionCtx) {
+				context.executionCtx.waitUntil(usagePromise)
+			} else {
+				await usagePromise
+			}
 
 			// Signal completion with session ID
 			yield { type: 'done' as const, sessionId: conversationId }

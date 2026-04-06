@@ -86,12 +86,20 @@ orpcApp.all('/*', async (c) => {
 		}
 	}
 
+	// Get execution context (may not exist in test environments)
+	let executionCtx: ExecutionContext | undefined
+	try {
+		executionCtx = c.executionCtx
+	} catch {
+		// executionCtx not available (e.g., in tests using app.request())
+	}
+
 	// Build context for oRPC
 	const context = {
 		db,
 		env,
 		headers: c.req.raw.headers,
-		executionCtx: c.executionCtx,
+		executionCtx,
 		...(user && {
 			user: {
 				id: user.id,

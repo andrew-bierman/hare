@@ -240,18 +240,21 @@ const chat = publicProcedure
 			const latencyMs = Date.now() - startTime
 			const tokenUsage = await response.usage
 
-			// Register background task BEFORE yielding done
-			context.executionCtx.waitUntil(
-				recordUsage({
-					db,
-					workspaceId: agent.workspaceId,
-					agentId,
-					userId: null,
-					type: 'embed',
-					usage: tokenUsage,
-					metadata: { model: agent.model, duration: latencyMs },
-				}),
-			)
+			// Record usage non-blocking via waitUntil, or inline if no execution context (tests)
+			const usagePromise = recordUsage({
+				db,
+				workspaceId: agent.workspaceId,
+				agentId,
+				userId: null,
+				type: 'embed',
+				usage: tokenUsage,
+				metadata: { model: agent.model, duration: latencyMs },
+			})
+			if (context.executionCtx) {
+				context.executionCtx.waitUntil(usagePromise)
+			} else {
+				await usagePromise
+			}
 
 			yield { type: 'done' as const, sessionId: conversationId }
 		} catch (error) {

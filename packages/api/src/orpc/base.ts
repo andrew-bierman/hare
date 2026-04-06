@@ -20,7 +20,7 @@ export interface BaseContext {
 	db: Database
 	headers: Headers
 	env: CloudflareEnv
-	executionCtx: ExecutionContext
+	executionCtx?: ExecutionContext
 }
 
 /**
