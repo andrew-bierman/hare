@@ -20,7 +20,7 @@ import {
 	ConversationOutcomeSchema,
 	SetOutcomeSchema,
 } from '../../schemas'
-import { requireWrite, serverError } from '../base'
+import { badRequest, notFound, requireWrite, serverError } from '../base'
 
 // =============================================================================
 // Helpers
@@ -58,6 +58,18 @@ export const setOutcome = requireWrite
 	.handler(async ({ input, context }) => {
 		const { db, workspaceId } = context
 
+		// Verify conversation belongs to this workspace
+		const [conv] = await db
+			.select()
+			.from(conversations)
+			.where(
+				and(eq(conversations.id, input.conversationId), eq(conversations.workspaceId, workspaceId)),
+			)
+		if (!conv) notFound('Conversation not found')
+
+		// Verify agentId matches the conversation's agent
+		if (conv.agentId !== input.agentId) badRequest('Agent ID does not match conversation agent')
+
 		// Get conversation message stats
 		const [msgStats] = await db
 			.select({
@@ -70,7 +82,12 @@ export const setOutcome = requireWrite
 		const [existing] = await db
 			.select()
 			.from(conversationOutcomes)
-			.where(eq(conversationOutcomes.conversationId, input.conversationId))
+			.where(
+				and(
+					eq(conversationOutcomes.conversationId, input.conversationId),
+					eq(conversationOutcomes.workspaceId, workspaceId),
+				),
+			)
 
 		if (existing) {
 			const [updated] = await db
@@ -347,46 +364,53 @@ export const getAgentPerformance = requireWrite
 			.from(agents)
 			.where(eq(agents.workspaceId, workspaceId))
 
-		const results: z.infer<typeof AgentPerformanceSchema>[] = []
+		// Batch query: outcome stats grouped by agent
+		const statsByAgent = await db
+			.select({
+				agentId: conversationOutcomes.agentId,
+				total: count(),
+				resolved: sql<number>`SUM(CASE WHEN ${conversationOutcomes.outcome} = 'resolved' THEN 1 ELSE 0 END)`,
+				escalated: sql<number>`SUM(CASE WHEN ${conversationOutcomes.outcome} = 'escalated' THEN 1 ELSE 0 END)`,
+				avgMessages: avg(conversationOutcomes.messageCount),
+				avgResponseTime: avg(conversationOutcomes.avgResponseTimeMs),
+			})
+			.from(conversationOutcomes)
+			.where(
+				and(
+					eq(conversationOutcomes.workspaceId, workspaceId),
+					gte(conversationOutcomes.createdAt, startDate),
+					lte(conversationOutcomes.createdAt, endDate),
+				),
+			)
+			.groupBy(conversationOutcomes.agentId)
 
-		for (const agent of workspaceAgents) {
-			const [stats] = await db
-				.select({
-					total: count(),
-					resolved: sql<number>`SUM(CASE WHEN ${conversationOutcomes.outcome} = 'resolved' THEN 1 ELSE 0 END)`,
-					escalated: sql<number>`SUM(CASE WHEN ${conversationOutcomes.outcome} = 'escalated' THEN 1 ELSE 0 END)`,
-					avgMessages: avg(conversationOutcomes.messageCount),
-					avgResponseTime: avg(conversationOutcomes.avgResponseTimeMs),
-				})
-				.from(conversationOutcomes)
-				.where(
-					and(
-						eq(conversationOutcomes.agentId, agent.id),
-						eq(conversationOutcomes.workspaceId, workspaceId),
-						gte(conversationOutcomes.createdAt, startDate),
-						lte(conversationOutcomes.createdAt, endDate),
-					),
-				)
+		const statsMap = new Map(statsByAgent.map((s) => [s.agentId, s]))
 
-			// Get satisfaction for this agent
-			const [feedback] = await db
-				.select({
-					total: count(),
-					positive: sql<number>`SUM(CASE WHEN ${messageFeedback.rating} = 'positive' THEN 1 ELSE 0 END)`,
-				})
-				.from(messageFeedback)
-				.where(
-					and(
-						eq(messageFeedback.agentId, agent.id),
-						eq(messageFeedback.workspaceId, workspaceId),
-						gte(messageFeedback.createdAt, startDate),
-						lte(messageFeedback.createdAt, endDate),
-					),
-				)
+		// Batch query: feedback stats grouped by agent
+		const feedbackByAgent = await db
+			.select({
+				agentId: messageFeedback.agentId,
+				total: count(),
+				positive: sql<number>`SUM(CASE WHEN ${messageFeedback.rating} = 'positive' THEN 1 ELSE 0 END)`,
+			})
+			.from(messageFeedback)
+			.where(
+				and(
+					eq(messageFeedback.workspaceId, workspaceId),
+					gte(messageFeedback.createdAt, startDate),
+					lte(messageFeedback.createdAt, endDate),
+				),
+			)
+			.groupBy(messageFeedback.agentId)
 
+		const feedbackMap = new Map(feedbackByAgent.map((f) => [f.agentId, f]))
+
+		const results: z.infer<typeof AgentPerformanceSchema>[] = workspaceAgents.map((agent) => {
+			const stats = statsMap.get(agent.id)
+			const feedback = feedbackMap.get(agent.id)
 			const total = stats?.total ?? 0
 
-			results.push({
+			return {
 				agentId: agent.id,
 				agentName: agent.name,
 				totalConversations: total,
@@ -400,8 +424,8 @@ export const getAgentPerformance = requireWrite
 					feedback && feedback.total > 0
 						? Math.round(((feedback.positive ?? 0) / feedback.total) * 10000) / 100
 						: null,
-			})
-		}
+			}
+		})
 
 		return { agents: results }
 	})

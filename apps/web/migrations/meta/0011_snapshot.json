@@ -1,7 +1,7 @@
 {
 	"version": "6",
 	"dialect": "sqlite",
-	"id": "f9302fae-655f-48db-804f-dc8921ceb455",
+	"id": "d28c776b-b77b-413a-9041-2f59d4e38037",
 	"prevId": "aa0a4900-8cd8-46b2-b514-dd51a132a757",
 	"tables": {
 		"activity_events": {
@@ -877,6 +877,11 @@
 				}
 			},
 			"indexes": {
+				"conv_outcomes_conversation_unique": {
+					"name": "conv_outcomes_conversation_unique",
+					"columns": ["conversationId"],
+					"isUnique": true
+				},
 				"conv_outcomes_conversation_idx": {
 					"name": "conv_outcomes_conversation_idx",
 					"columns": ["conversationId"],

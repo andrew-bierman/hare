@@ -1,4 +1,4 @@
-import { index, integer, sqliteTable, text } from 'drizzle-orm/sqlite-core'
+import { index, integer, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqlite-core'
 import { createId } from '../id'
 import { agents } from './agents'
 import { conversations } from './conversations'
@@ -50,6 +50,7 @@ export const conversationOutcomes = sqliteTable(
 			.$defaultFn(() => new Date()),
 	},
 	(table) => [
+		uniqueIndex('conv_outcomes_conversation_unique').on(table.conversationId),
 		index('conv_outcomes_conversation_idx').on(table.conversationId),
 		index('conv_outcomes_agent_idx').on(table.agentId),
 		index('conv_outcomes_workspace_idx').on(table.workspaceId),

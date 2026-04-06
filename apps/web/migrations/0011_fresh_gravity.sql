@@ -17,6 +17,7 @@ CREATE TABLE `conversation_outcomes` (
 	FOREIGN KEY (`workspaceId`) REFERENCES `workspaces`(`id`) ON UPDATE no action ON DELETE cascade
 );
 --> statement-breakpoint
+CREATE UNIQUE INDEX `conv_outcomes_conversation_unique` ON `conversation_outcomes` (`conversationId`);--> statement-breakpoint
 CREATE INDEX `conv_outcomes_conversation_idx` ON `conversation_outcomes` (`conversationId`);--> statement-breakpoint
 CREATE INDEX `conv_outcomes_agent_idx` ON `conversation_outcomes` (`agentId`);--> statement-breakpoint
 CREATE INDEX `conv_outcomes_workspace_idx` ON `conversation_outcomes` (`workspaceId`);--> statement-breakpoint
