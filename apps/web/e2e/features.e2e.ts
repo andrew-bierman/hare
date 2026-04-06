@@ -302,7 +302,7 @@ test.describe('HTTP Tool Creation', () => {
 		})
 
 		// Tool should appear in list (might be in custom tools section)
-		const toolInList = authenticatedPage.getByText(toolName)
+		const toolInList = authenticatedPage.getByText(toolName).first()
 		await expect(toolInList).toBeVisible({ timeout: 10000 })
 	})
 

@@ -70,7 +70,25 @@ export const list = requireWrite
 
 		const results = await db.select().from(tools).where(eq(tools.workspaceId, workspaceId))
 
-		return { tools: results.map(serializeTool) }
+		// Include available system tools from config.
+		// Each system tool type is unique so `system-${st.type}` IDs never collide.
+		const systemToolTimestamp = new Date(0).toISOString()
+		const systemToolsList = config.tools.system
+			.filter((st) => st.available)
+			.map((st) => ({
+				id: `system-${st.type}`,
+				workspaceId,
+				name: st.name,
+				description: st.description,
+				type: st.type as z.infer<typeof ToolTypeSchema>,
+				config: {} as Record<string, unknown>,
+				inputSchema: null,
+				isSystem: true as const,
+				createdAt: systemToolTimestamp,
+				updatedAt: systemToolTimestamp,
+			}))
+
+		return { tools: [...systemToolsList, ...results.map(serializeTool)] }
 	})
 
 /**
