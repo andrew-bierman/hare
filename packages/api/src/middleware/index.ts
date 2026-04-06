@@ -40,7 +40,6 @@ export {
 export { corsMiddleware, securityHeadersMiddleware } from './security'
 export {
 	blockDangerousHeaders,
-	csrfProtection,
 	requestSizeLimit,
 	requestValidation,
 	requireContentType,

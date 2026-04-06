@@ -23,7 +23,7 @@ import { requestId } from 'hono/request-id'
 import { secureHeaders } from 'hono/secure-headers'
 import { timing } from 'hono/timing'
 import { serverEnv } from '@hare/config'
-import { csrfProtection, requestValidation } from '@hare/security'
+import { requestValidation } from '@hare/security'
 import { CloudflareEnvError } from './db'
 import {
 	corsMiddleware,
@@ -94,13 +94,9 @@ app.use('*', loggingMiddleware)
 app.route('/billing', billingWebhook)
 // Mount auth before CSRF - Better Auth has its own CSRF protection
 app.route('/auth', auth)
-app.use('*', async (c, next) => {
-	// Skip CSRF for oRPC routes — they use session cookies with SameSite protection
-	if (c.req.path.startsWith('/api/rpc')) {
-		return next()
-	}
-	return csrfProtection()(c, next)
-})
+// CSRF protection removed — Better Auth handles its own CSRF,
+// and session cookies use SameSite=Lax which prevents cross-origin requests.
+// The double-submit cookie pattern was causing timing issues with oRPC calls.
 app.use('/rpc/*', optionalAuthMiddleware)
 
 const routes = app
@@ -229,7 +225,6 @@ export {
 	authMiddleware,
 	blockDangerousHeaders,
 	corsMiddleware,
-	csrfProtection,
 	generateApiKey,
 	hasAgentAccess,
 	hasPermission,
