@@ -5,8 +5,8 @@
  */
 
 import { config, EXECUTION_STATUSES, SCHEDULE_STATUSES, SCHEDULE_TYPES } from '@hare/config'
-import { agents, scheduledTasks, scheduleExecutions } from '@hare/db/schema'
 import type { Database } from '@hare/db'
+import { agents, scheduledTasks, scheduleExecutions } from '@hare/db/schema'
 import { and, desc, eq } from 'drizzle-orm'
 import { Elysia, status } from 'elysia'
 import { z } from 'zod'
@@ -91,158 +91,187 @@ export const scheduleRoutes = new Elysia({ prefix: '/schedules', name: 'schedule
 	.use(writePlugin)
 
 	// List schedules
-	.get('/', async ({ db, workspaceId, query }) => {
-		const agentId = query?.agentId
+	.get(
+		'/',
+		async ({ db, workspaceId, query }) => {
+			const agentId = query?.agentId
 
-		const workspaceAgents = await db
-			.select({ id: agents.id })
-			.from(agents)
-			.where(eq(agents.workspaceId, workspaceId))
-		const agentIds = workspaceAgents.map((a) => a.id)
+			const workspaceAgents = await db
+				.select({ id: agents.id })
+				.from(agents)
+				.where(eq(agents.workspaceId, workspaceId))
+			const agentIds = workspaceAgents.map((a) => a.id)
 
-		if (agentIds.length === 0) {
-			return { schedules: [] }
-		}
-
-		let results: (typeof scheduledTasks.$inferSelect)[]
-		if (agentId) {
-			if (!agentIds.includes(agentId)) {
+			if (agentIds.length === 0) {
 				return { schedules: [] }
 			}
-			results = await db
-				.select()
-				.from(scheduledTasks)
-				.where(eq(scheduledTasks.agentId, agentId))
-		} else {
-			results = []
-			for (const id of agentIds) {
-				const agentSchedules = await db
-					.select()
-					.from(scheduledTasks)
-					.where(eq(scheduledTasks.agentId, id))
-				results.push(...agentSchedules)
-			}
-		}
 
-		return { schedules: results.map(serializeSchedule) }
-	}, { writeAccess: true })
+			let results: (typeof scheduledTasks.$inferSelect)[]
+			if (agentId) {
+				if (!agentIds.includes(agentId)) {
+					return { schedules: [] }
+				}
+				results = await db.select().from(scheduledTasks).where(eq(scheduledTasks.agentId, agentId))
+			} else {
+				results = []
+				for (const id of agentIds) {
+					const agentSchedules = await db
+						.select()
+						.from(scheduledTasks)
+						.where(eq(scheduledTasks.agentId, id))
+					results.push(...agentSchedules)
+				}
+			}
+
+			return { schedules: results.map(serializeSchedule) }
+		},
+		{ writeAccess: true },
+	)
 
 	// Get schedule
-	.get('/:id', async ({ db, params}) => {
-		const schedule = await findSchedule(params.id, db)
-		if (!schedule) return status(404, { error: 'Schedule not found' })
-		return serializeSchedule(schedule)
-	}, { writeAccess: true })
+	.get(
+		'/:id',
+		async ({ db, params }) => {
+			const schedule = await findSchedule(params.id, db)
+			if (!schedule) return status(404, { error: 'Schedule not found' })
+			return serializeSchedule(schedule)
+		},
+		{ writeAccess: true },
+	)
 
 	// Create schedule
-	.post('/', async ({ db, workspaceId, user, body}) => {
-		const [agent] = await db
-			.select()
-			.from(agents)
-			.where(and(eq(agents.id, body.agentId), eq(agents.workspaceId, workspaceId)))
+	.post(
+		'/',
+		async ({ db, workspaceId, user, body }) => {
+			const [agent] = await db
+				.select()
+				.from(agents)
+				.where(and(eq(agents.id, body.agentId), eq(agents.workspaceId, workspaceId)))
 
-		if (!agent) return status(400, { error: 'Agent not found' })
+			if (!agent) return status(400, { error: 'Agent not found' })
 
-		const [schedule] = await db
-			.insert(scheduledTasks)
-			.values({
-				agentId: body.agentId,
-				type: body.type,
-				action: body.action,
-				cron: body.cron,
-				executeAt: body.executeAt ? new Date(body.executeAt) : undefined,
-				payload: body.payload,
-				status: config.enums.scheduleStatus.ACTIVE,
-				createdBy: user.id,
-			})
-			.returning()
+			const [schedule] = await db
+				.insert(scheduledTasks)
+				.values({
+					agentId: body.agentId,
+					type: body.type,
+					action: body.action,
+					cron: body.cron,
+					executeAt: body.executeAt ? new Date(body.executeAt) : undefined,
+					payload: body.payload,
+					status: config.enums.scheduleStatus.ACTIVE,
+					createdBy: user.id,
+				})
+				.returning()
 
-		if (!schedule) throw new Error('Failed to create schedule')
+			if (!schedule) throw new Error('Failed to create schedule')
 
-		return serializeSchedule(schedule)
-	}, { writeAccess: true, body: CreateScheduleInputSchema })
+			return serializeSchedule(schedule)
+		},
+		{ writeAccess: true, body: CreateScheduleInputSchema },
+	)
 
 	// Update schedule
-	.patch('/:id', async ({ db, params, body}) => {
-		const existing = await findSchedule(params.id, db)
-		if (!existing) return status(404, { error: 'Schedule not found' })
+	.patch(
+		'/:id',
+		async ({ db, params, body }) => {
+			const existing = await findSchedule(params.id, db)
+			if (!existing) return status(404, { error: 'Schedule not found' })
 
-		const [schedule] = await db
-			.update(scheduledTasks)
-			.set({
-				...(body.action !== undefined && { action: body.action }),
-				...(body.cron !== undefined && { cron: body.cron }),
-				...(body.executeAt !== undefined && { executeAt: new Date(body.executeAt) }),
-				...(body.payload !== undefined && { payload: body.payload }),
-				...(body.status !== undefined && { status: body.status }),
-				updatedAt: new Date(),
-			})
-			.where(eq(scheduledTasks.id, params.id))
-			.returning()
+			const [schedule] = await db
+				.update(scheduledTasks)
+				.set({
+					...(body.action !== undefined && { action: body.action }),
+					...(body.cron !== undefined && { cron: body.cron }),
+					...(body.executeAt !== undefined && { executeAt: new Date(body.executeAt) }),
+					...(body.payload !== undefined && { payload: body.payload }),
+					...(body.status !== undefined && { status: body.status }),
+					updatedAt: new Date(),
+				})
+				.where(eq(scheduledTasks.id, params.id))
+				.returning()
 
-		if (!schedule) throw new Error('Failed to update schedule')
+			if (!schedule) throw new Error('Failed to update schedule')
 
-		return serializeSchedule(schedule)
-	}, { writeAccess: true, body: UpdateScheduleInputSchema })
+			return serializeSchedule(schedule)
+		},
+		{ writeAccess: true, body: UpdateScheduleInputSchema },
+	)
 
 	// Pause schedule
-	.post('/:id/pause', async ({ db, params}) => {
-		const existing = await findSchedule(params.id, db)
-		if (!existing) return status(404, { error: 'Schedule not found' })
+	.post(
+		'/:id/pause',
+		async ({ db, params }) => {
+			const existing = await findSchedule(params.id, db)
+			if (!existing) return status(404, { error: 'Schedule not found' })
 
-		const [schedule] = await db
-			.update(scheduledTasks)
-			.set({ status: config.enums.scheduleStatus.PAUSED, updatedAt: new Date() })
-			.where(eq(scheduledTasks.id, params.id))
-			.returning()
+			const [schedule] = await db
+				.update(scheduledTasks)
+				.set({ status: config.enums.scheduleStatus.PAUSED, updatedAt: new Date() })
+				.where(eq(scheduledTasks.id, params.id))
+				.returning()
 
-		if (!schedule) throw new Error('Failed to pause schedule')
+			if (!schedule) throw new Error('Failed to pause schedule')
 
-		return serializeSchedule(schedule)
-	}, { writeAccess: true })
+			return serializeSchedule(schedule)
+		},
+		{ writeAccess: true },
+	)
 
 	// Resume schedule
-	.post('/:id/resume', async ({ db, params}) => {
-		const existing = await findSchedule(params.id, db)
-		if (!existing) return status(404, { error: 'Schedule not found' })
+	.post(
+		'/:id/resume',
+		async ({ db, params }) => {
+			const existing = await findSchedule(params.id, db)
+			if (!existing) return status(404, { error: 'Schedule not found' })
 
-		const [schedule] = await db
-			.update(scheduledTasks)
-			.set({ status: config.enums.scheduleStatus.ACTIVE, updatedAt: new Date() })
-			.where(eq(scheduledTasks.id, params.id))
-			.returning()
+			const [schedule] = await db
+				.update(scheduledTasks)
+				.set({ status: config.enums.scheduleStatus.ACTIVE, updatedAt: new Date() })
+				.where(eq(scheduledTasks.id, params.id))
+				.returning()
 
-		if (!schedule) throw new Error('Failed to resume schedule')
+			if (!schedule) throw new Error('Failed to resume schedule')
 
-		return serializeSchedule(schedule)
-	}, { writeAccess: true })
+			return serializeSchedule(schedule)
+		},
+		{ writeAccess: true },
+	)
 
 	// Get execution history
-	.get('/:id/executions', async ({ db, params}) => {
-		const schedule = await findSchedule(params.id, db)
-		if (!schedule) return status(404, { error: 'Schedule not found' })
+	.get(
+		'/:id/executions',
+		async ({ db, params }) => {
+			const schedule = await findSchedule(params.id, db)
+			if (!schedule) return status(404, { error: 'Schedule not found' })
 
-		const executions = await db
-			.select()
-			.from(scheduleExecutions)
-			.where(eq(scheduleExecutions.scheduleId, params.id))
-			.orderBy(desc(scheduleExecutions.startedAt))
-			.limit(100)
+			const executions = await db
+				.select()
+				.from(scheduleExecutions)
+				.where(eq(scheduleExecutions.scheduleId, params.id))
+				.orderBy(desc(scheduleExecutions.startedAt))
+				.limit(100)
 
-		return { executions: executions.map(serializeExecution) }
-	}, { writeAccess: true })
+			return { executions: executions.map(serializeExecution) }
+		},
+		{ writeAccess: true },
+	)
 
 	// --- Admin-access routes ---
 	.use(adminPlugin)
 
 	// Delete schedule
-	.delete('/:id', async ({ db, params}) => {
-		const result = await db
-			.delete(scheduledTasks)
-			.where(eq(scheduledTasks.id, params.id))
-			.returning()
+	.delete(
+		'/:id',
+		async ({ db, params }) => {
+			const result = await db
+				.delete(scheduledTasks)
+				.where(eq(scheduledTasks.id, params.id))
+				.returning()
 
-		if (result.length === 0) return status(404, { error: 'Schedule not found' })
+			if (result.length === 0) return status(404, { error: 'Schedule not found' })
 
-		return { success: true }
-	}, { adminAccess: true })
+			return { success: true }
+		},
+		{ adminAccess: true },
+	)

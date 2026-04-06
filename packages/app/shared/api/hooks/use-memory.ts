@@ -21,13 +21,21 @@ async function unwrap<T>(promise: Promise<{ data: T | null; error: unknown }>): 
 
 export type MemoryType = 'fact' | 'context' | 'preference' | 'conversation' | 'custom'
 
+export interface MemoryMetadata {
+	agentId: string
+	workspaceId: string
+	type: MemoryType
+	source?: string | null
+	createdAt: string
+	updatedAt?: string
+	tags?: string[]
+}
+
 export interface Memory {
 	id: string
 	content: string
-	type: MemoryType
-	source: string | null
-	tags: string[]
-	createdAt: string
+	metadata: MemoryMetadata
+	score?: number
 }
 
 export interface MemoryListResponse {
@@ -36,7 +44,9 @@ export interface MemoryListResponse {
 }
 
 export interface SearchResult {
-	results: Array<{ memory: Memory; score: number }>
+	memories: Memory[]
+	query: string
+	topK: number
 }
 
 export interface CreateMemoryInput {
@@ -75,6 +85,14 @@ export const memoryQueryKeys = {
 // Hooks
 // =============================================================================
 
+// Eden Treaty path mapping for memory routes (prefix /memory, flat paths):
+// GET    /:id          -> api.api.memory({ id }).get({ query })
+// POST   /:id          -> api.api.memory({ id }).post(body)
+// POST   /:id/search   -> api.api.memory({ id }).search.post(body)
+// PATCH  /:id/:memoryId -> api.api.memory({ id })({ memoryId }).patch(body)
+// DELETE /:id/:memoryId -> api.api.memory({ id })({ memoryId }).delete()
+// DELETE /:id          -> api.api.memory({ id }).delete()
+
 export function useMemoriesQuery(options: {
 	agentId: string
 	limit?: number
@@ -85,8 +103,7 @@ export function useMemoriesQuery(options: {
 
 	return useQuery({
 		queryKey: memoryQueryKeys.list(agentId),
-		queryFn: () =>
-			unwrap(api.api.memory({ id: agentId }).get({ query: { limit, offset } })),
+		queryFn: () => unwrap(api.api.memory({ id: agentId }).get({ query: { limit, offset } as any })),
 		enabled,
 	})
 }
@@ -97,7 +114,7 @@ export function useCreateMemoryMutation(options: { agentId: string }) {
 
 	return useMutation({
 		mutationFn: (data: CreateMemoryInput) =>
-			unwrap(api.api.memory({ id: agentId }).post(data)),
+			unwrap(api.api.memory({ id: agentId }).post(data as any)),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: memoryQueryKeys.list(agentId) })
 		},
@@ -109,7 +126,7 @@ export function useSearchMemoriesMutation(options: { agentId: string }) {
 
 	return useMutation({
 		mutationFn: (data: SearchMemoryInput) =>
-			unwrap(api.api.memory({ id: agentId }).search.post(data)),
+			unwrap(api.api.memory({ id: agentId }).search.post(data as any)),
 	})
 }
 
@@ -119,7 +136,9 @@ export function useUpdateMemoryMutation(options: { agentId: string }) {
 
 	return useMutation({
 		mutationFn: (input: { memoryId: string; data: UpdateMemoryInput }) =>
-			unwrap(api.api.memory({ id: agentId }).memories({ memoryId: input.memoryId }).patch(input.data)),
+			unwrap(
+				(api.api.memory({ id: agentId }) as any)({ memoryId: input.memoryId }).patch(input.data),
+			),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: memoryQueryKeys.list(agentId) })
 		},
@@ -132,7 +151,7 @@ export function useDeleteMemoryMutation(options: { agentId: string }) {
 
 	return useMutation({
 		mutationFn: (memoryId: string) =>
-			unwrap(api.api.memory({ id: agentId }).memories({ memoryId }).delete()),
+			unwrap((api.api.memory({ id: agentId }) as any)({ memoryId }).delete()),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: memoryQueryKeys.list(agentId) })
 		},
@@ -144,8 +163,7 @@ export function useClearMemoriesMutation(options: { agentId: string }) {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationFn: () =>
-			unwrap(api.api.memory({ id: agentId }).clear.post({})),
+		mutationFn: () => unwrap(api.api.memory({ id: agentId }).delete()),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: memoryQueryKeys.list(agentId) })
 		},

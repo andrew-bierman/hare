@@ -15,47 +15,41 @@ export const ToolTypeSchema = z.enum(TOOL_TYPES)
 /**
  * Full tool schema for API responses.
  */
-export const ToolSchema = z
-	.object({
-		id: z.string(),
-		workspaceId: z.string(),
-		name: z.string(),
-		description: z.string().nullable(),
-		type: ToolTypeSchema,
-		inputSchema: JsonSchemaSchema.nullable(),
-		outputSchema: JsonSchemaSchema.optional(),
-		config: ToolConfigSchema.optional(),
-		code: z.string().optional(),
-		isSystem: z.boolean(),
-		createdAt: z.string().datetime(),
-		updatedAt: z.string().datetime(),
-	})
-	
+export const ToolSchema = z.object({
+	id: z.string(),
+	workspaceId: z.string(),
+	name: z.string(),
+	description: z.string().nullable(),
+	type: ToolTypeSchema,
+	inputSchema: JsonSchemaSchema.nullable(),
+	outputSchema: JsonSchemaSchema.optional(),
+	config: ToolConfigSchema.optional(),
+	code: z.string().optional(),
+	isSystem: z.boolean(),
+	createdAt: z.string().datetime(),
+	updatedAt: z.string().datetime(),
+})
 
 /**
  * Schema for creating a new tool.
  */
-export const CreateToolSchema = z
-	.object({
-		name: z.string().min(1).max(100),
-		description: z.string().max(500).optional(),
-		type: ToolTypeSchema,
-		inputSchema: JsonSchemaSchema.optional(),
-		config: ToolConfigSchema.optional(),
-		code: z.string().optional(),
-	})
-	
+export const CreateToolSchema = z.object({
+	name: z.string().min(1).max(100),
+	description: z.string().max(500).optional(),
+	type: ToolTypeSchema,
+	inputSchema: JsonSchemaSchema.optional(),
+	config: ToolConfigSchema.optional(),
+	code: z.string().optional(),
+})
 
 /**
  * Schema for updating a tool.
  */
-export const UpdateToolSchema = z
-	.object({
-		name: z.string().min(1).max(100).optional(),
-		description: z.string().max(500).optional(),
-		type: ToolTypeSchema.optional(),
-		inputSchema: JsonSchemaSchema.optional(),
-		config: ToolConfigSchema.optional(),
-		code: z.string().optional(),
-	})
-	
+export const UpdateToolSchema = z.object({
+	name: z.string().min(1).max(100).optional(),
+	description: z.string().max(500).optional(),
+	type: ToolTypeSchema.optional(),
+	inputSchema: JsonSchemaSchema.optional(),
+	config: ToolConfigSchema.optional(),
+	code: z.string().optional(),
+})

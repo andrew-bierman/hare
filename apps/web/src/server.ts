@@ -18,7 +18,7 @@ const handler: ExportedHandler<CloudflareEnv> = {
 
 		// Route /api/* requests to Elysia
 		if (url.pathname.startsWith('/api')) {
-			return app.fetch(request, env, ctx)
+			return app.fetch(request)
 		}
 
 		// All other requests go to TanStack Start

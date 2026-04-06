@@ -5,9 +5,7 @@ import { z } from 'zod'
  * Uses z.any() with OpenAPI type for compatibility.
  * OpenAPI type is set to object to handle the recursive nature.
  */
-export const JsonValueSchema: z.ZodType<unknown> = z
-	.any()
-	
+export const JsonValueSchema: z.ZodType<unknown> = z.any()
 
 /**
  * JSON Schema property definition.
@@ -46,18 +44,14 @@ export const IdParamSchema = z.object({
 /**
  * Common error response schema.
  */
-export const ErrorSchema = z
-	.object({
-		error: z.string(),
-		code: z.string().optional(),
-	})
-	
+export const ErrorSchema = z.object({
+	error: z.string(),
+	code: z.string().optional(),
+})
 
 /**
  * Common success response schema.
  */
-export const SuccessSchema = z
-	.object({
-		success: z.boolean(),
-	})
-	
+export const SuccessSchema = z.object({
+	success: z.boolean(),
+})

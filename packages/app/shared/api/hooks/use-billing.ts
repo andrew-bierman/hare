@@ -17,8 +17,16 @@ export interface Plan {
 
 export interface BillingStatus {
 	planId: string
-	subscriptionStatus: string | null
+	planName: string
+	status: 'active' | 'canceled' | 'past_due' | 'trialing' | 'none'
 	currentPeriodEnd: string | null
+	cancelAtPeriodEnd: boolean
+	usage: {
+		agentsUsed: number
+		agentsLimit: number
+		tokensUsed: number
+		tokensLimit: number
+	}
 }
 
 export interface PaymentHistoryItem {
@@ -65,12 +73,14 @@ export function usePaymentHistoryQuery(options?: { limit?: number; startingAfter
 	return useQuery({
 		queryKey: billingKeys.invoices('current'),
 		queryFn: () =>
-			unwrap(api.api.billing['payment-history'].get({
-				query: {
-					limit: options?.limit,
-					starting_after: options?.startingAfter,
-				},
-			})),
+			unwrap(
+				api.api.billing.history.get({
+					query: {
+						limit: options?.limit,
+						starting_after: options?.startingAfter,
+					} as any,
+				}),
+			),
 	})
 }
 
@@ -78,11 +88,13 @@ export function useCreateCheckoutMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
 		mutationFn: (params: CheckoutRequest) =>
-			unwrap(api.api.billing.checkout.post({
-				planId: params.planId,
-				successUrl: params.successUrl,
-				cancelUrl: params.cancelUrl,
-			})),
+			unwrap(
+				api.api.billing.checkout.post({
+					planId: params.planId,
+					successUrl: params.successUrl,
+					cancelUrl: params.cancelUrl,
+				}),
+			),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: billingKeys.status('current') })
 			queryClient.invalidateQueries({ queryKey: billingKeys.plans() })

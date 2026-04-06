@@ -11,30 +11,28 @@
  * - SSE streaming via built-in generators
  */
 
-import { serverEnv } from '@hare/config'
-import { Elysia } from 'elysia'
 import { cors } from '@elysiajs/cors'
 import { openapi } from '@elysiajs/openapi'
+import { serverEnv } from '@hare/config'
+import { Elysia } from 'elysia'
 import { CloudflareEnvError } from './context'
-
-// Special route imports (non-RPC)
-import { agentWsRoutes, chatAppRoutes } from './routes/agent-ws'
-import { authRoutes } from './routes/auth'
-import { billingWebhookRoutes } from './routes/billing-webhook'
-import { devRoutes } from './routes/dev'
-import { embedPublicRoutes } from './routes/embed-public'
-import { mcpRoutes } from './routes/mcp'
-
 // RPC route imports (type-safe, used by Eden Treaty)
 import { activityRoutes } from './routes/activity'
+// Special route imports (non-RPC)
+import { agentWsRoutes, chatAppRoutes } from './routes/agent-ws'
 import { agentRoutes } from './routes/agents'
 import { analyticsRoutes } from './routes/analytics'
 import { apiKeyRoutes } from './routes/api-keys'
 import { auditLogRoutes } from './routes/audit-logs'
+import { authRoutes } from './routes/auth'
 import { billingRoutes } from './routes/billing'
+import { billingWebhookRoutes } from './routes/billing-webhook'
 import { chatRoutes } from './routes/chat'
+import { devRoutes } from './routes/dev'
+import { embedPublicRoutes } from './routes/embed-public'
 import { healthRoutes } from './routes/health'
 import { logRoutes } from './routes/logs'
+import { mcpRoutes } from './routes/mcp'
 import { memoryRoutes } from './routes/memory'
 import { scheduleRoutes } from './routes/schedules'
 import { toolRoutes } from './routes/tools'
@@ -90,11 +88,7 @@ export const app = new Elysia({ prefix: '/api', name: 'hare-api' })
 		cors({
 			origin: (request) => {
 				const origin = request.headers.get('origin')
-				const allowedOrigins = [
-					serverEnv.APP_URL,
-					'http://localhost:3000',
-					'http://localhost:8787',
-				]
+				const allowedOrigins = [serverEnv.APP_URL, 'http://localhost:3000', 'http://localhost:8787']
 				if (!origin) return true
 				return allowedOrigins.includes(origin)
 			},
@@ -113,7 +107,7 @@ export const app = new Elysia({ prefix: '/api', name: 'hare-api' })
 	)
 
 	// Global error handler
-	.onError(({ error, code }) => {
+	.onError(({ error }) => {
 		if (error instanceof CloudflareEnvError) {
 			console.error('CloudflareEnvError:', error.message)
 			return Response.json({ error: 'Service unavailable' }, { status: 503 })

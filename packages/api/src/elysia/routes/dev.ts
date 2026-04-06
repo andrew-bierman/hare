@@ -68,9 +68,9 @@ Your name is "Hoppy" and you love helping users solve their problems.
 	},
 ]
 
-export const devRoutes = new Elysia({ prefix: '/dev', name: 'dev-routes' })
-	.use(writePlugin)
-	.post('/seed', async ({ db, user, workspace}) => {
+export const devRoutes = new Elysia({ prefix: '/dev', name: 'dev-routes' }).use(writePlugin).post(
+	'/seed',
+	async ({ db, user, workspace }) => {
 		if (serverEnv.NODE_ENV === 'production') {
 			return status(403, { error: 'Seed endpoint only available in development' })
 		}
@@ -101,4 +101,6 @@ export const devRoutes = new Elysia({ prefix: '/dev', name: 'dev-routes' })
 			console.error('Seed error:', err)
 			return status(500, { error: 'Failed to seed data' })
 		}
-	}, { writeAccess: true })
+	},
+	{ writeAccess: true },
+)

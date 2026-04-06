@@ -83,11 +83,26 @@ async function checkWorkersAI(ai: Ai): Promise<ServiceCheck> {
 	const start = Date.now()
 	try {
 		if (ai && typeof ai.run === 'function') {
-			return { name: 'workers_ai', status: 'healthy', latencyMs: Date.now() - start, message: 'AI binding available' }
+			return {
+				name: 'workers_ai',
+				status: 'healthy',
+				latencyMs: Date.now() - start,
+				message: 'AI binding available',
+			}
 		}
-		return { name: 'workers_ai', status: 'unhealthy', latencyMs: Date.now() - start, error: 'AI binding not configured' }
+		return {
+			name: 'workers_ai',
+			status: 'unhealthy',
+			latencyMs: Date.now() - start,
+			error: 'AI binding not configured',
+		}
 	} catch (error) {
-		return { name: 'workers_ai', status: 'unhealthy', latencyMs: Date.now() - start, error: error instanceof Error ? error.message : 'AI check failed' }
+		return {
+			name: 'workers_ai',
+			status: 'unhealthy',
+			latencyMs: Date.now() - start,
+			error: error instanceof Error ? error.message : 'AI check failed',
+		}
 	}
 }
 
@@ -104,7 +119,12 @@ async function checkR2(r2: R2Bucket): Promise<ServiceCheck> {
 			message: isDegraded ? 'High latency detected' : 'Connected',
 		}
 	} catch (error) {
-		return { name: 'r2', status: 'unhealthy', latencyMs: Date.now() - start, error: error instanceof Error ? error.message : 'R2 check failed' }
+		return {
+			name: 'r2',
+			status: 'unhealthy',
+			latencyMs: Date.now() - start,
+			error: error instanceof Error ? error.message : 'R2 check failed',
+		}
 	}
 }
 

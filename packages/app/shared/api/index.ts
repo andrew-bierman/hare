@@ -6,7 +6,7 @@
  */
 
 // Eden Treaty Client - type-safe API client
-export { api, type App, setWorkspaceId, getWorkspaceId } from '@hare/api/client'
+export { type App, api, getWorkspaceId, setWorkspaceId } from '@hare/api/client'
 // All types and schemas from @hare/types
 export * from '@hare/types'
 // API Hooks - all hooks and their types

@@ -10,9 +10,7 @@ import type { CloudflareEnv } from '@hare/types'
 import { eq } from 'drizzle-orm'
 import { Elysia, status } from 'elysia'
 import Stripe from 'stripe'
-import {
-	CheckoutRequestSchema,
-} from '../../schemas'
+import { CheckoutRequestSchema } from '../../schemas'
 import { getBillingUsage } from '../../services/billing-usage'
 import { writePlugin } from '../context'
 
@@ -83,172 +81,194 @@ export const billingRoutes = new Elysia({ prefix: '/billing', name: 'billing-rou
 	.use(writePlugin)
 
 	// List available plans
-	.get('/plans', async ({ db, workspace }) => {
-		const [ws] = await db.select().from(workspaces).where(eq(workspaces.id, workspace.id))
+	.get(
+		'/plans',
+		async ({ db, workspace }) => {
+			const [ws] = await db.select().from(workspaces).where(eq(workspaces.id, workspace.id))
 
-		const plans = Object.values(BILLING_PLANS).map((plan) => ({
-			id: plan.id as 'free' | 'pro' | 'team' | 'enterprise',
-			name: plan.name,
-			description: plan.description,
-			price: plan.price,
-			priceId: plan.priceId,
-			features: {
-				maxAgents: plan.features.maxAgents,
-				maxMessagesPerMonth: plan.features.maxMessagesPerMonth,
-			},
-		}))
+			const plans = Object.values(BILLING_PLANS).map((plan) => ({
+				id: plan.id as 'free' | 'pro' | 'team' | 'enterprise',
+				name: plan.name,
+				description: plan.description,
+				price: plan.price,
+				priceId: plan.priceId,
+				features: {
+					maxAgents: plan.features.maxAgents,
+					maxMessagesPerMonth: plan.features.maxMessagesPerMonth,
+				},
+			}))
 
-		return { plans, currentPlanId: ws?.planId || 'free' }
-	}, { writeAccess: true })
+			return { plans, currentPlanId: ws?.planId || 'free' }
+		},
+		{ writeAccess: true },
+	)
 
 	// Create Stripe checkout session
-	.post('/checkout', async ({ db, cfEnv, workspace, user, body}) => {
-		const plan = BILLING_PLANS[body.planId as PlanId]
-		if (!plan || !plan.priceId) return status(400, { error: 'Invalid plan selected' })
+	.post(
+		'/checkout',
+		async ({ db, cfEnv, workspace, user, body }) => {
+			const plan = BILLING_PLANS[body.planId as PlanId]
+			if (!plan || !plan.priceId) return status(400, { error: 'Invalid plan selected' })
 
-		const stripe = getStripe(cfEnv)
-		const appUrl = getAppUrl(cfEnv)
+			const stripe = getStripe(cfEnv)
+			const appUrl = getAppUrl(cfEnv)
 
-		const [ws] = await db.select().from(workspaces).where(eq(workspaces.id, workspace.id))
-		let customerId = ws?.stripeCustomerId
+			const [ws] = await db.select().from(workspaces).where(eq(workspaces.id, workspace.id))
+			let customerId = ws?.stripeCustomerId
 
-		if (!customerId) {
-			const customer = await stripe.customers.create({
-				email: user.email,
-				name: user.name || undefined,
-				metadata: { workspaceId: workspace.id, userId: user.id },
-			})
-			customerId = customer.id
+			if (!customerId) {
+				const customer = await stripe.customers.create({
+					email: user.email,
+					name: user.name || undefined,
+					metadata: { workspaceId: workspace.id, userId: user.id },
+				})
+				customerId = customer.id
 
-			await db
-				.update(workspaces)
-				.set({ stripeCustomerId: customerId, updatedAt: new Date() })
-				.where(eq(workspaces.id, workspace.id))
-		}
+				await db
+					.update(workspaces)
+					.set({ stripeCustomerId: customerId, updatedAt: new Date() })
+					.where(eq(workspaces.id, workspace.id))
+			}
 
-		const session = await stripe.checkout.sessions.create({
-			customer: customerId,
-			mode: 'subscription',
-			line_items: [{ price: plan.priceId, quantity: 1 }],
-			success_url: body.successUrl || `${appUrl}/dashboard/settings/billing?success=true`,
-			cancel_url: body.cancelUrl || `${appUrl}/dashboard/settings/billing?canceled=true`,
-			metadata: { workspaceId: workspace.id, planId: body.planId },
-			subscription_data: {
+			const session = await stripe.checkout.sessions.create({
+				customer: customerId,
+				mode: 'subscription',
+				line_items: [{ price: plan.priceId, quantity: 1 }],
+				success_url: body.successUrl || `${appUrl}/dashboard/settings/billing?success=true`,
+				cancel_url: body.cancelUrl || `${appUrl}/dashboard/settings/billing?canceled=true`,
 				metadata: { workspaceId: workspace.id, planId: body.planId },
-			},
-		})
+				subscription_data: {
+					metadata: { workspaceId: workspace.id, planId: body.planId },
+				},
+			})
 
-		if (!session.url) return status(400, { error: 'Failed to create checkout session' })
+			if (!session.url) return status(400, { error: 'Failed to create checkout session' })
 
-		return { url: session.url, sessionId: session.id }
-	}, { writeAccess: true, body: CheckoutRequestSchema })
+			return { url: session.url, sessionId: session.id }
+		},
+		{ writeAccess: true, body: CheckoutRequestSchema },
+	)
 
 	// Create Stripe customer portal session
-	.post('/portal', async ({ db, cfEnv, workspace}) => {
-		const [ws] = await db.select().from(workspaces).where(eq(workspaces.id, workspace.id))
+	.post(
+		'/portal',
+		async ({ db, cfEnv, workspace }) => {
+			const [ws] = await db.select().from(workspaces).where(eq(workspaces.id, workspace.id))
 
-		if (!ws?.stripeCustomerId) {
-			return status(400, { error: 'No billing account found. Please upgrade to a paid plan first.' })
-		}
+			if (!ws?.stripeCustomerId) {
+				return status(400, {
+					error: 'No billing account found. Please upgrade to a paid plan first.',
+				})
+			}
 
-		const stripe = getStripe(cfEnv)
-		const appUrl = getAppUrl(cfEnv)
+			const stripe = getStripe(cfEnv)
+			const appUrl = getAppUrl(cfEnv)
 
-		const session = await stripe.billingPortal.sessions.create({
-			customer: ws.stripeCustomerId,
-			return_url: `${appUrl}/dashboard/settings/billing`,
-		})
+			const session = await stripe.billingPortal.sessions.create({
+				customer: ws.stripeCustomerId,
+				return_url: `${appUrl}/dashboard/settings/billing`,
+			})
 
-		return { url: session.url }
-	}, { writeAccess: true })
+			return { url: session.url }
+		},
+		{ writeAccess: true },
+	)
 
 	// Get billing status
-	.get('/status', async ({ db, cfEnv, workspace }) => {
-		const [ws] = await db.select().from(workspaces).where(eq(workspaces.id, workspace.id))
+	.get(
+		'/status',
+		async ({ db, cfEnv, workspace }) => {
+			const [ws] = await db.select().from(workspaces).where(eq(workspaces.id, workspace.id))
 
-		const planId: PlanId = isValidPlanId(ws?.planId) ? ws.planId : 'free'
-		const plan = BILLING_PLANS[planId]
+			const planId: PlanId = isValidPlanId(ws?.planId) ? ws.planId : 'free'
+			const plan = BILLING_PLANS[planId]
 
-		let status: 'active' | 'canceled' | 'past_due' | 'trialing' | 'none' = 'none'
-		let currentPeriodEnd: string | null = null
-		let cancelAtPeriodEnd = false
-		let periodStart: Date | undefined
+			let subscriptionStatus: 'active' | 'canceled' | 'past_due' | 'trialing' | 'none' = 'none'
+			let currentPeriodEnd: string | null = null
+			let cancelAtPeriodEnd = false
+			let periodStart: Date | undefined
 
-		if (ws?.stripeSubscriptionId && ws.stripeCustomerId) {
-			try {
-				const stripe = getStripe(cfEnv)
-				const subscriptionResponse = await stripe.subscriptions.retrieve(ws.stripeSubscriptionId)
-				const subscription =
-					'data' in subscriptionResponse
-						? (subscriptionResponse as { data: Stripe.Subscription }).data
-						: (subscriptionResponse as Stripe.Subscription)
+			if (ws?.stripeSubscriptionId && ws.stripeCustomerId) {
+				try {
+					const stripe = getStripe(cfEnv)
+					const subscriptionResponse = await stripe.subscriptions.retrieve(ws.stripeSubscriptionId)
+					const subscription =
+						'data' in subscriptionResponse
+							? (subscriptionResponse as { data: Stripe.Subscription }).data
+							: (subscriptionResponse as Stripe.Subscription)
 
-				status = subscription.status as typeof status
-				const periodEndTimestamp = (
-					subscription as Stripe.Subscription & { current_period_end: number }
-				).current_period_end
-				currentPeriodEnd = new Date(periodEndTimestamp * 1000).toISOString()
-				cancelAtPeriodEnd = subscription.cancel_at_period_end
+					subscriptionStatus = subscription.status as typeof subscriptionStatus
+					const periodEndTimestamp = (
+						subscription as Stripe.Subscription & { current_period_end: number }
+					).current_period_end
+					currentPeriodEnd = new Date(periodEndTimestamp * 1000).toISOString()
+					cancelAtPeriodEnd = subscription.cancel_at_period_end
 
-				const periodEndDate = new Date(periodEndTimestamp * 1000)
-				periodStart = new Date(periodEndDate)
-				periodStart.setMonth(periodStart.getMonth() - 1)
-			} catch {
-				status = 'none'
+					const periodEndDate = new Date(periodEndTimestamp * 1000)
+					periodStart = new Date(periodEndDate)
+					periodStart.setMonth(periodStart.getMonth() - 1)
+				} catch {
+					subscriptionStatus = 'none'
+				}
+			} else if (planId === 'free') {
+				subscriptionStatus = 'active'
 			}
-		} else if (planId === 'free') {
-			status = 'active'
-		}
 
-		const usageStats = await getBillingUsage({
-			db,
-			workspaceId: workspace.id,
-			periodStart,
-		})
+			const usageStats = await getBillingUsage({
+				db,
+				workspaceId: workspace.id,
+				periodStart,
+			})
 
-		return {
-			planId: planId as 'free' | 'pro' | 'team' | 'enterprise',
-			planName: plan.name,
-			status,
-			currentPeriodEnd,
-			cancelAtPeriodEnd,
-			usage: {
-				agentsUsed: usageStats.agentsUsed,
-				agentsLimit: plan.features.maxAgents,
-				messagesUsed: usageStats.messagesUsed,
-				messagesLimit: plan.features.maxMessagesPerMonth,
-			},
-		}
-	}, { writeAccess: true })
+			return {
+				planId: planId as 'free' | 'pro' | 'team' | 'enterprise',
+				planName: plan.name,
+				status: subscriptionStatus as 'active' | 'canceled' | 'past_due' | 'trialing' | 'none',
+				currentPeriodEnd,
+				cancelAtPeriodEnd,
+				usage: {
+					agentsUsed: usageStats.agentsUsed,
+					agentsLimit: plan.features.maxAgents,
+					messagesUsed: usageStats.messagesUsed,
+					messagesLimit: plan.features.maxMessagesPerMonth,
+				},
+			}
+		},
+		{ writeAccess: true },
+	)
 
 	// Get payment history
-	.get('/history', async ({ db, cfEnv, workspace, query }) => {
-		const limit = Number(query?.limit) || 10
-		const startingAfter = query?.starting_after as string | undefined
+	.get(
+		'/history',
+		async ({ db, cfEnv, workspace, query }) => {
+			const limit = Number(query?.limit) || 10
+			const startingAfter = query?.starting_after as string | undefined
 
-		const [ws] = await db.select().from(workspaces).where(eq(workspaces.id, workspace.id))
+			const [ws] = await db.select().from(workspaces).where(eq(workspaces.id, workspace.id))
 
-		if (!ws?.stripeCustomerId) {
-			return { payments: [], hasMore: false }
-		}
+			if (!ws?.stripeCustomerId) {
+				return { payments: [], hasMore: false }
+			}
 
-		const stripe = getStripe(cfEnv)
+			const stripe = getStripe(cfEnv)
 
-		const charges = await stripe.charges.list({
-			customer: ws.stripeCustomerId,
-			limit,
-			starting_after: startingAfter,
-		})
+			const charges = await stripe.charges.list({
+				customer: ws.stripeCustomerId,
+				limit,
+				starting_after: startingAfter,
+			})
 
-		const payments = charges.data.map((charge) => ({
-			id: charge.id,
-			amount: charge.amount / 100,
-			currency: charge.currency.toUpperCase(),
-			status: charge.status,
-			description: charge.description,
-			createdAt: new Date(charge.created * 1000).toISOString(),
-			invoiceUrl: charge.receipt_url,
-		}))
+			const payments = charges.data.map((charge) => ({
+				id: charge.id,
+				amount: charge.amount / 100,
+				currency: charge.currency.toUpperCase(),
+				status: charge.status,
+				description: charge.description,
+				createdAt: new Date(charge.created * 1000).toISOString(),
+				invoiceUrl: charge.receipt_url,
+			}))
 
-		return { payments, hasMore: charges.has_more }
-	}, { writeAccess: true })
+			return { payments, hasMore: charges.has_more }
+		},
+		{ writeAccess: true },
+	)

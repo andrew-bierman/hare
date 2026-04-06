@@ -20,8 +20,8 @@ import { createDb, type Database } from '@hare/db'
 import { workspaceMembers, workspaces } from '@hare/db/schema'
 import type { CloudflareEnv, WorkspaceRole } from '@hare/types'
 import { isWorkspaceRole } from '@hare/types'
-import { Elysia } from 'elysia'
 import { and, eq } from 'drizzle-orm'
+import { Elysia } from 'elysia'
 
 // =============================================================================
 // Error Classes
@@ -113,16 +113,11 @@ async function resolveAuthUser(cfEnv: CloudflareEnv, headers: Headers) {
 	return auth.api.getSession({ headers })
 }
 
-async function resolveWorkspaceAccess(options: {
-	db: Database
-	userId: string
-	request: Request
-}) {
+async function resolveWorkspaceAccess(options: { db: Database; userId: string; request: Request }) {
 	const { db, userId, request } = options
 
 	const workspaceId =
-		request.headers.get('X-Workspace-Id') ??
-		new URL(request.url).searchParams.get('workspaceId')
+		request.headers.get('X-Workspace-Id') ?? new URL(request.url).searchParams.get('workspaceId')
 
 	if (!workspaceId) return null
 
@@ -165,16 +160,13 @@ async function resolveWorkspaceAccess(options: {
  * Provides `cfEnv` (CloudflareEnv) and `db` (Drizzle instance) to all routes.
  * Uses the `cloudflare:workers` module to access env bindings.
  */
-export const cfContext = new Elysia({ name: 'cf-context' }).derive(
-	{ as: 'global' },
-	() => {
-		// CF Workers exposes env via the cloudflare:workers module
-		// This is populated per-request by the Workers runtime
-		const { env } = require('cloudflare:workers') as { env: CloudflareEnv }
-		const db = getDbFromEnv(env)
-		return { cfEnv: env, db }
-	},
-)
+export const cfContext = new Elysia({ name: 'cf-context' }).derive({ as: 'global' }, () => {
+	// CF Workers exposes env via the cloudflare:workers module
+	// This is populated per-request by the Workers runtime
+	const { env } = require('cloudflare:workers') as { env: CloudflareEnv }
+	const db = getDbFromEnv(env)
+	return { cfEnv: env, db }
+})
 
 // =============================================================================
 // Plugin: Auth (macro pattern)
@@ -189,32 +181,30 @@ export const cfContext = new Elysia({ name: 'cf-context' }).derive(
  * .get('/me', ({ user }) => user, { auth: true })
  * ```
  */
-export const authPlugin = new Elysia({ name: 'auth' })
-	.use(cfContext)
-	.macro({
-		auth: {
-			async resolve({ cfEnv, request, status }) {
-				const session = await resolveAuthUser(cfEnv, request.headers)
+export const authPlugin = new Elysia({ name: 'auth' }).use(cfContext).macro({
+	auth: {
+		async resolve({ cfEnv, request, status }) {
+			const session = await resolveAuthUser(cfEnv, request.headers)
 
-				if (!session?.user) {
-					return status(401, { error: 'Unauthorized' })
-				}
+			if (!session?.user) {
+				return status(401, { error: 'Unauthorized' })
+			}
 
-				return {
-					user: {
-						id: session.user.id,
-						email: session.user.email,
-						name: session.user.name ?? null,
-						image: session.user.image ?? null,
-					} as AuthUserContext,
-					session: {
-						id: session.session.id,
-						expiresAt: session.session.expiresAt,
-					},
-				}
-			},
+			return {
+				user: {
+					id: session.user.id,
+					email: session.user.email,
+					name: session.user.name ?? null,
+					image: session.user.image ?? null,
+				} as AuthUserContext,
+				session: {
+					id: session.session.id,
+					expiresAt: session.session.expiresAt,
+				},
+			}
 		},
-	})
+	},
+})
 
 // =============================================================================
 // Plugin: Optional Auth (resolve, does not block)
@@ -258,39 +248,37 @@ export const optionalAuthPlugin = new Elysia({ name: 'optional-auth' })
  * .get('/agents', ({ user, workspace, workspaceRole }) => ..., { workspace: true })
  * ```
  */
-export const workspacePlugin = new Elysia({ name: 'workspace' })
-	.use(cfContext)
-	.macro({
-		workspace: {
-			async resolve({ cfEnv, db, request, status }) {
-				// Auth
-				const session = await resolveAuthUser(cfEnv, request.headers)
-				if (!session?.user) {
-					return status(401, { error: 'Unauthorized' })
-				}
+export const workspacePlugin = new Elysia({ name: 'workspace' }).use(cfContext).macro({
+	workspace: {
+		async resolve({ cfEnv, db, request, status }) {
+			// Auth
+			const session = await resolveAuthUser(cfEnv, request.headers)
+			if (!session?.user) {
+				return status(401, { error: 'Unauthorized' })
+			}
 
-				const user = {
-					id: session.user.id,
-					email: session.user.email,
-					name: session.user.name ?? null,
-					image: session.user.image ?? null,
-				} as AuthUserContext
+			const user = {
+				id: session.user.id,
+				email: session.user.email,
+				name: session.user.name ?? null,
+				image: session.user.image ?? null,
+			} as AuthUserContext
 
-				// Workspace
-				const result = await resolveWorkspaceAccess({
-					db,
-					userId: user.id,
-					request,
-				})
+			// Workspace
+			const result = await resolveWorkspaceAccess({
+				db,
+				userId: user.id,
+				request,
+			})
 
-				if (!result) {
-					return status(403, { error: 'Workspace access denied' })
-				}
+			if (!result) {
+				return status(403, { error: 'Workspace access denied' })
+			}
 
-				return { user, ...result }
-			},
+			return { user, ...result }
 		},
-	})
+	},
+})
 
 // =============================================================================
 // Plugin: Write access (workspace + write permission)
@@ -304,121 +292,115 @@ export const workspacePlugin = new Elysia({ name: 'workspace' })
  * .get('/agents', ({ user, workspace }) => ..., { writeAccess: true })
  * ```
  */
-export const writePlugin = new Elysia({ name: 'write-access' })
-	.use(cfContext)
-	.macro({
-		writeAccess: {
-			async resolve({ cfEnv, db, request, status }) {
-				const session = await resolveAuthUser(cfEnv, request.headers)
-				if (!session?.user) {
-					return status(401, { error: 'Unauthorized' })
-				}
+export const writePlugin = new Elysia({ name: 'write-access' }).use(cfContext).macro({
+	writeAccess: {
+		async resolve({ cfEnv, db, request, status }) {
+			const session = await resolveAuthUser(cfEnv, request.headers)
+			if (!session?.user) {
+				return status(401, { error: 'Unauthorized' })
+			}
 
-				const user = {
-					id: session.user.id,
-					email: session.user.email,
-					name: session.user.name ?? null,
-					image: session.user.image ?? null,
-				} as AuthUserContext
+			const user = {
+				id: session.user.id,
+				email: session.user.email,
+				name: session.user.name ?? null,
+				image: session.user.image ?? null,
+			} as AuthUserContext
 
-				const result = await resolveWorkspaceAccess({
-					db,
-					userId: user.id,
-					request,
-				})
+			const result = await resolveWorkspaceAccess({
+				db,
+				userId: user.id,
+				request,
+			})
 
-				if (!result) {
-					return status(403, { error: 'Workspace access denied' })
-				}
+			if (!result) {
+				return status(403, { error: 'Workspace access denied' })
+			}
 
-				if (!hasPermission(result.workspaceRole, 'write')) {
-					return status(403, { error: 'Write access required' })
-				}
+			if (!hasPermission(result.workspaceRole, 'write')) {
+				return status(403, { error: 'Write access required' })
+			}
 
-				return { user, ...result }
-			},
+			return { user, ...result }
 		},
-	})
+	},
+})
 
 // =============================================================================
 // Plugin: Admin access (workspace + admin permission)
 // =============================================================================
 
-export const adminPlugin = new Elysia({ name: 'admin-access' })
-	.use(cfContext)
-	.macro({
-		adminAccess: {
-			async resolve({ cfEnv, db, request, status }) {
-				const session = await resolveAuthUser(cfEnv, request.headers)
-				if (!session?.user) {
-					return status(401, { error: 'Unauthorized' })
-				}
+export const adminPlugin = new Elysia({ name: 'admin-access' }).use(cfContext).macro({
+	adminAccess: {
+		async resolve({ cfEnv, db, request, status }) {
+			const session = await resolveAuthUser(cfEnv, request.headers)
+			if (!session?.user) {
+				return status(401, { error: 'Unauthorized' })
+			}
 
-				const user = {
-					id: session.user.id,
-					email: session.user.email,
-					name: session.user.name ?? null,
-					image: session.user.image ?? null,
-				} as AuthUserContext
+			const user = {
+				id: session.user.id,
+				email: session.user.email,
+				name: session.user.name ?? null,
+				image: session.user.image ?? null,
+			} as AuthUserContext
 
-				const result = await resolveWorkspaceAccess({
-					db,
-					userId: user.id,
-					request,
-				})
+			const result = await resolveWorkspaceAccess({
+				db,
+				userId: user.id,
+				request,
+			})
 
-				if (!result) {
-					return status(403, { error: 'Workspace access denied' })
-				}
+			if (!result) {
+				return status(403, { error: 'Workspace access denied' })
+			}
 
-				if (!hasPermission(result.workspaceRole, 'admin')) {
-					return status(403, { error: 'Admin access required' })
-				}
+			if (!hasPermission(result.workspaceRole, 'admin')) {
+				return status(403, { error: 'Admin access required' })
+			}
 
-				return { user, ...result }
-			},
+			return { user, ...result }
 		},
-	})
+	},
+})
 
 // =============================================================================
 // Plugin: Owner access (workspace + owner permission)
 // =============================================================================
 
-export const ownerPlugin = new Elysia({ name: 'owner-access' })
-	.use(cfContext)
-	.macro({
-		ownerAccess: {
-			async resolve({ cfEnv, db, request, status }) {
-				const session = await resolveAuthUser(cfEnv, request.headers)
-				if (!session?.user) {
-					return status(401, { error: 'Unauthorized' })
-				}
+export const ownerPlugin = new Elysia({ name: 'owner-access' }).use(cfContext).macro({
+	ownerAccess: {
+		async resolve({ cfEnv, db, request, status }) {
+			const session = await resolveAuthUser(cfEnv, request.headers)
+			if (!session?.user) {
+				return status(401, { error: 'Unauthorized' })
+			}
 
-				const user = {
-					id: session.user.id,
-					email: session.user.email,
-					name: session.user.name ?? null,
-					image: session.user.image ?? null,
-				} as AuthUserContext
+			const user = {
+				id: session.user.id,
+				email: session.user.email,
+				name: session.user.name ?? null,
+				image: session.user.image ?? null,
+			} as AuthUserContext
 
-				const result = await resolveWorkspaceAccess({
-					db,
-					userId: user.id,
-					request,
-				})
+			const result = await resolveWorkspaceAccess({
+				db,
+				userId: user.id,
+				request,
+			})
 
-				if (!result) {
-					return status(403, { error: 'Workspace access denied' })
-				}
+			if (!result) {
+				return status(403, { error: 'Workspace access denied' })
+			}
 
-				if (!hasPermission(result.workspaceRole, 'owner')) {
-					return status(403, { error: 'Owner access required' })
-				}
+			if (!hasPermission(result.workspaceRole, 'owner')) {
+				return status(403, { error: 'Owner access required' })
+			}
 
-				return { user, ...result }
-			},
+			return { user, ...result }
 		},
-	})
+	},
+})
 
 // =============================================================================
 // Re-exports

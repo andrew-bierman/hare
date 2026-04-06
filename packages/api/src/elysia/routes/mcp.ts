@@ -5,14 +5,14 @@
  */
 
 import { isWebSocketRequest, routeToMcpAgent } from '@hare/agent'
+import type { Database } from '@hare/db'
 import { workspaceMembers } from '@hare/db/schema'
 import { agentControlTools, createRegistry, getSystemTools, type ToolContext } from '@hare/tools'
+import type { CloudflareEnv } from '@hare/types'
 import { and, eq } from 'drizzle-orm'
 import { Elysia, status } from 'elysia'
 import { z } from 'zod'
-import type { Database } from '@hare/db'
-import { optionalAuthPlugin, type AuthUserContext } from '../context'
-import type { CloudflareEnv } from '@hare/types'
+import { type AuthUserContext, optionalAuthPlugin } from '../context'
 
 async function hasWorkspaceAccess(
 	db: Database,
@@ -43,7 +43,7 @@ export const mcpRoutes = new Elysia({ prefix: '/mcp', name: 'mcp-routes' })
 	.use(optionalAuthPlugin)
 
 	// WebSocket connection
-	.get('/:workspaceId', async ({ db, cfEnv, user, params, request}) => {
+	.get('/:workspaceId', async ({ db, cfEnv, user, params, request }) => {
 		if (!isWebSocketRequest(request)) {
 			return status(400, { error: 'WebSocket upgrade required' })
 		}
@@ -72,7 +72,7 @@ HTTP Endpoints:
 	}))
 
 	// List tools
-	.get('/:workspaceId/tools', async ({ db, cfEnv, user, params}) => {
+	.get('/:workspaceId/tools', async ({ db, cfEnv, user, params }) => {
 		if (!user?.id) return status(401, { error: 'Authentication required' })
 		const hasAccess = await hasWorkspaceAccess(db, user.id, params.workspaceId)
 		if (!hasAccess) return status(403, { error: 'Unauthorized' })
@@ -87,7 +87,7 @@ HTTP Endpoints:
 	})
 
 	// Execute tool
-	.post('/:workspaceId/tools/:toolId', async ({ db, cfEnv, user, params, request}) => {
+	.post('/:workspaceId/tools/:toolId', async ({ db, cfEnv, user, params, request }) => {
 		if (!user?.id) return status(401, { error: 'Authentication required' })
 		const hasAccess = await hasWorkspaceAccess(db, user.id, params.workspaceId)
 		if (!hasAccess) return status(403, { error: 'Unauthorized' })
@@ -101,13 +101,21 @@ HTTP Endpoints:
 		}
 
 		const toolParams = await request.json()
-		const result = await allToolsRegistry.execute({ id: params.toolId, params: toolParams, context })
+		const result = await allToolsRegistry.execute({
+			id: params.toolId,
+			params: toolParams,
+			context,
+		})
 		return { success: result.success, data: result.data, error: result.error }
 	})
 
 	// JSON-RPC endpoint
-	.post('/:workspaceId/rpc', async ({ db, cfEnv, user, params, request}) => {
-		const { id, method, params: rpcParams } = await request.json() as {
+	.post('/:workspaceId/rpc', async ({ db, cfEnv, user, params, request }) => {
+		const {
+			id,
+			method,
+			params: rpcParams,
+		} = (await request.json()) as {
 			jsonrpc: string
 			id: string | number
 			method: string
@@ -176,16 +184,24 @@ HTTP Endpoints:
 					jsonrpc: '2.0',
 					id,
 					result: {
-						content: [{
-							type: 'text',
-							text: result.success ? JSON.stringify(result.data, null, 2) : `Error: ${result.error}`,
-						}],
+						content: [
+							{
+								type: 'text',
+								text: result.success
+									? JSON.stringify(result.data, null, 2)
+									: `Error: ${result.error}`,
+							},
+						],
 						isError: !result.success,
 					},
 				}
 			}
 
 			default:
-				return { jsonrpc: '2.0', id, error: { code: -32601, message: `Method not found: ${method}` } }
+				return {
+					jsonrpc: '2.0',
+					id,
+					error: { code: -32601, message: `Method not found: ${method}` },
+				}
 		}
 	})

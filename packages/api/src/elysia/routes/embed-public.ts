@@ -6,6 +6,7 @@
  * Uses Elysia's generator pattern for streaming.
  */
 
+import { cors } from '@elysiajs/cors'
 import {
 	type AgentConfig,
 	createAgentFromConfig,
@@ -15,8 +16,7 @@ import {
 import { agents, usage } from '@hare/db/schema'
 import type { ModelMessage } from 'ai'
 import { eq } from 'drizzle-orm'
-import { Elysia, sse, status } from 'elysia'
-import { cors } from '@elysiajs/cors'
+import { Elysia, status } from 'elysia'
 import { cfContext } from '../context'
 
 const CHAT_HISTORY_LIMIT = 20
@@ -44,16 +44,18 @@ function isDomainAllowed(options: {
 }
 
 export const embedPublicRoutes = new Elysia({ prefix: '/embed', name: 'embed-public-routes' })
-	.use(cors({
-		origin: '*',
-		methods: ['GET', 'POST', 'OPTIONS'],
-		allowedHeaders: ['Content-Type'],
-		maxAge: 86400,
-	}))
+	.use(
+		cors({
+			origin: '*',
+			methods: ['GET', 'POST', 'OPTIONS'],
+			allowedHeaders: ['Content-Type'],
+			maxAge: 86400,
+		}),
+	)
 	.use(cfContext)
 
 	// Get public agent info
-	.get('/agents/:agentId', async ({ db, params, request}) => {
+	.get('/agents/:agentId', async ({ db, params, request }) => {
 		const [agent] = await db.select().from(agents).where(eq(agents.id, params.agentId))
 		if (!agent) return status(404, { error: 'Agent not found' })
 		if (agent.status !== 'deployed') return status(400, { error: 'Agent not available' })
@@ -61,7 +63,9 @@ export const embedPublicRoutes = new Elysia({ prefix: '/embed', name: 'embed-pub
 		const agentConfig = agent.config as { allowedDomains?: string[] } | null
 		const origin = request.headers.get('origin') || request.headers.get('referer')
 
-		if (!isDomainAllowed({ allowedDomains: agentConfig?.allowedDomains, origin: origin ?? undefined })) {
+		if (
+			!isDomainAllowed({ allowedDomains: agentConfig?.allowedDomains, origin: origin ?? undefined })
+		) {
 			return status(403, { error: 'Domain not allowed' })
 		}
 
@@ -69,7 +73,7 @@ export const embedPublicRoutes = new Elysia({ prefix: '/embed', name: 'embed-pub
 	})
 
 	// Chat with agent via SSE streaming (Elysia generator pattern)
-	.post('/agents/:agentId/chat', async ({ db, cfEnv, params, request}) => {
+	.post('/agents/:agentId/chat', async ({ db, cfEnv, params, request }) => {
 		let body: { message?: string; sessionId?: string | null }
 		try {
 			body = await request.json()
@@ -89,7 +93,9 @@ export const embedPublicRoutes = new Elysia({ prefix: '/embed', name: 'embed-pub
 
 		const agentConfig = agent.config as { allowedDomains?: string[] } | null
 		const origin = request.headers.get('origin') || request.headers.get('referer')
-		if (!isDomainAllowed({ allowedDomains: agentConfig?.allowedDomains, origin: origin ?? undefined })) {
+		if (
+			!isDomainAllowed({ allowedDomains: agentConfig?.allowedDomains, origin: origin ?? undefined })
+		) {
 			return status(403, { error: 'Domain not allowed' })
 		}
 		if (!cfEnv.AI) return status(503, { error: 'AI service not available' })

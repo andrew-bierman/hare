@@ -54,7 +54,7 @@ function getBaseURL(): string {
  */
 export const api = treaty<App>(getBaseURL(), {
 	fetch: { credentials: 'include' },
-	headers(path, options) {
+	headers(_path, _options) {
 		const headers: Record<string, string> = {}
 		if (currentWorkspaceId) {
 			headers['X-Workspace-Id'] = currentWorkspaceId
@@ -70,7 +70,7 @@ export const api = treaty<App>(getBaseURL(), {
 export function createApiClient(baseUrl: string) {
 	return treaty<App>(baseUrl, {
 		fetch: { credentials: 'include' },
-		headers(path, options) {
+		headers(_path, _options) {
 			const headers: Record<string, string> = {}
 			if (currentWorkspaceId) {
 				headers['X-Workspace-Id'] = currentWorkspaceId

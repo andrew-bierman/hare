@@ -16,37 +16,6 @@
  * ```
  */
 
-// Main app
-export { app, type App } from './app'
-
-// Client (Eden Treaty)
-export {
-	api,
-	createApiClient,
-	getWorkspaceId,
-	setWorkspaceId,
-} from './client'
-
-// Context plugins
-export {
-	adminPlugin,
-	authPlugin,
-	type AuthUserContext,
-	cfContext,
-	CloudflareEnvError,
-	getD1,
-	getDbFromEnv,
-	hasPermission,
-	optionalAuthPlugin,
-	ownerPlugin,
-	type WorkspaceInfo,
-	workspacePlugin,
-	writePlugin,
-} from './context'
-
-// Audit logging
-export { logAudit, type LogAuditInput } from './audit'
-
 // Re-export email service and templates from @hare/email
 export {
 	createEmailService,
@@ -56,7 +25,6 @@ export {
 	PasswordResetEmail,
 	WorkspaceInvitationEmail,
 } from '@hare/email'
-
 // Re-export types from @hare/types (canonical source)
 export type {
 	Agent,
@@ -98,12 +66,37 @@ export type {
 	WorkspaceMember,
 	WorkspaceRole,
 } from '@hare/types'
-
 // Re-export type guards from @hare/types
 export { isMessageRole, isWorkspaceRole } from '@hare/types'
-
 // Re-export schemas (explicit to avoid conflicts with services)
 export * from '../schemas'
+// Main app
+export { type App, app } from './app'
+// Audit logging
+export { type LogAuditInput, logAudit } from './audit'
+// Client (Eden Treaty)
+export {
+	api,
+	createApiClient,
+	getWorkspaceId,
+	setWorkspaceId,
+} from './client'
+// Context plugins
+export {
+	type AuthUserContext,
+	adminPlugin,
+	authPlugin,
+	CloudflareEnvError,
+	cfContext,
+	getD1,
+	getDbFromEnv,
+	hasPermission,
+	optionalAuthPlugin,
+	ownerPlugin,
+	type WorkspaceInfo,
+	workspacePlugin,
+	writePlugin,
+} from './context'
 
 // Note: Hono-specific helpers (accepts, cookie, permissions, responses, testing)
 // were removed during the Elysia migration. Use Elysia's built-in equivalents.
@@ -124,15 +117,15 @@ export {
 } from '../services/custom-tool-executor'
 export * from '../services/deployment'
 export {
-	EMBEDDING_MODEL,
-	EMBEDDING_DIMENSIONS,
-	MAX_VECTORIZE_TOP_K,
 	DEFAULT_MEMORY_PAGE_SIZE,
+	EMBEDDING_DIMENSIONS,
+	EMBEDDING_MODEL,
+	MAX_VECTORIZE_TOP_K,
 } from '../services/vector-memory'
 export {
+	generateSignature,
 	type TriggerWebhookOptions,
+	verifySignature,
 	type WebhookDeliveryResult,
 	type WebhookPayload,
-	generateSignature,
-	verifySignature,
 } from '../services/webhooks'

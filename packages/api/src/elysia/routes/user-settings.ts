@@ -42,64 +42,72 @@ export const userSettingsRoutes = new Elysia({ prefix: '/user', name: 'user-sett
 	.use(authPlugin)
 
 	// Get user preferences (creates default if not exists)
-	.get('/preferences', async ({ db, user }) => {
-		let [prefs] = await db
-			.select()
-			.from(userPreferences)
-			.where(eq(userPreferences.userId, user.id))
+	.get(
+		'/preferences',
+		async ({ db, user }) => {
+			let [prefs] = await db
+				.select()
+				.from(userPreferences)
+				.where(eq(userPreferences.userId, user.id))
 
-		if (!prefs) {
-			;[prefs] = await db
-				.insert(userPreferences)
-				.values({
-					userId: user.id,
-					emailNotifications: true,
-					usageAlerts: true,
-				})
-				.returning()
-		}
+			if (!prefs) {
+				;[prefs] = await db
+					.insert(userPreferences)
+					.values({
+						userId: user.id,
+						emailNotifications: true,
+						usageAlerts: true,
+					})
+					.returning()
+			}
 
-		if (!prefs) throw new Error('Failed to get or create preferences')
+			if (!prefs) throw new Error('Failed to get or create preferences')
 
-		return serializePreferences(prefs)
-	}, { auth: true })
+			return serializePreferences(prefs)
+		},
+		{ auth: true },
+	)
 
 	// Update user preferences
-	.patch('/preferences', async ({ db, user, body }) => {
-		let [prefs] = await db
-			.select()
-			.from(userPreferences)
-			.where(eq(userPreferences.userId, user.id))
-
-		if (!prefs) {
-			;[prefs] = await db
-				.insert(userPreferences)
-				.values({
-					userId: user.id,
-					emailNotifications: body.emailNotifications ?? true,
-					usageAlerts: body.usageAlerts ?? true,
-				})
-				.returning()
-		} else {
-			const updateData: Partial<typeof userPreferences.$inferInsert> = {
-				updatedAt: new Date(),
-			}
-
-			if (body.emailNotifications !== undefined) {
-				updateData.emailNotifications = body.emailNotifications
-			}
-			if (body.usageAlerts !== undefined) {
-				updateData.usageAlerts = body.usageAlerts
-			}
-
-			;[prefs] = await db
-				.update(userPreferences)
-				.set(updateData)
+	.patch(
+		'/preferences',
+		async ({ db, user, body }) => {
+			let [prefs] = await db
+				.select()
+				.from(userPreferences)
 				.where(eq(userPreferences.userId, user.id))
-				.returning()
-		}
 
-		if (!prefs) throw new Error('Failed to update preferences')
+			if (!prefs) {
+				;[prefs] = await db
+					.insert(userPreferences)
+					.values({
+						userId: user.id,
+						emailNotifications: body.emailNotifications ?? true,
+						usageAlerts: body.usageAlerts ?? true,
+					})
+					.returning()
+			} else {
+				const updateData: Partial<typeof userPreferences.$inferInsert> = {
+					updatedAt: new Date(),
+				}
 
-		return serializePreferences(prefs)
-	}, { auth: true, body: UpdateUserPreferencesInputSchema })
+				if (body.emailNotifications !== undefined) {
+					updateData.emailNotifications = body.emailNotifications
+				}
+				if (body.usageAlerts !== undefined) {
+					updateData.usageAlerts = body.usageAlerts
+				}
+
+				;[prefs] = await db
+					.update(userPreferences)
+					.set(updateData)
+					.where(eq(userPreferences.userId, user.id))
+					.returning()
+			}
+
+			if (!prefs) throw new Error('Failed to update preferences')
+
+			return serializePreferences(prefs)
+		},
+		{ auth: true, body: UpdateUserPreferencesInputSchema },
+	)

@@ -41,7 +41,7 @@ export interface Message {
 export function useConversationsQuery(agentId: string | undefined) {
 	return useQuery({
 		queryKey: ['conversations', agentId],
-		queryFn: () => unwrap(api.api.chat.conversations.get({ query: { agentId: agentId! } })),
+		queryFn: () => unwrap(api.api.chat.agents({ id: agentId! }).conversations.get()),
 		enabled: !!agentId,
 	})
 }
@@ -59,9 +59,12 @@ export function useMessagesQuery(conversationId: string | undefined) {
 // =============================================================================
 
 export interface ConversationSearchResult {
-	id: string
-	title: string | null
-	lastMessage: string | null
+	messageId: string
+	conversationId: string
+	conversationTitle: string | null
+	role: 'user' | 'assistant' | 'system'
+	content: string
+	highlightedContent: string
 	createdAt: string
 }
 
@@ -80,16 +83,17 @@ export function useConversationSearchQuery(params: ConversationSearchParams | un
 	return useQuery({
 		queryKey: ['conversations', 'search', agentId, query, dateFrom, dateTo, limit, offset],
 		queryFn: () =>
-			unwrap(api.api.chat.conversations.search.get({
-				query: {
-					agentId: agentId!,
-					q: query!,
-					dateFrom,
-					dateTo,
-					limit,
-					offset,
-				},
-			})),
+			unwrap(
+				api.api.chat.agents({ id: agentId! }).conversations.search.get({
+					query: {
+						query: query!,
+						dateFrom,
+						dateTo,
+						limit,
+						offset,
+					} as any,
+				}),
+			),
 		enabled: !!agentId && !!query && query.trim().length > 0,
 	})
 }
@@ -138,7 +142,7 @@ export function useChat(agentId: string | undefined) {
 	const transport = useMemo(() => {
 		if (!agentId) return undefined
 		return new DefaultChatTransport({
-			api: `/api/chat/agents/${agentId}/chat`,
+			api: `/api/stream-chat/agents/${agentId}/chat`,
 			body: () => (sessionIdRef.current ? { sessionId: sessionIdRef.current } : {}),
 			fetch: fetchWithSessionCapture as typeof globalThis.fetch,
 		})

@@ -8,7 +8,7 @@
 import { type AuthServerEnv, createAuth, getOAuthProviders } from '@hare/auth/server'
 import type { CloudflareEnv } from '@hare/types'
 import { Elysia } from 'elysia'
-import { cfContext, CloudflareEnvError, getD1 } from '../context'
+import { CloudflareEnvError, cfContext, getD1 } from '../context'
 
 function getAuthEnv(cfEnv: CloudflareEnv): AuthServerEnv {
 	const env = cfEnv as CloudflareEnv & {
@@ -60,7 +60,10 @@ export const authRoutes = new Elysia({ prefix: '/auth', name: 'auth-routes' })
 				if (path.includes('/session') || path.includes('/get-session')) {
 					return Response.json({ session: null, user: null })
 				}
-				return Response.json({ error: 'Database not available', code: 'DB_UNAVAILABLE' }, { status: 503 })
+				return Response.json(
+					{ error: 'Database not available', code: 'DB_UNAVAILABLE' },
+					{ status: 503 },
+				)
 			}
 			throw e
 		}

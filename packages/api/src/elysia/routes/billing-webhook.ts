@@ -8,7 +8,7 @@
 import { workspaces } from '@hare/db/schema'
 import type { CloudflareEnv } from '@hare/types'
 import { eq } from 'drizzle-orm'
-import { Elysia} from 'elysia'
+import { Elysia } from 'elysia'
 import Stripe from 'stripe'
 import { cfContext } from '../context'
 
@@ -24,7 +24,10 @@ function getStripe(env: CloudflareEnv): Stripe {
 	return new Stripe(secretKey, { typescript: true })
 }
 
-export const billingWebhookRoutes = new Elysia({ prefix: '/billing', name: 'billing-webhook' })
+export const billingWebhookRoutes = new Elysia({
+	prefix: '/billing-webhook',
+	name: 'billing-webhook',
+})
 	.use(cfContext)
 	.post('/webhook', async ({ cfEnv, db, request }) => {
 		const webhookSecret = cfEnv.STRIPE_WEBHOOK_SECRET
@@ -69,7 +72,9 @@ export const billingWebhookRoutes = new Elysia({ prefix: '/billing', name: 'bill
 			}
 
 			case 'customer.subscription.updated': {
-				const subscription = event.data.object as Stripe.Subscription & { current_period_end: number }
+				const subscription = event.data.object as Stripe.Subscription & {
+					current_period_end: number
+				}
 				const workspaceId = subscription.metadata?.workspaceId
 
 				if (workspaceId) {

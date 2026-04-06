@@ -12,13 +12,13 @@ import {
 	routeHttpToAgent,
 	routeWebSocketToAgent,
 } from '@hare/agent'
-import { agents, workspaceMembers } from '@hare/db/schema'
 import type { Database } from '@hare/db'
+import { agents, workspaceMembers } from '@hare/db/schema'
+import type { CloudflareEnv } from '@hare/types'
 import { convertToModelMessages, streamText, type UIMessage } from 'ai'
 import { and, eq } from 'drizzle-orm'
 import { Elysia, status } from 'elysia'
-import { optionalAuthPlugin, type AuthUserContext } from '../context'
-import type { CloudflareEnv } from '@hare/types'
+import { type AuthUserContext, optionalAuthPlugin } from '../context'
 
 // =============================================================================
 // Helpers
@@ -72,7 +72,8 @@ async function handleChat(options: {
 	const [agentConfig] = await db.select().from(agents).where(eq(agents.id, agentId))
 
 	if (!agentConfig) return Response.json({ error: 'Agent not found' }, { status: 404 })
-	if (agentConfig.status !== 'deployed') return Response.json({ error: 'Agent not deployed' }, { status: 400 })
+	if (agentConfig.status !== 'deployed')
+		return Response.json({ error: 'Agent not deployed' }, { status: 400 })
 
 	if (user?.id) {
 		const hasAccess = await hasWorkspaceAccess(db, user.id, agentConfig.workspaceId)
@@ -119,7 +120,7 @@ export const agentWsRoutes = new Elysia({ prefix: '/agent-ws', name: 'agent-ws-r
 	.use(optionalAuthPlugin)
 
 	// WebSocket upgrade
-	.get('/agents/:id/ws', async ({ db, cfEnv, user, params, request}) => {
+	.get('/agents/:id/ws', async ({ db, cfEnv, user, params, request }) => {
 		if (!isWebSocketRequest(request)) {
 			return status(400, { error: 'WebSocket upgrade required' })
 		}
@@ -142,7 +143,7 @@ export const agentWsRoutes = new Elysia({ prefix: '/agent-ws', name: 'agent-ws-r
 	})
 
 	// Get agent state
-	.get('/agents/:id/state', async ({ db, cfEnv, user, params,  request }) => {
+	.get('/agents/:id/state', async ({ db, cfEnv, user, params, request }) => {
 		const [agent] = await db.select().from(agents).where(eq(agents.id, params.id))
 		if (!agent) return status(404, { error: 'Agent not found' })
 
@@ -151,12 +152,17 @@ export const agentWsRoutes = new Elysia({ prefix: '/agent-ws', name: 'agent-ws-r
 			if (!hasAccess) return status(403, { error: 'Unauthorized' })
 		}
 
-		const response = await routeHttpToAgent({ request, env: cfEnv, agentId: params.id, path: '/state' })
+		const response = await routeHttpToAgent({
+			request,
+			env: cfEnv,
+			agentId: params.id,
+			path: '/state',
+		})
 		return response.json()
 	})
 
 	// Configure agent
-	.post('/agents/:id/configure', async ({ db, cfEnv, user, params, request}) => {
+	.post('/agents/:id/configure', async ({ db, cfEnv, user, params, request }) => {
 		const [agent] = await db.select().from(agents).where(eq(agents.id, params.id))
 		if (!agent) return status(404, { error: 'Agent not found' })
 
@@ -165,7 +171,7 @@ export const agentWsRoutes = new Elysia({ prefix: '/agent-ws', name: 'agent-ws-r
 		const hasAccess = await hasWorkspaceWriteAccess(db, user.id, agent.workspaceId)
 		if (!hasAccess) return status(403, { error: 'No write access' })
 
-		const body = await request.json() as {
+		const body = (await request.json()) as {
 			name?: string
 			instructions?: string
 			model?: string
@@ -184,13 +190,18 @@ export const agentWsRoutes = new Elysia({ prefix: '/agent-ws', name: 'agent-ws-r
 			}),
 		})
 
-		const response = await routeHttpToAgent({ request: configRequest, env: cfEnv, agentId: params.id, path: '/configure' })
+		const response = await routeHttpToAgent({
+			request: configRequest,
+			env: cfEnv,
+			agentId: params.id,
+			path: '/configure',
+		})
 		const state = await response.json()
 		return { success: true, state }
 	})
 
 	// Get agent schedules
-	.get('/agents/:id/schedules', async ({ db, cfEnv, user, params, request}) => {
+	.get('/agents/:id/schedules', async ({ db, cfEnv, user, params, request }) => {
 		const [agent] = await db.select().from(agents).where(eq(agents.id, params.id))
 		if (!agent) return status(404, { error: 'Agent not found' })
 
@@ -199,7 +210,12 @@ export const agentWsRoutes = new Elysia({ prefix: '/agent-ws', name: 'agent-ws-r
 			if (!hasAccess) return status(403, { error: 'Unauthorized' })
 		}
 
-		const response = await routeHttpToAgent({ request, env: cfEnv, agentId: params.id, path: '/schedules' })
+		const response = await routeHttpToAgent({
+			request,
+			env: cfEnv,
+			agentId: params.id,
+			path: '/schedules',
+		})
 		return response.json()
 	})
 
@@ -208,8 +224,8 @@ export const agentWsRoutes = new Elysia({ prefix: '/agent-ws', name: 'agent-ws-r
 		return handleChat({ agentId: params.id, db, cfEnv, user, request })
 	})
 
-// Dedicated chat sub-router (mounted separately at /api/chat)
-export const chatAppRoutes = new Elysia({ prefix: '/chat', name: 'chat-app-routes' })
+// Dedicated chat sub-router for AI SDK streaming (mounted separately at /api/stream-chat)
+export const chatAppRoutes = new Elysia({ prefix: '/stream-chat', name: 'chat-app-routes' })
 	.use(optionalAuthPlugin)
 	.post('/agents/:id/chat', async ({ db, cfEnv, user, params, request }) => {
 		return handleChat({ agentId: params.id, db, cfEnv, user, request })
