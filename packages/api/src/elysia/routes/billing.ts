@@ -8,7 +8,7 @@
 import { workspaces } from '@hare/db/schema'
 import type { CloudflareEnv } from '@hare/types'
 import { eq } from 'drizzle-orm'
-import { Elysia } from 'elysia'
+import { Elysia, status } from 'elysia'
 import Stripe from 'stripe'
 import {
 	CheckoutRequestSchema,
@@ -102,9 +102,9 @@ export const billingRoutes = new Elysia({ prefix: '/billing', name: 'billing-rou
 	}, { writeAccess: true })
 
 	// Create Stripe checkout session
-	.post('/checkout', async ({ db, cfEnv, workspace, user, body, error }) => {
+	.post('/checkout', async ({ db, cfEnv, workspace, user, body}) => {
 		const plan = BILLING_PLANS[body.planId as PlanId]
-		if (!plan || !plan.priceId) return error(400, { error: 'Invalid plan selected' })
+		if (!plan || !plan.priceId) return status(400, { error: 'Invalid plan selected' })
 
 		const stripe = getStripe(cfEnv)
 		const appUrl = getAppUrl(cfEnv)
@@ -138,17 +138,17 @@ export const billingRoutes = new Elysia({ prefix: '/billing', name: 'billing-rou
 			},
 		})
 
-		if (!session.url) return error(400, { error: 'Failed to create checkout session' })
+		if (!session.url) return status(400, { error: 'Failed to create checkout session' })
 
 		return { url: session.url, sessionId: session.id }
 	}, { writeAccess: true, body: CheckoutRequestSchema })
 
 	// Create Stripe customer portal session
-	.post('/portal', async ({ db, cfEnv, workspace, error }) => {
+	.post('/portal', async ({ db, cfEnv, workspace}) => {
 		const [ws] = await db.select().from(workspaces).where(eq(workspaces.id, workspace.id))
 
 		if (!ws?.stripeCustomerId) {
-			return error(400, { error: 'No billing account found. Please upgrade to a paid plan first.' })
+			return status(400, { error: 'No billing account found. Please upgrade to a paid plan first.' })
 		}
 
 		const stripe = getStripe(cfEnv)

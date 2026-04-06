@@ -16,8 +16,9 @@ import { agents, workspaceMembers } from '@hare/db/schema'
 import type { Database } from '@hare/db'
 import { convertToModelMessages, streamText, type UIMessage } from 'ai'
 import { and, eq } from 'drizzle-orm'
-import { Elysia } from 'elysia'
+import { Elysia, status } from 'elysia'
 import { optionalAuthPlugin, type AuthUserContext } from '../context'
+import type { CloudflareEnv } from '@hare/types'
 
 // =============================================================================
 // Helpers
@@ -118,18 +119,18 @@ export const agentWsRoutes = new Elysia({ prefix: '/agent-ws', name: 'agent-ws-r
 	.use(optionalAuthPlugin)
 
 	// WebSocket upgrade
-	.get('/agents/:id/ws', async ({ db, cfEnv, user, params, request, error }) => {
+	.get('/agents/:id/ws', async ({ db, cfEnv, user, params, request}) => {
 		if (!isWebSocketRequest(request)) {
-			return error(400, { error: 'WebSocket upgrade required' })
+			return status(400, { error: 'WebSocket upgrade required' })
 		}
 
 		const [agent] = await db.select().from(agents).where(eq(agents.id, params.id))
-		if (!agent) return error(404, { error: 'Agent not found' })
-		if (agent.status !== 'deployed') return error(400, { error: 'Agent not deployed' })
+		if (!agent) return status(404, { error: 'Agent not found' })
+		if (agent.status !== 'deployed') return status(400, { error: 'Agent not deployed' })
 
 		if (user?.id) {
 			const hasAccess = await hasWorkspaceAccess(db, user.id, agent.workspaceId)
-			if (!hasAccess) return error(403, { error: 'Unauthorized: no access to this workspace' })
+			if (!hasAccess) return status(403, { error: 'Unauthorized: no access to this workspace' })
 		}
 
 		const headers = new Headers(request.headers)
@@ -141,13 +142,13 @@ export const agentWsRoutes = new Elysia({ prefix: '/agent-ws', name: 'agent-ws-r
 	})
 
 	// Get agent state
-	.get('/agents/:id/state', async ({ db, cfEnv, user, params, error, request }) => {
+	.get('/agents/:id/state', async ({ db, cfEnv, user, params,  request }) => {
 		const [agent] = await db.select().from(agents).where(eq(agents.id, params.id))
-		if (!agent) return error(404, { error: 'Agent not found' })
+		if (!agent) return status(404, { error: 'Agent not found' })
 
 		if (user?.id) {
 			const hasAccess = await hasWorkspaceAccess(db, user.id, agent.workspaceId)
-			if (!hasAccess) return error(403, { error: 'Unauthorized' })
+			if (!hasAccess) return status(403, { error: 'Unauthorized' })
 		}
 
 		const response = await routeHttpToAgent({ request, env: cfEnv, agentId: params.id, path: '/state' })
@@ -155,14 +156,14 @@ export const agentWsRoutes = new Elysia({ prefix: '/agent-ws', name: 'agent-ws-r
 	})
 
 	// Configure agent
-	.post('/agents/:id/configure', async ({ db, cfEnv, user, params, request, error }) => {
+	.post('/agents/:id/configure', async ({ db, cfEnv, user, params, request}) => {
 		const [agent] = await db.select().from(agents).where(eq(agents.id, params.id))
-		if (!agent) return error(404, { error: 'Agent not found' })
+		if (!agent) return status(404, { error: 'Agent not found' })
 
-		if (!user?.id) return error(401, { error: 'Authentication required' })
+		if (!user?.id) return status(401, { error: 'Authentication required' })
 
 		const hasAccess = await hasWorkspaceWriteAccess(db, user.id, agent.workspaceId)
-		if (!hasAccess) return error(403, { error: 'No write access' })
+		if (!hasAccess) return status(403, { error: 'No write access' })
 
 		const body = await request.json() as {
 			name?: string
@@ -189,13 +190,13 @@ export const agentWsRoutes = new Elysia({ prefix: '/agent-ws', name: 'agent-ws-r
 	})
 
 	// Get agent schedules
-	.get('/agents/:id/schedules', async ({ db, cfEnv, user, params, request, error }) => {
+	.get('/agents/:id/schedules', async ({ db, cfEnv, user, params, request}) => {
 		const [agent] = await db.select().from(agents).where(eq(agents.id, params.id))
-		if (!agent) return error(404, { error: 'Agent not found' })
+		if (!agent) return status(404, { error: 'Agent not found' })
 
 		if (user?.id) {
 			const hasAccess = await hasWorkspaceAccess(db, user.id, agent.workspaceId)
-			if (!hasAccess) return error(403, { error: 'Unauthorized' })
+			if (!hasAccess) return status(403, { error: 'Unauthorized' })
 		}
 
 		const response = await routeHttpToAgent({ request, env: cfEnv, agentId: params.id, path: '/schedules' })

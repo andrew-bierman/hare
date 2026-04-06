@@ -6,7 +6,7 @@
 
 import { serverEnv } from '@hare/config'
 import { agents } from '@hare/db'
-import { Elysia } from 'elysia'
+import { Elysia, status } from 'elysia'
 import { writePlugin } from '../context'
 
 const sampleAgents = [
@@ -70,9 +70,9 @@ Your name is "Hoppy" and you love helping users solve their problems.
 
 export const devRoutes = new Elysia({ prefix: '/dev', name: 'dev-routes' })
 	.use(writePlugin)
-	.post('/seed', async ({ db, user, workspace, error }) => {
+	.post('/seed', async ({ db, user, workspace}) => {
 		if (serverEnv.NODE_ENV === 'production') {
-			return error(403, { error: 'Seed endpoint only available in development' })
+			return status(403, { error: 'Seed endpoint only available in development' })
 		}
 
 		try {
@@ -99,6 +99,6 @@ export const devRoutes = new Elysia({ prefix: '/dev', name: 'dev-routes' })
 			}
 		} catch (err) {
 			console.error('Seed error:', err)
-			return error(500, { error: 'Failed to seed data' })
+			return status(500, { error: 'Failed to seed data' })
 		}
 	}, { writeAccess: true })

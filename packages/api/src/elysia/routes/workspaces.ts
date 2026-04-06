@@ -7,7 +7,7 @@
 import { config } from '@hare/config'
 import { workspaceMembers, workspaces } from '@hare/db/schema'
 import { eq } from 'drizzle-orm'
-import { Elysia } from 'elysia'
+import { Elysia, status } from 'elysia'
 import { z } from 'zod'
 import { authPlugin, ownerPlugin, writePlugin } from '../context'
 
@@ -126,22 +126,22 @@ export const workspaceRoutes = new Elysia({ prefix: '/workspaces', name: 'worksp
 
 	// Get current workspace
 	.use(writePlugin)
-	.get('/current', async ({ db, workspaceId, error }) => {
+	.get('/current', async ({ db, workspaceId}) => {
 		const [workspace] = await db.select().from(workspaces).where(eq(workspaces.id, workspaceId))
-		if (!workspace) return error(404, { error: 'Workspace not found' })
+		if (!workspace) return status(404, { error: 'Workspace not found' })
 		return serializeWorkspace(workspace)
 	}, { writeAccess: true })
 
 	// Get workspace by ID
-	.get('/:id', async ({ db, params, error }) => {
+	.get('/:id', async ({ db, params}) => {
 		const [workspace] = await db.select().from(workspaces).where(eq(workspaces.id, params.id))
-		if (!workspace) return error(404, { error: 'Workspace not found' })
+		if (!workspace) return status(404, { error: 'Workspace not found' })
 		return serializeWorkspace(workspace)
 	}, { writeAccess: true })
 
 	// Update workspace
 	.use(ownerPlugin)
-	.patch('/:id', async ({ db, params, body, error }) => {
+	.patch('/:id', async ({ db, params, body}) => {
 		const updateData: Partial<typeof workspaces.$inferInsert> = {
 			updatedAt: new Date(),
 			...(body.name !== undefined && { name: body.name }),
@@ -154,7 +154,7 @@ export const workspaceRoutes = new Elysia({ prefix: '/workspaces', name: 'worksp
 			.where(eq(workspaces.id, params.id))
 			.returning()
 
-		if (!workspace) return error(404, { error: 'Workspace not found' })
+		if (!workspace) return status(404, { error: 'Workspace not found' })
 		return serializeWorkspace(workspace)
 	}, {
 		ownerAccess: true,
@@ -162,8 +162,8 @@ export const workspaceRoutes = new Elysia({ prefix: '/workspaces', name: 'worksp
 	})
 
 	// Delete workspace
-	.delete('/:id', async ({ db, params, error }) => {
+	.delete('/:id', async ({ db, params}) => {
 		const result = await db.delete(workspaces).where(eq(workspaces.id, params.id)).returning()
-		if (result.length === 0) return error(404, { error: 'Workspace not found' })
+		if (result.length === 0) return status(404, { error: 'Workspace not found' })
 		return { success: true }
 	}, { ownerAccess: true })

@@ -8,7 +8,7 @@ import { config } from '@hare/config'
 import { tools } from '@hare/db/schema'
 import type { Database } from '@hare/db'
 import { and, eq } from 'drizzle-orm'
-import { Elysia } from 'elysia'
+import { Elysia, status } from 'elysia'
 import { z } from 'zod'
 import {
 	CreateToolSchema,
@@ -98,9 +98,9 @@ export const toolRoutes = new Elysia({ prefix: '/tools', name: 'tool-routes' })
 	}, { writeAccess: true })
 
 	// Get tool
-	.get('/:id', async ({ db, workspaceId, params, error }) => {
+	.get('/:id', async ({ db, workspaceId, params}) => {
 		const tool = await findTool(params.id, workspaceId, db)
-		if (!tool) return error(404, { error: 'Tool not found' })
+		if (!tool) return status(404, { error: 'Tool not found' })
 		return serializeTool(tool)
 	}, { writeAccess: true })
 
@@ -135,9 +135,9 @@ export const toolRoutes = new Elysia({ prefix: '/tools', name: 'tool-routes' })
 
 	// Update tool
 	.patch('/:id', async (ctx) => {
-		const { db, workspaceId, params, body, error } = ctx
+		const { db, workspaceId, params, body} = ctx
 		const existing = await findTool(params.id, workspaceId, db)
-		if (!existing) return error(404, { error: 'Tool not found' })
+		if (!existing) return status(404, { error: 'Tool not found' })
 
 		const updateData: Partial<typeof tools.$inferInsert> = {
 			updatedAt: new Date(),
@@ -241,11 +241,11 @@ export const toolRoutes = new Elysia({ prefix: '/tools', name: 'tool-routes' })
 
 	// Test an existing tool
 	.post('/:id/test', async (ctx) => {
-		const { db, workspaceId, params, body, error } = ctx
+		const { db, workspaceId, params, body} = ctx
 		const startTime = Date.now()
 
 		const tool = await findTool(params.id, workspaceId, db)
-		if (!tool) return error(404, { error: 'Tool not found' })
+		if (!tool) return status(404, { error: 'Tool not found' })
 
 		const testInput = body.testInput ?? {}
 
@@ -360,13 +360,13 @@ export const toolRoutes = new Elysia({ prefix: '/tools', name: 'tool-routes' })
 
 	// Delete tool
 	.delete('/:id', async (ctx) => {
-		const { db, workspaceId, params, error } = ctx
+		const { db, workspaceId, params} = ctx
 		const result = await db
 			.delete(tools)
 			.where(and(eq(tools.id, params.id), eq(tools.workspaceId, workspaceId)))
 			.returning()
 
-		if (result.length === 0) return error(404, { error: 'Tool not found' })
+		if (result.length === 0) return status(404, { error: 'Tool not found' })
 
 		const deletedTool = result[0]
 		await logAudit({

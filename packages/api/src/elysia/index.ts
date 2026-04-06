@@ -109,11 +109,37 @@ export type {
 // Re-export type guards from @hare/types
 export { isMessageRole, isWorkspaceRole } from '@hare/types'
 
-// Re-export schemas
+// Re-export schemas (explicit to avoid conflicts with services)
 export * from '../schemas'
 
 // Re-export helpers
 export { acceptsJson, acceptsSSE } from '../helpers'
 
-// Re-export services
-export * from '../services'
+// Re-export services (excluding MemoryMetadataSchema which conflicts with schemas)
+export {
+	type BillingUsageStats,
+	type GetBillingUsageOptions,
+	getActiveAgentCount,
+	getMessageCount,
+	getTokenUsage,
+} from '../services/billing-usage'
+export {
+	executeHttpTool,
+	HttpToolConfigSchema,
+	type InputSchema,
+	isUrlSafe,
+} from '../services/custom-tool-executor'
+export * from '../services/deployment'
+export {
+	EMBEDDING_MODEL,
+	EMBEDDING_DIMENSIONS,
+	MAX_VECTORIZE_TOP_K,
+	DEFAULT_MEMORY_PAGE_SIZE,
+} from '../services/vector-memory'
+export {
+	type TriggerWebhookOptions,
+	type WebhookDeliveryResult,
+	type WebhookPayload,
+	generateSignature,
+	verifySignature,
+} from '../services/webhooks'

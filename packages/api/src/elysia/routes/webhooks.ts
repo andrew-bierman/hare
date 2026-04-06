@@ -15,7 +15,7 @@ import {
 } from '@hare/db'
 import type { Database } from '@hare/db'
 import { and, count, desc, eq } from 'drizzle-orm'
-import { Elysia } from 'elysia'
+import { Elysia, status } from 'elysia'
 import { z } from 'zod'
 import {
 	generateWebhookSecret,
@@ -111,9 +111,9 @@ export const webhookRoutes = new Elysia({ name: 'webhook-routes' })
 	.use(writePlugin)
 
 	// List webhooks for an agent
-	.get('/agents/:agentId/webhooks', async ({ db, workspaceId, params, error }) => {
+	.get('/agents/:agentId/webhooks', async ({ db, workspaceId, params}) => {
 		const agent = await verifyAgentInWorkspace(params.agentId, workspaceId, db)
-		if (!agent) return error(404, { error: 'Agent not found' })
+		if (!agent) return status(404, { error: 'Agent not found' })
 
 		const results = await db
 			.select()
@@ -124,12 +124,12 @@ export const webhookRoutes = new Elysia({ name: 'webhook-routes' })
 	}, { writeAccess: true })
 
 	// Create webhook
-	.post('/agents/:agentId/webhooks', async ({ db, workspaceId, params, body, error }) => {
+	.post('/agents/:agentId/webhooks', async ({ db, workspaceId, params, body}) => {
 		const urlCheck = isWebhookUrlSafe(body.url)
-		if (!urlCheck.safe) return error(400, { error: `Invalid webhook URL: ${urlCheck.reason}` })
+		if (!urlCheck.safe) return status(400, { error: `Invalid webhook URL: ${urlCheck.reason}` })
 
 		const agent = await verifyAgentInWorkspace(params.agentId, workspaceId, db)
-		if (!agent) return error(404, { error: 'Agent not found' })
+		if (!agent) return status(404, { error: 'Agent not found' })
 
 		const secret = generateWebhookSecret()
 
@@ -151,36 +151,36 @@ export const webhookRoutes = new Elysia({ name: 'webhook-routes' })
 	}, { writeAccess: true, body: CreateWebhookInputSchema })
 
 	// Get webhook details
-	.get('/agents/:agentId/webhooks/:webhookId', async ({ db, workspaceId, params, error }) => {
+	.get('/agents/:agentId/webhooks/:webhookId', async ({ db, workspaceId, params}) => {
 		const agent = await verifyAgentInWorkspace(params.agentId, workspaceId, db)
-		if (!agent) return error(404, { error: 'Agent not found' })
+		if (!agent) return status(404, { error: 'Agent not found' })
 
 		const [webhook] = await db
 			.select()
 			.from(webhooks)
 			.where(and(eq(webhooks.id, params.webhookId), eq(webhooks.agentId, params.agentId)))
 
-		if (!webhook) return error(404, { error: 'Webhook not found' })
+		if (!webhook) return status(404, { error: 'Webhook not found' })
 
 		return serializeWebhook(webhook)
 	}, { writeAccess: true })
 
 	// Update webhook
-	.patch('/agents/:agentId/webhooks/:webhookId', async ({ db, workspaceId, params, body, error }) => {
+	.patch('/agents/:agentId/webhooks/:webhookId', async ({ db, workspaceId, params, body}) => {
 		if (body.url) {
 			const urlCheck = isWebhookUrlSafe(body.url)
-			if (!urlCheck.safe) return error(400, { error: `Invalid webhook URL: ${urlCheck.reason}` })
+			if (!urlCheck.safe) return status(400, { error: `Invalid webhook URL: ${urlCheck.reason}` })
 		}
 
 		const agent = await verifyAgentInWorkspace(params.agentId, workspaceId, db)
-		if (!agent) return error(404, { error: 'Agent not found' })
+		if (!agent) return status(404, { error: 'Agent not found' })
 
 		const [existing] = await db
 			.select()
 			.from(webhooks)
 			.where(and(eq(webhooks.id, params.webhookId), eq(webhooks.agentId, params.agentId)))
 
-		if (!existing) return error(404, { error: 'Webhook not found' })
+		if (!existing) return status(404, { error: 'Webhook not found' })
 
 		if (body.status === 'active' && existing.status === 'failed') {
 			await reactivateWebhook({ db, webhookId: params.webhookId })
@@ -206,16 +206,16 @@ export const webhookRoutes = new Elysia({ name: 'webhook-routes' })
 	}, { writeAccess: true, body: UpdateWebhookInputSchema })
 
 	// Get webhook delivery logs
-	.get('/agents/:agentId/webhooks/:webhookId/logs', async ({ db, workspaceId, params, query, error }) => {
+	.get('/agents/:agentId/webhooks/:webhookId/logs', async ({ db, workspaceId, params, query}) => {
 		const agent = await verifyAgentInWorkspace(params.agentId, workspaceId, db)
-		if (!agent) return error(404, { error: 'Agent not found' })
+		if (!agent) return status(404, { error: 'Agent not found' })
 
 		const [webhook] = await db
 			.select()
 			.from(webhooks)
 			.where(and(eq(webhooks.id, params.webhookId), eq(webhooks.agentId, params.agentId)))
 
-		if (!webhook) return error(404, { error: 'Webhook not found' })
+		if (!webhook) return status(404, { error: 'Webhook not found' })
 
 		const limit = Number(query?.limit) || 50
 		const offset = Number(query?.offset) || 0
@@ -237,16 +237,16 @@ export const webhookRoutes = new Elysia({ name: 'webhook-routes' })
 	}, { writeAccess: true })
 
 	// List webhook deliveries
-	.get('/webhooks/:webhookId/deliveries', async ({ db, workspaceId, params, query, error }) => {
+	.get('/webhooks/:webhookId/deliveries', async ({ db, workspaceId, params, query}) => {
 		const [webhook] = await db.select().from(webhooks).where(eq(webhooks.id, params.webhookId))
-		if (!webhook) return error(404, { error: 'Webhook not found' })
+		if (!webhook) return status(404, { error: 'Webhook not found' })
 
 		const [agent] = await db
 			.select()
 			.from(agents)
 			.where(and(eq(agents.id, webhook.agentId), eq(agents.workspaceId, workspaceId)))
 
-		if (!agent) return error(404, { error: 'Webhook not found' })
+		if (!agent) return status(404, { error: 'Webhook not found' })
 
 		const limit = Number(query?.limit) || 20
 		const offset = Number(query?.offset) || 0
@@ -273,16 +273,16 @@ export const webhookRoutes = new Elysia({ name: 'webhook-routes' })
 	}, { writeAccess: true })
 
 	// Retry a failed webhook delivery
-	.post('/webhooks/:webhookId/deliveries/:deliveryId/retry', async ({ db, workspaceId, params, error }) => {
+	.post('/webhooks/:webhookId/deliveries/:deliveryId/retry', async ({ db, workspaceId, params}) => {
 		const [webhook] = await db.select().from(webhooks).where(eq(webhooks.id, params.webhookId))
-		if (!webhook) return error(404, { error: 'Webhook not found' })
+		if (!webhook) return status(404, { error: 'Webhook not found' })
 
 		const [agent] = await db
 			.select()
 			.from(agents)
 			.where(and(eq(agents.id, webhook.agentId), eq(agents.workspaceId, workspaceId)))
 
-		if (!agent) return error(404, { error: 'Webhook not found' })
+		if (!agent) return status(404, { error: 'Webhook not found' })
 
 		const [delivery] = await db
 			.select()
@@ -294,7 +294,7 @@ export const webhookRoutes = new Elysia({ name: 'webhook-routes' })
 				),
 			)
 
-		if (!delivery) return error(404, { error: 'Delivery not found' })
+		if (!delivery) return status(404, { error: 'Delivery not found' })
 
 		const updatedDelivery = await retryDelivery({
 			db,
@@ -313,31 +313,31 @@ export const webhookRoutes = new Elysia({ name: 'webhook-routes' })
 	.use(adminPlugin)
 
 	// Delete webhook
-	.delete('/agents/:agentId/webhooks/:webhookId', async ({ db, workspaceId, params, error }) => {
+	.delete('/agents/:agentId/webhooks/:webhookId', async ({ db, workspaceId, params}) => {
 		const agent = await verifyAgentInWorkspace(params.agentId, workspaceId, db)
-		if (!agent) return error(404, { error: 'Agent not found' })
+		if (!agent) return status(404, { error: 'Agent not found' })
 
 		const result = await db
 			.delete(webhooks)
 			.where(and(eq(webhooks.id, params.webhookId), eq(webhooks.agentId, params.agentId)))
 			.returning()
 
-		if (result.length === 0) return error(404, { error: 'Webhook not found' })
+		if (result.length === 0) return status(404, { error: 'Webhook not found' })
 
 		return { success: true }
 	}, { adminAccess: true })
 
 	// Regenerate webhook secret
-	.post('/agents/:agentId/webhooks/:webhookId/regenerate-secret', async ({ db, workspaceId, params, error }) => {
+	.post('/agents/:agentId/webhooks/:webhookId/regenerate-secret', async ({ db, workspaceId, params}) => {
 		const agent = await verifyAgentInWorkspace(params.agentId, workspaceId, db)
-		if (!agent) return error(404, { error: 'Agent not found' })
+		if (!agent) return status(404, { error: 'Agent not found' })
 
 		const [existing] = await db
 			.select()
 			.from(webhooks)
 			.where(and(eq(webhooks.id, params.webhookId), eq(webhooks.agentId, params.agentId)))
 
-		if (!existing) return error(404, { error: 'Webhook not found' })
+		if (!existing) return status(404, { error: 'Webhook not found' })
 
 		const newSecret = generateWebhookSecret()
 

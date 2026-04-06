@@ -6,7 +6,7 @@
 
 import { agents, usage } from '@hare/db/schema'
 import { and, eq, gte, lte, sql } from 'drizzle-orm'
-import { Elysia } from 'elysia'
+import { Elysia, status } from 'elysia'
 import {
 	AgentUsageResponseSchema,
 	UsageQuerySchema,
@@ -104,7 +104,7 @@ export const usageRoutes = new Elysia({ prefix: '/usage', name: 'usage-routes' }
 	}, { writeAccess: true })
 
 	// Get agent usage statistics
-	.get('/agents/:id', async ({ db, workspaceId, params, error }) => {
+	.get('/agents/:id', async ({ db, workspaceId, params}) => {
 		const agentId = params.id
 
 		const [agent] = await db
@@ -112,7 +112,7 @@ export const usageRoutes = new Elysia({ prefix: '/usage', name: 'usage-routes' }
 			.from(agents)
 			.where(and(eq(agents.id, agentId), eq(agents.workspaceId, workspaceId)))
 
-		if (!agent) return error(404, { error: 'Agent not found' })
+		if (!agent) return status(404, { error: 'Agent not found' })
 
 		const [totals] = await db
 			.select({

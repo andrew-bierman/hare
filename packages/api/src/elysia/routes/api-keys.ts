@@ -8,7 +8,7 @@ import { config } from '@hare/config'
 import { apiKeys } from '@hare/db/schema'
 import type { Database } from '@hare/db'
 import { and, eq } from 'drizzle-orm'
-import { Elysia } from 'elysia'
+import { Elysia, status } from 'elysia'
 import { z } from 'zod'
 import { generateApiKey } from '../../middleware/api-key'
 import {
@@ -74,9 +74,9 @@ export const apiKeyRoutes = new Elysia({ prefix: '/api-keys', name: 'api-key-rou
 	}, { writeAccess: true })
 
 	// Get API key
-	.get('/:id', async ({ db, workspaceId, params, error }) => {
+	.get('/:id', async ({ db, workspaceId, params}) => {
 		const apiKey = await findApiKey(params.id, workspaceId, db)
-		if (!apiKey) return error(404, { error: 'API key not found' })
+		if (!apiKey) return status(404, { error: 'API key not found' })
 		return serializeApiKey(apiKey)
 	}, { writeAccess: true })
 
@@ -124,9 +124,9 @@ export const apiKeyRoutes = new Elysia({ prefix: '/api-keys', name: 'api-key-rou
 	}, { adminAccess: true, body: CreateApiKeySchema })
 
 	// Update API key
-	.patch('/:id', async ({ db, workspaceId, params, body, error }) => {
+	.patch('/:id', async ({ db, workspaceId, params, body}) => {
 		const existing = await findApiKey(params.id, workspaceId, db)
-		if (!existing) return error(404, { error: 'API key not found' })
+		if (!existing) return status(404, { error: 'API key not found' })
 
 		const updateData: Partial<typeof apiKeys.$inferInsert> = {
 			...(body.name !== undefined && { name: body.name }),
@@ -146,13 +146,13 @@ export const apiKeyRoutes = new Elysia({ prefix: '/api-keys', name: 'api-key-rou
 
 	// Delete/revoke API key
 	.delete('/:id', async (ctx) => {
-		const { db, workspaceId, params, error } = ctx
+		const { db, workspaceId, params} = ctx
 		const result = await db
 			.delete(apiKeys)
 			.where(and(eq(apiKeys.id, params.id), eq(apiKeys.workspaceId, workspaceId)))
 			.returning()
 
-		if (result.length === 0) return error(404, { error: 'API key not found' })
+		if (result.length === 0) return status(404, { error: 'API key not found' })
 
 		const deletedKey = result[0]
 		await logAudit({

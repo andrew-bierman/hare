@@ -8,7 +8,7 @@ import { config, EXECUTION_STATUSES, SCHEDULE_STATUSES, SCHEDULE_TYPES } from '@
 import { agents, scheduledTasks, scheduleExecutions } from '@hare/db/schema'
 import type { Database } from '@hare/db'
 import { and, desc, eq } from 'drizzle-orm'
-import { Elysia } from 'elysia'
+import { Elysia, status } from 'elysia'
 import { z } from 'zod'
 import { adminPlugin, writePlugin } from '../context'
 
@@ -128,20 +128,20 @@ export const scheduleRoutes = new Elysia({ prefix: '/schedules', name: 'schedule
 	}, { writeAccess: true })
 
 	// Get schedule
-	.get('/:id', async ({ db, params, error }) => {
+	.get('/:id', async ({ db, params}) => {
 		const schedule = await findSchedule(params.id, db)
-		if (!schedule) return error(404, { error: 'Schedule not found' })
+		if (!schedule) return status(404, { error: 'Schedule not found' })
 		return serializeSchedule(schedule)
 	}, { writeAccess: true })
 
 	// Create schedule
-	.post('/', async ({ db, workspaceId, user, body, error }) => {
+	.post('/', async ({ db, workspaceId, user, body}) => {
 		const [agent] = await db
 			.select()
 			.from(agents)
 			.where(and(eq(agents.id, body.agentId), eq(agents.workspaceId, workspaceId)))
 
-		if (!agent) return error(400, { error: 'Agent not found' })
+		if (!agent) return status(400, { error: 'Agent not found' })
 
 		const [schedule] = await db
 			.insert(scheduledTasks)
@@ -163,9 +163,9 @@ export const scheduleRoutes = new Elysia({ prefix: '/schedules', name: 'schedule
 	}, { writeAccess: true, body: CreateScheduleInputSchema })
 
 	// Update schedule
-	.patch('/:id', async ({ db, params, body, error }) => {
+	.patch('/:id', async ({ db, params, body}) => {
 		const existing = await findSchedule(params.id, db)
-		if (!existing) return error(404, { error: 'Schedule not found' })
+		if (!existing) return status(404, { error: 'Schedule not found' })
 
 		const [schedule] = await db
 			.update(scheduledTasks)
@@ -186,9 +186,9 @@ export const scheduleRoutes = new Elysia({ prefix: '/schedules', name: 'schedule
 	}, { writeAccess: true, body: UpdateScheduleInputSchema })
 
 	// Pause schedule
-	.post('/:id/pause', async ({ db, params, error }) => {
+	.post('/:id/pause', async ({ db, params}) => {
 		const existing = await findSchedule(params.id, db)
-		if (!existing) return error(404, { error: 'Schedule not found' })
+		if (!existing) return status(404, { error: 'Schedule not found' })
 
 		const [schedule] = await db
 			.update(scheduledTasks)
@@ -202,9 +202,9 @@ export const scheduleRoutes = new Elysia({ prefix: '/schedules', name: 'schedule
 	}, { writeAccess: true })
 
 	// Resume schedule
-	.post('/:id/resume', async ({ db, params, error }) => {
+	.post('/:id/resume', async ({ db, params}) => {
 		const existing = await findSchedule(params.id, db)
-		if (!existing) return error(404, { error: 'Schedule not found' })
+		if (!existing) return status(404, { error: 'Schedule not found' })
 
 		const [schedule] = await db
 			.update(scheduledTasks)
@@ -218,9 +218,9 @@ export const scheduleRoutes = new Elysia({ prefix: '/schedules', name: 'schedule
 	}, { writeAccess: true })
 
 	// Get execution history
-	.get('/:id/executions', async ({ db, params, error }) => {
+	.get('/:id/executions', async ({ db, params}) => {
 		const schedule = await findSchedule(params.id, db)
-		if (!schedule) return error(404, { error: 'Schedule not found' })
+		if (!schedule) return status(404, { error: 'Schedule not found' })
 
 		const executions = await db
 			.select()
@@ -236,13 +236,13 @@ export const scheduleRoutes = new Elysia({ prefix: '/schedules', name: 'schedule
 	.use(adminPlugin)
 
 	// Delete schedule
-	.delete('/:id', async ({ db, params, error }) => {
+	.delete('/:id', async ({ db, params}) => {
 		const result = await db
 			.delete(scheduledTasks)
 			.where(eq(scheduledTasks.id, params.id))
 			.returning()
 
-		if (result.length === 0) return error(404, { error: 'Schedule not found' })
+		if (result.length === 0) return status(404, { error: 'Schedule not found' })
 
 		return { success: true }
 	}, { adminAccess: true })

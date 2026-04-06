@@ -13,7 +13,7 @@ import {
 import { agents, conversations, messages, usage } from '@hare/db/schema'
 import { type ModelMessage, streamText } from 'ai'
 import { and, count, desc, eq, gte, like, lte } from 'drizzle-orm'
-import { Elysia } from 'elysia'
+import { Elysia, status } from 'elysia'
 import { z } from 'zod'
 import {
 	ChatRequestSchema,
@@ -130,24 +130,24 @@ export const chatRoutes = new Elysia({ name: 'chat-routes' })
 	.use(authPlugin)
 
 	// Chat with agent (streaming SSE response)
-	.post('/agents/:id/chat', async ({ db, cfEnv, user, params, request, error }) => {
+	.post('/agents/:id/chat', async ({ db, cfEnv, user, params, request}) => {
 		let body: z.infer<typeof ChatRequestSchema>
 		try {
 			body = await request.json()
 		} catch {
-			return error(400, { error: 'Invalid JSON body' })
+			return status(400, { error: 'Invalid JSON body' })
 		}
 
 		const agentId = params.id
 		const { message, sessionId, metadata } = body
 
 		if (!cfEnv.AI) {
-			return error(503, { error: 'AI service not available' })
+			return status(503, { error: 'AI service not available' })
 		}
 
 		const [agentConfig] = await db.select().from(agents).where(eq(agents.id, agentId))
-		if (!agentConfig) return error(404, { error: 'Agent not found' })
-		if (agentConfig.status !== 'deployed') return error(400, { error: 'Agent not deployed' })
+		if (!agentConfig) return status(404, { error: 'Agent not found' })
+		if (agentConfig.status !== 'deployed') return status(400, { error: 'Agent not deployed' })
 
 		// Build SSE stream
 		const encoder = new TextEncoder()
@@ -365,7 +365,7 @@ export const chatRoutes = new Elysia({ name: 'chat-routes' })
 	}, { auth: true })
 
 	// Export conversation
-	.get('/conversations/:id/export', async ({ db, params, query, error }) => {
+	.get('/conversations/:id/export', async ({ db, params, query}) => {
 		const conversationId = params.id
 		const format = (query?.format as 'json' | 'csv' | 'txt') || 'json'
 		const includeMetadata = query?.includeMetadata === 'true'
@@ -375,7 +375,7 @@ export const chatRoutes = new Elysia({ name: 'chat-routes' })
 			.from(conversations)
 			.where(eq(conversations.id, conversationId))
 
-		if (!conversation) return error(404, { error: 'Conversation not found' })
+		if (!conversation) return status(404, { error: 'Conversation not found' })
 
 		const results = await db
 			.select()

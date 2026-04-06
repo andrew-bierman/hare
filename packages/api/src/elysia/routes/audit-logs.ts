@@ -5,7 +5,7 @@
  * Restricted to workspace admins and owners.
  */
 
-import { AUDIT_ACTIONS } from '@hare/config'
+import { AUDIT_ACTIONS, type AuditAction } from '@hare/config'
 import { auditLogs } from '@hare/db/schema'
 import { and, count, desc, eq, gte, lte } from 'drizzle-orm'
 import { Elysia } from 'elysia'
@@ -32,7 +32,7 @@ export const auditLogRoutes = new Elysia({ prefix: '/audit-logs', name: 'audit-l
 		const conditions = [eq(auditLogs.workspaceId, workspaceId)]
 
 		if (action) {
-			conditions.push(eq(auditLogs.action, action))
+			conditions.push(eq(auditLogs.action, action as AuditAction))
 		}
 		if (resourceType) {
 			conditions.push(eq(auditLogs.resourceType, resourceType))

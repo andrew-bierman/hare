@@ -7,7 +7,7 @@
 import { agents } from '@hare/db/schema'
 import type { Database } from '@hare/db'
 import { and, eq } from 'drizzle-orm'
-import { Elysia } from 'elysia'
+import { Elysia, status } from 'elysia'
 import { z } from 'zod'
 import {
 	CreateMemorySchema,
@@ -45,9 +45,9 @@ export const memoryRoutes = new Elysia({ prefix: '/agents', name: 'memory-routes
 	.use(writePlugin)
 
 	// List memories for an agent
-	.get('/:id/memories', async ({ db, workspaceId, cfEnv, params, query, error }) => {
+	.get('/:id/memories', async ({ db, workspaceId, cfEnv, params, query}) => {
 		const agent = await findAgent(params.id, workspaceId, db)
-		if (!agent) return error(404, { error: 'Agent not found' })
+		if (!agent) return status(404, { error: 'Agent not found' })
 
 		const limit = Number(query?.limit) || 20
 		const offset = Number(query?.offset) || 0
@@ -81,9 +81,9 @@ export const memoryRoutes = new Elysia({ prefix: '/agents', name: 'memory-routes
 	}, { writeAccess: true })
 
 	// Create a new memory
-	.post('/:id/memories', async ({ db, workspaceId, cfEnv, params, body, error }) => {
+	.post('/:id/memories', async ({ db, workspaceId, cfEnv, params, body}) => {
 		const agent = await findAgent(params.id, workspaceId, db)
-		if (!agent) return error(404, { error: 'Agent not found' })
+		if (!agent) return status(404, { error: 'Agent not found' })
 
 		try {
 			const result = await storeMemoryWithEmbedding({
@@ -121,9 +121,9 @@ export const memoryRoutes = new Elysia({ prefix: '/agents', name: 'memory-routes
 	}, { writeAccess: true, body: CreateMemorySchema })
 
 	// Semantic search across agent memories
-	.post('/:id/memories/search', async ({ db, workspaceId, cfEnv, params, body, error }) => {
+	.post('/:id/memories/search', async ({ db, workspaceId, cfEnv, params, body}) => {
 		const agent = await findAgent(params.id, workspaceId, db)
-		if (!agent) return error(404, { error: 'Agent not found' })
+		if (!agent) return status(404, { error: 'Agent not found' })
 
 		const result = await searchMemory({
 			agentId: params.id,
@@ -157,9 +157,9 @@ export const memoryRoutes = new Elysia({ prefix: '/agents', name: 'memory-routes
 	}, { writeAccess: true, body: SearchMemorySchema })
 
 	// Update a memory
-	.patch('/:id/memories/:memoryId', async ({ db, workspaceId, cfEnv, params, body, error }) => {
+	.patch('/:id/memories/:memoryId', async ({ db, workspaceId, cfEnv, params, body}) => {
 		const agent = await findAgent(params.id, workspaceId, db)
-		if (!agent) return error(404, { error: 'Agent not found' })
+		if (!agent) return status(404, { error: 'Agent not found' })
 
 		try {
 			await updateMemory({
@@ -197,9 +197,9 @@ export const memoryRoutes = new Elysia({ prefix: '/agents', name: 'memory-routes
 	}, { writeAccess: true, body: UpdateMemorySchema })
 
 	// Delete a specific memory
-	.delete('/:id/memories/:memoryId', async ({ db, workspaceId, cfEnv, params, error }) => {
+	.delete('/:id/memories/:memoryId', async ({ db, workspaceId, cfEnv, params}) => {
 		const agent = await findAgent(params.id, workspaceId, db)
-		if (!agent) return error(404, { error: 'Agent not found' })
+		if (!agent) return status(404, { error: 'Agent not found' })
 
 		await deleteMemory({
 			memoryId: params.memoryId,
@@ -211,9 +211,9 @@ export const memoryRoutes = new Elysia({ prefix: '/agents', name: 'memory-routes
 	}, { writeAccess: true })
 
 	// Clear all memories for an agent
-	.delete('/:id/memories', async ({ db, workspaceId, cfEnv, params, error }) => {
+	.delete('/:id/memories', async ({ db, workspaceId, cfEnv, params}) => {
 		const agent = await findAgent(params.id, workspaceId, db)
-		if (!agent) return error(404, { error: 'Agent not found' })
+		if (!agent) return status(404, { error: 'Agent not found' })
 
 		const result = await deleteAgentMemories({
 			agentId: params.id,

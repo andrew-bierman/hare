@@ -8,10 +8,11 @@ import { isWebSocketRequest, routeToMcpAgent } from '@hare/agent'
 import { workspaceMembers } from '@hare/db/schema'
 import { agentControlTools, createRegistry, getSystemTools, type ToolContext } from '@hare/tools'
 import { and, eq } from 'drizzle-orm'
-import { Elysia } from 'elysia'
+import { Elysia, status } from 'elysia'
 import { z } from 'zod'
 import type { Database } from '@hare/db'
 import { optionalAuthPlugin, type AuthUserContext } from '../context'
+import type { CloudflareEnv } from '@hare/types'
 
 async function hasWorkspaceAccess(
 	db: Database,
@@ -42,14 +43,14 @@ export const mcpRoutes = new Elysia({ prefix: '/mcp', name: 'mcp-routes' })
 	.use(optionalAuthPlugin)
 
 	// WebSocket connection
-	.get('/:workspaceId', async ({ db, cfEnv, user, params, request, error }) => {
+	.get('/:workspaceId', async ({ db, cfEnv, user, params, request}) => {
 		if (!isWebSocketRequest(request)) {
-			return error(400, { error: 'WebSocket upgrade required' })
+			return status(400, { error: 'WebSocket upgrade required' })
 		}
 
-		if (!user?.id) return error(401, { error: 'Authentication required' })
+		if (!user?.id) return status(401, { error: 'Authentication required' })
 		const hasAccess = await hasWorkspaceAccess(db, user.id, params.workspaceId)
-		if (!hasAccess) return error(403, { error: 'Unauthorized' })
+		if (!hasAccess) return status(403, { error: 'Unauthorized' })
 
 		return routeToMcpAgent({ request, env: cfEnv, workspaceId: params.workspaceId })
 	})
@@ -71,10 +72,10 @@ HTTP Endpoints:
 	}))
 
 	// List tools
-	.get('/:workspaceId/tools', async ({ db, cfEnv, user, params, error }) => {
-		if (!user?.id) return error(401, { error: 'Authentication required' })
+	.get('/:workspaceId/tools', async ({ db, cfEnv, user, params}) => {
+		if (!user?.id) return status(401, { error: 'Authentication required' })
 		const hasAccess = await hasWorkspaceAccess(db, user.id, params.workspaceId)
-		if (!hasAccess) return error(403, { error: 'Unauthorized' })
+		if (!hasAccess) return status(403, { error: 'Unauthorized' })
 
 		const context = createToolContext(cfEnv, user, params.workspaceId)
 		const systemTools = getSystemTools(context)
@@ -86,17 +87,17 @@ HTTP Endpoints:
 	})
 
 	// Execute tool
-	.post('/:workspaceId/tools/:toolId', async ({ db, cfEnv, user, params, request, error }) => {
-		if (!user?.id) return error(401, { error: 'Authentication required' })
+	.post('/:workspaceId/tools/:toolId', async ({ db, cfEnv, user, params, request}) => {
+		if (!user?.id) return status(401, { error: 'Authentication required' })
 		const hasAccess = await hasWorkspaceAccess(db, user.id, params.workspaceId)
-		if (!hasAccess) return error(403, { error: 'Unauthorized' })
+		if (!hasAccess) return status(403, { error: 'Unauthorized' })
 
 		const context = createToolContext(cfEnv, user, params.workspaceId)
 		const systemTools = getSystemTools(context)
 		const allToolsRegistry = createRegistry([...systemTools, ...agentControlTools])
 
 		if (!allToolsRegistry.has(params.toolId)) {
-			return error(404, { error: `Tool not found: ${params.toolId}` })
+			return status(404, { error: `Tool not found: ${params.toolId}` })
 		}
 
 		const toolParams = await request.json()
@@ -105,7 +106,7 @@ HTTP Endpoints:
 	})
 
 	// JSON-RPC endpoint
-	.post('/:workspaceId/rpc', async ({ db, cfEnv, user, params, request, error }) => {
+	.post('/:workspaceId/rpc', async ({ db, cfEnv, user, params, request}) => {
 		const { id, method, params: rpcParams } = await request.json() as {
 			jsonrpc: string
 			id: string | number

@@ -14,7 +14,7 @@ import {
 import { users, workspaceInvitations, workspaceMembers, workspaces } from '@hare/db/schema'
 import type { Database } from '@hare/db'
 import { and, eq } from 'drizzle-orm'
-import { Elysia } from 'elysia'
+import { Elysia, status } from 'elysia'
 import { z } from 'zod'
 import { logAudit } from '../audit'
 import { adminPlugin, writePlugin, type AuthUserContext } from '../context'
@@ -88,12 +88,12 @@ export const workspaceMemberRoutes = new Elysia({
 	.use(writePlugin)
 
 	// List workspace members
-	.get('/:id/members', async ({ db, user, params, error }) => {
+	.get('/:id/members', async ({ db, user, params}) => {
 		const role = await getUserWorkspaceRole(user.id, params.id, db)
-		if (!role) return error(404, { error: 'Workspace not found or access denied' })
+		if (!role) return status(404, { error: 'Workspace not found or access denied' })
 
 		const [workspace] = await db.select().from(workspaces).where(eq(workspaces.id, params.id))
-		if (!workspace) return error(404, { error: 'Workspace not found' })
+		if (!workspace) return status(404, { error: 'Workspace not found' })
 
 		const [owner] = await db.select().from(users).where(eq(users.id, workspace.ownerId))
 
@@ -152,18 +152,18 @@ export const workspaceMemberRoutes = new Elysia({
 
 	// Remove workspace member
 	.delete('/:id/members/:userId', async (ctx) => {
-		const { db, user, params, error } = ctx
+		const { db, user, params} = ctx
 
 		const userRole = await getUserWorkspaceRole(user.id, params.id, db)
-		if (!userRole) return error(404, { error: 'Workspace not found' })
+		if (!userRole) return status(404, { error: 'Workspace not found' })
 
 		const [workspace] = await db.select().from(workspaces).where(eq(workspaces.id, params.id))
 		if (workspace?.ownerId === params.userId) {
-			return error(400, { error: 'Cannot remove workspace owner' })
+			return status(400, { error: 'Cannot remove workspace owner' })
 		}
 
 		if (params.userId !== user.id && !hasAdminAccess(userRole)) {
-			return error(400, { error: 'Admin access required to remove other members' })
+			return status(400, { error: 'Admin access required to remove other members' })
 		}
 
 		const [member] = await db
@@ -182,7 +182,7 @@ export const workspaceMemberRoutes = new Elysia({
 				),
 			)
 
-		if (!member) return error(404, { error: 'Member not found' })
+		if (!member) return status(404, { error: 'Member not found' })
 
 		await db.delete(workspaceMembers).where(eq(workspaceMembers.id, member.id))
 
@@ -202,17 +202,17 @@ export const workspaceMemberRoutes = new Elysia({
 
 	// Send workspace invitation
 	.post('/:id/invites', async (ctx) => {
-		const { db, user, params, body, error } = ctx
+		const { db, user, params, body} = ctx
 		const workspaceId = params.id
 
 		const [workspace] = await db.select().from(workspaces).where(eq(workspaces.id, workspaceId))
-		if (!workspace) return error(404, { error: 'Workspace not found' })
+		if (!workspace) return status(404, { error: 'Workspace not found' })
 
 		const [existingUser] = await db.select().from(users).where(eq(users.email, body.email))
 
 		if (existingUser) {
 			if (workspace.ownerId === existingUser.id) {
-				return error(400, { error: 'User is already the workspace owner' })
+				return status(400, { error: 'User is already the workspace owner' })
 			}
 
 			const [existingMember] = await db
@@ -226,7 +226,7 @@ export const workspaceMemberRoutes = new Elysia({
 				)
 
 			if (existingMember) {
-				return error(400, { error: 'User is already a member of this workspace' })
+				return status(400, { error: 'User is already a member of this workspace' })
 			}
 		}
 
@@ -242,7 +242,7 @@ export const workspaceMemberRoutes = new Elysia({
 			)
 
 		if (existingInvitation) {
-			return error(400, { error: 'An invitation is already pending for this email' })
+			return status(400, { error: 'An invitation is already pending for this email' })
 		}
 
 		const expiresAt = new Date()
@@ -325,7 +325,7 @@ export const workspaceMemberRoutes = new Elysia({
 	}, { adminAccess: true })
 
 	// Revoke invitation
-	.delete('/:id/invites/:inviteId', async ({ db, params, error }) => {
+	.delete('/:id/invites/:inviteId', async ({ db, params}) => {
 		const [invitation] = await db
 			.select()
 			.from(workspaceInvitations)
@@ -337,7 +337,7 @@ export const workspaceMemberRoutes = new Elysia({
 				),
 			)
 
-		if (!invitation) return error(404, { error: 'Invitation not found' })
+		if (!invitation) return status(404, { error: 'Invitation not found' })
 
 		await db
 			.update(workspaceInvitations)
@@ -349,12 +349,12 @@ export const workspaceMemberRoutes = new Elysia({
 
 	// Update member role
 	.patch('/:id/members/:userId', async (ctx) => {
-		const { db, params, body, error } = ctx
+		const { db, params, body} = ctx
 		const { id: workspaceId, userId } = params
 
 		const [workspace] = await db.select().from(workspaces).where(eq(workspaces.id, workspaceId))
 		if (workspace?.ownerId === userId) {
-			return error(400, { error: 'Cannot change workspace owner role' })
+			return status(400, { error: 'Cannot change workspace owner role' })
 		}
 
 		const [member] = await db
@@ -373,7 +373,7 @@ export const workspaceMemberRoutes = new Elysia({
 				and(eq(workspaceMembers.workspaceId, workspaceId), eq(workspaceMembers.userId, userId)),
 			)
 
-		if (!member) return error(404, { error: 'Member not found' })
+		if (!member) return status(404, { error: 'Member not found' })
 
 		const previousRole = member.role
 		await db

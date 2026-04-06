@@ -15,7 +15,7 @@ import {
 import { agents, usage } from '@hare/db/schema'
 import type { ModelMessage } from 'ai'
 import { eq } from 'drizzle-orm'
-import { Elysia, sse } from 'elysia'
+import { Elysia, sse, status } from 'elysia'
 import { cors } from '@elysiajs/cors'
 import { cfContext } from '../context'
 
@@ -53,46 +53,46 @@ export const embedPublicRoutes = new Elysia({ prefix: '/embed', name: 'embed-pub
 	.use(cfContext)
 
 	// Get public agent info
-	.get('/agents/:agentId', async ({ db, params, request, error }) => {
+	.get('/agents/:agentId', async ({ db, params, request}) => {
 		const [agent] = await db.select().from(agents).where(eq(agents.id, params.agentId))
-		if (!agent) return error(404, { error: 'Agent not found' })
-		if (agent.status !== 'deployed') return error(400, { error: 'Agent not available' })
+		if (!agent) return status(404, { error: 'Agent not found' })
+		if (agent.status !== 'deployed') return status(400, { error: 'Agent not available' })
 
 		const agentConfig = agent.config as { allowedDomains?: string[] } | null
 		const origin = request.headers.get('origin') || request.headers.get('referer')
 
 		if (!isDomainAllowed({ allowedDomains: agentConfig?.allowedDomains, origin: origin ?? undefined })) {
-			return error(403, { error: 'Domain not allowed' })
+			return status(403, { error: 'Domain not allowed' })
 		}
 
 		return { id: agent.id, name: agent.name, description: agent.description }
 	})
 
 	// Chat with agent via SSE streaming (Elysia generator pattern)
-	.post('/agents/:agentId/chat', async ({ db, cfEnv, params, request, error }) => {
+	.post('/agents/:agentId/chat', async ({ db, cfEnv, params, request}) => {
 		let body: { message?: string; sessionId?: string | null }
 		try {
 			body = await request.json()
 		} catch {
-			return error(400, { error: 'Invalid JSON body' })
+			return status(400, { error: 'Invalid JSON body' })
 		}
 
 		const { message, sessionId: existingSessionId } = body
 		if (!message || typeof message !== 'string' || message.trim().length === 0) {
-			return error(400, { error: 'Message is required' })
+			return status(400, { error: 'Message is required' })
 		}
-		if (message.length > 10000) return error(400, { error: 'Message too long' })
+		if (message.length > 10000) return status(400, { error: 'Message too long' })
 
 		const [agent] = await db.select().from(agents).where(eq(agents.id, params.agentId))
-		if (!agent) return error(404, { error: 'Agent not found' })
-		if (agent.status !== 'deployed') return error(400, { error: 'Agent not deployed' })
+		if (!agent) return status(404, { error: 'Agent not found' })
+		if (agent.status !== 'deployed') return status(400, { error: 'Agent not deployed' })
 
 		const agentConfig = agent.config as { allowedDomains?: string[] } | null
 		const origin = request.headers.get('origin') || request.headers.get('referer')
 		if (!isDomainAllowed({ allowedDomains: agentConfig?.allowedDomains, origin: origin ?? undefined })) {
-			return error(403, { error: 'Domain not allowed' })
+			return status(403, { error: 'Domain not allowed' })
 		}
-		if (!cfEnv.AI) return error(503, { error: 'AI service not available' })
+		if (!cfEnv.AI) return status(503, { error: 'AI service not available' })
 
 		// Build SSE stream using ReadableStream (same as original)
 		const encoder = new TextEncoder()

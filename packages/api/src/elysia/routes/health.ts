@@ -11,7 +11,7 @@ import { cfContext } from '../context'
 // Health Check Helpers
 // =============================================================================
 
-interface ServiceCheck {
+export interface ServiceCheck {
 	name: string
 	status: 'healthy' | 'degraded' | 'unhealthy'
 	latencyMs?: number
