@@ -67,9 +67,12 @@
 	"overrides": [
 		{
 			"includes": [
-				"packages/ui/src/index.ts",
-				"packages/types/src/index.ts",
-				"packages/ui/src/components/instructions-editor/index.ts"
+				"packages/*/src/index.ts",
+				"packages/*/src/workers.ts",
+				"packages/tools/src/*/index.ts",
+				"packages/agent/src/tools/*.ts",
+				"packages/ui/src/components/instructions-editor/index.ts",
+				"apps/web/src/lib/onboarding/index.ts"
 			],
 			"linter": {
 				"rules": {

@@ -126,7 +126,8 @@ export { AgentStatus, DeploymentStatus } from './enums'
 
 // Environment (separate due to runtime dynamic values)
 export { type ClientEnv, clientEnv, type ServerEnv, serverEnv } from './env'
-
+// Logger
+export { logger } from './logger'
 // Instruction snippets / prompt library
 export {
 	getSnippetById,
@@ -136,6 +137,3 @@ export {
 	SNIPPET_CATEGORIES,
 	type SnippetCategory,
 } from './snippets'
-
-// Logger
-export { logger } from './logger'
