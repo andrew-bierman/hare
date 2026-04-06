@@ -12,6 +12,7 @@
  * because it uses the 'agents' package which depends on 'cloudflare:workers'.
  */
 
+import { logger } from '@hare/config'
 import {
 	getSystemTools,
 	type HareEnv,
@@ -434,7 +435,7 @@ export class HareAgent<TEnv extends HareAgentEnv = HareAgentEnv> extends Agent<
 			onStepFinish: (step: { toolCalls?: unknown[]; usage?: { totalTokens?: number } }) => {
 				// Structured logging for observability
 				if (step.toolCalls && Array.isArray(step.toolCalls) && step.toolCalls.length > 0) {
-					console.log(
+					logger.info(
 						JSON.stringify({
 							type: 'tool_call',
 							agentId: this.state.agentId,
@@ -791,7 +792,7 @@ export class HareAgent<TEnv extends HareAgentEnv = HareAgentEnv> extends Agent<
 				await this.runMaintenance(payload as Record<string, unknown>)
 				break
 			default:
-				console.warn(`Unknown scheduled action: ${action}`)
+				logger.warn(`Unknown scheduled action: ${action}`)
 		}
 	}
 

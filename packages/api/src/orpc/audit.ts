@@ -5,7 +5,7 @@
  * The function is async and non-blocking to avoid slowing down API responses.
  */
 
-import type { AuditAction } from '@hare/config'
+import { logger, type AuditAction } from '@hare/config'
 import { auditLogs } from '@hare/db/schema'
 import type { WorkspaceContext } from './base'
 
@@ -93,7 +93,7 @@ export async function logAudit(input: LogAuditInput): Promise<void> {
 			})
 		} catch (error) {
 			// Log error but don't propagate - audit logging shouldn't break the API
-			console.error('Failed to log audit event:', error)
+			logger.error('Failed to log audit event:', error)
 		}
 	} else {
 		// Fire and forget - don't await to keep it non-blocking
@@ -113,7 +113,7 @@ export async function logAudit(input: LogAuditInput): Promise<void> {
 			})
 			.catch((error) => {
 				// Log error but don't propagate - audit logging shouldn't break the API
-				console.error('Failed to log audit event:', error)
+				logger.error('Failed to log audit event:', error)
 			})
 	}
 }

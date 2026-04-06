@@ -4,7 +4,7 @@
  * Handles all agent-related operations with full type safety.
  */
 
-import { config, isSystemToolId } from '@hare/config'
+import { AGENT_HEALTH, config, isSystemToolId } from '@hare/config'
 import { agents, agentTools, agentVersions, deployments, usage } from '@hare/db/schema'
 import { and, count, desc, eq, gte, inArray, max, sql } from 'drizzle-orm'
 import { z } from 'zod'
@@ -84,8 +84,8 @@ async function findAgent(id: string, workspaceId: string, db: WorkspaceContext['
  * - unhealthy: <80% success rate
  */
 function deriveHealthStatus(successRate: number): HealthStatus {
-	if (successRate > 95) return 'healthy'
-	if (successRate >= 80) return 'degraded'
+	if (successRate > AGENT_HEALTH.HEALTHY_MIN_SUCCESS_RATE) return 'healthy'
+	if (successRate >= AGENT_HEALTH.DEGRADED_MIN_SUCCESS_RATE) return 'degraded'
 	return 'unhealthy'
 }
 
@@ -101,7 +101,7 @@ async function getAgentHealthMetrics(options: {
 
 	// Calculate time window (last 24 hours)
 	const endDate = new Date()
-	const startDate = new Date(endDate.getTime() - 24 * 60 * 60 * 1000)
+	const startDate = new Date(endDate.getTime() - AGENT_HEALTH.WINDOW_MS)
 
 	// Query usage metrics for the agent in the last 24 hours
 	const [metrics] = await db

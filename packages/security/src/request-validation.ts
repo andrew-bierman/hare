@@ -3,6 +3,7 @@
  * Provides protection against common request-based attacks
  */
 
+import { logger } from '@hare/config'
 import type { HonoEnv } from '@hare/types'
 import type { Context, MiddlewareHandler } from 'hono'
 
@@ -128,7 +129,7 @@ export function blockDangerousHeaders(): MiddlewareHandler<HonoEnv> {
 		for (const header of DANGEROUS_HEADERS) {
 			if (c.req.header(header)) {
 				// Log the attempt for security monitoring
-				console.warn(`Blocked dangerous header: ${header}`, {
+				logger.warn(`Blocked dangerous header: ${header}`, {
 					ip: c.req.header('cf-connecting-ip') || c.req.header('x-forwarded-for'),
 					path: c.req.path,
 				})

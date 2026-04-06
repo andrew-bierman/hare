@@ -12,7 +12,7 @@ import {
 	createMemoryStore,
 	toAgentMessages,
 } from '@hare/agent'
-import { AgentStatus } from '@hare/config'
+import { AgentStatus, logger } from '@hare/config'
 import { agents, usage } from '@hare/db/schema'
 import type { HonoEnv } from '@hare/types'
 import type { ModelMessage } from 'ai'
@@ -20,6 +20,7 @@ import { eq } from 'drizzle-orm'
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import { getCloudflareEnv, getDb } from '../db'
+import { estimateTokens } from '../utils/tokens'
 
 // Maximum number of history messages to include in context
 const CHAT_HISTORY_LIMIT = 20
@@ -241,9 +242,9 @@ app.post('/agents/:agentId/chat', async (c) => {
 				// does not return token counts for streaming edge-agent responses.
 				const tokensIn = agentMessages.reduce((acc, m) => {
 					const content = typeof m.content === 'string' ? m.content : JSON.stringify(m.content)
-					return acc + Math.ceil(content.length / 4)
+					return acc + estimateTokens(content)
 				}, 0)
-				const tokensOut = Math.ceil(fullResponse.length / 4)
+				const tokensOut = estimateTokens(fullResponse)
 
 				await db.insert(usage).values({
 					workspaceId: agent.workspaceId,
@@ -261,7 +262,7 @@ app.post('/agents/:agentId/chat', async (c) => {
 
 				sendEvent({ type: 'done', sessionId: conversationId })
 			} catch (error) {
-				console.error('Embed chat error:', error)
+				logger.error('Embed chat error:', error)
 				sendEvent({
 					type: 'error',
 					message: error instanceof Error ? error.message : 'Unknown error',

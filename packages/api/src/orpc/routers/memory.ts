@@ -4,6 +4,7 @@
  * Handles agent vector memory operations with full type safety.
  */
 
+import { logger } from '@hare/config'
 import { agents } from '@hare/db/schema'
 import { and, eq } from 'drizzle-orm'
 import {
@@ -129,7 +130,7 @@ export const create = requireWrite
 				},
 			}
 		} catch (error) {
-			console.error('Failed to store memory:', error)
+			logger.error('Failed to store memory:', error)
 			serverError(
 				`Failed to store memory: ${error instanceof Error ? error.message : 'Unknown error'}`,
 			)
@@ -246,7 +247,7 @@ export const update = requireWrite
 				},
 			}
 		} catch (error) {
-			console.error('Failed to update memory:', error)
+			logger.error('Failed to update memory:', error)
 			serverError(
 				`Failed to update memory: ${error instanceof Error ? error.message : 'Unknown error'}`,
 			)

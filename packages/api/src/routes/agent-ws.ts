@@ -12,7 +12,7 @@ import {
 	routeHttpToAgent,
 	routeWebSocketToAgent,
 } from '@hare/agent'
-import { AgentStatus } from '@hare/config'
+import { AgentStatus, logger } from '@hare/config'
 import { agents, workspaceMembers } from '@hare/db/schema'
 import type { OptionalAuthEnv } from '@hare/types'
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
@@ -484,7 +484,7 @@ async function handleChat(c: Context<OptionalAuthEnv>) {
 			},
 		})
 	} catch (error) {
-		console.error('[chat] Error:', error)
+		logger.error('[chat] Error:', error)
 		return c.json({ error: error instanceof Error ? error.message : 'Internal server error' }, 500)
 	}
 }

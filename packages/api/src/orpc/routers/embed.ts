@@ -11,12 +11,13 @@ import {
 	createMemoryStore,
 	toAgentMessages,
 } from '@hare/agent'
-import { AgentStatus } from '@hare/config'
+import { AgentStatus, logger } from '@hare/config'
 import { agents, usage } from '@hare/db/schema'
 import { eventIterator } from '@orpc/server'
 import type { ModelMessage } from 'ai'
 import { eq } from 'drizzle-orm'
 import { z } from 'zod'
+import { estimateTokens } from '../../utils/tokens'
 import { badRequest, notFound, publicProcedure } from '../base'
 
 // =============================================================================
@@ -240,9 +241,9 @@ const chat = publicProcedure
 			const latencyMs = Date.now() - startTime
 			const tokensIn = agentMessages.reduce((acc, m) => {
 				const content = typeof m.content === 'string' ? m.content : JSON.stringify(m.content)
-				return acc + Math.ceil(content.length / 4)
+				return acc + estimateTokens(content)
 			}, 0)
-			const tokensOut = Math.ceil(fullResponse.length / 4)
+			const tokensOut = estimateTokens(fullResponse)
 
 			await db.insert(usage).values({
 				workspaceId: agent.workspaceId,
@@ -260,7 +261,7 @@ const chat = publicProcedure
 
 			yield { type: 'done' as const, sessionId: conversationId }
 		} catch (error) {
-			console.error('Embed chat error:', error)
+			logger.error('Embed chat error:', error)
 			yield {
 				type: 'error' as const,
 				message: error instanceof Error ? error.message : 'Unknown error',

@@ -1,5 +1,5 @@
 {
-	"$schema": "https://biomejs.dev/schemas/2.4.10/schema.json",
+	"$schema": "https://biomejs.dev/schemas/2.3.11/schema.json",
 	"vcs": {
 		"enabled": true,
 		"clientKind": "git",
@@ -66,7 +66,11 @@
 	},
 	"overrides": [
 		{
-			"includes": ["packages/ui/src/index.ts"],
+			"includes": [
+				"packages/ui/src/index.ts",
+				"packages/types/src/index.ts",
+				"packages/ui/src/components/instructions-editor/index.ts"
+			],
 			"linter": {
 				"rules": {
 					"performance": {
@@ -83,6 +87,16 @@
 					"suspicious": {
 						"noConsole": "off",
 						"noEmptyBlockStatements": "off"
+					}
+				}
+			}
+		},
+		{
+			"includes": ["**/__tests__/**/*.ts", "**/*.test.ts"],
+			"linter": {
+				"rules": {
+					"correctness": {
+						"noUndeclaredDependencies": "off"
 					}
 				}
 			}

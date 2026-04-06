@@ -158,6 +158,7 @@
       "name": "@hare/agent",
       "version": "0.1.0",
       "dependencies": {
+        "@hare/config": "workspace:*",
         "@hare/db": "workspace:*",
         "@hare/tools": "workspace:*",
         "@hare/types": "workspace:*",

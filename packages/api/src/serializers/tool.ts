@@ -1,3 +1,4 @@
+import { logger } from '@hare/config'
 import type { tools } from '@hare/db'
 import type { AnyTool } from '@hare/tools'
 import type { InferSelectModel } from 'drizzle-orm'
@@ -170,7 +171,7 @@ function zodSchemaToInputSchema(zodSchema: unknown, toolId?: string): NonNullabl
 		return {}
 	} catch (error) {
 		// Log schema conversion failures to help debug tool definition issues
-		console.error(
+		logger.error(
 			`[tool-serializer] Failed to convert schema for tool "${toolId || 'unknown'}":`,
 			error,
 		)

@@ -10,6 +10,7 @@
  */
 
 import { type AuthServerEnv, createAuth } from '@hare/auth/server'
+import { HTTP_AUTH } from '@hare/config'
 import { apiKeys, workspaces } from '@hare/db'
 import type { AuthEnv, CloudflareEnv } from '@hare/types'
 import { eq } from 'drizzle-orm'
@@ -55,8 +56,8 @@ function extractApiKey(c: {
 	req: { header: (name: string) => string | undefined }
 }): string | null {
 	const authHeader = c.req.header('Authorization')
-	if (authHeader?.startsWith('Bearer ')) {
-		return authHeader.slice(7)
+	if (authHeader?.startsWith(HTTP_AUTH.BEARER_PREFIX)) {
+		return authHeader.slice(HTTP_AUTH.BEARER_PREFIX.length)
 	}
 
 	const apiKeyHeader = c.req.header('X-API-Key')

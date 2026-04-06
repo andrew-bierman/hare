@@ -3,6 +3,8 @@
  * Provides structured logging for security-relevant events
  */
 
+import { logger } from '@hare/config'
+
 export type AuditEventType =
 	// Authentication events
 	| 'auth.login'
@@ -120,8 +122,8 @@ export function logAuthEvent(params: AuthEventParams): void {
 	}
 
 	// In production, send to logging service (e.g., Cloudflare Logpush, DataDog)
-	// For now, log to console in structured format
-	console.log(formatAuditLog(entry))
+	// For now, log in structured format
+	logger.info(formatAuditLog(entry))
 }
 
 /**
@@ -142,7 +144,7 @@ export function logApiKeyEvent(params: ApiKeyEventParams): void {
 		},
 	}
 
-	console.log(formatAuditLog(entry))
+	logger.info(formatAuditLog(entry))
 }
 
 /**
@@ -164,7 +166,7 @@ export function logSecurityEvent(params: SecurityEventParams): void {
 	}
 
 	// Security events should be logged at warn/error level
-	console.warn(formatAuditLog(entry))
+	logger.warn(formatAuditLog(entry))
 }
 
 /**
@@ -185,7 +187,7 @@ export function logDataEvent(params: DataEventParams): void {
 		},
 	}
 
-	console.log(formatAuditLog(entry))
+	logger.info(formatAuditLog(entry))
 }
 
 /**

@@ -1,4 +1,4 @@
-import { config } from '@hare/config'
+import { config, HTTP_AUTH, logger } from '@hare/config'
 import { apiKeys, workspaces } from '@hare/db'
 import type { ApiKeyEnv, ApiKeyInfo } from '@hare/types'
 import { eq } from 'drizzle-orm'
@@ -44,8 +44,8 @@ function extractApiKey(c: {
 }): string | null {
 	// First, check Authorization header with Bearer token
 	const authHeader = c.req.header('Authorization')
-	if (authHeader?.startsWith('Bearer ')) {
-		return authHeader.slice(7) // Remove 'Bearer ' prefix
+	if (authHeader?.startsWith(HTTP_AUTH.BEARER_PREFIX)) {
+		return authHeader.slice(HTTP_AUTH.BEARER_PREFIX.length)
 	}
 
 	// Fallback to X-API-Key header
@@ -98,7 +98,7 @@ export const apiKeyMiddleware: MiddlewareHandler<ApiKeyEnv> = async (c, next) =>
 		.where(eq(apiKeys.id, keyRecord.id))
 		.catch((error) => {
 			// Log with context for debugging - non-critical operation
-			console.error('Failed to update API key lastUsedAt:', {
+			logger.error('Failed to update API key lastUsedAt:', {
 				apiKeyId: keyRecord.id,
 				workspaceId: keyRecord.workspaceId,
 				error: error instanceof Error ? error.message : String(error),
