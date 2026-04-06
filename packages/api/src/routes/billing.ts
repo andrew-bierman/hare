@@ -77,7 +77,9 @@ app.openapi(webhookRoute, async (c) => {
 
 			if (amount > 0) {
 				await addCredits({ db, workspaceId, amount })
-				logger.info(`[Billing] Added ${amount} token credits to workspace ${workspaceId} (session ${session.id})`)
+				logger.info(
+					`[Billing] Added ${amount} token credits to workspace ${workspaceId} (session ${session.id})`,
+				)
 			}
 		}
 	}
