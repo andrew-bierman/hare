@@ -122,6 +122,9 @@ const MIGRATION_STATEMENTS = [
 
 	// Guardrail violations table
 	`CREATE TABLE IF NOT EXISTS "guardrail_violations" ("id" text PRIMARY KEY NOT NULL, "guardrailId" text NOT NULL REFERENCES "guardrails"("id") ON DELETE CASCADE, "agentId" text NOT NULL REFERENCES "agents"("id") ON DELETE CASCADE, "workspaceId" text NOT NULL REFERENCES "workspaces"("id") ON DELETE CASCADE, "direction" text NOT NULL, "actionTaken" text NOT NULL, "triggerContent" text, "details" text, "createdAt" integer NOT NULL)`,
+
+	// Conversation outcomes table
+	`CREATE TABLE IF NOT EXISTS "conversation_outcomes" ("id" text PRIMARY KEY NOT NULL, "conversationId" text NOT NULL REFERENCES "conversations"("id") ON DELETE CASCADE, "agentId" text NOT NULL REFERENCES "agents"("id") ON DELETE CASCADE, "workspaceId" text NOT NULL REFERENCES "workspaces"("id") ON DELETE CASCADE, "outcome" text NOT NULL, "messageCount" integer DEFAULT 0 NOT NULL, "durationSeconds" integer, "avgResponseTimeMs" integer, "toolCallCount" integer DEFAULT 0 NOT NULL, "tags" text, "notes" text, "createdAt" integer NOT NULL, "updatedAt" integer NOT NULL)`,
 ]
 
 /**

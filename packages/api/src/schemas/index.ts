@@ -65,6 +65,14 @@ export {
 	PortalResponseSchema,
 	SubscriptionStatusSchema,
 } from './billing'
+// Business analytics schemas
+export {
+	AgentPerformanceSchema,
+	BusinessMetricsSchema,
+	ConversationOutcomeEnum,
+	ConversationOutcomeSchema,
+	SetOutcomeSchema,
+} from './business-analytics'
 // Chat schemas
 export {
 	ChatRequestSchema,

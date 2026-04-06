@@ -901,6 +901,53 @@ export function useGuardrailViolationsQuery(options: {
 }
 
 // =============================================================================
+// Business Analytics Hooks
+// =============================================================================
+
+export function useBusinessMetricsQuery(options?: {
+	agentId?: string
+	startDate?: string
+	endDate?: string
+}) {
+	return useQuery({
+		queryKey: ['business-analytics', 'metrics', options],
+		queryFn: () => orpc.businessAnalytics.getMetrics(options || {}),
+		enabled: !!getOrpcWorkspaceId(),
+	})
+}
+
+export function useAgentPerformanceQuery(options?: { startDate?: string; endDate?: string }) {
+	return useQuery({
+		queryKey: ['business-analytics', 'agent-performance', options],
+		queryFn: () => orpc.businessAnalytics.getAgentPerformance(options || {}),
+		enabled: !!getOrpcWorkspaceId(),
+	})
+}
+
+export function useSetOutcomeMutation() {
+	const queryClient = useQueryClient()
+	return useMutation({
+		mutationFn: (input: Parameters<typeof orpc.businessAnalytics.setOutcome>[0]) =>
+			orpc.businessAnalytics.setOutcome(input),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ['business-analytics'] })
+		},
+	})
+}
+
+export function useConversationOutcomesQuery(options: {
+	agentId: string
+	limit?: number
+	offset?: number
+}) {
+	return useQuery({
+		queryKey: ['business-analytics', 'outcomes', options],
+		queryFn: () => orpc.businessAnalytics.listOutcomes(options),
+		enabled: !!options.agentId,
+	})
+}
+
+// =============================================================================
 // Activity Feed Hooks
 // =============================================================================
 
