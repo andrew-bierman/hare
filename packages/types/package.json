@@ -53,13 +53,13 @@
 		"typecheck": "tsc --noEmit"
 	},
 	"dependencies": {
-		"@elithrar/workers-hono-rate-limit": "^0.5.1",
-		"ai": "^6.0.3",
-		"zod": "^4.2.1"
+		"@elithrar/workers-hono-rate-limit": "catalog:",
+		"ai": "catalog:",
+		"zod": "catalog:"
 	},
 	"devDependencies": {
-		"@cloudflare/workers-types": "^4.20251224.0",
+		"@cloudflare/workers-types": "catalog:",
 		"@hare/typescript-config": "workspace:*",
-		"typescript": "^5"
+		"typescript": "catalog:"
 	}
 }

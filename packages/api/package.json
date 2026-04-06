@@ -49,25 +49,26 @@
 		"@elysiajs/openapi": "^1.4.14",
 		"@hare/agent": "workspace:*",
 		"@hare/auth": "workspace:*",
+		"@hare/checks": "workspace:*",
 		"@hare/config": "workspace:*",
 		"@hare/db": "workspace:*",
 		"@hare/email": "workspace:*",
 		"@hare/security": "workspace:*",
 		"@hare/tools": "workspace:*",
 		"@hare/types": "workspace:*",
-		"@react-email/components": "^1.0.3",
+		"@react-email/components": "catalog:",
 		"elysia": "^1.4.28",
 		"elysia-rate-limit": "^4.5.1",
-		"resend": "^6.6.0"
+		"resend": "catalog:"
 	},
 	"devDependencies": {
-		"@cloudflare/workers-types": "^4.20251224.0",
+		"@cloudflare/workers-types": "catalog:",
 		"@hare/typescript-config": "workspace:*",
-		"ai": "^6.0.3",
-		"drizzle-orm": "^0.45.1",
-		"stripe": "^20.1.0",
-		"typescript": "^5",
-		"zod": "^4.2.1"
+		"ai": "catalog:",
+		"drizzle-orm": "catalog:",
+		"stripe": "catalog:",
+		"typescript": "catalog:",
+		"zod": "catalog:"
 	},
 	"peerDependencies": {
 		"ai": "^6.0.0",

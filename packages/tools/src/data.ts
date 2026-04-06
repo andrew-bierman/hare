@@ -1,4 +1,6 @@
+import { getErrorMessage, isAbortError, isNumber, isRecord, isString } from '@hare/checks'
 import { z } from 'zod'
+import { ContentLengths, Timeouts, UserAgents } from './constants'
 import { createTool, failure, success, type ToolContext, type ToolResult } from './types'
 
 // ============================================================================
@@ -230,7 +232,7 @@ export const rssTool = createTool({
 
 			const response = await fetch(url, {
 				headers: {
-					'User-Agent': 'Hare-Agent/1.0 RSS Reader',
+					'User-Agent': UserAgents.RSS,
 					Accept: 'application/rss+xml, application/atom+xml, application/xml, text/xml',
 				},
 			})
@@ -372,7 +374,7 @@ export const rssTool = createTool({
 				fetchedAt: new Date().toISOString(),
 			})
 		} catch (error) {
-			return failure(`RSS error: ${error instanceof Error ? error.message : 'Unknown error'}`)
+			return failure(`RSS error: ${getErrorMessage(error)}`)
 		}
 	},
 })
@@ -395,8 +397,16 @@ export const scrapeTool = createTool({
 			.string()
 			.optional()
 			.describe('CSS-like selector pattern to extract specific content'),
-		maxLength: z.number().optional().default(10000).describe('Maximum content length to return'),
-		timeout: z.number().optional().default(10000).describe('Request timeout in milliseconds'),
+		maxLength: z
+			.number()
+			.optional()
+			.default(ContentLengths.SCRAPE)
+			.describe('Maximum content length to return'),
+		timeout: z
+			.number()
+			.optional()
+			.default(Timeouts.SCRAPE_DEFAULT)
+			.describe('Request timeout in milliseconds'),
 	}),
 	outputSchema: ScrapeOutputSchema,
 	execute: async (params, _context) => {
@@ -408,7 +418,7 @@ export const scrapeTool = createTool({
 
 			const response = await fetch(url, {
 				headers: {
-					'User-Agent': 'Mozilla/5.0 (compatible; Hare-Agent/1.0; +https://hare.dev)',
+					'User-Agent': UserAgents.WEB_SCRAPE,
 					Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
 				},
 				signal: controller.signal,
@@ -478,7 +488,7 @@ export const scrapeTool = createTool({
 					const text = match[2]?.trim()
 					if (level && text) {
 						headings.push({
-							level: parseInt(level, 10),
+							level: Number.parseInt(level, 10),
 							text,
 						})
 					}
@@ -587,10 +597,10 @@ export const scrapeTool = createTool({
 				fetchedAt: new Date().toISOString(),
 			})
 		} catch (error) {
-			if (error instanceof Error && error.name === 'AbortError') {
+			if (isAbortError(error)) {
 				return failure(`Request timed out after ${params.timeout}ms`)
 			}
-			return failure(`Scrape error: ${error instanceof Error ? error.message : 'Unknown error'}`)
+			return failure(`Scrape error: ${getErrorMessage(error)}`)
 		}
 	},
 })
@@ -622,7 +632,7 @@ export const regexTool = createTool({
 			try {
 				regex = new RegExp(pattern, flags)
 			} catch (e) {
-				return failure(`Invalid regex pattern: ${e instanceof Error ? e.message : 'Unknown error'}`)
+				return failure(`Invalid regex pattern: ${getErrorMessage(e)}`)
 			}
 
 			switch (operation) {
@@ -722,7 +732,7 @@ export const regexTool = createTool({
 					return failure(`Unknown operation: ${operation}`)
 			}
 		} catch (error) {
-			return failure(`Regex error: ${error instanceof Error ? error.message : 'Unknown error'}`)
+			return failure(`Regex error: ${getErrorMessage(error)}`)
 		}
 	},
 })
@@ -842,7 +852,7 @@ export const cryptoTool = createTool({
 					return failure(`Unknown operation: ${operation}`)
 			}
 		} catch (error) {
-			return failure(`Crypto error: ${error instanceof Error ? error.message : 'Unknown error'}`)
+			return failure(`Crypto error: ${getErrorMessage(error)}`)
 		}
 	},
 })
@@ -910,7 +920,7 @@ export const jsonSchemaTool = createTool({
 				}
 
 				// String validations
-				if (typeof value === 'string') {
+				if (isString(value)) {
 					if (
 						schemaNode.minLength !== undefined &&
 						value.length < (schemaNode.minLength as number)
@@ -932,7 +942,7 @@ export const jsonSchemaTool = createTool({
 				}
 
 				// Number validations
-				if (typeof value === 'number') {
+				if (isNumber(value)) {
 					if (schemaNode.minimum !== undefined && value < (schemaNode.minimum as number)) {
 						errors.push({ path, message: `Number too small (min: ${schemaNode.minimum})` })
 					}
@@ -942,7 +952,7 @@ export const jsonSchemaTool = createTool({
 				}
 
 				// Object validations
-				if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+				if (isRecord(value)) {
 					const obj = value as Record<string, unknown>
 
 					// Required properties
@@ -993,9 +1003,7 @@ export const jsonSchemaTool = createTool({
 				errorCount: errors.length,
 			})
 		} catch (error) {
-			return failure(
-				`Schema validation error: ${error instanceof Error ? error.message : 'Unknown error'}`,
-			)
+			return failure(`Schema validation error: ${getErrorMessage(error)}`)
 		}
 	},
 })
@@ -1145,7 +1153,7 @@ export const csvTool = createTool({
 
 			return failure(`Unknown operation: ${operation}`)
 		} catch (error) {
-			return failure(`CSV error: ${error instanceof Error ? error.message : 'Unknown error'}`)
+			return failure(`CSV error: ${getErrorMessage(error)}`)
 		}
 	},
 })
@@ -1184,7 +1192,7 @@ export const templateTool = createTool({
 
 			const getNestedValue = (obj: Record<string, unknown>, path: string): unknown => {
 				return path.split('.').reduce((current, key) => {
-					if (current && typeof current === 'object' && key in current) {
+					if (isRecord(current) && key in current) {
 						return (current as Record<string, unknown>)[key]
 					}
 					return undefined
@@ -1222,7 +1230,7 @@ export const templateTool = createTool({
 				variableCount: Object.keys(variables).length,
 			})
 		} catch (error) {
-			return failure(`Template error: ${error instanceof Error ? error.message : 'Unknown error'}`)
+			return failure(`Template error: ${getErrorMessage(error)}`)
 		}
 	},
 })

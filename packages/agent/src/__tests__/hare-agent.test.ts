@@ -456,12 +456,13 @@ describe('HareAgent', () => {
 		})
 
 		it('handles unknown scheduled action gracefully', async () => {
-			const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+			const { logger } = await import('@hare/config')
+			const warnSpy = vi.spyOn(logger, 'warn').mockImplementation(() => {})
 
 			await agent.executeScheduledTask({ action: 'unknownAction' })
 
-			expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('Unknown scheduled action'))
-			consoleSpy.mockRestore()
+			expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('Unknown scheduled action'))
+			warnSpy.mockRestore()
 		})
 	})
 

@@ -10,11 +10,11 @@
 import { type FormApi, useForm } from '@tanstack/react-form'
 import { zodValidator } from '@tanstack/zod-form-adapter'
 
+export type { FormApi }
 /**
  * Re-export core form utilities
  */
 export { useForm, zodValidator }
-export type { FormApi }
 
 /**
  * Field error display helper

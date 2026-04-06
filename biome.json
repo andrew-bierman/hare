@@ -10,21 +10,34 @@
 		"rules": {
 			"recommended": true,
 			"complexity": {
-				"noUselessFragments": "warn"
+				"noUselessFragments": "warn",
+				"noForEach": "warn"
 			},
 			"correctness": {
 				"noUnusedImports": "error",
-				"noUnusedVariables": "error"
+				"noUnusedVariables": "error",
+				"noUndeclaredDependencies": "warn"
 			},
 			"style": {
-				"noNonNullAssertion": "off",
+				"noNonNullAssertion": "warn",
 				"useConst": "error",
-				"noParameterAssign": "error"
+				"noParameterAssign": "error",
+				"useExportType": "error",
+				"useImportType": "error",
+				"useNumberNamespace": "error",
+				"useDefaultSwitchClause": "warn"
 			},
 			"suspicious": {
 				"noExplicitAny": "error",
 				"noArrayIndexKey": "warn",
-				"noAssignInExpressions": "warn"
+				"noAssignInExpressions": "warn",
+				"noConsole": "warn",
+				"noDoubleEquals": "error",
+				"noEmptyBlockStatements": "warn"
+			},
+			"performance": {
+				"noBarrelFile": "warn",
+				"noReExportAll": "warn"
 			}
 		}
 	},
@@ -50,5 +63,46 @@
 			"**/*.json",
 			"!**/routeTree.gen.ts"
 		]
-	}
+	},
+	"overrides": [
+		{
+			"includes": [
+				"packages/*/src/index.ts",
+				"packages/*/src/workers.ts",
+				"packages/tools/src/*/index.ts",
+				"packages/agent/src/tools/*.ts",
+				"packages/ui/src/components/instructions-editor/index.ts",
+				"apps/web/src/lib/onboarding/index.ts"
+			],
+			"linter": {
+				"rules": {
+					"performance": {
+						"noBarrelFile": "off",
+						"noReExportAll": "off"
+					}
+				}
+			}
+		},
+		{
+			"includes": ["scripts/**/*.ts", "apps/tauri/scripts/**/*.ts", "apps/web/e2e/**/*.ts"],
+			"linter": {
+				"rules": {
+					"suspicious": {
+						"noConsole": "off",
+						"noEmptyBlockStatements": "off"
+					}
+				}
+			}
+		},
+		{
+			"includes": ["**/__tests__/**/*.ts", "**/*.test.ts"],
+			"linter": {
+				"rules": {
+					"correctness": {
+						"noUndeclaredDependencies": "off"
+					}
+				}
+			}
+		}
+	]
 }

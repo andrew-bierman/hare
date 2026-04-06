@@ -14,8 +14,9 @@
  *   bun run scripts/checks.ts --fix              # Auto-fix issues where possible
  *
  * Available flags:
- *   --check-deps Check monorepo dependency consistency
- *   --sort-pkg   Check package.json files are sorted
+ *   --check-deps    Check monorepo dependency consistency
+ *   --check-catalog Check shared deps use bun catalog
+ *   --sort-pkg      Check package.json files are sorted
  *   --sync-tauri Sync Tauri routes with web app
  *   --lint       Run linting and formatting
  *   --typecheck  Run TypeScript type checking
@@ -55,6 +56,13 @@ const AVAILABLE_CHECKS: CheckConfig[] = [
     description: "Check monorepo dependency consistency",
   },
   {
+    id: "check-catalog",
+    name: "Check Catalog",
+    command: "bun run check-catalog",
+    fixCommand: "bun run check-catalog:fix",
+    description: "Check shared deps use bun catalog",
+  },
+  {
     id: "sort-pkg",
     name: "Sort package.json",
     command: "bun run sort-packages:check",
@@ -72,6 +80,12 @@ const AVAILABLE_CHECKS: CheckConfig[] = [
     name: "Lint",
     command: "bun run check:fix",
     description: "Run Biome linting and formatting with auto-fix",
+  },
+  {
+    id: "lint-custom",
+    name: "Custom Lint",
+    command: "bun run lint:custom",
+    description: "Check for magic values, raw strings, and code patterns",
   },
   {
     id: "typecheck",
@@ -95,9 +109,11 @@ const AVAILABLE_CHECKS: CheckConfig[] = [
 
 const DEFAULT_CHECK_IDS = [
   "check-deps",
+  "check-catalog",
   "sort-pkg",
   "sync-tauri",
   "lint",
+  "lint-custom",
   "typecheck",
   "build",
 ];

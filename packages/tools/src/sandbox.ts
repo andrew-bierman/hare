@@ -1,4 +1,6 @@
+import { getErrorMessage } from '@hare/checks'
 import { z } from 'zod'
+import { SandboxLimits, Timeouts } from './constants'
 import {
 	createTool,
 	failure,
@@ -110,17 +112,17 @@ export interface SandboxConfig {
 }
 
 const DEFAULT_CONFIG: SandboxConfig = {
-	timeout: 30000,
+	timeout: Timeouts.SANDBOX_DEFAULT,
 	allowNetwork: false, // Disabled by default for security
-	workDir: '/workspace',
+	workDir: SandboxLimits.WORK_DIR,
 }
 
 /**
  * Security: Rate limiting configuration
  */
 const RATE_LIMIT = {
-	maxExecutionsPerHour: 50,
-	maxCodeSizeBytes: 25_000, // 25KB max
+	maxExecutionsPerHour: SandboxLimits.MAX_EXECUTIONS_PER_HOUR,
+	maxCodeSizeBytes: SandboxLimits.MAX_CODE_SIZE_BYTES,
 }
 
 /**
@@ -134,7 +136,7 @@ const rateLimitCache = new Map<string, { count: number; resetAt: number }>()
  */
 function checkRateLimit(workspaceId: string): { allowed: boolean; remaining: number } {
 	const now = Date.now()
-	const hourMs = 60 * 60 * 1000
+	const hourMs = Timeouts.ONE_HOUR
 	const entry = rateLimitCache.get(workspaceId)
 
 	if (!entry || now > entry.resetAt) {
@@ -341,7 +343,7 @@ export async function executeSandboxed<T = unknown>({
 
 		return result
 	} catch (error) {
-		const errorMsg = error instanceof Error ? error.message : 'Unknown error'
+		const errorMsg = getErrorMessage(error)
 		logSandboxExecution({
 			workspaceId: context.workspaceId,
 			language,
@@ -400,7 +402,7 @@ async function executeWithCloudfareSandbox<T>(
 			success: result.exitCode === 0,
 		} as T)
 	} catch (error) {
-		return failure(`Sandbox error: ${error instanceof Error ? error.message : 'Unknown'}`)
+		return failure(`Sandbox error: ${getErrorMessage(error)}`)
 	}
 }
 
@@ -473,7 +475,7 @@ async function executeInWorker<T>(code: string, config: SandboxConfig): Promise<
 
 		return success({ result, logs } as T)
 	} catch (error) {
-		return failure(`Error: ${error instanceof Error ? error.message : 'Unknown'}`)
+		return failure(`Error: ${getErrorMessage(error)}`)
 	}
 }
 
@@ -524,7 +526,13 @@ print(json.dumps({"sum": sum(data), "avg": sum(data)/len(data)}))
 			.enum(['javascript', 'python'])
 			.default('javascript')
 			.describe('Programming language (bash is disabled for security)'),
-		timeout: z.number().min(1000).max(30000).optional().default(30000).describe('Timeout in ms'),
+		timeout: z
+			.number()
+			.min(1000)
+			.max(Timeouts.SANDBOX_DEFAULT)
+			.optional()
+			.default(Timeouts.SANDBOX_DEFAULT)
+			.describe('Timeout in ms'),
 	}),
 	outputSchema: CodeExecuteOutputSchema,
 	execute: async (input, context) => {
@@ -569,7 +577,7 @@ Validates against:
 			try {
 				new Function(code) // Syntax check
 			} catch (e) {
-				issues.push(`Syntax error: ${e instanceof Error ? e.message : 'Unknown'}`)
+				issues.push(`Syntax error: ${getErrorMessage(e)}`)
 			}
 		}
 
@@ -661,7 +669,7 @@ Requires SANDBOX binding.`,
 					return failure('Unknown operation')
 			}
 		} catch (error) {
-			return failure(`File error: ${error instanceof Error ? error.message : 'Unknown'}`)
+			return failure(`File error: ${getErrorMessage(error)}`)
 		}
 	},
 })

@@ -5,6 +5,7 @@
  * from database-stored configurations, including loading attached tools.
  */
 
+import { logger } from '@hare/config'
 import { agentTools, type Database, tools as toolsTable } from '@hare/db'
 import {
 	type AnyTool,
@@ -125,7 +126,7 @@ function createToolFromConfig(config: ToolConfig, context: ToolContext): AnyTool
 		case 'custom':
 			return createCustomToolFromConfig(config, context)
 		default:
-			console.warn(`Unknown tool type "${config.type}" for tool ${config.id}`)
+			logger.warn(`Unknown tool type "${config.type}" for tool ${config.id}`)
 			return null
 	}
 }

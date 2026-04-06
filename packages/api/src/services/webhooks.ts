@@ -7,6 +7,7 @@
  * - Delivery logging
  */
 
+import { isError } from '@hare/checks'
 import {
 	type Database,
 	WEBHOOK_EVENT_TYPES,
@@ -187,12 +188,11 @@ async function deliverWebhook(options: {
 		}
 	} catch (error) {
 		clearTimeout(timeoutId)
-		const errorMessage =
-			error instanceof Error
-				? error.name === 'AbortError'
-					? 'Request timeout'
-					: error.message
-				: 'Unknown error'
+		const errorMessage = isError(error)
+			? error.name === 'AbortError'
+				? 'Request timeout'
+				: error.message
+			: 'Unknown error'
 
 		return {
 			success: false,
@@ -605,12 +605,11 @@ export async function retryDelivery(options: {
 		}
 	} catch (error) {
 		clearTimeout(timeoutId)
-		const errorMessage =
-			error instanceof Error
-				? error.name === 'AbortError'
-					? 'Request timeout'
-					: error.message
-				: 'Unknown error'
+		const errorMessage = isError(error)
+			? error.name === 'AbortError'
+				? 'Request timeout'
+				: error.message
+			: 'Unknown error'
 
 		result = {
 			success: false,

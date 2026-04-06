@@ -1,3 +1,4 @@
+import { getErrorMessage } from '@hare/checks'
 import { z } from 'zod'
 import { createTool, failure, success, type ToolContext, type ToolResult } from './types'
 
@@ -775,9 +776,7 @@ export const compressionTool = createTool({
 				})
 			}
 		} catch (error) {
-			return failure(
-				`Compression error: ${error instanceof Error ? error.message : 'Unknown error'}`,
-			)
+			return failure(`Compression error: ${getErrorMessage(error)}`)
 		}
 	},
 })
@@ -817,9 +816,9 @@ export const colorTool = createTool({
 				const b = hexMatch[3]
 				if (r && g && b) {
 					return {
-						r: parseInt(r, 16),
-						g: parseInt(g, 16),
-						b: parseInt(b, 16),
+						r: Number.parseInt(r, 16),
+						g: Number.parseInt(g, 16),
+						b: Number.parseInt(b, 16),
 					}
 				}
 			}
@@ -832,9 +831,9 @@ export const colorTool = createTool({
 				const b = shortHexMatch[3]
 				if (r && g && b) {
 					return {
-						r: parseInt(r + r, 16),
-						g: parseInt(g + g, 16),
-						b: parseInt(b + b, 16),
+						r: Number.parseInt(r + r, 16),
+						g: Number.parseInt(g + g, 16),
+						b: Number.parseInt(b + b, 16),
 					}
 				}
 			}
@@ -847,9 +846,9 @@ export const colorTool = createTool({
 				const b = rgbMatch[3]
 				if (r && g && b) {
 					return {
-						r: parseInt(r, 10),
-						g: parseInt(g, 10),
-						b: parseInt(b, 10),
+						r: Number.parseInt(r, 10),
+						g: Number.parseInt(g, 10),
+						b: Number.parseInt(b, 10),
 					}
 				}
 			}

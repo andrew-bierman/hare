@@ -1,4 +1,6 @@
+import { getErrorMessage } from '@hare/checks'
 import { z } from 'zod'
+import { AutoRAGConfig } from './constants'
 import { createTool, failure, success, type ToolContext } from './types'
 
 // Output schemas for search tools
@@ -57,7 +59,9 @@ export const aiSearchTool = createTool({
 		try {
 			// Get the AutoRAG instance - uses the configured instance name
 			// The instance name should match what's set up in Cloudflare dashboard
-			const autorag = (ai as Ai & { autorag: (name: string) => AutoRAG }).autorag('hare-search')
+			const autorag = (ai as Ai & { autorag: (name: string) => AutoRAG }).autorag(
+				AutoRAGConfig.INSTANCE_NAME,
+			)
 
 			const results = await autorag.search({
 				query: params.query,
@@ -85,9 +89,7 @@ export const aiSearchTool = createTool({
 				count: results.data.length,
 			})
 		} catch (error) {
-			return failure(
-				`AI Search failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
-			)
+			return failure(`AI Search failed: ${getErrorMessage(error)}`)
 		}
 	},
 })
@@ -120,7 +122,9 @@ export const aiSearchAnswerTool = createTool({
 		}
 
 		try {
-			const autorag = (ai as Ai & { autorag: (name: string) => AutoRAG }).autorag('hare-search')
+			const autorag = (ai as Ai & { autorag: (name: string) => AutoRAG }).autorag(
+				AutoRAGConfig.INSTANCE_NAME,
+			)
 
 			const response = await autorag.aiSearch({
 				query: params.query,
@@ -146,9 +150,7 @@ export const aiSearchAnswerTool = createTool({
 				sourceCount: response.data.length,
 			})
 		} catch (error) {
-			return failure(
-				`AI Search Answer failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
-			)
+			return failure(`AI Search Answer failed: ${getErrorMessage(error)}`)
 		}
 	},
 })

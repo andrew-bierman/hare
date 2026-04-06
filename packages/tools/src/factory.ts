@@ -6,6 +6,7 @@
  */
 
 import { z } from 'zod'
+import { Timeouts } from './constants'
 import { HttpResponseOutputSchema, httpRequestTool } from './http'
 import { type AnyTool, createTool, failure, type ToolConfig, type ToolContext } from './types'
 
@@ -133,7 +134,7 @@ function createHTTPToolFromConfig({
 				method: params.method || toolConfig?.method || 'GET',
 				headers: { ...toolConfig?.headers, ...params.headers },
 				body: params.body,
-				timeout: params.timeout || 30000,
+				timeout: params.timeout || Timeouts.HTTP_DEFAULT,
 			}
 			return httpRequestTool.execute(mergedParams, ctx)
 		},

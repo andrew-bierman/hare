@@ -13,6 +13,15 @@ export * from './conversations'
 // Deployment tables
 export * from './deployments'
 
+// Guardrails tables
+export * from './guardrails'
+
+// Knowledge base tables
+export * from './knowledge-base'
+
+// Message feedback tables
+export * from './message-feedback'
+
 // Schedule tables
 export * from './schedules'
 
@@ -26,6 +35,9 @@ export * from './user-preferences'
 export * from './webhook-deliveries'
 // Webhook tables
 export * from './webhooks'
+// Workflow tables
+export * from './workflows'
+
 // Workspace tables
 export * from './workspaces'
 

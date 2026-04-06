@@ -475,11 +475,16 @@ test.describe('Agent Usage API', () => {
 		} else {
 			// Agent may have been created even if response schema validation failed
 			const listResp = await orpc(authenticatedPage, 'agents/list', {}, wsHeader)
+			expect(listResp.status()).toBe(200)
 			const data = await parseOrpc(listResp)
-			const agents = data.agents ?? data
-			const found = agents.find((a: { name: string }) => a.name === agentName)
+			const agentsList: Array<{ name: string; id: string }> = Array.isArray(data.agents)
+				? data.agents
+				: Array.isArray(data)
+					? data
+					: []
+			const found = agentsList.find((a) => a.name === agentName)
 			expect(found).toBeTruthy()
-			agentId = found.id
+			agentId = found!.id
 		}
 
 		// Get usage for the agent via oRPC
@@ -682,6 +687,7 @@ test.describe('Usage Reflects Recent Activity', () => {
 		const activeAgentsCard = authenticatedPage
 			.locator('[data-slot="card"]')
 			.filter({ hasText: 'Active Agents' })
+			.first()
 		await expect(activeAgentsCard).toBeVisible()
 
 		// Create an agent via oRPC

@@ -837,6 +837,272 @@ export function useAgentHealthQuery(
 }
 
 // =============================================================================
+// Feedback Hooks
+// =============================================================================
+
+export function useFeedbackStatsMutation() {
+	return useMutation({
+		mutationFn: (input: { id: string; startDate?: string; endDate?: string }) =>
+			orpc.feedback.getStats(input),
+	})
+}
+
+export function useCreateFeedbackMutation() {
+	const queryClient = useQueryClient()
+	return useMutation({
+		mutationFn: (input: Parameters<typeof orpc.feedback.create>[0]) => orpc.feedback.create(input),
+		onSuccess: (_, variables) => {
+			queryClient.invalidateQueries({ queryKey: ['feedback', variables.agentId] })
+		},
+	})
+}
+
+// =============================================================================
+// Knowledge Base Hooks
+// =============================================================================
+
+export function useKnowledgeBasesQuery() {
+	return useQuery({
+		queryKey: ['knowledge-bases'],
+		queryFn: () => orpc.knowledgeBases.list({}),
+		enabled: !!getOrpcWorkspaceId(),
+	})
+}
+
+export function useKnowledgeBaseQuery(id: string | undefined) {
+	return useQuery({
+		queryKey: ['knowledge-bases', id],
+		queryFn: () => orpc.knowledgeBases.get({ id: id! }),
+		enabled: !!id,
+	})
+}
+
+export function useCreateKnowledgeBaseMutation() {
+	const queryClient = useQueryClient()
+	return useMutation({
+		mutationFn: (input: Parameters<typeof orpc.knowledgeBases.create>[0]) =>
+			orpc.knowledgeBases.create(input),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ['knowledge-bases'] })
+		},
+	})
+}
+
+export function useDeleteKnowledgeBaseMutation() {
+	const queryClient = useQueryClient()
+	return useMutation({
+		mutationFn: (input: { id: string }) => orpc.knowledgeBases.delete(input),
+		onSuccess: (_, variables) => {
+			queryClient.invalidateQueries({ queryKey: ['knowledge-bases'] })
+			queryClient.invalidateQueries({ queryKey: ['knowledge-bases', variables.id] })
+		},
+	})
+}
+
+export function useKnowledgeBaseDocumentsQuery(kbId: string | undefined) {
+	return useQuery({
+		queryKey: ['knowledge-bases', kbId, 'documents'],
+		queryFn: () => orpc.knowledgeBases.listDocuments({ id: kbId! }),
+		enabled: !!kbId,
+	})
+}
+
+export function useAddDocumentUrlMutation() {
+	const queryClient = useQueryClient()
+	return useMutation({
+		mutationFn: (input: Parameters<typeof orpc.knowledgeBases.addUrl>[0]) =>
+			orpc.knowledgeBases.addUrl(input),
+		onSuccess: (_, variables) => {
+			queryClient.invalidateQueries({ queryKey: ['knowledge-bases', variables.id, 'documents'] })
+			queryClient.invalidateQueries({ queryKey: ['knowledge-bases', variables.id] })
+		},
+	})
+}
+
+// =============================================================================
+// Guardrails Hooks
+// =============================================================================
+
+export function useGuardrailsQuery(agentId: string | undefined) {
+	return useQuery({
+		queryKey: ['guardrails', agentId],
+		queryFn: () => orpc.guardrails.list({ agentId: agentId! }),
+		enabled: !!agentId,
+	})
+}
+
+export function useCreateGuardrailMutation() {
+	const queryClient = useQueryClient()
+	return useMutation({
+		mutationFn: (input: Parameters<typeof orpc.guardrails.create>[0]) =>
+			orpc.guardrails.create(input),
+		onSuccess: (_, variables) => {
+			queryClient.invalidateQueries({ queryKey: ['guardrails', variables.agentId] })
+		},
+	})
+}
+
+export function useUpdateGuardrailMutation() {
+	const queryClient = useQueryClient()
+	return useMutation({
+		mutationFn: (input: Parameters<typeof orpc.guardrails.update>[0]) =>
+			orpc.guardrails.update(input),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ['guardrails'] })
+		},
+	})
+}
+
+export function useDeleteGuardrailMutation() {
+	const queryClient = useQueryClient()
+	return useMutation({
+		mutationFn: (input: { id: string }) => orpc.guardrails.delete(input),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ['guardrails'] })
+		},
+	})
+}
+
+export function useGuardrailViolationsQuery(options: {
+	agentId: string
+	limit?: number
+	offset?: number
+	enabled?: boolean
+}) {
+	const { agentId, limit, offset, enabled = true } = options
+	return useQuery({
+		queryKey: ['guardrails', 'violations', { agentId, limit, offset }],
+		queryFn: () => orpc.guardrails.getViolations({ agentId, limit, offset }),
+		enabled,
+	})
+}
+
+// =============================================================================
+// Workflow Hooks
+// =============================================================================
+
+export function useWorkflowsQuery() {
+	return useQuery({
+		queryKey: ['workflows'],
+		queryFn: () => orpc.workflows.list({}),
+		enabled: !!getOrpcWorkspaceId(),
+	})
+}
+
+export function useWorkflowQuery(id: string | undefined) {
+	return useQuery({
+		queryKey: ['workflows', id],
+		queryFn: () => orpc.workflows.get({ id: id! }),
+		enabled: !!id,
+	})
+}
+
+export function useCreateWorkflowMutation() {
+	const queryClient = useQueryClient()
+	return useMutation({
+		mutationFn: (input: Parameters<typeof orpc.workflows.create>[0]) =>
+			orpc.workflows.create(input),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ['workflows'] })
+		},
+	})
+}
+
+export function useUpdateWorkflowMutation() {
+	const queryClient = useQueryClient()
+	return useMutation({
+		mutationFn: (input: Parameters<typeof orpc.workflows.update>[0]) =>
+			orpc.workflows.update(input),
+		onSuccess: (_, variables) => {
+			queryClient.invalidateQueries({ queryKey: ['workflows'] })
+			queryClient.invalidateQueries({ queryKey: ['workflows', variables.id] })
+		},
+	})
+}
+
+export function useDeleteWorkflowMutation() {
+	const queryClient = useQueryClient()
+	return useMutation({
+		mutationFn: (input: { id: string }) => orpc.workflows.delete(input),
+		onSuccess: (_, variables) => {
+			queryClient.invalidateQueries({ queryKey: ['workflows'] })
+			queryClient.invalidateQueries({ queryKey: ['workflows', variables.id] })
+		},
+	})
+}
+
+export function useAddWorkflowNodeMutation() {
+	const queryClient = useQueryClient()
+	return useMutation({
+		mutationFn: (input: Parameters<typeof orpc.workflows.addNode>[0]) =>
+			orpc.workflows.addNode(input),
+		onSuccess: (_, variables) => {
+			queryClient.invalidateQueries({ queryKey: ['workflows', variables.id] })
+		},
+	})
+}
+
+export function useRemoveWorkflowNodeMutation() {
+	const queryClient = useQueryClient()
+	return useMutation({
+		mutationFn: (input: Parameters<typeof orpc.workflows.removeNode>[0]) =>
+			orpc.workflows.removeNode(input),
+		onSuccess: (_, variables) => {
+			queryClient.invalidateQueries({ queryKey: ['workflows', variables.id] })
+		},
+	})
+}
+
+export function useAddWorkflowEdgeMutation() {
+	const queryClient = useQueryClient()
+	return useMutation({
+		mutationFn: (input: Parameters<typeof orpc.workflows.addEdge>[0]) =>
+			orpc.workflows.addEdge(input),
+		onSuccess: (_, variables) => {
+			queryClient.invalidateQueries({ queryKey: ['workflows', variables.id] })
+		},
+	})
+}
+
+export function useRemoveWorkflowEdgeMutation() {
+	const queryClient = useQueryClient()
+	return useMutation({
+		mutationFn: (input: Parameters<typeof orpc.workflows.removeEdge>[0]) =>
+			orpc.workflows.removeEdge(input),
+		onSuccess: (_, variables) => {
+			queryClient.invalidateQueries({ queryKey: ['workflows', variables.id] })
+		},
+	})
+}
+
+export function useExecuteWorkflowMutation() {
+	const queryClient = useQueryClient()
+	return useMutation({
+		mutationFn: (input: Parameters<typeof orpc.workflows.execute>[0]) =>
+			orpc.workflows.execute(input),
+		onSuccess: (_, variables) => {
+			queryClient.invalidateQueries({ queryKey: ['workflows', variables.id, 'executions'] })
+		},
+	})
+}
+
+export function useWorkflowExecutionsQuery(workflowId: string | undefined) {
+	return useQuery({
+		queryKey: ['workflows', workflowId, 'executions'],
+		queryFn: () => orpc.workflows.getExecutions({ id: workflowId! }),
+		enabled: !!workflowId,
+	})
+}
+
+export function useWorkflowExecutionDetailsQuery(executionId: string | undefined) {
+	return useQuery({
+		queryKey: ['workflow-executions', executionId],
+		queryFn: () => orpc.workflows.getExecutionDetails({ id: executionId! }),
+		enabled: !!executionId,
+	})
+}
+
+// =============================================================================
 // Activity Feed Hooks
 // =============================================================================
 

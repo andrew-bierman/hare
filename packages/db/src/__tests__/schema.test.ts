@@ -73,7 +73,7 @@ const MIGRATION_STATEMENTS = [
 	`CREATE TABLE IF NOT EXISTS "workspace_invitations" ("id" text PRIMARY KEY NOT NULL, "workspaceId" text NOT NULL REFERENCES "workspaces"("id") ON DELETE CASCADE, "email" text NOT NULL, "role" text DEFAULT 'member' NOT NULL, "token" text NOT NULL UNIQUE, "invitedBy" text NOT NULL REFERENCES "user"("id") ON DELETE CASCADE, "status" text DEFAULT 'pending' NOT NULL, "expiresAt" integer NOT NULL, "createdAt" integer NOT NULL, "updatedAt" integer NOT NULL)`,
 
 	// Agents table
-	`CREATE TABLE IF NOT EXISTS "agents" ("id" text PRIMARY KEY NOT NULL, "workspaceId" text NOT NULL REFERENCES "workspaces"("id") ON DELETE CASCADE, "name" text NOT NULL, "description" text, "instructions" text, "model" text NOT NULL, "status" text DEFAULT 'draft' NOT NULL, "systemToolsEnabled" integer DEFAULT true NOT NULL, "config" text, "createdBy" text NOT NULL REFERENCES "user"("id"), "createdAt" integer NOT NULL, "updatedAt" integer NOT NULL)`,
+	`CREATE TABLE IF NOT EXISTS "agents" ("id" text PRIMARY KEY NOT NULL, "workspaceId" text NOT NULL REFERENCES "workspaces"("id") ON DELETE CASCADE, "name" text NOT NULL, "description" text, "instructions" text, "model" text NOT NULL, "status" text DEFAULT 'draft' NOT NULL, "systemToolsEnabled" integer DEFAULT true NOT NULL, "config" text, "conversationStarters" text, "guardrailsEnabled" integer DEFAULT false NOT NULL, "createdBy" text NOT NULL REFERENCES "user"("id"), "createdAt" integer NOT NULL, "updatedAt" integer NOT NULL)`,
 
 	// Agent versions table
 	`CREATE TABLE IF NOT EXISTS "agent_versions" ("id" text PRIMARY KEY NOT NULL, "agentId" text NOT NULL REFERENCES "agents"("id") ON DELETE CASCADE, "version" integer NOT NULL, "instructions" text, "model" text NOT NULL, "config" text, "toolIds" text, "createdAt" integer NOT NULL, "createdBy" text NOT NULL REFERENCES "user"("id"))`,
@@ -101,6 +101,42 @@ const MIGRATION_STATEMENTS = [
 
 	// Webhook logs table
 	`CREATE TABLE IF NOT EXISTS "webhook_logs" ("id" text PRIMARY KEY NOT NULL, "webhookId" text NOT NULL REFERENCES "webhooks"("id") ON DELETE CASCADE, "event" text NOT NULL, "payload" text NOT NULL, "status" text DEFAULT 'pending' NOT NULL, "responseStatus" integer, "responseBody" text, "attempts" integer DEFAULT 1 NOT NULL, "error" text, "createdAt" integer NOT NULL, "completedAt" integer)`,
+
+	// Message feedback table
+	`CREATE TABLE IF NOT EXISTS "message_feedback" ("id" text PRIMARY KEY NOT NULL, "messageId" text NOT NULL REFERENCES "messages"("id") ON DELETE CASCADE, "conversationId" text NOT NULL REFERENCES "conversations"("id") ON DELETE CASCADE, "agentId" text NOT NULL REFERENCES "agents"("id") ON DELETE CASCADE, "workspaceId" text NOT NULL REFERENCES "workspaces"("id") ON DELETE CASCADE, "userId" text REFERENCES "user"("id") ON DELETE SET NULL, "rating" text NOT NULL, "comment" text, "createdAt" integer NOT NULL)`,
+
+	// Knowledge bases table
+	`CREATE TABLE IF NOT EXISTS "knowledge_bases" ("id" text PRIMARY KEY NOT NULL, "workspaceId" text NOT NULL REFERENCES "workspaces"("id") ON DELETE CASCADE, "name" text NOT NULL, "description" text, "createdBy" text NOT NULL REFERENCES "user"("id"), "createdAt" integer NOT NULL, "updatedAt" integer NOT NULL)`,
+
+	// Documents table
+	`CREATE TABLE IF NOT EXISTS "documents" ("id" text PRIMARY KEY NOT NULL, "knowledgeBaseId" text NOT NULL REFERENCES "knowledge_bases"("id") ON DELETE CASCADE, "workspaceId" text NOT NULL REFERENCES "workspaces"("id") ON DELETE CASCADE, "name" text NOT NULL, "type" text NOT NULL, "status" text DEFAULT 'pending' NOT NULL, "r2Key" text, "sourceUrl" text, "sizeBytes" integer, "chunkCount" integer DEFAULT 0, "tokenCount" integer DEFAULT 0, "error" text, "metadata" text, "uploadedBy" text NOT NULL REFERENCES "user"("id"), "createdAt" integer NOT NULL, "updatedAt" integer NOT NULL)`,
+
+	// Document chunks table
+	`CREATE TABLE IF NOT EXISTS "document_chunks" ("id" text PRIMARY KEY NOT NULL, "documentId" text NOT NULL REFERENCES "documents"("id") ON DELETE CASCADE, "knowledgeBaseId" text NOT NULL REFERENCES "knowledge_bases"("id") ON DELETE CASCADE, "chunkIndex" integer NOT NULL, "content" text NOT NULL, "tokenCount" integer, "vectorId" text, "metadata" text, "createdAt" integer NOT NULL)`,
+
+	// Agent knowledge bases junction table
+	`CREATE TABLE IF NOT EXISTS "agent_knowledge_bases" ("id" text PRIMARY KEY NOT NULL, "agentId" text NOT NULL REFERENCES "agents"("id") ON DELETE CASCADE, "knowledgeBaseId" text NOT NULL REFERENCES "knowledge_bases"("id") ON DELETE CASCADE, "createdAt" integer NOT NULL)`,
+
+	// Guardrails table
+	`CREATE TABLE IF NOT EXISTS "guardrails" ("id" text PRIMARY KEY NOT NULL, "agentId" text NOT NULL REFERENCES "agents"("id") ON DELETE CASCADE, "workspaceId" text NOT NULL REFERENCES "workspaces"("id") ON DELETE CASCADE, "name" text NOT NULL, "description" text, "type" text NOT NULL, "action" text DEFAULT 'block' NOT NULL, "enabled" integer DEFAULT true NOT NULL, "config" text, "message" text, "createdAt" integer NOT NULL, "updatedAt" integer NOT NULL)`,
+
+	// Guardrail violations table
+	`CREATE TABLE IF NOT EXISTS "guardrail_violations" ("id" text PRIMARY KEY NOT NULL, "guardrailId" text NOT NULL REFERENCES "guardrails"("id") ON DELETE CASCADE, "agentId" text NOT NULL REFERENCES "agents"("id") ON DELETE CASCADE, "workspaceId" text NOT NULL REFERENCES "workspaces"("id") ON DELETE CASCADE, "direction" text NOT NULL, "actionTaken" text NOT NULL, "triggerContent" text, "details" text, "createdAt" integer NOT NULL)`,
+
+	// Workflows table
+	`CREATE TABLE IF NOT EXISTS "workflows" ("id" text PRIMARY KEY NOT NULL, "workspaceId" text NOT NULL REFERENCES "workspaces"("id") ON DELETE CASCADE, "name" text NOT NULL, "description" text, "status" text DEFAULT 'draft' NOT NULL, "canvasLayout" text, "createdBy" text NOT NULL REFERENCES "user"("id"), "createdAt" integer NOT NULL, "updatedAt" integer NOT NULL)`,
+
+	// Workflow nodes table
+	`CREATE TABLE IF NOT EXISTS "workflow_nodes" ("id" text PRIMARY KEY NOT NULL, "workflowId" text NOT NULL REFERENCES "workflows"("id") ON DELETE CASCADE, "type" text NOT NULL, "agentId" text REFERENCES "agents"("id") ON DELETE SET NULL, "label" text NOT NULL, "config" text, "positionX" integer DEFAULT 0 NOT NULL, "positionY" integer DEFAULT 0 NOT NULL, "createdAt" integer NOT NULL)`,
+
+	// Workflow edges table
+	`CREATE TABLE IF NOT EXISTS "workflow_edges" ("id" text PRIMARY KEY NOT NULL, "workflowId" text NOT NULL REFERENCES "workflows"("id") ON DELETE CASCADE, "sourceNodeId" text NOT NULL REFERENCES "workflow_nodes"("id") ON DELETE CASCADE, "targetNodeId" text NOT NULL REFERENCES "workflow_nodes"("id") ON DELETE CASCADE, "label" text, "config" text, "createdAt" integer NOT NULL)`,
+
+	// Workflow executions table
+	`CREATE TABLE IF NOT EXISTS "workflow_executions" ("id" text PRIMARY KEY NOT NULL, "workflowId" text NOT NULL REFERENCES "workflows"("id") ON DELETE CASCADE, "workspaceId" text NOT NULL REFERENCES "workspaces"("id") ON DELETE CASCADE, "status" text DEFAULT 'pending' NOT NULL, "input" text, "output" text, "triggeredBy" text REFERENCES "user"("id"), "startedAt" integer NOT NULL, "completedAt" integer, "durationMs" integer, "error" text)`,
+
+	// Workflow step executions table
+	`CREATE TABLE IF NOT EXISTS "workflow_step_executions" ("id" text PRIMARY KEY NOT NULL, "executionId" text NOT NULL REFERENCES "workflow_executions"("id") ON DELETE CASCADE, "nodeId" text NOT NULL REFERENCES "workflow_nodes"("id") ON DELETE CASCADE, "agentId" text REFERENCES "agents"("id") ON DELETE SET NULL, "status" text DEFAULT 'pending' NOT NULL, "input" text, "output" text, "startedAt" integer, "completedAt" integer, "durationMs" integer, "error" text)`,
 ]
 
 /**

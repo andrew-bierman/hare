@@ -204,28 +204,22 @@ export async function signUpViaUI(page: Page, user = TEST_USER): Promise<void> {
 	await page.waitForSelector('form', { state: 'visible', timeout: 10000 })
 
 	// Wait for React hydration - the form inputs need event handlers attached
-	// Click the name field and wait for it to become focused (proves hydration)
 	const nameInput = page.locator('#name')
 	await nameInput.waitFor({ state: 'visible', timeout: 10000 })
-	await nameInput.click()
-	// Wait for React hydration to complete (SSR form is visible before event handlers attach)
-	await page.waitForTimeout(1000)
 
-	// Use pressSequentially for React controlled input compatibility
-	await nameInput.pressSequentially(user.name, { delay: 30 })
+	// Use fill() for React controlled inputs - more reliable than pressSequentially
+	// fill() triggers proper input/change events that React's synthetic event system handles
+	await nameInput.fill(user.name)
 
 	const emailInput = page.locator('#email')
-	await emailInput.click()
-	await emailInput.pressSequentially(user.email, { delay: 20 })
+	await emailInput.fill(user.email)
 
 	const passwordInput = page.locator('#password')
-	await passwordInput.click()
-	await passwordInput.pressSequentially(user.password, { delay: 20 })
+	await passwordInput.fill(user.password)
 
 	const confirmInput = page.locator('#confirm-password')
-	await confirmInput.click()
-	await confirmInput.pressSequentially(user.password, { delay: 20 })
+	await confirmInput.fill(user.password)
 
 	await page.getByRole('button', { name: 'Create Account' }).click()
-	await page.waitForURL(/\/dashboard/, { timeout: 15000 })
+	await page.waitForURL(/\/dashboard/, { timeout: 20000 })
 }

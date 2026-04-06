@@ -1,4 +1,6 @@
+import { isAbortError, isErrorType } from '@hare/checks'
 import { z } from 'zod'
+import { Timeouts, ValidationLimits } from './constants'
 import { createTool, success, type ToolContext } from './types'
 
 // Output schema constants
@@ -140,13 +142,15 @@ export const validateEmailTool = createTool({
 			}
 
 			// Length checks
-			if (result.localPart.length > 64) {
+			if (result.localPart.length > ValidationLimits.EMAIL_LOCAL_PART_MAX) {
 				result.valid = false
-				result.errors.push('Local part too long (max 64 characters)')
+				result.errors.push(
+					`Local part too long (max ${ValidationLimits.EMAIL_LOCAL_PART_MAX} characters)`,
+				)
 			}
-			if (result.domain.length > 255) {
+			if (result.domain.length > ValidationLimits.EMAIL_DOMAIN_MAX) {
 				result.valid = false
-				result.errors.push('Domain too long (max 255 characters)')
+				result.errors.push(`Domain too long (max ${ValidationLimits.EMAIL_DOMAIN_MAX} characters)`)
 			}
 
 			// Check domain has at least one dot
@@ -206,12 +210,12 @@ export const validatePhoneTool = createTool({
 		}
 
 		// Basic length validation
-		if (digitsOnly.length < 7) {
+		if (digitsOnly.length < ValidationLimits.PHONE_MIN_DIGITS) {
 			result.valid = false
-			result.errors.push('Phone number too short (min 7 digits)')
-		} else if (digitsOnly.length > 15) {
+			result.errors.push(`Phone number too short (min ${ValidationLimits.PHONE_MIN_DIGITS} digits)`)
+		} else if (digitsOnly.length > ValidationLimits.PHONE_MAX_DIGITS) {
 			result.valid = false
-			result.errors.push('Phone number too long (max 15 digits)')
+			result.errors.push(`Phone number too long (max ${ValidationLimits.PHONE_MAX_DIGITS} digits)`)
 		}
 
 		// Country-specific validation
@@ -288,7 +292,11 @@ export const validateUrlTool = createTool({
 			.optional()
 			.default(false)
 			.describe('Check if URL is reachable (HEAD request)'),
-		timeout: z.number().optional().default(5000).describe('Timeout for reachability check'),
+		timeout: z
+			.number()
+			.optional()
+			.default(Timeouts.URL_REACHABILITY)
+			.describe('Timeout for reachability check'),
 	}),
 	outputSchema: UrlValidationOutputSchema,
 	execute: async (params, _context) => {
@@ -359,7 +367,7 @@ export const validateUrlTool = createTool({
 					}
 				} catch (error) {
 					result.reachable = false
-					if (error instanceof Error && error.name === 'AbortError') {
+					if (isAbortError(error)) {
 						result.errors.push(`Reachability check timed out after ${timeout}ms`)
 					} else {
 						result.errors.push('URL is not reachable')
@@ -448,7 +456,7 @@ export const validateCreditCardTool = createTool({
 		for (let i = cleaned.length - 1; i >= 0; i--) {
 			const char = cleaned[i]
 			if (!char) continue
-			let digit = parseInt(char, 10)
+			let digit = Number.parseInt(char, 10)
 
 			if (isEven) {
 				digit *= 2
@@ -666,14 +674,14 @@ export const validateJsonTool = createTool({
 				result.type = typeof result.parsed
 			}
 		} catch (error) {
-			if (error instanceof SyntaxError) {
+			if (isErrorType(error, SyntaxError)) {
 				result.errors.push(error.message)
 
 				// Try to extract position from error message
 				const posMatch = error.message.match(/position (\d+)/)
 				const posStr = posMatch?.[1]
 				if (posStr) {
-					const pos = parseInt(posStr, 10)
+					const pos = Number.parseInt(posStr, 10)
 					const lines = json.substring(0, pos).split('\n')
 					const lastLine = lines[lines.length - 1]
 					result.position = {
