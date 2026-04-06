@@ -36,6 +36,7 @@ import agentWs, { chatApp } from './routes/agent-ws'
 import auth from './routes/auth'
 import billingWebhook from './routes/billing'
 import dev from './routes/dev'
+import embedRoutes from './routes/embed'
 import mcp from './routes/mcp'
 import type { HonoEnv } from '@hare/types'
 
@@ -103,6 +104,7 @@ const routes = app
 	.route('/agent-ws', agentWs)
 	.route('/chat', chatApp)
 	.route('/dev', dev)
+	.route('/embed', embedRoutes)
 	.route('/mcp', mcp)
 	.route('/rpc', orpcApp)
 
