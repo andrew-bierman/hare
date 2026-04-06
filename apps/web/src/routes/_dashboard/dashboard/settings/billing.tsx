@@ -5,8 +5,7 @@ export const Route = createFileRoute('/_dashboard/dashboard/settings/billing')({
 	component: BillingPageWrapper,
 	validateSearch: (search: Record<string, unknown>) => {
 		return {
-			success: search.success === 'true' ? 'true' : undefined,
-			canceled: search.canceled === 'true' ? 'true' : undefined,
+			credits: typeof search.credits === 'string' ? search.credits : undefined,
 		}
 	},
 })
