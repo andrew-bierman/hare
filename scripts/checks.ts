@@ -14,8 +14,9 @@
  *   bun run scripts/checks.ts --fix              # Auto-fix issues where possible
  *
  * Available flags:
- *   --check-deps Check monorepo dependency consistency
- *   --sort-pkg   Check package.json files are sorted
+ *   --check-deps    Check monorepo dependency consistency
+ *   --check-catalog Check shared deps use bun catalog
+ *   --sort-pkg      Check package.json files are sorted
  *   --sync-tauri Sync Tauri routes with web app
  *   --lint       Run linting and formatting
  *   --typecheck  Run TypeScript type checking
@@ -53,6 +54,13 @@ const AVAILABLE_CHECKS: CheckConfig[] = [
     name: "Check Deps",
     command: "bun run check-deps",
     description: "Check monorepo dependency consistency",
+  },
+  {
+    id: "check-catalog",
+    name: "Check Catalog",
+    command: "bun run check-catalog",
+    fixCommand: "bun run check-catalog:fix",
+    description: "Check shared deps use bun catalog",
   },
   {
     id: "sort-pkg",
@@ -95,6 +103,7 @@ const AVAILABLE_CHECKS: CheckConfig[] = [
 
 const DEFAULT_CHECK_IDS = [
   "check-deps",
+  "check-catalog",
   "sort-pkg",
   "sync-tauri",
   "lint",
