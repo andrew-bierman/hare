@@ -60,7 +60,7 @@ function serializeAgent(
 		description: agent.description,
 		model: agent.model,
 		instructions: agent.instructions,
-		config: agent.config as z.infer<typeof AgentSchema>['config'],
+		config: agent.config ?? undefined,
 		status: agent.status as z.infer<typeof AgentSchema>['status'],
 		systemToolsEnabled: agent.systemToolsEnabled,
 		toolIds,

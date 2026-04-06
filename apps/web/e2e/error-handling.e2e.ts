@@ -91,7 +91,9 @@ baseTest.describe('Error Handling - 404 Not Found', () => {
 test.describe('Error Handling - Dashboard 404', () => {
 	test('displays dashboard 404 for invalid dashboard routes', async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/dashboard/invalid-route-12345')
-		await authenticatedPage.waitForSelector('main', { state: 'visible' })
+		// Wait for navigation to settle - page may show 404 or redirect
+		await authenticatedPage.waitForLoadState('domcontentloaded')
+		await authenticatedPage.waitForTimeout(2000)
 
 		// Wait for 404 content to appear
 		// The DashboardNotFound uses CardTitle (a div, not a heading) with text "Page not found"
@@ -105,7 +107,7 @@ test.describe('Error Handling - Dashboard 404', () => {
 		const is404Page = await notFoundText
 			.or(notFoundDescription)
 			.or(goBackButton)
-			.isVisible({ timeout: 15000 })
+			.isVisible({ timeout: 10000 })
 			.catch(() => false)
 
 		// If we see the 404 page, verify the navigation buttons

@@ -116,7 +116,7 @@ test.describe('Dashboard Home - Quick Actions', () => {
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 
 		// Click the Create Agent quick action
-		const createAgentLink = authenticatedPage.locator('a').filter({ hasText: 'Create Agent' })
+		const createAgentLink = authenticatedPage.locator('a').filter({ hasText: 'Create Agent' }).first()
 		await createAgentLink.click()
 
 		// Should navigate to agents/new
@@ -596,8 +596,11 @@ test.describe('Dashboard Home - Responsive Design', () => {
 			},
 		)
 
-		// Quick actions section should be visible - look for the Create Agent text
-		await expect(authenticatedPage.getByText('Create Agent').first()).toBeVisible({
+		// Quick actions section should be visible - check for the new agent button/link
+		// which is always at the top of the dashboard content
+		await expect(
+			authenticatedPage.locator('a[href="/dashboard/agents/new"]').first(),
+		).toBeVisible({
 			timeout: 10000,
 		})
 	})

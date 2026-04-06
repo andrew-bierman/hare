@@ -1,2 +1,2 @@
-DROP TABLE `subscription`;--> statement-breakpoint
-ALTER TABLE `user` DROP COLUMN `stripeCustomerId`;
+DROP TABLE IF EXISTS `subscription`;--> statement-breakpoint
+ALTER TABLE `user` DROP COLUMN IF EXISTS `stripeCustomerId`;
