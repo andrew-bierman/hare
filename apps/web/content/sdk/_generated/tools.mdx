@@ -78,25 +78,6 @@ Returns a failure result if the tool is not found or validation fails.
 
 ## Types
 
-### AgentControlEnv
-
-Extended environment for agent control tools.
-Requires database and optional Durable Object bindings.
-
-| Property | Type | Description |
-|----------|------|-------------|
-| `DB` | `D1Database` | D1 database - required for agent queries |
-| `HARE_AGENT` (optional) | `DurableObjectNamespace` | HareAgent Durable Object namespace - required for agent operations |
-
-### AgentControlContext
-
-Extended context for agent control tools.
-Provides access to database for real implementations.
-
-| Property | Type | Description |
-|----------|------|-------------|
-| `env` | `AgentControlEnv` | - |
-
 ### ToolDatabase
 
 Database abstraction for tool loading.
@@ -184,6 +165,25 @@ code validation, and audit logging. Bash execution is disabled by default.
 | `allowNetwork` | `boolean` | Allow network access in sandbox |
 | `workDir` | `string` | Working directory in sandbox |
 
+### AgentControlEnv
+
+Extended environment for agent control tools.
+Requires database and optional Durable Object bindings.
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `DB` | `D1Database` | D1 database - required for agent queries |
+| `HARE_AGENT` (optional) | `DurableObjectNamespace` | HareAgent Durable Object namespace - required for agent operations |
+
+### AgentControlContext
+
+Extended context for agent control tools.
+Provides access to database for real implementations.
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `env` | `AgentControlEnv` | - |
+
 ### ToolContext
 
 Tool execution context providing access to Cloudflare bindings.
@@ -269,17 +269,83 @@ Configuration for creating a tool.
 
 ## Functions
 
-### `getAgentControlTools(_context: ToolContext): ExecutableTool[]`
+### `getTransformTools(_context: ToolContext): void`
 
-Get agent control tools
+Get all transform tools
 
-### `getKVTools(_context: ToolContext): void`
+### `getR2Tools(_context: ToolContext): void`
 
-Get all KV tools.
+Get all R2 tools.
 
-### `getSQLTools(_context: ToolContext): void`
+### `getAITools(_context: ToolContext): void`
 
-Get all SQL tools.
+Get all AI tools.
+
+### `getSystemTools(context: ToolContext): AnyTool[]`
+
+Get all system tools available to agents.
+This includes all built-in tools across all categories.
+
+**Example:**
+
+```ts
+```ts
+const tools = getSystemTools({
+  env: { AI: env.AI, KV: env.KV },
+  workspaceId: 'my-workspace',
+  userId: 'user-123'
+})
+```
+```
+
+### `getToolsByCategory({
+	category,
+	context,
+}: {
+	category: ToolCategory
+	context: ToolContext
+}): AnyTool[]`
+
+Get tools by category.
+
+**Example:**
+
+```ts
+```ts
+const aiTools = getToolsByCategory('ai', context)
+const storageTools = getToolsByCategory('storage', context)
+```
+```
+
+### `getSystemToolsMap(context: ToolContext): Map<string, AnyTool>`
+
+Get a map of all system tool IDs to their tools.
+
+### `isSystemTool(toolId: string): toolId is SystemToolId`
+
+Check if a tool ID is a system tool.
+
+### `getIntegrationTools(_context: ToolContext): void`
+
+Get all integration tools.
+
+Zapier tools (for external services via saved integrations) + generic webhook (for custom integrations)
+
+### `getValidationTools(_context: ToolContext): void`
+
+Get all validation tools
+
+### `getSearchTools(_context: ToolContext): void`
+
+Get all search tools.
+
+### `getBrowserTools(_context: ToolContext): void`
+
+Get all browser tools.
+
+### `getMemoryTools(_context: ToolContext<HareEnv>): void`
+
+Get all memory tools.
 
 ### `loadAgentTools(input: LoadAgentToolsInput): Promise<AnyTool[]>`
 
@@ -295,30 +361,43 @@ Load tools attached to an agent from the database.
 
 Create an executable tool from a database configuration.
 
+### `getKVTools(_context: ToolContext): void`
+
+Get all KV tools.
+
+### `getHTTPTools(_context: ToolContext): void`
+
+Get all HTTP tools.
+
 ### `getAgentBuilderTools(context: ToolContext): AnyTool[]`
 
 Get all tools for the Agent Builder agent.
 Includes both builder-specific tools and agent-control tools.
 
-### `getAITools(_context: ToolContext): void`
+### `executeSandboxed({
+	code,
+	language,
+	context,
+	config = {},
+}: {
+	code: string
+	language: 'javascript' | 'python' | 'bash'
+	context: ToolContext
+	config?: Partial<SandboxConfig>
+}): Promise<ToolResult<T>>`
 
-Get all AI tools.
+Execute code using Cloudflare Sandbox SDK
 
-### `getSearchTools(_context: ToolContext): void`
+When SANDBOX binding is available, uses true container isolation.
+Otherwise, falls back to in-Worker sandboxed execution.
 
-Get all search tools.
+Security measures:
+- Rate limiting per workspace
+- Dangerous pattern detection
+- Audit logging
+- Bash disabled by default (requires explicit opt-in)
 
-### `getUtilityTools(_context: ToolContext): void`
-
-Get all utility tools.
-
-### `getMemoryTools(_context: ToolContext<HareEnv>): void`
-
-Get all memory tools.
-
-### `getDataTools(_context: ToolContext): void`
-
-Get all data tools.
+### `getSandboxTools(_context: ToolContext): void`
 
 ### `delegateTo({
 	tool,
@@ -373,40 +452,21 @@ execute: async (params, context) => {
 ```
 ```
 
-### `executeSandboxed({
-	code,
-	language,
-	context,
-	config = {},
-}: {
-	code: string
-	language: 'javascript' | 'python' | 'bash'
-	context: ToolContext
-	config?: Partial<SandboxConfig>
-}): Promise<ToolResult<T>>`
+### `getDataTools(_context: ToolContext): void`
 
-Execute code using Cloudflare Sandbox SDK
+Get all data tools.
 
-When SANDBOX binding is available, uses true container isolation.
-Otherwise, falls back to in-Worker sandboxed execution.
+### `getAgentControlTools(_context: ToolContext): ExecutableTool[]`
 
-Security measures:
-- Rate limiting per workspace
-- Dangerous pattern detection
-- Audit logging
-- Bash disabled by default (requires explicit opt-in)
+Get agent control tools
 
-### `getSandboxTools(_context: ToolContext): void`
+### `getUtilityTools(_context: ToolContext): void`
 
-### `getHTTPTools(_context: ToolContext): void`
+Get all utility tools.
 
-Get all HTTP tools.
+### `getSQLTools(_context: ToolContext): void`
 
-### `getIntegrationTools(_context: ToolContext): void`
-
-Get all integration tools.
-
-Zapier tools (for external services via saved integrations) + generic webhook (for custom integrations)
+Get all SQL tools.
 
 ### `createTool(config: ToolDefinition<TInput, TOutput>): Tool<TInput, TOutput>`
 
@@ -476,67 +536,699 @@ const result = await streamText({ model, messages, tools: toolSet })
 ```
 ```
 
-### `getBrowserTools(_context: ToolContext): void`
-
-Get all browser tools.
-
-### `getR2Tools(_context: ToolContext): void`
-
-Get all R2 tools.
-
-### `getValidationTools(_context: ToolContext): void`
-
-Get all validation tools
-
-### `getTransformTools(_context: ToolContext): void`
-
-Get all transform tools
-
-### `getSystemTools(context: ToolContext): AnyTool[]`
-
-Get all system tools available to agents.
-This includes all built-in tools across all categories.
-
-**Example:**
-
-```ts
-```ts
-const tools = getSystemTools({
-  env: { AI: env.AI, KV: env.KV },
-  workspaceId: 'my-workspace',
-  userId: 'user-123'
-})
-```
-```
-
-### `getToolsByCategory({
-	category,
-	context,
-}: {
-	category: ToolCategory
-	context: ToolContext
-}): AnyTool[]`
-
-Get tools by category.
-
-**Example:**
-
-```ts
-```ts
-const aiTools = getToolsByCategory('ai', context)
-const storageTools = getToolsByCategory('storage', context)
-```
-```
-
-### `getSystemToolsMap(context: ToolContext): Map<string, AnyTool>`
-
-Get a map of all system tool IDs to their tools.
-
-### `isSystemTool(toolId: string): toolId is SystemToolId`
-
-Check if a tool ID is a system tool.
-
 ## Tools
+
+### markdown
+
+Parse Markdown to HTML or extract structure (headings, links, images, code blocks).
+
+**Parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `operation` | `unknown` | Operation to perform |
+| `markdown` | `string` | Markdown content to process |
+| `options` (optional) | `boolean` | Sanitize HTML output |
+
+### diff
+
+Compare two texts and generate a diff. Shows additions, deletions, and changes.
+
+**Parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `original` | `string` | Original text |
+| `modified` | `string` | Modified text |
+| `mode` (optional) | `unknown` | Comparison mode |
+| `context` (optional) | `number` | Lines of context around changes |
+
+### qrcode
+
+Generate QR codes as SVG. Can encode URLs, text, vCards, WiFi credentials, and more.
+
+**Parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `data` | `string` | Data to encode in the QR code |
+| `type` (optional) | `unknown` | Data type |
+| `size` (optional) | `number` | QR code size in pixels |
+| `errorCorrection` (optional) | `unknown` | Error correction level |
+| `wifiOptions` (optional) | `string` | - |
+| `vcardOptions` (optional) | `string` | - |
+
+### compression
+
+Compress or decompress data using gzip or deflate. Works with text or base64 binary data.
+
+**Parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `operation` | `enum` | Operation to perform |
+| `data` | `string` | Data to compress/decompress |
+| `algorithm` (optional) | `unknown` | Compression algorithm |
+| `encoding` (optional) | `unknown` | Input/output encoding |
+
+### color
+
+Convert between color formats (hex, rgb, hsl) and perform color operations (lighten, darken, blend).
+
+**Parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `operation` | `unknown` | Operation |
+| `color` | `string` | Color value (hex, rgb, hsl, or named color) |
+| `format` (optional) | `unknown` | Output format |
+| `amount` (optional) | `number` | Amount for lighten/darken (0-1) |
+| `color2` (optional) | `string` | Second color for blend operation |
+| `blendRatio` (optional) | `number` | Blend ratio (0-1) |
+
+### r2_get
+
+Retrieve an object from Cloudflare R2 storage by key. Returns the object content and metadata.
+
+**Parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `key` | `string` | The key (path) of the object to retrieve |
+
+### r2_put
+
+Store an object in Cloudflare R2 storage.
+
+**Parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `key` | `string` | The key (path) to store the object under |
+| `content` | `string` | The content to store |
+| `contentType` (optional) | `string` | The MIME type of the content |
+| `metadata` (optional) | `string` | Custom metadata to store with the object |
+
+### r2_delete
+
+Delete an object from Cloudflare R2 storage.
+
+**Parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `key` | `string` | The key (path) of the object to delete |
+
+### r2_list
+
+List objects in Cloudflare R2 storage with optional prefix filtering.
+
+**Parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `prefix` (optional) | `string` | Filter objects by prefix (folder path) |
+| `limit` (optional) | `number` | Maximum number of objects to return |
+| `cursor` (optional) | `string` | Cursor for pagination |
+| `delimiter` (optional) | `unknown` | - |
+
+### r2_head
+
+Get metadata for an R2 object without downloading the content.
+
+**Parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `key` | `string` | The key (path) of the object |
+
+### sentiment
+
+Analyze the sentiment of text. Returns positive, negative, or neutral classification with confidence scores.
+
+**Parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `text` | `string` | Text to analyze for sentiment |
+| `detailed` (optional) | `boolean` | Return detailed emotion breakdown |
+
+### summarize
+
+Generate a concise summary of longer text content. Useful for distilling articles, documents, or conversations.
+
+**Parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `text` | `string` | Text content to summarize |
+| `maxLength` (optional) | `number` | Maximum summary length in words |
+| `style` (optional) | `unknown` | Summary style |
+
+### translate
+
+Translate text from one language to another. Supports many common languages.
+
+**Parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `text` | `string` | Text to translate |
+| `targetLanguage` | `unknown` | - |
+| `sourceLanguage` (optional) | `unknown` | Source language code (auto-detect if not specified) |
+
+### image_generate
+
+Generate images from text descriptions using AI. Returns the image as base64-encoded data.
+
+**Parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `prompt` | `string` | Description of the image to generate |
+| `negativePrompt` (optional) | `string` | Things to avoid in the image |
+| `width` (optional) | `number` | Image width (256-1024) |
+| `height` (optional) | `number` | Image height (256-1024) |
+| `steps` (optional) | `number` | Number of diffusion steps (1-50) |
+| `guidance` (optional) | `number` | Guidance scale (1-20) |
+
+### classify
+
+Classify text into custom categories. Useful for routing, tagging, or categorizing content.
+
+**Parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `text` | `string` | Text to classify |
+| `categories` | `array` | List of possible categories |
+| `multiLabel` (optional) | `unknown` | Allow multiple categories to match |
+
+### ner
+
+Extract named entities from text such as people, organizations, locations, dates, and more.
+
+**Parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `text` | `string` | Text to analyze for entities |
+| `entityTypes` (optional) | `unknown` | Specific entity types to extract (all if not specified) |
+
+### embedding
+
+Generate vector embeddings for text. Useful for semantic search, similarity comparison, and clustering.
+
+**Parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `text` | `string` | Text or array of texts to embed |
+| `model` (optional) | `unknown` | Embedding model to use |
+
+### question_answer
+
+Answer questions based on provided context. Useful for RAG and document Q&A.
+
+**Parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `question` | `string` | Question to answer |
+| `context` | `string` | Context/document to find the answer in |
+| `options` (optional) | `number` | Maximum answer length |
+
+### zapier_save
+
+**Parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `name` | `unknown` | - |
+| `webhookUrl` | `string` | Zapier webhook URL (https://hooks.zapier.com/...) |
+| `description` | `unknown` | What does this integration do? |
+| `defaultData` (optional) | `string` | Default data to include with every trigger (can be overridden) |
+
+### zapier_list
+
+**Parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `includeStats` (optional) | `unknown` | Include trigger count and last triggered time |
+
+### zapier_trigger
+
+**Parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `name` (optional) | `string` | - |
+| `webhookUrl` (optional) | `unknown` | Direct Zapier webhook URL (use if not using a saved name) |
+| `data` (optional) | `string` | Data to send to the Zap |
+| `waitForResponse` (optional) | `unknown` | Wait for Zap response (requires Webhooks by Zapier premium) |
+
+### zapier_delete
+
+**Parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `name` | `string` | Name of the integration to delete |
+
+### zapier_test
+
+**Parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `name` | `string` | Name of the integration to test |
+| `testData` (optional) | `string` | Test data to send |
+
+### zapier
+
+**Parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `webhookUrl` | `string` | Zapier webhook URL (https://hooks.zapier.com/...) |
+| `data` | `record` | Data to send (available in your Zap) |
+| `waitForResponse` (optional) | `unknown` | Wait for Zap response (requires Webhooks by Zapier premium) |
+
+### webhook
+
+Send data to any webhook endpoint with authentication support.
+
+**Parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `url` | `string` | Webhook URL |
+| `method` (optional) | `enum` | - |
+| `data` | `unknown` | Request body |
+| `headers` (optional) | `record` | Custom headers |
+| `auth` (optional) | `enum` | - |
+| `timeout` (optional) | `number` | - |
+
+### validate_email
+
+Validate email addresses. Checks format, common typos, and optionally checks MX records.
+
+**Parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `email` | `string` | Email address to validate |
+| `checkMx` (optional) | `boolean` | Check if domain has valid MX records |
+| `suggestCorrection` (optional) | `unknown` | Suggest corrections for common typos |
+
+### validate_phone
+
+Validate and format phone numbers. Supports international formats.
+
+**Parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `phone` | `string` | Phone number to validate |
+| `country` (optional) | `unknown` | Expected country code (ISO 3166-1 alpha-2) |
+| `format` (optional) | `unknown` | Output format |
+
+### validate_url
+
+Validate URLs. Checks format, protocol, and optionally verifies the URL is reachable.
+
+**Parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `url` | `string` | URL to validate |
+| `allowedProtocols` (optional) | `string` | Allowed protocols |
+| `checkReachable` (optional) | `unknown` | Check if URL is reachable (HEAD request) |
+| `timeout` (optional) | `number` | Timeout for reachability check |
+
+### validate_credit_card
+
+Validate credit card numbers using the Luhn algorithm. Detects card type (Visa, Mastercard, etc.).
+
+**Parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `number` | `string` | Credit card number to validate |
+| `validateExpiry` (optional) | `boolean` | Also validate expiry date |
+| `expiryMonth` (optional) | `number` | Expiry month (1-12) |
+| `expiryYear` (optional) | `number` | Expiry year (2-digit or 4-digit) |
+
+### validate_ip
+
+Validate IP addresses (IPv4 and IPv6). Detects type and checks for reserved ranges.
+
+**Parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `ip` | `string` | IP address to validate |
+| `checkType` (optional) | `boolean` | Detect IP type and range |
+
+### validate_json
+
+Validate JSON strings. Provides detailed error messages for invalid JSON.
+
+**Parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `json` | `string` | JSON string to validate |
+| `strict` (optional) | `unknown` | Strict mode (no trailing commas, no comments) |
+
+### ai_search
+
+Search through indexed documents and data using AI-powered semantic search. Returns relevant results from your workspace knowledge base.
+
+**Parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `query` | `string` | The search query |
+| `maxResults` (optional) | `number` | Maximum number of results (1-50) |
+| `rewriteQuery` (optional) | `unknown` | Optimize query for better retrieval |
+| `scoreThreshold` (optional) | `number` | Minimum relevance score (0-1) |
+
+### ai_search_answer
+
+Search through indexed documents and generate an AI answer based on the retrieved context. Best for question-answering. Only searches your workspace data.
+
+**Parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `query` | `string` | The question or search query |
+| `maxResults` (optional) | `number` | Maximum context results (1-50) |
+| `systemPrompt` (optional) | `string` | Custom system prompt for the AI response |
+
+### browse_url
+
+Navigate to a URL using a headless browser and extract the page text content. Useful for reading web pages that require JavaScript rendering.
+
+**Parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `url` | `string` | The URL to navigate to |
+
+### screenshot
+
+Take a screenshot of a web page and store it in R2 storage. Returns the storage path for the screenshot.
+
+**Parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `url` | `string` | The URL to screenshot |
+| `width` (optional) | `number` | Viewport width in pixels (default: 1280) |
+| `height` (optional) | `number` | Viewport height in pixels (default: 720) |
+| `fullPage` (optional) | `unknown` | Capture the full scrollable page (default: false) |
+
+### recall_memory
+
+Search your long-term memory for relevant information. Use this to recall facts, context, user preferences, or past conversations that may be helpful.
+
+**Parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `query` | `unknown` | What to search for in memory (natural language query) |
+| `topK` (optional) | `unknown` | Number of memories to retrieve |
+| `type` (optional) | `unknown` | Filter by memory type |
+| `tags` (optional) | `array` | Filter by specific tags |
+
+### store_memory
+
+Store important information in long-term memory. Use this to remember facts, user preferences, context, or key points from conversations that should be recalled later.
+
+**Parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `content` | `unknown` | The information to remember. Be specific and include relevant context. |
+| `type` (optional) | `unknown` | Category of memory (fact, context, preference, conversation, custom) |
+| `tags` (optional) | `array` | Tags for categorization and filtering |
+| `source` (optional) | `string` | Source of this information (e.g., conversation ID) |
+
+### kv_get
+
+Retrieve a value from Cloudflare KV storage by key. Returns the stored value or null if not found.
+
+**Parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `key` | `string` | The key to retrieve from KV storage |
+| `type` (optional) | `unknown` | The type to return the value as |
+
+### kv_put
+
+Store a value in Cloudflare KV storage. Supports optional expiration.
+
+**Parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `key` | `string` | The key to store the value under |
+| `value` | `string` | The value to store |
+| `expirationTtl` (optional) | `number` | Time to live in seconds |
+| `metadata` (optional) | `string` | Optional metadata to store with the key |
+
+### kv_delete
+
+Delete a key from Cloudflare KV storage.
+
+**Parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `key` | `string` | The key to delete from KV storage |
+
+### kv_list
+
+List keys in Cloudflare KV storage with optional prefix filtering.
+
+**Parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `prefix` (optional) | `string` | Filter keys by prefix |
+| `limit` (optional) | `number` | Maximum number of keys to return |
+| `cursor` (optional) | `string` | Cursor for pagination |
+
+### http_request
+
+Make an HTTP request to an external API. Supports GET, POST, PUT, PATCH, DELETE methods.
+
+**Parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `url` | `string` | The URL to send the request to |
+| `method` (optional) | `unknown` | HTTP method |
+| `headers` (optional) | `record` | Additional headers to include |
+| `body` (optional) | `string` | Request body (for POST, PUT, PATCH) |
+| `timeout` (optional) | `number` | Request timeout in milliseconds |
+
+### http_get
+
+Make a simple HTTP GET request.
+
+**Parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `url` | `string` | The URL to fetch |
+| `headers` (optional) | `record` | Additional headers |
+
+### http_post
+
+Make an HTTP POST request with a JSON body.
+
+**Parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `url` | `string` | The URL to post to |
+| `body` | `unknown` | The JSON body to send |
+| `headers` (optional) | `record` | Additional headers |
+
+### agent_list_models
+
+List all available AI models with their capabilities, costs, speed tiers, and context windows. Use this to help users choose the right model for their agent.
+
+**Parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `provider` (optional) | `unknown` | Filter by provider (optional) |
+| `supportsTools` (optional) | `boolean` | Only show models that support tool calling |
+
+### agent_list_templates
+
+List all pre-built agent templates that can be used as starting points. Templates include instructions, suggested tools, and model configurations.
+
+### agent_validate_config
+
+Validate an agent configuration before creation. Returns errors, warnings, and a preview of what will be created.
+
+**Parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `name` | `string` | Agent name (1-100 characters) |
+| `description` (optional) | `string` | Agent description (max 500 chars) |
+| `instructions` | `string` | System instructions (1-10000 characters) |
+| `model` | `string` | Model ID to use |
+| `config` (optional) | `number` | Model configuration parameters |
+| `toolIds` (optional) | `array` | Tool IDs to attach (max 20) |
+
+### agent_export_config
+
+Export agent configuration as JSON, TypeScript SDK code, or cURL command. Useful for version control, sharing, or programmatic creation.
+
+**Parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `config` (optional) | `string` | Agent configuration to export |
+| `format` | `unknown` | Export format: json, typescript (SDK code), or curl (API command) |
+
+### agent_suggest_tools
+
+Suggest appropriate tools based on the agent use case. Analyzes the use case description and recommends relevant tools with explanations.
+
+**Parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `useCase` | `unknown` | - |
+| `description` (optional) | `unknown` | Additional details about what the agent needs to do |
+
+### code_execute
+
+**Parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `code` | `string` | Code to execute (max 25KB) |
+| `language` | `unknown` | Programming language (bash is disabled for security) |
+| `timeout` (optional) | `number` | Timeout in ms |
+
+### code_validate
+
+**Parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `code` | `string` | Code to validate |
+| `language` | `enum` | - |
+
+### sandbox_file
+
+**Parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `operation` | `enum` | File operation (delete disabled) |
+| `path` | `unknown` | Relative file path in sandbox workspace |
+| `content` (optional) | `string` | Content for write |
+
+### rss
+
+Fetch and parse RSS or Atom feeds. Returns structured feed data with items.
+
+**Parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `url` | `string` | URL of the RSS/Atom feed |
+| `limit` (optional) | `number` | Maximum number of items to return |
+| `includeContent` (optional) | `boolean` | Include full content of items |
+
+### scrape
+
+Fetch a web page and extract text content. Can extract specific elements by CSS-like patterns or get clean text.
+
+**Parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `url` | `string` | URL of the web page to scrape |
+| `extract` (optional) | `unknown` | What to extract from the page |
+| `selector` (optional) | `unknown` | CSS-like selector pattern to extract specific content |
+| `maxLength` (optional) | `number` | Maximum content length to return |
+| `timeout` (optional) | `number` | Request timeout in milliseconds |
+
+### regex
+
+Work with regular expressions: test patterns, find matches, extract groups, or replace text.
+
+**Parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `operation` | `unknown` | Regex operation |
+| `text` | `string` | Text to operate on |
+| `pattern` | `string` | Regular expression pattern |
+| `flags` (optional) | `string` | Regex flags (g, i, m, s, u) |
+| `replacement` (optional) | `string` | Replacement string for replace operation |
+| `groupNames` (optional) | `array` | Names for captured groups in extract |
+
+### crypto
+
+Encrypt or decrypt data using AES-GCM. Generate secure random values.
+
+**Parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `operation` | `unknown` | Crypto operation |
+| `data` (optional) | `string` | Data to encrypt/decrypt |
+| `key` (optional) | `string` | Base64-encoded encryption key (256-bit) |
+| `iv` (optional) | `string` | Base64-encoded initialization vector (for decrypt) |
+| `bytes` (optional) | `number` | Number of random bytes to generate |
+
+### json_schema
+
+Validate JSON data against a JSON Schema. Returns validation results and errors.
+
+**Parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `data` | `unknown` | Data to validate |
+| `schema` (optional) | `string` | JSON Schema to validate against |
+
+### csv
+
+Parse CSV text to JSON or convert JSON arrays to CSV format.
+
+**Parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `operation` | `enum` | CSV operation |
+| `data` | `string` | CSV string to parse or array of objects to stringify |
+| `options` (optional) | `string` | - |
+
+### template
+
+Render templates with variable substitution. Supports Mustache-like {{variable}} syntax.
+
+**Parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `template` | `string` | Template string with {{variable}} placeholders |
+| `variables` | `record` | Variables to substitute |
+| `options` (optional) | `enum` | - |
 
 ### agent_list
 
@@ -727,257 +1419,6 @@ Delete a webhook from an agent
 | `agentId` | `string` | The agent the webhook belongs to |
 | `webhookId` | `string` | The webhook to delete |
 
-### kv_get
-
-Retrieve a value from Cloudflare KV storage by key. Returns the stored value or null if not found.
-
-**Parameters:**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `key` | `string` | The key to retrieve from KV storage |
-| `type` (optional) | `unknown` | The type to return the value as |
-
-### kv_put
-
-Store a value in Cloudflare KV storage. Supports optional expiration.
-
-**Parameters:**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `key` | `string` | The key to store the value under |
-| `value` | `string` | The value to store |
-| `expirationTtl` (optional) | `number` | Time to live in seconds |
-| `metadata` (optional) | `string` | Optional metadata to store with the key |
-
-### kv_delete
-
-Delete a key from Cloudflare KV storage.
-
-**Parameters:**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `key` | `string` | The key to delete from KV storage |
-
-### kv_list
-
-List keys in Cloudflare KV storage with optional prefix filtering.
-
-**Parameters:**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `prefix` (optional) | `string` | Filter keys by prefix |
-| `limit` (optional) | `number` | Maximum number of keys to return |
-| `cursor` (optional) | `string` | Cursor for pagination |
-
-### sql_query
-
-Execute a read-only SQL query on agent data tables. Only SELECT statements on allowed tables are permitted. System tables are not accessible.
-
-**Parameters:**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `query` | `string` | The SQL SELECT query to execute |
-| `params` (optional) | `string` | Query parameters for prepared statement |
-
-### sql_execute
-
-Execute a SQL statement that modifies agent data (INSERT, UPDATE, DELETE). Only allowed on agent data tables.
-
-**Parameters:**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `statement` | `string` | The SQL statement to execute |
-| `params` (optional) | `string` | Statement parameters for prepared statement |
-
-### sql_batch
-
-Execute multiple SQL statements in a batch. All statements run in a transaction. Only allowed on agent data tables.
-
-**Parameters:**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `statements` (optional) | `object` | The SQL statement |
-
-### agent_list_models
-
-List all available AI models with their capabilities, costs, speed tiers, and context windows. Use this to help users choose the right model for their agent.
-
-**Parameters:**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `provider` (optional) | `unknown` | Filter by provider (optional) |
-| `supportsTools` (optional) | `boolean` | Only show models that support tool calling |
-
-### agent_list_templates
-
-List all pre-built agent templates that can be used as starting points. Templates include instructions, suggested tools, and model configurations.
-
-### agent_validate_config
-
-Validate an agent configuration before creation. Returns errors, warnings, and a preview of what will be created.
-
-**Parameters:**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `name` | `string` | Agent name (1-100 characters) |
-| `description` (optional) | `string` | Agent description (max 500 chars) |
-| `instructions` | `string` | System instructions (1-10000 characters) |
-| `model` | `string` | Model ID to use |
-| `config` (optional) | `number` | Model configuration parameters |
-| `toolIds` (optional) | `array` | Tool IDs to attach (max 20) |
-
-### agent_export_config
-
-Export agent configuration as JSON, TypeScript SDK code, or cURL command. Useful for version control, sharing, or programmatic creation.
-
-**Parameters:**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `config` (optional) | `string` | Agent configuration to export |
-| `format` | `unknown` | Export format: json, typescript (SDK code), or curl (API command) |
-
-### agent_suggest_tools
-
-Suggest appropriate tools based on the agent use case. Analyzes the use case description and recommends relevant tools with explanations.
-
-**Parameters:**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `useCase` | `unknown` | - |
-| `description` (optional) | `unknown` | Additional details about what the agent needs to do |
-
-### sentiment
-
-Analyze the sentiment of text. Returns positive, negative, or neutral classification with confidence scores.
-
-**Parameters:**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `text` | `string` | Text to analyze for sentiment |
-| `detailed` (optional) | `boolean` | Return detailed emotion breakdown |
-
-### summarize
-
-Generate a concise summary of longer text content. Useful for distilling articles, documents, or conversations.
-
-**Parameters:**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `text` | `string` | Text content to summarize |
-| `maxLength` (optional) | `number` | Maximum summary length in words |
-| `style` (optional) | `unknown` | Summary style |
-
-### translate
-
-Translate text from one language to another. Supports many common languages.
-
-**Parameters:**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `text` | `string` | Text to translate |
-| `targetLanguage` | `unknown` | - |
-| `sourceLanguage` (optional) | `unknown` | Source language code (auto-detect if not specified) |
-
-### image_generate
-
-Generate images from text descriptions using AI. Returns the image as base64-encoded data.
-
-**Parameters:**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `prompt` | `string` | Description of the image to generate |
-| `negativePrompt` (optional) | `string` | Things to avoid in the image |
-| `width` (optional) | `number` | Image width (256-1024) |
-| `height` (optional) | `number` | Image height (256-1024) |
-| `steps` (optional) | `number` | Number of diffusion steps (1-50) |
-| `guidance` (optional) | `number` | Guidance scale (1-20) |
-
-### classify
-
-Classify text into custom categories. Useful for routing, tagging, or categorizing content.
-
-**Parameters:**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `text` | `string` | Text to classify |
-| `categories` | `array` | List of possible categories |
-| `multiLabel` (optional) | `unknown` | Allow multiple categories to match |
-
-### ner
-
-Extract named entities from text such as people, organizations, locations, dates, and more.
-
-**Parameters:**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `text` | `string` | Text to analyze for entities |
-| `entityTypes` (optional) | `unknown` | Specific entity types to extract (all if not specified) |
-
-### embedding
-
-Generate vector embeddings for text. Useful for semantic search, similarity comparison, and clustering.
-
-**Parameters:**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `text` | `string` | Text or array of texts to embed |
-| `model` (optional) | `unknown` | Embedding model to use |
-
-### question_answer
-
-Answer questions based on provided context. Useful for RAG and document Q&A.
-
-**Parameters:**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `question` | `string` | Question to answer |
-| `context` | `string` | Context/document to find the answer in |
-| `options` (optional) | `number` | Maximum answer length |
-
-### ai_search
-
-Search through indexed documents and data using AI-powered semantic search. Returns relevant results from your workspace knowledge base.
-
-**Parameters:**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `query` | `string` | The search query |
-| `maxResults` (optional) | `number` | Maximum number of results (1-50) |
-| `rewriteQuery` (optional) | `unknown` | Optimize query for better retrieval |
-| `scoreThreshold` (optional) | `number` | Minimum relevance score (0-1) |
-
-### ai_search_answer
-
-Search through indexed documents and generate an AI answer based on the retrieved context. Best for question-answering. Only searches your workspace data.
-
-**Parameters:**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `query` | `string` | The question or search query |
-| `maxResults` (optional) | `number` | Maximum context results (1-50) |
-| `systemPrompt` (optional) | `string` | Custom system prompt for the AI response |
-
 ### datetime
 
 Get current date/time, format dates, parse dates, or calculate time differences. Supports ISO 8601 and common formats.
@@ -1112,476 +1553,35 @@ Wait for a specified amount of time before continuing. Useful for rate limiting 
 | `duration` | `unknown` | Duration to wait in milliseconds (max 30 seconds) |
 | `reason` (optional) | `string` | Reason for the delay (for logging) |
 
-### recall_memory
+### sql_query
 
-Search your long-term memory for relevant information. Use this to recall facts, context, user preferences, or past conversations that may be helpful.
-
-**Parameters:**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `query` | `unknown` | What to search for in memory (natural language query) |
-| `topK` (optional) | `unknown` | Number of memories to retrieve |
-| `type` (optional) | `unknown` | Filter by memory type |
-| `tags` (optional) | `array` | Filter by specific tags |
-
-### store_memory
-
-Store important information in long-term memory. Use this to remember facts, user preferences, context, or key points from conversations that should be recalled later.
+Execute a read-only SQL query on agent data tables. Only SELECT statements on allowed tables are permitted. System tables are not accessible.
 
 **Parameters:**
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `content` | `unknown` | The information to remember. Be specific and include relevant context. |
-| `type` (optional) | `unknown` | Category of memory (fact, context, preference, conversation, custom) |
-| `tags` (optional) | `array` | Tags for categorization and filtering |
-| `source` (optional) | `string` | Source of this information (e.g., conversation ID) |
+| `query` | `string` | The SQL SELECT query to execute |
+| `params` (optional) | `string` | Query parameters for prepared statement |
 
-### rss
+### sql_execute
 
-Fetch and parse RSS or Atom feeds. Returns structured feed data with items.
+Execute a SQL statement that modifies agent data (INSERT, UPDATE, DELETE). Only allowed on agent data tables.
 
 **Parameters:**
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `url` | `string` | URL of the RSS/Atom feed |
-| `limit` (optional) | `number` | Maximum number of items to return |
-| `includeContent` (optional) | `boolean` | Include full content of items |
+| `statement` | `string` | The SQL statement to execute |
+| `params` (optional) | `string` | Statement parameters for prepared statement |
 
-### scrape
+### sql_batch
 
-Fetch a web page and extract text content. Can extract specific elements by CSS-like patterns or get clean text.
-
-**Parameters:**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `url` | `string` | URL of the web page to scrape |
-| `extract` (optional) | `unknown` | What to extract from the page |
-| `selector` (optional) | `unknown` | CSS-like selector pattern to extract specific content |
-| `maxLength` (optional) | `number` | Maximum content length to return |
-| `timeout` (optional) | `number` | Request timeout in milliseconds |
-
-### regex
-
-Work with regular expressions: test patterns, find matches, extract groups, or replace text.
+Execute multiple SQL statements in a batch. All statements run in a transaction. Only allowed on agent data tables.
 
 **Parameters:**
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `operation` | `unknown` | Regex operation |
-| `text` | `string` | Text to operate on |
-| `pattern` | `string` | Regular expression pattern |
-| `flags` (optional) | `string` | Regex flags (g, i, m, s, u) |
-| `replacement` (optional) | `string` | Replacement string for replace operation |
-| `groupNames` (optional) | `array` | Names for captured groups in extract |
-
-### crypto
-
-Encrypt or decrypt data using AES-GCM. Generate secure random values.
-
-**Parameters:**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `operation` | `unknown` | Crypto operation |
-| `data` (optional) | `string` | Data to encrypt/decrypt |
-| `key` (optional) | `string` | Base64-encoded encryption key (256-bit) |
-| `iv` (optional) | `string` | Base64-encoded initialization vector (for decrypt) |
-| `bytes` (optional) | `number` | Number of random bytes to generate |
-
-### json_schema
-
-Validate JSON data against a JSON Schema. Returns validation results and errors.
-
-**Parameters:**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `data` | `unknown` | Data to validate |
-| `schema` (optional) | `string` | JSON Schema to validate against |
-
-### csv
-
-Parse CSV text to JSON or convert JSON arrays to CSV format.
-
-**Parameters:**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `operation` | `enum` | CSV operation |
-| `data` | `string` | CSV string to parse or array of objects to stringify |
-| `options` (optional) | `string` | - |
-
-### template
-
-Render templates with variable substitution. Supports Mustache-like {{variable}} syntax.
-
-**Parameters:**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `template` | `string` | Template string with {{variable}} placeholders |
-| `variables` | `record` | Variables to substitute |
-| `options` (optional) | `enum` | - |
-
-### code_execute
-
-**Parameters:**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `code` | `string` | Code to execute (max 25KB) |
-| `language` | `unknown` | Programming language (bash is disabled for security) |
-| `timeout` (optional) | `number` | Timeout in ms |
-
-### code_validate
-
-**Parameters:**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `code` | `string` | Code to validate |
-| `language` | `enum` | - |
-
-### sandbox_file
-
-**Parameters:**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `operation` | `enum` | File operation (delete disabled) |
-| `path` | `unknown` | Relative file path in sandbox workspace |
-| `content` (optional) | `string` | Content for write |
-
-### http_request
-
-Make an HTTP request to an external API. Supports GET, POST, PUT, PATCH, DELETE methods.
-
-**Parameters:**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `url` | `string` | The URL to send the request to |
-| `method` (optional) | `unknown` | HTTP method |
-| `headers` (optional) | `record` | Additional headers to include |
-| `body` (optional) | `string` | Request body (for POST, PUT, PATCH) |
-| `timeout` (optional) | `number` | Request timeout in milliseconds |
-
-### http_get
-
-Make a simple HTTP GET request.
-
-**Parameters:**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `url` | `string` | The URL to fetch |
-| `headers` (optional) | `record` | Additional headers |
-
-### http_post
-
-Make an HTTP POST request with a JSON body.
-
-**Parameters:**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `url` | `string` | The URL to post to |
-| `body` | `unknown` | The JSON body to send |
-| `headers` (optional) | `record` | Additional headers |
-
-### zapier_save
-
-**Parameters:**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `name` | `unknown` | - |
-| `webhookUrl` | `string` | Zapier webhook URL (https://hooks.zapier.com/...) |
-| `description` | `unknown` | What does this integration do? |
-| `defaultData` (optional) | `string` | Default data to include with every trigger (can be overridden) |
-
-### zapier_list
-
-**Parameters:**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `includeStats` (optional) | `unknown` | Include trigger count and last triggered time |
-
-### zapier_trigger
-
-**Parameters:**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `name` (optional) | `string` | - |
-| `webhookUrl` (optional) | `unknown` | Direct Zapier webhook URL (use if not using a saved name) |
-| `data` (optional) | `string` | Data to send to the Zap |
-| `waitForResponse` (optional) | `unknown` | Wait for Zap response (requires Webhooks by Zapier premium) |
-
-### zapier_delete
-
-**Parameters:**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `name` | `string` | Name of the integration to delete |
-
-### zapier_test
-
-**Parameters:**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `name` | `string` | Name of the integration to test |
-| `testData` (optional) | `string` | Test data to send |
-
-### zapier
-
-**Parameters:**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `webhookUrl` | `string` | Zapier webhook URL (https://hooks.zapier.com/...) |
-| `data` | `record` | Data to send (available in your Zap) |
-| `waitForResponse` (optional) | `unknown` | Wait for Zap response (requires Webhooks by Zapier premium) |
-
-### webhook
-
-Send data to any webhook endpoint with authentication support.
-
-**Parameters:**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `url` | `string` | Webhook URL |
-| `method` (optional) | `enum` | - |
-| `data` | `unknown` | Request body |
-| `headers` (optional) | `record` | Custom headers |
-| `auth` (optional) | `enum` | - |
-| `timeout` (optional) | `number` | - |
-
-### browse_url
-
-Navigate to a URL using a headless browser and extract the page text content. Useful for reading web pages that require JavaScript rendering.
-
-**Parameters:**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `url` | `string` | The URL to navigate to |
-
-### screenshot
-
-Take a screenshot of a web page and store it in R2 storage. Returns the storage path for the screenshot.
-
-**Parameters:**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `url` | `string` | The URL to screenshot |
-| `width` (optional) | `number` | Viewport width in pixels (default: 1280) |
-| `height` (optional) | `number` | Viewport height in pixels (default: 720) |
-| `fullPage` (optional) | `unknown` | Capture the full scrollable page (default: false) |
-
-### r2_get
-
-Retrieve an object from Cloudflare R2 storage by key. Returns the object content and metadata.
-
-**Parameters:**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `key` | `string` | The key (path) of the object to retrieve |
-
-### r2_put
-
-Store an object in Cloudflare R2 storage.
-
-**Parameters:**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `key` | `string` | The key (path) to store the object under |
-| `content` | `string` | The content to store |
-| `contentType` (optional) | `string` | The MIME type of the content |
-| `metadata` (optional) | `string` | Custom metadata to store with the object |
-
-### r2_delete
-
-Delete an object from Cloudflare R2 storage.
-
-**Parameters:**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `key` | `string` | The key (path) of the object to delete |
-
-### r2_list
-
-List objects in Cloudflare R2 storage with optional prefix filtering.
-
-**Parameters:**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `prefix` (optional) | `string` | Filter objects by prefix (folder path) |
-| `limit` (optional) | `number` | Maximum number of objects to return |
-| `cursor` (optional) | `string` | Cursor for pagination |
-| `delimiter` (optional) | `unknown` | - |
-
-### r2_head
-
-Get metadata for an R2 object without downloading the content.
-
-**Parameters:**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `key` | `string` | The key (path) of the object |
-
-### validate_email
-
-Validate email addresses. Checks format, common typos, and optionally checks MX records.
-
-**Parameters:**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `email` | `string` | Email address to validate |
-| `checkMx` (optional) | `boolean` | Check if domain has valid MX records |
-| `suggestCorrection` (optional) | `unknown` | Suggest corrections for common typos |
-
-### validate_phone
-
-Validate and format phone numbers. Supports international formats.
-
-**Parameters:**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `phone` | `string` | Phone number to validate |
-| `country` (optional) | `unknown` | Expected country code (ISO 3166-1 alpha-2) |
-| `format` (optional) | `unknown` | Output format |
-
-### validate_url
-
-Validate URLs. Checks format, protocol, and optionally verifies the URL is reachable.
-
-**Parameters:**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `url` | `string` | URL to validate |
-| `allowedProtocols` (optional) | `string` | Allowed protocols |
-| `checkReachable` (optional) | `unknown` | Check if URL is reachable (HEAD request) |
-| `timeout` (optional) | `number` | Timeout for reachability check |
-
-### validate_credit_card
-
-Validate credit card numbers using the Luhn algorithm. Detects card type (Visa, Mastercard, etc.).
-
-**Parameters:**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `number` | `string` | Credit card number to validate |
-| `validateExpiry` (optional) | `boolean` | Also validate expiry date |
-| `expiryMonth` (optional) | `number` | Expiry month (1-12) |
-| `expiryYear` (optional) | `number` | Expiry year (2-digit or 4-digit) |
-
-### validate_ip
-
-Validate IP addresses (IPv4 and IPv6). Detects type and checks for reserved ranges.
-
-**Parameters:**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `ip` | `string` | IP address to validate |
-| `checkType` (optional) | `boolean` | Detect IP type and range |
-
-### validate_json
-
-Validate JSON strings. Provides detailed error messages for invalid JSON.
-
-**Parameters:**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `json` | `string` | JSON string to validate |
-| `strict` (optional) | `unknown` | Strict mode (no trailing commas, no comments) |
-
-### markdown
-
-Parse Markdown to HTML or extract structure (headings, links, images, code blocks).
-
-**Parameters:**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `operation` | `unknown` | Operation to perform |
-| `markdown` | `string` | Markdown content to process |
-| `options` (optional) | `boolean` | Sanitize HTML output |
-
-### diff
-
-Compare two texts and generate a diff. Shows additions, deletions, and changes.
-
-**Parameters:**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `original` | `string` | Original text |
-| `modified` | `string` | Modified text |
-| `mode` (optional) | `unknown` | Comparison mode |
-| `context` (optional) | `number` | Lines of context around changes |
-
-### qrcode
-
-Generate QR codes as SVG. Can encode URLs, text, vCards, WiFi credentials, and more.
-
-**Parameters:**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `data` | `string` | Data to encode in the QR code |
-| `type` (optional) | `unknown` | Data type |
-| `size` (optional) | `number` | QR code size in pixels |
-| `errorCorrection` (optional) | `unknown` | Error correction level |
-| `wifiOptions` (optional) | `string` | - |
-| `vcardOptions` (optional) | `string` | - |
-
-### compression
-
-Compress or decompress data using gzip or deflate. Works with text or base64 binary data.
-
-**Parameters:**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `operation` | `enum` | Operation to perform |
-| `data` | `string` | Data to compress/decompress |
-| `algorithm` (optional) | `unknown` | Compression algorithm |
-| `encoding` (optional) | `unknown` | Input/output encoding |
-
-### color
-
-Convert between color formats (hex, rgb, hsl) and perform color operations (lighten, darken, blend).
-
-**Parameters:**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `operation` | `unknown` | Operation |
-| `color` | `string` | Color value (hex, rgb, hsl, or named color) |
-| `format` (optional) | `unknown` | Output format |
-| `amount` (optional) | `number` | Amount for lighten/darken (0-1) |
-| `color2` (optional) | `string` | Second color for blend operation |
-| `blendRatio` (optional) | `number` | Blend ratio (0-1) |
+| `statements` (optional) | `object` | The SQL statement |
 
