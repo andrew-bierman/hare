@@ -13,6 +13,9 @@ export * from './conversations'
 // Deployment tables
 export * from './deployments'
 
+// Evaluation tables
+export * from './evaluations'
+
 // Guardrails tables
 export * from './guardrails'
 
@@ -27,6 +30,9 @@ export * from './schedules'
 
 // Tool tables
 export * from './tools'
+
+// Trigger tables
+export * from './triggers'
 
 // Usage and API key tables
 export * from './usage'

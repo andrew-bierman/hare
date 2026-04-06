@@ -122,6 +122,21 @@ const MIGRATION_STATEMENTS = [
 
 	// Guardrail violations table
 	`CREATE TABLE IF NOT EXISTS "guardrail_violations" ("id" text PRIMARY KEY NOT NULL, "guardrailId" text NOT NULL REFERENCES "guardrails"("id") ON DELETE CASCADE, "agentId" text NOT NULL REFERENCES "agents"("id") ON DELETE CASCADE, "workspaceId" text NOT NULL REFERENCES "workspaces"("id") ON DELETE CASCADE, "direction" text NOT NULL, "actionTaken" text NOT NULL, "triggerContent" text, "details" text, "createdAt" integer NOT NULL)`,
+
+	// Agent triggers table
+	`CREATE TABLE IF NOT EXISTS "agent_triggers" ("id" text PRIMARY KEY NOT NULL, "agentId" text NOT NULL REFERENCES "agents"("id") ON DELETE CASCADE, "type" text NOT NULL, "name" text NOT NULL, "description" text, "config" text, "enabled" integer DEFAULT true NOT NULL, "status" text DEFAULT 'active' NOT NULL, "webhookPath" text UNIQUE, "lastTriggeredAt" integer, "triggerCount" integer DEFAULT 0 NOT NULL, "createdBy" text NOT NULL REFERENCES "user"("id"), "createdAt" integer NOT NULL, "updatedAt" integer NOT NULL)`,
+
+	// Trigger executions table
+	`CREATE TABLE IF NOT EXISTS "trigger_executions" ("id" text PRIMARY KEY NOT NULL, "triggerId" text NOT NULL REFERENCES "agent_triggers"("id") ON DELETE CASCADE, "agentId" text NOT NULL REFERENCES "agents"("id") ON DELETE CASCADE, "status" text NOT NULL, "input" text, "output" text, "startedAt" integer NOT NULL, "completedAt" integer, "durationMs" integer, "error" text)`,
+
+	// Agent test cases table
+	`CREATE TABLE IF NOT EXISTS "agent_test_cases" ("id" text PRIMARY KEY NOT NULL, "agentId" text NOT NULL REFERENCES "agents"("id") ON DELETE CASCADE, "workspaceId" text NOT NULL REFERENCES "workspaces"("id") ON DELETE CASCADE, "name" text NOT NULL, "input" text NOT NULL, "expectedOutput" text NOT NULL, "evaluationType" text DEFAULT 'contains' NOT NULL, "tags" text, "enabled" integer DEFAULT true NOT NULL, "createdBy" text NOT NULL REFERENCES "user"("id"), "createdAt" integer NOT NULL, "updatedAt" integer NOT NULL)`,
+
+	// Agent test runs table
+	`CREATE TABLE IF NOT EXISTS "agent_test_runs" ("id" text PRIMARY KEY NOT NULL, "agentId" text NOT NULL REFERENCES "agents"("id") ON DELETE CASCADE, "workspaceId" text NOT NULL REFERENCES "workspaces"("id") ON DELETE CASCADE, "status" text DEFAULT 'pending' NOT NULL, "totalCases" integer DEFAULT 0 NOT NULL, "passedCases" integer DEFAULT 0 NOT NULL, "failedCases" integer DEFAULT 0 NOT NULL, "errorCases" integer DEFAULT 0 NOT NULL, "score" integer, "triggeredBy" text NOT NULL REFERENCES "user"("id"), "startedAt" integer NOT NULL, "completedAt" integer)`,
+
+	// Agent test results table
+	`CREATE TABLE IF NOT EXISTS "agent_test_results" ("id" text PRIMARY KEY NOT NULL, "testRunId" text NOT NULL REFERENCES "agent_test_runs"("id") ON DELETE CASCADE, "testCaseId" text NOT NULL REFERENCES "agent_test_cases"("id") ON DELETE CASCADE, "status" text NOT NULL, "actualOutput" text, "score" integer, "evaluationDetails" text, "durationMs" integer, "error" text, "createdAt" integer NOT NULL)`,
 ]
 
 /**

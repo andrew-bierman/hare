@@ -89,6 +89,17 @@ export {
 	MetadataSchema,
 	SuccessSchema,
 } from './common'
+// Evaluation schemas
+export {
+	CreateTestCaseSchema,
+	EvaluationTypeSchema,
+	TestCaseSchema,
+	TestResultSchema,
+	TestResultStatusSchema,
+	TestRunSchema,
+	TestRunStatusSchema,
+	UpdateTestCaseSchema,
+} from './evaluations'
 // Feedback schemas
 export {
 	CreateFeedbackSchema,
@@ -152,6 +163,17 @@ export {
 	ToolTypeSchema,
 	UpdateToolSchema,
 } from './tools'
+// Trigger schemas
+export {
+	CreateTriggerSchema,
+	TriggerConfigSchema,
+	TriggerExecutionSchema,
+	TriggerExecutionStatusSchema,
+	TriggerSchema,
+	TriggerStatusSchema,
+	TriggerTypeSchema,
+	UpdateTriggerSchema,
+} from './triggers'
 export type { HealthStatus } from './usage'
 // Usage schemas
 export {

@@ -901,6 +901,150 @@ export function useGuardrailViolationsQuery(options: {
 }
 
 // =============================================================================
+// Evaluation Hooks
+// =============================================================================
+
+export function useTestCasesQuery(agentId: string | undefined) {
+	return useQuery({
+		queryKey: ['evaluations', 'test-cases', agentId],
+		queryFn: () => orpc.evaluations.listTestCases({ agentId: agentId! }),
+		enabled: !!agentId,
+	})
+}
+
+export function useCreateTestCaseMutation() {
+	const queryClient = useQueryClient()
+	return useMutation({
+		mutationFn: (input: Parameters<typeof orpc.evaluations.createTestCase>[0]) =>
+			orpc.evaluations.createTestCase(input),
+		onSuccess: (_, variables) => {
+			queryClient.invalidateQueries({
+				queryKey: ['evaluations', 'test-cases', variables.agentId],
+			})
+		},
+	})
+}
+
+export function useUpdateTestCaseMutation() {
+	const queryClient = useQueryClient()
+	return useMutation({
+		mutationFn: (input: Parameters<typeof orpc.evaluations.updateTestCase>[0]) =>
+			orpc.evaluations.updateTestCase(input),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ['evaluations', 'test-cases'] })
+		},
+	})
+}
+
+export function useDeleteTestCaseMutation() {
+	const queryClient = useQueryClient()
+	return useMutation({
+		mutationFn: (input: { id: string }) => orpc.evaluations.deleteTestCase(input),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ['evaluations', 'test-cases'] })
+		},
+	})
+}
+
+export function useTestRunsQuery(options: { agentId: string; limit?: number; offset?: number }) {
+	return useQuery({
+		queryKey: ['evaluations', 'test-runs', options],
+		queryFn: () => orpc.evaluations.listTestRuns(options),
+		enabled: !!options.agentId,
+	})
+}
+
+export function useTestRunQuery(id: string | undefined) {
+	return useQuery({
+		queryKey: ['evaluations', 'test-runs', id],
+		queryFn: () => orpc.evaluations.getTestRun({ id: id! }),
+		enabled: !!id,
+	})
+}
+
+export function useCreateTestRunMutation() {
+	const queryClient = useQueryClient()
+	return useMutation({
+		mutationFn: (input: { agentId: string }) => orpc.evaluations.createTestRun(input),
+		onSuccess: (_, _variables) => {
+			queryClient.invalidateQueries({
+				queryKey: ['evaluations', 'test-runs'],
+			})
+		},
+	})
+}
+
+// =============================================================================
+// Trigger Hooks
+// =============================================================================
+
+export function useTriggersQuery(agentId?: string) {
+	return useQuery({
+		queryKey: ['triggers', { agentId }],
+		queryFn: () => orpc.triggers.list({ agentId }),
+		enabled: !!agentId,
+	})
+}
+
+export function useTriggerQuery(id: string | undefined) {
+	return useQuery({
+		queryKey: ['triggers', id],
+		queryFn: () => orpc.triggers.get({ id: id! }),
+		enabled: !!id,
+	})
+}
+
+export function useCreateTriggerMutation() {
+	const queryClient = useQueryClient()
+	return useMutation({
+		mutationFn: (input: Parameters<typeof orpc.triggers.create>[0]) => orpc.triggers.create(input),
+		onSuccess: (_, variables) => {
+			queryClient.invalidateQueries({ queryKey: ['triggers', { agentId: variables.agentId }] })
+		},
+	})
+}
+
+export function useUpdateTriggerMutation() {
+	const queryClient = useQueryClient()
+	return useMutation({
+		mutationFn: (input: Parameters<typeof orpc.triggers.update>[0]) => orpc.triggers.update(input),
+		onSuccess: (_, variables) => {
+			queryClient.invalidateQueries({ queryKey: ['triggers'] })
+			queryClient.invalidateQueries({ queryKey: ['triggers', variables.id] })
+		},
+	})
+}
+
+export function useDeleteTriggerMutation() {
+	const queryClient = useQueryClient()
+	return useMutation({
+		mutationFn: (input: { id: string }) => orpc.triggers.delete(input),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ['triggers'] })
+		},
+	})
+}
+
+export function useTriggerExecutionsQuery(triggerId: string | undefined) {
+	return useQuery({
+		queryKey: ['triggers', triggerId, 'executions'],
+		queryFn: () => orpc.triggers.getExecutions({ id: triggerId! }),
+		enabled: !!triggerId,
+	})
+}
+
+export function useRegenerateWebhookPathMutation() {
+	const queryClient = useQueryClient()
+	return useMutation({
+		mutationFn: (input: { id: string }) => orpc.triggers.regenerateWebhookPath(input),
+		onSuccess: (_, variables) => {
+			queryClient.invalidateQueries({ queryKey: ['triggers'] })
+			queryClient.invalidateQueries({ queryKey: ['triggers', variables.id] })
+		},
+	})
+}
+
+// =============================================================================
 // Activity Feed Hooks
 // =============================================================================
 
