@@ -490,11 +490,9 @@ export const CloneAgentResponseSchema = z
 		id: z
 			.string()
 			.openapi({ example: 'agent_xyz789', description: 'ID of the newly cloned agent' }),
-		redirectUrl: z
-			.string()
-			.openapi({
-				example: '/dashboard/agents/agent_xyz789',
-				description: 'URL to redirect to the new agent',
-			}),
+		redirectUrl: z.string().openapi({
+			example: '/dashboard/agents/agent_xyz789',
+			description: 'URL to redirect to the new agent',
+		}),
 	})
 	.openapi('CloneAgentResponse')

@@ -89,9 +89,7 @@ export function createMockKV(): MockKVNamespace {
 export interface MockR2Bucket {
 	_store: Map<string, { body: ArrayBuffer; metadata?: Record<string, string> }>
 	_clear(): void
-	get(
-		key: string,
-	): Promise<{
+	get(key: string): Promise<{
 		text(): Promise<string>
 		arrayBuffer(): Promise<ArrayBuffer>
 		json<T>(): Promise<T>

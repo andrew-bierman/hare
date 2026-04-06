@@ -4,6 +4,7 @@
  * Validates that all expected tool exports are available.
  */
 
+import type { ToolContext } from '@hare/tools'
 import { describe, expect, it, vi } from 'vitest'
 import * as toolsExports from '../tools'
 import { getAgentControlToolsForMcp } from '../tools/agent-control'
@@ -107,7 +108,7 @@ describe('tools/agent-control.ts', () => {
 				userId: 'test_user',
 			}
 
-			const tools = getAgentControlToolsForMcp(mockContext as any)
+			const tools = getAgentControlToolsForMcp(mockContext as unknown as ToolContext)
 			expect(tools).toBeDefined()
 			expect(Array.isArray(tools)).toBe(true)
 		})
@@ -122,7 +123,7 @@ describe('tools/agent-control.ts', () => {
 				userId: 'user_456',
 			}
 
-			getAgentControlToolsForMcp(mockContext as any)
+			getAgentControlToolsForMcp(mockContext as unknown as ToolContext)
 
 			expect(getAgentControlTools).toHaveBeenCalledWith(mockContext)
 		})

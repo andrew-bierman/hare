@@ -91,7 +91,7 @@ vi.mock('@hare/types', () => ({
 }))
 
 // Import after mocks are set up
-import { HareMcpAgent, type McpAgentState } from '../mcp-agent'
+import { HareMcpAgent, type McpAgentEnv, type McpAgentState } from '../mcp-agent'
 
 /**
  * Create a mock environment.
@@ -134,7 +134,10 @@ describe('HareMcpAgent', () => {
 		vi.clearAllMocks()
 		mockEnv = createMockEnv()
 		mockState = createMockState()
-		agent = new HareMcpAgent(mockState as any, mockEnv as any)
+		agent = new HareMcpAgent(
+			mockState as unknown as ConstructorParameters<typeof HareMcpAgent>[0],
+			mockEnv as unknown as McpAgentEnv,
+		)
 	})
 
 	describe('initialization', () => {
@@ -349,7 +352,10 @@ describe('HareMcpAgent MCP tool registration', () => {
 		vi.clearAllMocks()
 		mockEnv = createMockEnv()
 		mockState = createMockState()
-		agent = new HareMcpAgent(mockState as any, mockEnv as any)
+		agent = new HareMcpAgent(
+			mockState as unknown as ConstructorParameters<typeof HareMcpAgent>[0],
+			mockEnv as unknown as McpAgentEnv,
+		)
 		;(agent as unknown as { state: McpAgentState }).state = {
 			...agent.initialState,
 			workspaceId: 'test_workspace',
@@ -431,7 +437,10 @@ describe('HareMcpAgent workspace resource', () => {
 		vi.clearAllMocks()
 		const mockState = createMockState()
 		const mockEnv = createMockEnv()
-		agent = new HareMcpAgent(mockState as any, mockEnv as any)
+		agent = new HareMcpAgent(
+			mockState as unknown as ConstructorParameters<typeof HareMcpAgent>[0],
+			mockEnv as unknown as McpAgentEnv,
+		)
 	})
 
 	it('workspace resource returns correct URI format', async () => {
