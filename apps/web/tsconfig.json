@@ -5,8 +5,10 @@
 		"paths": {
 			"web-app/*": ["./src/*"],
 			"@hare/ui/*": ["../../packages/ui/src/*"],
-			"@hare/api": ["../../packages/api/src/index.ts"],
-			"@hare/api/*": ["../../packages/api/src/*"]
+			"@hare/api": ["../../packages/api/src/elysia/index.ts"],
+			"@hare/api/client": ["../../packages/api/src/elysia/client.ts"],
+			"@hare/api/schemas": ["../../packages/api/src/schemas/index.ts"],
+			"@hare/api/services": ["../../packages/api/src/services/index.ts"]
 		},
 		"types": ["bun", "vite/client", "@cloudflare/workers-types"]
 	},

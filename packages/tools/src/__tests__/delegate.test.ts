@@ -53,6 +53,8 @@ describe('Tool Delegation', () => {
 						return failure('Division by zero')
 					}
 					return success({ result: params.a / params.b })
+				default:
+					return failure('Unknown operation')
 			}
 		},
 	})

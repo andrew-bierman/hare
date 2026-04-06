@@ -105,8 +105,8 @@ function ActivityFeedSkeleton() {
 			</CardHeader>
 			<CardContent>
 				<div className="space-y-3">
-					{Array.from({ length: 5 }).map((_, i) => (
-						<div key={`skeleton-${i}`} className="flex items-start gap-3 p-3 rounded-lg border">
+					{['a', 'b', 'c', 'd', 'e'].map((id) => (
+						<div key={id} className="flex items-start gap-3 p-3 rounded-lg border">
 							<Skeleton className="h-8 w-8 rounded-lg" />
 							<div className="flex-1 space-y-2">
 								<Skeleton className="h-4 w-3/4" />

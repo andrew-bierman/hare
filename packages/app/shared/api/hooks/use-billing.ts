@@ -1,20 +1,40 @@
 'use client'
 
-import { orpc } from '@hare/api'
+import { client } from '@hare/api/client'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { billingKeys } from './query-keys'
 
 // =============================================================================
-// Types (inferred from oRPC)
+// Types
 // =============================================================================
 
-type PlansOutput = Awaited<ReturnType<typeof orpc.billing.listPlans>>
-type StatusOutput = Awaited<ReturnType<typeof orpc.billing.getStatus>>
-type PaymentHistoryOutput = Awaited<ReturnType<typeof orpc.billing.getPaymentHistory>>
+export interface Plan {
+	id: string
+	name: string
+	price: number
+	features: string[]
+}
 
-export type Plan = PlansOutput['plans'][number]
-export type BillingStatus = StatusOutput
-export type PaymentHistoryItem = PaymentHistoryOutput['payments'][number]
+export interface BillingStatus {
+	planId: string
+	planName: string
+	status: 'active' | 'canceled' | 'past_due' | 'trialing' | 'none'
+	currentPeriodEnd: string | null
+	cancelAtPeriodEnd: boolean
+	usage: {
+		agentsUsed: number
+		agentsLimit: number
+		tokensUsed: number
+		tokensLimit: number
+	}
+}
+
+export interface PaymentHistoryItem {
+	id: string
+	amount: number
+	status: string
+	createdAt: string
+}
 
 export interface CheckoutRequest {
 	planId: 'pro' | 'team'
@@ -22,77 +42,68 @@ export interface CheckoutRequest {
 	cancelUrl?: string
 }
 
+// Helper to unwrap Eden Treaty response
+async function unwrap<T>(promise: Promise<{ data: T | null; error: unknown }>): Promise<T> {
+	const { data, error } = await promise
+	if (error) throw error
+	return data as T
+}
+
 // =============================================================================
 // Hooks
 // =============================================================================
 
-/**
- * Fetch available billing plans
- * Note: workspaceId is determined by server context from the authenticated session
- */
 export function usePlansQuery(enabled = true) {
 	return useQuery({
 		queryKey: billingKeys.plans(),
-		queryFn: () => orpc.billing.listPlans({}),
+		queryFn: () => unwrap(client.api.billing.plans.get()),
 		enabled,
 	})
 }
 
-/**
- * Fetch current billing status for workspace
- * Note: workspaceId is determined by server context from the authenticated session
- */
 export function useBillingStatusQuery(enabled = true) {
 	return useQuery({
 		queryKey: billingKeys.status('current'),
-		queryFn: () => orpc.billing.getStatus({}),
+		queryFn: () => unwrap(client.api.billing.status.get()),
 		enabled,
 	})
 }
 
-/**
- * Fetch payment history
- * Note: workspaceId is determined by server context from the authenticated session
- */
 export function usePaymentHistoryQuery(options?: { limit?: number; startingAfter?: string }) {
 	return useQuery({
 		queryKey: billingKeys.invoices('current'),
 		queryFn: () =>
-			orpc.billing.getPaymentHistory({
-				limit: options?.limit,
-				starting_after: options?.startingAfter,
-			}),
+			unwrap(
+				client.api.billing.history.get({
+					query: {
+						limit: options?.limit?.toString(),
+						starting_after: options?.startingAfter,
+					},
+				}),
+			),
 	})
 }
 
-/**
- * Create checkout session for upgrading
- * Note: workspaceId is determined by server context from the authenticated session
- */
 export function useCreateCheckoutMutation() {
 	const queryClient = useQueryClient()
-
 	return useMutation({
 		mutationFn: (params: CheckoutRequest) =>
-			orpc.billing.createCheckout({
-				planId: params.planId,
-				successUrl: params.successUrl,
-				cancelUrl: params.cancelUrl,
-			}),
+			unwrap(
+				client.api.billing.checkout.post({
+					planId: params.planId,
+					successUrl: params.successUrl,
+					cancelUrl: params.cancelUrl,
+				}),
+			),
 		onSuccess: () => {
-			// Invalidate billing queries after checkout
 			queryClient.invalidateQueries({ queryKey: billingKeys.status('current') })
 			queryClient.invalidateQueries({ queryKey: billingKeys.plans() })
 		},
 	})
 }
 
-/**
- * Create customer portal session
- * Note: workspaceId is determined by server context from the authenticated session
- */
 export function useCreatePortalMutation() {
 	return useMutation({
-		mutationFn: () => orpc.billing.createPortal({}),
+		mutationFn: () => unwrap(client.api.billing.portal.post({})),
 	})
 }

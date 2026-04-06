@@ -262,7 +262,7 @@ test.describe('Analytics Time Period Selector', () => {
 		await authenticatedPage.waitForSelector('main', { state: 'visible' })
 		await authenticatedPage.waitForTimeout(2000)
 
-		// Listen for any network request (analytics data may come through oRPC)
+		// Listen for any network request (analytics data may come through API)
 		const _requestPromise = authenticatedPage
 			.waitForRequest(
 				(request) => request.url().includes('analytics') || request.url().includes('rpc'),

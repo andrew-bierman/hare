@@ -182,6 +182,8 @@ export const datetimeTool = createTool({
 						case 'years':
 							d.setFullYear(d.getFullYear() + amount * multiplier)
 							break
+						default:
+							break
 					}
 
 					return success({

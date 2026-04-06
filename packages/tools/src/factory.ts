@@ -99,6 +99,7 @@ export function createToolFromConfig({
 		case 'custom':
 			return createCustomToolFromConfig({ config, context })
 		default:
+			// biome-ignore lint/suspicious/noConsole: server logging
 			console.warn(`Unknown tool type "${config.type}" for tool ${config.id}`)
 			return null
 	}
@@ -117,6 +118,7 @@ function createHTTPToolFromConfig({
 }): AnyTool | null {
 	const parseResult = HttpToolDbConfigSchema.safeParse(config.config)
 	if (!parseResult.success) {
+		// biome-ignore lint/suspicious/noConsole: server logging
 		console.warn(`Invalid HTTP tool config for ${config.id}: ${parseResult.error.message}`)
 		return null
 	}

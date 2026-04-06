@@ -127,8 +127,8 @@ function DiffSummary({ diff }: { diff: VersionDiff | null }) {
 
 	return (
 		<div className="flex flex-wrap gap-2">
-			{changes.map((change, idx) => (
-				<Badge key={idx} variant="secondary" className="text-xs">
+			{changes.map((change) => (
+				<Badge key={change} variant="secondary" className="text-xs">
 					{change}
 				</Badge>
 			))}

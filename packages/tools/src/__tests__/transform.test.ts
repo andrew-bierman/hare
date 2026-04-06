@@ -139,7 +139,9 @@ describe('Transform Tools', () => {
 				)
 				const data = expectResultData({ result, schema: ResultSchemas.markdown })
 				expect(data.headings).toHaveLength(4)
+				// biome-ignore lint/style/noNonNullAssertion: checked by toHaveLength above
 				expect(data.headings![0]).toEqual({ level: 1, text: 'Title' })
+				// biome-ignore lint/style/noNonNullAssertion: checked by toHaveLength above
 				expect(data.headings![1]).toEqual({ level: 2, text: 'Section 1' })
 			})
 		})
@@ -407,6 +409,7 @@ describe('Transform Tools', () => {
 				)
 				const data = expectResultData({ result, schema: ResultSchemas.compression })
 				expect(data.compressed).toBeDefined()
+				// biome-ignore lint/style/noNonNullAssertion: originalSize always present for compress
 				expect(data.compressedSize).toBeLessThan(data.originalSize!)
 			})
 
@@ -425,6 +428,7 @@ describe('Transform Tools', () => {
 				const decompressed = await compressionTool.execute(
 					{
 						operation: 'decompress',
+						// biome-ignore lint/style/noNonNullAssertion: compressed always present after compress
 						data: compressedData.compressed!,
 						algorithm: 'gzip',
 						encoding: 'text',

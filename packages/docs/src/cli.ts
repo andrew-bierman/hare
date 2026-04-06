@@ -64,6 +64,7 @@ async function main() {
 	const baseDir = findMonorepoRoot(process.cwd())
 
 	if (verbose) {
+		// biome-ignore lint/suspicious/noConsole: CLI output
 		console.log(`Monorepo root: ${baseDir}`)
 	}
 
@@ -75,6 +76,7 @@ async function main() {
 }
 
 main().catch((err) => {
+	// biome-ignore lint/suspicious/noConsole: CLI output
 	console.error('Error generating docs:', err)
 	process.exit(1)
 })

@@ -44,6 +44,7 @@ function validateServerEnv() {
 	})
 
 	if (!result.success) {
+		// biome-ignore lint/suspicious/noConsole: server logging
 		console.error('Invalid server environment variables:', result.error.flatten().fieldErrors)
 		throw new Error('Invalid server environment variables')
 	}

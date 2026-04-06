@@ -473,6 +473,7 @@ describe('Agents Table CRUD Operations', () => {
 
 		const result = await db.select().from(agents).where(eq(agents.id, agentId))
 		expect(result).toHaveLength(1)
+		// biome-ignore lint/style/noNonNullAssertion: checked by toHaveLength(1) above
 		const agent = result[0]!
 		expect(agent.config).toEqual(config)
 		expect(agent.systemToolsEnabled).toBe(false)

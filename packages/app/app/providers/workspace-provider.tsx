@@ -1,6 +1,6 @@
 'use client'
 
-import { setOrpcWorkspaceId } from '@hare/api'
+import { setWorkspaceId } from '@hare/api/client'
 import {
 	createContext,
 	type ReactNode,
@@ -78,9 +78,9 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
 		}
 	}, [workspaces, activeWorkspace])
 
-	// Sync active workspace ID to oRPC client for X-Workspace-Id header
+	// Sync active workspace ID to Eden Treaty client for X-Workspace-Id header
 	// Set synchronously during render so queries have the ID immediately
-	setOrpcWorkspaceId(activeWorkspace?.id ?? null)
+	setWorkspaceId(activeWorkspace?.id ?? null)
 
 	return (
 		<WorkspaceContext.Provider

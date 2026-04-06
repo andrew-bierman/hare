@@ -158,7 +158,7 @@ export function AgentDetailPage({ agentId, basePath = '/dashboard/agents' }: Age
 	const [clientValidationErrors, setClientValidationErrors] = useState<ValidationErrors>({})
 	const [clientValidationWarnings, setClientValidationWarnings] = useState<ValidationWarnings>({})
 
-	// Use client-side validation only (server-side preview not available in oRPC)
+	// Use client-side validation only (server-side preview not supported)
 	const validationErrors = clientValidationErrors
 	const validationWarnings = clientValidationWarnings
 

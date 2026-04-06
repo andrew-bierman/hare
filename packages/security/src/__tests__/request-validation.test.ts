@@ -55,7 +55,9 @@ function createMockContext(
 describe('Request Validation', () => {
 	beforeEach(() => {
 		vi.clearAllMocks()
-		vi.spyOn(console, 'warn').mockImplementation(() => {})
+		vi.spyOn(console, 'warn').mockImplementation(() => {
+			// empty
+		})
 	})
 
 	describe('requestSizeLimit', () => {
@@ -477,7 +479,9 @@ describe('Request Validation', () => {
 
 		it('logs blocked header attempts', async () => {
 			const { logger } = await import('@hare/config')
-			const warnSpy = vi.spyOn(logger, 'warn').mockImplementation(() => {})
+			const warnSpy = vi.spyOn(logger, 'warn').mockImplementation(() => {
+				// empty
+			})
 			const context = createMockContext({
 				headers: {
 					'x-forwarded-host': 'evil.com',
@@ -501,7 +505,9 @@ describe('Request Validation', () => {
 
 		it('uses x-forwarded-for as fallback for IP', async () => {
 			const { logger } = await import('@hare/config')
-			const warnSpy = vi.spyOn(logger, 'warn').mockImplementation(() => {})
+			const warnSpy = vi.spyOn(logger, 'warn').mockImplementation(() => {
+				// empty
+			})
 			const context = createMockContext({
 				headers: {
 					'x-forwarded-host': 'evil.com',

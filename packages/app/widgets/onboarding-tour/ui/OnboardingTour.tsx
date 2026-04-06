@@ -143,6 +143,8 @@ function calculateTooltipPosition(options: {
 			top = targetRect.top + targetRect.height / 2 - tooltipHeight / 2
 			left = targetRect.right + padding + arrowSize
 			break
+		default:
+			break
 	}
 
 	// Clamp to viewport bounds
@@ -174,6 +176,8 @@ function getArrowStyles(position: TourStepPosition): string {
 			return cn(baseStyles, 'right-[-7px] top-1/2 -translate-y-1/2 border-t-0 border-l-0')
 		case 'right':
 			return cn(baseStyles, 'left-[-7px] top-1/2 -translate-y-1/2 border-b-0 border-r-0')
+		default:
+			return baseStyles
 	}
 }
 

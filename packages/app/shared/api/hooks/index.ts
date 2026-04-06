@@ -2,16 +2,16 @@
  * API Hooks
  *
  * Re-export all hooks from a single entry point.
- * oRPC hooks are the single source of truth for type-safe API hooks.
+ * Eden Treaty hooks are the single source of truth for type-safe API hooks.
  */
 
-// oRPC Hooks - single source of truth for type-safe API hooks
-export * from '../orpc-hooks'
+// Eden Treaty Hooks - single source of truth for type-safe API hooks
+export * from '../eden-hooks'
 // Query keys
 export * from './query-keys'
 
 // =============================================================================
-// Non-oRPC Hooks
+// Additional Hooks
 // =============================================================================
 
 // WebSocket Agent types from @hare/types

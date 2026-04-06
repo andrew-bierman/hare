@@ -2,15 +2,15 @@
  * Server Functions Pattern
  *
  * This module documents the pattern for creating type-safe server functions
- * using TanStack Start's createServerFn with oRPC.
+ * using TanStack Start's createServerFn with Eden Treaty.
  *
- * For most API calls, use the oRPC client directly:
+ * For most API calls, use the Eden Treaty client directly:
  * ```ts
- * import { orpc } from '@hare/api'
+ * import { client } from '@hare/api/client'
  *
  * // Fully type-safe - types inferred from server
- * const { agents } = await orpc.agents.list({})
- * const agent = await orpc.agents.get({ id: 'agent-123' })
+ * const { data } = await client.api.agents.get()
+ * const { data: agent } = await client.api.agents({ id: 'agent-123' }).get()
  * ```
  *
  * TanStack Start server functions are useful for:
@@ -20,12 +20,13 @@
  * @example Usage in a route loader:
  * ```ts
  * import { createServerFn } from '@tanstack/react-start/server'
- * import { orpc } from '@hare/api'
+ * import { client } from '@hare/api/client'
  *
  * const getAgent = createServerFn({ method: 'GET' })
  *   .validator((input: { id: string }) => input)
  *   .handler(async ({ data }) => {
- *     return orpc.agents.get({ id: data.id })
+ *     const { data: agent } = await client.api.agents({ id: data.id }).get()
+ *     return agent
  *   })
  *
  * export const Route = createFileRoute('/dashboard/agents/$id')({
@@ -48,32 +49,31 @@ export interface ServerFnInput<T> {
 }
 
 /**
- * Common oRPC patterns (no server functions needed for most cases):
+ * Common Eden Treaty patterns (no server functions needed for most cases):
  *
  * ```ts
- * import { orpc } from '@hare/api'
+ * import { client } from '@hare/api/client'
  *
  * // 1. List resources - types fully inferred
- * const { agents } = await orpc.agents.list({})
+ * const { data } = await client.api.agents.get()
  *
  * // 2. Get single resource
- * const agent = await orpc.agents.get({ id: 'agent-123' })
+ * const { data: agent } = await client.api.agents({ id: 'agent-123' }).get()
  *
  * // 3. Create resource - input validated at compile time
- * const created = await orpc.agents.create({
+ * const { data: created } = await client.api.agents.post({
  *   name: 'My Agent',
  *   model: '@cf/meta/llama-3.3-70b-instruct-fp8-fast',
  *   instructions: 'You are a helpful assistant.',
  * })
  *
  * // 4. Update resource
- * const updated = await orpc.agents.update({
- *   id: 'agent-123',
+ * const { data: updated } = await client.api.agents({ id: 'agent-123' }).patch({
  *   name: 'Updated Name',
  * })
  *
  * // 5. Delete resource
- * const { success } = await orpc.agents.delete({ id: 'agent-123' })
+ * const { data } = await client.api.agents({ id: 'agent-123' }).delete()
  * ```
  */
 
@@ -87,11 +87,11 @@ export interface ServerFnInput<T> {
  *
  * @example
  * ```ts
- * import { orpc } from '@hare/api'
+ * import { client } from '@hare/api/client'
  *
  * export const Route = createFileRoute('/_dashboard/dashboard/agents/$id')({
  *   loader: async ({ params }) => {
- *     const agent = await orpc.agents.get({ id: params.id })
+ *     const { data: agent } = await client.api.agents({ id: params.id }).get()
  *     return { agent }
  *   },
  *   component: function AgentPage() {

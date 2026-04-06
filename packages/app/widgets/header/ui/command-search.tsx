@@ -107,7 +107,7 @@ export function CommandSearch({ open, onOpenChange, onNavigate }: CommandSearchP
 		const items: SearchItem[] = [...ACTIONS, ...PAGES]
 
 		// Add agents
-		agentsData?.agents?.forEach((agent) => {
+		for (const agent of agentsData?.agents ?? []) {
 			items.push({
 				id: `agent-${agent.id}`,
 				type: 'agent',
@@ -115,20 +115,18 @@ export function CommandSearch({ open, onOpenChange, onNavigate }: CommandSearchP
 				description: agent.description || agent.model,
 				path: `/dashboard/agents/${agent.id}`,
 			})
-		})
+		}
 
 		// Add custom tools (non-system tools)
-		toolsData?.tools
-			?.filter((t) => !t.isSystem)
-			.forEach((tool) => {
-				items.push({
-					id: `tool-${tool.id}`,
-					type: 'tool',
-					title: tool.name,
-					description: tool.description ?? undefined,
-					path: `/dashboard/tools/${tool.id}`,
-				})
+		for (const tool of toolsData?.tools?.filter((t) => !t.isSystem) ?? []) {
+			items.push({
+				id: `tool-${tool.id}`,
+				type: 'tool',
+				title: tool.name,
+				description: tool.description ?? undefined,
+				path: `/dashboard/tools/${tool.id}`,
 			})
+		}
 
 		return items
 	}, [agentsData, toolsData])

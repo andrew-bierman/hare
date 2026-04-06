@@ -244,7 +244,7 @@ baseTest.describe('Protected Routes', () => {
 	baseTest(
 		'should handle unauthenticated API requests with 401',
 		async ({ request }: { request: import('@playwright/test').APIRequestContext }) => {
-			const response = await request.get('/api/rpc/workspaces/list')
+			const response = await request.get('/api/workspaces')
 			expect(response.status()).toBe(401)
 		},
 	)
@@ -252,7 +252,7 @@ baseTest.describe('Protected Routes', () => {
 	baseTest(
 		'should handle unauthenticated agent API requests with 401/403',
 		async ({ request }: { request: import('@playwright/test').APIRequestContext }) => {
-			const response = await request.get('/api/rpc/agents/list?workspaceId=test')
+			const response = await request.get('/api/agents?workspaceId=test')
 			expect([401, 403]).toContain(response.status())
 		},
 	)
@@ -260,7 +260,7 @@ baseTest.describe('Protected Routes', () => {
 	baseTest(
 		'should handle unauthenticated tool API requests with 401/403',
 		async ({ request }: { request: import('@playwright/test').APIRequestContext }) => {
-			const response = await request.get('/api/rpc/tools/list?workspaceId=test')
+			const response = await request.get('/api/tools?workspaceId=test')
 			expect([401, 403]).toContain(response.status())
 		},
 	)

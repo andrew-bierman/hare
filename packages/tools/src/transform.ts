@@ -452,6 +452,8 @@ export const diffTool = createTool({
 					case 'delete':
 						unifiedDiff += `-${change.value}\n`
 						break
+					default:
+						break
 				}
 			}
 		}
@@ -558,6 +560,8 @@ export const qrcodeTool = createTool({
 						.filter(Boolean)
 						.join('\n')
 				}
+				break
+			default:
 				break
 		}
 
@@ -891,6 +895,8 @@ export const colorTool = createTool({
 						break
 					case bn:
 						h = ((rn - gn) / d + 4) / 6
+						break
+					default:
 						break
 				}
 			}

@@ -440,6 +440,7 @@ Streaming response from the agent.
 |----------|------|-------------|
 | `textStream` | `AsyncIterable<string>` | - |
 | `text` | `Promise<string>` | - |
+| `usage` | `PromiseLike<LanguageModelUsage>` | - |
 
 ### HareAgentState
 
@@ -535,7 +536,11 @@ MCP Agent state.
 
 ## Functions
 
-### `toAISDKTools(hareTools: Tool<any, any>[], context: ToolContext<HareEnv>): ToolSet`
+### `toAISDKTools(opts: {
+	// biome-ignore lint/suspicious/noExplicitAny: Required for heterogeneous Hare tool arrays
+	hareTools: Tool<any, any>[]
+	context: ToolContext<HareEnv>
+}): ToolSet`
 
 Convert Hare tools (Tool<TInput, TOutput>) to the Vercel AI SDK tool format
 expected by streamText/generateText.

@@ -1,11 +1,14 @@
 {
 	"name": "@hare/api",
-	"version": "0.1.0",
-	"description": "Hono API for Hare AI agents platform",
+	"version": "2.0.0",
+	"description": "Elysia API for Hare AI agents platform",
 	"keywords": [
 		"cloudflare",
 		"workers",
-		"hono",
+		"elysia",
+		"eden-treaty",
+		"openapi",
+		"scalar",
 		"api",
 		"ai",
 		"agent"
@@ -14,36 +17,24 @@
 	"type": "module",
 	"exports": {
 		".": {
-			"types": "./src/index.ts",
-			"import": "./src/index.ts"
+			"types": "./src/elysia/index.ts",
+			"import": "./src/elysia/index.ts"
 		},
 		"./client": {
-			"types": "./src/client.ts",
-			"import": "./src/client.ts"
+			"types": "./src/elysia/client.ts",
+			"import": "./src/elysia/client.ts"
 		},
 		"./schemas": {
 			"types": "./src/schemas/index.ts",
 			"import": "./src/schemas/index.ts"
-		},
-		"./middleware": {
-			"types": "./src/middleware/index.ts",
-			"import": "./src/middleware/index.ts"
-		},
-		"./routes": {
-			"types": "./src/routes/index.ts",
-			"import": "./src/routes/index.ts"
-		},
-		"./helpers": {
-			"types": "./src/helpers/index.ts",
-			"import": "./src/helpers/index.ts"
 		},
 		"./services": {
 			"types": "./src/services/index.ts",
 			"import": "./src/services/index.ts"
 		}
 	},
-	"main": "./src/index.ts",
-	"types": "./src/index.ts",
+	"main": "./src/elysia/index.ts",
+	"types": "./src/elysia/index.ts",
 	"files": [
 		"src",
 		"README.md"
@@ -53,38 +44,35 @@
 		"typecheck": "tsc --noEmit"
 	},
 	"dependencies": {
-		"@hare/checks": "workspace:*",
-		"@elithrar/workers-hono-rate-limit": "catalog:",
+		"@elysiajs/cors": "^1.4.1",
+		"@elysiajs/eden": "^1.4.9",
+		"@elysiajs/openapi": "^1.4.14",
 		"@hare/agent": "workspace:*",
 		"@hare/auth": "workspace:*",
+		"@hare/checks": "workspace:*",
 		"@hare/config": "workspace:*",
 		"@hare/db": "workspace:*",
 		"@hare/email": "workspace:*",
 		"@hare/security": "workspace:*",
 		"@hare/tools": "workspace:*",
 		"@hare/types": "workspace:*",
-		"@orpc/client": "^1.13.2",
-		"@orpc/server": "^1.13.2",
 		"@react-email/components": "catalog:",
-		"@scalar/hono-api-reference": "catalog:",
+		"elysia": "^1.4.28",
+		"elysia-rate-limit": "^4.5.1",
 		"resend": "catalog:"
 	},
 	"devDependencies": {
 		"@cloudflare/workers-types": "catalog:",
 		"@hare/typescript-config": "workspace:*",
-		"@hono/zod-openapi": "catalog:",
 		"ai": "catalog:",
 		"drizzle-orm": "catalog:",
-		"hono": "catalog:",
 		"stripe": "catalog:",
 		"typescript": "catalog:",
 		"zod": "catalog:"
 	},
 	"peerDependencies": {
-		"@hono/zod-openapi": "^1.2.0",
 		"ai": "^6.0.0",
 		"drizzle-orm": "^0.45.1",
-		"hono": "^4.0.0",
 		"stripe": "^20.0.0",
 		"zod": "^4.0.0"
 	}

@@ -208,6 +208,7 @@ describe('router', () => {
 			const mockNamespace = env.HARE_AGENT as unknown as ReturnType<typeof createMockNamespace>
 			const fetchCall = mockNamespace.stub.fetch.mock.calls[0]?.[0] as Request | undefined
 			expect(fetchCall).toBeDefined()
+			// biome-ignore lint/style/noNonNullAssertion: checked by toBeDefined above
 			expect(new URL(fetchCall!.url).pathname).toBe('/chat')
 		})
 
@@ -228,7 +229,9 @@ describe('router', () => {
 			const mockNamespace = env.HARE_AGENT as unknown as ReturnType<typeof createMockNamespace>
 			const fetchCall = mockNamespace.stub.fetch.mock.calls[0]?.[0] as Request | undefined
 			expect(fetchCall).toBeDefined()
+			// biome-ignore lint/style/noNonNullAssertion: checked by toBeDefined above
 			expect(fetchCall!.method).toBe('GET')
+			// biome-ignore lint/style/noNonNullAssertion: checked by toBeDefined above
 			expect(fetchCall!.headers.get('x-custom')).toBe('value')
 		})
 	})
@@ -244,7 +247,9 @@ describe('router', () => {
 				workspaceId: 'workspace_123',
 			})
 
+			// biome-ignore lint/style/noNonNullAssertion: MCP_AGENT exists when includeMcpAgent: true
 			expect(env.MCP_AGENT!.idFromName).toHaveBeenCalledWith('workspace_123')
+			// biome-ignore lint/style/noNonNullAssertion: MCP_AGENT exists when includeMcpAgent: true
 			expect(env.MCP_AGENT!.get).toHaveBeenCalled()
 		})
 

@@ -5,16 +5,16 @@
  */
 
 import { config, EXECUTION_STATUSES, SCHEDULE_STATUSES, SCHEDULE_TYPES } from '@hare/config'
-import { z } from '@hono/zod-openapi'
+import { z } from 'zod'
 
 // Schedule type enum
-export const ScheduleTypeSchema = z.enum(SCHEDULE_TYPES).openapi('ScheduleType')
+export const ScheduleTypeSchema = z.enum(SCHEDULE_TYPES)
 
 // Schedule status enum
-export const ScheduleStatusSchema = z.enum(SCHEDULE_STATUSES).openapi('ScheduleStatus')
+export const ScheduleStatusSchema = z.enum(SCHEDULE_STATUSES)
 
 // Execution status enum
-export const ExecutionStatusSchema = z.enum(EXECUTION_STATUSES).openapi('ExecutionStatus')
+export const ExecutionStatusSchema = z.enum(EXECUTION_STATUSES)
 
 // Create schedule input
 export const CreateScheduleSchema = z
@@ -39,73 +39,60 @@ export const CreateScheduleSchema = z
 			message: 'one-time schedules require executeAt, recurring schedules require cron',
 		},
 	)
-	.openapi('CreateSchedule')
 
 // Update schedule input
-export const UpdateScheduleSchema = z
-	.object({
-		status: ScheduleStatusSchema.optional().describe('Update schedule status'),
-		executeAt: z.string().datetime().optional().describe('Update execution time'),
-		cron: z.string().optional().describe('Update cron expression'),
-		payload: z.record(z.string(), z.unknown()).optional().describe('Update payload'),
-	})
-	.openapi('UpdateSchedule')
+export const UpdateScheduleSchema = z.object({
+	status: ScheduleStatusSchema.optional().describe('Update schedule status'),
+	executeAt: z.string().datetime().optional().describe('Update execution time'),
+	cron: z.string().optional().describe('Update cron expression'),
+	payload: z.record(z.string(), z.unknown()).optional().describe('Update payload'),
+})
 
 // Schedule response
-export const ScheduleSchema = z
-	.object({
-		id: z.string().describe('Schedule ID'),
-		agentId: z.string().describe('Agent ID'),
-		type: ScheduleTypeSchema,
-		executeAt: z.string().datetime().nullable().describe('Execution timestamp'),
-		cron: z.string().nullable().describe('Cron expression'),
-		action: z.string().describe('Action to perform'),
-		payload: z.record(z.string(), z.unknown()).nullable().describe('Action payload'),
-		status: ScheduleStatusSchema,
-		lastExecutedAt: z.string().datetime().nullable().describe('Last execution timestamp'),
-		nextExecuteAt: z.string().datetime().nullable().describe('Next execution timestamp'),
-		executionCount: z.number().describe('Number of times executed'),
-		createdAt: z.string().datetime().describe('Creation timestamp'),
-		updatedAt: z.string().datetime().describe('Last update timestamp'),
-	})
-	.openapi('Schedule')
+export const ScheduleSchema = z.object({
+	id: z.string().describe('Schedule ID'),
+	agentId: z.string().describe('Agent ID'),
+	type: ScheduleTypeSchema,
+	executeAt: z.string().datetime().nullable().describe('Execution timestamp'),
+	cron: z.string().nullable().describe('Cron expression'),
+	action: z.string().describe('Action to perform'),
+	payload: z.record(z.string(), z.unknown()).nullable().describe('Action payload'),
+	status: ScheduleStatusSchema,
+	lastExecutedAt: z.string().datetime().nullable().describe('Last execution timestamp'),
+	nextExecuteAt: z.string().datetime().nullable().describe('Next execution timestamp'),
+	executionCount: z.number().describe('Number of times executed'),
+	createdAt: z.string().datetime().describe('Creation timestamp'),
+	updatedAt: z.string().datetime().describe('Last update timestamp'),
+})
 
 // Execution result
-export const ExecutionResultSchema = z
-	.object({
-		success: z.boolean().optional(),
-		message: z.string().optional(),
-		data: z.unknown().optional(),
-		error: z.string().optional(),
-	})
-	.openapi('ExecutionResult')
+export const ExecutionResultSchema = z.object({
+	success: z.boolean().optional(),
+	message: z.string().optional(),
+	data: z.unknown().optional(),
+	error: z.string().optional(),
+})
 
 // Execution history entry
-export const ScheduleExecutionSchema = z
-	.object({
-		id: z.string().describe('Execution ID'),
-		scheduleId: z.string().describe('Schedule ID'),
-		agentId: z.string().describe('Agent ID'),
-		status: ExecutionStatusSchema,
-		startedAt: z.string().datetime().describe('Execution start timestamp'),
-		completedAt: z.string().datetime().nullable().describe('Execution end timestamp'),
-		durationMs: z.number().nullable().describe('Duration in milliseconds'),
-		result: ExecutionResultSchema.nullable().describe('Execution result'),
-		error: z.string().nullable().describe('Error message if failed'),
-	})
-	.openapi('ScheduleExecution')
+export const ScheduleExecutionSchema = z.object({
+	id: z.string().describe('Execution ID'),
+	scheduleId: z.string().describe('Schedule ID'),
+	agentId: z.string().describe('Agent ID'),
+	status: ExecutionStatusSchema,
+	startedAt: z.string().datetime().describe('Execution start timestamp'),
+	completedAt: z.string().datetime().nullable().describe('Execution end timestamp'),
+	durationMs: z.number().nullable().describe('Duration in milliseconds'),
+	result: ExecutionResultSchema.nullable().describe('Execution result'),
+	error: z.string().nullable().describe('Error message if failed'),
+})
 
 // List schedules response
-export const ScheduleListSchema = z
-	.object({
-		schedules: z.array(ScheduleSchema),
-	})
-	.openapi('ScheduleList')
+export const ScheduleListSchema = z.object({
+	schedules: z.array(ScheduleSchema),
+})
 
 // Execution history response
-export const ExecutionHistorySchema = z
-	.object({
-		executions: z.array(ScheduleExecutionSchema),
-		total: z.number().describe('Total number of executions'),
-	})
-	.openapi('ExecutionHistory')
+export const ExecutionHistorySchema = z.object({
+	executions: z.array(ScheduleExecutionSchema),
+	total: z.number().describe('Total number of executions'),
+})

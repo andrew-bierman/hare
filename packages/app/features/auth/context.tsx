@@ -37,7 +37,9 @@ const SSR_SESSION_DATA: AuthContextValue = {
 }
 
 const SSR_ACTIONS: AuthActions = {
-	signOut: async () => {},
+	signOut: async () => {
+		// empty
+	},
 }
 
 /**

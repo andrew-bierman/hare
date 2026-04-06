@@ -15,10 +15,12 @@ function init(projectName: string) {
 	const projectDir = join(process.cwd(), projectName)
 
 	if (existsSync(projectDir)) {
+		// biome-ignore lint/suspicious/noConsole: CLI output
 		console.error(`Error: Directory "${projectName}" already exists.`)
 		process.exit(1)
 	}
 
+	// biome-ignore lint/suspicious/noConsole: CLI output
 	console.log(`Creating Hare agent project: ${projectName}`)
 
 	// Create directories
@@ -30,9 +32,11 @@ function init(projectName: string) {
 		const content = template(projectName)
 		const filePath = join(projectDir, filename)
 		writeFileSync(filePath, content)
+		// biome-ignore lint/suspicious/noConsole: CLI output
 		console.log(`  Created ${filename}`)
 	}
 
+	// biome-ignore lint/suspicious/noConsole: CLI output
 	console.log(`
 Done! Next steps:
 
@@ -54,6 +58,7 @@ if (command === 'init' && args[1]) {
 	// Assume it's a project name (for create-hare-agent usage)
 	init(command)
 } else {
+	// biome-ignore lint/suspicious/noConsole: CLI output
 	console.log(`
 Usage:
   npx @hare/cli init <project-name>

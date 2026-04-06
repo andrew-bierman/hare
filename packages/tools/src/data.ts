@@ -588,6 +588,8 @@ export const scrapeTool = createTool({
 							images: extractImages(html).slice(0, 10),
 						}
 						break
+					default:
+						break
 				}
 			}
 
