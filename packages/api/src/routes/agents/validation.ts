@@ -2,7 +2,7 @@
  * Agent validation operations (validate, preview)
  */
 
-import { config, getModelById } from '@hare/config'
+import { config, getModelById, isSystemToolId } from '@hare/config'
 import { tools as toolsTable } from '@hare/db/schema'
 import type { WorkspaceEnv } from '@hare/types'
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
@@ -352,7 +352,7 @@ export const validationApp = baseApp
 			toolsValid = false
 		}
 
-		const customToolIds = toolIds.filter((id) => !id.startsWith('system-'))
+		const customToolIds = toolIds.filter((id) => !isSystemToolId(id))
 		if (customToolIds.length > 0) {
 			const existingTools = await db
 				.select({ id: toolsTable.id })
@@ -604,7 +604,7 @@ export const validationApp = baseApp
 			toolsValid = false
 		}
 
-		const customToolIds = effectiveToolIds.filter((id) => !id.startsWith('system-'))
+		const customToolIds = effectiveToolIds.filter((id) => !isSystemToolId(id))
 		if (customToolIds.length > 0) {
 			const existingTools = await db
 				.select({ id: toolsTable.id })

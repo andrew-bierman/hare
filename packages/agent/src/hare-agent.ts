@@ -37,7 +37,7 @@ import { createWorkersAIModel } from './providers/workers-ai'
 import { toAISDKTools } from './tool-adapter'
 
 // Re-export types for convenience
-export type { HareAgentState, ClientMessage, ServerMessage }
+export type { ClientMessage, HareAgentState, ServerMessage }
 
 // =============================================================================
 // Constants

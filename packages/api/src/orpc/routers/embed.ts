@@ -11,6 +11,7 @@ import {
 	createMemoryStore,
 	toAgentMessages,
 } from '@hare/agent'
+import { AgentStatus } from '@hare/config'
 import { agents, usage } from '@hare/db/schema'
 import { eventIterator } from '@orpc/server'
 import type { ModelMessage } from 'ai'
@@ -116,7 +117,7 @@ const getAgent = publicProcedure
 		}
 
 		// Check if agent is deployed
-		if (agent.status !== 'deployed') {
+		if (agent.status !== AgentStatus.DEPLOYED) {
 			badRequest('Agent not available')
 		}
 
@@ -155,7 +156,7 @@ const chat = publicProcedure
 			return
 		}
 
-		if (agent.status !== 'deployed') {
+		if (agent.status !== AgentStatus.DEPLOYED) {
 			yield { type: 'error' as const, message: 'Agent not deployed' }
 			return
 		}

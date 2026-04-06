@@ -12,6 +12,7 @@ import {
 	createMemoryStore,
 	toAgentMessages,
 } from '@hare/agent'
+import { AgentStatus } from '@hare/config'
 import { agents, usage } from '@hare/db/schema'
 import type { HonoEnv } from '@hare/types'
 import type { ModelMessage } from 'ai'
@@ -94,7 +95,7 @@ app.get('/agents/:agentId', async (c) => {
 		return c.json({ error: 'Agent not found' }, 404)
 	}
 
-	if (agent.status !== 'deployed') {
+	if (agent.status !== AgentStatus.DEPLOYED) {
 		return c.json({ error: 'Agent not available' }, 400)
 	}
 
@@ -148,7 +149,7 @@ app.post('/agents/:agentId/chat', async (c) => {
 		return c.json({ error: 'Agent not found' }, 404)
 	}
 
-	if (agent.status !== 'deployed') {
+	if (agent.status !== AgentStatus.DEPLOYED) {
 		return c.json({ error: 'Agent not deployed' }, 400)
 	}
 

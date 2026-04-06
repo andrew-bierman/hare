@@ -10,6 +10,7 @@ import {
 	createMemoryStore,
 	toAgentMessages,
 } from '@hare/agent'
+import { AgentStatus } from '@hare/config'
 import { agents, conversations, messages, usage } from '@hare/db/schema'
 import { eventIterator } from '@orpc/server'
 import { type ModelMessage, streamText } from 'ai'
@@ -159,7 +160,7 @@ export const chatWithAgent = authedProcedure
 			return
 		}
 
-		if (agentConfig.status !== 'deployed') {
+		if (agentConfig.status !== AgentStatus.DEPLOYED) {
 			yield { type: 'error' as const, message: 'Agent not deployed' }
 			return
 		}

@@ -3,6 +3,7 @@
  */
 
 import { routeHttpToAgent } from '@hare/agent'
+import { AgentStatus } from '@hare/config'
 import { agents, deployments } from '@hare/db/schema'
 import type { WorkspaceEnv } from '@hare/types'
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
@@ -349,7 +350,7 @@ export const deploymentApp = baseApp
 			return c.json({ error: 'Agent not found' }, 404)
 		}
 
-		if (existing.status !== 'deployed') {
+		if (existing.status !== AgentStatus.DEPLOYED) {
 			return c.json({ error: 'Agent is not deployed' }, 400)
 		}
 

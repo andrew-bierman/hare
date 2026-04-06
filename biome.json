@@ -1,5 +1,5 @@
 {
-	"$schema": "https://biomejs.dev/schemas/2.3.11/schema.json",
+	"$schema": "https://biomejs.dev/schemas/2.4.10/schema.json",
 	"vcs": {
 		"enabled": true,
 		"clientKind": "git",
@@ -10,21 +10,34 @@
 		"rules": {
 			"recommended": true,
 			"complexity": {
-				"noUselessFragments": "warn"
+				"noUselessFragments": "warn",
+				"noForEach": "warn"
 			},
 			"correctness": {
 				"noUnusedImports": "error",
-				"noUnusedVariables": "error"
+				"noUnusedVariables": "error",
+				"noUndeclaredDependencies": "warn"
 			},
 			"style": {
-				"noNonNullAssertion": "off",
+				"noNonNullAssertion": "warn",
 				"useConst": "error",
-				"noParameterAssign": "error"
+				"noParameterAssign": "error",
+				"useExportType": "error",
+				"useImportType": "error",
+				"useNumberNamespace": "error",
+				"useDefaultSwitchClause": "warn"
 			},
 			"suspicious": {
 				"noExplicitAny": "error",
 				"noArrayIndexKey": "warn",
-				"noAssignInExpressions": "warn"
+				"noAssignInExpressions": "warn",
+				"noConsole": "warn",
+				"noDoubleEquals": "error",
+				"noEmptyBlockStatements": "warn"
+			},
+			"performance": {
+				"noBarrelFile": "warn",
+				"noReExportAll": "warn"
 			}
 		}
 	},
@@ -50,5 +63,29 @@
 			"**/*.json",
 			"!**/routeTree.gen.ts"
 		]
-	}
+	},
+	"overrides": [
+		{
+			"includes": ["packages/ui/src/index.ts"],
+			"linter": {
+				"rules": {
+					"performance": {
+						"noBarrelFile": "off",
+						"noReExportAll": "off"
+					}
+				}
+			}
+		},
+		{
+			"includes": ["scripts/**/*.ts", "apps/tauri/scripts/**/*.ts", "apps/web/e2e/**/*.ts"],
+			"linter": {
+				"rules": {
+					"suspicious": {
+						"noConsole": "off",
+						"noEmptyBlockStatements": "off"
+					}
+				}
+			}
+		}
+	]
 }

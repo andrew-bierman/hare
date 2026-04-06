@@ -308,6 +308,7 @@
       "name": "@hare/config",
       "version": "0.1.0",
       "dependencies": {
+        "consola": "^3.4.2",
         "zod": "^4.2.1",
       },
       "devDependencies": {
@@ -432,7 +433,7 @@
       "dependencies": {
         "@hare/config": "workspace:*",
         "@hare/types": "workspace:*",
-        "ai": "^6.0.0",
+        "ai": "^6.0.3",
       },
       "devDependencies": {
         "@cloudflare/puppeteer": "^1.0.6",

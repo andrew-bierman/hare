@@ -2,6 +2,7 @@
  * Agent CRUD operations (list, get, create, update, delete)
  */
 
+import { isSystemToolId } from '@hare/config'
 import { agents, agentTools } from '@hare/db/schema'
 import type { WorkspaceEnv } from '@hare/types'
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
@@ -273,7 +274,7 @@ export const crudApp = baseApp
 
 		// Attach tools if provided (filter out system tools which don't exist in DB)
 		if (data.toolIds && data.toolIds.length > 0) {
-			const customToolIds = data.toolIds.filter((id: string) => !id.startsWith('system-'))
+			const customToolIds = data.toolIds.filter((id: string) => !isSystemToolId(id))
 			if (customToolIds.length > 0) {
 				await db.insert(agentTools).values(
 					customToolIds.map((toolId: string) => ({
@@ -334,7 +335,7 @@ export const crudApp = baseApp
 		if (data.toolIds !== undefined) {
 			await db.delete(agentTools).where(eq(agentTools.agentId, id))
 
-			const customToolIds = data.toolIds.filter((toolId: string) => !toolId.startsWith('system-'))
+			const customToolIds = data.toolIds.filter((toolId: string) => !isSystemToolId(toolId))
 			if (customToolIds.length > 0) {
 				await db.insert(agentTools).values(
 					customToolIds.map((toolId: string) => ({

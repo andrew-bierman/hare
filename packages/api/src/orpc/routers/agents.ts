@@ -4,7 +4,7 @@
  * Handles all agent-related operations with full type safety.
  */
 
-import { config } from '@hare/config'
+import { config, isSystemToolId } from '@hare/config'
 import { agents, agentTools, agentVersions, deployments, usage } from '@hare/db/schema'
 import { and, count, desc, eq, gte, inArray, max, sql } from 'drizzle-orm'
 import { z } from 'zod'
@@ -219,7 +219,7 @@ export const create = requireWrite
 
 		// Attach tools if provided (filter out system tools)
 		if (input.toolIds && input.toolIds.length > 0) {
-			const customToolIds = input.toolIds.filter((id) => !id.startsWith('system-'))
+			const customToolIds = input.toolIds.filter((id) => !isSystemToolId(id))
 			if (customToolIds.length > 0) {
 				await db.insert(agentTools).values(
 					customToolIds.map((toolId) => ({
@@ -279,7 +279,7 @@ export const update = requireWrite
 		if (data.toolIds !== undefined) {
 			await db.delete(agentTools).where(eq(agentTools.agentId, id))
 
-			const customToolIds = data.toolIds.filter((toolId) => !toolId.startsWith('system-'))
+			const customToolIds = data.toolIds.filter((toolId) => !isSystemToolId(toolId))
 			if (customToolIds.length > 0) {
 				await db.insert(agentTools).values(
 					customToolIds.map((toolId) => ({
@@ -643,7 +643,7 @@ export const rollback = requireAdmin
 		await db.delete(agentTools).where(eq(agentTools.agentId, id))
 		const restoredToolIds = targetVersionRecord.toolIds ?? []
 		if (restoredToolIds.length > 0) {
-			const customToolIds = restoredToolIds.filter((toolId) => !toolId.startsWith('system-'))
+			const customToolIds = restoredToolIds.filter((toolId) => !isSystemToolId(toolId))
 			if (customToolIds.length > 0) {
 				await db.insert(agentTools).values(
 					customToolIds.map((toolId) => ({
@@ -833,7 +833,7 @@ export const clone = requireWrite
 
 		// Copy tool attachments to new agent (filter out system tools)
 		if (sourceToolIds.length > 0) {
-			const customToolIds = sourceToolIds.filter((id) => !id.startsWith('system-'))
+			const customToolIds = sourceToolIds.filter((id) => !isSystemToolId(id))
 			if (customToolIds.length > 0) {
 				await db.insert(agentTools).values(
 					customToolIds.map((toolId) => ({

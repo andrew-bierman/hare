@@ -562,16 +562,21 @@ All service credentials are managed in your Zapier account, not here.`,
 		try {
 			const { webhookUrl, data, waitForResponse } = params
 
-			if (!webhookUrl.includes('hooks.zapier.com')) {
-				return failure('Invalid URL. Zapier webhooks start with https://hooks.zapier.com/')
+			if (!webhookUrl.includes(ZapierConfig.WEBHOOK_HOSTNAME)) {
+				return failure(
+					`Invalid URL. Zapier webhooks start with https://${ZapierConfig.WEBHOOK_HOSTNAME}/`,
+				)
 			}
 
 			const controller = new AbortController()
-			const timeoutId = setTimeout(() => controller.abort(), waitForResponse ? 30000 : 10000)
+			const timeoutId = setTimeout(
+				() => controller.abort(),
+				waitForResponse ? Timeouts.ZAPIER_WAIT : Timeouts.ZAPIER_DEFAULT,
+			)
 
 			const response = await fetch(webhookUrl, {
 				method: 'POST',
-				headers: { 'Content-Type': 'application/json', 'User-Agent': 'Hare-Agent/1.0' },
+				headers: { 'Content-Type': ContentTypes.JSON, 'User-Agent': UserAgents.DEFAULT },
 				body: JSON.stringify({
 					...data,
 					_hare: { workspaceId: context.workspaceId, timestamp: new Date().toISOString() },
@@ -622,7 +627,7 @@ export const webhookTool = createTool({
 				headerName: z.string().optional().default('X-API-Key'),
 			})
 			.optional(),
-		timeout: z.number().optional().default(30000),
+		timeout: z.number().optional().default(Timeouts.HTTP_DEFAULT),
 	}),
 	outputSchema: WebhookOutputSchema,
 	execute: async (params, _context) => {
@@ -630,8 +635,8 @@ export const webhookTool = createTool({
 			const { url, method, data, headers: customHeaders, auth, timeout } = params
 
 			const headers: Record<string, string> = {
-				'Content-Type': 'application/json',
-				'User-Agent': 'Hare-Agent/1.0',
+				'Content-Type': ContentTypes.JSON,
+				'User-Agent': UserAgents.DEFAULT,
 				...customHeaders,
 			}
 

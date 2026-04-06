@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { SandboxLimits, Timeouts } from './constants'
 import {
 	createTool,
 	failure,
@@ -110,17 +111,17 @@ export interface SandboxConfig {
 }
 
 const DEFAULT_CONFIG: SandboxConfig = {
-	timeout: 30000,
+	timeout: Timeouts.SANDBOX_DEFAULT,
 	allowNetwork: false, // Disabled by default for security
-	workDir: '/workspace',
+	workDir: SandboxLimits.WORK_DIR,
 }
 
 /**
  * Security: Rate limiting configuration
  */
 const RATE_LIMIT = {
-	maxExecutionsPerHour: 50,
-	maxCodeSizeBytes: 25_000, // 25KB max
+	maxExecutionsPerHour: SandboxLimits.MAX_EXECUTIONS_PER_HOUR,
+	maxCodeSizeBytes: SandboxLimits.MAX_CODE_SIZE_BYTES,
 }
 
 /**
@@ -134,7 +135,7 @@ const rateLimitCache = new Map<string, { count: number; resetAt: number }>()
  */
 function checkRateLimit(workspaceId: string): { allowed: boolean; remaining: number } {
 	const now = Date.now()
-	const hourMs = 60 * 60 * 1000
+	const hourMs = Timeouts.ONE_HOUR
 	const entry = rateLimitCache.get(workspaceId)
 
 	if (!entry || now > entry.resetAt) {
@@ -524,7 +525,13 @@ print(json.dumps({"sum": sum(data), "avg": sum(data)/len(data)}))
 			.enum(['javascript', 'python'])
 			.default('javascript')
 			.describe('Programming language (bash is disabled for security)'),
-		timeout: z.number().min(1000).max(30000).optional().default(30000).describe('Timeout in ms'),
+		timeout: z
+			.number()
+			.min(1000)
+			.max(Timeouts.SANDBOX_DEFAULT)
+			.optional()
+			.default(Timeouts.SANDBOX_DEFAULT)
+			.describe('Timeout in ms'),
 	}),
 	outputSchema: CodeExecuteOutputSchema,
 	execute: async (input, context) => {

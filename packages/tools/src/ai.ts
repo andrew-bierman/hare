@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { ContentLengths } from './constants'
 import { createTool, failure, type HareEnv, success, type ToolContext } from './types'
 
 /**
@@ -139,7 +140,7 @@ export const sentimentTool = createTool({
 	description:
 		'Analyze the sentiment of text. Returns positive, negative, or neutral classification with confidence scores.',
 	inputSchema: z.object({
-		text: z.string().min(1).max(5000).describe('Text to analyze for sentiment'),
+		text: z.string().min(1).max(ContentLengths.AI_SHORT).describe('Text to analyze for sentiment'),
 		detailed: z.boolean().optional().default(false).describe('Return detailed emotion breakdown'),
 	}),
 	outputSchema: SentimentOutputSchema,
@@ -264,7 +265,7 @@ export const translateTool = createTool({
 	id: 'translate',
 	description: 'Translate text from one language to another. Supports many common languages.',
 	inputSchema: z.object({
-		text: z.string().min(1).max(10000).describe('Text to translate'),
+		text: z.string().min(1).max(ContentLengths.AI_MEDIUM).describe('Text to translate'),
 		targetLanguage: z
 			.string()
 			.describe(
@@ -405,7 +406,7 @@ export const classifyTool = createTool({
 	description:
 		'Classify text into custom categories. Useful for routing, tagging, or categorizing content.',
 	inputSchema: z.object({
-		text: z.string().min(1).max(5000).describe('Text to classify'),
+		text: z.string().min(1).max(ContentLengths.AI_SHORT).describe('Text to classify'),
 		categories: z.array(z.string()).min(2).max(20).describe('List of possible categories'),
 		multiLabel: z
 			.boolean()
@@ -482,7 +483,7 @@ export const nerTool = createTool({
 	description:
 		'Extract named entities from text such as people, organizations, locations, dates, and more.',
 	inputSchema: z.object({
-		text: z.string().min(1).max(10000).describe('Text to analyze for entities'),
+		text: z.string().min(1).max(ContentLengths.AI_MEDIUM).describe('Text to analyze for entities'),
 		entityTypes: z
 			.array(EntityTypeSchema)
 			.optional()

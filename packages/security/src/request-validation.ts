@@ -51,7 +51,7 @@ export function requestSizeLimit(
 		const contentType = c.req.header('content-type') ?? ''
 
 		if (contentLength) {
-			const size = parseInt(contentLength, 10)
+			const size = Number.parseInt(contentLength, 10)
 
 			let maxSize = limits.default
 			if (contentType.includes('application/json')) {
