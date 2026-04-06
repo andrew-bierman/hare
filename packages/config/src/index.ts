@@ -89,7 +89,7 @@ export {
 	WIDGET_POSITIONS,
 	type WidgetPosition,
 	WORKSPACE_ROLES,
-	type WorkspaceRole,
+	WorkspaceRole,
 } from './config'
 
 // Environment (separate due to runtime dynamic values)
