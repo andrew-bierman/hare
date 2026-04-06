@@ -103,7 +103,8 @@ export function useMemoriesQuery(options: {
 
 	return useQuery({
 		queryKey: memoryQueryKeys.list(agentId),
-		queryFn: () => unwrap(client.api.memory({ id: agentId }).get({ query: { limit, offset } as any })),
+		queryFn: () =>
+			unwrap(client.api.memory({ id: agentId }).get({ query: { limit, offset } as any })),
 		enabled,
 	})
 }

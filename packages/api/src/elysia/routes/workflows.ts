@@ -18,12 +18,12 @@ import {
 	CreateWorkflowEdgeSchema,
 	CreateWorkflowNodeSchema,
 	CreateWorkflowSchema,
+	UpdateWorkflowSchema,
 	type WorkflowEdgeSchema,
 	type WorkflowExecutionSchema,
 	type WorkflowNodeSchema,
 	type WorkflowSchema,
 	type WorkflowStepExecutionSchema,
-	UpdateWorkflowSchema,
 } from '../../schemas'
 import { adminPlugin, writePlugin } from '../context'
 
@@ -49,9 +49,7 @@ function serializeWorkflow(
 	}
 }
 
-function serializeNode(
-	n: typeof workflowNodes.$inferSelect,
-): z.infer<typeof WorkflowNodeSchema> {
+function serializeNode(n: typeof workflowNodes.$inferSelect): z.infer<typeof WorkflowNodeSchema> {
 	return {
 		id: n.id,
 		workflowId: n.workflowId,
@@ -64,9 +62,7 @@ function serializeNode(
 	}
 }
 
-function serializeEdge(
-	e: typeof workflowEdges.$inferSelect,
-): z.infer<typeof WorkflowEdgeSchema> {
+function serializeEdge(e: typeof workflowEdges.$inferSelect): z.infer<typeof WorkflowEdgeSchema> {
 	return {
 		id: e.id,
 		workflowId: e.workflowId,

@@ -7,22 +7,15 @@
 import { agents, messageFeedback } from '@hare/db/schema'
 import { and, count, eq, gte, lte, sql } from 'drizzle-orm'
 import { Elysia, status } from 'elysia'
-import { z } from 'zod'
-import {
-	CreateFeedbackSchema,
-	type FeedbackSchema,
-	type FeedbackStatsSchema,
-} from '../../schemas'
-import { cfContext } from '../context'
-import { writePlugin } from '../context'
+import type { z } from 'zod'
+import { CreateFeedbackSchema, type FeedbackSchema, type FeedbackStatsSchema } from '../../schemas'
+import { cfContext, writePlugin } from '../context'
 
 // =============================================================================
 // Helpers
 // =============================================================================
 
-function serializeFeedback(
-	f: typeof messageFeedback.$inferSelect,
-): z.infer<typeof FeedbackSchema> {
+function serializeFeedback(f: typeof messageFeedback.$inferSelect): z.infer<typeof FeedbackSchema> {
 	return {
 		id: f.id,
 		messageId: f.messageId,
@@ -145,9 +138,7 @@ export const feedbackRoutes = new Elysia({ prefix: '/feedback', name: 'feedback-
 		async ({ db, workspaceId, params }) => {
 			const result = await db
 				.delete(messageFeedback)
-				.where(
-					and(eq(messageFeedback.id, params.id), eq(messageFeedback.workspaceId, workspaceId)),
-				)
+				.where(and(eq(messageFeedback.id, params.id), eq(messageFeedback.workspaceId, workspaceId)))
 				.returning()
 
 			if (result.length === 0) return status(404, { error: 'Feedback not found' })

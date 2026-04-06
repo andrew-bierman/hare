@@ -117,7 +117,8 @@ export function useDeleteAgentMutation() {
 export function useDeployAgentMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: (input: { id: string }) => unwrap(client.api.agents({ id: input.id }).deploy.post({})),
+		mutationFn: (input: { id: string }) =>
+			unwrap(client.api.agents({ id: input.id }).deploy.post({})),
 		onSuccess: async (_, variables) => {
 			await Promise.all([
 				queryClient.invalidateQueries({ queryKey: ['agents'] }),
@@ -135,7 +136,8 @@ export function useAgentVersionsQuery(
 ) {
 	return useQuery({
 		queryKey: ['agents', agentId, 'versions', options],
-		queryFn: () => unwrap(client.api.agents({ id: agentId! }).versions.get({ query: options as any })),
+		queryFn: () =>
+			unwrap(client.api.agents({ id: agentId! }).versions.get({ query: options as any })),
 		enabled: !!agentId,
 	})
 }
@@ -168,7 +170,8 @@ export function useUndeployAgentMutation() {
 export function useCloneAgentMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: (input: { id: string }) => unwrap(client.api.agents({ id: input.id }).clone.post({})),
+		mutationFn: (input: { id: string }) =>
+			unwrap(client.api.agents({ id: input.id }).clone.post({})),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['agents'] })
 		},
@@ -232,7 +235,8 @@ export function useDeleteToolMutation() {
 
 export function useTestToolMutation() {
 	return useMutation({
-		mutationFn: (input: Record<string, unknown>) => unwrap(client.api.tools.test.post(input as any)),
+		mutationFn: (input: Record<string, unknown>) =>
+			unwrap(client.api.tools.test.post(input as any)),
 	})
 }
 
@@ -582,7 +586,8 @@ export function useDeleteScheduleMutation() {
 export function usePauseScheduleMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: (data: { id: string }) => unwrap(client.api.schedules({ id: data.id }).pause.post({})),
+		mutationFn: (data: { id: string }) =>
+			unwrap(client.api.schedules({ id: data.id }).pause.post({})),
 		onSuccess: (_, variables) => {
 			queryClient.invalidateQueries({ queryKey: ['schedules'] })
 			queryClient.invalidateQueries({ queryKey: ['schedules', variables.id] })
@@ -850,8 +855,7 @@ export function useFeedbackStatsMutation() {
 export function useCreateFeedbackMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: (input: Record<string, unknown>) =>
-			unwrap(client.api.feedback.post(input as any)),
+		mutationFn: (input: Record<string, unknown>) => unwrap(client.api.feedback.post(input as any)),
 		onSuccess: (_, variables) => {
 			queryClient.invalidateQueries({ queryKey: ['feedback', (variables as any).agentId] })
 		},
@@ -962,8 +966,7 @@ export function useUpdateGuardrailMutation() {
 export function useDeleteGuardrailMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: (input: { id: string }) =>
-			unwrap(client.api.guardrails({ id: input.id }).delete()),
+		mutationFn: (input: { id: string }) => unwrap(client.api.guardrails({ id: input.id }).delete()),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['guardrails'] })
 		},
@@ -1008,8 +1011,7 @@ export function useWorkflowQuery(id: string | undefined) {
 export function useCreateWorkflowMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: (input: Record<string, unknown>) =>
-			unwrap(client.api.workflows.post(input as any)),
+		mutationFn: (input: Record<string, unknown>) => unwrap(client.api.workflows.post(input as any)),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['workflows'] })
 		},
@@ -1033,8 +1035,7 @@ export function useUpdateWorkflowMutation() {
 export function useDeleteWorkflowMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: (input: { id: string }) =>
-			unwrap(client.api.workflows({ id: input.id }).delete()),
+		mutationFn: (input: { id: string }) => unwrap(client.api.workflows({ id: input.id }).delete()),
 		onSuccess: (_, variables) => {
 			queryClient.invalidateQueries({ queryKey: ['workflows'] })
 			queryClient.invalidateQueries({ queryKey: ['workflows', variables.id] })
@@ -1059,7 +1060,12 @@ export function useRemoveWorkflowNodeMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
 		mutationFn: (input: { id: string; nodeId: string }) =>
-			unwrap(client.api.workflows({ id: input.id }).nodes({ nodeId: input.nodeId } as any).delete()),
+			unwrap(
+				client.api
+					.workflows({ id: input.id })
+					.nodes({ nodeId: input.nodeId } as any)
+					.delete(),
+			),
 		onSuccess: (_, variables) => {
 			queryClient.invalidateQueries({ queryKey: ['workflows', variables.id] })
 		},
@@ -1083,7 +1089,12 @@ export function useRemoveWorkflowEdgeMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
 		mutationFn: (input: { id: string; edgeId: string }) =>
-			unwrap(client.api.workflows({ id: input.id }).edges({ edgeId: input.edgeId } as any).delete()),
+			unwrap(
+				client.api
+					.workflows({ id: input.id })
+					.edges({ edgeId: input.edgeId } as any)
+					.delete(),
+			),
 		onSuccess: (_, variables) => {
 			queryClient.invalidateQueries({ queryKey: ['workflows', variables.id] })
 		},

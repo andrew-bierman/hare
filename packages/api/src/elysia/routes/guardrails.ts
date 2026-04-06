@@ -7,7 +7,7 @@
 import { agents, guardrails, guardrailViolations } from '@hare/db/schema'
 import { and, count, desc, eq } from 'drizzle-orm'
 import { Elysia, status } from 'elysia'
-import { z } from 'zod'
+import type { z } from 'zod'
 import {
 	CreateGuardrailSchema,
 	type GuardrailSchema,
@@ -20,9 +20,7 @@ import { writePlugin } from '../context'
 // Helpers
 // =============================================================================
 
-function serializeGuardrail(
-	g: typeof guardrails.$inferSelect,
-): z.infer<typeof GuardrailSchema> {
+function serializeGuardrail(g: typeof guardrails.$inferSelect): z.infer<typeof GuardrailSchema> {
 	return {
 		id: g.id,
 		agentId: g.agentId,

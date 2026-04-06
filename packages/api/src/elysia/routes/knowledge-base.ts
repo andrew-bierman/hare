@@ -36,9 +36,7 @@ function serializeKnowledgeBase(
 	}
 }
 
-function serializeDocument(
-	doc: typeof documents.$inferSelect,
-): z.infer<typeof DocumentSchema> {
+function serializeDocument(doc: typeof documents.$inferSelect): z.infer<typeof DocumentSchema> {
 	return {
 		id: doc.id,
 		knowledgeBaseId: doc.knowledgeBaseId,
@@ -135,9 +133,7 @@ export const knowledgeBaseRoutes = new Elysia({
 			const [kb] = await db
 				.select()
 				.from(knowledgeBases)
-				.where(
-					and(eq(knowledgeBases.id, params.id), eq(knowledgeBases.workspaceId, workspaceId)),
-				)
+				.where(and(eq(knowledgeBases.id, params.id), eq(knowledgeBases.workspaceId, workspaceId)))
 
 			if (!kb) return status(404, { error: 'Knowledge base not found' })
 
@@ -160,9 +156,7 @@ export const knowledgeBaseRoutes = new Elysia({
 		async ({ db, workspaceId, params }) => {
 			const result = await db
 				.delete(knowledgeBases)
-				.where(
-					and(eq(knowledgeBases.id, params.id), eq(knowledgeBases.workspaceId, workspaceId)),
-				)
+				.where(and(eq(knowledgeBases.id, params.id), eq(knowledgeBases.workspaceId, workspaceId)))
 				.returning()
 
 			if (result.length === 0) return status(404, { error: 'Knowledge base not found' })
@@ -180,9 +174,7 @@ export const knowledgeBaseRoutes = new Elysia({
 			const [kb] = await db
 				.select()
 				.from(knowledgeBases)
-				.where(
-					and(eq(knowledgeBases.id, params.id), eq(knowledgeBases.workspaceId, workspaceId)),
-				)
+				.where(and(eq(knowledgeBases.id, params.id), eq(knowledgeBases.workspaceId, workspaceId)))
 			if (!kb) return status(404, { error: 'Knowledge base not found' })
 
 			const results = await db
@@ -204,9 +196,7 @@ export const knowledgeBaseRoutes = new Elysia({
 			const [kb] = await db
 				.select()
 				.from(knowledgeBases)
-				.where(
-					and(eq(knowledgeBases.id, params.id), eq(knowledgeBases.workspaceId, workspaceId)),
-				)
+				.where(and(eq(knowledgeBases.id, params.id), eq(knowledgeBases.workspaceId, workspaceId)))
 			if (!kb) return status(404, { error: 'Knowledge base not found' })
 
 			const [doc] = await db
@@ -275,9 +265,7 @@ export const knowledgeBaseRoutes = new Elysia({
 			const [kb] = await db
 				.select()
 				.from(knowledgeBases)
-				.where(
-					and(eq(knowledgeBases.id, params.id), eq(knowledgeBases.workspaceId, workspaceId)),
-				)
+				.where(and(eq(knowledgeBases.id, params.id), eq(knowledgeBases.workspaceId, workspaceId)))
 			if (!kb) return status(404, { error: 'Knowledge base not found' })
 
 			const [agent] = await db
@@ -319,9 +307,7 @@ export const knowledgeBaseRoutes = new Elysia({
 			const [kb] = await db
 				.select()
 				.from(knowledgeBases)
-				.where(
-					and(eq(knowledgeBases.id, params.id), eq(knowledgeBases.workspaceId, workspaceId)),
-				)
+				.where(and(eq(knowledgeBases.id, params.id), eq(knowledgeBases.workspaceId, workspaceId)))
 			if (!kb) return status(404, { error: 'Knowledge base not found' })
 
 			await db
