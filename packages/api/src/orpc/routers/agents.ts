@@ -63,6 +63,8 @@ function serializeAgent(
 		config: agent.config as z.infer<typeof AgentSchema>['config'],
 		status: agent.status as z.infer<typeof AgentSchema>['status'],
 		systemToolsEnabled: agent.systemToolsEnabled,
+		conversationStarters: agent.conversationStarters ?? null,
+		guardrailsEnabled: agent.guardrailsEnabled,
 		toolIds,
 		createdAt: agent.createdAt.toISOString(),
 		updatedAt: agent.updatedAt.toISOString(),
@@ -211,6 +213,8 @@ export const create = requireWrite
 				instructions: input.instructions,
 				config: input.config,
 				systemToolsEnabled: input.systemToolsEnabled ?? true,
+				conversationStarters: input.conversationStarters,
+				guardrailsEnabled: input.guardrailsEnabled ?? false,
 				createdBy: user.id,
 			})
 			.returning()
@@ -268,6 +272,10 @@ export const update = requireWrite
 			...(data.instructions !== undefined && { instructions: data.instructions }),
 			...(data.config !== undefined && { config: data.config }),
 			...(data.systemToolsEnabled !== undefined && { systemToolsEnabled: data.systemToolsEnabled }),
+			...(data.conversationStarters !== undefined && {
+				conversationStarters: data.conversationStarters,
+			}),
+			...(data.guardrailsEnabled !== undefined && { guardrailsEnabled: data.guardrailsEnabled }),
 			...(data.status !== undefined && { status: data.status }),
 		}
 

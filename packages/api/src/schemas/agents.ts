@@ -123,6 +123,17 @@ export const AgentSchema = z
 		systemToolsEnabled: z
 			.boolean()
 			.openapi({ example: true, description: 'Whether system tools are enabled for this agent' }),
+		conversationStarters: z
+			.array(z.string())
+			.nullable()
+			.optional()
+			.openapi({
+				example: ['How can I help you today?', 'What would you like to know?'],
+				description: 'Suggested first messages shown in the chat widget',
+			}),
+		guardrailsEnabled: z
+			.boolean()
+			.openapi({ example: false, description: 'Whether guardrails are enabled for this agent' }),
 		toolIds: z
 			.array(z.string())
 			.optional()
@@ -186,6 +197,18 @@ export const CreateAgentSchema = z
 			example: true,
 			description: 'Enable built-in system tools (storage, HTTP, AI, etc.). Defaults to true.',
 		}),
+		conversationStarters: z
+			.array(z.string().max(200, 'Each starter must be at most 200 characters'))
+			.max(6, 'Maximum 6 conversation starters')
+			.optional()
+			.openapi({
+				example: ['How can I help you?', 'Tell me about your products'],
+				description: 'Suggested first messages for the chat widget (max 6)',
+			}),
+		guardrailsEnabled: z.boolean().optional().default(false).openapi({
+			example: false,
+			description: 'Enable guardrails for input/output safety',
+		}),
 		toolIds: z
 			.array(z.string())
 			.max(
@@ -236,6 +259,11 @@ export const UpdateAgentSchema = z
 			.optional(),
 		config: AgentConfigSchema.optional(),
 		systemToolsEnabled: z.boolean().optional(),
+		conversationStarters: z
+			.array(z.string().max(200))
+			.max(6, 'Maximum 6 conversation starters')
+			.optional(),
+		guardrailsEnabled: z.boolean().optional(),
 		toolIds: z
 			.array(z.string())
 			.max(

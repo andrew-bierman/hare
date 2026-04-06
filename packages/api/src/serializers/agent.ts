@@ -26,6 +26,8 @@ export interface SerializedAgent {
 	}
 	status: 'draft' | 'deployed' | 'archived'
 	systemToolsEnabled: boolean
+	conversationStarters?: string[] | null
+	guardrailsEnabled: boolean
 	toolIds: string[]
 	createdAt: string
 	updatedAt: string
@@ -64,6 +66,8 @@ export function serializeAgent(options: SerializeAgentOptions): SerializedAgent 
 		config: agent.config || undefined,
 		status: agent.status,
 		systemToolsEnabled: agent.systemToolsEnabled,
+		conversationStarters: agent.conversationStarters ?? null,
+		guardrailsEnabled: agent.guardrailsEnabled,
 		toolIds,
 		createdAt: agent.createdAt.toISOString(),
 		updatedAt: agent.updatedAt.toISOString(),

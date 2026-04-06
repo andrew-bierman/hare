@@ -89,6 +89,34 @@ export {
 	MetadataSchema,
 	SuccessSchema,
 } from './common'
+// Feedback schemas
+export {
+	CreateFeedbackSchema,
+	FeedbackRatingSchema,
+	FeedbackSchema,
+	FeedbackStatsSchema,
+} from './feedback'
+// Guardrails schemas
+export {
+	CreateGuardrailSchema,
+	GuardrailActionSchema,
+	GuardrailConfigSchema,
+	GuardrailSchema,
+	GuardrailTypeSchema,
+	GuardrailViolationSchema,
+	UpdateGuardrailSchema,
+} from './guardrails'
+// Knowledge base schemas
+export {
+	AddDocumentUrlSchema,
+	CreateKnowledgeBaseSchema,
+	DocumentSchema,
+	DocumentStatusSchema,
+	DocumentTypeSchema,
+	KnowledgeBaseSchema,
+	KnowledgeSearchResultSchema,
+	KnowledgeSearchSchema,
+} from './knowledge-base'
 // Memory schemas
 export {
 	ClearMemoriesResponseSchema,
