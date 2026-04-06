@@ -35,17 +35,17 @@
 		"@hare/db": "workspace:*",
 		"@hare/tools": "workspace:*",
 		"@hare/types": "workspace:*",
-		"workers-ai-provider": "^3.1.10"
+		"workers-ai-provider": "catalog:"
 	},
 	"devDependencies": {
-		"@cloudflare/workers-types": "^4.20251224.0",
+		"@cloudflare/workers-types": "catalog:",
 		"@hare/typescript-config": "workspace:*",
-		"@modelcontextprotocol/sdk": "^1.25.1",
-		"agents": "^0.3.0",
-		"ai": "^6.0.3",
-		"drizzle-orm": "^0.45.1",
-		"typescript": "^5",
-		"zod": "^4.2.1"
+		"@modelcontextprotocol/sdk": "catalog:",
+		"agents": "catalog:",
+		"ai": "catalog:",
+		"drizzle-orm": "catalog:",
+		"typescript": "catalog:",
+		"zod": "catalog:"
 	},
 	"peerDependencies": {
 		"@modelcontextprotocol/sdk": "^1.23.0",
