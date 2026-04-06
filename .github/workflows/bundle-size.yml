@@ -1,0 +1,119 @@
+name: Worker Bundle Size
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  bundle-size:
+    name: Analyze Worker Bundle Size
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    defaults:
+      run:
+        working-directory: apps/web
+    env:
+      # Placeholder credentials — build-only, not used for deployment
+      BETTER_AUTH_SECRET: placeholder-secret-for-bundle-analysis-build-only-32c
+      BETTER_AUTH_URL: http://localhost:3000
+      VITE_APP_URL: http://localhost:3000
+      APP_URL: http://localhost:3000
+      WRANGLER_SEND_METRICS: false
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install
+        working-directory: .
+
+      - name: Create placeholder dev vars
+        # Provide the secrets wrangler needs to parse the config during build.
+        # Values are intentionally non-sensitive placeholders — this step only
+        # produces a local bundle; nothing is deployed to Cloudflare.
+        run: |
+          cat > .dev.vars << 'EOF'
+          BETTER_AUTH_SECRET=placeholder-secret-for-bundle-analysis-build-only-32c
+          BETTER_AUTH_URL=http://localhost:3000
+          APP_URL=http://localhost:3000
+          EOF
+
+      - name: Build worker (skip docs generation)
+        id: build
+        # Run vite build directly to avoid the slow docs:generate step.
+        # continue-on-error keeps the size-report step running on build failure.
+        run: NODE_OPTIONS='--max-old-space-size=4096' npx vite build
+        continue-on-error: true
+
+      - name: Report bundle sizes
+        run: |
+          # Cloudflare Workers size limits
+          # - Free tier:          1 MB  (compressed)
+          # - Workers Paid plan: 10 MB  (uncompressed)
+          LIMIT_FREE_COMPRESSED_BYTES=$((1 * 1024 * 1024))   #  1 MB — free tier (compressed)
+          LIMIT_PAID_BYTES=$((10 * 1024 * 1024))              # 10 MB — paid plan (uncompressed)
+          WARN_BYTES=$((8 * 1024 * 1024))                     #  8 MB — warn before hitting paid limit
+
+          echo "## 📦 Cloudflare Worker Bundle Size" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+
+          if [ "${{ steps.build.outcome }}" == "failure" ]; then
+            echo "❌ **Build failed** — bundle sizes could not be measured." >> "$GITHUB_STEP_SUMMARY"
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            echo "Check the _Build worker_ step above for error details." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          OUTPUT_DIR=".output/server"
+          if [ ! -d "$OUTPUT_DIR" ]; then
+            echo "⚠️ Build output directory \`$OUTPUT_DIR\` not found." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          echo "| File | Uncompressed | Gzip | Status |" >> "$GITHUB_STEP_SUMMARY"
+          echo "|------|:------------:|:----:|--------|" >> "$GITHUB_STEP_SUMMARY"
+
+          FOUND=false
+          for f in "$OUTPUT_DIR"/*.mjs; do
+            [ -f "$f" ] || continue
+            FOUND=true
+            FILENAME=$(basename "$f")
+            RAW_BYTES=$(stat -c%s "$f")
+            GZIP_BYTES=$(gzip -c "$f" | wc -c)
+            RAW_MB=$(awk "BEGIN {printf \"%.2f\", $RAW_BYTES / 1048576}")
+            GZIP_MB=$(awk "BEGIN {printf \"%.2f\", $GZIP_BYTES / 1048576}")
+
+            if [ "$RAW_BYTES" -gt "$WARN_BYTES" ]; then
+              STATUS="⚠️ Approaching paid-plan limit"
+            elif [ "$GZIP_BYTES" -gt "$LIMIT_FREE_COMPRESSED_BYTES" ]; then
+              STATUS="ℹ️ Exceeds free-tier limit"
+            else
+              STATUS="✅ Within free-tier limit"
+            fi
+
+            echo "| \`$FILENAME\` | ${RAW_MB} MB | ${GZIP_MB} MB | $STATUS |" >> "$GITHUB_STEP_SUMMARY"
+          done
+
+          if [ "$FOUND" == "false" ]; then
+            echo "| _(no .mjs files found)_ | — | — | — |" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "**Cloudflare Workers size limits:**" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Plan | Limit |" >> "$GITHUB_STEP_SUMMARY"
+          echo "|------|-------|" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Free | 1 MB compressed |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Workers Standard (paid) | 10 MB uncompressed |" >> "$GITHUB_STEP_SUMMARY"
