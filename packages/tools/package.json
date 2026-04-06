@@ -34,14 +34,14 @@
 	"dependencies": {
 		"@hare/config": "workspace:*",
 		"@hare/types": "workspace:*",
-		"ai": "^6.0.3"
+		"ai": "catalog:"
 	},
 	"devDependencies": {
 		"@cloudflare/puppeteer": "^1.0.6",
-		"@cloudflare/workers-types": "^4.20251224.0",
+		"@cloudflare/workers-types": "catalog:",
 		"@hare/typescript-config": "workspace:*",
-		"typescript": "^5",
-		"zod": "^4.2.1"
+		"typescript": "catalog:",
+		"zod": "catalog:"
 	},
 	"peerDependencies": {
 		"zod": "^4.0.0"

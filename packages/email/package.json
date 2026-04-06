@@ -32,13 +32,13 @@
 		"typecheck": "tsc --noEmit"
 	},
 	"dependencies": {
-		"@react-email/components": "^1.0.3",
-		"react": "19.2.3",
-		"resend": "^6.6.0"
+		"@react-email/components": "catalog:",
+		"react": "catalog:",
+		"resend": "catalog:"
 	},
 	"devDependencies": {
 		"@hare/typescript-config": "workspace:*",
-		"@types/react": "^19",
-		"typescript": "^5"
+		"@types/react": "catalog:",
+		"typescript": "catalog:"
 	}
 }

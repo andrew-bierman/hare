@@ -53,7 +53,7 @@
 		"typecheck": "tsc --noEmit"
 	},
 	"dependencies": {
-		"@elithrar/workers-hono-rate-limit": "^0.5.1",
+		"@elithrar/workers-hono-rate-limit": "catalog:",
 		"@hare/agent": "workspace:*",
 		"@hare/auth": "workspace:*",
 		"@hare/config": "workspace:*",
@@ -64,20 +64,20 @@
 		"@hare/types": "workspace:*",
 		"@orpc/client": "^1.13.2",
 		"@orpc/server": "^1.13.2",
-		"@react-email/components": "^1.0.3",
-		"@scalar/hono-api-reference": "^0.9.30",
-		"resend": "^6.6.0"
+		"@react-email/components": "catalog:",
+		"@scalar/hono-api-reference": "catalog:",
+		"resend": "catalog:"
 	},
 	"devDependencies": {
-		"@cloudflare/workers-types": "^4.20251224.0",
+		"@cloudflare/workers-types": "catalog:",
 		"@hare/typescript-config": "workspace:*",
-		"@hono/zod-openapi": "^1.2.0",
-		"ai": "^6.0.3",
-		"drizzle-orm": "^0.45.1",
-		"hono": "^4.11.3",
-		"stripe": "^20.1.0",
-		"typescript": "^5",
-		"zod": "^4.2.1"
+		"@hono/zod-openapi": "catalog:",
+		"ai": "catalog:",
+		"drizzle-orm": "catalog:",
+		"hono": "catalog:",
+		"stripe": "catalog:",
+		"typescript": "catalog:",
+		"zod": "catalog:"
 	},
 	"peerDependencies": {
 		"@hono/zod-openapi": "^1.2.0",

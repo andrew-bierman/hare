@@ -49,8 +49,8 @@
 	},
 	"devDependencies": {
 		"@hare/typescript-config": "workspace:*",
-		"drizzle-orm": "^0.45.1",
-		"typescript": "^5",
-		"vitest": "^3.2.4"
+		"drizzle-orm": "catalog:",
+		"typescript": "catalog:",
+		"vitest": "catalog:"
 	}
 }

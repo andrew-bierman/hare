@@ -32,10 +32,10 @@
 		"@hare/email": "workspace:*"
 	},
 	"devDependencies": {
-		"@cloudflare/workers-types": "^4.20251224.0",
+		"@cloudflare/workers-types": "catalog:",
 		"@hare/typescript-config": "workspace:*",
-		"better-auth": "^1.4.9",
-		"typescript": "^5"
+		"better-auth": "catalog:",
+		"typescript": "catalog:"
 	},
 	"peerDependencies": {
 		"better-auth": "^1.4.0"
