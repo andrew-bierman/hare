@@ -23,10 +23,10 @@
 		"typecheck": "tsc --noEmit"
 	},
 	"dependencies": {
-		"typescript": "^5"
+		"typescript": "catalog:"
 	},
 	"devDependencies": {
 		"@hare/typescript-config": "workspace:*",
-		"@types/node": "^25.0.3"
+		"@types/node": "catalog:"
 	}
 }

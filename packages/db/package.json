@@ -30,14 +30,14 @@
 	"dependencies": {
 		"@hare/config": "workspace:*",
 		"@hare/types": "workspace:*",
-		"zod": "^4.2.1"
+		"zod": "catalog:"
 	},
 	"devDependencies": {
-		"@cloudflare/workers-types": "^4.20251224.0",
+		"@cloudflare/workers-types": "catalog:",
 		"@hare/typescript-config": "workspace:*",
-		"drizzle-orm": "^0.45.1",
-		"drizzle-zod": "^0.8.3",
-		"typescript": "^5"
+		"drizzle-orm": "catalog:",
+		"drizzle-zod": "catalog:",
+		"typescript": "catalog:"
 	},
 	"peerDependencies": {
 		"drizzle-orm": "^0.45.1",

@@ -12,24 +12,33 @@
 		"tools",
 		"mcp"
 	],
+	"homepage": "https://github.com/andrew-bierman/hare",
+	"bugs": {
+		"url": "https://github.com/andrew-bierman/hare/issues"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/andrew-bierman/hare.git",
+		"directory": "packages/sdk"
+	},
 	"license": "MIT",
 	"type": "module",
 	"exports": {
 		".": {
-			"import": "./dist/index.js",
-			"types": "./dist/index.d.ts"
+			"types": "./dist/index.d.ts",
+			"import": "./dist/index.js"
 		},
 		"./tools": {
-			"import": "./dist/tools.js",
-			"types": "./dist/tools.d.ts"
+			"types": "./dist/tools.d.ts",
+			"import": "./dist/tools.js"
 		},
 		"./types": {
-			"import": "./dist/types.js",
-			"types": "./dist/types.d.ts"
+			"types": "./dist/types.d.ts",
+			"import": "./dist/types.js"
 		},
 		"./workers": {
-			"import": "./dist/workers.js",
-			"types": "./dist/workers.d.ts"
+			"types": "./dist/workers.d.ts",
+			"import": "./dist/workers.js"
 		}
 	},
 	"main": "./dist/index.js",
@@ -41,8 +50,8 @@
 	],
 	"scripts": {
 		"build": "tsup",
-		"prepublishOnly": "bun run build",
 		"lint": "biome check .",
+		"prepublishOnly": "bun run build",
 		"typecheck": "tsc --noEmit"
 	},
 	"dependencies": {
@@ -51,15 +60,15 @@
 		"@hare/types": "workspace:*"
 	},
 	"devDependencies": {
-		"@cloudflare/workers-types": "^4.20251224.0",
+		"@cloudflare/workers-types": "catalog:",
 		"@hare/typescript-config": "workspace:*",
-		"@modelcontextprotocol/sdk": "^1.25.1",
-		"agents": "^0.3.0",
-		"ai": "^6.0.3",
-		"drizzle-orm": "^0.45.1",
+		"@modelcontextprotocol/sdk": "catalog:",
+		"agents": "catalog:",
+		"ai": "catalog:",
+		"drizzle-orm": "catalog:",
 		"tsup": "^8",
-		"typescript": "^5",
-		"zod": "^4.2.1"
+		"typescript": "catalog:",
+		"zod": "catalog:"
 	},
 	"peerDependencies": {
 		"@modelcontextprotocol/sdk": "^1.23.0",
@@ -78,14 +87,5 @@
 	},
 	"publishConfig": {
 		"access": "public"
-	},
-	"repository": {
-		"type": "git",
-		"url": "https://github.com/andrew-bierman/hare.git",
-		"directory": "packages/sdk"
-	},
-	"homepage": "https://github.com/andrew-bierman/hare",
-	"bugs": {
-		"url": "https://github.com/andrew-bierman/hare/issues"
 	}
 }

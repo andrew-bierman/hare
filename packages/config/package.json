@@ -11,12 +11,12 @@
 	},
 	"dependencies": {
 		"consola": "^3.4.2",
-		"zod": "^4.2.1"
+		"zod": "catalog:"
 	},
 	"devDependencies": {
 		"@hare/typescript-config": "workspace:*",
-		"@types/node": "^25.0.3",
-		"typescript": "^5",
-		"vite": "^7.3.0"
+		"@types/node": "catalog:",
+		"typescript": "catalog:",
+		"vite": "catalog:"
 	}
 }
