@@ -73,7 +73,7 @@ export async function getCreditsBalance(options: {
 			)
 			.returning({ creditsBalance: workspaces.creditsBalance })
 
-		if (updated.length > 0) return updated[0].creditsBalance
+		if (updated.length > 0) return updated[0]!.creditsBalance
 		// Another concurrent call already reset — fetch fresh balance
 		const [fresh] = await db
 			.select({ creditsBalance: workspaces.creditsBalance })
