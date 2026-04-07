@@ -16,9 +16,9 @@ import { agents, conversations, messages, usage } from '@hare/db/schema'
 import { type ModelMessage, streamText } from 'ai'
 import { and, count, desc, eq, gte, like, lte } from 'drizzle-orm'
 import { Elysia, status } from 'elysia'
-import { deductCredits, hasCredits } from '../../services/credits'
 import type { z } from 'zod'
 import type { ChatRequestSchema } from '../../schemas'
+import { deductCredits, hasCredits } from '../../services/credits'
 import { authPlugin } from '../context'
 
 // =============================================================================
