@@ -134,7 +134,9 @@ describe('helper functions', () => {
 		it('returns a model for the default model ID', () => {
 			const model = getModelById(config.models.defaultId)
 			expect(model).toBeDefined()
+			// biome-ignore lint/style/noNonNullAssertion: checked by toBeDefined above
 			expect(model!.name).toBeTruthy()
+			// biome-ignore lint/style/noNonNullAssertion: checked by toBeDefined above
 			expect(model!.provider).toBeTruthy()
 		})
 
@@ -168,6 +170,7 @@ describe('helper functions', () => {
 
 		it('groups models correctly', () => {
 			const grouped = getModelsByProvider()
+			// biome-ignore lint/style/noNonNullAssertion: validated by has('anthropic') assertion above
 			const anthropicModels = grouped.get('anthropic')!
 			expect(anthropicModels.length).toBeGreaterThan(0)
 			for (const model of anthropicModels) {
@@ -204,6 +207,7 @@ describe('helper functions', () => {
 		it('returns a template for a known ID', () => {
 			const template = getTemplateById('customer-support')
 			expect(template).toBeDefined()
+			// biome-ignore lint/style/noNonNullAssertion: checked by toBeDefined above
 			expect(template!.name).toBe('Customer Support')
 		})
 
@@ -216,6 +220,7 @@ describe('helper functions', () => {
 		it('returns a style for a known ID', () => {
 			const style = getResponseStyleById('precise')
 			expect(style).toBeDefined()
+			// biome-ignore lint/style/noNonNullAssertion: checked by toBeDefined above
 			expect(style!.config.temperature).toBe(0.3)
 		})
 

@@ -236,6 +236,7 @@ function logSandboxExecution(opts: {
 	error?: string
 }) {
 	// In production, send to logging service (e.g., Logflare, Datadog)
+	// biome-ignore lint/suspicious/noConsole: server logging
 	console.log(
 		JSON.stringify({
 			type: 'sandbox_execution',
@@ -390,6 +391,9 @@ async function executeWithCloudfareSandbox<T>(
 			case 'bash':
 				command = `cd ${config.workDir} && bash ${filename}`
 				break
+			default:
+				command = `cd ${config.workDir} && bash ${filename}`
+				break
 		}
 
 		// Execute with timeout
@@ -459,7 +463,9 @@ async function executeInWorker<T>(code: string, config: SandboxConfig): Promise<
 		const argNames = Object.keys(safeContext)
 		const argValues = Object.values(safeContext)
 
-		const AsyncFunction = Object.getPrototypeOf(async () => {}).constructor
+		const AsyncFunction = Object.getPrototypeOf(async () => {
+			// empty
+		}).constructor
 		const fn = new AsyncFunction(...argNames, wrappedCode)
 
 		const controller = new AbortController()
@@ -632,6 +638,7 @@ Requires SANDBOX binding.`,
 		}
 
 		// Security: Log the operation
+		// biome-ignore lint/suspicious/noConsole: server logging
 		console.log(
 			JSON.stringify({
 				type: 'sandbox_file_operation',

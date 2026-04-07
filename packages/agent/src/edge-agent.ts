@@ -5,7 +5,7 @@
  * Designed to run on Cloudflare Workers without Node.js dependencies.
  */
 
-import { type LanguageModel, type ModelMessage, streamText } from 'ai'
+import { type LanguageModel, type LanguageModelUsage, type ModelMessage, streamText } from 'ai'
 import { createWorkersAIModel } from './providers/workers-ai'
 
 /**
@@ -35,6 +35,7 @@ export interface AgentOptions {
 export interface AgentStreamResponse {
 	textStream: AsyncIterable<string>
 	text: Promise<string>
+	usage: PromiseLike<LanguageModelUsage>
 }
 
 /**
@@ -107,6 +108,7 @@ export class HareEdgeAgent {
 		return {
 			textStream,
 			text: textPromise,
+			usage: result.usage,
 		}
 	}
 

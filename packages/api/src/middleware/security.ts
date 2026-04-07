@@ -1,76 +1,64 @@
 import { serverEnv } from '@hare/config'
-import type { MiddlewareHandler } from 'hono'
-import { cors } from 'hono/cors'
-import { secureHeaders } from 'hono/secure-headers'
+import Elysia from 'elysia'
 
 /**
- * Security headers middleware
+ * Security headers plugin for Elysia
  * Adds security-related HTTP headers to all responses
  *
- * Note: unsafe-eval is allowed in development mode for better debugging.
+ * Content-Security-Policy, Strict-Transport-Security, X-Frame-Options,
+ * X-Content-Type-Options, X-XSS-Protection, Referrer-Policy, Permissions-Policy
  */
-export const securityHeadersMiddleware: MiddlewareHandler = secureHeaders({
-	// Content Security Policy
-	contentSecurityPolicy: {
-		defaultSrc: ["'self'"],
-		scriptSrc: [
-			"'self'",
-			"'unsafe-inline'",
-			'https://cdn.jsdelivr.net', // Required for Scalar API docs
-			...(serverEnv.NODE_ENV === 'development' ? ["'unsafe-eval'"] : []),
-		],
-		styleSrc: ["'self'", "'unsafe-inline'", 'https://cdn.jsdelivr.net'], // Required for Tailwind + Scalar
-		imgSrc: ["'self'", 'data:', 'https:', 'blob:'],
-		fontSrc: ["'self'", 'data:', 'https://fonts.scalar.com'], // Scalar API docs fonts
-		connectSrc: ["'self'", 'https://*.cloudflare.com', 'https://api.scalar.com'], // Scalar API docs
-		frameSrc: ["'none'"],
-		objectSrc: ["'none'"],
-		baseUri: ["'self'"], // Prevent base tag hijacking
-		formAction: ["'self'"], // Restrict form submissions
-		frameAncestors: ["'none'"], // Prevent clickjacking (CSP version of X-Frame-Options)
-		upgradeInsecureRequests: [],
-	},
-	// Strict Transport Security with preload
-	strictTransportSecurity: 'max-age=31536000; includeSubDomains; preload',
+export const securityHeaders = new Elysia({ name: 'security-headers' }).onAfterHandle(({ set }) => {
+	const isDev = serverEnv.NODE_ENV === 'development'
+
+	// Content-Security-Policy
+	const scriptSrc = [
+		"'self'",
+		"'unsafe-inline'",
+		'https://cdn.jsdelivr.net',
+		...(isDev ? ["'unsafe-eval'"] : []),
+	].join(' ')
+
+	const cspDirectives = [
+		`default-src 'self'`,
+		`script-src ${scriptSrc}`,
+		`style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net`,
+		`img-src 'self' data: https: blob:`,
+		`font-src 'self' data: https://fonts.scalar.com`,
+		`connect-src 'self' https://*.cloudflare.com https://api.scalar.com`,
+		`frame-src 'none'`,
+		`object-src 'none'`,
+		`base-uri 'self'`,
+		`form-action 'self'`,
+		`frame-ancestors 'none'`,
+		// Only upgrade insecure requests in production to avoid breaking local HTTP dev
+		...(!isDev ? ['upgrade-insecure-requests'] : []),
+	]
+	const csp = cspDirectives.join('; ')
+
+	set.headers['Content-Security-Policy'] = csp
+	// Strict-Transport-Security — only in production to avoid breaking HTTP-only local dev
+	if (!isDev) {
+		set.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains; preload'
+	}
 	// X-Content-Type-Options
-	xContentTypeOptions: 'nosniff',
+	set.headers['X-Content-Type-Options'] = 'nosniff'
 	// X-Frame-Options
-	xFrameOptions: 'DENY',
+	set.headers['X-Frame-Options'] = 'DENY'
 	// X-XSS-Protection (legacy, but doesn't hurt)
-	xXssProtection: '1; mode=block',
-	// Referrer Policy
-	referrerPolicy: 'strict-origin-when-cross-origin',
-	// Permissions Policy - expanded restrictions
-	permissionsPolicy: {
-		camera: [],
-		microphone: [],
-		geolocation: [],
-		payment: [],
-		usb: [],
-		bluetooth: [],
-		magnetometer: [],
-		gyroscope: [],
-		accelerometer: [],
-	},
-})
-
-/**
- * CORS middleware for API routes
- * Allows requests from the configured app URL
- */
-export const corsMiddleware = cors({
-	origin: (origin) => {
-		const allowedOrigins = [serverEnv.APP_URL, 'http://localhost:3000', 'http://localhost:8787']
-
-		// Allow requests with no origin (same-origin, curl, etc.)
-		if (!origin) return allowedOrigins[0] ?? 'http://localhost:3000'
-
-		// Check if origin is in allowed list
-		return allowedOrigins.includes(origin) ? origin : (allowedOrigins[0] ?? 'http://localhost:3000')
-	},
-	credentials: true,
-	allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-	allowHeaders: ['Content-Type', 'Authorization', 'X-Workspace-ID', 'X-CSRF-Token', 'X-API-Key'],
-	exposeHeaders: ['X-RateLimit-Limit', 'X-RateLimit-Remaining', 'X-RateLimit-Reset'],
-	maxAge: 86400, // 24 hours
+	set.headers['X-XSS-Protection'] = '1; mode=block'
+	// Referrer-Policy
+	set.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+	// Permissions-Policy
+	set.headers['Permissions-Policy'] = [
+		'camera=()',
+		'microphone=()',
+		'geolocation=()',
+		'payment=()',
+		'usb=()',
+		'bluetooth=()',
+		'magnetometer=()',
+		'gyroscope=()',
+		'accelerometer=()',
+	].join(', ')
 })

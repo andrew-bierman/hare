@@ -91,10 +91,10 @@ export function useToolPicker({ initialSelectedIds, maxTools = 20 }: UseToolPick
 			transform: 0,
 		}
 
-		tools.forEach((tool) => {
+		for (const tool of tools) {
 			const category = getToolCategory(tool)
 			counts[category]++
-		})
+		}
 
 		return counts
 	}, [tools])
@@ -133,10 +133,10 @@ export function useToolPicker({ initialSelectedIds, maxTools = 20 }: UseToolPick
 			transform: [],
 		}
 
-		toolsToGroup.forEach((tool) => {
+		for (const tool of toolsToGroup) {
 			const category = getToolCategory(tool)
 			groups[category].push(tool)
-		})
+		}
 
 		// Return as ordered array of { category, tools } objects
 		return CATEGORY_ORDER.map((category) => ({

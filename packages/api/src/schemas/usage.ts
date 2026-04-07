@@ -1,91 +1,81 @@
 import { USAGE_GROUP_BY_OPTIONS } from '@hare/config'
-import { z } from '@hono/zod-openapi'
+import { z } from 'zod'
 
 /**
  * Query parameters for usage endpoints.
  */
 export const UsageQuerySchema = z.object({
-	startDate: z.string().optional().openapi({ example: '2024-11-01T00:00:00Z' }),
-	endDate: z.string().optional().openapi({ example: '2024-12-01T00:00:00Z' }),
-	agentId: z.string().optional().openapi({ example: 'agent_abc123' }),
-	groupBy: z.enum(USAGE_GROUP_BY_OPTIONS).optional().openapi({ example: 'day' }),
+	startDate: z.string().optional(),
+	endDate: z.string().optional(),
+	agentId: z.string().optional(),
+	groupBy: z.enum(USAGE_GROUP_BY_OPTIONS).optional(),
 })
 
 /**
  * Usage breakdown by agent.
  */
-export const UsageByAgentSchema = z
-	.object({
-		agentId: z.string().openapi({ example: 'agent_abc123' }),
-		agentName: z.string().openapi({ example: 'Customer Support Agent' }),
-		messages: z.number().openapi({ example: 800 }),
-		tokensIn: z.number().openapi({ example: 30000 }),
-		tokensOut: z.number().openapi({ example: 45000 }),
-		cost: z.number().openapi({ example: 0.75 }),
-	})
-	.openapi('UsageByAgent')
+export const UsageByAgentSchema = z.object({
+	agentId: z.string(),
+	agentName: z.string(),
+	messages: z.number(),
+	tokensIn: z.number(),
+	tokensOut: z.number(),
+	cost: z.number(),
+})
 
 /**
  * Usage breakdown by day.
  */
-export const UsageByDaySchema = z
-	.object({
-		date: z.string().openapi({ example: '2024-12-01' }),
-		messages: z.number().openapi({ example: 100 }),
-		tokensIn: z.number().openapi({ example: 4000 }),
-		tokensOut: z.number().openapi({ example: 6000 }),
-		cost: z.number().openapi({ example: 0.1 }),
-	})
-	.openapi('UsageByDay')
+export const UsageByDaySchema = z.object({
+	date: z.string(),
+	messages: z.number(),
+	tokensIn: z.number(),
+	tokensOut: z.number(),
+	cost: z.number(),
+})
 
 /**
  * Aggregated usage statistics.
  */
-export const UsageStatsSchema = z
-	.object({
-		totalMessages: z.number().openapi({ example: 1234 }),
-		totalTokensIn: z.number().openapi({ example: 50000 }),
-		totalTokensOut: z.number().openapi({ example: 75000 }),
-		totalCost: z.number().openapi({ example: 1.25 }),
-		averageLatencyMs: z.number().optional().openapi({ example: 250 }),
-		byAgent: z.array(UsageByAgentSchema).optional(),
-		byDay: z.array(UsageByDaySchema).optional(),
-		byModel: z
-			.array(
-				z.object({
-					model: z.string().openapi({ example: 'llama-3.3-70b-instruct' }),
-					messages: z.number().openapi({ example: 800 }),
-					tokensIn: z.number().openapi({ example: 30000 }),
-					tokensOut: z.number().openapi({ example: 45000 }),
-					cost: z.number().openapi({ example: 0.75 }),
-				}),
-			)
-			.optional(),
-	})
-	.openapi('UsageStats')
+export const UsageStatsSchema = z.object({
+	totalMessages: z.number(),
+	totalTokensIn: z.number(),
+	totalTokensOut: z.number(),
+	totalCost: z.number(),
+	averageLatencyMs: z.number().optional(),
+	byAgent: z.array(UsageByAgentSchema).optional(),
+	byDay: z.array(UsageByDaySchema).optional(),
+	byModel: z
+		.array(
+			z.object({
+				model: z.string(),
+				messages: z.number(),
+				tokensIn: z.number(),
+				tokensOut: z.number(),
+				cost: z.number(),
+			}),
+		)
+		.optional(),
+})
 
 /**
  * Full usage response with period.
  */
-export const UsageResponseSchema = z
-	.object({
-		usage: UsageStatsSchema,
-		period: z.object({
-			startDate: z.string().datetime().openapi({ example: '2024-11-01T00:00:00Z' }),
-			endDate: z.string().datetime().openapi({ example: '2024-12-01T00:00:00Z' }),
-		}),
-	})
-	.openapi('UsageResponse')
+export const UsageResponseSchema = z.object({
+	usage: UsageStatsSchema,
+	period: z.object({
+		startDate: z.string().datetime(),
+		endDate: z.string().datetime(),
+	}),
+})
 
 /**
  * Agent-specific usage response.
  */
-export const AgentUsageResponseSchema = z
-	.object({
-		agentId: z.string().openapi({ example: 'agent_abc123' }),
-		usage: UsageStatsSchema,
-	})
-	.openapi('AgentUsageResponse')
+export const AgentUsageResponseSchema = z.object({
+	agentId: z.string(),
+	usage: UsageStatsSchema,
+})
 
 /**
  * Health status derived from success rate thresholds.
@@ -93,40 +83,23 @@ export const AgentUsageResponseSchema = z
 export const HEALTH_STATUS = ['healthy', 'degraded', 'unhealthy'] as const
 export type HealthStatus = (typeof HEALTH_STATUS)[number]
 
-export const HealthStatusSchema = z.enum(HEALTH_STATUS).openapi({
-	example: 'healthy',
-	description: 'Health status: healthy (>95% success), degraded (80-95%), unhealthy (<80%)',
-})
+export const HealthStatusSchema = z.enum(HEALTH_STATUS)
 
 /**
  * Agent health metrics calculated from usage data (last 24 hours).
  */
-export const AgentHealthMetricsSchema = z
-	.object({
-		agentId: z.string().openapi({ example: 'agent_abc123' }),
-		agentName: z.string().openapi({ example: 'Customer Support Agent' }),
-		status: HealthStatusSchema,
-		metrics: z.object({
-			successRate: z.number().openapi({
-				example: 98.5,
-				description: 'Percentage of successful requests (status code 2xx)',
-			}),
-			averageLatencyMs: z.number().openapi({
-				example: 245,
-				description: 'Average response latency in milliseconds',
-			}),
-			errorCount: z.number().int().openapi({
-				example: 3,
-				description: 'Number of failed requests (non-2xx status codes)',
-			}),
-			totalRequests: z.number().int().openapi({
-				example: 200,
-				description: 'Total number of requests in the period',
-			}),
-		}),
-		period: z.object({
-			startDate: z.string().datetime().openapi({ example: '2024-12-01T00:00:00Z' }),
-			endDate: z.string().datetime().openapi({ example: '2024-12-02T00:00:00Z' }),
-		}),
-	})
-	.openapi('AgentHealthMetrics')
+export const AgentHealthMetricsSchema = z.object({
+	agentId: z.string(),
+	agentName: z.string(),
+	status: HealthStatusSchema,
+	metrics: z.object({
+		successRate: z.number(),
+		averageLatencyMs: z.number(),
+		errorCount: z.number().int(),
+		totalRequests: z.number().int(),
+	}),
+	period: z.object({
+		startDate: z.string().datetime(),
+		endDate: z.string().datetime(),
+	}),
+})

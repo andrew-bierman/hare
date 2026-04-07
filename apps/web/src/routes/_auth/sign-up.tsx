@@ -53,9 +53,8 @@ function SignUpPage() {
 		setIsGoogleLoading(true)
 		try {
 			await signInWithGoogle()
-		} catch (error) {
+		} catch {
 			toast.error('Failed to sign up with Google')
-			console.error(error)
 			setIsGoogleLoading(false)
 		}
 	}
@@ -64,9 +63,8 @@ function SignUpPage() {
 		setIsGitHubLoading(true)
 		try {
 			await signInWithGitHub()
-		} catch (error) {
+		} catch {
 			toast.error('Failed to sign up with GitHub')
-			console.error(error)
 			setIsGitHubLoading(false)
 		}
 	}
@@ -100,9 +98,8 @@ function SignUpPage() {
 
 			toast.success(AUTH_CONTENT.success.signUp)
 			navigate({ to: '/dashboard' })
-		} catch (error) {
+		} catch {
 			toast.error('An unexpected error occurred')
-			console.error(error)
 		} finally {
 			setIsLoading(false)
 		}

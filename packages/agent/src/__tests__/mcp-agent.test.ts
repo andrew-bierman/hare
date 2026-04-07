@@ -463,6 +463,7 @@ describe('HareMcpAgent workspace resource', () => {
 			| undefined
 
 		expect(resourceHandler).toBeDefined()
+		// biome-ignore lint/style/noNonNullAssertion: checked by toBeDefined above
 		const result = await resourceHandler!()
 
 		expect(result.contents[0]?.uri).toBe(`hare://workspace/${workspaceId}`)

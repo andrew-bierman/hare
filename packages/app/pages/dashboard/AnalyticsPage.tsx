@@ -113,6 +113,8 @@ export function AnalyticsPage() {
 				start.setDate(start.getDate() - 90)
 				days = 90
 				break
+			default:
+				break
 		}
 
 		return {

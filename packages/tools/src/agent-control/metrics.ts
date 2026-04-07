@@ -65,6 +65,9 @@ export const getAgentMetricsTool = createTool({
 				case 'month':
 					startTime = now - Duration.MONTH
 					break
+				default:
+					startTime = now - Duration.DAY
+					break
 			}
 
 			// Get usage metrics from usage table

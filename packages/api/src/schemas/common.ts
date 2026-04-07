@@ -1,13 +1,11 @@
-import { z } from '@hono/zod-openapi'
+import { z } from 'zod'
 
 /**
  * JSON value schema - represents any valid JSON value.
  * Uses z.any() with OpenAPI type for compatibility.
  * OpenAPI type is set to object to handle the recursive nature.
  */
-export const JsonValueSchema: z.ZodType<unknown> = z
-	.any()
-	.openapi({ type: 'object', description: 'Any valid JSON value' })
+export const JsonValueSchema: z.ZodType<unknown> = z.any()
 
 /**
  * JSON Schema property definition.
@@ -40,24 +38,20 @@ export const MetadataSchema = z.record(z.string(), JsonValueSchema)
  * Common ID parameter schema for path parameters.
  */
 export const IdParamSchema = z.object({
-	id: z.string().openapi({ param: { name: 'id', in: 'path' }, example: 'resource_abc123' }),
+	id: z.string(),
 })
 
 /**
  * Common error response schema.
  */
-export const ErrorSchema = z
-	.object({
-		error: z.string().openapi({ example: 'Resource not found' }),
-		code: z.string().optional().openapi({ example: 'NOT_FOUND' }),
-	})
-	.openapi('Error')
+export const ErrorSchema = z.object({
+	error: z.string(),
+	code: z.string().optional(),
+})
 
 /**
  * Common success response schema.
  */
-export const SuccessSchema = z
-	.object({
-		success: z.boolean().openapi({ example: true }),
-	})
-	.openapi('Success')
+export const SuccessSchema = z.object({
+	success: z.boolean(),
+})

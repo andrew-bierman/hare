@@ -54,6 +54,7 @@ export class EmailService {
 			this.resend = new Resend(env.RESEND_API_KEY)
 		} else {
 			this.resend = null
+			// biome-ignore lint/suspicious/noConsole: server logging
 			console.warn('[Email] No RESEND_API_KEY configured. Emails will be logged to console.')
 		}
 	}
@@ -65,8 +66,11 @@ export class EmailService {
 		const { to, resetUrl } = options
 
 		if (this.isDev || !this.resend) {
+			// biome-ignore lint/suspicious/noConsole: server logging
 			console.log('[Email] Password reset email (dev mode):')
+			// biome-ignore lint/suspicious/noConsole: server logging
 			console.log(`  To: ${to}`)
+			// biome-ignore lint/suspicious/noConsole: server logging
 			console.log(`  Reset URL: ${resetUrl}`)
 			return { success: true, messageId: `dev-${Date.now()}` }
 		}
@@ -110,12 +114,19 @@ export class EmailService {
 		const { to, workspaceName, inviterName, inviterEmail, role, inviteUrl, expiresAt } = options
 
 		if (this.isDev || !this.resend) {
+			// biome-ignore lint/suspicious/noConsole: server logging
 			console.log('[Email] Workspace invitation email (dev mode):')
+			// biome-ignore lint/suspicious/noConsole: server logging
 			console.log(`  To: ${to}`)
+			// biome-ignore lint/suspicious/noConsole: server logging
 			console.log(`  Workspace: ${workspaceName}`)
+			// biome-ignore lint/suspicious/noConsole: server logging
 			console.log(`  Inviter: ${inviterName} (${inviterEmail})`)
+			// biome-ignore lint/suspicious/noConsole: server logging
 			console.log(`  Role: ${role}`)
+			// biome-ignore lint/suspicious/noConsole: server logging
 			console.log(`  Invite URL: ${inviteUrl}`)
+			// biome-ignore lint/suspicious/noConsole: server logging
 			console.log(`  Expires: ${expiresAt.toISOString()}`)
 			return { success: true, messageId: `dev-${Date.now()}` }
 		}

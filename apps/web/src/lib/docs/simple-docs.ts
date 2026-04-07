@@ -117,6 +117,7 @@ export function getDocCategories(): DocCategory[] {
 		if (!categoryMap.has(cat)) {
 			categoryMap.set(cat, [])
 		}
+		// biome-ignore lint/style/noNonNullAssertion: key existence checked by has() above
 		categoryMap.get(cat)!.push(page)
 	}
 

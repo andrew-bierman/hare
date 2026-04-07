@@ -4,48 +4,7 @@ import { test } from './fixtures'
 /**
  * Comprehensive Usage Page E2E tests.
  * Tests usage tracking, statistics display, and API integration.
- *
- * oRPC uses POST for all procedures, body format: { json: { ...input } }
  */
-
-async function getCsrfToken(page: Page): Promise<string> {
-	const cookies = await page.context().cookies()
-	let csrfCookie =
-		cookies.find((c) => c.name === 'csrf') ?? cookies.find((c) => c.name === '__Host-csrf')
-	if (!csrfCookie) {
-		await page.request.get('/api/rpc/health/live')
-		const updatedCookies = await page.context().cookies()
-		csrfCookie =
-			updatedCookies.find((c) => c.name === 'csrf') ??
-			updatedCookies.find((c) => c.name === '__Host-csrf')
-	}
-	return csrfCookie?.value ?? ''
-}
-
-async function orpc(
-	page: Page,
-	procedure: string,
-	input: Record<string, unknown> = {},
-	extraHeaders: Record<string, string> = {},
-) {
-	const csrfToken = await getCsrfToken(page)
-	const headers: Record<string, string> = {
-		'Content-Type': 'application/json',
-		...extraHeaders,
-	}
-	if (csrfToken) headers['X-CSRF-Token'] = csrfToken
-	const response = await page.request.post(`/api/rpc/${procedure}`, {
-		headers,
-		data: { json: input },
-	})
-	return response
-}
-
-/** Parse oRPC response (may be wrapped in { json: ... }) */
-async function parseOrpc(response: Awaited<ReturnType<typeof orpc>>) {
-	const body = await response.json()
-	return body.json ?? body
-}
 
 /**
  * Helper to get the first workspace ID from an authenticated page.
@@ -59,9 +18,9 @@ async function getWorkspaceId(page: Page): Promise<string> {
 		.first()
 		.waitFor({ state: 'visible', timeout: 10000 })
 		.catch(() => {})
-	const response = await orpc(page, 'workspaces/list')
+	const response = await page.request.get('/api/workspaces')
 	expect(response.status()).toBe(200)
-	const data = await parseOrpc(response)
+	const data = await response.json()
 	const workspaces = data.workspaces ?? data
 	expect(Array.isArray(workspaces)).toBe(true)
 	expect(workspaces.length).toBeGreaterThan(0)
@@ -322,11 +281,8 @@ test.describe('Usage API Integration', () => {
 	baseTest(
 		'usage endpoint requires authentication',
 		async ({ request }: { request: APIRequestContext }) => {
-			const response = await request.post('/api/rpc/usage/getWorkspaceUsage', {
-				headers: { 'Content-Type': 'application/json' },
-				data: { json: {} },
-			})
-			// Should return 401 or 403 (CSRF protection may trigger before auth check)
+			const response = await request.get('/api/usage')
+			// Should return 401 or 403
 			expect([401, 403]).toContain(response.status())
 		},
 	)
@@ -334,15 +290,12 @@ test.describe('Usage API Integration', () => {
 	test('can get workspace usage stats via API', async ({ authenticatedPage }) => {
 		const workspaceId = await getWorkspaceId(authenticatedPage)
 
-		const response = await orpc(
-			authenticatedPage,
-			'usage/getWorkspaceUsage',
-			{},
-			{ 'X-Workspace-Id': workspaceId },
-		)
+		const response = await authenticatedPage.request.get('/api/usage', {
+			headers: { 'X-Workspace-Id': workspaceId },
+		})
 		expect(response.status()).toBe(200)
 
-		const body = await parseOrpc(response)
+		const body = await response.json()
 		expect(body).toHaveProperty('period')
 		expect(body).toHaveProperty('usage')
 		expect(body.usage).toHaveProperty('totalMessages')
@@ -353,15 +306,12 @@ test.describe('Usage API Integration', () => {
 	test('usage API returns period information', async ({ authenticatedPage }) => {
 		const workspaceId = await getWorkspaceId(authenticatedPage)
 
-		const response = await orpc(
-			authenticatedPage,
-			'usage/getWorkspaceUsage',
-			{},
-			{ 'X-Workspace-Id': workspaceId },
-		)
+		const response = await authenticatedPage.request.get('/api/usage', {
+			headers: { 'X-Workspace-Id': workspaceId },
+		})
 		expect(response.status()).toBe(200)
 
-		const body = await parseOrpc(response)
+		const body = await response.json()
 		expect(body.period).toHaveProperty('startDate')
 		expect(body.period).toHaveProperty('endDate')
 	})
@@ -369,15 +319,12 @@ test.describe('Usage API Integration', () => {
 	test('usage API returns byAgent breakdown', async ({ authenticatedPage }) => {
 		const workspaceId = await getWorkspaceId(authenticatedPage)
 
-		const response = await orpc(
-			authenticatedPage,
-			'usage/getWorkspaceUsage',
-			{},
-			{ 'X-Workspace-Id': workspaceId },
-		)
+		const response = await authenticatedPage.request.get('/api/usage', {
+			headers: { 'X-Workspace-Id': workspaceId },
+		})
 		expect(response.status()).toBe(200)
 
-		const body = await parseOrpc(response)
+		const body = await response.json()
 		expect(body.usage).toHaveProperty('byAgent')
 		expect(Array.isArray(body.usage.byAgent)).toBe(true)
 	})
@@ -385,15 +332,12 @@ test.describe('Usage API Integration', () => {
 	test('usage API returns byDay breakdown', async ({ authenticatedPage }) => {
 		const workspaceId = await getWorkspaceId(authenticatedPage)
 
-		const response = await orpc(
-			authenticatedPage,
-			'usage/getWorkspaceUsage',
-			{},
-			{ 'X-Workspace-Id': workspaceId },
-		)
+		const response = await authenticatedPage.request.get('/api/usage', {
+			headers: { 'X-Workspace-Id': workspaceId },
+		})
 		expect(response.status()).toBe(200)
 
-		const body = await parseOrpc(response)
+		const body = await response.json()
 		expect(body.usage).toHaveProperty('byDay')
 		expect(Array.isArray(body.usage.byDay)).toBe(true)
 	})
@@ -401,19 +345,16 @@ test.describe('Usage API Integration', () => {
 	test('usage API supports date filtering', async ({ authenticatedPage }) => {
 		const workspaceId = await getWorkspaceId(authenticatedPage)
 
-		// Test with date range parameters passed in the oRPC body
 		const startDate = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
 		const endDate = new Date().toISOString()
 
-		const response = await orpc(
-			authenticatedPage,
-			'usage/getWorkspaceUsage',
-			{ startDate, endDate },
-			{ 'X-Workspace-Id': workspaceId },
-		)
+		const response = await authenticatedPage.request.get('/api/usage', {
+			headers: { 'X-Workspace-Id': workspaceId },
+			params: { startDate, endDate },
+		})
 		expect(response.status()).toBe(200)
 
-		const body = await parseOrpc(response)
+		const body = await response.json()
 		expect(body).toHaveProperty('usage')
 		expect(body).toHaveProperty('period')
 	})
@@ -421,15 +362,12 @@ test.describe('Usage API Integration', () => {
 	test('usage API returns numeric values for totals', async ({ authenticatedPage }) => {
 		const workspaceId = await getWorkspaceId(authenticatedPage)
 
-		const response = await orpc(
-			authenticatedPage,
-			'usage/getWorkspaceUsage',
-			{},
-			{ 'X-Workspace-Id': workspaceId },
-		)
+		const response = await authenticatedPage.request.get('/api/usage', {
+			headers: { 'X-Workspace-Id': workspaceId },
+		})
 		expect(response.status()).toBe(200)
 
-		const body = await parseOrpc(response)
+		const body = await response.json()
 		expect(typeof body.usage.totalMessages).toBe('number')
 		expect(typeof body.usage.totalTokensIn).toBe('number')
 		expect(typeof body.usage.totalTokensOut).toBe('number')
@@ -441,12 +379,9 @@ test.describe('Agent Usage API', () => {
 		const workspaceId = await getWorkspaceId(authenticatedPage)
 
 		// Try to get usage for non-existent agent
-		const response = await orpc(
-			authenticatedPage,
-			'usage/getAgentUsage',
-			{ id: 'non-existent-id' },
-			{ 'X-Workspace-Id': workspaceId },
-		)
+		const response = await authenticatedPage.request.get('/api/usage/agents/non-existent-id', {
+			headers: { 'X-Workspace-Id': workspaceId },
+		})
 		expect(response.status()).toBe(404)
 	})
 
@@ -454,29 +389,27 @@ test.describe('Agent Usage API', () => {
 		const workspaceId = await getWorkspaceId(authenticatedPage)
 		const wsHeader = { 'X-Workspace-Id': workspaceId }
 
-		// Create an agent first via oRPC
+		// Create an agent first via REST
 		const agentName = `Usage Test Agent ${Date.now()}`
-		const createResponse = await orpc(
-			authenticatedPage,
-			'agents/create',
-			{
+		const createResponse = await authenticatedPage.request.post('/api/agents', {
+			headers: wsHeader,
+			data: {
 				name: agentName,
 				description: 'Agent for usage testing',
 				model: '@cf/meta/llama-3.3-70b-instruct-fp8-fast',
 				instructions: 'You are a test assistant for usage tracking.',
 			},
-			wsHeader,
-		)
+		})
 
 		let agentId: string
 		if (createResponse.ok()) {
-			const agent = await parseOrpc(createResponse)
+			const agent = await createResponse.json()
 			agentId = agent.id
 		} else {
 			// Agent may have been created even if response schema validation failed
-			const listResp = await orpc(authenticatedPage, 'agents/list', {}, wsHeader)
+			const listResp = await authenticatedPage.request.get('/api/agents', { headers: wsHeader })
 			expect(listResp.status()).toBe(200)
-			const data = await parseOrpc(listResp)
+			const data = await listResp.json()
 			const agentsList: Array<{ name: string; id: string }> = Array.isArray(data.agents)
 				? data.agents
 				: Array.isArray(data)
@@ -484,20 +417,18 @@ test.describe('Agent Usage API', () => {
 					: []
 			const found = agentsList.find((a) => a.name === agentName)
 			expect(found).toBeTruthy()
+			// biome-ignore lint/style/noNonNullAssertion: checked by toBeTruthy above
 			agentId = found!.id
 		}
 
-		// Get usage for the agent via oRPC
-		const usageResponse = await orpc(
-			authenticatedPage,
-			'usage/getAgentUsage',
-			{ id: agentId },
-			wsHeader,
-		)
+		// Get usage for the agent via REST
+		const usageResponse = await authenticatedPage.request.get(`/api/usage/agents/${agentId}`, {
+			headers: wsHeader,
+		})
 
 		// Accept 200 (success) or 404 (agent not found in usage table yet, which is expected for new agents)
 		if (usageResponse.status() === 200) {
-			const body = await parseOrpc(usageResponse)
+			const body = await usageResponse.json()
 			expect(body).toHaveProperty('agentId', agentId)
 			expect(body).toHaveProperty('usage')
 			expect(body.usage).toHaveProperty('totalMessages')
@@ -508,8 +439,8 @@ test.describe('Agent Usage API', () => {
 			expect([200, 404]).toContain(usageResponse.status())
 		}
 
-		// Cleanup via oRPC
-		await orpc(authenticatedPage, 'agents/delete', { id: agentId }, wsHeader)
+		// Cleanup via REST
+		await authenticatedPage.request.delete(`/api/agents/${agentId}`, { headers: wsHeader })
 	})
 })
 
@@ -690,28 +621,26 @@ test.describe('Usage Reflects Recent Activity', () => {
 			.first()
 		await expect(activeAgentsCard).toBeVisible()
 
-		// Create an agent via oRPC
+		// Create an agent via REST
 		const wsHeader = { 'X-Workspace-Id': workspaceId }
 		const agentName = `Activity Test Agent ${Date.now()}`
-		const createResponse = await orpc(
-			authenticatedPage,
-			'agents/create',
-			{
+		const createResponse = await authenticatedPage.request.post('/api/agents', {
+			headers: wsHeader,
+			data: {
 				name: agentName,
 				description: 'Agent for testing activity tracking',
 				model: '@cf/meta/llama-3.3-70b-instruct-fp8-fast',
 				instructions: 'You are a test assistant.',
 			},
-			wsHeader,
-		)
+		})
 
 		let agentId: string
 		if (createResponse.ok()) {
-			const agent = await parseOrpc(createResponse)
+			const agent = await createResponse.json()
 			agentId = agent.id
 		} else {
-			const listResp = await orpc(authenticatedPage, 'agents/list', {}, wsHeader)
-			const data = await parseOrpc(listResp)
+			const listResp = await authenticatedPage.request.get('/api/agents', { headers: wsHeader })
+			const data = await listResp.json()
 			const agents = data.agents ?? data
 			const found = agents.find((a: { name: string }) => a.name === agentName)
 			expect(found).toBeTruthy()
@@ -727,22 +656,19 @@ test.describe('Usage Reflects Recent Activity', () => {
 			timeout: 15000,
 		})
 
-		// Cleanup via oRPC
-		await orpc(authenticatedPage, 'agents/delete', { id: agentId }, wsHeader)
+		// Cleanup via REST
+		await authenticatedPage.request.delete(`/api/agents/${agentId}`, { headers: wsHeader })
 	})
 
 	test('usage page reflects data from API', async ({ authenticatedPage }) => {
 		const workspaceId = await getWorkspaceId(authenticatedPage)
 
-		// Get usage data from API via oRPC
-		const usageResponse = await orpc(
-			authenticatedPage,
-			'usage/getWorkspaceUsage',
-			{},
-			{ 'X-Workspace-Id': workspaceId },
-		)
+		// Get usage data from API via REST
+		const usageResponse = await authenticatedPage.request.get('/api/usage', {
+			headers: { 'X-Workspace-Id': workspaceId },
+		})
 		expect(usageResponse.status()).toBe(200)
-		const _usageData = await parseOrpc(usageResponse)
+		const _usageData = await usageResponse.json()
 
 		// Navigate to usage page
 		await authenticatedPage.goto('/dashboard/usage')
@@ -764,15 +690,12 @@ test.describe('Usage Reflects Recent Activity', () => {
 	}) => {
 		const workspaceId = await getWorkspaceId(authenticatedPage)
 
-		// Get agents count from API via oRPC
-		const agentsResponse = await orpc(
-			authenticatedPage,
-			'agents/list',
-			{},
-			{ 'X-Workspace-Id': workspaceId },
-		)
+		// Get agents count from API via REST
+		const agentsResponse = await authenticatedPage.request.get('/api/agents', {
+			headers: { 'X-Workspace-Id': workspaceId },
+		})
 		expect(agentsResponse.status()).toBe(200)
-		const agentsData = await parseOrpc(agentsResponse)
+		const agentsData = await agentsResponse.json()
 		const agentsList = agentsData.agents ?? agentsData
 		const totalAgents = agentsList.length ?? 0
 

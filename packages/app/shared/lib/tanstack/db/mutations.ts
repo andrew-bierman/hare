@@ -53,7 +53,7 @@ export function useAgentMutations(workspaceId: string) {
 					description: data.description ?? null,
 					model: data.model,
 					instructions: data.instructions ?? '',
-					config: data.config,
+					config: (data.config as Record<string, unknown>) ?? null,
 					status: 'draft',
 					systemToolsEnabled: data.systemToolsEnabled ?? true,
 					conversationStarters: data.conversationStarters ?? null,

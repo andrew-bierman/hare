@@ -60,7 +60,9 @@ export function parseIPv4(ip: string): number[] | null {
  */
 export function isPrivateIPv4(octets: number[]): boolean {
 	if (octets.length < 2) return false
+	// biome-ignore lint/style/noNonNullAssertion: length >= 2 checked above
 	const a = octets[0]!
+	// biome-ignore lint/style/noNonNullAssertion: length >= 2 checked above
 	const b = octets[1]!
 
 	// 0.0.0.0/8 - Current network

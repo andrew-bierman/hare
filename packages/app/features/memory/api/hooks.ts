@@ -239,6 +239,7 @@ export function useMemories(options: {
 		queryFn: () =>
 			fetchMemories({
 				agentId,
+				// biome-ignore lint/style/noNonNullAssertion: guarded by enabled && !!workspaceId
 				workspaceId: workspaceId!,
 				limit,
 				offset,
@@ -258,6 +259,7 @@ export function useCreateMemory(options: { agentId: string; workspaceId?: string
 		mutationFn: (data: CreateMemoryInput) =>
 			createMemory({
 				agentId,
+				// biome-ignore lint/style/noNonNullAssertion: mutation only callable when workspaceId exists
 				workspaceId: workspaceId!,
 				data,
 			}),
@@ -279,6 +281,7 @@ export function useSearchMemories(options: { agentId: string; workspaceId?: stri
 		mutationFn: (data: SearchMemoryInput) =>
 			searchMemories({
 				agentId,
+				// biome-ignore lint/style/noNonNullAssertion: mutation only callable when workspaceId exists
 				workspaceId: workspaceId!,
 				data,
 			}),
@@ -296,6 +299,7 @@ export function useUpdateMemory(options: { agentId: string; workspaceId?: string
 		mutationFn: (input: { memoryId: string; data: UpdateMemoryInput }) =>
 			updateMemory({
 				agentId,
+				// biome-ignore lint/style/noNonNullAssertion: mutation only callable when workspaceId exists
 				workspaceId: workspaceId!,
 				memoryId: input.memoryId,
 				data: input.data,
@@ -319,6 +323,7 @@ export function useDeleteMemory(options: { agentId: string; workspaceId?: string
 		mutationFn: (memoryId: string) =>
 			deleteMemory({
 				agentId,
+				// biome-ignore lint/style/noNonNullAssertion: mutation only callable when workspaceId exists
 				workspaceId: workspaceId!,
 				memoryId,
 			}),
@@ -341,6 +346,7 @@ export function useClearMemories(options: { agentId: string; workspaceId?: strin
 		mutationFn: () =>
 			clearMemories({
 				agentId,
+				// biome-ignore lint/style/noNonNullAssertion: mutation only callable when workspaceId exists
 				workspaceId: workspaceId!,
 			}),
 		onSuccess: () => {

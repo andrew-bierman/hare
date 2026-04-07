@@ -122,6 +122,7 @@ export function ResetPasswordPage({ token }: ResetPasswordPageProps) {
 		try {
 			const result = await resetPassword({
 				newPassword: password,
+				// biome-ignore lint/style/noNonNullAssertion: early return above when !token
 				token: token!,
 			})
 

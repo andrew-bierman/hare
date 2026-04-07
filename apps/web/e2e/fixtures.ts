@@ -70,7 +70,7 @@ export const test = base.extend<{
 				})
 				// Seed CSRF cookie via browser fetch
 				await page.evaluate(async () => {
-					await fetch('/api/rpc/health/live', { credentials: 'same-origin' })
+					await fetch('/api/health/live', { credentials: 'same-origin' })
 				})
 
 				// Navigate to dashboard — the app auto-creates a workspace for new users

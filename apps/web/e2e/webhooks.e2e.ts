@@ -7,7 +7,7 @@ import { test } from './fixtures'
  * creating, editing, deleting, and managing webhook settings.
  *
  * Note: All tests require authentication since webhook pages are protected routes.
- * The AgentWebhooksPage was migrated from raw REST fetch to oRPC client calls.
+ * The AgentWebhooksPage uses Eden Treaty for type-safe API calls.
  */
 
 // Helper to generate unique webhook URLs
@@ -336,7 +336,7 @@ test.describe('Webhooks Page - Navigation', () => {
 // ============================================================================
 // Webhook Creation Tests (Skipped - requires API fix)
 // These tests document expected behavior once the webhook API endpoints are
-// properly integrated with the component (REST to oRPC migration needed).
+// properly integrated with the component (webhook API integration needed).
 // ============================================================================
 
 test.describe('Webhooks Page - Create Webhook', () => {

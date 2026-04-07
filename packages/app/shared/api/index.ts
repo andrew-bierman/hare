@@ -5,8 +5,8 @@
  * Following Feature-Sliced Design, this is the public API for the api segment.
  */
 
-// oRPC Client - type-safe API client
-export { type AppRouterClient, orpc } from '@hare/api'
+// Eden Treaty Client - type-safe API client
+export { type App, client, getWorkspaceId, setWorkspaceId } from '@hare/api/client'
 // All types and schemas from @hare/types
 export * from '@hare/types'
 // API Hooks - all hooks and their types

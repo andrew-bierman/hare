@@ -83,6 +83,7 @@ export function InstructionsEditor({
 
 				setIsLoaded(true)
 			} catch (error) {
+				// biome-ignore lint/suspicious/noConsole: error reporting
 				console.error('Failed to load CodeMirror:', error)
 			}
 		}
