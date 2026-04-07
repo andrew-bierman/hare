@@ -12,9 +12,9 @@ import {
 } from '@hare/agent'
 import { getErrorMessage } from '@hare/checks'
 import { config } from '@hare/config'
-import { agents, conversations, messages, usage } from '@hare/db/schema'
+import { agents, conversations, messages, usage, workspaceMembers, workspaces } from '@hare/db/schema'
 import { type ModelMessage, streamText } from 'ai'
-import { and, count, desc, eq, gte, like, lte } from 'drizzle-orm'
+import { and, count, desc, eq, gte, like, lte, or } from 'drizzle-orm'
 import { Elysia, status } from 'elysia'
 import type { z } from 'zod'
 import type { ChatRequestSchema } from '../../schemas'
@@ -123,6 +123,34 @@ function highlightMatch(options: {
 }
 
 // =============================================================================
+// Auth Helpers
+// =============================================================================
+
+import type { Database } from '@hare/db'
+
+/**
+ * Verify that `userId` is a member or owner of `workspaceId`.
+ * Returns true if access is granted.
+ */
+async function userHasWorkspaceAccess(options: {
+	db: Database
+	userId: string
+	workspaceId: string
+}): Promise<boolean> {
+	const { db, userId, workspaceId } = options
+	const [ws] = await db.select().from(workspaces).where(eq(workspaces.id, workspaceId))
+	if (!ws) return false
+	if (ws.ownerId === userId) return true
+	const [membership] = await db
+		.select()
+		.from(workspaceMembers)
+		.where(
+			and(eq(workspaceMembers.workspaceId, workspaceId), eq(workspaceMembers.userId, userId)),
+		)
+	return !!membership
+}
+
+// =============================================================================
 // Routes
 // =============================================================================
 
@@ -151,6 +179,14 @@ export const chatRoutes = new Elysia({ prefix: '/chat', name: 'chat-routes' })
 			if (!agentConfig) return status(404, { error: 'Agent not found' })
 			if (agentConfig.status !== config.enums.agentStatus.DEPLOYED)
 				return status(400, { error: 'Agent not deployed' })
+
+			// Verify caller belongs to the agent's workspace
+			const hasAccess = await userHasWorkspaceAccess({
+				db,
+				userId: user.id,
+				workspaceId: agentConfig.workspaceId,
+			})
+			if (!hasAccess) return status(403, { error: 'Access denied' })
 
 			// Check credits balance before processing
 			const canProceed = await hasCredits({ db, workspaceId: agentConfig.workspaceId })
@@ -272,34 +308,43 @@ export const chatRoutes = new Elysia({ prefix: '/chat', name: 'chat-routes' })
 	// List conversations for an agent
 	.get(
 		'/agents/:id/conversations',
-		async ({ db, params }) => {
+		async ({ db, user, params }) => {
 			const agentId = params.id
+			const [agentConfig] = await db.select().from(agents).where(eq(agents.id, agentId))
+			if (!agentConfig) return status(404, { error: 'Agent not found' })
+			const hasAccess = await userHasWorkspaceAccess({
+				db,
+				userId: user.id,
+				workspaceId: agentConfig.workspaceId,
+			})
+			if (!hasAccess) return status(403, { error: 'Access denied' })
+
 			const results = await db
-				.select()
+				.select({
+					id: conversations.id,
+					agentId: conversations.agentId,
+					userId: conversations.userId,
+					title: conversations.title,
+					createdAt: conversations.createdAt,
+					updatedAt: conversations.updatedAt,
+					messageCount: count(messages.id),
+				})
 				.from(conversations)
+				.leftJoin(messages, eq(messages.conversationId, conversations.id))
 				.where(eq(conversations.agentId, agentId))
+				.groupBy(conversations.id)
 
-			const conversationsData = await Promise.all(
-				results.map(async (conv) => {
-					const messageCount = await db
-						.select()
-						.from(messages)
-						.where(eq(messages.conversationId, conv.id))
-						.then((rows) => rows.length)
-
-					return {
-						id: conv.id,
-						agentId: conv.agentId,
-						userId: conv.userId,
-						title: conv.title || 'Untitled Conversation',
-						messageCount,
-						createdAt: conv.createdAt.toISOString(),
-						updatedAt: conv.updatedAt.toISOString(),
-					}
-				}),
-			)
-
-			return { conversations: conversationsData }
+			return {
+				conversations: results.map((conv) => ({
+					id: conv.id,
+					agentId: conv.agentId,
+					userId: conv.userId,
+					title: conv.title || 'Untitled Conversation',
+					messageCount: conv.messageCount,
+					createdAt: conv.createdAt.toISOString(),
+					updatedAt: conv.updatedAt.toISOString(),
+				})),
+			}
 		},
 		{ auth: true },
 	)
@@ -307,8 +352,17 @@ export const chatRoutes = new Elysia({ prefix: '/chat', name: 'chat-routes' })
 	// Search conversations for an agent
 	.get(
 		'/agents/:id/conversations/search',
-		async ({ db, params, query }) => {
+		async ({ db, user, params, query }) => {
 			const agentId = params.id
+			const [agentConfig] = await db.select().from(agents).where(eq(agents.id, agentId))
+			if (!agentConfig) return status(404, { error: 'Agent not found' })
+			const hasAccess = await userHasWorkspaceAccess({
+				db,
+				userId: user.id,
+				workspaceId: agentConfig.workspaceId,
+			})
+			if (!hasAccess) return status(403, { error: 'Access denied' })
+
 			const searchQuery = (query?.query as string) || ''
 			const dateFrom = query?.dateFrom as string | undefined
 			const dateTo = query?.dateTo as string | undefined
@@ -376,8 +430,26 @@ export const chatRoutes = new Elysia({ prefix: '/chat', name: 'chat-routes' })
 	// Get messages in a conversation
 	.get(
 		'/conversations/:id/messages',
-		async ({ db, params }) => {
+		async ({ db, user, params }) => {
 			const conversationId = params.id
+
+			// Verify conversation exists and belongs to caller's workspace
+			const [conversation] = await db
+				.select()
+				.from(conversations)
+				.where(eq(conversations.id, conversationId))
+			if (!conversation) return status(404, { error: 'Conversation not found' })
+
+			const [agentConfig] = await db
+				.select()
+				.from(agents)
+				.where(eq(agents.id, conversation.agentId))
+			const workspaceId = agentConfig?.workspaceId
+			if (!workspaceId) return status(404, { error: 'Conversation not found' })
+
+			const hasAccess = await userHasWorkspaceAccess({ db, userId: user.id, workspaceId })
+			if (!hasAccess) return status(403, { error: 'Access denied' })
+
 			const results = await db
 				.select()
 				.from(messages)
@@ -401,7 +473,7 @@ export const chatRoutes = new Elysia({ prefix: '/chat', name: 'chat-routes' })
 	// Export conversation
 	.get(
 		'/conversations/:id/export',
-		async ({ db, params, query }) => {
+		async ({ db, user, params, query }) => {
 			const conversationId = params.id
 			const format = (query?.format as 'json' | 'csv' | 'txt') || 'json'
 			const includeMetadata = query?.includeMetadata === 'true'
@@ -412,6 +484,17 @@ export const chatRoutes = new Elysia({ prefix: '/chat', name: 'chat-routes' })
 				.where(eq(conversations.id, conversationId))
 
 			if (!conversation) return status(404, { error: 'Conversation not found' })
+
+			// Verify caller has access to this conversation's workspace
+			const [agentConfig] = await db
+				.select()
+				.from(agents)
+				.where(eq(agents.id, conversation.agentId))
+			const workspaceId = agentConfig?.workspaceId
+			if (!workspaceId) return status(404, { error: 'Conversation not found' })
+
+			const hasAccess = await userHasWorkspaceAccess({ db, userId: user.id, workspaceId })
+			if (!hasAccess) return status(403, { error: 'Access denied' })
 
 			const results = await db
 				.select()

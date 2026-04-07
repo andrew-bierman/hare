@@ -26,7 +26,7 @@ const LATENCY_THRESHOLDS = {
 	r2: 300,
 } as const
 
-async function checkDatabase(db: D1Database): Promise<ServiceCheck> {
+export async function checkDatabase(db: D1Database): Promise<ServiceCheck> {
 	const start = Date.now()
 	try {
 		const result = await db.prepare('SELECT 1 as health_check').first()
@@ -51,7 +51,7 @@ async function checkDatabase(db: D1Database): Promise<ServiceCheck> {
 	}
 }
 
-async function checkKV(kv: KVNamespace): Promise<ServiceCheck> {
+export async function checkKV(kv: KVNamespace): Promise<ServiceCheck> {
 	const start = Date.now()
 	const testKey = '__health_check_test__'
 	try {
@@ -82,7 +82,7 @@ async function checkKV(kv: KVNamespace): Promise<ServiceCheck> {
 	}
 }
 
-async function checkWorkersAI(ai: Ai): Promise<ServiceCheck> {
+export async function checkWorkersAI(ai: Ai): Promise<ServiceCheck> {
 	const start = Date.now()
 	try {
 		if (ai && typeof ai.run === 'function') {
@@ -109,7 +109,7 @@ async function checkWorkersAI(ai: Ai): Promise<ServiceCheck> {
 	}
 }
 
-async function checkR2(r2: R2Bucket): Promise<ServiceCheck> {
+export async function checkR2(r2: R2Bucket): Promise<ServiceCheck> {
 	const start = Date.now()
 	try {
 		await r2.list({ limit: 1 })
@@ -131,7 +131,7 @@ async function checkR2(r2: R2Bucket): Promise<ServiceCheck> {
 	}
 }
 
-function determineOverallStatus(services: ServiceCheck[]): 'healthy' | 'degraded' | 'unhealthy' {
+export function determineOverallStatus(services: ServiceCheck[]): 'healthy' | 'degraded' | 'unhealthy' {
 	if (services.some((s) => s.status === 'unhealthy')) return 'unhealthy'
 	if (services.some((s) => s.status === 'degraded')) return 'degraded'
 	return 'healthy'

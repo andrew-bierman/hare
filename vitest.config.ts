@@ -8,7 +8,7 @@ export default defineWorkersConfig({
       // cuid2 calls crypto.getRandomValues() at import time, which fails in Workers global scope
       "@paralleldrive/cuid2": path.resolve(__dirname, "./packages/testing/src/mocks/cuid2.ts"),
       // @hare/* package aliases
-      "@hare/api": path.resolve(__dirname, "./packages/api/src/index.ts"),
+      "@hare/api": path.resolve(__dirname, "./packages/api/src/elysia/index.ts"),
       "@hare/auth/server": path.resolve(__dirname, "./packages/auth/src/server.ts"),
       "@hare/auth/client": path.resolve(__dirname, "./packages/auth/src/client.ts"),
       "@hare/auth": path.resolve(__dirname, "./packages/auth/src/index.ts"),
