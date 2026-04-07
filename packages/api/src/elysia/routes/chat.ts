@@ -18,6 +18,7 @@ import { and, count, desc, eq, gte, like, lte } from 'drizzle-orm'
 import { Elysia, status } from 'elysia'
 import type { z } from 'zod'
 import type { ChatRequestSchema } from '../../schemas'
+import { deductCredits, hasCredits } from '../../services/credits'
 import { authPlugin } from '../context'
 
 // =============================================================================
@@ -151,6 +152,13 @@ export const chatRoutes = new Elysia({ prefix: '/chat', name: 'chat-routes' })
 			if (agentConfig.status !== config.enums.agentStatus.DEPLOYED)
 				return status(400, { error: 'Agent not deployed' })
 
+			// Check credits balance before processing
+			const canProceed = await hasCredits({ db, workspaceId: agentConfig.workspaceId })
+			if (!canProceed)
+				return status(402, {
+					error: 'No credits remaining. Buy more credits to continue using your agents.',
+				})
+
 			// Build SSE stream
 			const encoder = new TextEncoder()
 			const stream = new ReadableStream({
@@ -226,6 +234,15 @@ export const chatRoutes = new Elysia({ prefix: '/chat', name: 'chat-routes' })
 							totalTokens: tokensIn + tokensOut,
 							metadata: { model: agentConfig.model, duration: latencyMs },
 						})
+
+						// Deduct tokens used from credits balance (skip if provider didn't report usage)
+						if (tokensIn + tokensOut > 0) {
+							await deductCredits({
+								db,
+								workspaceId: agentConfig.workspaceId,
+								amount: tokensIn + tokensOut,
+							})
+						}
 
 						sendEvent({ type: 'done', sessionId: conversationId })
 					} catch (err) {

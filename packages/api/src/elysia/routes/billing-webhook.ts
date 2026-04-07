@@ -2,21 +2,15 @@
  * Billing Webhook Route
  *
  * Stripe webhook endpoint. Needs raw body access for signature verification.
- * All other billing routes are in the billing router.
+ * Handles checkout.session.completed to credit purchased tokens to workspace.
  */
 
-import { workspaces } from '@hare/db/schema'
+import { logger } from '@hare/config'
 import type { CloudflareEnv } from '@hare/types'
-import { eq } from 'drizzle-orm'
 import { Elysia } from 'elysia'
 import Stripe from 'stripe'
+import { addCredits, CREDIT_PACKS } from '../../services/credits'
 import { cfContext } from '../context'
-
-type PlanId = 'free' | 'pro' | 'team' | 'enterprise'
-
-function isValidPlanId(value: string | null | undefined): value is PlanId {
-	return value != null && ['free', 'pro', 'team', 'enterprise'].includes(value)
-}
 
 function getStripe(env: CloudflareEnv): Stripe {
 	const secretKey = env.STRIPE_SECRET_KEY
@@ -31,7 +25,8 @@ export const billingWebhookRoutes = new Elysia({
 	.use(cfContext)
 	.post('/webhook', async ({ cfEnv, db, request }) => {
 		const webhookSecret = cfEnv.STRIPE_WEBHOOK_SECRET
-		if (!webhookSecret) {
+		if (!webhookSecret || !cfEnv.STRIPE_SECRET_KEY) {
+			logger.error('STRIPE_WEBHOOK_SECRET or STRIPE_SECRET_KEY is not configured')
 			return Response.json({ error: 'Webhook not configured' }, { status: 400 })
 		}
 
@@ -45,89 +40,41 @@ export const billingWebhookRoutes = new Elysia({
 		let event: Stripe.Event
 		try {
 			const body = await request.text()
-			event = stripe.webhooks.constructEvent(body, signature, webhookSecret)
+			event = await stripe.webhooks.constructEventAsync(body, signature, webhookSecret)
 		} catch (err) {
-			// biome-ignore lint/suspicious/noConsole: error reporting
-			console.error('Webhook signature verification failed:', err)
+			logger.error('Webhook signature verification failed:', err)
 			return Response.json({ error: 'Invalid signature' }, { status: 400 })
 		}
 
-		switch (event.type) {
-			case 'checkout.session.completed': {
-				const session = event.data.object as Stripe.Checkout.Session
-				const workspaceId = session.metadata?.workspaceId
-				const rawPlanId = session.metadata?.planId
+		if (event.type === 'checkout.session.completed') {
+			const session = event.data.object as Stripe.Checkout.Session
 
-				if (workspaceId && isValidPlanId(rawPlanId) && session.subscription) {
-					// Retrieve subscription to get accurate current_period_end
-					const subscription = (await stripe.subscriptions.retrieve(
-						session.subscription as string,
-					)) as unknown as Stripe.Subscription & { current_period_end: number }
-					await db
-						.update(workspaces)
-						.set({
-							stripeSubscriptionId: session.subscription as string,
-							planId: rawPlanId,
-							currentPeriodEnd: subscription.current_period_end
-								? new Date(subscription.current_period_end * 1000)
-								: null,
-							updatedAt: new Date(),
-						})
-						.where(eq(workspaces.id, workspaceId))
-				}
-				break
+			// Only credit on confirmed payment
+			if (session.payment_status !== 'paid') {
+				return { received: true }
 			}
 
-			case 'customer.subscription.updated': {
-				const subscription = event.data.object as Stripe.Subscription & {
-					current_period_end: number
-				}
-				const workspaceId = subscription.metadata?.workspaceId
-
-				if (workspaceId) {
-					const rawPlanId = subscription.metadata?.planId
-					const planId: PlanId = isValidPlanId(rawPlanId) ? rawPlanId : 'pro'
-					await db
-						.update(workspaces)
-						.set({
-							stripeSubscriptionId: subscription.id,
-							planId,
-							currentPeriodEnd: new Date(subscription.current_period_end * 1000),
-							updatedAt: new Date(),
-						})
-						.where(eq(workspaces.id, workspaceId))
-				}
-				break
+			// Idempotency: skip if this session was already processed (Stripe retries)
+			const idempotencyKey = `stripe:session:${session.id}`
+			const alreadyProcessed = await cfEnv.KV.get(idempotencyKey)
+			if (alreadyProcessed) {
+				logger.info(`[Billing] Skipping duplicate webhook for session ${session.id}`)
+				return { received: true }
 			}
 
-			case 'customer.subscription.deleted': {
-				const subscription = event.data.object as Stripe.Subscription
-				const workspaceId = subscription.metadata?.workspaceId
+			const workspaceId = session.metadata?.workspaceId
+			// Look up credits from pack server-side — never trust client-supplied amount
+			const creditPackId = session.metadata?.creditPackId
+			const pack = CREDIT_PACKS.find((p) => p.id === creditPackId)
 
-				if (workspaceId) {
-					await db
-						.update(workspaces)
-						.set({
-							stripeSubscriptionId: null,
-							planId: 'free',
-							currentPeriodEnd: null,
-							updatedAt: new Date(),
-						})
-						.where(eq(workspaces.id, workspaceId))
-				}
-				break
+			if (workspaceId && pack) {
+				await addCredits({ db, workspaceId, amount: pack.credits })
+				// Mark session as processed; keep for 30 days to cover Stripe's retry window
+				await cfEnv.KV.put(idempotencyKey, '1', { expirationTtl: 30 * 24 * 60 * 60 })
+				logger.info(
+					`[Billing] Added ${pack.credits} token credits to workspace ${workspaceId} (session ${session.id})`,
+				)
 			}
-
-			case 'invoice.payment_failed': {
-				const invoice = event.data.object as Stripe.Invoice
-				// biome-ignore lint/suspicious/noConsole: server logging
-				console.warn('Payment failed for invoice:', invoice.id)
-				break
-			}
-
-			default:
-				// biome-ignore lint/suspicious/noConsole: server logging
-				console.log(`Unhandled event type: ${event.type}`)
 		}
 
 		return { received: true }

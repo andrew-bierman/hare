@@ -1,5 +1,6 @@
 'use client'
 
+import type { CreditPackId } from '@hare/api'
 import { client } from '@hare/api/client'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { billingKeys } from './query-keys'
@@ -8,36 +9,26 @@ import { billingKeys } from './query-keys'
 // Types
 // =============================================================================
 
-export interface Plan {
-	id: string
-	name: string
-	price: number
-	features: string[]
-}
-
-export interface BillingStatus {
-	planId: string
-	planName: string
-	status: 'active' | 'canceled' | 'past_due' | 'trialing' | 'none'
-	currentPeriodEnd: string | null
-	cancelAtPeriodEnd: boolean
+export interface CreditsStatus {
+	creditsBalance: number
+	freeMonthlyTokens: number
 	usage: {
+		messagesUsed: number
+		totalTokens: number
 		agentsUsed: number
-		agentsLimit: number
-		tokensUsed: number
-		tokensLimit: number
 	}
+	creditPacks: CreditPack[]
 }
 
-export interface PaymentHistoryItem {
+export interface CreditPack {
 	id: string
-	amount: number
-	status: string
-	createdAt: string
+	credits: number
+	price: number
+	label: string
 }
 
-export interface CheckoutRequest {
-	planId: 'pro' | 'team'
+export interface BuyCreditsRequest {
+	packId: CreditPackId
 	successUrl?: string
 	cancelUrl?: string
 }
@@ -53,57 +44,30 @@ async function unwrap<T>(promise: Promise<{ data: T | null; error: unknown }>): 
 // Hooks
 // =============================================================================
 
-export function usePlansQuery(enabled = true) {
+/** Fetch token credits balance and usage stats */
+export function useCreditsStatusQuery(workspaceId?: string, enabled = true) {
 	return useQuery({
-		queryKey: billingKeys.plans(),
-		queryFn: () => unwrap(client.api.billing.plans.get()),
-		enabled,
+		queryKey: billingKeys.status(workspaceId ?? ''),
+		queryFn: () => unwrap(client.api.billing.credits.get()),
+		enabled: enabled && !!workspaceId,
 	})
 }
 
-export function useBillingStatusQuery(enabled = true) {
-	return useQuery({
-		queryKey: billingKeys.status('current'),
-		queryFn: () => unwrap(client.api.billing.status.get()),
-		enabled,
-	})
-}
-
-export function usePaymentHistoryQuery(options?: { limit?: number; startingAfter?: string }) {
-	return useQuery({
-		queryKey: billingKeys.invoices('current'),
-		queryFn: () =>
-			unwrap(
-				client.api.billing.history.get({
-					query: {
-						limit: options?.limit?.toString(),
-						starting_after: options?.startingAfter,
-					},
-				}),
-			),
-	})
-}
-
-export function useCreateCheckoutMutation() {
+/** Buy a credit pack — redirects to Stripe Checkout */
+export function useBuyCreditsMutation(workspaceId?: string) {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: (params: CheckoutRequest) =>
+		mutationFn: (params: BuyCreditsRequest) =>
 			unwrap(
-				client.api.billing.checkout.post({
-					planId: params.planId,
+				client.api.billing['buy-credits'].post({
+					packId: params.packId,
 					successUrl: params.successUrl,
 					cancelUrl: params.cancelUrl,
 				}),
 			),
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: billingKeys.status('current') })
-			queryClient.invalidateQueries({ queryKey: billingKeys.plans() })
+			if (!workspaceId) return
+			queryClient.invalidateQueries({ queryKey: billingKeys.status(workspaceId) })
 		},
-	})
-}
-
-export function useCreatePortalMutation() {
-	return useMutation({
-		mutationFn: () => unwrap(client.api.billing.portal.post({})),
 	})
 }

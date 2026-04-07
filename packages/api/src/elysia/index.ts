@@ -70,6 +70,8 @@ export type {
 export { isMessageRole, isWorkspaceRole } from '@hare/types'
 // Re-export schemas (explicit to avoid conflicts with services)
 export * from '../schemas'
+// Credits billing types
+export { CREDIT_PACKS, type CreditPackId } from '../services/credits'
 // Main app
 export { type App, app } from './app'
 // Audit logging
