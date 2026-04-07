@@ -10,7 +10,7 @@
 
 import type { Database } from '@hare/db'
 import { workspaces } from '@hare/db/schema'
-import { eq, sql } from 'drizzle-orm'
+import { and, eq, isNull, lt, or, sql } from 'drizzle-orm'
 
 /** Free tokens given to every workspace each month */
 export const FREE_MONTHLY_TOKENS = 100_000
@@ -55,17 +55,31 @@ export async function getCreditsBalance(options: {
 	const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
 
 	if (!ws.freeCreditsResetAt || ws.freeCreditsResetAt < monthStart) {
-		const newBalance = ws.creditsBalance + FREE_MONTHLY_TOKENS
-		await db
+		// Atomic conditional update: only succeeds if freeCreditsResetAt is still
+		// old/null (prevents double-grant from concurrent requests)
+		const updated = await db
 			.update(workspaces)
 			.set({
-				creditsBalance: newBalance,
+				creditsBalance: sql`${workspaces.creditsBalance} + ${FREE_MONTHLY_TOKENS}`,
 				freeCreditsResetAt: now,
 				updatedAt: now,
 			})
-			.where(eq(workspaces.id, workspaceId))
+			.where(
+				and(
+					eq(workspaces.id, workspaceId),
+					// Re-check condition atomically so concurrent calls can't both succeed
+					or(isNull(workspaces.freeCreditsResetAt), lt(workspaces.freeCreditsResetAt, monthStart)),
+				),
+			)
+			.returning({ creditsBalance: workspaces.creditsBalance })
 
-		return newBalance
+		if (updated.length > 0) return updated[0].creditsBalance
+		// Another concurrent call already reset — fetch fresh balance
+		const [fresh] = await db
+			.select({ creditsBalance: workspaces.creditsBalance })
+			.from(workspaces)
+			.where(eq(workspaces.id, workspaceId))
+		return fresh?.creditsBalance ?? 0
 	}
 
 	return ws.creditsBalance

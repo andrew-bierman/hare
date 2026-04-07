@@ -1,5 +1,6 @@
 'use client'
 
+import type { CreditPackId } from '@hare/api'
 import { client } from '@hare/api/client'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { billingKeys } from './query-keys'
@@ -27,7 +28,7 @@ export interface CreditPack {
 }
 
 export interface BuyCreditsRequest {
-	packId: string
+	packId: CreditPackId
 	successUrl?: string
 	cancelUrl?: string
 }
