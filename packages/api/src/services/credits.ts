@@ -104,7 +104,8 @@ export async function deductCredits(options: {
 	const result = await db
 		.update(workspaces)
 		.set({
-			creditsBalance: sql`MAX(${workspaces.creditsBalance} - ${amount}, 0)`,
+			// Allow negative balance so full overage is recorded; hasCredits blocks at <= 0
+			creditsBalance: sql`${workspaces.creditsBalance} - ${amount}`,
 			updatedAt: new Date(),
 		})
 		.where(eq(workspaces.id, workspaceId))

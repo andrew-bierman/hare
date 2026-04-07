@@ -235,12 +235,14 @@ export const chatRoutes = new Elysia({ prefix: '/chat', name: 'chat-routes' })
 							metadata: { model: agentConfig.model, duration: latencyMs },
 						})
 
-						// Deduct tokens used from credits balance
-						await deductCredits({
-							db,
-							workspaceId: agentConfig.workspaceId,
-							amount: tokensIn + tokensOut,
-						})
+						// Deduct tokens used from credits balance (skip if provider didn't report usage)
+						if (tokensIn + tokensOut > 0) {
+							await deductCredits({
+								db,
+								workspaceId: agentConfig.workspaceId,
+								amount: tokensIn + tokensOut,
+							})
+						}
 
 						sendEvent({ type: 'done', sessionId: conversationId })
 					} catch (err) {

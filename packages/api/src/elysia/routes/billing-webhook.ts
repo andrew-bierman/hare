@@ -9,7 +9,7 @@ import { logger } from '@hare/config'
 import type { CloudflareEnv } from '@hare/types'
 import { Elysia } from 'elysia'
 import Stripe from 'stripe'
-import { addCredits } from '../../services/credits'
+import { addCredits, CREDIT_PACKS } from '../../services/credits'
 import { cfContext } from '../context'
 
 function getStripe(env: CloudflareEnv): Stripe {
@@ -54,17 +54,26 @@ export const billingWebhookRoutes = new Elysia({
 				return { received: true }
 			}
 
-			const workspaceId = session.metadata?.workspaceId
-			const creditsAmount = session.metadata?.creditsAmount
+			// Idempotency: skip if this session was already processed (Stripe retries)
+			const idempotencyKey = `stripe:session:${session.id}`
+			const alreadyProcessed = await cfEnv.KV.get(idempotencyKey)
+			if (alreadyProcessed) {
+				logger.info(`[Billing] Skipping duplicate webhook for session ${session.id}`)
+				return { received: true }
+			}
 
-			if (workspaceId && creditsAmount) {
-				const amount = Number.parseInt(creditsAmount, 10)
-				if (amount > 0) {
-					await addCredits({ db, workspaceId, amount })
-					logger.info(
-						`[Billing] Added ${amount} token credits to workspace ${workspaceId} (session ${session.id})`,
-					)
-				}
+			const workspaceId = session.metadata?.workspaceId
+			// Look up credits from pack server-side — never trust client-supplied amount
+			const creditPackId = session.metadata?.creditPackId
+			const pack = CREDIT_PACKS.find((p) => p.id === creditPackId)
+
+			if (workspaceId && pack) {
+				await addCredits({ db, workspaceId, amount: pack.credits })
+				// Mark session as processed; keep for 30 days to cover Stripe's retry window
+				await cfEnv.KV.put(idempotencyKey, '1', { expirationTtl: 30 * 24 * 60 * 60 })
+				logger.info(
+					`[Billing] Added ${pack.credits} token credits to workspace ${workspaceId} (session ${session.id})`,
+				)
 			}
 		}
 

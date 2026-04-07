@@ -47,9 +47,9 @@ async function unwrap<T>(promise: Promise<{ data: T | null; error: unknown }>): 
 /** Fetch token credits balance and usage stats */
 export function useCreditsStatusQuery(workspaceId?: string, enabled = true) {
 	return useQuery({
-		queryKey: billingKeys.status(workspaceId ?? 'credits'),
+		queryKey: billingKeys.status(workspaceId ?? ''),
 		queryFn: () => unwrap(client.api.billing.credits.get()),
-		enabled,
+		enabled: enabled && !!workspaceId,
 	})
 }
 
@@ -66,7 +66,8 @@ export function useBuyCreditsMutation(workspaceId?: string) {
 				}),
 			),
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: billingKeys.status(workspaceId ?? 'credits') })
+			if (!workspaceId) return
+			queryClient.invalidateQueries({ queryKey: billingKeys.status(workspaceId) })
 		},
 	})
 }

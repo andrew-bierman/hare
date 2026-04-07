@@ -1,5 +1,6 @@
 'use client'
 
+import type { CreditPackId } from '@hare/api'
 import { Badge } from '@hare/ui/components/badge'
 import { Button } from '@hare/ui/components/button'
 import {
@@ -58,7 +59,7 @@ export function BillingPage({ searchParams }: BillingPageProps) {
 		}
 	}, [searchParams?.credits, navigate])
 
-	const handleBuyCredits = async (packId: string) => {
+	const handleBuyCredits = async (packId: CreditPackId) => {
 		if (!activeWorkspace) return
 		setIsRedirecting(true)
 		try {

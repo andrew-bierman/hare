@@ -38,10 +38,15 @@ function getAppUrl(env: CloudflareEnv): string {
 
 const CREDIT_PACK_IDS = CREDIT_PACKS.map((p) => p.id) as [string, ...string[]]
 
+// App-relative paths only — prevents open-redirect to arbitrary domains
+const appRelativePath = z
+	.string()
+	.regex(/^\/(?!\/)/, 'Must be an app-relative path starting with "/"')
+
 const BuyCreditsBodySchema = z.object({
 	packId: z.enum(CREDIT_PACK_IDS),
-	successUrl: z.string().url().optional(),
-	cancelUrl: z.string().url().optional(),
+	successUrl: appRelativePath.optional(),
+	cancelUrl: appRelativePath.optional(),
 })
 
 // =============================================================================
@@ -120,8 +125,12 @@ export const billingRoutes = new Elysia({ prefix: '/billing', name: 'billing-rou
 						quantity: 1,
 					},
 				],
-				success_url: body.successUrl || `${appUrl}/dashboard/settings/billing?credits=success`,
-				cancel_url: body.cancelUrl || `${appUrl}/dashboard/settings/billing?credits=canceled`,
+				success_url: body.successUrl
+					? `${appUrl}${body.successUrl}`
+					: `${appUrl}/dashboard/settings/billing?credits=success`,
+				cancel_url: body.cancelUrl
+					? `${appUrl}${body.cancelUrl}`
+					: `${appUrl}/dashboard/settings/billing?credits=canceled`,
 				metadata: {
 					workspaceId: workspace.id,
 					creditPackId: pack.id,
