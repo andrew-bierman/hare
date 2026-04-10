@@ -5,6 +5,7 @@
  * Also provides OAuth provider discovery endpoint.
  */
 
+import { env as cfWorkerEnv } from 'cloudflare:workers'
 import { type AuthServerEnv, createAuth, getOAuthProviders } from '@hare/auth/server'
 import { isErrorType } from '@hare/checks'
 import type { CloudflareEnv } from '@hare/types'
@@ -52,8 +53,7 @@ export const authRoutes = new Elysia({ prefix: '/auth', name: 'auth-routes' })
 	// Mount Better Auth handler for all other auth routes
 	// Use .mount() to bypass Elysia's body parsing - Better Auth needs the raw request body
 	.mount(async (request) => {
-		const cfModule = await import('cloudflare:workers')
-		const cfEnv = (cfModule as unknown as { env: CloudflareEnv }).env
+		const cfEnv = cfWorkerEnv as CloudflareEnv
 		let d1: D1Database
 		try {
 			d1 = getD1(cfEnv)
