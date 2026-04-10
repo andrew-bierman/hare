@@ -53,7 +53,7 @@ import { workspaceRoutes } from './routes/workspaces'
 // App
 // =============================================================================
 
-export const app = new Elysia({ prefix: '/api', name: 'hare-api' })
+export const app = new Elysia({ prefix: '/api', name: 'hare-api', aot: false })
 	// OpenAPI spec + Scalar API reference UI
 	// - Spec: /api/openapi/json
 	// - Scalar UI: /api/openapi

@@ -15,6 +15,7 @@
  * - Zod schemas via Standard Schema support (Elysia 1.4+)
  */
 
+import { env as cfWorkerEnv } from 'cloudflare:workers'
 import { type AuthServerEnv, createAuth } from '@hare/auth/server'
 import { createDb, type Database } from '@hare/db'
 import { workspaceMembers, workspaces } from '@hare/db/schema'
@@ -161,9 +162,8 @@ async function resolveWorkspaceAccess(options: { db: Database; userId: string; r
  * Uses the `cloudflare:workers` module to access env bindings.
  */
 export const cfContext = new Elysia({ name: 'cf-context' }).derive({ as: 'global' }, () => {
-	// CF Workers exposes env via the cloudflare:workers module
-	// This is populated per-request by the Workers runtime
-	const { env } = require('cloudflare:workers') as { env: CloudflareEnv }
+	// CF Workers exposes env via the cloudflare:workers module (top-level import)
+	const env = cfWorkerEnv as CloudflareEnv
 	const db = getDbFromEnv(env)
 	return { cfEnv: env, db }
 })
