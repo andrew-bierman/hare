@@ -117,7 +117,7 @@ export const workspaceRoutes = new Elysia({ prefix: '/workspaces', name: 'worksp
 			}
 
 			// Normalize slug to same rules as CreateWorkspaceSchema, guaranteed ≤ 50 chars
-			const slugSuffix = Date.now().toString(36) // ~8 chars
+			const slugSuffix = crypto.randomUUID().slice(0, 8)
 			const maxBase = 50 - slugSuffix.length - 1 // reserve suffix + hyphen
 			const slugBase =
 				(user.name || 'user')
