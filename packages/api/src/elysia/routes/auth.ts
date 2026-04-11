@@ -50,8 +50,12 @@ export const authRoutes = new Elysia({ prefix: '/auth', name: 'auth-routes' })
 	})
 
 	// Mount Better Auth handler for all other auth routes
-	// .mount() takes a WinterCG-compliant fetch handler
-	.all('/*', async ({ cfEnv, request }) => {
+	// .mount() bypasses Elysia's body parsing so Better Auth can read the body itself.
+	// Better Auth expects requests at /api/auth/* - .mount() receives the raw request URL
+	// unchanged, so the basePath config matches.
+	.mount(async (request) => {
+		const { env } = await import('cloudflare:workers')
+		const cfEnv = env as unknown as CloudflareEnv
 		let d1: D1Database
 		try {
 			d1 = getD1(cfEnv)
