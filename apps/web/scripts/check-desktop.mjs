@@ -4,7 +4,7 @@ import { createServer } from 'node:http'
 import { readFile } from 'node:fs/promises'
 import { extname, resolve, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { chromium } from '@playwright/test'
+import { chromium, expect } from '@playwright/test'
 
 const root = fileURLToPath(new URL('../../tauri/dist/static/', import.meta.url))
 const types = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css' }
@@ -26,14 +26,23 @@ await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve))
 let browser
 try {
 	browser = await chromium.launch({ executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH })
-	const page = await browser.newPage()
+	const page = await browser.newPage({ serviceWorkers: 'block' })
 	const errors = []
+	const failedAssets = []
 	page.on('pageerror', (error) => errors.push(error.message))
+	page.on('response', (response) => {
+		if (new URL(response.url()).pathname.startsWith('/assets/') && !response.ok()) {
+			failedAssets.push(`${response.status()} ${response.url()}`)
+		}
+	})
 	// Never send acceptance traffic to a live backend.
 	const origin = `http://127.0.0.1:${server.address().port}`
 	await page.route('**/*', (route) => new URL(route.request().url()).origin === origin ? route.continue() : route.abort())
 	await page.goto(origin)
-	await page.waitForFunction(() => document.body.innerText.trim().length > 0)
+	// Assert the actual current root route, not arbitrary error-page/SSR text.
+	// This deliberately documents the existing scaffold; it is not product acceptance.
+	await expect(page.getByText('Hello "/"!', { exact: true })).toBeVisible()
+	assert.deepEqual(failedAssets, [], 'Packaged assets must load successfully')
 	assert.deepEqual(errors, [], 'Packaged desktop frontend must hydrate without page errors')
 	console.log('PASS: packaged desktop frontend renders:', await page.locator('body').innerText())
 } finally {

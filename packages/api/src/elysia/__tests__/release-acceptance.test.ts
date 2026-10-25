@@ -25,7 +25,7 @@ beforeAll(async () => {
 })
 
 describe('release acceptance in local Workers runtime', () => {
-	it('signs up, reads the session and creates a workspace with the real API', async () => {
+	it('authenticates, isolates workspaces and completes agent CRUD with the real API', async () => {
 		const signup = await app.fetch(
 			new Request('http://localhost:3000/api/auth/sign-up/email', {
 				method: 'POST',
@@ -80,6 +80,44 @@ describe('release acceptance in local Workers runtime', () => {
 		expect(await list.json()).toMatchObject({
 			agents: [{ id: createdAgent.id, name: 'Release Agent' }],
 		})
+		const updated = await app.fetch(
+			new Request(`http://localhost:3000/api/agents/${createdAgent.id}`, {
+				method: 'PATCH',
+				headers,
+				body: JSON.stringify({ name: 'Updated Release Agent' }),
+			}),
+		)
+		expect(updated.status, await updated.clone().text()).toBe(200)
+		const readUpdated = await app.fetch(
+			new Request(`http://localhost:3000/api/agents/${createdAgent.id}`, { headers }),
+		)
+		expect(await readUpdated.json()).toMatchObject({
+			id: createdAgent.id,
+			name: 'Updated Release Agent',
+		})
+		const outsider = await app.fetch(
+			new Request('http://localhost:3000/api/auth/sign-up/email', {
+				method: 'POST',
+				headers: { 'content-type': 'application/json', origin: 'http://localhost:3000' },
+				body: JSON.stringify({
+					name: 'Other User',
+					email: 'outsider@example.test',
+					password: 'test-password-for-outsider',
+				}),
+			}),
+		)
+		expect(outsider.status, await outsider.clone().text()).toBe(200)
+		const outsiderCookie = outsider.headers
+			.getSetCookie()
+			.map((value) => value.split(';')[0])
+			.join('; ')
+		expect(outsiderCookie).toContain('session_token')
+		const forbidden = await app.fetch(
+			new Request(`http://localhost:3000/api/agents/${createdAgent.id}`, {
+				headers: { ...headers, cookie: outsiderCookie },
+			}),
+		)
+		expect(forbidden.status).toBe(403)
 		const removed = await app.fetch(
 			new Request(`http://localhost:3000/api/agents/${createdAgent.id}`, {
 				method: 'DELETE',
@@ -91,6 +129,40 @@ describe('release acceptance in local Workers runtime', () => {
 			new Request(`http://localhost:3000/api/agents/${createdAgent.id}`, { headers }),
 		)
 		expect(missing.status).toBe(404)
+		const signout = await app.fetch(
+			new Request('http://localhost:3000/api/auth/sign-out', {
+				method: 'POST',
+				headers: { cookie, origin: 'http://localhost:3000' },
+			}),
+		)
+		expect(signout.status).toBe(200)
+		expect(
+			signout.headers
+				.getSetCookie()
+				.some((value) => value.includes('session_token=;') && value.includes('Max-Age=0')),
+		).toBe(true)
+		// Validate database revocation without replaying the five-minute signed cookie cache.
+		const tokenOnly = cookie
+			.split('; ')
+			.filter((value) => value.startsWith('better-auth.session_token='))
+			.join('; ')
+		expect(tokenOnly).not.toBe('')
+		const expired = await app.fetch(
+			new Request('http://localhost:3000/api/workspaces', { headers: { cookie: tokenOnly } }),
+		)
+		expect(expired.status).toBe(401)
+		const signin = await app.fetch(
+			new Request('http://localhost:3000/api/auth/sign-in/email', {
+				method: 'POST',
+				headers: { 'content-type': 'application/json', origin: 'http://localhost:3000' },
+				body: JSON.stringify({
+					email: 'release@example.test',
+					password: 'test-password-for-release',
+				}),
+			}),
+		)
+		expect(signin.status, await signin.clone().text()).toBe(200)
+		expect(signin.headers.getSetCookie().join(';')).toContain('session_token=')
 	})
 
 	it('rejects unauthenticated workspace access', async () => {
