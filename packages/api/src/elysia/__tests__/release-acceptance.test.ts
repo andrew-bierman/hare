@@ -1,6 +1,7 @@
 import { applyD1Migrations, env } from 'cloudflare:test'
+import { Buffer } from 'node:buffer'
 import { config } from '@hare/config'
-import { beforeAll, describe, expect, it } from 'vitest'
+import { beforeAll, describe, expect, it, vi } from 'vitest'
 import { app } from '../app'
 
 const migrations = import.meta.glob('../../../../../apps/web/migrations/*.sql', {
@@ -163,6 +164,77 @@ describe('release acceptance in local Workers runtime', () => {
 		)
 		expect(signin.status, await signin.clone().text()).toBe(200)
 		expect(signin.headers.getSetCookie().join(';')).toContain('session_token=')
+	})
+
+	it('characterizes the existing logout cache window and rejects forged cache data', async () => {
+		// This records current behavior, not approval of immediate post-logout replay.
+		const signupStartedAt = Date.now()
+		const signup = await app.fetch(
+			new Request('http://localhost:3000/api/auth/sign-up/email', {
+				method: 'POST',
+				headers: { 'content-type': 'application/json', origin: 'http://localhost:3000' },
+				body: JSON.stringify({
+					name: 'Cache Test',
+					email: 'cache@example.test',
+					password: 'test-password-for-cache',
+				}),
+			}),
+		)
+		const signupCompletedAt = Date.now()
+		expect(signup.status).toBe(200)
+		const cookies = signup.headers.getSetCookie().map((value) => value.split(';')[0] ?? '')
+		const cookie = cookies.join('; ')
+		const cacheCookie = cookies.find((value) => value.startsWith('better-auth.session_data='))
+		expect(cacheCookie).toBeDefined()
+		if (!cacheCookie) throw new Error('Expected the configured signed session cache cookie')
+		const encoded = cacheCookie.slice(cacheCookie.indexOf('=') + 1)
+		const cache = JSON.parse(
+			Buffer.from(decodeURIComponent(encoded), 'base64url').toString('utf8'),
+		) as {
+			expiresAt: number
+			session: { user: { email: string } }
+		}
+		// Check the real cookie's configured lifetime before moving the clock.
+		expect(cache.expiresAt).toBeGreaterThanOrEqual(signupStartedAt + 300_000)
+		expect(cache.expiresAt).toBeLessThanOrEqual(signupCompletedAt + 300_000)
+		cache.session.user.email = 'forged@example.test'
+		const forgedCache = Buffer.from(JSON.stringify(cache)).toString('base64url')
+		const forgedCookie = cookies
+			.map((value) => (value === cacheCookie ? `better-auth.session_data=${forgedCache}` : value))
+			.join('; ')
+		const forged = await app.fetch(
+			new Request('http://localhost:3000/api/workspaces', { headers: { cookie: forgedCookie } }),
+		)
+		expect(forged.status).toBe(401)
+		const signout = await app.fetch(
+			new Request('http://localhost:3000/api/auth/sign-out', {
+				method: 'POST',
+				headers: { cookie, origin: 'http://localhost:3000' },
+			}),
+		)
+		expect(signout.status).toBe(200)
+		for (const name of ['session_token', 'session_data']) {
+			expect(
+				signout.headers
+					.getSetCookie()
+					.some((value) => value.includes(`${name}=;`) && value.includes('Max-Age=0')),
+			).toBe(true)
+		}
+		const clock = vi.spyOn(Date, 'now')
+		try {
+			clock.mockReturnValue(cache.expiresAt - 1_000)
+			const replay = await app.fetch(
+				new Request('http://localhost:3000/api/workspaces', { headers: { cookie } }),
+			)
+			expect(replay.status).toBe(200)
+			clock.mockReturnValue(cache.expiresAt + 1_000)
+			const expired = await app.fetch(
+				new Request('http://localhost:3000/api/workspaces', { headers: { cookie } }),
+			)
+			expect(expired.status).toBe(401)
+		} finally {
+			clock.mockRestore()
+		}
 	})
 
 	it('rejects unauthenticated workspace access', async () => {
